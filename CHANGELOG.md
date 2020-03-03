@@ -1,3 +1,12 @@
+# __2.10.78__ __2020-03-03__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC Flow Logs adds support for tags and tagging on resource creation.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix an issue where the Netty client was prematurely considering an HTTP/2 request body as sent, but was still in the process of being transferred to the remote endpoint.
+
 # __2.10.77__ __2020-03-02__
 ## __AWS Comprehend Medical__
   - ### Features

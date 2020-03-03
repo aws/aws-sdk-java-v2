@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "Amazon VPC Flow Logs adds support for tags and tagging on resource creation."
-}
