@@ -39,12 +39,11 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
 public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
@@ -204,12 +203,12 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
     @Before
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())
-                                      .globalSecondaryIndices(
-                                          GlobalSecondaryIndex.create(
-                                              "gsi_1",
-                                              Projection.builder().projectionType(ProjectionType.ALL).build(),
-                                              getDefaultProvisionedThroughput()))
-                                      .build());
+                .globalSecondaryIndices(
+                        EnhancedGlobalSecondaryIndex.builder()
+                                .indexName("gsi_1")
+                                .projection(p -> p.projectionType(ProjectionType.ALL))
+                                .provisionedThroughput(getDefaultProvisionedThroughput())
+                                .build()));
     }
 
     @After

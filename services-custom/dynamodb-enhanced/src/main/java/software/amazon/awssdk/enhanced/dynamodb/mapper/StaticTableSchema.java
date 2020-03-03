@@ -38,6 +38,36 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+/**
+ * Implementation of {@link TableSchema} that builds a schema based on directly declared attributes and methods to
+ * get and set those attributes. This is the most direct, and thus fastest, implementation of {@link TableSchema}.
+ * <p>
+ * Example using a fictional 'Customer' data item class:-
+ * {@code
+ * static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
+ *      StaticTableSchema.builder(Customer.class)
+ *        .newItemSupplier(Customer::new)
+ *        .attributes(
+ *          stringAttribute("account_id",
+ *                          Customer::getAccountId,
+ *                          Customer::setAccountId)
+ *             .as(primaryPartitionKey()),
+ *          integerNumberAttribute("sub_id",
+ *                                 Customer::getSubId,
+ *                                 Customer::setSubId)
+ *             .as(primarySortKey()),
+ *          stringAttribute("name",
+ *                          Customer::getName,
+ *                          Customer::setName)
+ *             .as(secondaryPartitionKey("customers_by_name")),
+ *          stringAttribute("created_date",
+ *                          Customer::getCreatedDate,
+ *                          Customer::setCreatedDate)
+ *             .as(secondarySortKey("customers_by_date"),
+ *                 secondarySortKey("customers_by_name")))
+ *        .build();
+ * }
+ */
 @SdkPublicApi
 public final class StaticTableSchema<T> implements TableSchema<T> {
     private final List<Attribute<T>> attributeMappers;
@@ -58,10 +88,19 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
                                 .collect(Collectors.toMap(Attribute::attributeName, Function.identity())));
     }
 
+    /**
+     * Creates a builder for a {@link StaticTableSchema} typed to specific data item class.
+     * @param itemClass The data item class object that the {@link StaticTableSchema} is to map to.
+     * @return A newly initialized builder
+     */
     public static <T> Builder<T> builder(Class<? extends T> itemClass) {
         return new Builder<>();
     }
 
+    /**
+     * Builder for a {@link StaticTableSchema}
+     * @param <T> The data item type that the {@link StaticTableSchema} this builder will build is to map to.
+     */
     public static final class Builder<T> {
         private Supplier<T> newItemSupplier;
         private StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
@@ -71,22 +110,35 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         private Builder() {
         }
 
+        /**
+         * A function that can be used to create new instances of the data item class.
+         */
         public Builder<T> newItemSupplier(Supplier<T> newItemSupplier) {
             this.newItemSupplier = newItemSupplier;
             return this;
         }
 
+        /**
+         * A list of attributes that can be mapped between the data item object and the database record.
+         */
         @SafeVarargs
         public final Builder<T> attributes(Attribute.AttributeSupplier<T>... mappedAttributes) {
             stream(mappedAttributes).map(Supplier::get).forEach(this::mergeAttribute);
             return this;
         }
 
+        /**
+         * A list of attributes that can be mapped between the data item object and the database record.
+         */
         public Builder<T> attributes(Collection<Attribute.AttributeSupplier<T>> mappedAttributes) {
             mappedAttributes.stream().map(Supplier::get).forEach(this::mergeAttribute);
             return this;
         }
 
+        /**
+         * Flattens all the attributes defined in another {@link StaticTableSchema} into the database record this schema
+         * maps to. Functions to get and set an object that the flattened schema maps to is required.
+         */
         public <R> Builder<T> flatten(StaticTableSchema<R> otherTableSchema,
                                       Function<T, R> otherItemGetter,
                                       BiConsumer<T, R> otherItemSetter) {
@@ -114,15 +166,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
 
         /**
          * Extends the {@link StaticTableSchema} of a super-class, effectively rolling all the attributes modelled by
-         * the super-class into the {@link StaticTableSchema} of the sub-class. If you are extending an abstract
-         * table schema that has no inferred type (due to having no attributes or a newItemSupplier) the compiler
-         * will not be able to correctly infer the type of the sub-class. To overcome this, specify the type
-         * explicitly as this example illustrates:
-         *
-         * {@code StaticTableSchema.builder().<Subclass>extend(superclassTableSchema).build(); }
-         *
-         * @param superTableSchema The {@link StaticTableSchema} of the super-class object.
-         * @return A strongly typed builder for the {@link StaticTableSchema} under construction.
+         * the super-class into the {@link StaticTableSchema} of the sub-class.
          */
         public Builder<T> extend(StaticTableSchema<? super T> superTableSchema) {
             // Upcast transform and merge attributes
@@ -133,11 +177,18 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
             return this;
         }
 
+        /**
+         * Associate one or more {@link TableTag} with this schema. See documentation on the tags themselves to
+         * understand what each one does.
+         */
         public Builder<T> tagWith(TableTag... tableTags) {
             Arrays.stream(tableTags).forEach(tableTag -> tableTag.setTableMetadata(tableMetadataBuilder));
             return this;
         }
 
+        /**
+         * Builds a {@link StaticTableSchema} based on the values this builder has been configured with
+         */
         public StaticTableSchema<T> build() {
             return new StaticTableSchema<>(mappedAttributes,
                                            newItemSupplier,
