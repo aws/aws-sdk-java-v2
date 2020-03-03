@@ -25,6 +25,12 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
 public interface BackoffStrategy {
 
     /**
+     * Max permitted retry times. To prevent exponentialDelay from overflow, there must be 2 ^ retriesAttempted
+     * <= 2 ^ 31 - 1, which means retriesAttempted <= 30, so that is the ceil for retriesAttempted.
+     */
+    int RETRIES_ATTEMPTED_CEILING = (int) Math.floor(Math.log(Integer.MAX_VALUE) / Math.log(2));
+
+    /**
      * Compute the delay before the next retry request. This strategy is only consulted when there will be a next retry.
      *
      * @param context Context about the state of the last request and information about the number of requests made.
@@ -33,7 +39,8 @@ public interface BackoffStrategy {
     Duration computeDelayBeforeNextRetry(RetryPolicyContext context);
 
     default int calculateExponentialDelay(int retriesAttempted, Duration baseDelay, Duration maxBackoffTime) {
-        return (int) Math.min((1L << retriesAttempted) * baseDelay.toMillis(), maxBackoffTime.toMillis());
+        int cappedRetries = Math.min(retriesAttempted, RETRIES_ATTEMPTED_CEILING);
+        return (int) Math.min(baseDelay.multipliedBy(1L << cappedRetries).toMillis(), maxBackoffTime.toMillis());
     }
 
     static BackoffStrategy defaultStrategy() {
