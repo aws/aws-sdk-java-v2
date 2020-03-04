@@ -1,3 +1,8 @@
+# __2.10.79__ __2020-03-04__
+## __Amazon Pinpoint__
+  - ### Features
+    - This release of the Amazon Pinpoint API introduces support for integrating recommender models with email, push notification, and SMS message templates. You can now use these types of templates to connect to recommender models and add personalized recommendations to messages that you send from campaigns and journeys.
+
 # __2.10.78__ __2020-03-03__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
