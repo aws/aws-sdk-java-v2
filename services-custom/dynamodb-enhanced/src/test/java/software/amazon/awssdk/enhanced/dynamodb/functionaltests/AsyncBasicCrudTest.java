@@ -24,11 +24,10 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.prim
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Objects;
 import java.util.concurrent.CompletionException;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +38,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
@@ -173,14 +173,14 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
         StaticTableSchema.builder(Record.class)
                    .newItemSupplier(Record::new)
                    .attributes(
-                       stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                       stringAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()),
+                       attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                       attribute("sort", TypeToken.of(String.class), Record::getSort, Record::setSort).as(primarySortKey()),
                        // This is a DynamoDb reserved word, forces testing of AttributeNames
-                       stringAttribute("attribute", Record::getAttribute, Record::setAttribute),
+                       attribute("attribute", TypeToken.of(String.class), Record::getAttribute, Record::setAttribute),
                        // Using tricky characters to force scrubbing of attributeName tokens
-                       stringAttribute("*attribute2*", Record::getAttribute2, Record::setAttribute2)
+                       attribute("*attribute2*", TypeToken.of(String.class), Record::getAttribute2, Record::setAttribute2)
                            .as(secondaryPartitionKey("gsi_1")),
-                       stringAttribute("attribute3", Record::getAttribute3, Record::setAttribute3)
+                       attribute("attribute3", TypeToken.of(String.class), Record::getAttribute3, Record::setAttribute3)
                            .as(secondarySortKey("gsi_1")))
                    .build();
 
@@ -188,11 +188,10 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
         StaticTableSchema.builder(ShortRecord.class)
                    .newItemSupplier(ShortRecord::new)
                    .attributes(
-                       stringAttribute("id", ShortRecord::getId, ShortRecord::setId).as(primaryPartitionKey()),
-                       stringAttribute("sort", ShortRecord::getSort, ShortRecord::setSort).as(primarySortKey()),
-                       stringAttribute("attribute", ShortRecord::getAttribute, ShortRecord::setAttribute))
+                       attribute("id", TypeToken.of(String.class), ShortRecord::getId, ShortRecord::setId).as(primaryPartitionKey()),
+                       attribute("sort", TypeToken.of(String.class), ShortRecord::getSort, ShortRecord::setSort).as(primarySortKey()),
+                       attribute("attribute", TypeToken.of(String.class), ShortRecord::getAttribute, ShortRecord::setAttribute))
                    .build();
-
 
     private DynamoDbEnhancedAsyncClient enhancedAsyncClient =
         DefaultDynamoDbEnhancedAsyncClient.builder()
@@ -324,9 +323,9 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                                    .build();
 
         mappedTable.putItem(PutItemEnhancedRequest.builder(Record.class)
-                                            .item(record)
-                                            .conditionExpression(conditionExpression)
-                                            .build()).join();
+                                                  .item(record)
+                                                  .conditionExpression(conditionExpression)
+                                                  .build()).join();
 
         Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         assertThat(result, is(record));
@@ -419,8 +418,8 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(ConditionalCheckFailedException.class));
         mappedTable.deleteItem(DeleteItemEnhancedRequest.builder().key(mappedTable.keyFrom(record))
-                                               .conditionExpression(conditionExpression)
-                                               .build()).join();
+                                                        .conditionExpression(conditionExpression)
+                                                        .build()).join();
     }
 
     @Test
@@ -555,9 +554,9 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
         Record updateRecord = new Record().setId("id-value").setSort("sort-value");
 
         Record result = mappedTable.updateItem(UpdateItemEnhancedRequest.builder(Record.class)
-                                                               .item(updateRecord)
-                                                               .ignoreNulls(true)
-                                                               .build())
+                                                                        .item(updateRecord)
+                                                                        .ignoreNulls(true)
+                                                                        .build())
                                    .join();
 
         assertThat(result, is(record));
@@ -584,9 +583,9 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                                    .build();
 
         mappedTable.updateItem(UpdateItemEnhancedRequest.builder(Record.class)
-                                               .item(record)
-                                               .conditionExpression(conditionExpression)
-                                               .build())
+                                                        .item(record)
+                                                        .conditionExpression(conditionExpression)
+                                                        .build())
                    .join();
 
         Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
@@ -616,9 +615,9 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(ConditionalCheckFailedException.class));
         mappedTable.updateItem(UpdateItemEnhancedRequest.builder(Record.class)
-                                               .item(record)
-                                               .conditionExpression(conditionExpression)
-                                               .build())
+                                                        .item(record)
+                                                        .conditionExpression(conditionExpression)
+                                                        .build())
                    .join();
     }
 

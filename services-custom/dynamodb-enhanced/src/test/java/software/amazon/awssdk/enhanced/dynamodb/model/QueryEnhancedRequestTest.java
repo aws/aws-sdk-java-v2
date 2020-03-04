@@ -25,7 +25,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.eq
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;

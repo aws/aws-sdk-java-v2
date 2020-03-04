@@ -18,8 +18,14 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.SortedMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.junit.Test;
 
@@ -83,6 +89,106 @@ public class TypeTokenTest {
 
         assertThat(new TypeToken<Map<String, List<String>>>(){}).isEqualTo(new TypeToken<Map<String, List<String>>>(){});
         assertThat(new TypeToken<Map<String, List<String>>>(){}).isNotEqualTo(new TypeToken<Map<String, List<Integer>>>(){});
+    }
+
+    @Test
+    public void dequeOf_ReturnsRawClassOfDeque_WhenSpecifyingClass() {
+        TypeToken<Deque<String>> type = TypeToken.dequeOf(String.class);
+
+        assertThat(type.rawClass()).isEqualTo(Deque.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class));
+    }
+
+    @Test
+    public void dequeOf_ReturnsRawClassOfDeque_WhenSpecifyingTypeToken() {
+        TypeToken<Deque<String>> type = TypeToken.dequeOf(TypeToken.of(String.class));
+
+        assertThat(type.rawClass()).isEqualTo(Deque.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class));
+    }
+
+    @Test
+    public void navigableSetOf_ReturnsRawClassOfNavigableSet_WhenSpecifyingClass() {
+        TypeToken<NavigableSet<String>> type = TypeToken.navigableSetOf(String.class);
+
+        assertThat(type.rawClass()).isEqualTo(NavigableSet.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class));
+    }
+
+    @Test
+    public void navigableSetOf_ReturnsRawClassOfNavigableSet_WhenSpecifyingTypeToken() {
+        TypeToken<NavigableSet<String>> type = TypeToken.navigableSetOf(TypeToken.of(String.class));
+
+        assertThat(type.rawClass()).isEqualTo(NavigableSet.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class));
+    }
+
+
+    @Test
+    public void collectionOf_ReturnsRawClassOfCollection_WhenSpecifyingClass() {
+        TypeToken<Collection<String>> type = TypeToken.collectionOf(String.class);
+
+        assertThat(type.rawClass()).isEqualTo(Collection.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class));
+    }
+
+    @Test
+    public void collectionOf_ReturnsRawClassOfCollection_WhenSpecifyingTypeToken() {
+        TypeToken<Collection<String>> type = TypeToken.collectionOf(TypeToken.of(String.class));
+
+        assertThat(type.rawClass()).isEqualTo(Collection.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class));
+    }
+
+    @Test
+    public void sortedMapOf_ReturnsRawClassOfSortedMap_WhenSpecifyingClass() {
+        TypeToken<SortedMap<String, Integer>> type = TypeToken.sortedMapOf(String.class, Integer.class);
+
+        assertThat(type.rawClass()).isEqualTo(SortedMap.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class), TypeToken.of(Integer.class));
+    }
+
+    @Test
+    public void sortedMapOf_ReturnsRawClassOfSortedMap_WhenSpecifyingTypeToken() {
+        TypeToken<SortedMap<String, Integer>> type =
+            TypeToken.sortedMapOf(TypeToken.of(String.class), TypeToken.of(Integer.class));
+
+        assertThat(type.rawClass()).isEqualTo(SortedMap.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class), TypeToken.of(Integer.class));
+    }
+
+    @Test
+    public void concurrentMapOf_ReturnsRawClassOfConcurrentMap_WhenSpecifyingClass() {
+        TypeToken<ConcurrentMap<String, Integer>> type = TypeToken.concurrentMapOf(String.class, Integer.class);
+
+        assertThat(type.rawClass()).isEqualTo(ConcurrentMap.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class), TypeToken.of(Integer.class));
+    }
+
+    @Test
+    public void concurrentMapOf_ReturnsRawClassOfConcurrentMap_WhenSpecifyingTypeToken() {
+        TypeToken<ConcurrentMap<String, Integer>> type =
+            TypeToken.concurrentMapOf(TypeToken.of(String.class), TypeToken.of(Integer.class));
+
+        assertThat(type.rawClass()).isEqualTo(ConcurrentMap.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class), TypeToken.of(Integer.class));
+    }
+
+    @Test
+    public void navigableMapOf_ReturnsRawClassOfNavigableMap_WhenSpecifyingClass() {
+        TypeToken<NavigableMap<String, Integer>> type = TypeToken.navigableMapOf(String.class, Integer.class);
+
+        assertThat(type.rawClass()).isEqualTo(NavigableMap.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class), TypeToken.of(Integer.class));
+    }
+
+    @Test
+    public void navigableMapOf_ReturnsRawClassOfNavigableMap_WhenSpecifyingTypeToken() {
+        TypeToken<NavigableMap<String, Integer>> type =
+            TypeToken.navigableMapOf(TypeToken.of(String.class), TypeToken.of(Integer.class));
+
+        assertThat(type.rawClass()).isEqualTo(NavigableMap.class);
+        assertThat(type.rawClassParameters()).containsExactly(TypeToken.of(String.class), TypeToken.of(Integer.class));
     }
 
     public class InnerType {

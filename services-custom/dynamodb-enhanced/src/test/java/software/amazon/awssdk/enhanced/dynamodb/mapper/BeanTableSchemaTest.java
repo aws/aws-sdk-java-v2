@@ -33,12 +33,15 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DocumentBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EnumBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ExtendedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
@@ -55,6 +58,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SortKeyBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class BeanTableSchemaTest {
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void simpleBean_correctlyAssignsPrimaryPartitionKey() {
@@ -256,6 +261,58 @@ public class BeanTableSchemaTest {
         simpleBean.setIntegerAttribute(123);
 
         assertThat(beanTableSchema.attributeValue(simpleBean, "integerAttribute"), is(numberValue(123)));
+    }
+
+    @Test
+    public void enumBean_invalidEnum() {
+        BeanTableSchema<EnumBean> beanTableSchema = BeanTableSchema.create(EnumBean.class);
+
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("id", stringValue("id-value"));
+        itemMap.put("testEnum", stringValue("invalid-value"));
+
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("invalid-value");
+        exception.expectMessage("TestEnum");
+        beanTableSchema.mapToItem(itemMap);
+    }
+
+    @Test
+    public void enumBean_singleEnum() {
+        BeanTableSchema<EnumBean> beanTableSchema = BeanTableSchema.create(EnumBean.class);
+        EnumBean enumBean = new EnumBean();
+        enumBean.setId("id-value");
+        enumBean.setTestEnum(EnumBean.TestEnum.ONE);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(enumBean, true);
+
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("testEnum", stringValue("ONE")));
+
+        EnumBean reverse = beanTableSchema.mapToItem(itemMap);
+        assertThat(reverse, is(equalTo(enumBean)));
+    }
+
+    @Test
+    public void enumBean_listEnum() {
+        BeanTableSchema<EnumBean> beanTableSchema = BeanTableSchema.create(EnumBean.class);
+        EnumBean enumBean = new EnumBean();
+        enumBean.setId("id-value");
+        enumBean.setTestEnumList(Arrays.asList(EnumBean.TestEnum.ONE, EnumBean.TestEnum.TWO));
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(enumBean, true);
+
+        AttributeValue expectedAttributeValue = AttributeValue.builder()
+                                                              .l(stringValue("ONE"),
+                                                                 stringValue("TWO"))
+                                                              .build();
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("testEnumList", expectedAttributeValue));
+
+        EnumBean reverse = beanTableSchema.mapToItem(itemMap);
+        assertThat(reverse, is(equalTo(enumBean)));
     }
 
     @Test
