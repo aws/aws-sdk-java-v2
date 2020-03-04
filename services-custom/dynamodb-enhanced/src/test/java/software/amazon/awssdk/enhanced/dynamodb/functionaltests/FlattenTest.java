@@ -18,16 +18,16 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Objects;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -121,13 +121,16 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
         StaticTableSchema.builder(Document.class)
                          .newItemSupplier(Document::new)
                          .attributes(
-                             stringAttribute("documentAttribute1",
-                                    Document::getDocumentAttribute1,
-                                    Document::setDocumentAttribute1),
-                             stringAttribute("documentAttribute2",
+                             attribute("documentAttribute1",
+                                       TypeToken.of(String.class),
+                                       Document::getDocumentAttribute1,
+                                       Document::setDocumentAttribute1),
+                             attribute("documentAttribute2",
+                                    TypeToken.of(String.class),
                                     Document::getDocumentAttribute2,
                                     Document::setDocumentAttribute2),
-                             stringAttribute("documentAttribute3",
+                             attribute("documentAttribute3",
+                                    TypeToken.of(String.class),
                                     Document::getDocumentAttribute3,
                                     Document::setDocumentAttribute3))
                          .build();
@@ -135,7 +138,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
-                         .attributes(stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()))
+                         .attributes(attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()))
                          .flatten(DOCUMENT_SCHEMA, Record::getDocument, Record::setDocument)
                          .build();
 

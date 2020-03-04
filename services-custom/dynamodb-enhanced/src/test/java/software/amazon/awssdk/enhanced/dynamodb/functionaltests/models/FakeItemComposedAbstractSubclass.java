@@ -15,19 +15,19 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Objects;
-
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 abstract class FakeItemComposedAbstractSubclass {
     private static final StaticTableSchema<FakeItemComposedAbstractSubclass> FAKE_ITEM_MAPPER =
         StaticTableSchema.builder(FakeItemComposedAbstractSubclass.class)
-                         .attributes(stringAttribute("composed_abstract_subclass",
-                                            FakeItemComposedAbstractSubclass::getComposedSubclassAttribute,
-                                            FakeItemComposedAbstractSubclass::setComposedSubclassAttribute))
-                         .build();
+                         .attributes(attribute("composed_abstract_subclass",
+                                               TypeToken.of(String.class),
+                                               FakeItemComposedAbstractSubclass::getComposedSubclassAttribute,
+                                               FakeItemComposedAbstractSubclass::setComposedSubclassAttribute))                         .build();
 
     private String composedSubclassAttribute;
 

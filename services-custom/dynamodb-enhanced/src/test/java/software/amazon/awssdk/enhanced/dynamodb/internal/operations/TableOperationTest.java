@@ -21,7 +21,6 @@ import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
