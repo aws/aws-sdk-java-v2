@@ -20,11 +20,9 @@ import static org.hamcrest.Matchers.is;
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.version;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Objects;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -94,9 +93,9 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
-                             stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                             stringAttribute("attribute", Record::getAttribute, Record::setAttribute),
-                             integerNumberAttribute("version", Record::getVersion, Record::setVersion).as(version()))
+                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                             attribute("attribute", TypeToken.of(String.class), Record::getAttribute, Record::setAttribute),
+                             attribute("version", TypeToken.of(Integer.class), Record::getVersion, Record::setVersion).as(version()))
                          .build();
 
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
@@ -162,9 +161,9 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         mappedTable.putItem(PutItemEnhancedRequest.builder(Record.class)
-                                            .item(new Record().setId("id").setAttribute("one").setVersion(1))
-                                            .conditionExpression(conditionExpression)
-                                            .build());
+                                                  .item(new Record().setId("id").setAttribute("one").setVersion(1))
+                                                  .conditionExpression(conditionExpression)
+                                                  .build());
 
         Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id")));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
@@ -183,9 +182,9 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
         exception.expect(ConditionalCheckFailedException.class);
         mappedTable.putItem(PutItemEnhancedRequest.builder(Record.class)
-                                            .item(new Record().setId("id").setAttribute("one").setVersion(2))
-                                            .conditionExpression(conditionExpression)
-                                            .build());
+                                                  .item(new Record().setId("id").setAttribute("one").setVersion(2))
+                                                  .conditionExpression(conditionExpression)
+                                                  .build());
     }
 
     @Test
@@ -200,9 +199,9 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
         exception.expect(ConditionalCheckFailedException.class);
         mappedTable.putItem(PutItemEnhancedRequest.builder(Record.class)
-                                            .item(new Record().setId("id").setAttribute("one").setVersion(1))
-                                            .conditionExpression(conditionExpression)
-                                            .build());
+                                                  .item(new Record().setId("id").setAttribute("one").setVersion(1))
+                                                  .conditionExpression(conditionExpression)
+                                                  .build());
     }
 
     @Test

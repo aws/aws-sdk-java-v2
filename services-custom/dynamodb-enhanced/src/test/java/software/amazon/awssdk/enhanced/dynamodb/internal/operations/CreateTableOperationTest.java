@@ -30,7 +30,6 @@ import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;

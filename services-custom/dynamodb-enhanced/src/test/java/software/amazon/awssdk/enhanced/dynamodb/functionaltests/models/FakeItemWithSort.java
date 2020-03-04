@@ -17,12 +17,12 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Objects;
 import java.util.UUID;
-
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithSort {
@@ -30,10 +30,10 @@ public class FakeItemWithSort {
         StaticTableSchema.builder(FakeItemWithSort.class)
                          .newItemSupplier(FakeItemWithSort::new)
                          .attributes(
-                stringAttribute("id", FakeItemWithSort::getId, FakeItemWithSort::setId).as(primaryPartitionKey()),
-                stringAttribute("sort", FakeItemWithSort::getSort, FakeItemWithSort::setSort).as(primarySortKey()),
-                stringAttribute("other_attribute_1", FakeItemWithSort::getOtherAttribute1, FakeItemWithSort::setOtherAttribute1),
-                stringAttribute("other_attribute_2", FakeItemWithSort::getOtherAttribute2, FakeItemWithSort::setOtherAttribute2))
+                             attribute("id", TypeToken.of(String.class), FakeItemWithSort::getId, FakeItemWithSort::setId).as(primaryPartitionKey()),
+                             attribute("sort", TypeToken.of(String.class), FakeItemWithSort::getSort, FakeItemWithSort::setSort).as(primarySortKey()),
+                             attribute("other_attribute_1", TypeToken.of(String.class), FakeItemWithSort::getOtherAttribute1, FakeItemWithSort::setOtherAttribute1),
+                             attribute("other_attribute_2", TypeToken.of(String.class), FakeItemWithSort::getOtherAttribute2, FakeItemWithSort::setOtherAttribute2))
                          .build();
 
     private String id;
@@ -65,15 +65,15 @@ public class FakeItemWithSort {
 
     public static FakeItemWithSort createUniqueFakeItemWithSort() {
         return FakeItemWithSort.builder()
-            .id(UUID.randomUUID().toString())
-            .sort(UUID.randomUUID().toString())
-            .build();
+                               .id(UUID.randomUUID().toString())
+                               .sort(UUID.randomUUID().toString())
+                               .build();
     }
 
     public static FakeItemWithSort createUniqueFakeItemWithoutSort() {
         return FakeItemWithSort.builder()
-            .id(UUID.randomUUID().toString())
-            .build();
+                               .id(UUID.randomUUID().toString())
+                               .build();
     }
 
     public String getId() {
@@ -110,8 +110,12 @@ public class FakeItemWithSort {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         FakeItemWithSort that = (FakeItemWithSort) o;
         return Objects.equals(id, that.id) &&
                Objects.equals(sort, that.sort) &&

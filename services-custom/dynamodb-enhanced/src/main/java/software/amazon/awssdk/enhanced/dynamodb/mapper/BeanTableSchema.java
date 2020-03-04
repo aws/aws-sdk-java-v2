@@ -23,13 +23,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -37,9 +34,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -100,39 +95,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkPublicApi
 public final class BeanTableSchema<T> implements TableSchema<T> {
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
-
-    private static final Map<TypeToken<?>, AttributeType<?>> ATTRIBUTE_TYPES_MAP;
-
-    static {
-        Map<TypeToken<?>, AttributeType<?>> map = new HashMap<>();
-
-        map.put(TypeToken.of(String.class), AttributeTypes.stringType());
-        map.put(TypeToken.of(Boolean.class), AttributeTypes.booleanType());
-        map.put(TypeToken.of(boolean.class), AttributeTypes.booleanType());
-        map.put(TypeToken.of(Integer.class), AttributeTypes.integerNumberType());
-        map.put(TypeToken.of(int.class), AttributeTypes.integerNumberType());
-        map.put(TypeToken.of(Long.class), AttributeTypes.longNumberType());
-        map.put(TypeToken.of(long.class), AttributeTypes.longNumberType());
-        map.put(TypeToken.of(Short.class), AttributeTypes.shortNumberType());
-        map.put(TypeToken.of(short.class), AttributeTypes.shortNumberType());
-        map.put(TypeToken.of(Byte.class), AttributeTypes.byteNumberType());
-        map.put(TypeToken.of(byte.class), AttributeTypes.byteNumberType());
-        map.put(TypeToken.of(Double.class), AttributeTypes.doubleNumberType());
-        map.put(TypeToken.of(double.class), AttributeTypes.doubleNumberType());
-        map.put(TypeToken.of(Float.class), AttributeTypes.floatNumberType());
-        map.put(TypeToken.of(float.class), AttributeTypes.floatNumberType());
-        map.put(TypeToken.of(SdkBytes.class), AttributeTypes.binaryType());
-        map.put(TypeToken.setOf(String.class), AttributeTypes.stringSetType());
-        map.put(TypeToken.setOf(Integer.class), AttributeTypes.integerNumberSetType());
-        map.put(TypeToken.setOf(Long.class), AttributeTypes.longNumberSetType());
-        map.put(TypeToken.setOf(Short.class), AttributeTypes.shortNumberSetType());
-        map.put(TypeToken.setOf(Byte.class), AttributeTypes.byteNumberSetType());
-        map.put(TypeToken.setOf(Double.class), AttributeTypes.doubleNumberSetType());
-        map.put(TypeToken.setOf(Float.class), AttributeTypes.floatNumberSetType());
-        map.put(TypeToken.setOf(SdkBytes.class), AttributeTypes.binarySetType());
-
-        ATTRIBUTE_TYPES_MAP = Collections.unmodifiableMap(map);
-    }
 
     private final StaticTableSchema<T> wrappedTableSchema;
     private final Class<T> beanClass;
@@ -242,11 +204,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                                       getterForProperty(propertyDescriptor, beanClass),
                                       setterForProperty(propertyDescriptor, beanClass));
                   } else {
-                      Attribute.AttributeSupplier<T> attributeSupplier =
-                          Attribute.create(attributeNameForProperty(propertyDescriptor),
-                                           getterForProperty(propertyDescriptor, beanClass),
-                                           setterForProperty(propertyDescriptor, beanClass),
-                                           attributeTypeForProperty(propertyDescriptor));
+                      Attribute.AttributeSupplier<T> attributeSupplier = createAttributeSupplier(propertyDescriptor, beanClass);
 
                       addTagsToAttribute(attributeSupplier, propertyDescriptor);
                       attributes.add(attributeSupplier);
@@ -255,6 +213,28 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
 
         builder.attributes(attributes);
         return builder.build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Attribute.AttributeSupplier<T> createAttributeSupplier(PropertyDescriptor propertyDescriptor,
+                                                                              Class<T> beanClass) {
+        Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
+
+        if (propertyType instanceof Class) {
+            Class<?> clazz = (Class<?>) propertyType;
+            if (clazz.getAnnotation(DynamoDbBean.class) != null) {
+                return Attributes.attribute(
+                    attributeNameForProperty(propertyDescriptor),
+                    TypeToken.documentOf((Class<T>) clazz, (TableSchema<T>) createStaticTableSchema(clazz)),
+                    getterForProperty(propertyDescriptor, beanClass),
+                    setterForProperty(propertyDescriptor, beanClass));
+            }
+        }
+
+        return Attributes.attribute(attributeNameForProperty(propertyDescriptor),
+                                    TypeToken.of(propertyDescriptor.getReadMethod().getGenericReturnType()),
+                                    getterForProperty(propertyDescriptor, beanClass),
+                                    setterForProperty(propertyDescriptor, beanClass));
     }
 
     /**
@@ -333,77 +313,6 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         return propertyDescriptor.getName();
     }
 
-    private static <R> AttributeType<R> attributeTypeForProperty(PropertyDescriptor propertyDescriptor) {
-        Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
-        return attributeTypeForProperty(propertyType);
-    }
-
-    private static <R> AttributeType<R> attributeTypeForProperty(Type type) {
-        // Handle list and map types specially as they are parameterized and need recursive handling
-        if (type instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-
-            if (List.class.equals(parameterizedType.getRawType())) {
-                return attributeTypeForList(parameterizedType);
-            }
-
-            if (Map.class.equals(parameterizedType.getRawType())) {
-                return attributeTypeForMap(parameterizedType);
-            }
-        }
-
-        // Look for a standard converter mapped to the specific type
-        AttributeType<R> attributeType = lookupAttributeType(type);
-
-        if (attributeType != null) {
-            return attributeType;
-        }
-
-        // If no converter was found, check to see if the type is a class annotated with @DynamoDbBean and treat it as
-        // a document map if it is
-        if (type instanceof Class) {
-            Class<?> clazz = (Class<?>) type;
-
-            if (clazz.getAnnotation(DynamoDbBean.class) != null) {
-                return attributeTypeForDocument(clazz);
-            }
-        }
-
-        throw new RuntimeException(
-            String.format("No matching converter could be found for type '%s' on bean class.",
-                          type.getTypeName()));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> AttributeType<R> lookupAttributeType(Type type) {
-        return (AttributeType<R>) ATTRIBUTE_TYPES_MAP.get(TypeToken.of(type));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> AttributeType<R> attributeTypeForDocument(Class<?> documentClass) {
-        return (AttributeType<R>) AttributeTypes.documentMapType(createStaticTableSchema(documentClass));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> AttributeType<R> attributeTypeForList(ParameterizedType parameterizedType) {
-        Type parameterType = parameterizedType.getActualTypeArguments()[0];
-        return (AttributeType<R>) AttributeTypes.listType(attributeTypeForProperty(parameterType));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> AttributeType<R> attributeTypeForMap(ParameterizedType parameterizedType) {
-        Type keyType = parameterizedType.getActualTypeArguments()[0];
-        Type valueType = parameterizedType.getActualTypeArguments()[1];
-
-        if (!String.class.equals(keyType)) {
-            throw new IllegalArgumentException(
-                String.format("No matching converter could be found for type '%s' on bean class: Maps must have a key " +
-                                  "type of 'String'.", keyType.getTypeName()));
-        }
-
-        return (AttributeType<R>) AttributeTypes.mapType(attributeTypeForProperty(valueType));
-    }
-
     private static boolean isMappableProperty(PropertyDescriptor propertyDescriptor) {
         return propertyDescriptor.getReadMethod() != null
             && propertyDescriptor.getWriteMethod() != null
@@ -428,3 +337,4 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                      .collect(Collectors.toList());
     }
 }
+

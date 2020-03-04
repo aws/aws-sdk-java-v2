@@ -39,7 +39,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
