@@ -16,38 +16,165 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb secondary index
  * and knows how to map records from the table that index is linked to into a modelled object.
+ * <p>
+ * By default, all command methods throw an {@link UnsupportedOperationException} to prevent interface extensions from breaking
+ * implementing classes.
  *
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
 public interface DynamoDbAsyncIndex<T> {
 
+    /**
+     * Executes a query against a secondary index using a {@link QueryConditional} expression to retrieve a list of
+     * items matching the given conditions.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
+     * ascending order by default; this behavior can be overridden in the {@link QueryEnhancedRequest}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link QueryEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * QueryConditional queryConditional = QueryConditional.equalTo(Key.builder().partitionValue("id-value").build());
+     * SdkPublisher<Page<MyItem>> publisher = mappedIndex.query(QueryEnhancedRequest.builder()
+     *                                                                              .queryConditional(queryConditional)
+     *                                                                              .build());
+     * }
+     * </pre>
+     *
+     * @param request A {@link QueryEnhancedRequest} defining the query conditions and how
+     * to handle the results.
+     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     */
     default SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Executes a query against a secondary index using a {@link QueryConditional} expression to retrieve a list of
+     * items matching the given conditions.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
+     * ascending order by default; this behavior can be overridden in the {@link QueryEnhancedRequest}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link QueryEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
+     * further details and constraints.
+     * <p>
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
+     * manually via {@link QueryEnhancedRequest#builder()}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * SdkPublisher<Page<MyItem>> publisher =
+     *     mappedIndex.query(r -> r.queryConditional(QueryConditional.equalTo(k -> k.partitionValue("id-value"))));
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link QueryEnhancedRequest} defining the query conditions and how to
+     * handle the results.
+     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     */
     default SdkPublisher<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Scans the table against a secondary index and retrieves all items.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link ScanEnhancedRequest}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * }
+     * </pre>
+     *
+     * @param request A {@link ScanEnhancedRequest} defining how to handle the results.
+     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     */
     default SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Scans the table against a secondary index and retrieves all items.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link ScanEnhancedRequest}.
+     * <p>
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
+     * manually via {@link ScanEnhancedRequest#builder()}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan(r -> r.limit(5));
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link ScanEnhancedRequest} defining the query conditions and how to
+     * handle the results.
+     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     */
     default SdkPublisher<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Scans the table against a secondary index and retrieves all items using default settings.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan();
+     * }
+     * </pre>
+     *
+     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     */
     default SdkPublisher<Page<T>> scan() {
         throw new UnsupportedOperationException();
     }

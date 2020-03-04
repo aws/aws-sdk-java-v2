@@ -28,14 +28,15 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DefaultDocument;
 import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
 public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
@@ -158,7 +159,7 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
                                            .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(1)))
                                            .build();
 
-        List<TransactGetResultPage> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();
+        List<Document> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
@@ -179,7 +180,7 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
                                            .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(1)))
                                            .build();
 
-        List<TransactGetResultPage> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();
+        List<Document> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));

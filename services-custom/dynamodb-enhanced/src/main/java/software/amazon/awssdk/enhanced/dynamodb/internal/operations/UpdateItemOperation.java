@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -232,7 +231,7 @@ public class UpdateItemOperation<T>
                                                                        this.request.conditionExpression().expression(), " AND ");
         }
 
-        // Avoiding adding empty collections that the low level SDK will propagate to DynamoDB where it causes error.
+        // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.
         if (expressionNames != null && !expressionNames.isEmpty()) {
             requestBuilder = requestBuilder.expressionAttributeNames(expressionNames);
         }

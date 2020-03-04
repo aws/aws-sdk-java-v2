@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -158,7 +157,7 @@ public class PutItemOperation<T>
         if (mergedConditionExpression != null) {
             requestBuilder = requestBuilder.conditionExpression(mergedConditionExpression.expression());
 
-            // Avoiding adding empty collections that the low level SDK will propagate to DynamoDB where it causes error.
+            // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.
             if (mergedConditionExpression.expressionValues() != null && !mergedConditionExpression.expressionValues().isEmpty()) {
                 requestBuilder = requestBuilder.expressionAttributeValues(mergedConditionExpression.expressionValues());
 

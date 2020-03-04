@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -124,7 +123,7 @@ public class DeleteItemOperation<T>
         if (this.request.conditionExpression() != null) {
             requestBuilder = requestBuilder.conditionExpression(this.request.conditionExpression().expression());
 
-            // Avoiding adding empty collections that the low level SDK will propagate to DynamoDB where it causes error.
+            // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.
             if (!this.request.conditionExpression().expressionNames().isEmpty()) {
                 requestBuilder = requestBuilder.expressionAttributeNames(this.request.conditionExpression().expressionNames());
             }
