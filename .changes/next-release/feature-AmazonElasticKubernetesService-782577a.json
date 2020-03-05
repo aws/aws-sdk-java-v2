@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "description": "Amazon EKS now supports adding a KMS key to your cluster for envelope encryption of Kubernetes secrets."
+}
