@@ -30,7 +30,6 @@ import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
@@ -44,8 +43,8 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemW
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithNumericSort;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.GlobalSecondaryIndex;
-import software.amazon.awssdk.enhanced.dynamodb.model.LocalSecondaryIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.BillingMode;
@@ -120,15 +119,23 @@ public class CreateTableOperationTest {
                                                                             .build();
 
 
-        List<GlobalSecondaryIndex> globalSecondaryIndexList = Arrays.asList(
-            GlobalSecondaryIndex.create("gsi_1", projection1, provisionedThroughput1),
-            GlobalSecondaryIndex.create("gsi_2", projection2, provisionedThroughput2));
+        List<EnhancedGlobalSecondaryIndex> globalSecondaryIndexList = Arrays.asList(
+                EnhancedGlobalSecondaryIndex.builder()
+                        .indexName("gsi_1")
+                        .projection(projection1)
+                        .provisionedThroughput(provisionedThroughput1)
+                        .build(),
+                EnhancedGlobalSecondaryIndex.builder()
+                        .indexName("gsi_2")
+                        .projection(projection2)
+                        .provisionedThroughput(provisionedThroughput2)
+                        .build());
 
         CreateTableOperation<FakeItemWithIndices> operation =
             CreateTableOperation.create(CreateTableEnhancedRequest.builder()
                                                                   .globalSecondaryIndices(globalSecondaryIndexList)
                                                                   .localSecondaryIndices(Collections.singletonList(
-                                                                      LocalSecondaryIndex.create("lsi_1", projection3)))
+                                                                      EnhancedLocalSecondaryIndex.create("lsi_1", projection3)))
                                                                   .build());
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(),
@@ -216,10 +223,12 @@ public class CreateTableOperationTest {
                                                                            .writeCapacityUnits(1L)
                                                                            .build();
 
-        List<GlobalSecondaryIndex> invalidGsiList = Collections.singletonList(
-            GlobalSecondaryIndex.create("invalid",
-                                        Projection.builder().projectionType(ProjectionType.ALL).build(),
-                                        provisionedThroughput));
+        List<EnhancedGlobalSecondaryIndex> invalidGsiList = Collections.singletonList(
+                EnhancedGlobalSecondaryIndex.builder()
+                        .indexName("invalid")
+                        .projection(p -> p.projectionType(ProjectionType.ALL))
+                        .provisionedThroughput(provisionedThroughput)
+                        .build());
 
         CreateTableOperation<FakeItem> operation =
             CreateTableOperation.create(CreateTableEnhancedRequest.builder().globalSecondaryIndices(invalidGsiList).build());
@@ -229,8 +238,8 @@ public class CreateTableOperationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_invalidGsiAsLsiReference() {
-        List<LocalSecondaryIndex> invalidGsiList = Collections.singletonList(
-            LocalSecondaryIndex.create("gsi_1", Projection.builder().projectionType(ProjectionType.ALL).build()));
+        List<EnhancedLocalSecondaryIndex> invalidGsiList = Collections.singletonList(
+            EnhancedLocalSecondaryIndex.create("gsi_1", Projection.builder().projectionType(ProjectionType.ALL).build()));
 
         CreateTableOperation<FakeItemWithIndices> operation =
             CreateTableOperation.create(CreateTableEnhancedRequest.builder().localSecondaryIndices(invalidGsiList).build());
@@ -240,10 +249,12 @@ public class CreateTableOperationTest {
 
     @Test
     public void generateRequest_validLsiAsGsiReference() {
-        List<GlobalSecondaryIndex> validLsiList = Collections.singletonList(
-            GlobalSecondaryIndex.create("lsi_1",
-                                        Projection.builder().projectionType(ProjectionType.ALL).build(),
-                                        ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build()));
+        List<EnhancedGlobalSecondaryIndex> validLsiList = Collections.singletonList(
+                EnhancedGlobalSecondaryIndex.builder()
+                        .indexName("lsi_1")
+                        .projection(p -> p.projectionType(ProjectionType.ALL))
+                        .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                        .build());
 
         CreateTableOperation<FakeItemWithIndices> operation =
             CreateTableOperation.create(CreateTableEnhancedRequest.builder().globalSecondaryIndices(validLsiList).build());
@@ -278,8 +289,8 @@ public class CreateTableOperationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_invalidLsi() {
-        List<LocalSecondaryIndex> invalidLsiList = Collections.singletonList(
-            LocalSecondaryIndex.create("invalid", Projection.builder().projectionType(ProjectionType.ALL).build()));
+        List<EnhancedLocalSecondaryIndex> invalidLsiList = Collections.singletonList(
+            EnhancedLocalSecondaryIndex.create("invalid", Projection.builder().projectionType(ProjectionType.ALL).build()));
 
         CreateTableOperation<FakeItem> operation =
             CreateTableOperation.create(CreateTableEnhancedRequest.builder().localSecondaryIndices(invalidLsiList).build());

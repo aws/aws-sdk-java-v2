@@ -13,27 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.model;
+package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
 
 import java.util.Map;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-@SdkPublicApi
-public final class TransactGetResultPage {
+@SdkInternalApi
+public final class DefaultDocument implements Document {
     private final Map<String, AttributeValue> itemMap;
 
-    private TransactGetResultPage(Map<String, AttributeValue> itemMap) {
+    private DefaultDocument(Map<String, AttributeValue> itemMap) {
         this.itemMap = itemMap;
     }
 
-    public static TransactGetResultPage create(Map<String, AttributeValue> itemMap) {
-        return new TransactGetResultPage(itemMap);
+    public static DefaultDocument create(Map<String, AttributeValue> itemMap) {
+        return new DefaultDocument(itemMap);
     }
 
     public <T> T getItem(MappedTableResource<T> mappedTableResource) {
@@ -52,7 +52,7 @@ public final class TransactGetResultPage {
             return false;
         }
 
-        TransactGetResultPage that = (TransactGetResultPage) o;
+        DefaultDocument that = (DefaultDocument) o;
 
         return itemMap != null ? itemMap.equals(that.itemMap) : that.itemMap == null;
     }

@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -34,7 +34,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPage;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetResultPage;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.utils.Validate;
@@ -87,13 +86,13 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     }
 
     @Override
-    public List<TransactGetResultPage> transactGetItems(TransactGetItemsEnhancedRequest request) {
+    public List<Document> transactGetItems(TransactGetItemsEnhancedRequest request) {
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(request);
         return operation.execute(dynamoDbClient, extension);
     }
 
     @Override
-    public List<TransactGetResultPage> transactGetItems(
+    public List<Document> transactGetItems(
         Consumer<TransactGetItemsEnhancedRequest.Builder> requestConsumer) {
 
         TransactGetItemsEnhancedRequest.Builder builder = TransactGetItemsEnhancedRequest.builder();

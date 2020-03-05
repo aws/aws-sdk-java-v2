@@ -71,7 +71,8 @@ public class HttpToHttp2OutboundAdapter extends ChannelOutboundHandlerAdapter {
                 // Convert and write the headers.
                 Http2Headers http2Headers = HttpConversionUtil.toHttp2Headers(httpMsg, false);
                 endStream = msg instanceof FullHttpMessage && !((FullHttpMessage) msg).content().isReadable();
-                ctx.write(new DefaultHttp2HeadersFrame(http2Headers), promiseAggregator);
+                ctx.write(new DefaultHttp2HeadersFrame(http2Headers), promiseAggregator.newPromise());
+
             }
 
             if (!endStream && msg instanceof HttpContent) {
@@ -91,11 +92,13 @@ public class HttpToHttp2OutboundAdapter extends ChannelOutboundHandlerAdapter {
                 ByteBuf content = ((HttpContent) msg).content();
                 endStream = isLastContent && trailers.isEmpty();
                 release = false;
-                ctx.write(new DefaultHttp2DataFrame(content, endStream), promiseAggregator);
+                ctx.write(new DefaultHttp2DataFrame(content, endStream), promiseAggregator.newPromise());
+
 
                 if (!trailers.isEmpty()) {
                     // Write trailing headers.
-                    ctx.write(new DefaultHttp2HeadersFrame(http2Trailers, true), promiseAggregator);
+                    ctx.write(new DefaultHttp2HeadersFrame(http2Trailers, true), promiseAggregator.newPromise());
+
                 }
                 ctx.flush();
             }

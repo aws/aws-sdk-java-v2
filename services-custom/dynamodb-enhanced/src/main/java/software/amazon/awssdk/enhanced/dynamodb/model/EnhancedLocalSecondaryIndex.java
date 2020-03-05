@@ -15,30 +15,30 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.function.Consumer;
+
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
-import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.utils.Validate;
 
+/**
+ * Enhanced model representation of a 'local secondary index' of a DynamoDb table. This is optionally used with the
+ * 'createTable' operation in the enhanced client.
+ */
 @SdkPublicApi
-public final class GlobalSecondaryIndex {
+public final class EnhancedLocalSecondaryIndex {
     private final String indexName;
     private final Projection projection;
-    private final ProvisionedThroughput provisionedThroughput;
 
-    private GlobalSecondaryIndex(Builder builder) {
-        this.indexName = builder.indexName;
+    private EnhancedLocalSecondaryIndex(Builder builder) {
+        this.indexName = Validate.paramNotBlank(builder.indexName, "indexName");
         this.projection = builder.projection;
-        this.provisionedThroughput = builder.provisionedThroughput;
     }
 
-    public static GlobalSecondaryIndex create(String indexName,
-                                              Projection projection,
-                                              ProvisionedThroughput provisionedThroughput) {
+    public static EnhancedLocalSecondaryIndex create(String indexName,
+                                                     Projection projection) {
 
-        return builder().indexName(indexName)
-                        .projection(projection)
-                        .provisionedThroughput(provisionedThroughput)
-                        .build();
+        return builder().indexName(indexName).projection(projection).build();
     }
 
     public static Builder builder() {
@@ -46,21 +46,21 @@ public final class GlobalSecondaryIndex {
     }
 
     public Builder toBuilder() {
-        return builder().indexName(indexName)
-                        .projection(projection)
-                        .provisionedThroughput(provisionedThroughput);
+        return builder().indexName(indexName).projection(projection);
     }
 
+    /**
+     * The name of this local secondary index
+     */
     public String indexName() {
         return indexName;
     }
 
+    /**
+     * The attribute projection setting for this local secondary index.
+     */
     public Projection projection() {
         return projection;
-    }
-
-    public ProvisionedThroughput provisionedThroughput() {
-        return provisionedThroughput;
     }
 
     @Override
@@ -72,51 +72,58 @@ public final class GlobalSecondaryIndex {
             return false;
         }
 
-        GlobalSecondaryIndex that = (GlobalSecondaryIndex) o;
+        EnhancedLocalSecondaryIndex that = (EnhancedLocalSecondaryIndex) o;
 
         if (indexName != null ? ! indexName.equals(that.indexName) : that.indexName != null) {
             return false;
         }
-        if (projection != null ? ! projection.equals(that.projection) : that.projection != null) {
-            return false;
-        }
-        return provisionedThroughput != null ? provisionedThroughput.equals(that.provisionedThroughput) :
-            that.provisionedThroughput == null;
+        return projection != null ? projection.equals(that.projection) : that.projection == null;
     }
 
     @Override
     public int hashCode() {
         int result = indexName != null ? indexName.hashCode() : 0;
         result = 31 * result + (projection != null ? projection.hashCode() : 0);
-        result = 31 * result + (provisionedThroughput != null ? provisionedThroughput.hashCode() : 0);
         return result;
     }
 
+    /**
+     * A builder for {@link EnhancedLocalSecondaryIndex}
+     */
     public static final class Builder {
         private String indexName;
         private Projection projection;
-        private ProvisionedThroughput provisionedThroughput;
 
         private Builder() {
         }
 
+        /**
+         * The name of this local secondary index
+         */
         public Builder indexName(String indexName) {
             this.indexName = indexName;
             return this;
         }
 
+        /**
+         * The attribute projection setting for this local secondary index.
+         */
         public Builder projection(Projection projection) {
             this.projection = projection;
             return this;
         }
 
-        public Builder provisionedThroughput(ProvisionedThroughput provisionedThroughput) {
-            this.provisionedThroughput = provisionedThroughput;
-            return this;
+        /**
+         * The attribute projection setting for this local secondary index.
+         */
+        public Builder projection(Consumer<Projection.Builder> projection) {
+            Projection.Builder builder = Projection.builder();
+            projection.accept(builder);
+            return projection(builder.build());
         }
 
-        public GlobalSecondaryIndex build() {
-            return new GlobalSecondaryIndex(this);
+        public EnhancedLocalSecondaryIndex build() {
+            return new EnhancedLocalSecondaryIndex(this);
         }
     }
 }

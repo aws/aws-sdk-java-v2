@@ -20,9 +20,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 
+/**
+ * Defines parameters used for the batchGetItem() operation (such as
+ * {@link DynamoDbEnhancedClient#batchGetItem(BatchGetItemEnhancedRequest)}).
+ * <p>
+ * A request contains references to keys and tables organized into one {@link ReadBatch} object per queried table.
+ */
 @SdkPublicApi
 public final class BatchGetItemEnhancedRequest {
 
@@ -32,14 +38,23 @@ public final class BatchGetItemEnhancedRequest {
         this.readBatches = getListIfExist(builder.readBatches);
     }
 
+    /**
+     * Creates a newly initialized builder for a request object.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Returns a builder initialized with all existing values on the request object.
+     */
     public Builder toBuilder() {
         return new Builder().readBatches(readBatches);
     }
 
+    /**
+     * Returns the collection of {@link ReadBatch} in this request object.
+     */
     public Collection<ReadBatch> readBatches() {
         return readBatches;
     }
@@ -67,22 +82,44 @@ public final class BatchGetItemEnhancedRequest {
         return readBatches != null ? Collections.unmodifiableList(readBatches) : null;
     }
 
+    /**
+     * A builder that is used to create a request with the desired parameters.
+     */
     public static final class Builder {
         private List<ReadBatch> readBatches;
 
         private Builder() {
         }
 
+        /**
+         * Sets a collection of read batches to use in the batchGetItem operation.
+         *
+         * @param readBatches the collection of read batches
+         * @return a builder of this type
+         */
         public Builder readBatches(Collection<ReadBatch> readBatches) {
             this.readBatches = readBatches != null ? new ArrayList<>(readBatches) : null;
             return this;
         }
 
+        /**
+         * Sets one or more read batches to use in the batchGetItem operation.
+         *
+         * @param readBatches one or more {@link ReadBatch}, separated by comma.
+         * @return a builder of this type
+         */
         public Builder readBatches(ReadBatch... readBatches) {
             this.readBatches = Arrays.asList(readBatches);
             return this;
         }
 
+        /**
+         * Adds a read batch to the collection of batches on this builder.
+         * If this is the first batch, the method creates a new list.
+         *
+         * @param readBatch a single read batch
+         * @return a builder of this type
+         */
         public Builder addReadBatch(ReadBatch readBatch) {
             if (readBatches == null) {
                 readBatches = new ArrayList<>();

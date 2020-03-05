@@ -23,7 +23,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Fa
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;

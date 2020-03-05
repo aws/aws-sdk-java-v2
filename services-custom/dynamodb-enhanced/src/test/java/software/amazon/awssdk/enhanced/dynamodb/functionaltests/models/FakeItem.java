@@ -17,14 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.version;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Objects;
 import java.util.UUID;
-
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItem extends FakeItemAbstractSubclass {
@@ -35,9 +34,8 @@ public class FakeItem extends FakeItemAbstractSubclass {
                                   FakeItem::getComposedObject,
                                   FakeItem::setComposedObject)
                          .extend(getSubclassTableSchema())
-                         .attributes(stringAttribute("id", FakeItem::getId, FakeItem::setId).as(primaryPartitionKey()),
-                                     integerNumberAttribute("version", FakeItem::getVersion, FakeItem::setVersion).as(version()))
-                         .build();
+                         .attributes(attribute("id", TypeToken.of(String.class), FakeItem::getId, FakeItem::setId).as(primaryPartitionKey()),
+                                     attribute("version", TypeToken.of(Integer.class), FakeItem::getVersion, FakeItem::setVersion).as(version()))                         .build();
 
     private String id;
     private Integer version;

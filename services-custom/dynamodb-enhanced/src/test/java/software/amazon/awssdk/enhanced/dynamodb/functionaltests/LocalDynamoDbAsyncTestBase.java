@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.List;
-
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
