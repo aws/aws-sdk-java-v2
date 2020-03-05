@@ -18,7 +18,9 @@ package software.amazon.awssdk.regions;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.profiles.ProfileFile;
 
 /**
  * Metadata about a service, like S3, DynamoDB, etc.
@@ -93,5 +95,26 @@ public interface ServiceMetadata {
         return endpointPattern.replace("{region}", region.id())
                               .replace("{service}", endpointPrefix)
                               .replace("{dnsSuffix}", partitionMetadata.dnsSuffix());
+    }
+
+    /**
+     * Reconfigure this service metadata using the provided {@link ServiceMetadataConfiguration}. This is useful, because some
+     * service metadata instances refer to external configuration that might wish to be modified, like a {@link ProfileFile}.
+     */
+    default ServiceMetadata reconfigure(ServiceMetadataConfiguration configuration) {
+        return this;
+    }
+
+    /**
+     * Reconfigure this service metadata using the provided {@link ServiceMetadataConfiguration}. This is useful, because some
+     * service metadata instances refer to external configuration that might wish to be modified, like a {@link ProfileFile}.
+     *
+     * This is a shorthand form of {@link #reconfigure(ServiceMetadataConfiguration)}, without the need to call
+     * {@code builder()} or {@code build()}.
+     */
+    default ServiceMetadata reconfigure(Consumer<ServiceMetadataConfiguration.Builder> consumer) {
+        ServiceMetadataConfiguration.Builder configuration = ServiceMetadataConfiguration.builder();
+        consumer.accept(configuration);
+        return reconfigure(configuration.build());
     }
 }

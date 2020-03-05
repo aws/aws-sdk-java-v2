@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "Reduced the number of times the profile file configuration is read from disk on client creation from 3-5 to 1."
+}

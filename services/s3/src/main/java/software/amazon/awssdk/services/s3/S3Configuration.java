@@ -20,6 +20,9 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ServiceConfiguration;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.services.s3.internal.FieldWithDefault;
 import software.amazon.awssdk.services.s3.internal.usearnregion.UseArnRegionProviderChain;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -29,8 +32,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Immutable
 @ThreadSafe
 public final class S3Configuration implements ServiceConfiguration, ToCopyableBuilder<S3Configuration.Builder, S3Configuration> {
-    private static final UseArnRegionProviderChain USE_ARN_REGION_PROVIDER_CHAIN = UseArnRegionProviderChain.create();
-
     /**
      * The default setting for use of path style addressing.
      */
@@ -58,24 +59,36 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      */
     private static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
 
-    private final boolean pathStyleAccessEnabled;
-    private final boolean accelerateModeEnabled;
-    private final boolean dualstackEnabled;
-    private final boolean checksumValidationEnabled;
-    private final boolean chunkedEncodingEnabled;
-    private final boolean useArnRegionEnabled;
+    private final FieldWithDefault<Boolean> pathStyleAccessEnabled;
+    private final FieldWithDefault<Boolean> accelerateModeEnabled;
+    private final FieldWithDefault<Boolean> dualstackEnabled;
+    private final FieldWithDefault<Boolean> checksumValidationEnabled;
+    private final FieldWithDefault<Boolean> chunkedEncodingEnabled;
+    private final FieldWithDefault<Boolean> useArnRegionEnabled;
+    private final FieldWithDefault<ProfileFile> profileFile;
+    private final FieldWithDefault<String> profileName;
 
     private S3Configuration(DefaultS3ServiceConfigurationBuilder builder) {
-        this.dualstackEnabled = resolveBoolean(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
-        this.accelerateModeEnabled = resolveBoolean(builder.accelerateModeEnabled, DEFAULT_ACCELERATE_MODE_ENABLED);
-        this.pathStyleAccessEnabled = resolveBoolean(builder.pathStyleAccessEnabled, DEFAULT_PATH_STYLE_ACCESS_ENABLED);
-        this.checksumValidationEnabled = resolveBoolean(builder.checksumValidationEnabled, DEFAULT_CHECKSUM_VALIDATION_ENABLED);
-        if (accelerateModeEnabled && pathStyleAccessEnabled) {
+        this.dualstackEnabled = FieldWithDefault.create(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
+        this.accelerateModeEnabled = FieldWithDefault.create(builder.accelerateModeEnabled, DEFAULT_ACCELERATE_MODE_ENABLED);
+        this.pathStyleAccessEnabled = FieldWithDefault.create(builder.pathStyleAccessEnabled, DEFAULT_PATH_STYLE_ACCESS_ENABLED);
+        this.checksumValidationEnabled =  FieldWithDefault.create(builder.checksumValidationEnabled,
+                                                                 DEFAULT_CHECKSUM_VALIDATION_ENABLED);
+        this.chunkedEncodingEnabled = FieldWithDefault.create(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
+        this.profileFile = FieldWithDefault.createLazy(builder.profileFile, ProfileFile::defaultProfileFile);
+        this.profileName = FieldWithDefault.create(builder.profileName,
+                                                   ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
+        this.useArnRegionEnabled = FieldWithDefault.createLazy(builder.useArnRegionEnabled, this::resolveUserArnRegionEnabled);
+
+        if (accelerateModeEnabled() && pathStyleAccessEnabled()) {
             throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
         }
-        this.chunkedEncodingEnabled = resolveBoolean(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
-        this.useArnRegionEnabled = Boolean.TRUE.equals(builder.useArnRegionEnabled) ? builder.useArnRegionEnabled :
-            resolveUseArnRegionEnabled();
+    }
+
+    private boolean resolveUserArnRegionEnabled() {
+        return UseArnRegionProviderChain.create(this.profileFile.value(), this.profileName.value())
+                                        .resolveUseArnRegion()
+                                        .orElse(false);
     }
 
     /**
@@ -105,7 +118,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * @return True is the client should always use path-style access
      */
     public boolean pathStyleAccessEnabled() {
-        return pathStyleAccessEnabled;
+        return pathStyleAccessEnabled.value();
     }
 
     /**
@@ -121,7 +134,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * @return True if accelerate mode is enabled.
      */
     public boolean accelerateModeEnabled() {
-        return accelerateModeEnabled;
+        return accelerateModeEnabled.value();
     }
 
     /**
@@ -138,11 +151,11 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * @return True if the client will use the dualstack endpoints
      */
     public boolean dualstackEnabled() {
-        return dualstackEnabled;
+        return dualstackEnabled.value();
     }
 
     public boolean checksumValidationEnabled() {
-        return checksumValidationEnabled;
+        return checksumValidationEnabled.value();
     }
 
     /**
@@ -156,7 +169,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * @return True if chunked encoding should be used.
      */
     public boolean chunkedEncodingEnabled() {
-        return chunkedEncodingEnabled;
+        return chunkedEncodingEnabled.value();
     }
 
     /**
@@ -166,28 +179,26 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * @return True if a different region in the ARN can be used.
      */
     public boolean useArnRegionEnabled() {
-        return useArnRegionEnabled;
-    }
-
-    private boolean resolveBoolean(Boolean customerSuppliedValue, boolean defaultValue) {
-        return customerSuppliedValue == null ? defaultValue : customerSuppliedValue;
-    }
-
-    private boolean resolveUseArnRegionEnabled() {
-        return USE_ARN_REGION_PROVIDER_CHAIN.resolveUseArnRegion().orElse(false);
+        return useArnRegionEnabled.value();
     }
 
     @Override
     public Builder toBuilder() {
         return builder()
-                .dualstackEnabled(dualstackEnabled)
-                .accelerateModeEnabled(accelerateModeEnabled)
-                .pathStyleAccessEnabled(pathStyleAccessEnabled)
-                .useArnRegionEnabled(useArnRegionEnabled);
+                .dualstackEnabled(dualstackEnabled.valueOrNullIfDefault())
+                .accelerateModeEnabled(accelerateModeEnabled.valueOrNullIfDefault())
+                .pathStyleAccessEnabled(pathStyleAccessEnabled.valueOrNullIfDefault())
+                .checksumValidationEnabled(checksumValidationEnabled.valueOrNullIfDefault())
+                .chunkedEncodingEnabled(chunkedEncodingEnabled.valueOrNullIfDefault())
+                .useArnRegionEnabled(useArnRegionEnabled.valueOrNullIfDefault())
+                .profileFile(profileFile.valueOrNullIfDefault())
+                .profileName(profileName.valueOrNullIfDefault());
     }
 
     @NotThreadSafe
-    public interface Builder extends CopyableBuilder<Builder, S3Configuration> { // (8)
+    public interface Builder extends CopyableBuilder<Builder, S3Configuration> {
+        Boolean dualstackEnabled();
+
         /**
          * Option to enable using the dualstack endpoints when accessing S3. Dualstack
          * should be enabled if you want to use IPv6.
@@ -199,6 +210,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * @see S3Configuration#dualstackEnabled().
          */
         Builder dualstackEnabled(Boolean dualstackEnabled);
+
+        Boolean accelerateModeEnabled();
 
         /**
          * Option to enable using the accelerate enedpoint when accessing S3. Accelerate
@@ -212,6 +225,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * @see S3Configuration#accelerateModeEnabled().
          */
         Builder accelerateModeEnabled(Boolean accelerateModeEnabled);
+
+        Boolean pathStyleAccessEnabled();
 
         /**
          * Option to enable using path style access for accessing S3 objects
@@ -227,6 +242,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled);
 
+        Boolean checksumValidationEnabled();
+
         /**
          * Option to disable doing a validation of the checksum of an object stored in S3.
          *
@@ -238,6 +255,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder checksumValidationEnabled(Boolean checksumValidationEnabled);
 
+        Boolean chunkedEncodingEnabled();
+
         /**
          * Option to enable using chunked encoding when signing the request
          * payload for {@link
@@ -248,6 +267,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled);
 
+        Boolean useArnRegionEnabled();
+
         /**
          * If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one
          * the client was configured with, this flag must be set to 'true' to permit the client to make a
@@ -256,20 +277,55 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * @see S3Configuration#useArnRegionEnabled()
          */
         Builder useArnRegionEnabled(Boolean useArnRegionEnabled);
+
+        ProfileFile profileFile();
+
+        /**
+         * The profile file that should be consulted to determine the default value of {@link #useArnRegionEnabled(Boolean)}.
+         * This is not used, if the {@link #useArnRegionEnabled(Boolean)} is configured.
+         *
+         * <p>
+         * By default, the {@link ProfileFile#defaultProfileFile()} is used.
+         * </p>
+         */
+        Builder profileFile(ProfileFile profileFile);
+
+        String profileName();
+
+        /**
+         * The profile name that should be consulted to determine the default value of {@link #useArnRegionEnabled(Boolean)}.
+         * This is not used, if the {@link #useArnRegionEnabled(Boolean)} is configured.
+         *
+         * <p>
+         * By default, the {@link ProfileFileSystemSetting#AWS_PROFILE} is used.
+         * </p>
+         */
+        Builder profileName(String profileName);
     }
 
-    private static final class DefaultS3ServiceConfigurationBuilder implements Builder {
-
+    static final class DefaultS3ServiceConfigurationBuilder implements Builder {
         private Boolean dualstackEnabled;
         private Boolean accelerateModeEnabled;
         private Boolean pathStyleAccessEnabled;
         private Boolean checksumValidationEnabled;
         private Boolean chunkedEncodingEnabled;
         private Boolean useArnRegionEnabled;
+        private ProfileFile profileFile;
+        private String profileName;
+
+        @Override
+        public Boolean dualstackEnabled() {
+            return dualstackEnabled;
+        }
 
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
             return this;
+        }
+
+        @Override
+        public Boolean accelerateModeEnabled() {
+            return accelerateModeEnabled;
         }
 
         public void setDualstackEnabled(Boolean dualstackEnabled) {
@@ -281,6 +337,11 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             return this;
         }
 
+        @Override
+        public Boolean pathStyleAccessEnabled() {
+            return pathStyleAccessEnabled;
+        }
+
         public void setAccelerateModeEnabled(Boolean accelerateModeEnabled) {
             accelerateModeEnabled(accelerateModeEnabled);
         }
@@ -288,6 +349,11 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         public Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
             this.pathStyleAccessEnabled = pathStyleAccessEnabled;
             return this;
+        }
+
+        @Override
+        public Boolean checksumValidationEnabled() {
+            return checksumValidationEnabled;
         }
 
         public void setPathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
@@ -299,6 +365,11 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             return this;
         }
 
+        @Override
+        public Boolean chunkedEncodingEnabled() {
+            return chunkedEncodingEnabled;
+        }
+
         public void setChecksumValidationEnabled(Boolean checksumValidationEnabled) {
             checksumValidationEnabled(checksumValidationEnabled);
         }
@@ -308,12 +379,39 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             return this;
         }
 
+        @Override
+        public Boolean useArnRegionEnabled() {
+            return useArnRegionEnabled;
+        }
+
         public void setChunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
             chunkedEncodingEnabled(chunkedEncodingEnabled);
         }
 
         public Builder useArnRegionEnabled(Boolean useArnRegionEnabled) {
             this.useArnRegionEnabled = useArnRegionEnabled;
+            return this;
+        }
+
+        @Override
+        public ProfileFile profileFile() {
+            return profileFile;
+        }
+
+        @Override
+        public Builder profileFile(ProfileFile profileFile) {
+            this.profileFile = profileFile;
+            return this;
+        }
+
+        @Override
+        public String profileName() {
+            return profileName;
+        }
+
+        @Override
+        public Builder profileName(String profileName) {
+            this.profileName = profileName;
             return this;
         }
 

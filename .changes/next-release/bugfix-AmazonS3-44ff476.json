@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "description": "Fixed a bug where explicitly disabling use-arn-region on S3Configuration would have lower priority than the environment variable, system property or profile property."
+}

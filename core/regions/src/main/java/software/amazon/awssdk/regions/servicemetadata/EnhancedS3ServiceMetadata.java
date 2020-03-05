@@ -17,6 +17,7 @@ package software.amazon.awssdk.regions.servicemetadata;
 
 import java.net.URI;
 import java.util.List;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -24,7 +25,9 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.regions.ServiceMetadataConfiguration;
 import software.amazon.awssdk.regions.ServicePartitionMetadata;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -36,42 +39,55 @@ import software.amazon.awssdk.utils.Logger;
 public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
     private static final Logger log = Logger.loggerFor(EnhancedS3ServiceMetadata.class);
     private static final String REGIONAL_SETTING = "regional";
-    private static final S3ServiceMetadata S3_SERVICE_METADATA = new S3ServiceMetadata();
 
-    private volatile boolean profileSettingChecked = false;
-    private volatile String profileSetting = null;
+    private final Lazy<Boolean> useUsEast1RegionalEndpoint;
+    private final ServiceMetadata s3ServiceMetadata;
+
+    public EnhancedS3ServiceMetadata() {
+        this(ServiceMetadataConfiguration.builder().build());
+    }
+
+    private EnhancedS3ServiceMetadata(ServiceMetadataConfiguration config) {
+        Supplier<ProfileFile> profileFile = config.profileFile() != null ? config.profileFile()
+                                                                         : ProfileFile::defaultProfileFile;
+        Supplier<String> profileName = config.profileName() != null ? () -> config.profileName()
+                                                                    : ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow;
+
+        this.useUsEast1RegionalEndpoint = new Lazy<>(() -> useUsEast1RegionalEndpoint(profileFile, profileName));
+        this.s3ServiceMetadata = new S3ServiceMetadata().reconfigure(config);
+    }
 
     @Override
     public URI endpointFor(Region region) {
-        if (Region.US_EAST_1.equals(region) && !useUsEast1RegionalEndpoint()) {
+        if (Region.US_EAST_1.equals(region) && !useUsEast1RegionalEndpoint.getValue()) {
             return URI.create("s3.amazonaws.com");
         }
-        return S3_SERVICE_METADATA.endpointFor(region);
+        return s3ServiceMetadata.endpointFor(region);
     }
 
     @Override
     public Region signingRegion(Region region) {
-        return S3_SERVICE_METADATA.signingRegion(region);
+        return s3ServiceMetadata.signingRegion(region);
     }
 
     @Override
     public List<Region> regions() {
-        return S3_SERVICE_METADATA.regions();
+        return s3ServiceMetadata.regions();
     }
 
     @Override
     public List<ServicePartitionMetadata> servicePartitions() {
-        return S3_SERVICE_METADATA.servicePartitions();
+        return s3ServiceMetadata.servicePartitions();
     }
 
-    private boolean useUsEast1RegionalEndpoint() {
+    private boolean useUsEast1RegionalEndpoint(Supplier<ProfileFile> profileFile, Supplier<String> profileName) {
         String env = envVarSetting();
 
         if (env != null) {
             return REGIONAL_SETTING.equalsIgnoreCase(env);
         }
 
-        String profile = profileFileSetting();
+        String profile = profileFileSetting(profileFile, profileName);
 
         if (profile != null) {
             return REGIONAL_SETTING.equalsIgnoreCase(profile);
@@ -84,23 +100,20 @@ public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
         return SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.getStringValue().orElse(null);
     }
 
-    private String profileFileSetting() {
-        if (!profileSettingChecked) {
-            synchronized (this) {
-                if (!profileSettingChecked) {
-                    try {
-                        String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
-                        ProfileFile profileFile = ProfileFile.defaultProfileFile();
-                        profileSetting = profileFile.profile(profileName)
-                                .flatMap(p -> p.property(ProfileProperty.S3_US_EAST_1_REGIONAL_ENDPOINT))
-                                .orElse(null);
-                    } catch (Throwable t) {
-                        log.warn(() -> "Unable to load config file", t);
-                    }
-                }
-                profileSettingChecked = true;
-            }
+    private String profileFileSetting(Supplier<ProfileFile> profileFileSupplier, Supplier<String> profileName) {
+        try {
+            return profileFileSupplier.get()
+                                      .profile(profileName.get())
+                                      .flatMap(p -> p.property(ProfileProperty.S3_US_EAST_1_REGIONAL_ENDPOINT))
+                                      .orElse(null);
+        } catch (Exception t) {
+            log.warn(() -> "Unable to load config file", t);
+            return null;
         }
-        return profileSetting;
+    }
+
+    @Override
+    public ServiceMetadata reconfigure(ServiceMetadataConfiguration configuration) {
+        return new EnhancedS3ServiceMetadata(configuration);
     }
 }

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.retry;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -76,37 +77,78 @@ public enum RetryMode {
      * configured.
      */
     public static RetryMode defaultRetryMode() {
-        return RetryMode.fromDefaultChain(ProfileFile.defaultProfileFile());
+        return resolver().resolve();
     }
 
-    private static Optional<RetryMode> fromSystemSettings() {
-        return SdkSystemSetting.AWS_RETRY_MODE.getStringValue()
-                                              .flatMap(RetryMode::fromString);
+    /**
+     * Create a {@link Resolver} that allows customizing the variables used during determination of a {@link RetryMode}.
+     */
+    public static Resolver resolver() {
+        return new Resolver();
     }
 
-    private static Optional<RetryMode> fromProfileFile(ProfileFile profileFile) {
-        return profileFile.profile(ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
-                          .flatMap(p -> p.property(ProfileProperty.RETRY_MODE))
-                          .flatMap(RetryMode::fromString);
-    }
+    /**
+     * Allows customizing the variables used during determination of a {@link RetryMode}. Created via {@link #resolver()}.
+     */
+    public static class Resolver {
+        private Supplier<ProfileFile> profileFile;
+        private String profileName;
 
-    private static RetryMode fromDefaultChain(ProfileFile profileFile) {
-        return OptionalUtils.firstPresent(RetryMode.fromSystemSettings(), () -> fromProfileFile(profileFile))
-                            .orElse(RetryMode.LEGACY);
-    }
-
-    private static Optional<RetryMode> fromString(String string) {
-        if (string == null || string.isEmpty()) {
-            return Optional.empty();
+        private Resolver() {
         }
 
-        switch (StringUtils.lowerCase(string)) {
-            case "legacy":
-                return Optional.of(LEGACY);
-            case "standard":
-                return Optional.of(STANDARD);
-            default:
-                throw new IllegalStateException("Unsupported retry policy mode configured: " + string);
+        /**
+         * Configure the profile file that should be used when determining the {@link RetryMode}. The supplier is only consulted
+         * if a higher-priority determinant (e.g. environment variables) does not find the setting.
+         */
+        public Resolver profileFile(Supplier<ProfileFile> profileFile) {
+            this.profileFile = profileFile;
+            return this;
+        }
+
+        /**
+         * Configure the profile file name should be used when determining the {@link RetryMode}.
+         */
+        public Resolver profileName(String profileName) {
+            this.profileName = profileName;
+            return this;
+        }
+
+        /**
+         * Resolve which retry mode should be used, based on the configured values.
+         */
+        public RetryMode resolve() {
+            return OptionalUtils.firstPresent(Resolver.fromSystemSettings(), () -> fromProfileFile(profileFile, profileName))
+                                .orElse(RetryMode.LEGACY);
+        }
+
+        private static Optional<RetryMode> fromSystemSettings() {
+            return SdkSystemSetting.AWS_RETRY_MODE.getStringValue()
+                                                  .flatMap(Resolver::fromString);
+        }
+
+        private static Optional<RetryMode> fromProfileFile(Supplier<ProfileFile> profileFile, String profileName) {
+            profileFile = profileFile != null ? profileFile : ProfileFile::defaultProfileFile;
+            profileName = profileName != null ? profileName : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+            return profileFile.get()
+                              .profile(profileName)
+                              .flatMap(p -> p.property(ProfileProperty.RETRY_MODE))
+                              .flatMap(Resolver::fromString);
+        }
+
+        private static Optional<RetryMode> fromString(String string) {
+            if (string == null || string.isEmpty()) {
+                return Optional.empty();
+            }
+
+            switch (StringUtils.lowerCase(string)) {
+                case "legacy":
+                    return Optional.of(LEGACY);
+                case "standard":
+                    return Optional.of(STANDARD);
+                default:
+                    throw new IllegalStateException("Unsupported retry policy mode configured: " + string);
+            }
         }
     }
 }

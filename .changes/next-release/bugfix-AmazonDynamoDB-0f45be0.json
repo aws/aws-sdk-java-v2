@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB",
+    "description": "Fixed an issue that could cause a null-pointer-exception when using anonymous credentials with endpoint discovery enabled."
+}
