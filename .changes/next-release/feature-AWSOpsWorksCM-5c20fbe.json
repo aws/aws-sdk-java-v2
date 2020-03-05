@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS OpsWorks CM",
+    "description": "Updated the Tag regex pattern to align with AWS tagging APIs."
+}
