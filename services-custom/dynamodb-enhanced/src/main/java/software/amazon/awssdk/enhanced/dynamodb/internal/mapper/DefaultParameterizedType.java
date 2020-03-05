@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.Validate;

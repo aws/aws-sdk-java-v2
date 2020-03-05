@@ -16,10 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.converters.attribute;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue.fromNumber;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformFrom;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformTo;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue.fromNumber;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue.nullValue;
 
 import java.util.OptionalDouble;
 import java.util.OptionalInt;

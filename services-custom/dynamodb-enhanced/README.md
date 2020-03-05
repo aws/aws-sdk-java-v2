@@ -22,7 +22,7 @@ values used are also completely arbitrary.
        private String accountId;
        private int subId;            // primitive types are supported
        private String name;
-       private String createdDate;
+       private Instant createdDate;
        
        @DynamoDbPartitionKey
        public String getAccountId() { return this.accountId; }
@@ -40,8 +40,8 @@ values used are also completely arbitrary.
        // Defines an LSI (customers_by_date) with a sort key of 'createdDate' and also declares the 
        // same attribute as a sort key for the GSI named 'customers_by_name'
        @DynamoDbSecondarySortKey(indexNames = {"customers_by_date", "customers_by_name"})
-       public String getCreatedDate() { return this.createdDate; }
-       public void setCreatedDate(String createdDate) { this.createdDate = createdDate; }
+       public Instant getCreatedDate() { return this.createdDate; }
+       public void setCreatedDate(Instant createdDate) { this.createdDate = createdDate; }
    }
    ```
    
@@ -58,24 +58,23 @@ values used are also completely arbitrary.
    static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
      StaticTableSchema.builder(Customer.class)
        .newItemSupplier(Customer::new)
-       .attributes(
-         stringAttribute("account_id", 
-                         Customer::getAccountId, 
-                         Customer::setAccountId)
-            .as(primaryPartitionKey()),
-         integerNumberAttribute("sub_id", 
-                                Customer::getSubId, 
-                                Customer::setSubId)
-            .as(primarySortKey()),
-         stringAttribute("name", 
-                         Customer::getName, 
-                         Customer::setName)
-            .as(secondaryPartitionKey("customers_by_name")),
-         stringAttribute("created_date", 
-                         Customer::getCreatedDate, 
-                         Customer::setCreatedDate)
-            .as(secondarySortKey("customers_by_date"), 
-                secondarySortKey("customers_by_name")))
+       .addAttribute(String.class, a -> a.name("account_id")
+                                         .getter(Customer::getAccountId)
+                                         .setter(Customer::setAccountId)
+                                         .tags(primaryPartitionKey()))
+       .addAttribute(Integer.class, a -> a.name("sub_id")
+                                          .getter(Customer::getSubId)
+                                          .setter(Customer::setSubId)
+                                          .tags(primarySortKey()))
+       .addAttribute(String.class, a -> a.name("name")
+                                         .getter(Customer::getName)
+                                         .setter(Customer::setName)
+                                         .tags(secondaryPartitionKey("customers_by_name")))
+       .addAttribute(Instant.class, a -> a.name("created_date")
+                                          .getter(Customer::getCreatedDate)
+                                          .setter(Customer::setCreatedDate)
+                                          .tags(secondarySortKey("customers_by_date"),
+                                                secondarySortKey("customers_by_name")))
        .build();
    ```
    
@@ -209,7 +208,8 @@ index. Here's an example of how to do this:
    ```java
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   Iterable<Page<Customer>> customersWithName = customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
+   Iterable<Page<Customer>> customersWithName = 
+       customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    ```
 
 ### Non-blocking asynchronous operations
@@ -293,10 +293,11 @@ number tag a numeric attribute in the TableSchema:
 ```
 Or using a StaticTableSchema:
 ```java
-    integerNumberAttribute("version", 
-                           Customer::getVersion, 
-                           Customer::setVersion)
-        .as(version())          // Apply the 'version' tag to the attribute                         
+    .addAttribute(Integer.class, a -> a.name("version")
+                                       .getter(Customer::getVersion)
+                                       .setter(Customer::setVersion)
+                                        // Apply the 'version' tag to the attribute
+                                       .tags(versionAttribute())                         
 ```
 
 ## Advanced StaticTableSchema scenarios

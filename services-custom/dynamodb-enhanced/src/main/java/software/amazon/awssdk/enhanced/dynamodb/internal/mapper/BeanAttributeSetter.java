@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
 import java.lang.reflect.Method;
 import java.util.function.BiConsumer;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.ReflectionUtils;

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import java.util.function.Function;
-
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;

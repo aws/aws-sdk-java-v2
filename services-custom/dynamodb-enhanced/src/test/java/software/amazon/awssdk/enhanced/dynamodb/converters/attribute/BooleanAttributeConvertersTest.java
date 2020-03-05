@@ -21,7 +21,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.Conv
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformFrom;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformTo;
 
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.AtomicBooleanAttributeConverter;

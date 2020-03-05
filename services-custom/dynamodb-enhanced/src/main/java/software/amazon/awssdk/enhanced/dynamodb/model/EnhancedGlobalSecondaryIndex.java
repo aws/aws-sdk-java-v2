@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;

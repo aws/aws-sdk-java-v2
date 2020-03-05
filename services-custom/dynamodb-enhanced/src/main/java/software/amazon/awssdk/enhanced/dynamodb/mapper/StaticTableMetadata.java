@@ -13,25 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
+package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
-@SdkInternalApi
-@ThreadSafe
+/**
+ * Implementation of {@link TableMetadata} that can be constructed directly using literal values for metadata objects.
+ * This implementation is used by {@link StaticTableSchema} and associated interfaces such as {@link StaticAttributeTag}
+ * and {@link StaticTableTag} which permit manipulation of the table metadata.
+ */
+@SdkPublicApi
 public final class StaticTableMetadata implements TableMetadata {
-    // The following indexed collections are only built once and are immutable, therefore the class is threadsafe
     private final Map<String, Object> customMetadata;
     private final Map<String, Index> indexByNameMap;
     private final Map<String, AttributeValueType> keyAttributes;
@@ -42,6 +43,10 @@ public final class StaticTableMetadata implements TableMetadata {
         this.keyAttributes = Collections.unmodifiableMap(builder.keyAttributes);
     }
 
+    /**
+     * Create a new builder for this class
+     * @return A newly initialized {@link Builder} for building a {@link StaticTableMetadata} object.
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -166,37 +171,31 @@ public final class StaticTableMetadata implements TableMetadata {
         return result;
     }
 
-    @ThreadSafe
+    /**
+     * Builder for {@link StaticTableMetadata}
+     */
     public static class Builder {
-        private final Map<String, Object> customMetadata = new ConcurrentHashMap<>();
-        private final Map<String, Index> indexByNameMap = new ConcurrentHashMap<>();
-        private final Map<String, AttributeValueType> keyAttributes = new ConcurrentHashMap<>();
+        private final Map<String, Object> customMetadata = new HashMap<>();
+        private final Map<String, Index> indexByNameMap = new HashMap<>();
+        private final Map<String, AttributeValueType> keyAttributes = new HashMap<>();
 
         private Builder() {
         }
 
+        /**
+         * Builds an immutable instance of {@link StaticTableMetadata} from the values supplied to the builder.
+         */
         public StaticTableMetadata build() {
             return new StaticTableMetadata(this);
         }
 
-        public Builder mergeWith(StaticTableMetadata other) {
-            other.indexByNameMap.forEach((key, index) -> {
-                if (index.getIndexPartitionKey() != null) {
-                    addIndexPartitionKey(index.getIndexName(),
-                                         index.getIndexPartitionKey(),
-                                         index.getIndexPartitionType());
-                }
-
-                if (index.getIndexSortKey() != null) {
-                    addIndexSortKey(index.getIndexName(), index.getIndexSortKey(), index.getIndexSortType());
-                }
-            });
-
-            other.customMetadata.forEach(this::addCustomMetadataObject);
-            other.keyAttributes.forEach(this::markAttributeAsKey);
-            return this;
-        }
-
+        /**
+         * Adds a single custom object to the metadata, keyed by a string. Attempting to add a metadata object with a
+         * key that matches one that has already been added will cause an exception to be thrown.
+         * @param key a string key that will be used to retrieve the custom metadata
+         * @param object an object that will be stored in the custom metadata map
+         * @throws  IllegalArgumentException if the custom metadata map already contains an entry with the same key
+         */
         public Builder addCustomMetadataObject(String key, Object object) {
             if (customMetadata.containsKey(key)) {
                 throw new IllegalArgumentException("Attempt to set a custom metadata object that has already been set. "
@@ -207,6 +206,13 @@ public final class StaticTableMetadata implements TableMetadata {
             return this;
         }
 
+        /**
+         * Adds information about a partition key associated with a specific index.
+         * @param indexName the name of the index to associate the partition key with
+         * @param attributeName the name of the attribute that represents the partition key
+         * @param attributeValueType the {@link AttributeValueType} of the partition key
+         * @throws IllegalArgumentException if a partition key has already been defined for this index
+         */
         public Builder addIndexPartitionKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
             Index index = indexByNameMap.computeIfAbsent(indexName, $ -> new Index(indexName));
 
@@ -222,6 +228,13 @@ public final class StaticTableMetadata implements TableMetadata {
             return this;
         }
 
+        /**
+         * Adds information about a sort key associated with a specific index.
+         * @param indexName the name of the index to associate the sort key with
+         * @param attributeName the name of the attribute that represents the sort key
+         * @param attributeValueType the {@link AttributeValueType} of the sort key
+         * @throws IllegalArgumentException if a sort key has already been defined for this index
+         */
         public Builder addIndexSortKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
             Index index = indexByNameMap.computeIfAbsent(indexName, $ -> new Index(indexName));
 
@@ -237,6 +250,14 @@ public final class StaticTableMetadata implements TableMetadata {
             return this;
         }
 
+        /**
+         * Declares a 'key-like' attribute that is not an actual DynamoDB key. These pseudo-keys can then be recognized
+         * by extensions and treated appropriately, often being protected from manipulations as those would alter the
+         * meaning of the record. One example usage of this is a 'versioned record attribute': although the version is
+         * not part of the primary key of the record, it effectively serves as such.
+         * @param attributeName the name of the attribute to mark as a pseudo-key
+         * @param attributeValueType the {@link AttributeValueType} of the pseudo-key
+         */
         public Builder markAttributeAsKey(String attributeName, AttributeValueType attributeValueType) {
             AttributeValueType existing = keyAttributes.get(attributeName);
 
@@ -249,6 +270,27 @@ public final class StaticTableMetadata implements TableMetadata {
                 keyAttributes.put(attributeName, attributeValueType);
             }
 
+            return this;
+        }
+
+        /**
+         * Package-private method to merge the contents of a constructed {@link TableMetadata} into this builder.
+         */
+        Builder mergeWith(StaticTableMetadata other) {
+            other.indexByNameMap.forEach((key, index) -> {
+                if (index.getIndexPartitionKey() != null) {
+                    addIndexPartitionKey(index.getIndexName(),
+                                         index.getIndexPartitionKey(),
+                                         index.getIndexPartitionType());
+                }
+
+                if (index.getIndexSortKey() != null) {
+                    addIndexSortKey(index.getIndexName(), index.getIndexSortKey(), index.getIndexSortType());
+                }
+            });
+
+            other.customMetadata.forEach(this::addCustomMetadataObject);
+            other.keyAttributes.forEach(this::markAttributeAsKey);
             return this;
         }
     }

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;

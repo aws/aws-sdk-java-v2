@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import java.util.Collections;
 import java.util.List;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
