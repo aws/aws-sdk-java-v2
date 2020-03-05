@@ -1,3 +1,28 @@
+# __2.10.80__ __2020-03-05__
+## __AWS OpsWorks CM__
+  - ### Features
+    - Updated the Tag regex pattern to align with AWS tagging APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Adds javadoc to operation methods and request/response objects.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now create AWS Client VPN Endpoints with a specified VPC and Security Group. Additionally, you can modify these attributes when modifying the endpoint.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Amazon EKS now supports adding a KMS key to your cluster for envelope encryption of Kubernetes secrets.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add a new finding field for EC2 findings indicating the instance's local IP address involved in the threat.
+
 # __2.10.79__ __2020-03-04__
 ## __Amazon Pinpoint__
   - ### Features
