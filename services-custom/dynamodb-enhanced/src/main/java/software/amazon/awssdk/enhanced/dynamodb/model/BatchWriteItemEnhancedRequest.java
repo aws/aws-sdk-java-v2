@@ -20,9 +20,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 
+/**
+ * Defines parameters used for the batchWriteItem() operation (such as
+ * {@link DynamoDbEnhancedClient#batchWriteItem(BatchWriteItemEnhancedRequest)}).
+ * <p>
+ * A request contains references to keys for delete actions and items for put actions,
+ * organized into one {@link WriteBatch} object per accessed table.
+ */
 @SdkPublicApi
 public final class BatchWriteItemEnhancedRequest {
 
@@ -32,14 +39,23 @@ public final class BatchWriteItemEnhancedRequest {
         this.writeBatches = getListIfExist(builder.writeBatches);
     }
 
+    /**
+     * Creates a newly initialized builder for a request object.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Returns a builder initialized with all existing values on the request object.
+     */
     public Builder toBuilder() {
         return new Builder().writeBatches(writeBatches);
     }
 
+    /**
+     * Returns the collection of {@link WriteBatch} in this request object.
+     */
     public Collection<WriteBatch> writeBatches() {
         return writeBatches;
     }
@@ -67,22 +83,44 @@ public final class BatchWriteItemEnhancedRequest {
         return writeBatches != null ? Collections.unmodifiableList(writeBatches) : null;
     }
 
+    /**
+     * A builder that is used to create a request with the desired parameters.
+     */
     public static final class Builder {
         private List<WriteBatch> writeBatches;
 
         private Builder() {
         }
 
+        /**
+         * Sets a collection of write batches to use in the batchWriteItem operation.
+         *
+         * @param writeBatches the collection of write batches
+         * @return a builder of this type
+         */
         public Builder writeBatches(Collection<WriteBatch> writeBatches) {
             this.writeBatches = writeBatches != null ? new ArrayList<>(writeBatches) : null;
             return this;
         }
 
+        /**
+         * Sets one or more write batches to use in the batchWriteItem operation.
+         *
+         * @param writeBatches one or more {@link WriteBatch}, separated by comma.
+         * @return a builder of this type
+         */
         public Builder writeBatches(WriteBatch... writeBatches) {
             this.writeBatches = Arrays.asList(writeBatches);
             return this;
         }
 
+        /**
+         * Adds a write batch to the collection of batches on this builder.
+         * If this is the first batch, the method creates a new list.
+         *
+         * @param writeBatch a single write batch
+         * @return a builder of this type
+         */
         public Builder addWriteBatch(WriteBatch writeBatch) {
             if (writeBatches == null) {
                 writeBatches = new ArrayList<>();

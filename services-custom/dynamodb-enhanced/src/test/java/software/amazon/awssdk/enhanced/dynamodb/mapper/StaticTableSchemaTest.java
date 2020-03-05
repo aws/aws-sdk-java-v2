@@ -1266,8 +1266,8 @@ public class StaticTableSchemaTest {
 
         StaticTableSchema<FakeAbstractSubclass> subclassTableSchema =
             StaticTableSchema.builder(FakeAbstractSubclass.class)
-                .<FakeAbstractSubclass>extend(superclassTableSchema)
-                .build();
+                             .extend(superclassTableSchema)
+                             .build();
 
         FakeAbstractSubclass item = new FakeAbstractSubclass();
         item.setAString("test-string");

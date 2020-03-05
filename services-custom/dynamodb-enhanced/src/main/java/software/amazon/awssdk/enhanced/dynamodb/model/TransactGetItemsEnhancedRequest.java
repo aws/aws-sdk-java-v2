@@ -21,14 +21,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableReadOperation;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 
+/**
+ * Defines parameters used for the transaction operation transactGetItems() (such as
+ * {@link DynamoDbEnhancedClient#transactGetItems(TransactGetItemsEnhancedRequest)}).
+ * <p>
+ * A request contains references to the primary keys for the items this operation will search for.
+ * It's populated with one or more {@link GetItemEnhancedRequest}, each associated with with the table where the item is located.
+ * On initialization, these requests are transformed into {@link TransactGetItem} and stored in the request.
+ * .
+ */
 @SdkPublicApi
 public final class TransactGetItemsEnhancedRequest {
 
@@ -38,10 +47,16 @@ public final class TransactGetItemsEnhancedRequest {
         this.transactGetItems = getItemsFromSupplier(builder.itemSupplierList);
     }
 
+    /**
+     * Creates a newly initialized builder for a request object.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Returns the list of {@link TransactGetItem} that represents all lookup keys in the request.
+     */
     public List<TransactGetItem> transactGetItems() {
         return transactGetItems;
     }
@@ -65,17 +80,39 @@ public final class TransactGetItemsEnhancedRequest {
         return transactGetItems != null ? transactGetItems.hashCode() : 0;
     }
 
+    /**
+     * A builder that is used to create a transaction object with the desired parameters.
+     * <p>
+     * A valid builder should contain at least one {@link GetItemEnhancedRequest} added through addGetItem().
+     */
     public static final class Builder {
         private List<Supplier<TransactGetItem>> itemSupplierList = new ArrayList<>();
 
         private Builder() {
         }
 
+        /**
+         * Adds a primary lookup key and it's associated table to the transaction.
+         *
+         * @param mappedTableResource the table where the key is located
+         * @param request A {@link GetItemEnhancedRequest}
+         * @param <T> the type of modelled objects in the table
+         * @return a builder of this type
+         */
         public <T> Builder addGetItem(MappedTableResource<T> mappedTableResource, GetItemEnhancedRequest request) {
             itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, GetItemOperation.create(request)));
             return this;
         }
 
+        /**
+         * Adds a primary lookup key and it's associated table to the transaction by accepting a consumer of
+         * {@link GetItemEnhancedRequest.Builder}.
+         *
+         * @param mappedTableResource the table where the key is located
+         * @param requestConsumer a {@link Consumer} of {@link GetItemEnhancedRequest}
+         * @param <T> the type of modelled objects in the table
+         * @return a builder of this type
+         */
         public <T> Builder addGetItem(MappedTableResource<T> mappedTableResource,
                                       Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
             GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();

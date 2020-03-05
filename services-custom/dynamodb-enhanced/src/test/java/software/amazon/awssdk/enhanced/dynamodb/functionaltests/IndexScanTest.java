@@ -45,12 +45,11 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
 public class IndexScanTest extends LocalDynamoDbSyncTestBase {
@@ -169,11 +168,14 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())
-                                      .globalSecondaryIndices(GlobalSecondaryIndex.create(
-                                          "gsi_keys_only",
-                                          Projection.builder().projectionType(ProjectionType.KEYS_ONLY).build(),
-                                          getDefaultProvisionedThroughput())));
+        mappedTable.createTable(
+                r -> r.provisionedThroughput(getDefaultProvisionedThroughput())
+                        .globalSecondaryIndices(
+                                EnhancedGlobalSecondaryIndex.builder()
+                                        .indexName("gsi_keys_only")
+                                        .projection(p -> p.projectionType(ProjectionType.KEYS_ONLY))
+                                        .provisionedThroughput(getDefaultProvisionedThroughput())
+                                        .build()));
     }
 
     @After
