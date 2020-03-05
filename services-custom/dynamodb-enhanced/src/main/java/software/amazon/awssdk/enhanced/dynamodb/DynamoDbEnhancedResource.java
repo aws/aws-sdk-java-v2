@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.List;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**

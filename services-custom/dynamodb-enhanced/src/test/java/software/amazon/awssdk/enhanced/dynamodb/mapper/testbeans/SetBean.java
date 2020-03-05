@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
 import java.util.Objects;
 import java.util.Set;
-
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;

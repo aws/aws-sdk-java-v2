@@ -17,8 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
 import org.junit.After;
@@ -27,7 +26,7 @@ import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -120,25 +119,24 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
     private static final StaticTableSchema<Document> DOCUMENT_SCHEMA =
         StaticTableSchema.builder(Document.class)
                          .newItemSupplier(Document::new)
-                         .attributes(
-                             attribute("documentAttribute1",
-                                       EnhancedType.of(String.class),
-                                       Document::getDocumentAttribute1,
-                                       Document::setDocumentAttribute1),
-                             attribute("documentAttribute2",
-                                       EnhancedType.of(String.class),
-                                       Document::getDocumentAttribute2,
-                                       Document::setDocumentAttribute2),
-                             attribute("documentAttribute3",
-                                       EnhancedType.of(String.class),
-                                       Document::getDocumentAttribute3,
-                                       Document::setDocumentAttribute3))
+                         .addAttribute(String.class, a -> a.name("documentAttribute1")
+                                                           .getter(Document::getDocumentAttribute1)
+                                                           .setter(Document::setDocumentAttribute1))
+                         .addAttribute(String.class, a -> a.name("documentAttribute2")
+                                                           .getter(Document::getDocumentAttribute2)
+                                                           .setter(Document::setDocumentAttribute2))
+                         .addAttribute(String.class, a -> a.name("documentAttribute3")
+                                                           .getter(Document::getDocumentAttribute3)
+                                                           .setter(Document::setDocumentAttribute3))
                          .build();
 
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
-                         .attributes(attribute("id", EnhancedType.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(Record::getId)
+                                                           .setter(Record::setId)
+                                                           .tags(primaryPartitionKey()))
                          .flatten(DOCUMENT_SCHEMA, Record::getDocument, Record::setDocument)
                          .build();
 

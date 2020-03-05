@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 
 public class EnhancedAttributeValueTest {
     @Test

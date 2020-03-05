@@ -13,35 +13,33 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.mapper;
+package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 
-import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticTableMetadata;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-@SdkPublicApi
-@SuppressWarnings("WeakerAccess")
-public final class Attribute<T> {
+@SdkInternalApi
+public final class ResolvedStaticAttribute<T> {
     private final String attributeName;
     private final Function<T, AttributeValue> getAttributeMethod;
     private final BiConsumer<T, AttributeValue> updateItemMethod;
     private final StaticTableMetadata tableMetadata;
     private final AttributeValueType attributeValueType;
 
-    private Attribute(String attributeName,
-                      Function<T, AttributeValue> getAttributeMethod,
-                      BiConsumer<T, AttributeValue> updateItemMethod,
-                      StaticTableMetadata tableMetadata,
-                      AttributeValueType attributeValueType) {
+    private ResolvedStaticAttribute(String attributeName,
+                                    Function<T, AttributeValue> getAttributeMethod,
+                                    BiConsumer<T, AttributeValue> updateItemMethod,
+                                    StaticTableMetadata tableMetadata,
+                                    AttributeValueType attributeValueType) {
         this.attributeName = attributeName;
         this.getAttributeMethod = getAttributeMethod;
         this.updateItemMethod = updateItemMethod;
@@ -49,14 +47,10 @@ public final class Attribute<T> {
         this.attributeValueType = attributeValueType;
     }
 
-    public static <T, R> AttributeSupplier<T> create(
-        String attributeName,
-        Function<T, R> getAttributeMethod,
-        BiConsumer<T, R> updateItemMethod,
-        AttributeType<R> attributeType) {
-
+    public static <T, R> ResolvedStaticAttribute<T> create(StaticAttribute<T, R> staticAttribute,
+                                                           AttributeType<R> attributeType) {
         Function<T, AttributeValue> getAttributeValueWithTransform = item -> {
-            R value = getAttributeMethod.apply(item);
+            R value = staticAttribute.getter().apply(item);
             return value == null ? nullAttributeValue() : attributeType.objectToAttributeValue(value);
         };
 
@@ -71,14 +65,20 @@ public final class Attribute<T> {
             R value = attributeType.attributeValueToObject(attributeValue);
 
             if (value != null) {
-                updateItemMethod.accept(item, value);
+                staticAttribute.setter().accept(item, value);
             }
         };
 
-        return new AttributeSupplier<>(attributeName,
-                                       getAttributeValueWithTransform,
-                                       updateItemWithTransform,
-                                       attributeType.attributeValueType());
+        StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
+        staticAttribute.tags().forEach(
+            tag -> tag.modifyMetadata(staticAttribute.name(), attributeType.attributeValueType())
+                      .accept(tableMetadataBuilder));
+
+        return new ResolvedStaticAttribute<>(staticAttribute.name(),
+                                             getAttributeValueWithTransform,
+                                             updateItemWithTransform,
+                                             tableMetadataBuilder.build(),
+                                             attributeType.attributeValueType());
     }
 
     /**
@@ -92,8 +92,9 @@ public final class Attribute<T> {
      * @param <R> The type being transformed to.
      * @return A new Attribute that be contained by an object of type R.
      */
-    public <R> Attribute<R> transform(Function<R, T> transform, Consumer<R> createComponent) {
-        return new Attribute<>(attributeName,
+    public <R> ResolvedStaticAttribute<R> transform(Function<R, T> transform, Consumer<R> createComponent) {
+        return new ResolvedStaticAttribute<>(
+            attributeName,
             item -> {
                 T otherItem = transform.apply(item);
 
@@ -112,52 +113,19 @@ public final class Attribute<T> {
             attributeValueType);
     }
 
-    String attributeName() {
+    public String attributeName() {
         return attributeName;
     }
 
-    Function<T, AttributeValue> attributeGetterMethod() {
+    public Function<T, AttributeValue> attributeGetterMethod() {
         return getAttributeMethod;
     }
 
-    BiConsumer<T, AttributeValue> updateItemMethod() {
+    public BiConsumer<T, AttributeValue> updateItemMethod() {
         return updateItemMethod;
     }
 
-    StaticTableMetadata tableMetadata() {
+    public StaticTableMetadata tableMetadata() {
         return tableMetadata;
-    }
-
-    public static class AttributeSupplier<T> implements Supplier<Attribute<T>> {
-        private final String attributeName;
-        private final Function<T, AttributeValue> getAttributeValue;
-        private final BiConsumer<T, AttributeValue> updateItem;
-        private final StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
-        private final AttributeValueType attributeValueType;
-
-        private AttributeSupplier(String attributeName,
-                                  Function<T, AttributeValue> getAttributeValue,
-                                  BiConsumer<T, AttributeValue> updateItem,
-                                  AttributeValueType attributeValueType) {
-            this.attributeName = attributeName;
-            this.getAttributeValue = getAttributeValue;
-            this.updateItem = updateItem;
-            this.attributeValueType = attributeValueType;
-        }
-
-        @Override
-        public Attribute<T> get() {
-            return new Attribute<>(attributeName,
-                                   getAttributeValue,
-                                   updateItem,
-                                   tableMetadataBuilder.build(),
-                                   attributeValueType);
-        }
-
-        public AttributeSupplier<T> as(AttributeTag... attributeTags) {
-            Arrays.stream(attributeTags).forEach(attributeTag ->
-                attributeTag.setTableMetadataForAttribute(attributeName, attributeValueType, tableMetadataBuilder));
-            return this;
-        }
     }
 }
