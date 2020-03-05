@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -27,11 +29,11 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class UseArnRegionProviderChain implements UseArnRegionProvider {
     private static final Logger log = Logger.loggerFor(UseArnRegionProvider.class);
-    private static final List<UseArnRegionProvider> DEFAULT_PROVIDERS =
-        Arrays.asList(SystemsSettingsUseArnRegionProvider.create(), ProfileUseArnRegionProvider.create());
-    private static final UseArnRegionProviderChain INSTANCE = new UseArnRegionProviderChain();
 
-    private UseArnRegionProviderChain() {
+    private final List<UseArnRegionProvider> providers;
+
+    private UseArnRegionProviderChain(List<UseArnRegionProvider> providers) {
+        this.providers = providers;
     }
 
     /**
@@ -46,12 +48,18 @@ public final class UseArnRegionProviderChain implements UseArnRegionProvider {
      * </ol>
      */
     public static UseArnRegionProviderChain create() {
-        return INSTANCE;
+        return create(ProfileFile.defaultProfileFile(),
+                      ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
+    }
+
+    public static UseArnRegionProviderChain create(ProfileFile profileFile, String profileName) {
+        return new UseArnRegionProviderChain(Arrays.asList(SystemsSettingsUseArnRegionProvider.create(),
+                                                           ProfileUseArnRegionProvider.create(profileFile, profileName)));
     }
 
     @Override
     public Optional<Boolean> resolveUseArnRegion() {
-        for (UseArnRegionProvider provider : DEFAULT_PROVIDERS) {
+        for (UseArnRegionProvider provider : providers) {
             try {
                 Optional<Boolean> useArnRegion = provider.resolveUseArnRegion();
                 if (useArnRegion.isPresent()) {

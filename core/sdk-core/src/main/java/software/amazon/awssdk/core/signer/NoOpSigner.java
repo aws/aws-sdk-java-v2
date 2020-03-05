@@ -24,7 +24,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * input {@link SdkHttpFullRequest} without modifications.
  */
 @SdkPublicApi
-public final class NoOpSigner implements Signer, Presigner {
+public class NoOpSigner implements Signer, Presigner {
 
     @Override
     public SdkHttpFullRequest presign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {

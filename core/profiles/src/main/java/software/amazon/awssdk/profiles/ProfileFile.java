@@ -137,17 +137,17 @@ public final class ProfileFile {
     private static void addCredentialsFile(ProfileFile.Aggregator builder) {
         ProfileFileLocation.credentialsFileLocation()
                            .ifPresent(l -> builder.addFile(ProfileFile.builder()
-                                                                       .content(l)
-                                                                       .type(ProfileFile.Type.CREDENTIALS)
-                                                                       .build()));
+                                                                      .content(l)
+                                                                      .type(ProfileFile.Type.CREDENTIALS)
+                                                                      .build()));
     }
 
     private static void addConfigFile(ProfileFile.Aggregator builder) {
         ProfileFileLocation.configurationFileLocation()
                            .ifPresent(l -> builder.addFile(ProfileFile.builder()
-                                                                       .content(l)
-                                                                       .type(ProfileFile.Type.CONFIGURATION)
-                                                                       .build()));
+                                                                      .content(l)
+                                                                      .type(ProfileFile.Type.CONFIGURATION)
+                                                                      .build()));
     }
 
     /**

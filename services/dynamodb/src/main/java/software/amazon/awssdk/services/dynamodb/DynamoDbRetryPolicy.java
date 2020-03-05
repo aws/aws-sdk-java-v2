@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.dynamodb;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -53,35 +55,32 @@ final class DynamoDbRetryPolicy {
                                  .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
                                  .build();
 
-    /**
-     * Default retry policy for DynamoDB, when using the LEGACY retry mode.
-     */
-    private static final RetryPolicy LEGACY_RETRY_POLICY =
-        AwsRetryPolicy.defaultRetryPolicy()
-                      .toBuilder()
-                      .numRetries(LEGACY_MAX_ERROR_RETRY)
-                      .backoffStrategy(LEGACY_BACKOFF_STRATEGY)
-                      .additionalRetryConditionsAllowed(false)
-                      .build();
-
     private DynamoDbRetryPolicy() {
     }
 
-    /**
-     * @return Default retry policy used by DynamoDbClient
-     */
-    public static RetryPolicy defaultRetryPolicy() {
-        if (RetryMode.defaultRetryMode() == RetryMode.LEGACY) {
-            return LEGACY_RETRY_POLICY;
+    public static RetryPolicy resolveRetryPolicy(SdkClientConfiguration config) {
+        RetryPolicy configuredRetryPolicy = config.option(SdkClientOption.RETRY_POLICY);
+        if (configuredRetryPolicy != null) {
+            return configuredRetryPolicy;
         }
 
-        return AwsRetryPolicy.defaultRetryPolicy()
+        RetryMode retryMode = RetryMode.resolver()
+                                       .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                       .resolve();
+
+        if (retryMode != RetryMode.LEGACY) {
+            return AwsRetryPolicy.forRetryMode(retryMode)
+                                 .toBuilder()
+                                 .additionalRetryConditionsAllowed(false)
+                                 .build();
+        }
+
+        return AwsRetryPolicy.forRetryMode(RetryMode.LEGACY)
                              .toBuilder()
                              .additionalRetryConditionsAllowed(false)
+                             .numRetries(LEGACY_MAX_ERROR_RETRY)
+                             .backoffStrategy(LEGACY_BACKOFF_STRATEGY)
                              .build();
-    }
-
-    public static RetryPolicy addRetryConditions(RetryPolicy policy) {
-        return policy;
     }
 }

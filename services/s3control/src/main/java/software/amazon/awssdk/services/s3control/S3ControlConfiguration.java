@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ServiceConfiguration;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -42,12 +43,16 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
      */
     private static final boolean DEFAULT_DUALSTACK_ENABLED = false;
 
-    private final boolean fipsModeEnabled;
-    private final boolean dualstackEnabled;
+    private final Boolean fipsModeEnabled;
+    private final Boolean dualstackEnabled;
+    private final ProfileFile profileFile;
+    private final String profileName;
 
     private S3ControlConfiguration(DefaultS3ServiceConfigurationBuilder builder) {
-        this.dualstackEnabled = resolveBoolean(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
-        this.fipsModeEnabled = resolveBoolean(builder.fipsModeEnabled, DEFAULT_FIPS_MODE_ENABLED);
+        this.dualstackEnabled = builder.dualstackEnabled;
+        this.fipsModeEnabled = builder.fipsModeEnabled;
+        this.profileFile = builder.profileFile;
+        this.profileName = builder.profileName;
     }
 
     /**
@@ -64,7 +69,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
      * @return True if client will use FIPS mode.
      */
     public boolean fipsModeEnabled() {
-        return fipsModeEnabled;
+        return resolveBoolean(fipsModeEnabled, DEFAULT_FIPS_MODE_ENABLED);
     }
 
     /**
@@ -81,7 +86,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
      * @return True if the client will use the dualstack endpoints
      */
     public boolean dualstackEnabled() {
-        return dualstackEnabled;
+        return resolveBoolean(dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
     }
 
     private boolean resolveBoolean(Boolean suppliedValue, boolean defaultValue) {
@@ -92,11 +97,15 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
     public Builder toBuilder() {
         return builder()
                 .dualstackEnabled(dualstackEnabled)
-                .fipsModeEnabled(fipsModeEnabled);
+                .fipsModeEnabled(fipsModeEnabled)
+                .profileFile(profileFile)
+                .profileName(profileName);
     }
 
     @NotThreadSafe
     public interface Builder extends CopyableBuilder<Builder, S3ControlConfiguration> {
+        Boolean dualstackEnabled();
+
         /**
          * Option to enable using the dualstack endpoints when accessing S3. Dualstack
          * should be enabled if you want to use IPv6.
@@ -109,6 +118,8 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
          */
         Builder dualstackEnabled(Boolean dualstackEnabled);
 
+        Boolean fipsModeEnabled();
+
         /**
          * Option to enable using the fips endpoint when accessing S3 Control.
          *
@@ -119,12 +130,34 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
          * @see S3ControlConfiguration#fipsModeEnabled().
          */
         Builder fipsModeEnabled(Boolean fipsModeEnabled);
+
+        ProfileFile profileFile();
+
+        /**
+         * The profile file that should be consulted to determine the service-specific default configuration. This is not
+         * currently used by S3 control, but may be in a future SDK version.
+         */
+        Builder profileFile(ProfileFile profileFile);
+
+        String profileName();
+
+        /**
+         * The profile name that should be consulted to determine the service-specific default configuration. This is not
+         * currently used by S3 control, but may be in a future SDK version.
+         */
+        Builder profileName(String profileName);
     }
 
     private static final class DefaultS3ServiceConfigurationBuilder implements Builder {
 
         private Boolean dualstackEnabled;
         private Boolean fipsModeEnabled;
+        private ProfileFile profileFile;
+        private String profileName;
+
+        public Boolean dualstackEnabled() {
+            return dualstackEnabled;
+        }
 
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
@@ -135,6 +168,10 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
             dualstackEnabled(dualstackEnabled);
         }
 
+        public Boolean fipsModeEnabled() {
+            return fipsModeEnabled;
+        }
+
         public Builder fipsModeEnabled(Boolean fipsModeEnabled) {
             this.fipsModeEnabled = fipsModeEnabled;
             return this;
@@ -142,6 +179,28 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
 
         public void setFipsModeEnabled(Boolean fipsModeEnabled) {
             fipsModeEnabled(fipsModeEnabled);
+        }
+
+        @Override
+        public ProfileFile profileFile() {
+            return profileFile;
+        }
+
+        @Override
+        public Builder profileFile(ProfileFile profileFile) {
+            this.profileFile = profileFile;
+            return this;
+        }
+
+        @Override
+        public String profileName() {
+            return profileName;
+        }
+
+        @Override
+        public Builder profileName(String profileName) {
+            this.profileName = profileName;
+            return this;
         }
 
         public S3ControlConfiguration build() {
