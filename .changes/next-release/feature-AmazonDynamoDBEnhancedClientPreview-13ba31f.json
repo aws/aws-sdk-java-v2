@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client [Preview]",
-    "description": "Adds javadoc to operation methods and request/response objects."
-}
