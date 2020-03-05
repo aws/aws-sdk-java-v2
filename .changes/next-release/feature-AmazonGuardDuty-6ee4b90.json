@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "description": "Add a new finding field for EC2 findings indicating the instance's local IP address involved in the threat."
-}
