@@ -98,7 +98,16 @@ public class GoAwayTest {
         CountDownLatch allRequestsReceived = new CountDownLatch(2);
         Supplier<Http2FrameListener> frameListenerSupplier = () -> new TestFrameListener() {
             @Override
+            public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int padding, boolean endStream) {
+                onHeadersReadDelegator(ctx, streamId);
+            }
+
+            @Override
             public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int streamDependency, short weight, boolean exclusive, int padding, boolean endStream) {
+                onHeadersReadDelegator(ctx, streamId);
+            }
+
+            private void onHeadersReadDelegator(ChannelHandlerContext ctx, int streamId) {
                 serverChannels.add(ctx.channel().id().asShortText());
 
                 Http2Headers outboundHeaders = new DefaultHttp2Headers()
@@ -147,7 +156,16 @@ public class GoAwayTest {
         // Frame listener supplier for each connection
         Supplier<Http2FrameListener> frameListenerSupplier = () -> new TestFrameListener() {
             @Override
+            public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int padding, boolean endStream) {
+                onHeadersReadDelegator(ctx, streamId);
+            }
+
+            @Override
             public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int streamDependency, short weight, boolean exclusive, int padding, boolean endStream) {
+                onHeadersReadDelegator(ctx, streamId);
+            }
+
+            private void onHeadersReadDelegator(ChannelHandlerContext ctx, int streamId) {
                 frameWriter().writeHeaders(ctx, streamId, new DefaultHttp2Headers().add("content-length", "0").status("204"), 0, true, ctx.newPromise());
                 ctx.flush();
             }
@@ -189,7 +207,16 @@ public class GoAwayTest {
         byte[] getPayload = "go away!".getBytes(StandardCharsets.UTF_8);
         Supplier<Http2FrameListener> frameListenerSupplier = () -> new TestFrameListener() {
             @Override
+            public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int padding, boolean endStream) {
+                onHeadersReadDelegator(ctx, streamId);
+            }
+
+            @Override
             public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int streamDependency, short weight, boolean exclusive, int padding, boolean endStream) {
+                onHeadersReadDelegator(ctx, streamId);
+            }
+
+            private void onHeadersReadDelegator(ChannelHandlerContext ctx, int streamId) {
                 channelToStreams.computeIfAbsent(ctx.channel().id().asShortText(), (k) -> Collections.newSetFromMap(new ConcurrentHashMap<>())).add(streamId);
 
                 if (streamId == 3) {
