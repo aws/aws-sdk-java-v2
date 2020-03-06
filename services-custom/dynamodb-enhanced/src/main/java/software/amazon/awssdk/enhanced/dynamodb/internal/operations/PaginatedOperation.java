@@ -100,11 +100,14 @@ public interface PaginatedOperation<ItemT, RequestT, ResponseT, ResultT> {
     /**
      * Default implementation of a complete synchronous execution of this operation against either the primary or a
      * secondary index.
+     * <p>
      * It performs three steps:
-     * 1) Call generateRequest() to get the request object.
-     * 2) Call getServiceCall() and call it using the request object generated in the previous step.
-     * 3) Wraps the {@link SdkIterable} that was returned by the previous step with a transformation that turns each
-     * object returned to a high level result.
+     * <ol>
+     * <li> Call {@link #generateRequest} to get the request object.</li>
+     * <li> Call {@link #asyncServiceCall} and call it using the request object generated in the previous step.</li>
+     * <li> Wraps the {@link SdkIterable} that was returned by the previous step with a transformation that turns each
+     * object returned to a high level result.</li>
+     * </ol>
      *
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
      * @param context An object containing the context, or target, of the command execution.
@@ -125,11 +128,14 @@ public interface PaginatedOperation<ItemT, RequestT, ResponseT, ResultT> {
     /**
      * Default implementation of a complete non-blocking asynchronous execution of this operation against either the
      * primary or a secondary index.
+     * <p>
      * It performs three steps:
-     * 1) Call generateRequest() to get the request object.
-     * 2) Call getServiceCall() and call it using the request object generated in the previous step.
-     * 3) Wraps the {@link SdkPublisher} returned by the SDK in a new one that calls transformResponse() to
+     * <ol>
+     * <li> Call {@link #generateRequest} to get the request object.
+     * <li> Call {@link #asyncServiceCall} and call it using the request object generated in the previous step.
+     * <li> Wraps the {@link SdkPublisher} returned by the SDK in a new one that calls transformResponse() to
      * convert the response objects published to a high level result.
+     * </ol>
      *
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
      * @param context An object containing the context, or target, of the command execution.
