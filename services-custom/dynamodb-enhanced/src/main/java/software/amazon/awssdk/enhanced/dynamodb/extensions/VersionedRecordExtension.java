@@ -37,15 +37,22 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * to automatically track each revision of the record as it is modified. To use this extension, first load it as part
  * of your MappedTable instantiation:
  *
+ * <pre>
+ * {@code
  * MappedTable.builder()
  *            .extendWith(VersionedRecordExtension.builder().build())
  *            .build();
+ * }
+ * </pre>
  *
+ * <p>
  * Then create an attribute in your model that will be used to store the record version number. This attribute must
  * be an 'integer' type numeric (long or integer), and you need to tag it as the version attribute:
  *
+ * <p>
  * ..., integerNumber("version", Customer::getVersion, Customer::setVersion).as(version()), ...
  *
+ * <p>
  * Then, whenever a record is written the write operation will only succeed if the version number of the record has not
  * been modified since it was last read by the application. Every time a new version of the record is successfully
  * written to the database, the record version number will be automatically incremented.
