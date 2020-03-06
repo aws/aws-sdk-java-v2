@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -47,6 +48,12 @@ public final class ChannelAttributeKey {
 
     public static final AttributeKey<PingTracker> PING_TRACKER =
         AttributeKey.newInstance("aws.http.nio.netty.async.h2.pingTracker");
+
+    public static final AttributeKey<Http2Connection> HTTP2_CONNECTION =
+        AttributeKey.newInstance("aws.http.nio.netty.async.http2Connection");
+
+    public static final AttributeKey<Integer> HTTP2_INITIAL_WINDOW_SIZE =
+        AttributeKey.newInstance("aws.http.nio.netty.async.http2InitialWindowSize");
 
     /**
      * Value of the MAX_CONCURRENT_STREAMS from the server's SETTING frame.
