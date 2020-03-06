@@ -94,7 +94,7 @@
         <equalsverifier.version>2.3.3</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml#L286 -->
-        <netty.version>4.1.42.Final</netty.version>
+        <netty.version>4.1.46.Final</netty.version>
         <unitils.version>3.3</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -119,7 +119,7 @@
         <jimfs.version>1.1</jimfs.version>
         <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
         <commons-lang.verson>2.3</commons-lang.verson>
-        <netty-open-ssl-version>2.0.25.Final</netty-open-ssl-version>
+        <netty-open-ssl-version>2.0.29.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.11.477</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
 
