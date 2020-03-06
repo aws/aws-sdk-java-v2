@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS RoboMaker",
-    "description": "Added support for streaming a GUI from robot and simulation applications"
-}
