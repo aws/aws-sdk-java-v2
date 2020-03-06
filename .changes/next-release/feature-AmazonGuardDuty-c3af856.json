@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "description": "Amazon GuardDuty findings now include the OutpostArn if the finding is generated for an AWS Outposts EC2 host."
+}
