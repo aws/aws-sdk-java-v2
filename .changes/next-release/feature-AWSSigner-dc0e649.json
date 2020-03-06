@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Signer",
+    "description": "This release enables signing image format override in PutSigningProfile requests, adding two more enum fields, JSONEmbedded and JSONDetached. This release also extends the length limit of SigningProfile name from 20 to 64."
+}
