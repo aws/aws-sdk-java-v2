@@ -34,11 +34,12 @@ public class DefaultJsonContentTypeResolver implements JsonContentTypeResolver {
 
     @Override
     public String resolveContentType(AwsJsonProtocolMetadata protocolMetadata) {
-        switch (protocolMetadata.protocol()) {
-            case REST_JSON:
-                return REST_JSON_CONTENT_TYPE;
-            default:
-                return prefix + protocolMetadata.protocolVersion();
-        }
+//        switch (protocolMetadata.protocol()) {
+//            case REST_JSON:
+//                return REST_JSON_CONTENT_TYPE;
+//            default:
+        //TODO: Resolve JSON protocol content type (https://t.corp.amazon.com/P33699230/)
+        return prefix + protocolMetadata.protocolVersion();
+//        }
     }
 }

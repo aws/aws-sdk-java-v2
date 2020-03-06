@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Rolling back setting content type for JSON requests to application/json"
+}
