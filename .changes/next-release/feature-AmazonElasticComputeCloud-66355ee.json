@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "Amazon Virtual Private Cloud (VPC) NAT Gateway adds support for tagging on resource creation."
+}
