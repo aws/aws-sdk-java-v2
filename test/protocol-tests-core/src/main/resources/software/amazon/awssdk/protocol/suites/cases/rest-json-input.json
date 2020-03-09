@@ -38,22 +38,6 @@
     }
   },
   {
-    "description": "Content type header is set to application/json for a POST request",
-    "when": {
-      "action": "marshall",
-      "operation": "AllTypes"
-    },
-    "then": {
-      "serializedAs": {
-        "headers": {
-          "contains": {
-            "content-type": "application/json"
-          }
-        }
-      }
-    }
-  },
-  {
     "description": "Operation with structure member explicitly marked as the payload is serialized as unwrapped JSON",
     "given": {
       "input": {
