@@ -148,8 +148,8 @@ public class PutItemOperation<T>
         Expression mergedConditionExpression;
 
         if (transformation != null && transformation.additionalConditionalExpression() != null) {
-            mergedConditionExpression = Expression.coalesce(this.request.conditionExpression(),
-                                                            transformation.additionalConditionalExpression(), " AND ");
+            mergedConditionExpression = Expression.join(this.request.conditionExpression(),
+                                                        transformation.additionalConditionalExpression(), " AND ");
         } else {
             mergedConditionExpression = this.request.conditionExpression();
         }

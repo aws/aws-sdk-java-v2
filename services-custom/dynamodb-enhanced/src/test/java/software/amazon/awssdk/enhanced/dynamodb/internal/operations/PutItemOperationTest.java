@@ -179,7 +179,7 @@ public class PutItemOperationTest {
                                                                   PRIMARY_CONTEXT,
                                                                   mockDynamoDbEnhancedClientExtension);
 
-        Expression expectedCondition = Expression.coalesce(CONDITION_EXPRESSION, CONDITION_EXPRESSION_2, " AND ");
+        Expression expectedCondition = Expression.join(CONDITION_EXPRESSION, CONDITION_EXPRESSION_2, " AND ");
         assertThat(request.conditionExpression(), is(expectedCondition.expression()));
         assertThat(request.expressionAttributeNames(), is(expectedCondition.expressionNames()));
         assertThat(request.expressionAttributeValues(), is(expectedCondition.expressionValues()));
