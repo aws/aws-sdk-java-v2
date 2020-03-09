@@ -17,8 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.Collection;
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -30,6 +31,30 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 @SdkPublicApi
 public interface TableSchema<T> {
+
+    /**
+     * Returns a builder for the {@link StaticTableSchema} implementation of this interface which allows all attributes,
+     * tags and table structure to be directly declared in the builder.
+     * @param itemClass The class of the item this {@link TableSchema} will map records to.
+     * @param <T> The type of the item this {@link TableSchema} will map records to.
+     * @return A newly initialized {@link StaticTableSchema.Builder}.
+     */
+    static <T> StaticTableSchema.Builder<T> builder(Class<T> itemClass) {
+        return StaticTableSchema.builder(itemClass);
+    }
+
+    /**
+     * Scans a bean class that has been annotated with DynamoDb bean annotations and then returns a
+     * {@link BeanTableSchema} implementation of this interface that can map records to and from items of that bean
+     * class.
+     * @param beanClass The bean class this {@link TableSchema} will map records to.
+     * @param <T> The type of the item this {@link TableSchema} will map records to.
+     * @return An initialized {@link BeanTableSchema}.
+     */
+    static <T> BeanTableSchema<T> fromBean(Class<T> beanClass) {
+        return BeanTableSchema.create(beanClass);
+    }
+
     /**
      * Takes a raw DynamoDb SDK representation of a record in a table and maps it to a Java object. A new object is
      * created to fulfil this operation.

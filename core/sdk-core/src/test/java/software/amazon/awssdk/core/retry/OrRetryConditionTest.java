@@ -18,12 +18,16 @@ package software.amazon.awssdk.core.retry;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.retry.conditions.OrRetryCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
@@ -80,6 +84,26 @@ public class OrRetryConditionTest {
         when(conditionOne.shouldRetry(RetryPolicyContexts.EMPTY))
                 .thenReturn(false);
         assertFalse(OrRetryCondition.create(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
+    }
+
+    @Test
+    public void conditionsAreEvaluatedInOrder() {
+        int numConditions = 1000;
+        int firstTrueCondition = 500;
+
+        RetryCondition[] conditions = new RetryCondition[numConditions];
+        for (int i = 0; i < numConditions; ++i) {
+            RetryCondition mock = Mockito.mock(RetryCondition.class);
+            when(mock.shouldRetry(RetryPolicyContexts.EMPTY)).thenReturn(i == firstTrueCondition);
+            conditions[i] = mock;
+        }
+
+        assertTrue(OrRetryCondition.create(conditions).shouldRetry(RetryPolicyContexts.EMPTY));
+
+        for (int i = 0; i < numConditions; ++i) {
+            int timesExpected = i <= firstTrueCondition ? 1 : 0;
+            Mockito.verify(conditions[i], times(timesExpected)).shouldRetry(RetryPolicyContexts.EMPTY);
+        }
     }
 
 }

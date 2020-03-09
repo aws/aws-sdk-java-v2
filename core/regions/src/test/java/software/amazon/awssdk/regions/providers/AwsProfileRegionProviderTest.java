@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
