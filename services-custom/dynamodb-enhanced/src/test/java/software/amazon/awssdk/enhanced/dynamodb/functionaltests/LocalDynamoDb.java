@@ -14,13 +14,21 @@
  */
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URI;
+import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -71,6 +79,7 @@ class LocalDynamoDb {
                              .region(Region.US_EAST_1)
                              .credentialsProvider(StaticCredentialsProvider.create(
                                  AwsBasicCredentials.create("dummy-key", "dummy-secret")))
+                             .overrideConfiguration(o -> o.addExecutionInterceptor(new VerifyUserAgentInterceptor()))
                              .build();
     }
 
@@ -81,6 +90,7 @@ class LocalDynamoDb {
                                   .region(Region.US_EAST_1)
                                   .credentialsProvider(StaticCredentialsProvider.create(
                                       AwsBasicCredentials.create("dummy-key", "dummy-secret")))
+                                  .overrideConfiguration(o -> o.addExecutionInterceptor(new VerifyUserAgentInterceptor()))
                                   .build();
     }
 
@@ -120,4 +130,15 @@ class LocalDynamoDb {
         }
         throw new RuntimeException(e);
     }
+
+    private static class VerifyUserAgentInterceptor implements ExecutionInterceptor {
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            Optional<String> headers = context.httpRequest().firstMatchingHeader("User-agent");
+            assertThat(headers).isPresent();
+            assertThat(headers.get()).contains("hll/ddb-enh");
+        }
+    }
+
 }

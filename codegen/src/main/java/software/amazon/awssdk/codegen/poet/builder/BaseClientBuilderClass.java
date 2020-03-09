@@ -28,7 +28,6 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
-
 import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Modifier;
@@ -160,7 +159,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                         SdkClientOption.class, crc32FromCompressedDataEnabled);
 
         if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
-            builder.addCode(".option($T.RETRY_POLICY, $T.defaultPolicy())", SdkClientOption.class,
+            builder.addCode(".option($T.RETRY_POLICY, $T.defaultRetryPolicy())", SdkClientOption.class,
                             PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
         }
         builder.addCode(");");
@@ -198,14 +197,20 @@ public class BaseClientBuilderClass implements ClassSpec {
                    .endControlFlow();
 
             builder.addCode("return config.toBuilder()\n" +
-                                  "       .option($1T.EXECUTION_INTERCEPTORS, interceptors)\n" +
-                                  "       .option($1T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n" +
-                                  "       .build();", SdkClientOption.class);
+                            ".option($T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n",
+                            SdkClientOption.class);
         } else {
-            builder.addCode("return config.toBuilder()\n" +
-                                  "       .option($T.EXECUTION_INTERCEPTORS, interceptors)\n" +
-                                  "       .build();", SdkClientOption.class);
+            builder.addCode("return config.toBuilder()\n");
         }
+
+        builder.addCode(".option($1T.EXECUTION_INTERCEPTORS, interceptors)", SdkClientOption.class);
+
+        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
+            builder.addCode(".option($1T.RETRY_POLICY, $2T.addRetryConditions(config.option($1T.RETRY_POLICY)))",
+                            SdkClientOption.class,
+                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
+        }
+        builder.addCode(".build();");
 
         return builder.build();
     }

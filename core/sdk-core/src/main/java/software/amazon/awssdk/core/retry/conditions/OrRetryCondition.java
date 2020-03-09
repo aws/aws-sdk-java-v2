@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.retry.conditions;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
@@ -28,10 +28,14 @@ import software.amazon.awssdk.utils.ToString;
 @SdkPublicApi
 public final class OrRetryCondition implements RetryCondition {
 
-    private Set<RetryCondition> conditions = new HashSet<>();
+    private final Set<RetryCondition> conditions = new LinkedHashSet<>();
 
     private OrRetryCondition(RetryCondition... conditions) {
         Collections.addAll(this.conditions, conditions);
+    }
+
+    public static OrRetryCondition create(RetryCondition... conditions) {
+        return new OrRetryCondition(conditions);
     }
 
     /**
@@ -42,8 +46,14 @@ public final class OrRetryCondition implements RetryCondition {
         return conditions.stream().anyMatch(r -> r.shouldRetry(context));
     }
 
-    public static OrRetryCondition create(RetryCondition... conditions) {
-        return new OrRetryCondition(conditions);
+    @Override
+    public void requestWillNotBeRetried(RetryPolicyContext context) {
+        conditions.forEach(c -> c.requestWillNotBeRetried(context));
+    }
+
+    @Override
+    public void requestSucceeded(RetryPolicyContext context) {
+        conditions.forEach(c -> c.requestSucceeded(context));
     }
 
     @Override

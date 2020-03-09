@@ -71,6 +71,32 @@ public interface SystemSetting {
      * Attempt to load a system setting from {@link System#getProperty(String)} and {@link System#getenv(String)}. This should be
      * used in favor of those methods because the SDK should support both methods of configuration.
      *
+     * The result will be converted to an integer.
+     *
+     * {@link System#getProperty(String)} takes precedent over {@link System#getenv(String)} if both are specified.
+     *
+     * @return The requested setting, or {@link Optional#empty()} if the values were not set, or the security manager did not
+     *         allow reading the setting.
+     */
+    default Optional<Integer> getIntegerValue() {
+        return getStringValue().map(Integer::parseInt);
+    }
+
+
+    /**
+     * Load the requested system setting as per the documentation in {@link #getIntegerValue()}, throwing an exception if the
+     * value was not set and had no default.
+     *
+     * @return The requested setting.
+     */
+    default Integer getIntegerValueOrThrow() {
+        return Integer.parseInt(getStringValueOrThrow());
+    }
+
+    /**
+     * Attempt to load a system setting from {@link System#getProperty(String)} and {@link System#getenv(String)}. This should be
+     * used in favor of those methods because the SDK should support both methods of configuration.
+     *
      * The result will be converted to a boolean.
      *
      * {@link System#getProperty(String)} takes precedent over {@link System#getenv(String)} if both are specified.

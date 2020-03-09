@@ -27,7 +27,6 @@ import software.amazon.awssdk.regions.Region;
  */
 @SdkProtectedApi
 public final class AwsProfileRegionProvider implements AwsRegionProvider {
-
     private final String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 
     @Override
