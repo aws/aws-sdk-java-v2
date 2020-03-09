@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "description": "Added the ability to configure or disable the default retry throttling behavior of the SDK that 'kicks in' during a large volume of retriable service call errors. This behavior can now be configured via `RetryPolicy.retryCapacityCondition`."
-}

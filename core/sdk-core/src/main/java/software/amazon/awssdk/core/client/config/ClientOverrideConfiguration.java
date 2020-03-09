@@ -179,6 +179,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Add a single header to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given header set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
@@ -194,6 +196,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Add a single header with multiple values to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given header set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
@@ -206,6 +210,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Configure headers to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given headers set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values currently configured in the builder.
