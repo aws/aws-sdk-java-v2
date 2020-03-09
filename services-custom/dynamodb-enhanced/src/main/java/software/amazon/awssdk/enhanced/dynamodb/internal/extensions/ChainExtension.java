@@ -111,9 +111,9 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
                     conditionalExpression.set(writeModification.additionalConditionalExpression());
                 } else {
                     conditionalExpression.set(
-                        Expression.coalesce(conditionalExpression.get(),
-                                            writeModification.additionalConditionalExpression(),
-                                            " AND "));
+                        Expression.join(conditionalExpression.get(),
+                                        writeModification.additionalConditionalExpression(),
+                                        " AND "));
                 }
             }
         });
