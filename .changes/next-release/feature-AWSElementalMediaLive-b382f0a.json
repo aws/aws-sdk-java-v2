@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaLive",
+    "description": "AWS Elemental MediaLive now supports the ability to configure the Preferred Channel Pipeline for channels contributing to a Multiplex."
+}
