@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -69,7 +70,13 @@ public class PutItemOperation<T>
         Map<String, AttributeValue> itemMap = tableSchema.itemToMap(this.request.item(), alwaysIgnoreNulls);
 
         WriteModification transformation =
-            extension != null ? extension.beforeWrite(itemMap, operationContext, tableMetadata) : null;
+            extension != null ? extension.beforeWrite(
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(itemMap)
+                                               .operationContext(operationContext)
+                                               .tableMetadata(tableMetadata)
+                                               .build())
+                : null;
 
         if (transformation != null && transformation.transformedItem() != null) {
             itemMap = transformation.transformedItem();

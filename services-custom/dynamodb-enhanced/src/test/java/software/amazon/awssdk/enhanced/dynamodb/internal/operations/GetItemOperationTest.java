@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,11 +34,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -200,7 +201,7 @@ public class GetItemOperationTest {
                                                                   mockDynamoDbEnhancedClientExtension);
 
         assertThat(request.key(), is(keyMap));
-        verify(mockDynamoDbEnhancedClientExtension, never()).beforeWrite(anyMap(), any(), any());
+        verify(mockDynamoDbEnhancedClientExtension, never()).beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class));
     }
 
     @Test
@@ -214,13 +215,16 @@ public class GetItemOperationTest {
         GetItemResponse response = GetItemResponse.builder()
                                                   .item(baseFakeItemMap)
                                                   .build();
-        when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
             .thenReturn(ReadModification.builder().transformedItem(fakeItemMap).build());
 
         FakeItem resultItem = getItemOperation.transformResponse(response, FakeItem.getTableSchema(),
                                                                  PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension);
 
         assertThat(resultItem, is(fakeItem));
-        verify(mockDynamoDbEnhancedClientExtension).afterRead(baseFakeItemMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
+                                                              .tableMetadata(FakeItem.getTableMetadata())
+                                                              .operationContext(PRIMARY_CONTEXT)
+                                                              .items(baseFakeItemMap).build());
     }
 }
