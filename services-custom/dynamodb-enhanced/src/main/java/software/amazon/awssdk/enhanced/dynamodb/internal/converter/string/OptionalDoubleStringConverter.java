@@ -20,7 +20,7 @@ import java.util.OptionalDouble;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -39,8 +39,8 @@ public class OptionalDoubleStringConverter implements StringConverter<OptionalDo
     }
 
     @Override
-    public TypeToken<OptionalDouble> type() {
-        return TypeToken.of(OptionalDouble.class);
+    public EnhancedType<OptionalDouble> type() {
+        return EnhancedType.of(OptionalDouble.class);
     }
 
     @Override

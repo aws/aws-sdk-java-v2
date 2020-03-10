@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
@@ -36,13 +36,13 @@ public class FloatStringConverter implements StringConverter<Float>, PrimitiveCo
     }
 
     @Override
-    public TypeToken<Float> type() {
-        return TypeToken.of(Float.class);
+    public EnhancedType<Float> type() {
+        return EnhancedType.of(Float.class);
     }
 
     @Override
-    public TypeToken<Float> primitiveType() {
-        return TypeToken.of(float.class);
+    public EnhancedType<Float> primitiveType() {
+        return EnhancedType.of(float.class);
     }
 
     @Override

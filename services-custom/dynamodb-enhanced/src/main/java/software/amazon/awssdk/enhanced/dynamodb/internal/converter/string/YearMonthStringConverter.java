@@ -20,7 +20,7 @@ import java.time.YearMonth;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -37,8 +37,8 @@ public class YearMonthStringConverter implements StringConverter<YearMonth> {
     }
 
     @Override
-    public TypeToken<YearMonth> type() {
-        return TypeToken.of(YearMonth.class);
+    public EnhancedType<YearMonth> type() {
+        return EnhancedType.of(YearMonth.class);
     }
 
     @Override

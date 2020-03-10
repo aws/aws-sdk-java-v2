@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.BooleanStringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.ByteArrayStringConverter;
@@ -54,8 +54,8 @@ public final class StringAttributeConverter implements AttributeConverter<String
     }
 
     @Override
-    public TypeToken<String> type() {
-        return TypeToken.of(String.class);
+    public EnhancedType<String> type() {
+        return EnhancedType.of(String.class);
     }
 
     @Override

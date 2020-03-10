@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.UuidStringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
@@ -44,8 +44,8 @@ public final class UuidAttributeConverter implements AttributeConverter<UUID> {
     }
 
     @Override
-    public TypeToken<UUID> type() {
-        return TypeToken.of(UUID.class);
+    public EnhancedType<UUID> type() {
+        return EnhancedType.of(UUID.class);
     }
 
     @Override

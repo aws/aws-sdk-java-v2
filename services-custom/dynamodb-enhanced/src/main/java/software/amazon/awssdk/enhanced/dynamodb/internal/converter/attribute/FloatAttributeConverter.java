@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
@@ -60,8 +60,8 @@ public final class FloatAttributeConverter implements AttributeConverter<Float>,
     }
 
     @Override
-    public TypeToken<Float> type() {
-        return TypeToken.of(Float.class);
+    public EnhancedType<Float> type() {
+        return EnhancedType.of(Float.class);
     }
 
     @Override
@@ -89,8 +89,8 @@ public final class FloatAttributeConverter implements AttributeConverter<Float>,
     }
 
     @Override
-    public TypeToken<Float> primitiveType() {
-        return TypeToken.of(float.class);
+    public EnhancedType<Float> primitiveType() {
+        return EnhancedType.of(float.class);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Float> {

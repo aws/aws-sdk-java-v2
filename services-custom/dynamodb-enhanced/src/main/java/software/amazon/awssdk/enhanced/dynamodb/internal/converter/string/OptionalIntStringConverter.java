@@ -20,7 +20,7 @@ import java.util.OptionalInt;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -39,8 +39,8 @@ public class OptionalIntStringConverter implements StringConverter<OptionalInt> 
     }
 
     @Override
-    public TypeToken<OptionalInt> type() {
-        return TypeToken.of(OptionalInt.class);
+    public EnhancedType<OptionalInt> type() {
+        return EnhancedType.of(OptionalInt.class);
     }
 
     @Override

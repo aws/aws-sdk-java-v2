@@ -22,7 +22,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribu
 import java.util.Objects;
 import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithSort {
@@ -30,10 +30,10 @@ public class FakeItemWithSort {
         StaticTableSchema.builder(FakeItemWithSort.class)
                          .newItemSupplier(FakeItemWithSort::new)
                          .attributes(
-                             attribute("id", TypeToken.of(String.class), FakeItemWithSort::getId, FakeItemWithSort::setId).as(primaryPartitionKey()),
-                             attribute("sort", TypeToken.of(String.class), FakeItemWithSort::getSort, FakeItemWithSort::setSort).as(primarySortKey()),
-                             attribute("other_attribute_1", TypeToken.of(String.class), FakeItemWithSort::getOtherAttribute1, FakeItemWithSort::setOtherAttribute1),
-                             attribute("other_attribute_2", TypeToken.of(String.class), FakeItemWithSort::getOtherAttribute2, FakeItemWithSort::setOtherAttribute2))
+                             attribute("id", EnhancedType.of(String.class), FakeItemWithSort::getId, FakeItemWithSort::setId).as(primaryPartitionKey()),
+                             attribute("sort", EnhancedType.of(String.class), FakeItemWithSort::getSort, FakeItemWithSort::setSort).as(primarySortKey()),
+                             attribute("other_attribute_1", EnhancedType.of(String.class), FakeItemWithSort::getOtherAttribute1, FakeItemWithSort::setOtherAttribute1),
+                             attribute("other_attribute_2", EnhancedType.of(String.class), FakeItemWithSort::getOtherAttribute2, FakeItemWithSort::setOtherAttribute2))
                          .build();
 
     private String id;

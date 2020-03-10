@@ -36,7 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.ConditionCheck;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
@@ -122,16 +122,16 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
         StaticTableSchema.builder(Record1.class)
                          .newItemSupplier(Record1::new)
                          .attributes(
-                             attribute("id_1", TypeToken.of(Integer.class), Record1::getId, Record1::setId).as(primaryPartitionKey()),
-                             attribute("attribute", TypeToken.of(String.class), Record1::getAttribute, Record1::setAttribute))
+                             attribute("id_1", EnhancedType.of(Integer.class), Record1::getId, Record1::setId).as(primaryPartitionKey()),
+                             attribute("attribute", EnhancedType.of(String.class), Record1::getAttribute, Record1::setAttribute))
                          .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
         StaticTableSchema.builder(Record2.class)
                          .newItemSupplier(Record2::new)
                          .attributes(
-                             attribute("id_2", TypeToken.of(Integer.class), Record2::getId, Record2::setId).as(primaryPartitionKey()),
-                             attribute("attribute", TypeToken.of(String.class), Record2::getAttribute, Record2::setAttribute))
+                             attribute("id_2", EnhancedType.of(Integer.class), Record2::getId, Record2::setId).as(primaryPartitionKey()),
+                             attribute("attribute", EnhancedType.of(String.class), Record2::getAttribute, Record2::setAttribute))
                          .build();
 
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()

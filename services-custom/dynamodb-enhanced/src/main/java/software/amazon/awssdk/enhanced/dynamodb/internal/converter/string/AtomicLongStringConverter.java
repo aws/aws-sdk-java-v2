@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -42,8 +42,8 @@ public class AtomicLongStringConverter implements StringConverter<AtomicLong> {
     }
 
     @Override
-    public TypeToken<AtomicLong> type() {
-        return TypeToken.of(AtomicLong.class);
+    public EnhancedType<AtomicLong> type() {
+        return EnhancedType.of(AtomicLong.class);
     }
 
     @Override

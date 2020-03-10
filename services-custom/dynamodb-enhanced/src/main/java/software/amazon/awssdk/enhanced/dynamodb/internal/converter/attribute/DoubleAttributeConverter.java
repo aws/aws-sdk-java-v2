@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
@@ -60,8 +60,8 @@ public final class DoubleAttributeConverter implements AttributeConverter<Double
     }
 
     @Override
-    public TypeToken<Double> type() {
-        return TypeToken.of(Double.class);
+    public EnhancedType<Double> type() {
+        return EnhancedType.of(Double.class);
     }
 
     @Override
@@ -89,8 +89,8 @@ public final class DoubleAttributeConverter implements AttributeConverter<Double
     }
 
     @Override
-    public TypeToken<Double> primitiveType() {
-        return TypeToken.of(double.class);
+    public EnhancedType<Double> primitiveType() {
+        return EnhancedType.of(double.class);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Double> {

@@ -21,19 +21,19 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Interface for determining the {@link AttributeConverter} to use for
- * converting a given {@link TypeToken}.
+ * converting a given {@link EnhancedType}.
  */
 @SdkPublicApi
 public interface AttributeConverterProvider {
 
     /**
      * Finds a {@link AttributeConverter} for converting an object with a type
-     * specified by a {@link TypeToken} to a {@link AttributeValue} and back.
+     * specified by a {@link EnhancedType} to a {@link AttributeValue} and back.
      *
-     * @param typeToken The type of the object to be converted
+     * @param enhancedType The type of the object to be converted
      * @return {@link AttributeConverter} for converting the given type.
      */
-    <T> AttributeConverter<T> converterFor(TypeToken<T> typeToken);
+    <T> AttributeConverter<T> converterFor(EnhancedType<T> enhancedType);
 
     /**
      * Returns a default implementation of AttributeConverterProvider with all

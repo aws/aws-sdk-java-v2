@@ -20,7 +20,7 @@ import java.time.ZoneOffset;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -37,8 +37,8 @@ public class ZoneOffsetStringConverter implements StringConverter<ZoneOffset> {
     }
 
     @Override
-    public TypeToken<ZoneOffset> type() {
-        return TypeToken.of(ZoneOffset.class);
+    public EnhancedType<ZoneOffset> type() {
+        return EnhancedType.of(ZoneOffset.class);
     }
 
     @Override

@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
@@ -50,7 +50,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A builder is exposed to allow defining how the map, key and value types are created and converted:
  * <code>
  * AttributeConverter<Map<MonthDay, String>> mapConverter =
- * MapAttributeConverter.builder(TypeToken.mapOf(Integer.class, String.class))
+ * MapAttributeConverter.builder(EnhancedType.mapOf(Integer.class, String.class))
  * .mapConstructor(HashMap::new)
  * .keyConverter(MonthDayStringConverter.create())
  * .valueConverter(StringAttributeConverter.create())
@@ -83,7 +83,7 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
 
     public static <K, V> MapAttributeConverter<Map<K, V>> mapConverter(StringConverter<K> keyConverter,
                                                                        AttributeConverter<V> valueConverter) {
-        return builder(TypeToken.mapOf(keyConverter.type(), valueConverter.type()))
+        return builder(EnhancedType.mapOf(keyConverter.type(), valueConverter.type()))
             .mapConstructor(LinkedHashMap::new)
             .keyConverter(keyConverter)
             .valueConverter(valueConverter)
@@ -92,7 +92,7 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
 
     public static <K, V> MapAttributeConverter<ConcurrentMap<K, V>> concurrentMapConverter(StringConverter<K> keyConverter,
                                                                                            AttributeConverter<V> valueConverter) {
-        return builder(TypeToken.concurrentMapOf(keyConverter.type(), valueConverter.type()))
+        return builder(EnhancedType.concurrentMapOf(keyConverter.type(), valueConverter.type()))
             .mapConstructor(ConcurrentHashMap::new)
             .keyConverter(keyConverter)
             .valueConverter(valueConverter)
@@ -101,7 +101,7 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
 
     public static <K, V> MapAttributeConverter<SortedMap<K, V>> sortedMapConverter(StringConverter<K> keyConverter,
                                                                                    AttributeConverter<V> valueConverter) {
-        return builder(TypeToken.sortedMapOf(keyConverter.type(), valueConverter.type()))
+        return builder(EnhancedType.sortedMapOf(keyConverter.type(), valueConverter.type()))
             .mapConstructor(TreeMap::new)
             .keyConverter(keyConverter)
             .valueConverter(valueConverter)
@@ -110,19 +110,19 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
 
     public static <K, V> MapAttributeConverter<NavigableMap<K, V>> navigableMapConverter(StringConverter<K> keyConverter,
                                                                                          AttributeConverter<V> valueConverter) {
-        return builder(TypeToken.navigableMapOf(keyConverter.type(), valueConverter.type()))
+        return builder(EnhancedType.navigableMapOf(keyConverter.type(), valueConverter.type()))
             .mapConstructor(TreeMap::new)
             .keyConverter(keyConverter)
             .valueConverter(valueConverter)
             .build();
     }
 
-    public static <T extends Map<K, V>, K, V> Builder<T, K, V> builder(TypeToken<T> mapType) {
+    public static <T extends Map<K, V>, K, V> Builder<T, K, V> builder(EnhancedType<T> mapType) {
         return new Builder<>(mapType);
     }
 
     @Override
-    public TypeToken<T> type() {
+    public EnhancedType<T> type() {
         return delegate.type();
     }
 
@@ -142,7 +142,7 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
     }
 
     private static final class Delegate<T extends Map<K, V>, K, V> {
-        private final TypeToken<T> type;
+        private final EnhancedType<T> type;
         private final Supplier<? extends T> mapConstructor;
         private final StringConverter<K> keyConverter;
         private final AttributeConverter<V> valueConverter;
@@ -154,7 +154,7 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
             this.valueConverter = builder.valueConverter;
         }
 
-        public TypeToken<T> type() {
+        public EnhancedType<T> type() {
             return type;
         }
 
@@ -182,13 +182,13 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
     }
 
     public static final class Builder<T extends Map<K, V>, K, V> {
-        private final TypeToken<T> mapType;
+        private final EnhancedType<T> mapType;
 
         private StringConverter<K> keyConverter;
         private AttributeConverter<V> valueConverter;
         private Supplier<? extends T> mapConstructor;
 
-        private Builder(TypeToken<T> mapType) {
+        private Builder(EnhancedType<T> mapType) {
             this.mapType = mapType;
         }
 

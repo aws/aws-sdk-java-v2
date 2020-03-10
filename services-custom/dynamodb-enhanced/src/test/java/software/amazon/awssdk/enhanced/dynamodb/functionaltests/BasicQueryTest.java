@@ -43,7 +43,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -103,9 +103,9 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
-                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
-                             attribute("sort", TypeToken.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()),
-                             attribute("value", TypeToken.of(Integer.class), Record::getValue, Record::setValue))
+                             attribute("id", EnhancedType.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                             attribute("sort", EnhancedType.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()),
+                             attribute("value", EnhancedType.of(Integer.class), Record::getValue, Record::setValue))
                          .build();
 
     private static final List<Record> RECORDS =

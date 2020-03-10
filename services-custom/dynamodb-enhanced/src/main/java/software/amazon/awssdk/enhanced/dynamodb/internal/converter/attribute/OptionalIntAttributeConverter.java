@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.OptionalIntStringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
@@ -60,8 +60,8 @@ public final class OptionalIntAttributeConverter implements AttributeConverter<O
     }
 
     @Override
-    public TypeToken<OptionalInt> type() {
-        return TypeToken.of(OptionalInt.class);
+    public EnhancedType<OptionalInt> type() {
+        return EnhancedType.of(OptionalInt.class);
     }
 
     @Override

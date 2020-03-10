@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
@@ -42,13 +42,13 @@ public class BooleanStringConverter implements StringConverter<Boolean>, Primiti
     }
 
     @Override
-    public TypeToken<Boolean> type() {
-        return TypeToken.of(Boolean.class);
+    public EnhancedType<Boolean> type() {
+        return EnhancedType.of(Boolean.class);
     }
 
     @Override
-    public TypeToken<Boolean> primitiveType() {
-        return TypeToken.of(boolean.class);
+    public EnhancedType<Boolean> primitiveType() {
+        return EnhancedType.of(boolean.class);
     }
 
     @Override

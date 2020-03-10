@@ -20,7 +20,7 @@ import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticAttributeType;
 
 @SdkPublicApi
@@ -32,14 +32,14 @@ public final class Attributes {
     }
 
     public static <T, R> Attribute.AttributeSupplier<T> attribute(String attributeName,
-                                                                  TypeToken<R> attributeType,
+                                                                  EnhancedType<R> attributeType,
                                                                   Function<T, R> getAttributeMethod,
                                                                   BiConsumer<T, R> updateItemMethod) {
         return attribute(attributeName, attributeType, getAttributeMethod, updateItemMethod, DEFAULT_CONVERTER_PROVIDER);
     }
 
     public static <T, R> Attribute.AttributeSupplier<T> attribute(String attributeName,
-                                                                  TypeToken<R> attributeType,
+                                                                  EnhancedType<R> attributeType,
                                                                   Function<T, R> getAttributeMethod,
                                                                   BiConsumer<T, R> updateItemMethod,
                                                                   AttributeConverterProvider converterProvider) {

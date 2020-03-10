@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 
 /**
  * Interface for {@link StringConverter} and {@link AttributeConverter} implementations
@@ -30,5 +30,5 @@ public interface PrimitiveConverter<T> {
     /**
      * The type supported by this converter.
      */
-    TypeToken<T> primitiveType();
+    EnhancedType<T> primitiveType();
 }

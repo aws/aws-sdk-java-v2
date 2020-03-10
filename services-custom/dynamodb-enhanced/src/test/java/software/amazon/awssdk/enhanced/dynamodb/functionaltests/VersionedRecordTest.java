@@ -32,7 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -93,9 +93,9 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
-                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
-                             attribute("attribute", TypeToken.of(String.class), Record::getAttribute, Record::setAttribute),
-                             attribute("version", TypeToken.of(Integer.class), Record::getVersion, Record::setVersion).as(version()))
+                             attribute("id", EnhancedType.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                             attribute("attribute", EnhancedType.of(String.class), Record::getAttribute, Record::setAttribute),
+                             attribute("version", EnhancedType.of(Integer.class), Record::getVersion, Record::setVersion).as(version()))
                          .build();
 
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
