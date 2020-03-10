@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Commerce Analytics",
+    "description": "Change the disbursement data set to look past 31 days instead until the beginning of the month."
+}
