@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.ByteStringConverter;
@@ -68,8 +68,8 @@ public final class ByteAttributeConverter implements AttributeConverter<Byte>, P
     }
 
     @Override
-    public TypeToken<Byte> type() {
-        return TypeToken.of(Byte.class);
+    public EnhancedType<Byte> type() {
+        return EnhancedType.of(Byte.class);
     }
 
     @Override
@@ -78,8 +78,8 @@ public final class ByteAttributeConverter implements AttributeConverter<Byte>, P
     }
 
     @Override
-    public TypeToken<Byte> primitiveType() {
-        return TypeToken.of(byte.class);
+    public EnhancedType<Byte> primitiveType() {
+        return EnhancedType.of(byte.class);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Byte> {

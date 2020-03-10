@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.ShortStringConverter;
@@ -53,8 +53,8 @@ public final class ShortAttributeConverter implements AttributeConverter<Short>,
     }
 
     @Override
-    public TypeToken<Short> type() {
-        return TypeToken.of(Short.class);
+    public EnhancedType<Short> type() {
+        return EnhancedType.of(Short.class);
     }
 
     @Override
@@ -77,8 +77,8 @@ public final class ShortAttributeConverter implements AttributeConverter<Short>,
     }
 
     @Override
-    public TypeToken<Short> primitiveType() {
-        return TypeToken.of(short.class);
+    public EnhancedType<Short> primitiveType() {
+        return EnhancedType.of(short.class);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Short> {

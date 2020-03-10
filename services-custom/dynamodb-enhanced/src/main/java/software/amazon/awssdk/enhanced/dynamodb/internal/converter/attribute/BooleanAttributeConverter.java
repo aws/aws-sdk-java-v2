@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.BooleanStringConverter;
@@ -56,8 +56,8 @@ public final class BooleanAttributeConverter implements AttributeConverter<Boole
     }
 
     @Override
-    public TypeToken<Boolean> type() {
-        return TypeToken.of(Boolean.class);
+    public EnhancedType<Boolean> type() {
+        return EnhancedType.of(Boolean.class);
     }
 
     @Override
@@ -79,8 +79,8 @@ public final class BooleanAttributeConverter implements AttributeConverter<Boole
     }
 
     @Override
-    public TypeToken<Boolean> primitiveType() {
-        return TypeToken.of(boolean.class);
+    public EnhancedType<Boolean> primitiveType() {
+        return EnhancedType.of(boolean.class);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Boolean> {

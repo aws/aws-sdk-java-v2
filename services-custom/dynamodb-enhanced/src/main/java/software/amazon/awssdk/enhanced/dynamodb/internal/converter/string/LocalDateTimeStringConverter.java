@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -37,8 +37,8 @@ public class LocalDateTimeStringConverter implements StringConverter<LocalDateTi
     }
 
     @Override
-    public TypeToken<LocalDateTime> type() {
-        return TypeToken.of(LocalDateTime.class);
+    public EnhancedType<LocalDateTime> type() {
+        return EnhancedType.of(LocalDateTime.class);
     }
 
     @Override

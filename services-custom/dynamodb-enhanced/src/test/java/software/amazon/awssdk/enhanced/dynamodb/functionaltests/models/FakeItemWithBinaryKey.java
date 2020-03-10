@@ -20,7 +20,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribu
 
 import java.util.Objects;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithBinaryKey {
@@ -28,7 +28,7 @@ public class FakeItemWithBinaryKey {
         StaticTableSchema.builder(FakeItemWithBinaryKey.class)
                          .newItemSupplier(FakeItemWithBinaryKey::new)
                          .attributes(
-                            attribute("id", TypeToken.of(SdkBytes.class), FakeItemWithBinaryKey::getId, FakeItemWithBinaryKey::setId)
+                            attribute("id", EnhancedType.of(SdkBytes.class), FakeItemWithBinaryKey::getId, FakeItemWithBinaryKey::setId)
                                 .as(primaryPartitionKey()))
                          .build();
 

@@ -46,7 +46,7 @@ import software.amazon.awssdk.utils.Validate;
  * Similar to {@link Class}, this represents a specific raw class type. Unlike {@code Class}, this allows representing type
  * parameters that would usually be erased.
  *
- * @see #TypeToken()
+ * @see #EnhancedType()
  * @see #of(Class)
  * @see #listOf(Class)
  * @see #mapOf(Class, Class)
@@ -54,10 +54,10 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 @ThreadSafe
 @Immutable
-public class TypeToken<T> {
+public class EnhancedType<T> {
     private final boolean isWildcard;
     private final Class<T> rawClass;
-    private final List<TypeToken<?>> rawClassParameters;
+    private final List<EnhancedType<?>> rawClassParameters;
     private final TableSchema<T> tableSchema;
 
     /**
@@ -65,13 +65,13 @@ public class TypeToken<T> {
      *
      * <p>
      * <b>This must be called from an anonymous subclass.</b> For example, </b>
-     * {@code new TypeToken<Iterable<String>>()&#123;&#125;} (note the extra {}) for a {@code TypeToken<Iterable<String>>}.
+     * {@code new EnhancedType<Iterable<String>>()&#123;&#125;} (note the extra {}) for a {@code EnhancedType<Iterable<String>>}.
      */
-    protected TypeToken() {
+    protected EnhancedType() {
         this(null);
     }
 
-    private TypeToken(Type type) {
+    private EnhancedType(Type type) {
         if (type == null) {
             type = captureGenericTypeArguments();
         }
@@ -90,7 +90,7 @@ public class TypeToken<T> {
         }
     }
 
-    private TypeToken(Class<?> rawClass, List<TypeToken<?>> rawClassParameters, TableSchema<T> tableSchema) {
+    private EnhancedType(Class<?> rawClass, List<EnhancedType<?>> rawClassParameters, TableSchema<T> tableSchema) {
         // This is only used internally, so we can make sure this cast is safe via testing.
         this.rawClass = (Class<T>) rawClass;
         this.isWildcard = false;
@@ -107,8 +107,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<T> of(Class<T> type) {
-        return new TypeToken<>(type);
+    public static <T> EnhancedType<T> of(Class<T> type) {
+        return new EnhancedType<>(type);
     }
 
     /**
@@ -120,8 +120,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static TypeToken<?> of(Type type) {
-        return new TypeToken<>(type);
+    public static EnhancedType<?> of(Type type) {
+        return new EnhancedType<>(type);
     }
 
     /**
@@ -133,8 +133,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<Optional<T>> optionalOf(Class<T> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(Optional.class, valueType));
+    public static <T> EnhancedType<Optional<T>> optionalOf(Class<T> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(Optional.class, valueType));
     }
 
     /**
@@ -146,8 +146,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<List<T>> listOf(Class<T> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(List.class, valueType));
+    public static <T> EnhancedType<List<T>> listOf(Class<T> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(List.class, valueType));
     }
 
     /**
@@ -159,8 +159,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<List<T>> listOf(TypeToken<T> valueType) {
-        return new TypeToken<>(List.class, Arrays.asList(valueType), null);
+    public static <T> EnhancedType<List<T>> listOf(EnhancedType<T> valueType) {
+        return new EnhancedType<>(List.class, Arrays.asList(valueType), null);
     }
 
     /**
@@ -172,8 +172,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<Set<T>> setOf(Class<T> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(Set.class, valueType));
+    public static <T> EnhancedType<Set<T>> setOf(Class<T> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(Set.class, valueType));
     }
 
     /**
@@ -185,8 +185,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<Set<T>> setOf(TypeToken<T> valueType) {
-        return new TypeToken<>(Set.class, Arrays.asList(valueType), null);
+    public static <T> EnhancedType<Set<T>> setOf(EnhancedType<T> valueType) {
+        return new EnhancedType<>(Set.class, Arrays.asList(valueType), null);
     }
 
     /**
@@ -198,8 +198,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<SortedSet<T>> sortedSetOf(TypeToken<T> valueType) {
-        return new TypeToken<>(SortedSet.class, Arrays.asList(valueType), null);
+    public static <T> EnhancedType<SortedSet<T>> sortedSetOf(EnhancedType<T> valueType) {
+        return new EnhancedType<>(SortedSet.class, Arrays.asList(valueType), null);
     }
 
     /**
@@ -211,8 +211,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<Deque<T>> dequeOf(Class<T> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(Deque.class, valueType));
+    public static <T> EnhancedType<Deque<T>> dequeOf(Class<T> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(Deque.class, valueType));
     }
 
     /**
@@ -224,8 +224,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<Deque<T>> dequeOf(TypeToken<T> valueType) {
-        return new TypeToken<>(Deque.class, Arrays.asList(valueType), null);
+    public static <T> EnhancedType<Deque<T>> dequeOf(EnhancedType<T> valueType) {
+        return new EnhancedType<>(Deque.class, Arrays.asList(valueType), null);
     }
 
     /**
@@ -237,8 +237,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<NavigableSet<T>> navigableSetOf(Class<T> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(NavigableSet.class, valueType));
+    public static <T> EnhancedType<NavigableSet<T>> navigableSetOf(Class<T> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(NavigableSet.class, valueType));
     }
 
     /**
@@ -250,8 +250,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<NavigableSet<T>> navigableSetOf(TypeToken<T> valueType) {
-        return new TypeToken<>(NavigableSet.class, Arrays.asList(valueType), null);
+    public static <T> EnhancedType<NavigableSet<T>> navigableSetOf(EnhancedType<T> valueType) {
+        return new EnhancedType<>(NavigableSet.class, Arrays.asList(valueType), null);
     }
 
     /**
@@ -263,8 +263,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<Collection<T>> collectionOf(Class<T> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(Collection.class, valueType));
+    public static <T> EnhancedType<Collection<T>> collectionOf(Class<T> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(Collection.class, valueType));
     }
 
     /**
@@ -276,8 +276,8 @@ public class TypeToken<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
-    public static <T> TypeToken<Collection<T>> collectionOf(TypeToken<T> valueType) {
-        return new TypeToken<>(Collection.class, Arrays.asList(valueType), null);
+    public static <T> EnhancedType<Collection<T>> collectionOf(EnhancedType<T> valueType) {
+        return new EnhancedType<>(Collection.class, Arrays.asList(valueType), null);
     }
 
     /**
@@ -289,8 +289,8 @@ public class TypeToken<T> {
      *     <li>If the provided types are null.</li>
      * </ol>
      */
-    public static <T, U> TypeToken<Map<T, U>> mapOf(Class<T> keyType, Class<U> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(Map.class, keyType, valueType));
+    public static <T, U> EnhancedType<Map<T, U>> mapOf(Class<T> keyType, Class<U> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(Map.class, keyType, valueType));
     }
 
     /**
@@ -302,8 +302,8 @@ public class TypeToken<T> {
      *     <li>If the provided types are null.</li>
      * </ol>
      */
-    public static <T, U> TypeToken<Map<T, U>> mapOf(TypeToken<T> keyType, TypeToken<U> valueType) {
-        return new TypeToken<>(Map.class, Arrays.asList(keyType, valueType), null);
+    public static <T, U> EnhancedType<Map<T, U>> mapOf(EnhancedType<T> keyType, EnhancedType<U> valueType) {
+        return new EnhancedType<>(Map.class, Arrays.asList(keyType, valueType), null);
     }
 
     /**
@@ -315,8 +315,8 @@ public class TypeToken<T> {
      *     <li>If the provided types are null.</li>
      * </ol>
      */
-    public static <T, U> TypeToken<SortedMap<T, U>> sortedMapOf(Class<T> keyType, Class<U> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(SortedMap.class, keyType, valueType));
+    public static <T, U> EnhancedType<SortedMap<T, U>> sortedMapOf(Class<T> keyType, Class<U> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(SortedMap.class, keyType, valueType));
     }
 
     /**
@@ -328,8 +328,9 @@ public class TypeToken<T> {
      *     <li>If the provided types are null.</li>
      * </ol>
      */
-    public static <T, U> TypeToken<SortedMap<T, U>> sortedMapOf(TypeToken<T> keyType, TypeToken<U> valueType) {
-        return new TypeToken<>(SortedMap.class, Arrays.asList(keyType, valueType), null);
+    public static <T, U> EnhancedType<SortedMap<T, U>> sortedMapOf(EnhancedType<T> keyType,
+                                                                   EnhancedType<U> valueType) {
+        return new EnhancedType<>(SortedMap.class, Arrays.asList(keyType, valueType), null);
     }
 
     /**
@@ -341,8 +342,8 @@ public class TypeToken<T> {
      *     <li>If the provided types are null.</li>
      * </ol>
      */
-    public static <T, U> TypeToken<ConcurrentMap<T, U>> concurrentMapOf(Class<T> keyType, Class<U> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(ConcurrentMap.class, keyType, valueType));
+    public static <T, U> EnhancedType<ConcurrentMap<T, U>> concurrentMapOf(Class<T> keyType, Class<U> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(ConcurrentMap.class, keyType, valueType));
     }
 
     /**
@@ -354,8 +355,9 @@ public class TypeToken<T> {
      *     <li>If the provided types are null.</li>
      * </ol>
      */
-    public static <T, U> TypeToken<ConcurrentMap<T, U>> concurrentMapOf(TypeToken<T> keyType, TypeToken<U> valueType) {
-        return new TypeToken<>(ConcurrentMap.class, Arrays.asList(keyType, valueType), null);
+    public static <T, U> EnhancedType<ConcurrentMap<T, U>> concurrentMapOf(EnhancedType<T> keyType,
+                                                                           EnhancedType<U> valueType) {
+        return new EnhancedType<>(ConcurrentMap.class, Arrays.asList(keyType, valueType), null);
     }
 
     /**
@@ -367,8 +369,8 @@ public class TypeToken<T> {
      *     <li>If the provided types are null.</li>
      * </ol>
      */
-    public static <T, U> TypeToken<NavigableMap<T, U>> navigableMapOf(Class<T> keyType, Class<U> valueType) {
-        return new TypeToken<>(DefaultParameterizedType.parameterizedType(NavigableMap.class, keyType, valueType));
+    public static <T, U> EnhancedType<NavigableMap<T, U>> navigableMapOf(Class<T> keyType, Class<U> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(NavigableMap.class, keyType, valueType));
     }
 
     /**
@@ -380,8 +382,9 @@ public class TypeToken<T> {
      *     <li>If the provided types are null.</li>
      * </ol>
      */
-    public static <T, U> TypeToken<NavigableMap<T, U>> navigableMapOf(TypeToken<T> keyType, TypeToken<U> valueType) {
-        return new TypeToken<>(NavigableMap.class, Arrays.asList(keyType, valueType), null);
+    public static <T, U> EnhancedType<NavigableMap<T, U>> navigableMapOf(EnhancedType<T> keyType,
+                                                                         EnhancedType<U> valueType) {
+        return new EnhancedType<>(NavigableMap.class, Arrays.asList(keyType, valueType), null);
     }
 
     /**
@@ -389,10 +392,10 @@ public class TypeToken<T> {
      *
      * @param documentClass The Class representing the modeled document.
      * @param documentTableSchema A TableSchema that describes the properties of the document.
-     * @return a new TypeToken representing the provided document.
+     * @return a new {@link EnhancedType} representing the provided document.
      */
-    public static <T> TypeToken<T> documentOf(Class<T> documentClass, TableSchema<T> documentTableSchema) {
-        return new TypeToken<>(documentClass, null, documentTableSchema);
+    public static <T> EnhancedType<T> documentOf(Class<T> documentClass, TableSchema<T> documentTableSchema) {
+        return new EnhancedType<>(documentClass, null, documentTableSchema);
     }
 
     private static Type validateIsSupportedType(Type type) {
@@ -413,7 +416,7 @@ public class TypeToken<T> {
     }
 
     /**
-     * Returns whether or not the type this TypeToken was created with is a wildcard type.
+     * Returns whether or not the type this {@link EnhancedType} was created with is a wildcard type.
      */
     public boolean isWildcard() {
         return isWildcard;
@@ -422,7 +425,7 @@ public class TypeToken<T> {
     /**
      * Retrieve the {@link Class} object that this type token represents.
      *
-     * e.g. For {@code TypeToken<String>}, this would return {@code String.class}.
+     * e.g. For {@code EnhancedType<String>}, this would return {@code String.class}.
      */
     public Class<T> rawClass() {
         Validate.isTrue(!isWildcard, "A wildcard type is not expected here.");
@@ -441,13 +444,13 @@ public class TypeToken<T> {
      * Retrieve the {@link Class} objects of any type parameters for the class that this type token represents.
      *
      * <p>
-     * e.g. For {@code TypeToken<List<String>>}, this would return {@code String.class}, and {@link #rawClass()} would
+     * e.g. For {@code EnhancedType<List<String>>}, this would return {@code String.class}, and {@link #rawClass()} would
      * return {@code List.class}.
      *
      * <p>
      * If there are no type parameters, this will return an empty list.
      */
-    public List<TypeToken<?>> rawClassParameters() {
+    public List<EnhancedType<?>> rawClassParameters() {
         Validate.isTrue(!isWildcard, "A wildcard type is not expected here.");
         return rawClassParameters;
     }
@@ -474,7 +477,7 @@ public class TypeToken<T> {
         }
     }
 
-    private List<TypeToken<?>> loadTypeParameters(Type type) {
+    private List<EnhancedType<?>> loadTypeParameters(Type type) {
         if (!(type instanceof ParameterizedType)) {
             return Collections.emptyList();
         }
@@ -484,7 +487,7 @@ public class TypeToken<T> {
         return Collections.unmodifiableList(
             Arrays.stream(parameterizedType.getActualTypeArguments())
                   .peek(t -> Validate.validState(t != null, "Invalid type argument."))
-                  .map(TypeToken::new)
+                  .map(EnhancedType::new)
                   .collect(toList()));
     }
 
@@ -494,7 +497,7 @@ public class TypeToken<T> {
 
         if (!rawClassParameters.isEmpty()) {
             result.append("<");
-            result.append(rawClassParameters.stream().map(TypeToken::innerToString).collect(Collectors.joining(", ")));
+            result.append(rawClassParameters.stream().map(EnhancedType::innerToString).collect(Collectors.joining(", ")));
             result.append(">");
         }
 
@@ -506,24 +509,24 @@ public class TypeToken<T> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof TypeToken)) {
+        if (!(o instanceof EnhancedType)) {
             return false;
         }
 
-        TypeToken<?> typeToken = (TypeToken<?>) o;
+        EnhancedType<?> enhancedType = (EnhancedType<?>) o;
 
-        if (isWildcard != typeToken.isWildcard) {
+        if (isWildcard != enhancedType.isWildcard) {
             return false;
         }
-        if (!rawClass.equals(typeToken.rawClass)) {
+        if (!rawClass.equals(enhancedType.rawClass)) {
             return false;
         }
-        if (rawClassParameters != null ? !rawClassParameters.equals(typeToken.rawClassParameters) :
-            typeToken.rawClassParameters != null) {
+        if (rawClassParameters != null ? !rawClassParameters.equals(enhancedType.rawClassParameters) :
+            enhancedType.rawClassParameters != null) {
             return false;
         }
 
-        return tableSchema != null ? tableSchema.equals(typeToken.tableSchema) : typeToken.tableSchema == null;
+        return tableSchema != null ? tableSchema.equals(enhancedType.tableSchema) : enhancedType.tableSchema == null;
     }
 
     @Override
@@ -537,6 +540,6 @@ public class TypeToken<T> {
 
     @Override
     public String toString() {
-        return "TypeToken(" + innerToString() + ")";
+        return "EnhancedType(" + innerToString() + ")";
     }
 }

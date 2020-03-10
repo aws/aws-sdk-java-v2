@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPage;
@@ -94,13 +94,13 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record1> TABLE_SCHEMA_1 =
         StaticTableSchema.builder(Record1.class)
                          .newItemSupplier(Record1::new)
-                         .attributes(attribute("id_1", TypeToken.of(Integer.class), Record1::getId, Record1::setId).as(primaryPartitionKey()))
+                         .attributes(attribute("id_1", EnhancedType.of(Integer.class), Record1::getId, Record1::setId).as(primaryPartitionKey()))
                          .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
             StaticTableSchema.builder(Record2.class)
                              .newItemSupplier(Record2::new)
-                             .attributes(attribute("id_2", TypeToken.of(Integer.class), Record2::getId, Record2::setId).as(primaryPartitionKey()))
+                             .attributes(attribute("id_2", EnhancedType.of(Integer.class), Record2::getId, Record2::setId).as(primaryPartitionKey()))
                              .build();
 
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()

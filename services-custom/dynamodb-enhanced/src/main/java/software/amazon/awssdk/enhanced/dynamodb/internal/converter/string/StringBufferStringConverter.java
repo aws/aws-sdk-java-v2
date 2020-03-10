@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -35,8 +35,8 @@ public class StringBufferStringConverter implements StringConverter<StringBuffer
     }
 
     @Override
-    public TypeToken<StringBuffer> type() {
-        return TypeToken.of(StringBuffer.class);
+    public EnhancedType<StringBuffer> type() {
+        return EnhancedType.of(StringBuffer.class);
     }
 
     @Override

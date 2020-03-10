@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
@@ -36,13 +36,13 @@ public class DoubleStringConverter implements StringConverter<Double>, Primitive
     }
 
     @Override
-    public TypeToken<Double> type() {
-        return TypeToken.of(Double.class);
+    public EnhancedType<Double> type() {
+        return EnhancedType.of(Double.class);
     }
 
     @Override
-    public TypeToken<Double> primitiveType() {
-        return TypeToken.of(double.class);
+    public EnhancedType<Double> primitiveType() {
+        return EnhancedType.of(double.class);
     }
 
     @Override

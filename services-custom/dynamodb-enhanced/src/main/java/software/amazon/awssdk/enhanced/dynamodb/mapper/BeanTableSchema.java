@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanConstructor;
@@ -225,14 +225,14 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
             if (clazz.getAnnotation(DynamoDbBean.class) != null) {
                 return Attributes.attribute(
                     attributeNameForProperty(propertyDescriptor),
-                    TypeToken.documentOf((Class<T>) clazz, (TableSchema<T>) createStaticTableSchema(clazz)),
+                    EnhancedType.documentOf((Class<T>) clazz, (TableSchema<T>) createStaticTableSchema(clazz)),
                     getterForProperty(propertyDescriptor, beanClass),
                     setterForProperty(propertyDescriptor, beanClass));
             }
         }
 
         return Attributes.attribute(attributeNameForProperty(propertyDescriptor),
-                                    TypeToken.of(propertyDescriptor.getReadMethod().getGenericReturnType()),
+                                    EnhancedType.of(propertyDescriptor.getReadMethod().getGenericReturnType()),
                                     getterForProperty(propertyDescriptor, beanClass),
                                     setterForProperty(propertyDescriptor, beanClass));
     }

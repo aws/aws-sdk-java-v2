@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -42,8 +42,8 @@ public class AtomicIntegerStringConverter implements StringConverter<AtomicInteg
     }
 
     @Override
-    public TypeToken<AtomicInteger> type() {
-        return TypeToken.of(AtomicInteger.class);
+    public EnhancedType<AtomicInteger> type() {
+        return EnhancedType.of(AtomicInteger.class);
     }
 
     @Override

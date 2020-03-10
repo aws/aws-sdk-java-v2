@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -44,8 +44,8 @@ public class OptionalAttributeConverter<T> implements AttributeConverter<Optiona
     }
 
     @Override
-    public TypeToken<Optional<T>> type() {
-        return TypeToken.optionalOf(delegate.type().rawClass());
+    public EnhancedType<Optional<T>> type() {
+        return EnhancedType.optionalOf(delegate.type().rawClass());
     }
 
     @Override

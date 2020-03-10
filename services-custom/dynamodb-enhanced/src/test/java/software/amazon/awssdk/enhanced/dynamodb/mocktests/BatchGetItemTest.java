@@ -32,7 +32,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mocktests.BatchGetTestUtils.Record;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPage;
@@ -62,7 +62,7 @@ public class BatchGetItemTest {
                                                .build();
         StaticTableSchema<Record> tableSchema = StaticTableSchema.builder(Record.class)
                                                                  .newItemSupplier(Record::new)
-                                                                 .attributes(attribute("id", TypeToken.of(Integer.class),
+                                                                 .attributes(attribute("id", EnhancedType.of(Integer.class),
                                                                                        Record::getId,
                                                                                        Record::setId).as(primaryPartitionKey()))
                                                                  .build();

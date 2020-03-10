@@ -27,7 +27,7 @@ import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -122,23 +122,23 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                          .newItemSupplier(Document::new)
                          .attributes(
                              attribute("documentAttribute1",
-                                       TypeToken.of(String.class),
+                                       EnhancedType.of(String.class),
                                        Document::getDocumentAttribute1,
                                        Document::setDocumentAttribute1),
                              attribute("documentAttribute2",
-                                    TypeToken.of(String.class),
-                                    Document::getDocumentAttribute2,
-                                    Document::setDocumentAttribute2),
+                                       EnhancedType.of(String.class),
+                                       Document::getDocumentAttribute2,
+                                       Document::setDocumentAttribute2),
                              attribute("documentAttribute3",
-                                    TypeToken.of(String.class),
-                                    Document::getDocumentAttribute3,
-                                    Document::setDocumentAttribute3))
+                                       EnhancedType.of(String.class),
+                                       Document::getDocumentAttribute3,
+                                       Document::setDocumentAttribute3))
                          .build();
 
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
-                         .attributes(attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()))
+                         .attributes(attribute("id", EnhancedType.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()))
                          .flatten(DOCUMENT_SCHEMA, Record::getDocument, Record::setDocument)
                          .build();
 

@@ -20,7 +20,7 @@ import java.util.OptionalLong;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -39,8 +39,8 @@ public class OptionalLongStringConverter implements StringConverter<OptionalLong
     }
 
     @Override
-    public TypeToken<OptionalLong> type() {
-        return TypeToken.of(OptionalLong.class);
+    public EnhancedType<OptionalLong> type() {
+        return EnhancedType.of(OptionalLong.class);
     }
 
     @Override

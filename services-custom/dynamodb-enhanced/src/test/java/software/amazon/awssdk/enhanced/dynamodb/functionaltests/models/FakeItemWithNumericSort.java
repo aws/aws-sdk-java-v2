@@ -21,7 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribu
 
 import java.util.Random;
 import java.util.UUID;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithNumericSort {
@@ -31,9 +31,9 @@ public class FakeItemWithNumericSort {
         StaticTableSchema.builder(FakeItemWithNumericSort.class)
                          .newItemSupplier(FakeItemWithNumericSort::new)
                          .attributes(
-                            attribute("id", TypeToken.of(String.class), FakeItemWithNumericSort::getId, FakeItemWithNumericSort::setId)
+                            attribute("id", EnhancedType.of(String.class), FakeItemWithNumericSort::getId, FakeItemWithNumericSort::setId)
                                 .as(primaryPartitionKey()),
-                            attribute("sort", TypeToken.of(Integer.class), FakeItemWithNumericSort::getSort, FakeItemWithNumericSort::setSort)
+                            attribute("sort", EnhancedType.of(Integer.class), FakeItemWithNumericSort::getSort, FakeItemWithNumericSort::setSort)
                                 .as(primarySortKey()))
                          .build();
 

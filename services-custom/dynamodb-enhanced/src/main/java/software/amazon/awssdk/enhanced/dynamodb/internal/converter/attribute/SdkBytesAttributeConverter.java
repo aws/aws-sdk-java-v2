@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -48,8 +48,8 @@ public final class SdkBytesAttributeConverter implements AttributeConverter<SdkB
     }
 
     @Override
-    public TypeToken<SdkBytes> type() {
-        return TypeToken.of(SdkBytes.class);
+    public EnhancedType<SdkBytes> type() {
+        return EnhancedType.of(SdkBytes.class);
     }
 
     @Override

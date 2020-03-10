@@ -40,7 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
@@ -90,8 +90,8 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
         StaticTableSchema.builder(Record.class)
                    .newItemSupplier(Record::new)
                    .attributes(
-                       attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
-                       attribute("sort", TypeToken.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()))
+                       attribute("id", EnhancedType.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                       attribute("sort", EnhancedType.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()))
         .build();
 
     private static final List<Record> RECORDS =

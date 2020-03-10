@@ -26,7 +26,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverterProvider;
@@ -86,7 +86,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultAttributeConverterProvider implements AttributeConverterProvider {
     private static final Logger log = Logger.loggerFor(DefaultAttributeConverterProvider.class);
 
-    private final ConcurrentHashMap<TypeToken<?>, AttributeConverter<?>> converterCache =
+    private final ConcurrentHashMap<EnhancedType<?>, AttributeConverter<?>> converterCache =
         new ConcurrentHashMap<>();
 
     private DefaultAttributeConverterProvider(Builder builder) {
@@ -103,7 +103,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     }
 
     /**
-     * Equivalent to {@code builder(TypeToken.of(Object.class))}.
+     * Equivalent to {@code builder(EnhancedType.of(Object.class))}.
      */
     public static Builder builder() {
         return new Builder();
@@ -113,7 +113,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
      * Find a converter that matches the provided type. If one cannot be found, throw an exception.
      */
     @Override
-    public <T> AttributeConverter<T> converterFor(TypeToken<T> type) {
+    public <T> AttributeConverter<T> converterFor(EnhancedType<T> type) {
         return findConverter(type).orElseThrow(() -> new IllegalStateException("Converter not found for " + type));
     }
 
@@ -121,7 +121,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
      * Find a converter that matches the provided type. If one cannot be found, return empty.
      */
     @SuppressWarnings("unchecked")
-    private <T> Optional<AttributeConverter<T>> findConverter(TypeToken<T> type) {
+    private <T> Optional<AttributeConverter<T>> findConverter(EnhancedType<T> type) {
         log.debug(() -> "Loading converter for " + type + ".");
 
         AttributeConverter<T> converter = (AttributeConverter<T>) converterCache.get(type);
@@ -134,12 +134,12 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
         } else if (type.rawClass().isAssignableFrom(Set.class)) {
             converter = createSetConverter(type);
         } else if (type.rawClass().isAssignableFrom(List.class)) {
-            TypeToken<T> innerType = (TypeToken<T>) type.rawClassParameters().get(0);
+            EnhancedType<T> innerType = (EnhancedType<T>) type.rawClassParameters().get(0);
             AttributeConverter<?> innerConverter = findConverter(innerType)
                 .orElseThrow(() -> new IllegalStateException("Converter not found for " + type));
             return Optional.of((AttributeConverter<T>) ListAttributeConverter.create(innerConverter));
         } else if (type.rawClass().isEnum()) {
-            return Optional.of(EnumAttributeConverter.create(((TypeToken<? extends Enum>) type).rawClass()));
+            return Optional.of(EnumAttributeConverter.create(((EnhancedType<? extends Enum>) type).rawClass()));
         }
 
         if (type.tableSchema().isPresent()) {
@@ -159,9 +159,9 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     }
 
     @SuppressWarnings("unchecked")
-    private <T> AttributeConverter<T> createMapConverter(TypeToken<T> type) {
-        TypeToken<?> keyType = type.rawClassParameters().get(0);
-        TypeToken<T> valueType = (TypeToken<T>) type.rawClassParameters().get(1);
+    private <T> AttributeConverter<T> createMapConverter(EnhancedType<T> type) {
+        EnhancedType<?> keyType = type.rawClassParameters().get(0);
+        EnhancedType<T> valueType = (EnhancedType<T>) type.rawClassParameters().get(1);
 
         StringConverter<?> keyConverter = StringConverterProvider.defaultProvider().converterFor(keyType);
         AttributeConverter<?> valueConverter = findConverter(valueType)
@@ -171,8 +171,8 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     }
 
     @SuppressWarnings("unchecked")
-    private <T> AttributeConverter<T> createSetConverter(TypeToken<T> type) {
-        TypeToken<T> innerType = (TypeToken<T>) type.rawClassParameters().get(0);
+    private <T> AttributeConverter<T> createSetConverter(EnhancedType<T> type) {
+        EnhancedType<T> innerType = (EnhancedType<T>) type.rawClassParameters().get(0);
         AttributeConverter<?> innerConverter = findConverter(innerType)
             .orElseThrow(() -> new IllegalStateException("Converter not found for " + type));
 

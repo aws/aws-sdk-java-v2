@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.CharacterStringConverter;
@@ -54,8 +54,8 @@ public final class CharacterAttributeConverter implements AttributeConverter<Cha
     }
 
     @Override
-    public TypeToken<Character> type() {
-        return TypeToken.of(Character.class);
+    public EnhancedType<Character> type() {
+        return EnhancedType.of(Character.class);
     }
 
     @Override
@@ -78,8 +78,8 @@ public final class CharacterAttributeConverter implements AttributeConverter<Cha
     }
 
     @Override
-    public TypeToken<Character> primitiveType() {
-        return TypeToken.of(char.class);
+    public EnhancedType<Character> primitiveType() {
+        return EnhancedType.of(char.class);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Character> {

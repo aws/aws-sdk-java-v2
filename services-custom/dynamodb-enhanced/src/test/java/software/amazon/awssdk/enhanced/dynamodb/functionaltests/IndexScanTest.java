@@ -43,7 +43,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
@@ -127,12 +127,12 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
-                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
-                             attribute("sort", TypeToken.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()),
-                             attribute("value", TypeToken.of(Integer.class), Record::getValue, Record::setValue),
-                             attribute("gsi_id", TypeToken.of(String.class), Record::getGsiId, Record::setGsiId)
+                             attribute("id", EnhancedType.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                             attribute("sort", EnhancedType.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()),
+                             attribute("value", EnhancedType.of(Integer.class), Record::getValue, Record::setValue),
+                             attribute("gsi_id", EnhancedType.of(String.class), Record::getGsiId, Record::setGsiId)
                                  .as(secondaryPartitionKey("gsi_keys_only")),
-                             attribute("gsi_sort", TypeToken.of(Integer.class), Record::getGsiSort, Record::setGsiSort)
+                             attribute("gsi_sort", EnhancedType.of(Integer.class), Record::getGsiSort, Record::setGsiSort)
                                  .as(secondarySortKey("gsi_keys_only")))
                          .build();
 

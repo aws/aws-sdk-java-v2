@@ -20,7 +20,7 @@ import java.time.OffsetTime;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -37,8 +37,8 @@ public class OffsetTimeStringConverter implements StringConverter<OffsetTime> {
     }
 
     @Override
-    public TypeToken<OffsetTime> type() {
-        return TypeToken.of(OffsetTime.class);
+    public EnhancedType<OffsetTime> type() {
+        return EnhancedType.of(OffsetTime.class);
     }
 
     @Override

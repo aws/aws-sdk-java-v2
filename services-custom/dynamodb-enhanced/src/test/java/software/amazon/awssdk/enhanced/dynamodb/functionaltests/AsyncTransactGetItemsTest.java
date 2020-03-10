@@ -32,8 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DefaultDocument;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
@@ -96,14 +95,14 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
         StaticTableSchema.builder(Record1.class)
                    .newItemSupplier(Record1::new)
                    .attributes(
-                       attribute("id_1", TypeToken.of(Integer.class), Record1::getId, Record1::setId).as(primaryPartitionKey()))
+                       attribute("id_1", EnhancedType.of(Integer.class), Record1::getId, Record1::setId).as(primaryPartitionKey()))
                    .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
         StaticTableSchema.builder(Record2.class)
                    .newItemSupplier(Record2::new)
                    .attributes(
-                       attribute("id_2", TypeToken.of(Integer.class), Record2::getId, Record2::setId).as(primaryPartitionKey()))
+                       attribute("id_2", EnhancedType.of(Integer.class), Record2::getId, Record2::setId).as(primaryPartitionKey()))
                    .build();
 
     private DynamoDbEnhancedAsyncClient enhancedAsyncClient =

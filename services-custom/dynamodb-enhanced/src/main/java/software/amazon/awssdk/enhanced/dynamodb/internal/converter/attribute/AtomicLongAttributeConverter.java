@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.AtomicLongStringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
@@ -58,8 +58,8 @@ public final class AtomicLongAttributeConverter implements AttributeConverter<At
     }
 
     @Override
-    public TypeToken<AtomicLong> type() {
-        return TypeToken.of(AtomicLong.class);
+    public EnhancedType<AtomicLong> type() {
+        return EnhancedType.of(AtomicLong.class);
     }
 
     @Override

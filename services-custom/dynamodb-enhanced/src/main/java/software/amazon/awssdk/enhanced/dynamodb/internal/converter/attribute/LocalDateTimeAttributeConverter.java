@@ -26,7 +26,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
@@ -87,8 +87,8 @@ public final class LocalDateTimeAttributeConverter implements AttributeConverter
     }
 
     @Override
-    public TypeToken<LocalDateTime> type() {
-        return TypeToken.of(LocalDateTime.class);
+    public EnhancedType<LocalDateTime> type() {
+        return EnhancedType.of(LocalDateTime.class);
     }
 
     @Override

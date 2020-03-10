@@ -73,7 +73,7 @@ public interface AttributeConverter<T> {
     /**
      * The type supported by this converter.
      */
-    TypeToken<T> type();
+    EnhancedType<T> type();
 
     /**
      * The {@link AttributeValueType} that a converter stores and reads values

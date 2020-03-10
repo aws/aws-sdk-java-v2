@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItem extends FakeItemAbstractSubclass {
@@ -34,8 +34,8 @@ public class FakeItem extends FakeItemAbstractSubclass {
                                   FakeItem::getComposedObject,
                                   FakeItem::setComposedObject)
                          .extend(getSubclassTableSchema())
-                         .attributes(attribute("id", TypeToken.of(String.class), FakeItem::getId, FakeItem::setId).as(primaryPartitionKey()),
-                                     attribute("version", TypeToken.of(Integer.class), FakeItem::getVersion, FakeItem::setVersion).as(version()))                         .build();
+                         .attributes(attribute("id", EnhancedType.of(String.class), FakeItem::getId, FakeItem::setId).as(primaryPartitionKey()),
+                                     attribute("version", EnhancedType.of(Integer.class), FakeItem::getVersion, FakeItem::setVersion).as(version())).build();
 
     private String id;
     private Integer version;

@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -35,8 +35,8 @@ public class CharSequenceStringConverter implements StringConverter<CharSequence
     }
 
     @Override
-    public TypeToken<CharSequence> type() {
-        return TypeToken.of(CharSequence.class);
+    public EnhancedType<CharSequence> type() {
+        return EnhancedType.of(CharSequence.class);
     }
 
     @Override

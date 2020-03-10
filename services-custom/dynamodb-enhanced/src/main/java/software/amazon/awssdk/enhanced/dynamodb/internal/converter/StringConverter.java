@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 
 /**
  * Converts a specific Java type to/from a {@link String}.
@@ -42,5 +42,5 @@ public interface StringConverter<T> {
     /**
      * The type supported by this converter.
      */
-    TypeToken<T> type();
+    EnhancedType<T> type();
 }

@@ -36,7 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
@@ -169,14 +169,14 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
-                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
-                             attribute("sort", TypeToken.of(String.class), Record::getSort, Record::setSort).as(primarySortKey()),
+                             attribute("id", EnhancedType.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                             attribute("sort", EnhancedType.of(String.class), Record::getSort, Record::setSort).as(primarySortKey()),
                              // This is a DynamoDb reserved word, forces testing of AttributeNames
-                             attribute("attribute", TypeToken.of(String.class), Record::getAttribute, Record::setAttribute),
+                             attribute("attribute", EnhancedType.of(String.class), Record::getAttribute, Record::setAttribute),
                              // Using tricky characters to force scrubbing of attributeName tokens
-                             attribute("*attribute2*", TypeToken.of(String.class), Record::getAttribute2, Record::setAttribute2)
+                             attribute("*attribute2*", EnhancedType.of(String.class), Record::getAttribute2, Record::setAttribute2)
                                  .as(secondaryPartitionKey("gsi_1")),
-                             attribute("attribute3", TypeToken.of(String.class), Record::getAttribute3, Record::setAttribute3)
+                             attribute("attribute3", EnhancedType.of(String.class), Record::getAttribute3, Record::setAttribute3)
                                  .as(secondarySortKey("gsi_1")))
                          .build();
 
@@ -184,9 +184,9 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
             StaticTableSchema.builder(ShortRecord.class)
                              .newItemSupplier(ShortRecord::new)
                              .attributes(
-                                 attribute("id", TypeToken.of(String.class), ShortRecord::getId, ShortRecord::setId).as(primaryPartitionKey()),
-                                 attribute("sort", TypeToken.of(String.class), ShortRecord::getSort, ShortRecord::setSort).as(primarySortKey()),
-                                 attribute("attribute", TypeToken.of(String.class), ShortRecord::getAttribute, ShortRecord::setAttribute))
+                                 attribute("id", EnhancedType.of(String.class), ShortRecord::getId, ShortRecord::setId).as(primaryPartitionKey()),
+                                 attribute("sort", EnhancedType.of(String.class), ShortRecord::getSort, ShortRecord::setSort).as(primarySortKey()),
+                                 attribute("attribute", EnhancedType.of(String.class), ShortRecord::getAttribute, ShortRecord::setAttribute))
                              .build();
 
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
