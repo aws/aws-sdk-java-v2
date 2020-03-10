@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWSServerlessApplicationRepository",
+    "description": "AWS Serverless Application Repository now supports sharing applications privately with AWS Organizations."
+}
