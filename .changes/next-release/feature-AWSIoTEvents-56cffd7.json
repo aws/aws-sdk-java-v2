@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Events",
-    "description": "API update that adds a new parameter, durationExpression, to SetTimerAction, and deprecates seconds"
-}
