@@ -134,7 +134,7 @@
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <checkstyle.version>8.18</checkstyle.version>
+        <checkstyle.version>8.29</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
