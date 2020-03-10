@@ -57,8 +57,8 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
         Map<String, String> expressionNames = queryExpression.expressionNames();
 
         if (this.request.filterExpression() != null) {
-            expressionValues = Expression.coalesceValues(expressionValues, this.request.filterExpression().expressionValues());
-            expressionNames = Expression.coalesceNames(expressionNames, this.request.filterExpression().expressionNames());
+            expressionValues = Expression.joinValues(expressionValues, this.request.filterExpression().expressionValues());
+            expressionNames = Expression.joinNames(expressionNames, this.request.filterExpression().expressionNames());
         }
 
         QueryRequest.Builder queryRequest = QueryRequest.builder()
