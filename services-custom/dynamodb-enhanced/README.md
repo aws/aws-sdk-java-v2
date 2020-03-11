@@ -45,10 +45,10 @@ values used are also completely arbitrary.
    }
    ```
    
-2. Create a TableSchema for your class. For this example we are using the 'BeanTableSchema' that will scan your bean
+2. Create a TableSchema for your class. For this example we are using the 'bean' TableSchema that will scan your bean
    class and use the annotations to infer the table structure and attributes :
    ```java
-   static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = BeanTableSchema.create(Customer.class);
+   static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = TableSchema.fromBean(Customer.class);
    ```
    
    If you would prefer to skip the slightly costly bean inference for a faster solution, you can instead declare your 
@@ -56,7 +56,7 @@ values used are also completely arbitrary.
    bean naming standards nor does it need to be annotated. This example is equivalent to the bean example : 
    ```java
    static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-     StaticTableSchema.builder(Customer.class)
+     TableSchema.builder(Customer.class)
        .newItemSupplier(Customer::new)
        .addAttribute(String.class, a -> a.name("account_id")
                                          .getter(Customer::getAccountId)
