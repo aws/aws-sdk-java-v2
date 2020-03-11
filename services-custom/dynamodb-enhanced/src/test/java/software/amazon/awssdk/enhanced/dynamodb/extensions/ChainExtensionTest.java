@@ -20,7 +20,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
@@ -36,10 +35,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtension;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -87,13 +88,11 @@ public class ChainExtensionTest {
                                                                 .additionalConditionalExpression(expression3)
                                                                 .transformedItem(fakeItems.get(3))
                                                                 .build();
-        when(mockExtension1.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification1);
-        when(mockExtension2.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification2);
-        when(mockExtension3.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification3);
+        when(mockExtension1.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification1);
+        when(mockExtension2.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification2);
+        when(mockExtension3.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification3);
 
-        WriteModification result = extension.beforeWrite(fakeItems.get(0), 
-                                                         PRIMARY_CONTEXT,
-                                                         FakeItem.getTableMetadata());
+        WriteModification result = extension.beforeWrite(getExtensionContext(0));
 
         Map<String, AttributeValue> combinedMap = new HashMap<>(ATTRIBUTE_VALUES_1);
         combinedMap.putAll(ATTRIBUTE_VALUES_2);
@@ -104,31 +103,38 @@ public class ChainExtensionTest {
         assertThat(result.additionalConditionalExpression(), is(expectedExpression));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
-        inOrder.verify(mockExtension1).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension2).beforeWrite(fakeItems.get(1), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension3).beforeWrite(fakeItems.get(2), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        inOrder.verify(mockExtension1).beforeWrite(
+            getExtensionContext(0));
+        inOrder.verify(mockExtension2).beforeWrite(getExtensionContext(1));
+        inOrder.verify(mockExtension3).beforeWrite(getExtensionContext(2));
         inOrder.verifyNoMoreInteractions();
     }
 
     @Test
     public void beforeWrite_multipleExtensions_doingNothing() {
         ChainExtension extension = ChainExtension.create(mockExtension1, mockExtension2, mockExtension3);
-        when(mockExtension1.beforeWrite(anyMap(), any(), any())).thenReturn(WriteModification.builder().build());
-        when(mockExtension2.beforeWrite(anyMap(), any(), any())).thenReturn(WriteModification.builder().build());
-        when(mockExtension3.beforeWrite(anyMap(), any(), any())).thenReturn(WriteModification.builder().build());
+        when(mockExtension1.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(WriteModification.builder().build());
+        when(mockExtension2.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(WriteModification.builder().build());
+        when(mockExtension3.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(WriteModification.builder().build());
 
-        WriteModification result = extension.beforeWrite(fakeItems.get(0), 
-                                                         PRIMARY_CONTEXT,
-                                                         FakeItem.getTableMetadata());
+        WriteModification result = extension.beforeWrite(getExtensionContext(0));
 
         assertThat(result.additionalConditionalExpression(), is(nullValue()));
         assertThat(result.transformedItem(), is(nullValue()));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
-        inOrder.verify(mockExtension1).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension2).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension3).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        inOrder.verify(mockExtension1).beforeWrite(
+            getExtensionContext(0));
+        inOrder.verify(mockExtension2).beforeWrite(getExtensionContext(0));
+        inOrder.verify(mockExtension3).beforeWrite(getExtensionContext(0));
         inOrder.verifyNoMoreInteractions();
+    }
+
+    private DefaultDynamoDbExtensionContext getExtensionContext(int i) {
+        return DefaultDynamoDbExtensionContext.builder()
+                                              .tableMetadata(FakeItem.getTableMetadata())
+                                              .operationContext(PRIMARY_CONTEXT)
+                                              .items(fakeItems.get(i)).build();
     }
 
     @Test
@@ -140,13 +146,11 @@ public class ChainExtensionTest {
                                                                 .additionalConditionalExpression(expression)
                                                                 .build();
         WriteModification writeModification3 = WriteModification.builder().build();
-        when(mockExtension1.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification1);
-        when(mockExtension2.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification2);
-        when(mockExtension3.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification3);
+        when(mockExtension1.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification1);
+        when(mockExtension2.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification2);
+        when(mockExtension3.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification3);
 
-        WriteModification result = extension.beforeWrite(fakeItems.get(0), 
-                                                         PRIMARY_CONTEXT,
-                                                         FakeItem.getTableMetadata());
+        WriteModification result = extension.beforeWrite(getExtensionContext(0));
 
         Expression expectedExpression = Expression.builder()
                                                   .expression("one")
@@ -156,9 +160,10 @@ public class ChainExtensionTest {
         assertThat(result.additionalConditionalExpression(), is(expectedExpression));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
-        inOrder.verify(mockExtension1).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension2).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension3).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        inOrder.verify(mockExtension1).beforeWrite(
+            getExtensionContext(0));
+        inOrder.verify(mockExtension2).beforeWrite(getExtensionContext(0));
+        inOrder.verify(mockExtension3).beforeWrite(getExtensionContext(0));
         inOrder.verifyNoMoreInteractions();
     }
 
@@ -170,21 +175,20 @@ public class ChainExtensionTest {
                                                                 .transformedItem(fakeItems.get(1))
                                                                 .build();
         WriteModification writeModification3 = WriteModification.builder().build();
-        when(mockExtension1.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification1);
-        when(mockExtension2.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification2);
-        when(mockExtension3.beforeWrite(anyMap(), any(), any())).thenReturn(writeModification3);
+        when(mockExtension1.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification1);
+        when(mockExtension2.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification2);
+        when(mockExtension3.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class))).thenReturn(writeModification3);
 
-        WriteModification result = extension.beforeWrite(fakeItems.get(0), 
-                                                         PRIMARY_CONTEXT,
-                                                         FakeItem.getTableMetadata());
+        WriteModification result = extension.beforeWrite(getExtensionContext(0));
 
         assertThat(result.transformedItem(), is(fakeItems.get(1)));
         assertThat(result.additionalConditionalExpression(), is(nullValue()));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
-        inOrder.verify(mockExtension1).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension2).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension3).beforeWrite(fakeItems.get(1), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        inOrder.verify(mockExtension1).beforeWrite(
+            getExtensionContext(0));
+        inOrder.verify(mockExtension2).beforeWrite(getExtensionContext(0));
+        inOrder.verify(mockExtension3).beforeWrite(getExtensionContext(1));
         inOrder.verifyNoMoreInteractions();
     }
 
@@ -192,9 +196,7 @@ public class ChainExtensionTest {
     public void beforeWrite_noExtensions() {
         ChainExtension extension = ChainExtension.create();
 
-        WriteModification result = extension.beforeWrite(fakeItems.get(0),
-                                                         PRIMARY_CONTEXT,
-                                                         FakeItem.getTableMetadata());
+        WriteModification result = extension.beforeWrite(getExtensionContext(0));
 
         assertThat(result.transformedItem(), is(nullValue()));
         assertThat(result.additionalConditionalExpression(), is(nullValue()));
@@ -206,18 +208,18 @@ public class ChainExtensionTest {
         ReadModification readModification1 = ReadModification.builder().transformedItem(fakeItems.get(1)).build();
         ReadModification readModification2 = ReadModification.builder().transformedItem(fakeItems.get(2)).build();
         ReadModification readModification3 = ReadModification.builder().transformedItem(fakeItems.get(3)).build();
-        when(mockExtension1.afterRead(anyMap(), any(), any())).thenReturn(readModification1);
-        when(mockExtension2.afterRead(anyMap(), any(), any())).thenReturn(readModification2);
-        when(mockExtension3.afterRead(anyMap(), any(), any())).thenReturn(readModification3);
+        when(mockExtension1.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification1);
+        when(mockExtension2.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification2);
+        when(mockExtension3.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification3);
 
-        ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT,  FakeItem.getTableMetadata());
+        ReadModification result = extension.afterRead(getExtensionContext(0));
 
         assertThat(result.transformedItem(), is(fakeItems.get(1)));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
-        inOrder.verify(mockExtension3).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension2).afterRead(fakeItems.get(3), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension1).afterRead(fakeItems.get(2), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        inOrder.verify(mockExtension3).afterRead(getExtensionContext(0));
+        inOrder.verify(mockExtension2).afterRead(getExtensionContext(3));
+        inOrder.verify(mockExtension1).afterRead(getExtensionContext(2));
         inOrder.verifyNoMoreInteractions();
     }
 
@@ -227,18 +229,17 @@ public class ChainExtensionTest {
         ReadModification readModification1 = ReadModification.builder().build();
         ReadModification readModification2 = ReadModification.builder().transformedItem(fakeItems.get(1)).build();
         ReadModification readModification3 = ReadModification.builder().build();
-        when(mockExtension1.afterRead(anyMap(), any(), any())).thenReturn(readModification1);
-        when(mockExtension2.afterRead(anyMap(), any(), any())).thenReturn(readModification2);
-        when(mockExtension3.afterRead(anyMap(), any(), any())).thenReturn(readModification3);
+        when(mockExtension1.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification1);
+        when(mockExtension2.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification2);
+        when(mockExtension3.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification3);
 
-        ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        ReadModification result = extension.afterRead(getExtensionContext(0));
 
         assertThat(result.transformedItem(), is(fakeItems.get(1)));
-
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
-        inOrder.verify(mockExtension3).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension2).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension1).afterRead(fakeItems.get(1), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        inOrder.verify(mockExtension3).afterRead(getExtensionContext(0));
+        inOrder.verify(mockExtension2).afterRead(getExtensionContext(0));
+        inOrder.verify(mockExtension1).afterRead(getExtensionContext(1));
         inOrder.verifyNoMoreInteractions();
     }
 
@@ -248,18 +249,17 @@ public class ChainExtensionTest {
         ReadModification readModification1 = ReadModification.builder().build();
         ReadModification readModification2 = ReadModification.builder().build();
         ReadModification readModification3 = ReadModification.builder().build();
-        when(mockExtension1.afterRead(anyMap(), any(), any())).thenReturn(readModification1);
-        when(mockExtension2.afterRead(anyMap(), any(), any())).thenReturn(readModification2);
-        when(mockExtension3.afterRead(anyMap(), any(), any())).thenReturn(readModification3);
+        when(mockExtension1.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification1);
+        when(mockExtension2.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification2);
+        when(mockExtension3.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(readModification3);
 
-        ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        ReadModification result = extension.afterRead(getExtensionContext(0));
 
         assertThat(result.transformedItem(), is(nullValue()));
-
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
-        inOrder.verify(mockExtension3).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension2).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
-        inOrder.verify(mockExtension1).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        inOrder.verify(mockExtension3).afterRead(getExtensionContext(0));
+        inOrder.verify(mockExtension2).afterRead(getExtensionContext(0));
+        inOrder.verify(mockExtension1).afterRead(getExtensionContext(0));
         inOrder.verifyNoMoreInteractions();
     }
 
@@ -267,7 +267,7 @@ public class ChainExtensionTest {
     public void afterRead_noExtensions() {
         ChainExtension extension = ChainExtension.create();
 
-        ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        ReadModification result = extension.afterRead(getExtensionContext(0));
 
         assertThat(result.transformedItem(), is(nullValue()));
     }

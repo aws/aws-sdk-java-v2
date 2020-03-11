@@ -47,6 +47,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -188,14 +189,18 @@ public class BatchWriteItemOperationTest {
         IntStream.range(0, 3).forEach(i -> {
             lenient().doReturn(WriteModification.builder().transformedItem(FAKE_ITEM_MAPS.get(i + 3)).build())
                 .when(mockExtension)
-                .beforeWrite(eq(FAKE_ITEM_MAPS.get(i)),
-                             argThat(operationContext -> operationContext.tableName().equals(TABLE_NAME)),
-                             any());
+                .beforeWrite(
+                         argThat(extensionContext ->
+                                     extensionContext.operationContext().tableName().equals(TABLE_NAME) &&
+                                     extensionContext.items().equals(FAKE_ITEM_MAPS.get(i))
+                         ));
             lenient().doReturn(WriteModification.builder().transformedItem(FAKESORT_ITEM_MAPS.get(i + 3)).build())
                 .when(mockExtension)
-                .beforeWrite(eq(FAKESORT_ITEM_MAPS.get(i)),
-                             argThat(operationContext -> operationContext.tableName().equals(TABLE_NAME_2)),
-                             any());
+                .beforeWrite(
+                    argThat(extensionContext ->
+                                extensionContext.operationContext().tableName().equals(TABLE_NAME_2) &&
+                                extensionContext.items().equals(FAKESORT_ITEM_MAPS.get(i))
+                    ));
         });
 
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
@@ -237,7 +242,7 @@ public class BatchWriteItemOperationTest {
 
         doReturn(WriteModification.builder().additionalConditionalExpression(expression).build())
             .when(mockExtension)
-            .beforeWrite(anyMap(), any(), any(TableMetadata.class));
+            .beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class));
 
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
             BatchWriteItemEnhancedRequest.builder()
@@ -311,16 +316,19 @@ public class BatchWriteItemOperationTest {
 
         // Use the mock extension to transform every item based on table name
         IntStream.range(0, 3).forEach(i -> {
-            lenient().doReturn(ReadModification.builder().transformedItem(FAKE_ITEM_MAPS.get(i + 3)).build())
-                     .when(mockExtension)
-                     .afterRead(eq(FAKE_ITEM_MAPS.get(i)),
-                                argThat(operationContext -> operationContext.tableName().equals(TABLE_NAME)),
-                                any());
-            lenient().doReturn(ReadModification.builder().transformedItem(FAKESORT_ITEM_MAPS.get(i + 3)).build())
-                     .when(mockExtension)
-                     .afterRead(eq(FAKESORT_ITEM_MAPS.get(i)),
-                                argThat(operationContext -> operationContext.tableName().equals(TABLE_NAME_2)),
-                                any());
+            doReturn(ReadModification.builder().transformedItem(FAKE_ITEM_MAPS.get(i + 3)).build())
+                .when(mockExtension)
+                .afterRead(
+                    argThat(extensionContext ->
+                                extensionContext.operationContext().tableName().equals(TABLE_NAME) &&
+                                extensionContext.items().equals(FAKE_ITEM_MAPS.get(i))
+                    ));
+            doReturn(ReadModification.builder().transformedItem(FAKESORT_ITEM_MAPS.get(i + 3)).build())
+                .when(mockExtension)
+                .afterRead(argThat(extensionContext ->
+                                       extensionContext.operationContext().tableName().equals(TABLE_NAME_2) &&
+                                       extensionContext.items().equals(FAKESORT_ITEM_MAPS.get(i))
+                ));
         });
 
         BatchWriteResult results = operation.transformResponse(response, mockExtension);

@@ -15,21 +15,20 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithBinaryKey {
     private static final StaticTableSchema<FakeItemWithBinaryKey> FAKE_ITEM_WITH_BINARY_KEY_SCHEMA =
         StaticTableSchema.builder(FakeItemWithBinaryKey.class)
                          .newItemSupplier(FakeItemWithBinaryKey::new)
-                         .attributes(
-                            attribute("id", TypeToken.of(SdkBytes.class), FakeItemWithBinaryKey::getId, FakeItemWithBinaryKey::setId)
-                                .as(primaryPartitionKey()))
+                         .addAttribute(SdkBytes.class, a -> a.name("id")
+                                                             .getter(FakeItemWithBinaryKey::getId)
+                                                             .setter(FakeItemWithBinaryKey::setId)
+                                                             .tags(primaryPartitionKey()))
                          .build();
 
     private SdkBytes id;

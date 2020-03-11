@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.time.LocalTime;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -37,8 +36,8 @@ public class LocalTimeStringConverter implements StringConverter<LocalTime> {
     }
 
     @Override
-    public TypeToken<LocalTime> type() {
-        return TypeToken.of(LocalTime.class);
+    public EnhancedType<LocalTime> type() {
+        return EnhancedType.of(LocalTime.class);
     }
 
     @Override

@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.time.Duration;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -37,8 +36,8 @@ public class DurationStringConverter implements StringConverter<Duration> {
     }
 
     @Override
-    public TypeToken<Duration> type() {
-        return TypeToken.of(Duration.class);
+    public EnhancedType<Duration> type() {
+        return EnhancedType.of(Duration.class);
     }
 
     @Override

@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.math.BigInteger;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -41,8 +40,8 @@ public class ByteArrayStringConverter implements StringConverter<byte[]> {
     }
 
     @Override
-    public TypeToken<byte[]> type() {
-        return TypeToken.of(byte[].class);
+    public EnhancedType<byte[]> type() {
+        return EnhancedType.of(byte[].class);
     }
 
     @Override

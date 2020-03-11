@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.net.URI;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -37,8 +36,8 @@ public class UriStringConverter implements StringConverter<URI> {
     }
 
     @Override
-    public TypeToken<URI> type() {
-        return TypeToken.of(URI.class);
+    public EnhancedType<URI> type() {
+        return EnhancedType.of(URI.class);
     }
 
     @Override

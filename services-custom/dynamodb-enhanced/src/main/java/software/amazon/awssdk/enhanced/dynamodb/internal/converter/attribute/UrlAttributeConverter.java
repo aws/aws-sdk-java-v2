@@ -16,15 +16,14 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
 
 import java.net.URL;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.UrlStringConverter;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -45,8 +44,8 @@ public final class UrlAttributeConverter implements AttributeConverter<URL> {
     }
 
     @Override
-    public TypeToken<URL> type() {
-        return TypeToken.of(URL.class);
+    public EnhancedType<URL> type() {
+        return EnhancedType.of(URL.class);
     }
 
     @Override

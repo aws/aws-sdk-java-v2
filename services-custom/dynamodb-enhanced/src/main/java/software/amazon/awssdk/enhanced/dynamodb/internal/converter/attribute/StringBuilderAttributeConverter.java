@@ -19,8 +19,8 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 
@@ -44,8 +44,8 @@ public final class StringBuilderAttributeConverter implements AttributeConverter
     }
 
     @Override
-    public TypeToken<StringBuilder> type() {
-        return TypeToken.of(StringBuilder.class);
+    public EnhancedType<StringBuilder> type() {
+        return EnhancedType.of(StringBuilder.class);
     }
 
     @Override

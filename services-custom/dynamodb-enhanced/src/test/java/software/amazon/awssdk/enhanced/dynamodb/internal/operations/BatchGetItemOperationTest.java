@@ -27,7 +27,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -51,7 +50,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
@@ -280,15 +278,17 @@ public class BatchGetItemOperationTest {
         IntStream.range(0, 3).forEach(i -> {
             doReturn(ReadModification.builder().transformedItem(FAKE_ITEM_MAPS.get(i + 3)).build())
                 .when(mockExtension)
-                .afterRead(eq(FAKE_ITEM_MAPS.get(i)),
-                           argThat(operationContext -> operationContext.tableName().equals(TABLE_NAME)),
-                           any(TableMetadata.class));
+                .afterRead(
+                    argThat(extensionContext ->
+                                extensionContext.operationContext().tableName().equals(TABLE_NAME) &&
+                                extensionContext.items().equals(FAKE_ITEM_MAPS.get(i))
+                    ));
             doReturn(ReadModification.builder().transformedItem(FAKESORT_ITEM_MAPS.get(i + 3)).build())
                 .when(mockExtension)
-                .afterRead(eq(FAKESORT_ITEM_MAPS.get(i)),
-                           argThat(operationContext ->
-                                       operationContext.tableName().equals(TABLE_NAME_2)),
-                           any(TableMetadata.class));
+                .afterRead(argThat(extensionContext ->
+                                       extensionContext.operationContext().tableName().equals(TABLE_NAME_2) &&
+                                       extensionContext.items().equals(FAKESORT_ITEM_MAPS.get(i))
+                ));
         });
 
         BatchGetResultPage resultsPage = operation.transformResponse(fakeResults, mockExtension);

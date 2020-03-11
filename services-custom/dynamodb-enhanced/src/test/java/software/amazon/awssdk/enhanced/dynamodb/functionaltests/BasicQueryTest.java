@@ -21,9 +21,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.between;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.equalTo;
 
@@ -43,7 +42,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -102,10 +100,17 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
-                         .attributes(
-                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
-                             attribute("sort", TypeToken.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()),
-                             attribute("value", TypeToken.of(Integer.class), Record::getValue, Record::setValue))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(Record::getId)
+                                                           .setter(Record::setId)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(Integer.class, a -> a.name("sort")
+                                                            .getter(Record::getSort)
+                                                            .setter(Record::setSort)
+                                                            .tags(primarySortKey()))
+                         .addAttribute(Integer.class, a -> a.name("value")
+                                                            .getter(Record::getValue)
+                                                            .setter(Record::setValue))
                          .build();
 
     private static final List<Record> RECORDS =

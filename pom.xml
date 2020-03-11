@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.10.83</version>
+    <version>2.10.84</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -66,8 +66,6 @@
         <module>utils</module>
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
-        <module>test/dynamodbdocument-v1</module>
-        <module>test/dynamodbmapper-v1</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>

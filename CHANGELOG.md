@@ -1,3 +1,12 @@
+# __2.10.84__ __2020-03-11__
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for elasticfilesystem
+
+## __Amazon Redshift__
+  - ### Features
+    - Amazon Redshift now supports operations to pause and resume a cluster on demand or on a schedule.
+
 # __2.10.83__ __2020-03-10__
 ## __AWS IoT Events__
   - ### Features

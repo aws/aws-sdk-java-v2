@@ -15,13 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
-import java.util.Map;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Interface for extending the DynamoDb Enhanced client. Two hooks are provided, one that is called just before a record
@@ -38,14 +34,11 @@ public interface DynamoDbEnhancedClientExtension {
      * This hook is called just before an operation is going to write data to the database. The extension that
      * implements this method can choose to transform the item itself, or add a condition to the write operation
      * or both.
-     * @param item The item that is about to be written.
-     * @param operationContext The context under which the operation to be modified is taking place.
-     * @param tableMetadata The structure of the table.
+     *
+     * @param context The {@link DynamoDbExtensionContext.BeforeWrite} context containing the state of the execution.
      * @return A {@link WriteModification} object that can alter the behavior of the write operation.
      */
-    default WriteModification beforeWrite(Map<String, AttributeValue> item,
-                                          OperationContext operationContext,
-                                          TableMetadata tableMetadata) {
+    default WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
         return WriteModification.builder().build();
     }
 
@@ -53,14 +46,11 @@ public interface DynamoDbEnhancedClientExtension {
      * This hook is called just after an operation that has read data from the database. The extension that
      * implements this method can choose to transform the item, and then it is the transformed item that will be
      * mapped back to the application instead of the item that was actually read from the database.
-     * @param item The item that has just been read.
-     * @param operationContext The context under which the operation to be modified is taking place.
-     * @param tableMetadata The structure of the table.
+     *
+     * @param context The {@link DynamoDbExtensionContext.AfterRead} context containing the state of the execution.
      * @return A {@link ReadModification} object that can alter the results of a read operation.
      */
-    default ReadModification afterRead(Map<String, AttributeValue> item,
-                                       OperationContext operationContext,
-                                       TableMetadata tableMetadata) {
+    default ReadModification afterRead(DynamoDbExtensionContext.AfterRead context) {
         return ReadModification.builder().build();
     }
 }

@@ -21,37 +21,31 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTag;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * This extension implements optimistic locking on record writes by means of a 'record version number' that is used
- * to automatically track each revision of the record as it is modified. To use this extension, first load it as part
- * of your MappedTable instantiation:
- *
- * <pre>
- * {@code
- * MappedTable.builder()
- *            .extendWith(VersionedRecordExtension.builder().build())
- *            .build();
- * }
- * </pre>
- *
+ * to automatically track each revision of the record as it is modified.
  * <p>
- * Then create an attribute in your model that will be used to store the record version number. This attribute must
- * be an 'integer' type numeric (long or integer), and you need to tag it as the version attribute:
- *
+ * This extension is loaded by default when you instantiate a
+ * {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} so unless you are using a custom extension
+ * there is no need to specify it.
  * <p>
- * ..., integerNumber("version", Customer::getVersion, Customer::setVersion).as(version()), ...
- *
+ * To utilize versioned record locking, first create an attribute in your model that will be used to store the record
+ * version number. This attribute must be an 'integer' type numeric (long or integer), and you need to tag it as the
+ * version attribute. If you are using the {@link software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema} then
+ * you should use the {@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute}
+ * annotation, otherwise if you are using the {@link software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema}
+ * then you should use the {@link AttributeTags#versionAttribute()} static attribute tag.
  * <p>
  * Then, whenever a record is written the write operation will only succeed if the version number of the record has not
  * been modified since it was last read by the application. Every time a new version of the record is successfully
@@ -74,41 +68,36 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         private AttributeTags() {
         }
 
-        public static AttributeTag version() {
+        public static StaticAttributeTag versionAttribute() {
             return VERSION_ATTRIBUTE;
         }
     }
 
-    private static class VersionAttribute extends AttributeTag {
+    private static class VersionAttribute implements StaticAttributeTag {
         @Override
-        protected boolean isKeyAttribute() {
-            return true;
-        }
-
-        @Override
-        public Map<String, Object> customMetadataForAttribute(String attributeName,
-                                                              AttributeValueType attributeValueType) {
+        public Consumer<StaticTableMetadata.Builder> modifyMetadata(String attributeName,
+                                                                    AttributeValueType attributeValueType) {
             if (!AttributeValueType.N.equals(attributeValueType)) {
-                throw new IllegalArgumentException(String.format("Attribute '%s' of type %s is not a suitable type to"
-                    + " be used as a version attribute. Only type 'N' is supported.", attributeName,
-                                                                 attributeValueType.name()));
+                throw new IllegalArgumentException(String.format(
+                    "Attribute '%s' of type %s is not a suitable type to be used as a version attribute. Only type 'N' " +
+                        "is supported.", attributeName, attributeValueType.name()));
             }
 
-            return Collections.singletonMap(CUSTOM_METADATA_KEY, attributeName);
+            return metadata -> metadata.addCustomMetadataObject(CUSTOM_METADATA_KEY, attributeName)
+                                       .markAttributeAsKey(attributeName, attributeValueType);
         }
     }
 
     @Override
-    public WriteModification beforeWrite(Map<String, AttributeValue> item,
-                                         OperationContext operationContext,
-                                         TableMetadata tableMetadata) {
-        Optional<String> versionAttributeKey = tableMetadata.customMetadataObject(CUSTOM_METADATA_KEY, String.class);
+    public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
+        Optional<String> versionAttributeKey = context.tableMetadata()
+                                                      .customMetadataObject(CUSTOM_METADATA_KEY, String.class);
 
         if (!versionAttributeKey.isPresent()) {
             return WriteModification.builder().build();
         }
 
-        Map<String, AttributeValue> itemToTransform = new HashMap<>(item);
+        Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
         AttributeValue newVersionValue;
         Expression condition;
         Optional<AttributeValue> existingVersionValue =

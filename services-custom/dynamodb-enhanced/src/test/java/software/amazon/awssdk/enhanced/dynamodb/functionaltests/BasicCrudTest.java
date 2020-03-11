@@ -19,11 +19,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 
 import java.util.Objects;
 import org.junit.After;
@@ -36,7 +35,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
@@ -168,26 +167,42 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
-                         .attributes(
-                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
-                             attribute("sort", TypeToken.of(String.class), Record::getSort, Record::setSort).as(primarySortKey()),
-                             // This is a DynamoDb reserved word, forces testing of AttributeNames
-                             attribute("attribute", TypeToken.of(String.class), Record::getAttribute, Record::setAttribute),
-                             // Using tricky characters to force scrubbing of attributeName tokens
-                             attribute("*attribute2*", TypeToken.of(String.class), Record::getAttribute2, Record::setAttribute2)
-                                 .as(secondaryPartitionKey("gsi_1")),
-                             attribute("attribute3", TypeToken.of(String.class), Record::getAttribute3, Record::setAttribute3)
-                                 .as(secondarySortKey("gsi_1")))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(Record::getId)
+                                                           .setter(Record::setId)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("sort")
+                                                           .getter(Record::getSort)
+                                                           .setter(Record::setSort)
+                                                           .tags(primarySortKey()))
+                         .addAttribute(String.class, a -> a.name("attribute")
+                                                           .getter(Record::getAttribute)
+                                                           .setter(Record::setAttribute))
+                         .addAttribute(String.class, a -> a.name("attribute2*")
+                                                           .getter(Record::getAttribute2)
+                                                           .setter(Record::setAttribute2)
+                                                           .tags(secondaryPartitionKey("gsi_1")))
+                         .addAttribute(String.class, a -> a.name("attribute3")
+                                                           .getter(Record::getAttribute3)
+                                                           .setter(Record::setAttribute3)
+                                                           .tags(secondarySortKey("gsi_1")))
                          .build();
 
     private static final TableSchema<ShortRecord> SHORT_TABLE_SCHEMA =
-            StaticTableSchema.builder(ShortRecord.class)
-                             .newItemSupplier(ShortRecord::new)
-                             .attributes(
-                                 attribute("id", TypeToken.of(String.class), ShortRecord::getId, ShortRecord::setId).as(primaryPartitionKey()),
-                                 attribute("sort", TypeToken.of(String.class), ShortRecord::getSort, ShortRecord::setSort).as(primarySortKey()),
-                                 attribute("attribute", TypeToken.of(String.class), ShortRecord::getAttribute, ShortRecord::setAttribute))
-                             .build();
+        StaticTableSchema.builder(ShortRecord.class)
+                         .newItemSupplier(ShortRecord::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(ShortRecord::getId)
+                                                           .setter(ShortRecord::setId)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("sort")
+                                                           .getter(ShortRecord::getSort)
+                                                           .setter(ShortRecord::setSort)
+                                                           .tags(primarySortKey()))
+                         .addAttribute(String.class, a -> a.name("attribute")
+                                                           .getter(ShortRecord::getAttribute)
+                                                           .setter(ShortRecord::setAttribute))
+                         .build();
 
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())

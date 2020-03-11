@@ -21,14 +21,12 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -85,22 +83,23 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
      * Multiple conditional statements will be separated by the string " AND ". Expression values will be coalesced
      * unless they conflict in which case an exception will be thrown.
      *
-     * @param item The {@link AttributeValue} map of the item to be written.
-     * @param tableMetadata A {@link TableMetadata} object describing the structure of the modelled table.
+     * @param context A {@link DynamoDbExtensionContext.BeforeWrite} context
      * @return A single {@link WriteModification} representing the coalesced results of all the chained extensions.
      */
     @Override
-    public WriteModification beforeWrite(Map<String, AttributeValue> item,
-                                         OperationContext operationContext,
-                                         TableMetadata tableMetadata) {
+    public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
         AtomicReference<Map<String, AttributeValue>> transformedItem = new AtomicReference<>();
         AtomicReference<Expression> conditionalExpression = new AtomicReference<>();
 
         this.extensionChain.forEach(extension -> {
-            Map<String, AttributeValue> itemToTransform = transformedItem.get() == null ? item : transformedItem.get();
-            WriteModification writeModification = extension.beforeWrite(itemToTransform,
-                                                                        operationContext,
-                                                                        tableMetadata);
+            Map<String, AttributeValue> itemToTransform = transformedItem.get() == null ? context.items() : transformedItem.get();
+            DynamoDbExtensionContext.BeforeWrite beforeWrite =
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(itemToTransform)
+                                               .operationContext(context.operationContext())
+                                               .tableMetadata(context.tableMetadata())
+                                               .build();
+            WriteModification writeModification = extension.beforeWrite(beforeWrite);
 
             if (writeModification.transformedItem() != null) {
                 transformedItem.set(writeModification.transformedItem());
@@ -128,19 +127,22 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
      * Implementation of the {@link DynamoDbEnhancedClientExtension} interface that will call all the chained extensions
      * in reverse order, passing the results of each one to the next and coalescing the results into a single modification.
      *
-     * @param item The {@link AttributeValue} map of the item that is being read.
-     * @param tableMetadata A {@link TableMetadata} object describing the structure of the modelled table.
+     * @param context A {@link DynamoDbExtensionContext.AfterRead} context
      * @return A single {@link ReadModification} representing the final transformation of all the chained extensions.
      */
     @Override
-    public ReadModification afterRead(Map<String, AttributeValue> item,
-                                      OperationContext operationContext,
-                                      TableMetadata tableMetadata) {
+    public ReadModification afterRead(DynamoDbExtensionContext.AfterRead context) {
         AtomicReference<Map<String, AttributeValue>> transformedItem = new AtomicReference<>();
 
         this.extensionChain.descendingIterator().forEachRemaining(extension -> {
-            Map<String, AttributeValue> itemToTransform = transformedItem.get() == null ? item : transformedItem.get();
-            ReadModification readModification = extension.afterRead(itemToTransform, operationContext, tableMetadata);
+            Map<String, AttributeValue> itemToTransform = transformedItem.get() == null ? context.items() : transformedItem.get();
+            DynamoDbExtensionContext.AfterRead afterRead =
+                DefaultDynamoDbExtensionContext.builder().items(itemToTransform)
+                                               .operationContext(context.operationContext())
+                                               .tableMetadata(context.tableMetadata())
+                                               .build();
+
+            ReadModification readModification = extension.afterRead(afterRead);
 
             if (readModification.transformedItem() != null) {
                 transformedItem.set(readModification.transformedItem());

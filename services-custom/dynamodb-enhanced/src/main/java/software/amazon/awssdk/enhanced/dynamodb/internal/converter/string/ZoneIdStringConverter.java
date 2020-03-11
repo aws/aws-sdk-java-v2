@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.time.ZoneId;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -37,8 +36,8 @@ public class ZoneIdStringConverter implements StringConverter<ZoneId> {
     }
 
     @Override
-    public TypeToken<ZoneId> type() {
-        return TypeToken.of(ZoneId.class);
+    public EnhancedType<ZoneId> type() {
+        return EnhancedType.of(ZoneId.class);
     }
 
     @Override

@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.math.BigDecimal;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -40,8 +39,8 @@ public class BigDecimalStringConverter implements StringConverter<BigDecimal> {
     }
 
     @Override
-    public TypeToken<BigDecimal> type() {
-        return TypeToken.of(BigDecimal.class);
+    public EnhancedType<BigDecimal> type() {
+        return EnhancedType.of(BigDecimal.class);
     }
 
     @Override

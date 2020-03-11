@@ -16,7 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.DefaultStringConverterProvider;
 
 /**
@@ -24,7 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.Defaul
  */
 @SdkInternalApi
 public interface StringConverterProvider {
-    <T> StringConverter<T> converterFor(TypeToken<T> typeToken);
+    <T> StringConverter<T> converterFor(EnhancedType<T> enhancedType);
 
     static StringConverterProvider defaultProvider() {
         return DefaultStringConverterProvider.create();

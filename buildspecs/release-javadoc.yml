@@ -15,7 +15,7 @@ phases:
   build:
     commands:
     - mvn install -P quick -T1C
-    - mvn install javadoc:aggregate -B -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl '!:dynamodbdocument-v1,!:dynamodbmapper-v1,!:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:test-utils,!:http-client-tests,!:tests-coverage-reporting'
+    - mvn install javadoc:aggregate -B -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl '!:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:test-utils,!:http-client-tests,!:tests-coverage-reporting'
     - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
     -
     - aws s3 sync target/site/apidocs/ $DOC_PATH/$RELEASE_VERSION/

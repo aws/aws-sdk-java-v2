@@ -15,28 +15,38 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 
 import java.util.UUID;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithIndices {
     private static final StaticTableSchema<FakeItemWithIndices> FAKE_ITEM_MAPPER =
         StaticTableSchema.builder(FakeItemWithIndices.class)
                          .newItemSupplier(FakeItemWithIndices::new)
-                         .attributes(attribute("id", TypeToken.of(String.class), FakeItemWithIndices::getId, FakeItemWithIndices::setId).as(primaryPartitionKey()),
-                                     attribute("sort", TypeToken.of(String.class), FakeItemWithIndices::getSort, FakeItemWithIndices::setSort).as(primarySortKey()),
-                                     attribute("gsi_id", TypeToken.of(String.class), FakeItemWithIndices::getGsiId, FakeItemWithIndices::setGsiId)
-                    .as(secondaryPartitionKey("gsi_1"), secondaryPartitionKey("gsi_2")),
-                                     attribute("gsi_sort", TypeToken.of(String.class), FakeItemWithIndices::getGsiSort, FakeItemWithIndices::setGsiSort)
-                    .as(secondarySortKey("gsi_1")),
-                                     attribute("lsi_sort", TypeToken.of(String.class), FakeItemWithIndices::getLsiSort, FakeItemWithIndices::setLsiSort)
-                    .as(secondarySortKey("lsi_1")))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeItemWithIndices::getId)
+                                                           .setter(FakeItemWithIndices::setId)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("sort")
+                                                           .getter(FakeItemWithIndices::getSort)
+                                                           .setter(FakeItemWithIndices::setSort)
+                                                           .tags(primarySortKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_id")
+                                                           .getter(FakeItemWithIndices::getGsiId)
+                                                           .setter(FakeItemWithIndices::setGsiId)
+                                                           .tags(secondaryPartitionKey("gsi_1"), secondaryPartitionKey("gsi_2")))
+                         .addAttribute(String.class, a -> a.name("gsi_sort")
+                                                           .getter(FakeItemWithIndices::getGsiSort)
+                                                           .setter(FakeItemWithIndices::setGsiSort)
+                                                           .tags(secondarySortKey("gsi_1")))
+                         .addAttribute(String.class, a -> a.name("lsi_sort")
+                                                           .getter(FakeItemWithIndices::getLsiSort)
+                                                           .setter(FakeItemWithIndices::setLsiSort)
+                                                           .tags(secondarySortKey("lsi_1")))
                          .build();
 
     private String id;

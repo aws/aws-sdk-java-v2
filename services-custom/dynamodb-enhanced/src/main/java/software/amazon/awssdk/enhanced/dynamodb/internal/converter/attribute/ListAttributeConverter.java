@@ -22,15 +22,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -48,7 +47,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A builder is exposed to allow defining how the collection and element types are created and converted:
  * <code>
  * AttributeConverter<List<Integer>> listConverter =
- * CollectionAttributeConverter.builder(TypeToken.listOf(Integer.class))
+ * CollectionAttributeConverter.builder(EnhancedType.listOf(Integer.class))
  * .collectionConstructor(ArrayList::new)
  * .elementConverter(IntegerAttributeConverter.create())
  * .build()
@@ -83,18 +82,18 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
     }
 
     public static <U> ListAttributeConverter<List<U>> create(AttributeConverter<U> elementConverter) {
-        return builder(TypeToken.listOf(elementConverter.type()))
+        return builder(EnhancedType.listOf(elementConverter.type()))
             .collectionConstructor(ArrayList::new)
             .elementConverter(elementConverter)
             .build();
     }
 
-    public static <T extends Collection<U>, U> ListAttributeConverter.Builder<T, U> builder(TypeToken<T> collectionType) {
+    public static <T extends Collection<U>, U> ListAttributeConverter.Builder<T, U> builder(EnhancedType<T> collectionType) {
         return new Builder<>(collectionType);
     }
 
     @Override
-    public TypeToken<T> type() {
+    public EnhancedType<T> type() {
         return delegate.type();
     }
 
@@ -114,7 +113,7 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
     }
 
     private static final class Delegate<T extends Collection<U>, U> implements AttributeConverter<T> {
-        private final TypeToken<T> type;
+        private final EnhancedType<T> type;
         private final Supplier<? extends T> collectionConstructor;
         private final AttributeConverter<U> elementConverter;
 
@@ -125,7 +124,7 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
         }
 
         @Override
-        public TypeToken<T> type() {
+        public EnhancedType<T> type() {
             return type;
         }
 
@@ -185,11 +184,11 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
     }
 
     public static final class Builder<T extends Collection<U>, U> {
-        private final TypeToken<T> collectionType;
+        private final EnhancedType<T> collectionType;
         private Supplier<? extends T> collectionConstructor;
         private AttributeConverter<U> elementConverter;
 
-        private Builder(TypeToken<T> collectionType) {
+        private Builder(EnhancedType<T> collectionType) {
             this.collectionType = collectionType;
         }
 

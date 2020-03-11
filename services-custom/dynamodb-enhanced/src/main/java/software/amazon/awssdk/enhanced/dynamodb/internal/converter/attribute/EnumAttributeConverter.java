@@ -19,11 +19,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -74,8 +73,8 @@ public class EnumAttributeConverter<T extends Enum<T>> implements AttributeConve
     }
 
     @Override
-    public TypeToken<T> type() {
-        return TypeToken.of(enumClass);
+    public EnhancedType<T> type() {
+        return EnhancedType.of(enumClass);
     }
 
     @Override
