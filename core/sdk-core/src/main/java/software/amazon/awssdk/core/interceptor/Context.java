@@ -36,7 +36,8 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  */
 @SdkProtectedApi
 public final class Context {
-    private Context() {}
+    private Context() {
+    }
 
     /**
      * The state of the execution when the {@link ExecutionInterceptor#beforeExecution} method is invoked.

@@ -204,7 +204,8 @@ public class AwsErrorDetails implements Serializable {
         private SdkHttpResponse sdkHttpResponse;
         private SdkBytes rawResponse;
 
-        private BuilderImpl() {}
+        private BuilderImpl() {
+        }
 
         private BuilderImpl(AwsErrorDetails awsErrorDetails) {
             this.errorMessage = awsErrorDetails.errorMessage();

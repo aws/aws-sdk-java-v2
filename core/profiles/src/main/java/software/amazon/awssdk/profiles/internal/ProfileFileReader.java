@@ -44,7 +44,8 @@ public final class ProfileFileReader {
 
     private static final Pattern VALID_IDENTIFIER = Pattern.compile("^[A-Za-z0-9_\\-/.%@]*$");
 
-    private ProfileFileReader() {}
+    private ProfileFileReader() {
+    }
 
     /**
      * Parses the input and returns a mutable map from profile name to a map of properties. This will not close the provided

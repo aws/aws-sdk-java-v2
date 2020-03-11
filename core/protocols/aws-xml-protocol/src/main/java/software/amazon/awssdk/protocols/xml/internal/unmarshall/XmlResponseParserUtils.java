@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;

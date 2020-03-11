@@ -19,7 +19,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public class Platform {
-    private Platform() {}
+    private Platform() {
+    }
  
     /**
      * Determine whether the current operation system seems to be Windows.

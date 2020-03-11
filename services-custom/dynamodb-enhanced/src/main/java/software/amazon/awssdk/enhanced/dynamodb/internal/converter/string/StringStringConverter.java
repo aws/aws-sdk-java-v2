@@ -28,7 +28,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class StringStringConverter implements StringConverter<String> {
-    private StringStringConverter() { }
+    private StringStringConverter() {
+    }
 
     public static StringStringConverter create() {
         return new StringStringConverter();

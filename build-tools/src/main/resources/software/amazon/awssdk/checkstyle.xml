@@ -69,12 +69,6 @@
             <property name="allowNonPrintableEscapes" value="true"/>
         </module>
 
-        <!-- Enforce maximum line lengths. -->
-        <module name="LineLength">
-            <property name="max" value="130"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
-
         <!-- Stars must not be used in import statements. -->
         <module name="AvoidStarImport"/>
 
@@ -386,4 +380,11 @@
         <!-- Checks that no 'final' are added on local variables -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.UnnecessaryFinalOnLocalVariableCheck" />
     </module>
+
+        <!-- Enforce maximum line lengths. -->
+    <module name="LineLength">
+        <property name="max" value="130"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
 </module>

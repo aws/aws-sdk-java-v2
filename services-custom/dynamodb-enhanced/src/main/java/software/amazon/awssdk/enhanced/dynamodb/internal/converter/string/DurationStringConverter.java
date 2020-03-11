@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class DurationStringConverter implements StringConverter<Duration> {
-    private DurationStringConverter() { }
+    private DurationStringConverter() {
+    }
 
     public static DurationStringConverter create() {
         return new DurationStringConverter();

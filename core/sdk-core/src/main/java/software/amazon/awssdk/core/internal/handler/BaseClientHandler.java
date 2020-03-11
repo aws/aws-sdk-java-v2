@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.internal.handler;
 
 import java.net.URI;
 import java.util.function.BiFunction;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;

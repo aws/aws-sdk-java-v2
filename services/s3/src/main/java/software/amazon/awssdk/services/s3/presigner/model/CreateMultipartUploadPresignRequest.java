@@ -132,7 +132,8 @@ public final class CreateMultipartUploadPresignRequest
     private static final class DefaultBuilder extends PresignRequest.DefaultBuilder<DefaultBuilder> implements Builder {
         private CreateMultipartUploadRequest createMultipartUploadRequest;
 
-        private DefaultBuilder() {}
+        private DefaultBuilder() {
+        }
 
         private DefaultBuilder(CreateMultipartUploadPresignRequest request) {
             super(request);

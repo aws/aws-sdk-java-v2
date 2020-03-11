@@ -31,7 +31,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class OptionalLongStringConverter implements StringConverter<OptionalLong> {
     private static LongStringConverter LONG_CONVERTER = LongStringConverter.create();
 
-    private OptionalLongStringConverter() { }
+    private OptionalLongStringConverter() {
+    }
 
     public static OptionalLongStringConverter create() {
         return new OptionalLongStringConverter();

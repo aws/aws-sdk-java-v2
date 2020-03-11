@@ -77,7 +77,8 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
         private AwsCredentialsProvider credentialsProvider;
         private URI endpointOverride;
 
-        protected Builder() {}
+        protected Builder() {
+        }
 
         @Override
         public B region(Region region) {

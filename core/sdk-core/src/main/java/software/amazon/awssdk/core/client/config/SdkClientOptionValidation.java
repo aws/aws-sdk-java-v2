@@ -24,7 +24,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkProtectedApi
 public class SdkClientOptionValidation {
-    protected SdkClientOptionValidation() {}
+    protected SdkClientOptionValidation() {
+    }
 
     public static void validateAsyncClientOptions(SdkClientConfiguration c) {
         require("asyncConfiguration.advancedOption[FUTURE_COMPLETION_EXECUTOR]",

@@ -84,7 +84,8 @@ public final class SdkDefaultRetrySetting {
         RETRYABLE_EXCEPTIONS = unmodifiableSet(retryableExceptions);
     }
 
-    private SdkDefaultRetrySetting() {}
+    private SdkDefaultRetrySetting() {
+    }
 
     public static Integer maxAttempts(RetryMode retryMode) {
         Integer maxAttempts = SdkSystemSetting.AWS_MAX_ATTEMPTS.getIntegerValue().orElse(null);

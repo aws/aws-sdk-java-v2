@@ -38,5 +38,6 @@ public interface SdkHttpClientBenchmark {
      *
      * @param blackhole the blackhole
      */
-    default void concurrentApiCall(Blackhole blackhole) {}
+    default void concurrentApiCall(Blackhole blackhole) {
+    }
 }

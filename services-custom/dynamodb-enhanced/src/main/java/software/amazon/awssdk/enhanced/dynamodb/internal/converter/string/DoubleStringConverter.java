@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class DoubleStringConverter implements StringConverter<Double>, PrimitiveConverter<Double> {
-    private DoubleStringConverter() { }
+    private DoubleStringConverter() {
+    }
 
     public static DoubleStringConverter create() {
         return new DoubleStringConverter();

@@ -31,7 +31,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class OptionalIntStringConverter implements StringConverter<OptionalInt> {
     private static IntegerStringConverter INTEGER_CONVERTER = IntegerStringConverter.create();
 
-    private OptionalIntStringConverter() { }
+    private OptionalIntStringConverter() {
+    }
 
     public static OptionalIntStringConverter create() {
         return new OptionalIntStringConverter();

@@ -17,7 +17,6 @@ package software.amazon.awssdk.protocols.xml;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.core.Response;

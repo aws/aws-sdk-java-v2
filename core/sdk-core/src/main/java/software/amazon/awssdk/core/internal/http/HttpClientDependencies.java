@@ -87,7 +87,8 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
         private ClockSkewAdjuster clockSkewAdjuster;
         private SdkClientConfiguration clientConfiguration;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder clockSkewAdjuster(ClockSkewAdjuster clockSkewAdjuster) {
             this.clockSkewAdjuster = clockSkewAdjuster;

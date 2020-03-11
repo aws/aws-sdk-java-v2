@@ -17,9 +17,7 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import org.reactivestreams.Publisher;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 

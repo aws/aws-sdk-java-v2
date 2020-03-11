@@ -26,7 +26,8 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 public final class RetryOnClockSkewCondition implements RetryCondition {
-    private RetryOnClockSkewCondition() {}
+    private RetryOnClockSkewCondition() {
+    }
 
     public static RetryOnClockSkewCondition create() {
         return new RetryOnClockSkewCondition();

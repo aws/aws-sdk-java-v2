@@ -79,7 +79,8 @@ public abstract class PresignRequest {
     protected abstract static class DefaultBuilder<B extends DefaultBuilder<B>> implements Builder {
         private Duration signatureDuration;
 
-        protected DefaultBuilder() {}
+        protected DefaultBuilder() {
+        }
 
         protected DefaultBuilder(PresignRequest request) {
             this.signatureDuration = request.signatureDuration;

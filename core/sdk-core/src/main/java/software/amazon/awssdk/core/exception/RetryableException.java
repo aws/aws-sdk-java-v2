@@ -66,7 +66,8 @@ public final class RetryableException extends SdkClientException {
 
     protected static final class BuilderImpl extends SdkClientException.BuilderImpl implements Builder {
 
-        protected BuilderImpl() {}
+        protected BuilderImpl() {
+        }
 
         protected BuilderImpl(RetryableException ex) {
             super(ex);

@@ -27,7 +27,8 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardRequest;
  */
 @SdkInternalApi
 final class KinesisRetryPolicy {
-    private KinesisRetryPolicy() {}
+    private KinesisRetryPolicy() {
+    }
 
     public static RetryPolicy defaultRetryPolicy() {
         return AwsRetryPolicy.defaultRetryPolicy()

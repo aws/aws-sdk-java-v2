@@ -33,7 +33,8 @@ import software.amazon.awssdk.utils.BinaryUtils;
 @ThreadSafe
 @Immutable
 public class ByteArrayStringConverter implements StringConverter<byte[]> {
-    private ByteArrayStringConverter() { }
+    private ByteArrayStringConverter() {
+    }
 
     public static ByteArrayStringConverter create() {
         return new ByteArrayStringConverter();

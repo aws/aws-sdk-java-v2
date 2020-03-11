@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class UriStringConverter implements StringConverter<URI> {
-    private UriStringConverter() { }
+    private UriStringConverter() {
+    }
 
     public static UriStringConverter create() {
         return new UriStringConverter();

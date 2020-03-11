@@ -34,7 +34,8 @@ import software.amazon.awssdk.utils.Validate;
 @ThreadSafe
 @Immutable
 public class CharacterStringConverter implements StringConverter<Character>, PrimitiveConverter<Character> {
-    private CharacterStringConverter() { }
+    private CharacterStringConverter() {
+    }
 
     public static CharacterStringConverter create() {
         return new CharacterStringConverter();

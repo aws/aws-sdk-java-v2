@@ -63,7 +63,8 @@ public final class EndpointDiscoveryEndpoint implements
         private URI endpoint;
         private Instant expirationTime;
 
-        private BuilderImpl() {}
+        private BuilderImpl() {
+        }
 
         @Override
         public Builder endpoint(URI endpoint) {

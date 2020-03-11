@@ -27,7 +27,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOptionValidation;
  */
 @SdkInternalApi
 public final class AwsClientOptionValidation extends SdkClientOptionValidation {
-    private AwsClientOptionValidation() {}
+    private AwsClientOptionValidation() {
+    }
 
     public static void validateAsyncClientOptions(SdkClientConfiguration c) {
         validateClientOptions(c);

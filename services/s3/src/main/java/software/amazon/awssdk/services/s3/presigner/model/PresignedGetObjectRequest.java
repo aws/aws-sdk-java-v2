@@ -92,7 +92,8 @@ public class PresignedGetObjectRequest
     private static final class DefaultBuilder
             extends PresignedRequest.DefaultBuilder<DefaultBuilder>
             implements Builder {
-        private DefaultBuilder() { }
+        private DefaultBuilder() {
+        }
 
         private DefaultBuilder(PresignedGetObjectRequest request) {
             super(request);

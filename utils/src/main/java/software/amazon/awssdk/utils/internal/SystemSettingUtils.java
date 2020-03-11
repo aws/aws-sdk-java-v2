@@ -30,7 +30,8 @@ import software.amazon.awssdk.utils.SystemSetting;
 public final class SystemSettingUtils {
     private static final Logger LOG = LoggerFactory.getLogger(SystemSettingUtils.class);
 
-    private SystemSettingUtils() {}
+    private SystemSettingUtils() {
+    }
 
     /**
      * Resolve the value of this system setting, loading it from the System by checking:

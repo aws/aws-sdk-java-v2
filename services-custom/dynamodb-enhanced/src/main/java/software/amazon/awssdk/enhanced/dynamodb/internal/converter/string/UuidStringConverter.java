@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class UuidStringConverter implements StringConverter<UUID> {
-    private UuidStringConverter() { }
+    private UuidStringConverter() {
+    }
 
     public static UuidStringConverter create() {
         return new UuidStringConverter();
