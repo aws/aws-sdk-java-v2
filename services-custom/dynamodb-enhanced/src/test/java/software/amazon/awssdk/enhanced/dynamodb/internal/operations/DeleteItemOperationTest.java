@@ -40,12 +40,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -228,7 +230,7 @@ public class DeleteItemOperationTest {
                                                                         mockDynamoDbEnhancedClientExtension);
 
         assertThat(request.key(), is(keyMap));
-        verify(mockDynamoDbEnhancedClientExtension, never()).beforeWrite(anyMap(), any(), any());
+        verify(mockDynamoDbEnhancedClientExtension, never()).beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class));
     }
 
     @Test
@@ -245,7 +247,7 @@ public class DeleteItemOperationTest {
         DeleteItemResponse response = DeleteItemResponse.builder()
                                                         .attributes(baseFakeItemMap)
                                                         .build();
-        when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
             .thenReturn(ReadModification.builder().transformedItem(fakeItemMap).build());
 
         FakeItem resultItem = deleteItemOperation.transformResponse(response,
@@ -254,7 +256,10 @@ public class DeleteItemOperationTest {
                                                                     mockDynamoDbEnhancedClientExtension);
 
         assertThat(resultItem, is(fakeItem));
-        verify(mockDynamoDbEnhancedClientExtension).afterRead(baseFakeItemMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
+                                                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                                                             .operationContext(PRIMARY_CONTEXT)
+                                                                                             .items(baseFakeItemMap).build());
     }
 
     @Test

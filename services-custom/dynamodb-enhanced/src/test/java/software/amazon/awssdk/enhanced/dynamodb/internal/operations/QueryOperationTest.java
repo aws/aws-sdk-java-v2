@@ -48,12 +48,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -393,7 +395,7 @@ public class QueryOperationTest {
                               .collect(Collectors.toList())
                               .toArray(new ReadModification[]{});
 
-        when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
             .thenReturn(readModifications[0], Arrays.copyOfRange(readModifications, 1, readModifications.length));
 
         QueryResponse queryResponse = generateFakeQueryResults(queryResultMap);
@@ -407,7 +409,11 @@ public class QueryOperationTest {
         InOrder inOrder = Mockito.inOrder(mockDynamoDbEnhancedClientExtension);
         queryResultMap.forEach(
             attributeMap -> inOrder.verify(mockDynamoDbEnhancedClientExtension)
-                                   .afterRead(attributeMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata()));
+                                   .afterRead(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .tableMetadata(FakeItem.getTableMetadata())
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .items(attributeMap).build()));
     }
 
     private static QueryResponse generateFakeQueryResults(List<Map<String, AttributeValue>> queryItemMapsPage) {

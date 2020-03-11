@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -67,10 +68,12 @@ public final class EnhancedClientUtils {
         }
 
         if (dynamoDbEnhancedClientExtension != null) {
-            ReadModification readModification = dynamoDbEnhancedClientExtension.afterRead(itemMap,
-                                                                                          operationContext,
-                                                                                          tableSchema.tableMetadata());
-
+            ReadModification readModification = dynamoDbEnhancedClientExtension.afterRead(
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(itemMap)
+                                               .operationContext(operationContext)
+                                               .tableMetadata(tableSchema.tableMetadata())
+                                               .build());
             if (readModification != null && readModification.transformedItem() != null) {
                 return tableSchema.mapToItem(readModification.transformedItem());
             }
