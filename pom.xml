@@ -66,8 +66,6 @@
         <module>utils</module>
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
-        <module>test/dynamodbdocument-v1</module>
-        <module>test/dynamodbmapper-v1</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
