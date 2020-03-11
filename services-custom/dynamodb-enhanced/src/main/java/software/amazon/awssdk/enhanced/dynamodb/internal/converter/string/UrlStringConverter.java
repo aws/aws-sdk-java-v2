@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;

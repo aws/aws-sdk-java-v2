@@ -17,14 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.Collection;
 import java.util.Optional;
-
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 /**
  * Interface for an object the stores structural information about a DynamoDb table.
  */
-@SdkProtectedApi
+@SdkPublicApi
 public interface TableMetadata {
     /**
      * Returns the attribute name of the partition key for an index.

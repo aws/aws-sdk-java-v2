@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import java.util.Iterator;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 // TODO: Consider moving to SDK core

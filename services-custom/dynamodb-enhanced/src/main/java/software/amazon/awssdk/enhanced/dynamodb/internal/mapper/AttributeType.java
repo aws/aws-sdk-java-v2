@@ -13,12 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.mapper;
+package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-@SdkPublicApi
+@SdkInternalApi
 public interface AttributeType<T> {
     AttributeValue objectToAttributeValue(T object);
 
