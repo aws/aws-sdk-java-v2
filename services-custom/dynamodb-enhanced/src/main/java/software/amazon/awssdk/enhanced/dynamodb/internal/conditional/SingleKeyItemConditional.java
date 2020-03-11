@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * sort key value comparison. The partition key value will always have an equivalence comparison applied.
  * <p>
  * This class is used by higher-level (more specific) {@link QueryConditional} implementations such as
- * {@link QueryConditional#greaterThan(Key)} to reduce code duplication.
+ * {@link QueryConditional#sortGreaterThan(Key)} to reduce code duplication.
  */
 @SdkInternalApi
 public class SingleKeyItemConditional implements QueryConditional {

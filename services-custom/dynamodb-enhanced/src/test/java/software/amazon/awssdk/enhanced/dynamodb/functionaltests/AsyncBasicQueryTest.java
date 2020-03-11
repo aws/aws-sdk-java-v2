@@ -23,8 +23,8 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.between;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.equalTo;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,6 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -147,7 +148,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
 
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("id-value"))));
+            mappedTable.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("id-value"))));
         
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -170,7 +171,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
 
         SdkPublisher<Page<Record>> publisher =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
                                                   .filterExpression(expression)
                                                   .build());
 
@@ -187,7 +188,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
         Key fromKey = Key.builder().partitionValue("id-value").sortValue(3).build();
         Key toKey = Key.builder().partitionValue("id-value").sortValue(5).build();
-        SdkPublisher<Page<Record>> publisher = mappedTable.query(r -> r.queryConditional(between(fromKey, toKey)));
+        SdkPublisher<Page<Record>> publisher = mappedTable.query(r -> r.queryConditional(QueryConditional.sortBetween(fromKey, toKey)));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -202,7 +203,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
         SdkPublisher<Page<Record>> publisher =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
                                                   .limit(5)
                                                   .build());
 
@@ -228,7 +229,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void queryEmpty() {
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("id-value"))));
+            mappedTable.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("id-value"))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -245,7 +246,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
         SdkPublisher<Page<Record>> publisher =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
                                                   .exclusiveStartKey(exclusiveStartKey)
                                                   .build());
 
