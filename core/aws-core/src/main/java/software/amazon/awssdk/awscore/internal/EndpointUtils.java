@@ -26,7 +26,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class EndpointUtils {
-    private EndpointUtils() {}
+    private EndpointUtils() {
+    }
 
     /**
      * Generate an endpoint from the provided endpoint protocol, url prefix, and region.

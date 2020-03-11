@@ -64,7 +64,8 @@ final class DynamoDbRetryPolicy {
                       .additionalRetryConditionsAllowed(false)
                       .build();
 
-    private DynamoDbRetryPolicy() {}
+    private DynamoDbRetryPolicy() {
+    }
 
     /**
      * @return Default retry policy used by DynamoDbClient

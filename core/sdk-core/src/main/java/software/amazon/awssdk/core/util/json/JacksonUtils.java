@@ -41,7 +41,8 @@ public final class JacksonUtils {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    private JacksonUtils() {}
+    private JacksonUtils() {
+    }
 
     public static String toJsonPrettyString(Object value) {
         try {

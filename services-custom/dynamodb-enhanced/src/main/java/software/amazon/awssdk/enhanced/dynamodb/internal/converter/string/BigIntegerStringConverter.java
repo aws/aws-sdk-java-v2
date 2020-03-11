@@ -32,7 +32,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class BigIntegerStringConverter implements StringConverter<BigInteger> {
-    private BigIntegerStringConverter() { }
+    private BigIntegerStringConverter() {
+    }
 
     public static BigIntegerStringConverter create() {
         return new BigIntegerStringConverter();

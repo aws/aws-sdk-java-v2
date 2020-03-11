@@ -28,7 +28,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class ConverterUtils {
-    private ConverterUtils() {}
+    private ConverterUtils() {
+    }
 
     /**
      * Validates that a given Double input is a valid double supported by {@link DoubleAttributeConverter}.

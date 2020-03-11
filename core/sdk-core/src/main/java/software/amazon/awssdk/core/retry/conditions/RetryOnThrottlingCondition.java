@@ -26,7 +26,8 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 public final class RetryOnThrottlingCondition implements RetryCondition {
-    private RetryOnThrottlingCondition() {}
+    private RetryOnThrottlingCondition() {
+    }
 
     public static RetryOnThrottlingCondition create() {
         return new RetryOnThrottlingCondition();

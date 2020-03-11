@@ -164,7 +164,8 @@ public class DefaultStringConverterProvider implements StringConverterProvider {
     public static class Builder {
         private List<StringConverter<?>> converters = new ArrayList<>();
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder addConverters(Collection<? extends StringConverter<?>> converters) {
             Validate.paramNotNull(converters, "converters");

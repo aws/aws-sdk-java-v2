@@ -92,7 +92,8 @@ public class PresignedUploadPartRequest
     private static final class DefaultBuilder
             extends PresignedRequest.DefaultBuilder<DefaultBuilder>
             implements Builder {
-        private DefaultBuilder() { }
+        private DefaultBuilder() {
+        }
 
         private DefaultBuilder(PresignedUploadPartRequest request) {
             super(request);

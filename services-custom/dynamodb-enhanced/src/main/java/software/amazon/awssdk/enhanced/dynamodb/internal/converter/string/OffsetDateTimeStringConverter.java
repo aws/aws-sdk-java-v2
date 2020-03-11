@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class OffsetDateTimeStringConverter implements StringConverter<OffsetDateTime> {
-    private OffsetDateTimeStringConverter() { }
+    private OffsetDateTimeStringConverter() {
+    }
 
     public static OffsetDateTimeStringConverter create() {
         return new OffsetDateTimeStringConverter();

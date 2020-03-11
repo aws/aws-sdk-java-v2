@@ -31,7 +31,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class OptionalDoubleStringConverter implements StringConverter<OptionalDouble> {
     private static DoubleStringConverter DOUBLE_CONVERTER = DoubleStringConverter.create();
 
-    private OptionalDoubleStringConverter() { }
+    private OptionalDoubleStringConverter() {
+    }
 
     public static OptionalDoubleStringConverter create() {
         return new OptionalDoubleStringConverter();

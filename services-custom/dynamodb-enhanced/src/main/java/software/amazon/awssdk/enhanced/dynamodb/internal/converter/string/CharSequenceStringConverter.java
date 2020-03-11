@@ -28,7 +28,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class CharSequenceStringConverter implements StringConverter<CharSequence> {
-    private CharSequenceStringConverter() { }
+    private CharSequenceStringConverter() {
+    }
 
     public static CharSequenceStringConverter create() {
         return new CharSequenceStringConverter();

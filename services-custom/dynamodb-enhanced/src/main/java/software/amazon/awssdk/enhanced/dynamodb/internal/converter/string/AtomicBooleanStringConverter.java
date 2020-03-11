@@ -34,7 +34,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class AtomicBooleanStringConverter implements StringConverter<AtomicBoolean> {
     private static BooleanStringConverter BOOLEAN_CONVERTER = BooleanStringConverter.create();
 
-    private AtomicBooleanStringConverter() { }
+    private AtomicBooleanStringConverter() {
+    }
 
     public static AtomicBooleanStringConverter create() {
         return new AtomicBooleanStringConverter();

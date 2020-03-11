@@ -34,7 +34,8 @@ public final class JacksonUtils {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    private JacksonUtils() {}
+    private JacksonUtils() {
+    }
 
     /**
      * Returns the deserialized object from the given json string and target

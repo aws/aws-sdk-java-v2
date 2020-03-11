@@ -31,7 +31,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class CharacterArrayStringConverter implements StringConverter<char[]> {
-    private CharacterArrayStringConverter() { }
+    private CharacterArrayStringConverter() {
+    }
 
     public static CharacterArrayStringConverter create() {
         return new CharacterArrayStringConverter();

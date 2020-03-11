@@ -24,7 +24,8 @@ public final class RegionValidationUtil {
 
     private static final String FIPS_PREFIX = "fips-";
 
-    private RegionValidationUtil() {}
+    private RegionValidationUtil() {
+    }
 
     /**
      * Determines if a given region string is a "valid" AWS region.

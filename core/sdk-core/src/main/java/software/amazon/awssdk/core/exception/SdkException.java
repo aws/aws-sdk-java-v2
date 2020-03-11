@@ -120,7 +120,8 @@ public class SdkException extends RuntimeException {
         protected Throwable cause;
         protected String message;
 
-        protected BuilderImpl() {}
+        protected BuilderImpl() {
+        }
 
         protected BuilderImpl(SdkException ex) {
             this.cause = ex.getCause();

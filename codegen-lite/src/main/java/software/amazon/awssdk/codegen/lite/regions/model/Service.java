@@ -47,7 +47,8 @@ public final class Service {
      */
     private Boolean isRegionalized;
 
-    public Service() {}
+    public Service() {
+    }
 
     public Service(@JsonProperty(value = "endpoints") Map<String, Endpoint> endpoints) {
         this.endpoints = Validate.paramNotNull(endpoints, "endpoints");

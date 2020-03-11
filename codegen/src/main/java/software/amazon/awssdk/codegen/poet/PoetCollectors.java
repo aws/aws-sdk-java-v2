@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
  * A set of {@link Collector} implementations, similar to {@link Collectors}, but for poet types.
  */
 public final class PoetCollectors {
-    private PoetCollectors() {}
+    private PoetCollectors() {
+    }
 
     /**
      * Join a stream of code blocks into one code block.

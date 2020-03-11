@@ -30,7 +30,8 @@ public final class PartitionRegion {
      */
     private String description;
 
-    public PartitionRegion() {}
+    public PartitionRegion() {
+    }
 
     public PartitionRegion(@JsonProperty(value = "description") String description) {
         this.description = Validate.notNull(description, "Region description");

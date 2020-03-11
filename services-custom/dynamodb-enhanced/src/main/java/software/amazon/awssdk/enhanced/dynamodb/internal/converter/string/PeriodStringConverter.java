@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class PeriodStringConverter implements StringConverter<Period> {
-    private PeriodStringConverter() { }
+    private PeriodStringConverter() {
+    }
 
     public static PeriodStringConverter create() {
         return new PeriodStringConverter();

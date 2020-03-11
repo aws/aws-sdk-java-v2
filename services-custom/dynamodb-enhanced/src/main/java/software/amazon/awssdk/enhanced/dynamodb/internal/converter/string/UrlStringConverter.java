@@ -30,7 +30,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class UrlStringConverter implements StringConverter<URL> {
-    private UrlStringConverter() { }
+    private UrlStringConverter() {
+    }
 
     public static UrlStringConverter create() {
         return new UrlStringConverter();

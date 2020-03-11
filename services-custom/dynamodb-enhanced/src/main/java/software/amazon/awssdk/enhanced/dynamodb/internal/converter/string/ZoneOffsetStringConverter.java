@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class ZoneOffsetStringConverter implements StringConverter<ZoneOffset> {
-    private ZoneOffsetStringConverter() { }
+    private ZoneOffsetStringConverter() {
+    }
 
     public static ZoneOffsetStringConverter create() {
         return new ZoneOffsetStringConverter();

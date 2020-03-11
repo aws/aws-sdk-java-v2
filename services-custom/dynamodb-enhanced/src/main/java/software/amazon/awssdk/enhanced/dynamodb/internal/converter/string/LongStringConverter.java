@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class LongStringConverter implements StringConverter<Long>, PrimitiveConverter<Long> {
-    private LongStringConverter() { }
+    private LongStringConverter() {
+    }
 
     public static LongStringConverter create() {
         return new LongStringConverter();

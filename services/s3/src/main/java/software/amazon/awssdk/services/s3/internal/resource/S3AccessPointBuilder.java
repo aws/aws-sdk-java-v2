@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**

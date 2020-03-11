@@ -155,7 +155,8 @@ public class SdkServiceException extends SdkException implements SdkPojo {
         protected String requestId;
         protected int statusCode;
 
-        protected BuilderImpl() {}
+        protected BuilderImpl() {
+        }
 
         protected BuilderImpl(SdkServiceException ex) {
             super(ex);

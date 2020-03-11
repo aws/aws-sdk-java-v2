@@ -60,7 +60,8 @@ public final class AbortedException extends SdkClientException {
 
     protected static final class BuilderImpl extends SdkClientException.BuilderImpl implements Builder {
 
-        protected BuilderImpl() {}
+        protected BuilderImpl() {
+        }
 
         protected BuilderImpl(AbortedException ex) {
             super(ex);

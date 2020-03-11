@@ -264,7 +264,8 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                     throw new RuntimeException(
                         String.format("Could not find a static method named '%s' on class '%s' that returns " +
                                           "an AttributeTag for annotation '%s'", ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME,
-                                      tagClass, annotation.annotationType()), e);               }
+                                      tagClass, annotation.annotationType()), e);
+                }
 
                 if (!Modifier.isStatic(tagMethod.getModifiers())) {
                     throw new RuntimeException(

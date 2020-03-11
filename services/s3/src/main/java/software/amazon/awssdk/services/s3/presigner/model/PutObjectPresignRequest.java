@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.presigner.model;
 
 import java.time.Duration;
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -130,7 +129,8 @@ public final class PutObjectPresignRequest
     private static final class DefaultBuilder extends PresignRequest.DefaultBuilder<DefaultBuilder> implements Builder {
         private PutObjectRequest putObjectRequest;
 
-        private DefaultBuilder() {}
+        private DefaultBuilder() {
+        }
 
         private DefaultBuilder(PutObjectPresignRequest request) {
             super(request);

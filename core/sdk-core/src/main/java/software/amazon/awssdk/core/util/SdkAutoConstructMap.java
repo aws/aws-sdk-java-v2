@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.util;
 
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**

@@ -38,7 +38,8 @@ public final class TimeConversion {
     private static final OffsetDateTimeVisitor OFFSET_DATE_TIME_VISITOR = new OffsetDateTimeVisitor();
     private static final ZonedDateTimeVisitor ZONED_DATE_TIME_VISITOR = new ZonedDateTimeVisitor();
 
-    private TimeConversion() {}
+    private TimeConversion() {
+    }
 
     public static EnhancedAttributeValue toIntegerAttributeValue(Instant instant) {
         long instantSeconds = instant.getEpochSecond();

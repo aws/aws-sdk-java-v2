@@ -17,7 +17,6 @@ package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
 import java.util.Optional;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 

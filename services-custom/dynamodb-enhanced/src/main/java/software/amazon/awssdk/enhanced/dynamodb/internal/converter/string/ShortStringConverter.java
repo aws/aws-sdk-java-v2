@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class ShortStringConverter implements StringConverter<Short>, PrimitiveConverter<Short> {
-    private ShortStringConverter() { }
+    private ShortStringConverter() {
+    }
 
     public static ShortStringConverter create() {
         return new ShortStringConverter();

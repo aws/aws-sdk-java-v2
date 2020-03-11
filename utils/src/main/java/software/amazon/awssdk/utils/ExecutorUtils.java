@@ -28,7 +28,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public final class ExecutorUtils {
-    private ExecutorUtils() {}
+    private ExecutorUtils() {
+    }
 
     /**
      * Create a bounded-queue executor with one thread for performing background tasks. The thread in the service is marked as a

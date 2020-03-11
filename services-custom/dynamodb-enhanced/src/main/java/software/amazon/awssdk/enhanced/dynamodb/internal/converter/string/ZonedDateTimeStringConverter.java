@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class ZonedDateTimeStringConverter implements StringConverter<ZonedDateTime> {
-    private ZonedDateTimeStringConverter() { }
+    private ZonedDateTimeStringConverter() {
+    }
 
     public static ZonedDateTimeStringConverter create() {
         return new ZonedDateTimeStringConverter();

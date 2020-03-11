@@ -30,7 +30,8 @@ final class MetadataLoader {
 
     private static final PartitionMetadataProvider PARTITION_METADATA_PROVIDER = new GeneratedPartitionMetadataProvider();
 
-    private MetadataLoader() {}
+    private MetadataLoader() {
+    }
 
     static PartitionMetadata partitionMetadata(Region region) {
         return PARTITION_METADATA_PROVIDER.partitionMetadata(region);

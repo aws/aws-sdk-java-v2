@@ -20,7 +20,8 @@ import software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signe
 
 @SdkProtectedApi
 public final class EventStreamAws4Signer extends BaseEventStreamAsyncAws4Signer {
-    private EventStreamAws4Signer() {}
+    private EventStreamAws4Signer() {
+    }
 
     public static EventStreamAws4Signer create() {
         return new EventStreamAws4Signer();

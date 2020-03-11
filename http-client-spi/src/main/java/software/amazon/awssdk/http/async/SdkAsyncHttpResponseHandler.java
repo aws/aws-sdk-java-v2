@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.async;
 
 import java.nio.ByteBuffer;
-
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpResponse;

@@ -192,7 +192,8 @@ public class TokenBucketRetryCondition implements RetryCondition {
         /**
          * Create using {@link TokenBucketRetryCondition#builder()}.
          */
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Specify the maximum number of tokens in the token bucket. This is also used as the initial value for the number of
@@ -255,7 +256,8 @@ public class TokenBucketRetryCondition implements RetryCondition {
             private Integer capacityAcquired;
             private Integer capacityRemaining;
 
-            private Builder() {}
+            private Builder() {
+            }
 
             public Builder capacityAcquired(Integer capacityAcquired) {
                 this.capacityAcquired = capacityAcquired;

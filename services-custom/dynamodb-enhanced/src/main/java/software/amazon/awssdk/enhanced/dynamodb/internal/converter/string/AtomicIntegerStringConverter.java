@@ -34,7 +34,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class AtomicIntegerStringConverter implements StringConverter<AtomicInteger> {
     private static IntegerStringConverter INTEGER_CONVERTER = IntegerStringConverter.create();
 
-    private AtomicIntegerStringConverter() { }
+    private AtomicIntegerStringConverter() {
+    }
 
     public static AtomicIntegerStringConverter create() {
         return new AtomicIntegerStringConverter();

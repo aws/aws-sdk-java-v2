@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class FloatStringConverter implements StringConverter<Float>, PrimitiveConverter<Float> {
-    private FloatStringConverter() { }
+    private FloatStringConverter() {
+    }
 
     public static FloatStringConverter create() {
         return new FloatStringConverter();

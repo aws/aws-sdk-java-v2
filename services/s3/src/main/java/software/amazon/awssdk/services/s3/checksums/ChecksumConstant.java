@@ -55,5 +55,6 @@ public final class ChecksumConstant {
      */
     public static final int S3_MD5_CHECKSUM_LENGTH = 16;
 
-    private ChecksumConstant() {}
+    private ChecksumConstant() {
+    }
 }

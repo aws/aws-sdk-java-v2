@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
