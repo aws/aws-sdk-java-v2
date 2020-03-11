@@ -25,8 +25,8 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.between;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.equalTo;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,6 +47,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -203,7 +204,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
 
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))).iterator();
+            keysOnlyMappedIndex.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value")))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -219,7 +220,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         Key fromKey = Key.builder().partitionValue("gsi-id-value").sortValue(3).build();
         Key toKey = Key.builder().partitionValue("gsi-id-value").sortValue(5).build();
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(between(fromKey, toKey))).iterator();
+            keysOnlyMappedIndex.query(r -> r.queryConditional(QueryConditional.sortBetween(fromKey, toKey))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -235,7 +236,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Iterator<Page<Record>> results =
             keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
-                                                          .queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))
+                                                          .queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value")))
                                                           .limit(5)
                                                           .build())
                                .iterator();
@@ -270,7 +271,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryEmpty() {
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))).iterator();
+            keysOnlyMappedIndex.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value")))).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
@@ -288,7 +289,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         expectedLastEvaluatedKey.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(7).getGsiSort()));
         Iterator<Page<Record>> results =
             keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
-                                                          .queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))
+                                                          .queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value")))
                                                           .exclusiveStartKey(expectedLastEvaluatedKey).build())
                                .iterator();
 
