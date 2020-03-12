@@ -92,21 +92,21 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
-    public Void createTable(CreateTableEnhancedRequest request) {
+    public void createTable(CreateTableEnhancedRequest request) {
         TableOperation<T, ?, ?, Void> operation = CreateTableOperation.create(request);
-        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+        operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
-    public Void createTable(Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
+    public void createTable(Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
         CreateTableEnhancedRequest.Builder builder = CreateTableEnhancedRequest.builder();
         requestConsumer.accept(builder);
-        return createTable(builder.build());
+        createTable(builder.build());
     }
 
     @Override
-    public Void createTable() {
-        return createTable(CreateTableEnhancedRequest.builder().build());
+    public void createTable() {
+        createTable(CreateTableEnhancedRequest.builder().build());
     }
 
     @Override
@@ -149,16 +149,16 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
-    public Void putItem(PutItemEnhancedRequest<T> request) {
+    public void putItem(PutItemEnhancedRequest<T> request) {
         TableOperation<T, ?, ?, Void> operation = PutItemOperation.create(request);
-        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+        operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
-    public Void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    public void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(itemClass);
         requestConsumer.accept(builder);
-        return putItem(builder.build());
+        putItem(builder.build());
     }
 
     @Override
