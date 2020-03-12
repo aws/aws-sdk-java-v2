@@ -296,12 +296,16 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                 continue;
             }
             String key = lowerCase(header);
-
+            appendCompactedString(buffer, key);
+            buffer.append(":");
             for (String headerValue : headers.get(header)) {
-                appendCompactedString(buffer, key);
-                buffer.append(":");
                 if (headerValue != null) {
                     appendCompactedString(buffer, headerValue);
+                    buffer.append(",");
+                }
+                int commaPos = buffer.lastIndexOf(",");
+                if(commaPos == (buffer.length() - 1)) {
+            	    buffer.deleteCharAt(commaPos);
                 }
                 buffer.append("\n");
             }
