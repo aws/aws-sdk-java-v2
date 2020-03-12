@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building Service",
+    "description": "Amazon Lex now supports tagging for bots, bot aliases and bot channels."
+}
