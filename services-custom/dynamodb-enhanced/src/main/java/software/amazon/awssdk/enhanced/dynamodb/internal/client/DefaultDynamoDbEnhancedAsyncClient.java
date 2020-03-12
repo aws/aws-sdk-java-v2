@@ -37,7 +37,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
-import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhancedAsyncClient {
@@ -45,9 +44,7 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     private final DynamoDbEnhancedClientExtension extension;
 
     private DefaultDynamoDbEnhancedAsyncClient(Builder builder) {
-        this.dynamoDbClient = Validate.paramNotNull(builder.dynamoDbClient, "You must provide a DynamoDbClient to build " +
-            "a DefaultDynamoDbEnhancedAsyncClient.");
-
+        this.dynamoDbClient = builder.dynamoDbClient == null ? DynamoDbAsyncClient.create() : builder.dynamoDbClient;
         this.extension = ExtensionResolver.resolveExtensions(builder.dynamoDbEnhancedClientExtensions);
     }
 

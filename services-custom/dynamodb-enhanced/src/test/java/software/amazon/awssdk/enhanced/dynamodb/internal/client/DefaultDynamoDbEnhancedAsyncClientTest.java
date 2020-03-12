@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
 import org.junit.Before;
@@ -25,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
@@ -110,9 +112,16 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
         assertThat(builtObject.mapperExtension(), instanceOf(ChainExtension.class));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void builder_missingDynamoDbClient() {
-        DefaultDynamoDbEnhancedAsyncClient.builder().extensions(mockDynamoDbEnhancedClientExtension).build();
+    @Test
+    public void builder_missingDynamoDbClient_shouldCreateDefault() {
+        DefaultDynamoDbEnhancedAsyncClient asyncClient = DefaultDynamoDbEnhancedAsyncClient.builder().build();
+        assertNotNull(asyncClient.dynamoDbAsyncClient());
+    }
+
+    @Test
+    public void createMethod_shouldCreateDefault() {
+        DefaultDynamoDbEnhancedAsyncClient asyncClient = (DefaultDynamoDbEnhancedAsyncClient) DynamoDbEnhancedAsyncClient.create();
+        assertNotNull(asyncClient.dynamoDbAsyncClient());
     }
 
     @Test

@@ -415,6 +415,13 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
     }
 
     /**
+     * Creates a {@link DynamoDbEnhancedClient} with a default {@link DynamoDbAsyncClient}
+     */
+    static DynamoDbEnhancedAsyncClient create() {
+        return builder().build();
+    }
+
+    /**
      * The builder definition for a {@link DynamoDbEnhancedAsyncClient}.
      */
     interface Builder extends DynamoDbEnhancedResource.Builder {
