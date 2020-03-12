@@ -76,7 +76,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      *
      * @param request A {@link CreateTableEnhancedRequest} containing optional parameters for table creation.
      */
-    default Void createTable(CreateTableEnhancedRequest request) {
+    default void createTable(CreateTableEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
@@ -109,7 +109,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @param requestConsumer A {@link Consumer} of {@link CreateTableEnhancedRequest.Builder} containing optional parameters
      * for table creation.
      */
-    default Void createTable(Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
+    default void createTable(Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -132,7 +132,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * </pre>
      *
      */
-    default Void createTable() {
+    default void createTable() {
         throw new UnsupportedOperationException();
     }
 
@@ -330,7 +330,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @param request A {@link PutItemEnhancedRequest} that includes the item to enter into
      * the table, its class and optional directives.
      */
-    default Void putItem(PutItemEnhancedRequest<T> request) {
+    default void putItem(PutItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
     }
 
@@ -355,7 +355,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
      * to enter into the table, its class and optional directives.
      */
-    default Void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
