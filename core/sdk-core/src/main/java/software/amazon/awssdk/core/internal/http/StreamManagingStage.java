@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.http;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.InputStream;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;

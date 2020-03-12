@@ -184,7 +184,8 @@ public abstract class PresignedRequest {
         private SdkBytes signedPayload;
         private SdkHttpRequest httpRequest;
 
-        protected DefaultBuilder() {}
+        protected DefaultBuilder() {
+        }
 
         protected DefaultBuilder(PresignedRequest request) {
             this.expiration = request.expiration;

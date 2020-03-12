@@ -62,7 +62,8 @@ public final class Partition {
      */
     private Endpoint defaults;
 
-    public Partition() {}
+    public Partition() {
+    }
 
     public Partition(@JsonProperty(value = "partition") String partition,
                      @JsonProperty(value = "regions") Map<String, PartitionRegion>

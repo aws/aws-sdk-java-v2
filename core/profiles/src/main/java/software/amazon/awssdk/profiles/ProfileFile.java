@@ -213,7 +213,8 @@ public final class ProfileFile {
         private Path contentLocation;
         private Type type;
 
-        private BuilderImpl() {}
+        private BuilderImpl() {
+        }
 
         @Override
         public Builder content(InputStream contentStream) {

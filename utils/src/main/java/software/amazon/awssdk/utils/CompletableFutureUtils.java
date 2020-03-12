@@ -17,7 +17,6 @@ package software.amazon.awssdk.utils;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**

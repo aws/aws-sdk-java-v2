@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class ZoneIdStringConverter implements StringConverter<ZoneId> {
-    private ZoneIdStringConverter() { }
+    private ZoneIdStringConverter() {
+    }
 
     public static ZoneIdStringConverter create() {
         return new ZoneIdStringConverter();

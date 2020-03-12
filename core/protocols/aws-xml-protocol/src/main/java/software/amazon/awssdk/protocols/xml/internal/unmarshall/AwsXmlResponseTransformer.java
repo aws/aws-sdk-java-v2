@@ -20,7 +20,6 @@ import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;

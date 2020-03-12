@@ -36,7 +36,8 @@ public final class Partitions {
      */
     private List<Partition> partitions;
 
-    public Partitions() {}
+    public Partitions() {
+    }
 
     public Partitions(@JsonProperty(value = "version") String version,
                       @JsonProperty(value = "partitions") List<Partition> partitions) {

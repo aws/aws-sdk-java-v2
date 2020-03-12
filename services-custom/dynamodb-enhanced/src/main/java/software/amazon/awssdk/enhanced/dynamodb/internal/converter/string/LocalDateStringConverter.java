@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class LocalDateStringConverter implements StringConverter<LocalDate> {
-    private LocalDateStringConverter() { }
+    private LocalDateStringConverter() {
+    }
 
     public static LocalDateStringConverter create() {
         return new LocalDateStringConverter();

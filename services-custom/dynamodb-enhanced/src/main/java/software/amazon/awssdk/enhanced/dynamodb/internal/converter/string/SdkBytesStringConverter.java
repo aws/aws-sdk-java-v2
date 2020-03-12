@@ -30,7 +30,8 @@ import software.amazon.awssdk.utils.BinaryUtils;
 @ThreadSafe
 @Immutable
 public class SdkBytesStringConverter implements StringConverter<SdkBytes> {
-    private SdkBytesStringConverter() { }
+    private SdkBytesStringConverter() {
+    }
 
     public static SdkBytesStringConverter create() {
         return new SdkBytesStringConverter();

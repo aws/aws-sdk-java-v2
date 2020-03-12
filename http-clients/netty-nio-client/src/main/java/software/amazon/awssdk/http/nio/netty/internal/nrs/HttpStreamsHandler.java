@@ -98,28 +98,32 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
      *
      * Overridden by sub classes for state tracking.
      */
-    protected void receivedInMessage(ChannelHandlerContext ctx) {}
+    protected void receivedInMessage(ChannelHandlerContext ctx) {
+    }
 
     /**
      * Invoked when an incoming message is fully consumed.
      *
      * Overridden by sub classes for state tracking.
      */
-    protected void consumedInMessage(ChannelHandlerContext ctx) {}
+    protected void consumedInMessage(ChannelHandlerContext ctx) {
+    }
 
     /**
      * Invoked when an outgoing message is first received.
      *
      * Overridden by sub classes for state tracking.
      */
-    protected void receivedOutMessage(ChannelHandlerContext ctx) {}
+    protected void receivedOutMessage(ChannelHandlerContext ctx) {
+    }
 
     /**
      * Invoked when an outgoing message is fully sent.
      *
      * Overridden by sub classes for state tracking.
      */
-    protected void sentOutMessage(ChannelHandlerContext ctx) {}
+    protected void sentOutMessage(ChannelHandlerContext ctx) {
+    }
 
     /**
      * Subscribe the given subscriber to the given streamed message.
@@ -136,7 +140,8 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
      *
      * Provided so that the server subclass can intercept this to send a 100 continue response.
      */
-    protected void bodyRequested(ChannelHandlerContext ctx) {}
+    protected void bodyRequested(ChannelHandlerContext ctx) {
+    }
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, Object msg) throws Exception {

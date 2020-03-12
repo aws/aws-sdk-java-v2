@@ -39,5 +39,6 @@ public final class AwsExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<String> ENDPOINT_PREFIX = new ExecutionAttribute<>("AwsEndpointPrefix");
 
-    private AwsExecutionAttribute() {}
+    private AwsExecutionAttribute() {
+    }
 }

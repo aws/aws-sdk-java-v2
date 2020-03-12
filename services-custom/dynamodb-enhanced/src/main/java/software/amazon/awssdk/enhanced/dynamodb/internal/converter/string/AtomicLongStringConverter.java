@@ -34,7 +34,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class AtomicLongStringConverter implements StringConverter<AtomicLong> {
     private static LongStringConverter LONG_CONVERTER = LongStringConverter.create();
 
-    private AtomicLongStringConverter() { }
+    private AtomicLongStringConverter() {
+    }
 
     public static AtomicLongStringConverter create() {
         return new AtomicLongStringConverter();

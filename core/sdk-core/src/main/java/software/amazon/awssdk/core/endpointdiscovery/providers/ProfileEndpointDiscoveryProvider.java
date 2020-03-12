@@ -27,7 +27,8 @@ public class ProfileEndpointDiscoveryProvider implements EndpointDiscoveryProvid
 
     private final String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 
-    private ProfileEndpointDiscoveryProvider() {}
+    private ProfileEndpointDiscoveryProvider() {
+    }
 
     public static ProfileEndpointDiscoveryProvider create() {
         return new ProfileEndpointDiscoveryProvider();

@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;

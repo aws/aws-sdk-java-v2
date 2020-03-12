@@ -74,7 +74,8 @@ public class SdkClientException extends SdkException {
 
     protected static class BuilderImpl extends SdkException.BuilderImpl implements Builder {
 
-        protected BuilderImpl() {}
+        protected BuilderImpl() {
+        }
 
         protected BuilderImpl(SdkClientException ex) {
             super(ex);

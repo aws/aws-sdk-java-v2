@@ -39,7 +39,8 @@ public final class ClockSkew {
      */
     private static final Duration CLOCK_SKEW_ADJUST_THRESHOLD = Duration.ofMinutes(4);
 
-    private ClockSkew() {}
+    private ClockSkew() {
+    }
 
     /**
      * Determine whether the request-level client time was sufficiently skewed from the server time as to possibly cause a

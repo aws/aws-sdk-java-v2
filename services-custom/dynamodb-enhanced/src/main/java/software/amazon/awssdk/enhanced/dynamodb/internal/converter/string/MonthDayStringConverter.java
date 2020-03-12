@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class MonthDayStringConverter implements StringConverter<MonthDay> {
-    private MonthDayStringConverter() { }
+    private MonthDayStringConverter() {
+    }
 
     public static MonthDayStringConverter create() {
         return new MonthDayStringConverter();

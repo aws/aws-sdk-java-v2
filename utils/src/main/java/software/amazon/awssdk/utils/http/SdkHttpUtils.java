@@ -67,7 +67,8 @@ public final class SdkHttpUtils {
             "proxy-authorization", "range", "referer", "retry-after", "server", "user-agent")
             .collect(Collectors.toSet());
 
-    private SdkHttpUtils() {}
+    private SdkHttpUtils() {
+    }
 
     /**
      * Encode a string according to RFC 3986: encoding for URI paths, query strings, etc.

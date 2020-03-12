@@ -58,7 +58,8 @@ public final class NonRetryableException extends SdkClientException {
 
     protected static final class BuilderImpl extends SdkClientException.BuilderImpl implements Builder {
 
-        protected BuilderImpl() {}
+        protected BuilderImpl() {
+        }
 
         protected BuilderImpl(NonRetryableException ex) {
             super(ex);

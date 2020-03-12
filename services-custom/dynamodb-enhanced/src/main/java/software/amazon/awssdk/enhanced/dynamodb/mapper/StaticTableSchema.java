@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -294,23 +293,25 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
     @Override
     public T mapToItem(Map<String, AttributeValue> attributeMap) {
         // Lazily instantiate the item once we have an attribute to write
-        AtomicReference<T> item = new AtomicReference<>();
+        T item = null;
 
-        attributeMap.forEach((key, value) -> {
+        for (Map.Entry<String, AttributeValue> entry : attributeMap.entrySet()) {
+            String key = entry.getKey();
+            AttributeValue value = entry.getValue();
             if (!isNullAttributeValue(value)) {
                 ResolvedStaticAttribute<T> attributeMapper = indexedMappers.get(key);
 
                 if (attributeMapper != null) {
-                    if (item.get() == null) {
-                        item.set(constructNewItem());
+                    if (item == null) {
+                        item = constructNewItem();
                     }
 
-                    attributeMapper.updateItemMethod().accept(item.get(), value);
+                    attributeMapper.updateItemMethod().accept(item, value);
                 }
             }
-        });
+        }
 
-        return item.get();
+        return item;
     }
 
     @Override

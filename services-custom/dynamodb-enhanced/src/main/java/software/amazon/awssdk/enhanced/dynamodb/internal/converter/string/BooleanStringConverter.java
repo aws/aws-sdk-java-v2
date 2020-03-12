@@ -34,7 +34,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class BooleanStringConverter implements StringConverter<Boolean>, PrimitiveConverter<Boolean> {
-    private BooleanStringConverter() { }
+    private BooleanStringConverter() {
+    }
 
     public static BooleanStringConverter create() {
         return new BooleanStringConverter();

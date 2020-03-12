@@ -33,7 +33,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class ByteStringConverter implements StringConverter<Byte>, PrimitiveConverter<Byte> {
-    private ByteStringConverter() { }
+    private ByteStringConverter() {
+    }
 
     public static ByteStringConverter create() {
         return new ByteStringConverter();

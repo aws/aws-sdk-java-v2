@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 

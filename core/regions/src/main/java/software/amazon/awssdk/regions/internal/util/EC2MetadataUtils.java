@@ -87,7 +87,8 @@ public final class EC2MetadataUtils {
     private static final InstanceProviderTokenEndpointProvider TOKEN_ENDPOINT_PROVIDER =
             new InstanceProviderTokenEndpointProvider();
 
-    private EC2MetadataUtils() {}
+    private EC2MetadataUtils() {
+    }
 
     static {
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

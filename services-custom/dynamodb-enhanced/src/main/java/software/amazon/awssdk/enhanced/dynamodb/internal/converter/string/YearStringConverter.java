@@ -29,7 +29,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class YearStringConverter implements StringConverter<Year> {
-    private YearStringConverter() { }
+    private YearStringConverter() {
+    }
 
     public static YearStringConverter create() {
         return new YearStringConverter();

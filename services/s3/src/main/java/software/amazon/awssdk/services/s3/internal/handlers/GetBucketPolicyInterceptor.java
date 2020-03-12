@@ -21,9 +21,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.function.Predicate;
-
 import org.reactivestreams.Publisher;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;

@@ -17,7 +17,6 @@ package software.amazon.awssdk.awscore.eventstream;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;

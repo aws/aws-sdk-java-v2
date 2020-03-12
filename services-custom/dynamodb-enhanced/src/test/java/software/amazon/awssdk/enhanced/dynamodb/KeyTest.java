@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -116,5 +117,15 @@ public class KeyTest {
         Key keyClone = key.toBuilder().build();
 
         assertThat(key, is(equalTo(keyClone)));
+    }
+
+    @Test
+    public void nullPartitionKey_shouldThrowException() {
+        AttributeValue attributeValue = null;
+        assertThatThrownBy(() ->  Key.builder().partitionValue(attributeValue).build())
+         .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("partitionValue should not be null");
+
+        assertThatThrownBy(() ->  Key.builder().partitionValue(AttributeValue.builder().nul(true).build()).build())
+            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("partitionValue should not be null");
     }
 }

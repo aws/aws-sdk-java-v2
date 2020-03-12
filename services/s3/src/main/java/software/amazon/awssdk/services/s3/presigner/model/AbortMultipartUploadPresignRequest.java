@@ -130,7 +130,8 @@ public final class AbortMultipartUploadPresignRequest
     private static final class DefaultBuilder extends PresignRequest.DefaultBuilder<DefaultBuilder> implements Builder {
         private AbortMultipartUploadRequest abortMultipartUploadRequest;
 
-        private DefaultBuilder() {}
+        private DefaultBuilder() {
+        }
 
         private DefaultBuilder(AbortMultipartUploadPresignRequest request) {
             super(request);

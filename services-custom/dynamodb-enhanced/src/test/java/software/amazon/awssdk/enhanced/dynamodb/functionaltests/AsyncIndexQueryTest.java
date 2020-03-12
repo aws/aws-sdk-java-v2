@@ -25,8 +25,8 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.between;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.equalTo;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +48,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -205,7 +206,7 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
 
         SdkPublisher<Page<Record>> publisher =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("gsi-id-value"))));
+            keysOnlyMappedIndex.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value"))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -220,7 +221,7 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
         Key fromKey = Key.builder().partitionValue("gsi-id-value").sortValue(3).build();
         Key toKey = Key.builder().partitionValue("gsi-id-value").sortValue(5).build();
 
-        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.query(r -> r.queryConditional(between(fromKey, toKey)));
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.query(r -> r.queryConditional(QueryConditional.sortBetween(fromKey, toKey)));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -235,7 +236,7 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
         SdkPublisher<Page<Record>> publisher =
             keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
-                                                          .queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))
+                                                          .queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value")))
                                                           .limit(5)
                                                           .build());
 
@@ -266,7 +267,7 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void queryEmpty() {
         SdkPublisher<Page<Record>> publisher =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("gsi-id-value"))));
+            keysOnlyMappedIndex.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value"))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -286,7 +287,7 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
 
         SdkPublisher<Page<Record>> publisher =
             keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
-                                                          .queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))
+                                                          .queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value")))
                                                           .exclusiveStartKey(expectedLastEvaluatedKey)
                                                           .build());
 

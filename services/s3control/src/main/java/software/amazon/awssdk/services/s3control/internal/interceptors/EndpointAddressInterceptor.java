@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3control.internal.interceptors;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.exception.SdkClientException;
