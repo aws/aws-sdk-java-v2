@@ -33,7 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.conditional.SingleKeyIt
  * Example:
  * <pr>
  * {@code
- * QueryConditional sortValueGreaterThanTen = QueryConditional.sortGreaterThan(k -> k.partitionValue(10).sortValue(4));
+ * QueryConditional sortValueGreaterThanFour = QueryConditional.sortGreaterThan(k -> k.partitionValue(10).sortValue(4));
  * }
  * </pr>
  */
