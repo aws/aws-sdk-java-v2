@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
@@ -110,18 +109,6 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
 
         assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
         assertThat(builtObject.mapperExtension(), instanceOf(ChainExtension.class));
-    }
-
-    @Test
-    public void builder_missingDynamoDbClient_shouldCreateDefault() {
-        DefaultDynamoDbEnhancedAsyncClient asyncClient = DefaultDynamoDbEnhancedAsyncClient.builder().build();
-        assertNotNull(asyncClient.dynamoDbAsyncClient());
-    }
-
-    @Test
-    public void createMethod_shouldCreateDefault() {
-        DefaultDynamoDbEnhancedAsyncClient asyncClient = (DefaultDynamoDbEnhancedAsyncClient) DynamoDbEnhancedAsyncClient.create();
-        assertNotNull(asyncClient.dynamoDbAsyncClient());
     }
 
     @Test

@@ -23,7 +23,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
 import java.util.Collections;
