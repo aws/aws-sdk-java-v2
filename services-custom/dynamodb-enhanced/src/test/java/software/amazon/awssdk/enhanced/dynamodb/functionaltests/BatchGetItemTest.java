@@ -141,8 +141,8 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.putItem(Record1.class, r -> r.item(record)));
-        RECORDS_2.forEach(record -> mappedTable2.putItem(Record2.class, r-> r.item(record)));
+        RECORDS_1.forEach(record -> mappedTable1.putItem(r -> r.item(record)));
+        RECORDS_2.forEach(record -> mappedTable2.putItem(r -> r.item(record)));
     }
 
     @Test

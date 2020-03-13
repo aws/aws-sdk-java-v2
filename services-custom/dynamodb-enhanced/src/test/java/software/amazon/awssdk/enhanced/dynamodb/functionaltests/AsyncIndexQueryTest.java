@@ -175,7 +175,7 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     private DynamoDbAsyncIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)).join());
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)).join());
     }
 
     @Before

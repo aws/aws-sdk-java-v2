@@ -231,7 +231,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void singleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
 
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
@@ -244,8 +244,8 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void multipleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
 
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
@@ -261,7 +261,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void singleConditionCheck() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#attribute = :attribute")
@@ -282,8 +282,8 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void multiConditionCheck() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#attribute = :attribute")
@@ -309,8 +309,8 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void mixedCommands() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#attribute = :attribute")
@@ -339,8 +339,8 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void mixedCommands_conditionCheckFailsTransaction() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#attribute = :attribute")

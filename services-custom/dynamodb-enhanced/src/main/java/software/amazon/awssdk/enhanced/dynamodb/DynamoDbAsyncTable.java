@@ -422,7 +422,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.putItem(MyItem.class, r -> r.item(item)).join();
+     * mappedTable.putItem(r -> r.item(item)).join();
      * }
      * </pre>
      *
@@ -430,8 +430,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * to enter into the table, its class and optional directives.
      * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
      */
-    default CompletableFuture<Void> putItem(Class<? extends T> itemClass,
-                                            Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default CompletableFuture<Void> putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -567,7 +566,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * MyItem item = mappedTable.updateItem(MyItem.class, r -> r.item(item)).join();
+     * MyItem item = mappedTable.updateItem(r -> r.item(item)).join();
      * }
      * </pre>
      *
@@ -575,8 +574,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * to be updated, its class and optional directives.
      * @return a {@link CompletableFuture} of the updated item
      */
-    default CompletableFuture<T> updateItem(Class<? extends T> itemClass,
-                                            Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default CompletableFuture<T> updateItem(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 

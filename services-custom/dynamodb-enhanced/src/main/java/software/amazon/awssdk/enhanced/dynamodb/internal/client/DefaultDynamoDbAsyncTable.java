@@ -169,16 +169,16 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
-    public CompletableFuture<Void> putItem(Class<? extends T> itemClass,
-                                           Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
-        PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(itemClass);
+    public CompletableFuture<Void> putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        PutItemEnhancedRequest.Builder<T> builder =
+            PutItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
         return putItem(builder.build());
     }
 
     @Override
     public CompletableFuture<Void> putItem(T item) {
-        return putItem(this.tableSchema.itemType().rawClass(), r -> r.item(item));
+        return putItem(r -> r.item(item));
     }
 
     @Override
@@ -206,16 +206,16 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
-    public CompletableFuture<T> updateItem(Class<? extends T> itemClass,
-                                           Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
-        UpdateItemEnhancedRequest.Builder<T> builder = UpdateItemEnhancedRequest.builder(itemClass);
+    public CompletableFuture<T> updateItem(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        UpdateItemEnhancedRequest.Builder<T> builder =
+            UpdateItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
         return updateItem(builder.build());
     }
 
     @Override
     public CompletableFuture<T> updateItem(T item) {
-        return updateItem(this.tableSchema.itemType().rawClass(), r -> r.item(item));
+        return updateItem(r -> r.item(item));
     }
 
     @Override

@@ -419,14 +419,14 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.putItem(MyItem.class, r -> r.item(item));
+     * mappedTable.putItem(r -> r.item(item));
      * }
      * </pre>
      *
      * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
      * to enter into the table, its class and optional directives.
      */
-    default void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default void putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -561,7 +561,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * MyItem item = mappedTable.updateItem(MyItem.class, r -> r.item(item));
+     * MyItem item = mappedTable.updateItem(r -> r.item(item));
      * }
      * </pre>
      *
@@ -569,7 +569,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * to be updated, its class and optional directives.
      * @return The updated item
      */
-    default T updateItem(Class<? extends T> itemClass, Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default T updateItem(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
