@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppConfig",
-    "description": "This release adds S3 as a configuration source provider."
-}
