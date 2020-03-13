@@ -35,7 +35,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
@@ -294,7 +293,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void putThenDeleteItem() {
+    public void putThenDeleteItem_usingShortcutForm() {
         Record record = new Record()
                               .setId("id-value")
                               .setSort("sort-value")
@@ -302,11 +301,11 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(record);
         Record beforeDeleteResult =
-            mappedTable.deleteItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
+            mappedTable.deleteItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build());
         Record afterDeleteResult =
-            mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
+            mappedTable.getItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build());
 
         assertThat(beforeDeleteResult, is(record));
         assertThat(afterDeleteResult, is(nullValue()));
@@ -424,7 +423,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void updateOverwriteCompleteRecord() {
+    public void updateOverwriteCompleteRecord_usingShortcutForm() {
         Record record = new Record()
                               .setId("id-value")
                               .setSort("sort-value")
@@ -432,14 +431,14 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(record);
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four")
                                .setAttribute2("five")
                                .setAttribute3("six");
-        Record result = mappedTable.updateItem(Record.class, r -> r.item(record2));
+        Record result = mappedTable.updateItem(record2);
 
         assertThat(result, is(record2));
     }

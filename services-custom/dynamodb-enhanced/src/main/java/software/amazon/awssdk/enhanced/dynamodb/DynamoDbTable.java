@@ -189,6 +189,27 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     }
 
     /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.delete(key);
+     * }
+     * </pre>
+     *
+     * @param key A {@link Key} that will be used to match a specific record to delete from the database table.
+     * @return The deleted item
+     */
+    default T deleteItem(Key key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Retrieves a single item from the mapped table using a supplied primary {@link Key}.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
@@ -205,7 +226,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * }
      * </pre>
      *
-     * @param request A {@link GetItemEnhancedRequest} with key and optional directives for retrieving an item from the table.
+     * @param request A {@link GetItemEnhancedRequest} with key and optional directives for retrieving an item from the
+     *                table.
      * @return The retrieved item
      */
     default T getItem(GetItemEnhancedRequest request) {
@@ -237,6 +259,27 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @return The retrieved item
      */
     default T getItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Retrieves a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.getItem(key);
+     * }
+     * </pre>
+     *
+     * @param key A {@link Key} that will be used to match a specific record to retrieve from the database table.
+     * @return The retrieved item
+     */
+    default T getItem(Key key) {
         throw new UnsupportedOperationException();
     }
 
@@ -310,6 +353,34 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     }
 
     /**
+     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a
+     * list of items matching the given conditions.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
+     * ascending order.
+     * <p>
+     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * Iterator<Page<MyItem>> results =
+     *     mappedTable.query(QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build()));
+     * }
+     * </pre>
+     *
+     * @param queryConditional A {@link QueryConditional} defining the matching criteria for records to be queried.
+     * @return an iterator of type {@link SdkIterable} with paginated results (see {@link Page}).
+     */
+    default SdkIterable<Page<T>> query(QueryConditional queryConditional) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be replaced with
      * this item.
      * <p>
@@ -356,6 +427,27 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * to enter into the table, its class and optional directives.
      */
     default void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(item);
+     * }
+     * </pre>
+     *
+     * @param item the modelled item to be inserted into or overwritten in the database table.
+     */
+    default void putItem(T item) {
         throw new UnsupportedOperationException();
     }
 
@@ -478,6 +570,27 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @return The updated item
      */
     default T updateItem(Class<? extends T> itemClass, Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.updateItem(item);
+     * }
+     * </pre>
+     *
+     * @param item the modelled item to be inserted into or updated in the database table.
+     * @return The updated item
+     */
+    default T updateItem(T item) {
         throw new UnsupportedOperationException();
     }
 }

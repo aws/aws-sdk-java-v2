@@ -21,6 +21,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -772,6 +773,11 @@ public class StaticTableSchemaTest {
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void itemType_returnsCorrectClass() {
+        assertThat(FakeItem.getTableSchema().itemType(), is(equalTo(EnhancedType.of(FakeItem.class))));
+    }
 
     @Test
     public void getTableMetadata_hasCorrectFields() {

@@ -37,7 +37,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
@@ -302,7 +301,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void putThenDeleteItem() {
+    public void putThenDeleteItem_usingShortcutForm() {
         Record record = new Record()
                               .setId("id-value")
                               .setSort("sort-value")
@@ -310,11 +309,11 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record)).join();
+        mappedTable.putItem(record).join();
         Record beforeDeleteResult =
-            mappedTable.deleteItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
+            mappedTable.deleteItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build()).join();
         Record afterDeleteResult =
-            mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
+            mappedTable.getItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build()).join();
 
         assertThat(beforeDeleteResult, is(record));
         assertThat(afterDeleteResult, is(nullValue()));
@@ -441,7 +440,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void updateOverwriteCompleteRecord() {
+    public void updateOverwriteCompleteRecord_usingShortcutForm() {
         Record record = new Record()
                               .setId("id-value")
                               .setSort("sort-value")
@@ -449,14 +448,14 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record)).join();
+        mappedTable.putItem(record).join();
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four")
                                .setAttribute2("five")
                                .setAttribute3("six");
-        Record result = mappedTable.updateItem(Record.class, r -> r.item(record2)).join();
+        Record result = mappedTable.updateItem(record2).join();
 
         assertThat(result, is(record2));
     }

@@ -134,6 +134,14 @@ public final class ReadBatch {
          */
         Builder<T> addGetItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer);
 
+        /**
+         * Adds a GetItem request with a primary {@link Key} to the builder.
+         *
+         * @param key A {@link Key} to match the record retrieved from the database.
+         * @return a builder of this type
+         */
+        Builder<T> addGetItem(Key key);
+
         ReadBatch build();
     }
 
@@ -210,6 +218,11 @@ public final class ReadBatch {
             GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
             requestConsumer.accept(builder);
             return addGetItem(builder.build());
+        }
+
+        @Override
+        public Builder<T> addGetItem(Key key) {
+            return addGetItem(r -> r.key(key));
         }
 
         public ReadBatch build() {

@@ -138,6 +138,14 @@ public final class WriteBatch {
         Builder<T> addDeleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer);
 
         /**
+         * Adds a DeleteItem request to the builder.
+         *
+         * @param key a {@link Key} to match the item to be deleted from the database.
+         * @return a builder of this type
+         */
+        Builder<T> addDeleteItem(Key key);
+
+        /**
          * Adds a {@link PutItemEnhancedRequest} to the builder, this request should contain the item
          * to be written.
          *
@@ -154,6 +162,14 @@ public final class WriteBatch {
          * @return a builder of this type
          */
         Builder<T> addPutItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer);
+
+        /**
+         * Adds a PutItem request to the builder.
+         *
+         * @param item the item to insert or overwrite in the database.
+         * @return a builder of this type
+         */
+        Builder<T> addPutItem(T item);
 
         WriteBatch build();
     }
@@ -184,6 +200,11 @@ public final class WriteBatch {
             return addDeleteItem(builder.build());
         }
 
+        @Override
+        public Builder<T> addDeleteItem(Key key) {
+            return addDeleteItem(r -> r.key(key));
+        }
+
         public Builder<T> addPutItem(PutItemEnhancedRequest<T> request) {
             itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, PutItemOperation.create(request)));
             return this;
@@ -193,6 +214,11 @@ public final class WriteBatch {
             PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(this.itemClass);
             requestConsumer.accept(builder);
             return addPutItem(builder.build());
+        }
+
+        @Override
+        public Builder<T> addPutItem(T item) {
+            return addPutItem(r -> r.item(item));
         }
 
         public WriteBatch build() {
