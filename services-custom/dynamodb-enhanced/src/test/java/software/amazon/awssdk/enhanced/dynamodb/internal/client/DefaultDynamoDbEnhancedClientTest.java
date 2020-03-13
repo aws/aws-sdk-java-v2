@@ -110,11 +110,6 @@ public class DefaultDynamoDbEnhancedClientTest {
         assertThat(builtObject.mapperExtension(), instanceOf(ChainExtension.class));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void builder_missingDynamoDbClient() {
-        DefaultDynamoDbEnhancedClient.builder().extensions(mockDynamoDbEnhancedClientExtension).build();
-    }
-
     @Test
     public void toBuilder() {
         DefaultDynamoDbEnhancedClient copiedObject = dynamoDbEnhancedClient.toBuilder().build();

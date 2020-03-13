@@ -1,3 +1,8 @@
+# __2.10.86__ __2020-03-13__
+## __Amazon AppConfig__
+  - ### Features
+    - This release adds S3 as a configuration source provider.
+
 # __2.10.85__ __2020-03-12__
 ## __AWS IoT__
   - ### Features

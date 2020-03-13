@@ -54,7 +54,7 @@ public interface DynamoDbAsyncIndex<T> {
      * <pre>
      * {@code
      *
-     * QueryConditional queryConditional = QueryConditional.equalTo(Key.builder().partitionValue("id-value").build());
+     * QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build());
      * SdkPublisher<Page<MyItem>> publisher = mappedIndex.query(QueryEnhancedRequest.builder()
      *                                                                              .queryConditional(queryConditional)
      *                                                                              .build());
@@ -92,7 +92,7 @@ public interface DynamoDbAsyncIndex<T> {
      * {@code
      *
      * SdkPublisher<Page<MyItem>> publisher =
-     *     mappedIndex.query(r -> r.queryConditional(QueryConditional.equalTo(k -> k.partitionValue("id-value"))));
+     *     mappedIndex.query(r -> r.queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue("id-value"))));
      * }
      * </pre>
      *

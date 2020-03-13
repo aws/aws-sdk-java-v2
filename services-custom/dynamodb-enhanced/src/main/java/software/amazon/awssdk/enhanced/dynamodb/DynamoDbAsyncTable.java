@@ -262,7 +262,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * QueryConditional queryConditional = QueryConditional.equalTo(Key.builder().partitionValue("id-value").build());
+     * QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build());
      * SdkPublisher<Page<MyItem>> publisher = mappedTable.query(QueryEnhancedRequest.builder()
      *                                                                              .queryConditional(queryConditional)
      *                                                                              .build());
@@ -300,7 +300,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * {@code
      *
      * SdkPublisher<Page<MyItem>> publisher =
-     *     mappedTable.query(r -> r.queryConditional(QueryConditional.equalTo(k -> k.partitionValue("id-value"))));
+     *     mappedTable.query(r -> r.queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue("id-value"))));
      * }
      * </pre>
      *
