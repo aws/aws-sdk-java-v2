@@ -172,7 +172,7 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
     }
 
     @Before

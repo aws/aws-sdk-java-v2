@@ -169,7 +169,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setId("id-value")
                               .setDocument(document);
 
-        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record updatedRecord = mappedTable.updateItem(r -> r.item(record));
         Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));
@@ -185,7 +185,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setId("id-value")
                               .setDocument(document);
 
-        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record updatedRecord = mappedTable.updateItem(r -> r.item(record));
         Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));
@@ -197,7 +197,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
         Record record = new Record()
                               .setId("id-value");
 
-        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record updatedRecord = mappedTable.updateItem(r -> r.item(record));
         Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));

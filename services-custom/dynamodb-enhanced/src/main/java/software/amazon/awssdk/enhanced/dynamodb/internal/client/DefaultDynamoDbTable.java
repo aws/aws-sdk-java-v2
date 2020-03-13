@@ -171,15 +171,16 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
-    public void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
-        PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(itemClass);
+    public void putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        PutItemEnhancedRequest.Builder<T> builder =
+            PutItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
         putItem(builder.build());
     }
 
     @Override
     public void putItem(T item) {
-        putItem(this.tableSchema.itemType().rawClass(), r -> r.item(item));
+        putItem(r -> r.item(item));
     }
 
     @Override
@@ -207,15 +208,16 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
-    public T updateItem(Class<? extends T> itemClass, Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
-        UpdateItemEnhancedRequest.Builder<T> builder = UpdateItemEnhancedRequest.builder(itemClass);
+    public T updateItem(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        UpdateItemEnhancedRequest.Builder<T> builder =
+            UpdateItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
         return updateItem(builder.build());
     }
 
     @Override
     public T updateItem(T item) {
-        return updateItem(this.tableSchema.itemType().rawClass(), r -> r.item(item));
+        return updateItem(r -> r.item(item));
     }
 
     @Override

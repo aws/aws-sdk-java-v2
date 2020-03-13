@@ -110,7 +110,7 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)).join());
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)).join());
     }
 
     @Before

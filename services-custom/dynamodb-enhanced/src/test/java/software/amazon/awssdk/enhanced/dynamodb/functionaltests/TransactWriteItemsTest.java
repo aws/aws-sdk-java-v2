@@ -225,7 +225,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void singleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
 
         enhancedClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
@@ -238,8 +238,8 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void multipleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
 
         enhancedClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
@@ -255,7 +255,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void singleConditionCheck() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
 
         Expression conditionExpression = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -275,8 +275,8 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void multiConditionCheck() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#attribute = :attribute")
@@ -302,8 +302,8 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void mixedCommands() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#attribute = :attribute")
@@ -333,8 +333,8 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void mixedCommands_conditionCheckFailsTransaction() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#attribute = :attribute")
