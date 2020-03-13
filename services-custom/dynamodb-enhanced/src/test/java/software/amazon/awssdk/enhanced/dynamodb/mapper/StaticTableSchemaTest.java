@@ -25,6 +25,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
@@ -44,7 +46,12 @@ import java.util.function.Consumer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
@@ -52,6 +59,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemC
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@RunWith(MockitoJUnitRunner.class)
 public class StaticTableSchemaTest {
     private static final String TABLE_TAG_KEY = "table-tag-key";
     private static final String TABLE_TAG_VALUE = "table-tag-value";
@@ -771,6 +779,12 @@ public class StaticTableSchemaTest {
         }
     }
 
+    @Mock
+    private AttributeConverterProvider provider;
+
+    @Mock
+    private AttributeConverter<String> attributeConverter;
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
@@ -1349,6 +1363,44 @@ public class StaticTableSchemaTest {
                          .flatten(superclassTableSchema,
                                   FakeBrokenClass::getAbstractObject,
                                   FakeBrokenClass::setAbstractObject);
+    }
+
+    @Test
+    public void addAttributeConverterProvider() {
+        when(provider.converterFor(EnhancedType.of(String.class))).thenReturn(attributeConverter);
+
+        StaticTableSchema<FakeMappedItem> tableSchema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("aString")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString))
+                             .attributeConverterProvider(provider)
+                             .build();
+
+        assertThat(tableSchema.attributeConverterProvider(), is(provider));
+    }
+
+    @Test
+    public void usesCustomAttributeConverterProvider() {
+        String originalString = "test-string";
+        String expectedString = "test-string-custom";
+
+        when(provider.converterFor(EnhancedType.of(String.class))).thenReturn(attributeConverter);
+        when(attributeConverter.transformFrom(any())).thenReturn(AttributeValue.builder().s(expectedString).build());
+
+        StaticTableSchema<FakeMappedItem> tableSchema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("aString")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString))
+                             .attributeConverterProvider(provider)
+                             .build();
+
+        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(),
+                                                                      false);
+        assertThat(resultMap.get("aString").s(), is(expectedString));
     }
 
     private <R> void verifyAttribute(EnhancedType<R> attributeType,

@@ -64,6 +64,7 @@ public final class StaticAttribute<T, R> {
     private final BiConsumer<T, R> setter;
     private final Collection<StaticAttributeTag> tags;
     private final EnhancedType<R> type;
+    private final AttributeConverter<R> attributeConverter;
 
     private StaticAttribute(Builder<T, R> builder) {
         this.name = Validate.paramNotNull(builder.name, "name");
@@ -71,6 +72,7 @@ public final class StaticAttribute<T, R> {
         this.setter = Validate.paramNotNull(builder.setter, "setter");
         this.tags = builder.tags == null ? Collections.emptyList() : Collections.unmodifiableCollection(builder.tags);
         this.type = Validate.paramNotNull(builder.type, "type");
+        this.attributeConverter = builder.attributeConverter;
     }
 
     /**
@@ -129,6 +131,15 @@ public final class StaticAttribute<T, R> {
     }
 
     /**
+     * A custom {@link AttributeConverter} that will be used to convert this attribute.
+     * If no custom converter was provided, the value will be null.
+     * @see Builder#attributeConverter
+     */
+    public AttributeConverter<R> attributeConverter() {
+        return this.attributeConverter;
+    }
+
+    /**
      * Converts an instance of this class to a {@link Builder} that can be used to modify and reconstruct it.
      */
     public Builder<T, R> toBuilder() {
@@ -145,7 +156,7 @@ public final class StaticAttribute<T, R> {
     }
 
     private AttributeConverter<R> converterFrom(AttributeConverterProvider attributeConverterProvider) {
-        return attributeConverterProvider.converterFor(type);
+        return (attributeConverter != null) ? attributeConverter : attributeConverterProvider.converterFor(type);
     }
 
     /**
@@ -159,6 +170,7 @@ public final class StaticAttribute<T, R> {
         private Function<T, R> getter;
         private BiConsumer<T, R> setter;
         private List<StaticAttributeTag> tags;
+        private AttributeConverter<R> attributeConverter;
 
         private Builder(EnhancedType<R> type) {
             this.type = type;
@@ -213,6 +225,16 @@ public final class StaticAttribute<T, R> {
             }
 
             this.tags.add(tag);
+            return this;
+        }
+
+        /**
+         * An {@link AttributeConverter} for the attribute type ({@link EnhancedType}), that can convert this attribute.
+         * It takes precedence over any converter for this type provided by the table schema
+         * {@link AttributeConverterProvider}.
+         */
+        public Builder<T, R> attributeConverter(AttributeConverter<R> attributeConverter) {
+            this.attributeConverter = attributeConverter;
             return this;
         }
 
