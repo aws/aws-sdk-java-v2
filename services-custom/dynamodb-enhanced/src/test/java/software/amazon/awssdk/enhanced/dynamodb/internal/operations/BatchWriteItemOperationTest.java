@@ -287,11 +287,11 @@ public class BatchWriteItemOperationTest {
         BatchWriteResult results = operation.transformResponse(response, mockExtension);
 
         assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTableWithExtension),
-                   containsInAnyOrder(FAKE_ITEMS.get(1), FAKE_ITEMS.get(2)));
+                   containsInAnyOrder(FAKE_ITEM_KEYS.get(1), FAKE_ITEM_KEYS.get(2)));
         assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTableWithExtension),
                    containsInAnyOrder(FAKE_ITEMS.get(0)));
         assertThat(results.unprocessedDeleteItemsForTable(fakeItemWithSortMappedTableWithExtension),
-                   containsInAnyOrder(FAKESORT_ITEMS.get(0)));
+                   containsInAnyOrder(FAKESORT_ITEM_KEYS.get(0)));
         assertThat(results.unprocessedPutItemsForTable(fakeItemWithSortMappedTableWithExtension),
                    containsInAnyOrder(FAKESORT_ITEMS.get(1), FAKESORT_ITEMS.get(2)));
     }
@@ -334,11 +334,11 @@ public class BatchWriteItemOperationTest {
         BatchWriteResult results = operation.transformResponse(response, mockExtension);
 
         assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTableWithExtension),
-                   containsInAnyOrder(FAKE_ITEMS.get(1), FAKE_ITEMS.get(2)));
+                   containsInAnyOrder(FAKE_ITEM_KEYS.get(1), FAKE_ITEM_KEYS.get(2)));
         assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTableWithExtension),
                    containsInAnyOrder(FAKE_ITEMS.get(3)));
         assertThat(results.unprocessedDeleteItemsForTable(fakeItemWithSortMappedTableWithExtension),
-                   containsInAnyOrder(FAKESORT_ITEMS.get(0)));
+                   containsInAnyOrder(FAKESORT_ITEM_KEYS.get(0)));
         assertThat(results.unprocessedPutItemsForTable(fakeItemWithSortMappedTableWithExtension),
                    containsInAnyOrder(FAKESORT_ITEMS.get(4), FAKESORT_ITEMS.get(5)));
     }
