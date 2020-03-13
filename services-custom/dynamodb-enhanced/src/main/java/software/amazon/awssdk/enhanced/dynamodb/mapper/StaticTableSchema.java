@@ -32,6 +32,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -76,13 +77,18 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
     private final Supplier<T> newItemSupplier;
     private final Map<String, ResolvedStaticAttribute<T>> indexedMappers;
     private final StaticTableMetadata tableMetadata;
+    private final AttributeConverterProvider attributeConverterProvider;
 
     private StaticTableSchema(Builder<T> builder) {
         StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
 
+        this.attributeConverterProvider = builder.attributeConverterProvider != null ?
+                                          builder.attributeConverterProvider :
+                                          DEFAULT_ATTRIBUTE_CONVERTER;
+
         // Resolve declared attributes and find converters for them
         Stream<ResolvedStaticAttribute<T>> attributesStream = builder.attributes == null ?
-            Stream.empty() : builder.attributes.stream().map(a -> a.resolve(DEFAULT_ATTRIBUTE_CONVERTER));
+            Stream.empty() : builder.attributes.stream().map(a -> a.resolve(this.attributeConverterProvider));
 
         // Merge resolved declared attributes and additional attributes that were added by extend or flatten
         List<ResolvedStaticAttribute<T>> mutableAttributeMappers = new ArrayList<>();
@@ -136,6 +142,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         private List<StaticAttribute<T, ?>> attributes;
         private Supplier<T> newItemSupplier;
         private List<StaticTableTag> tags;
+        private AttributeConverterProvider attributeConverterProvider;
 
         private Builder(Class<T> itemClass) {
             this.itemClass = itemClass;
@@ -274,6 +281,19 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         }
 
         /**
+         * Adds an {@link AttributeConverterProvider} to the table schema. The {@link AttributeConverterProvider} must
+         * provide {@link AttributeConverter}s for all types used in the schema.
+         * <p>
+         * By default, the table schema has an internal AttributeConverterProvider which provides standard converters
+         * for most primitive and common Java types. Use custom AttributeConverterProvider only when you have specific
+         * needs for type conversion that the defaults do not cover.
+         */
+        public Builder<T> attributeConverterProvider(AttributeConverterProvider attributeConverterProvider) {
+            this.attributeConverterProvider = attributeConverterProvider;
+            return this;
+        }
+
+        /**
          * Builds a {@link StaticTableSchema} based on the values this builder has been configured with
          */
         public StaticTableSchema<T> build() {
@@ -356,6 +376,14 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
         return isNullAttributeValue(attributeValue) ? null : attributeValue;
+    }
+
+    /**
+     * The table schema {@link AttributeConverterProvider}.
+     * @see Builder#attributeConverterProvider
+     */
+    public AttributeConverterProvider attributeConverterProvider() {
+        return this.attributeConverterProvider;
     }
 
     private T constructNewItem() {
