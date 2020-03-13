@@ -128,6 +128,24 @@ public final class EnhancedClientUtils {
                                         .partitionValue(partitionKeyValue).build());
     }
 
+    public static Key createKeyFromMap(Map<String, AttributeValue> itemMap,
+                                       TableSchema<?> tableSchema,
+                                       String indexName) {
+        String partitionKeyName = tableSchema.tableMetadata().indexPartitionKey(indexName);
+        Optional<String> sortKeyName = tableSchema.tableMetadata().indexSortKey(indexName);
+        AttributeValue partitionKeyValue = itemMap.get(partitionKeyName);
+        Optional<AttributeValue> sortKeyValue = sortKeyName.map(itemMap::get);
+
+        return sortKeyValue.map(
+            attributeValue -> Key.builder()
+                                 .partitionValue(partitionKeyValue)
+                                 .sortValue(attributeValue)
+                                 .build())
+                           .orElseGet(
+                               () -> Key.builder()
+                                        .partitionValue(partitionKeyValue).build());
+    }
+
     public static <T> List<T> getItemsFromSupplier(List<Supplier<T>> itemSupplierList) {
         if (itemSupplierList == null || itemSupplierList.isEmpty()) {
             return null;

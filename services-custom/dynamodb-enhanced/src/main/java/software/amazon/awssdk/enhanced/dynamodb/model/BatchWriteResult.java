@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromMap;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
 
 import java.util.Collections;
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
@@ -81,14 +84,13 @@ public final class BatchWriteResult {
     }
 
     /**
-     * Retrieve any unprocessed delete action items belonging to the supplied table from the result .
+     * Retrieve any unprocessed delete action keys belonging to the supplied table from the result.
      * Call this method once for each table present in the batch request.
      *
-     * @param mappedTable the table to retrieve unprocessed items for
-     * @param <T> the type of the table items
-     * @return a list of items
+     * @param mappedTable the table to retrieve unprocessed items for.
+     * @return a list of keys that were not processed as part of the batch request.
      */
-    public <T> List<T> unprocessedDeleteItemsForTable(DynamoDbTable<T> mappedTable) {
+    public List<Key> unprocessedDeleteItemsForTable(DynamoDbTable<?> mappedTable) {
         List<WriteRequest> writeRequests =
             unprocessedRequests.getOrDefault(mappedTable.tableName(),
                                              Collections.emptyList());
@@ -97,7 +99,9 @@ public final class BatchWriteResult {
                             .filter(writeRequest -> writeRequest.deleteRequest() != null)
                             .map(WriteRequest::deleteRequest)
                             .map(DeleteRequest::key)
-                            .map(itemMap -> mappedTable.tableSchema().mapToItem(itemMap))
+                            .map(itemMap -> createKeyFromMap(itemMap,
+                                                             mappedTable.tableSchema(),
+                                                             TableMetadata.primaryIndexName()))
                             .collect(Collectors.toList());
     }
 
