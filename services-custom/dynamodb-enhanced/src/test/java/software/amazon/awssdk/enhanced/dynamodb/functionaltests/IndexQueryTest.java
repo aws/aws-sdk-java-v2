@@ -25,7 +25,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
 import java.util.HashMap;
@@ -200,11 +199,11 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void queryAllRecordsDefaultSettings() {
+    public void queryAllRecordsDefaultSettings_usingShortcutForm() {
         insertRecords();
 
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value")))).iterator();
+            keysOnlyMappedIndex.query(keyEqualTo(k -> k.partitionValue("gsi-id-value"))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();

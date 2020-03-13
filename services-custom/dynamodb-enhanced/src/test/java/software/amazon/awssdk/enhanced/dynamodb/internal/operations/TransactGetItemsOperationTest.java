@@ -104,13 +104,13 @@ public class TransactGetItemsOperationTest {
     }
 
     @Test
-    public void generateRequest_getsFromMultipleTables() {
+    public void generateRequest_getsFromMultipleTables_usingShortcutForm() {
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(FAKE_ITEM_KEYS.get(0)))
-                                           .addGetItem(fakeItemWithSortMappedTable, r -> r.key(FAKESORT_ITEM_KEYS.get(0)))
-                                           .addGetItem(fakeItemWithSortMappedTable, r -> r.key(FAKESORT_ITEM_KEYS.get(1)))
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(FAKE_ITEM_KEYS.get(1)))
+                                           .addGetItem(fakeItemMappedTable, FAKE_ITEM_KEYS.get(0))
+                                           .addGetItem(fakeItemWithSortMappedTable, FAKESORT_ITEM_KEYS.get(0))
+                                           .addGetItem(fakeItemWithSortMappedTable, FAKESORT_ITEM_KEYS.get(1))
+                                           .addGetItem(fakeItemMappedTable, FAKE_ITEM_KEYS.get(1))
                                            .build();
 
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);

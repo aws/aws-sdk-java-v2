@@ -39,6 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
@@ -123,6 +124,11 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public T deleteItem(Key key) {
+        return deleteItem(r -> r.key(key));
+    }
+
+    @Override
     public T getItem(GetItemEnhancedRequest request) {
         TableOperation<T, ?, ?, T> operation = GetItemOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
@@ -133,6 +139,11 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return getItem(builder.build());
+    }
+
+    @Override
+    public T getItem(Key key) {
+        return getItem(r -> r.key(key));
     }
 
     @Override
@@ -149,6 +160,11 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public SdkIterable<Page<T>> query(QueryConditional queryConditional) {
+        return query(r -> r.queryConditional(queryConditional));
+    }
+
+    @Override
     public void putItem(PutItemEnhancedRequest<T> request) {
         TableOperation<T, ?, ?, Void> operation = PutItemOperation.create(request);
         operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
@@ -159,6 +175,11 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(itemClass);
         requestConsumer.accept(builder);
         putItem(builder.build());
+    }
+
+    @Override
+    public void putItem(T item) {
+        putItem(this.tableSchema.itemType().rawClass(), r -> r.item(item));
     }
 
     @Override
@@ -190,6 +211,11 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         UpdateItemEnhancedRequest.Builder<T> builder = UpdateItemEnhancedRequest.builder(itemClass);
         requestConsumer.accept(builder);
         return updateItem(builder.build());
+    }
+
+    @Override
+    public T updateItem(T item) {
+        return updateItem(this.tableSchema.itemType().rawClass(), r -> r.item(item));
     }
 
     @Override

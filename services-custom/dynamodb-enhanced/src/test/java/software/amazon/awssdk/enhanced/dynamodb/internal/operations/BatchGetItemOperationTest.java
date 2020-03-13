@@ -106,12 +106,12 @@ public class BatchGetItemOperationTest {
     }
 
     @Test
-    public void getServiceCall_makesTheRightCallAndReturnsResponse() {
+    public void getServiceCall_usingShortcutForm_makesTheRightCallAndReturnsResponse() {
         BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
             BatchGetItemEnhancedRequest.builder()
                                        .readBatches(ReadBatch.builder(FakeItem.class)
                                                              .mappedTableResource(fakeItemMappedTable)
-                                                             .addGetItem(r -> r.key(FAKE_ITEM_KEYS.get(0)))
+                                                             .addGetItem(FAKE_ITEM_KEYS.get(0))
                                                              .build())
                                        .build();
 

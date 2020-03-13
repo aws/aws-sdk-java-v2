@@ -75,6 +75,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
     private final Supplier<T> newItemSupplier;
     private final Map<String, ResolvedStaticAttribute<T>> indexedMappers;
     private final StaticTableMetadata tableMetadata;
+    private final EnhancedType<T> itemType;
 
     private StaticTableSchema(Builder<T> builder) {
         StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
@@ -113,6 +114,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         this.indexedMappers = Collections.unmodifiableMap(mutableIndexedMappers);
         this.newItemSupplier = builder.newItemSupplier;
         this.tableMetadata = tableMetadataBuilder.build();
+        this.itemType = EnhancedType.of(builder.itemClass);
     }
 
     /**
@@ -357,6 +359,11 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
         return isNullAttributeValue(attributeValue) ? null : attributeValue;
+    }
+
+    @Override
+    public EnhancedType<T> itemType() {
+        return this.itemType;
     }
 
     private T constructNewItem() {

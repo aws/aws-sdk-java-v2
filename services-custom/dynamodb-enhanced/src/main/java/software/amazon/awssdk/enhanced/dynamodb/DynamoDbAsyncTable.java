@@ -192,6 +192,27 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     }
 
     /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.delete(key);
+     * }
+     * </pre>
+     *
+     * @param key A {@link Key} that will be used to match a specific record to delete from the database table.
+     * @return a {@link CompletableFuture} of the deleted item
+     */
+    default CompletableFuture<T> deleteItem(Key key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Retrieves a single item from the mapped table using a supplied primary {@link Key}.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
@@ -240,6 +261,27 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * @return a {@link CompletableFuture} of the retrieved item
      */
     default CompletableFuture<T> getItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Retrieves a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.getItem(key);
+     * }
+     * </pre>
+     *
+     * @param key A {@link Key} that will be used to match a specific record to retrieve from the database table.
+     * @return a {@link CompletableFuture} of the retrieved item
+     */
+    default CompletableFuture<T> getItem(Key key) {
         throw new UnsupportedOperationException();
     }
 
@@ -313,6 +355,34 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     }
 
     /**
+     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a
+     * list of items matching the given conditions.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
+     * ascending order.
+     * <p>
+     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * SdkPublisher<Page<MyItem>> results =
+     *     mappedTable.query(QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build()));
+     * }
+     * </pre>
+     *
+     * @param queryConditional A {@link QueryConditional} defining the matching criteria for records to be queried.
+     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     */
+    default SdkPublisher<Page<T>> query(QueryConditional queryConditional) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be replaced with
      * this item.
      * <p>
@@ -332,7 +402,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *
      * @param request A {@link PutItemEnhancedRequest} that includes the item to enter into
      * the table, its class and optional directives.
-     * @return a {@link CompletableFuture} of {@link Void}.
+     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
      */
     default CompletableFuture<Void> putItem(PutItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
@@ -358,10 +428,32 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *
      * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
      * to enter into the table, its class and optional directives.
-     * @return a {@link CompletableFuture} of {@link Void}.
+     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
      */
     default CompletableFuture<Void> putItem(Class<? extends T> itemClass,
                                             Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(item);
+     * }
+     * </pre>
+     *
+     * @param item the modelled item to be inserted into or overwritten in the database table.
+     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
+     */
+    default CompletableFuture<Void> putItem(T item) {
         throw new UnsupportedOperationException();
     }
 
@@ -485,6 +577,27 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      */
     default CompletableFuture<T> updateItem(Class<? extends T> itemClass,
                                             Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.updateItem(item);
+     * }
+     * </pre>
+     *
+     * @param item the modelled item to be inserted into or updated in the database table.
+     * @return a {@link CompletableFuture} of the updated item
+     */
+    default CompletableFuture<T> updateItem(T item) {
         throw new UnsupportedOperationException();
     }
 }
