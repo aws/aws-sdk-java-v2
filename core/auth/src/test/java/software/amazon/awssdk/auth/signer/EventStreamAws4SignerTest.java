@@ -73,7 +73,7 @@ public class EventStreamAws4SignerTest {
         Map<String, HeaderValue> lastMessageHeaders = signedMessages.get(2).getHeaders();
         assertThat(lastMessageHeaders.get(":date").getTimestamp()).isEqualTo("2020-01-02T00:00:00Z");
         assertThat(Base64.getEncoder().encodeToString(lastMessageHeaders.get(":chunk-signature").getByteArray()))
-            .isEqualTo("vgDFcmKOVDUSSzKaBzcj0v9gUSgCK5IwnQ4dMB38NlE=");
+            .isEqualTo("UTRGo0D7BQytiVkH1VofR/8f3uFsM4V5QR1A8grr1+M=");
 
     }
 
