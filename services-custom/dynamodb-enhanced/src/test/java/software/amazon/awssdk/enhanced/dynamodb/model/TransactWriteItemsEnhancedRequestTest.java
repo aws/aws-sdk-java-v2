@@ -80,9 +80,9 @@ public class TransactWriteItemsEnhancedRequestTest {
 
         TransactWriteItemsEnhancedRequest builtObject =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addPutItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem))
-                                             .addDeleteItem(fakeItemMappedTable, r -> r.key(k -> k.partitionValue(fakeItem.getId())))
-                                             .addUpdateItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem))
+                                             .addPutItem(fakeItemMappedTable, fakeItem)
+                                             .addDeleteItem(fakeItemMappedTable, fakeItem)
+                                             .addUpdateItem(fakeItemMappedTable, fakeItem)
                                              .addConditionCheck(fakeItemMappedTable, r -> r.key(k -> k.partitionValue(fakeItem.getId()))
                                                                                            .conditionExpression(conditionExpression))
                                              .build();

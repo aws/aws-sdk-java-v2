@@ -127,6 +127,11 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
+    public CompletableFuture<T> deleteItem(T keyItem) {
+        return deleteItem(keyFrom(keyItem));
+    }
+
+    @Override
     public CompletableFuture<T> getItem(GetItemEnhancedRequest request) {
         TableOperation<T, ?, ?, T> operation = GetItemOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
@@ -142,6 +147,11 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     @Override
     public CompletableFuture<T> getItem(Key key) {
         return getItem(r -> r.key(key));
+    }
+
+    @Override
+    public CompletableFuture<T> getItem(T keyItem) {
+        return getItem(keyFrom(keyItem));
     }
 
     @Override

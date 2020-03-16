@@ -146,6 +146,14 @@ public final class WriteBatch {
         Builder<T> addDeleteItem(Key key);
 
         /**
+         * Adds a DeleteItem request to the builder.
+         *
+         * @param keyItem an item that will have its key fields used to match a record to delete from the database.
+         * @return a builder of this type
+         */
+        Builder<T> addDeleteItem(T keyItem);
+
+        /**
          * Adds a {@link PutItemEnhancedRequest} to the builder, this request should contain the item
          * to be written.
          *
@@ -203,6 +211,11 @@ public final class WriteBatch {
         @Override
         public Builder<T> addDeleteItem(Key key) {
             return addDeleteItem(r -> r.key(key));
+        }
+
+        @Override
+        public Builder<T> addDeleteItem(T keyItem) {
+            return addDeleteItem(this.mappedTableResource.keyFrom(keyItem));
         }
 
         public Builder<T> addPutItem(PutItemEnhancedRequest<T> request) {
