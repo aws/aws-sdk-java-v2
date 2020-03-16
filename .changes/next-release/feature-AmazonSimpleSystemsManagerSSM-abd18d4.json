@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "Resource data sync for AWS Systems Manager Inventory now includes destination data sharing. This feature enables you to synchronize inventory data from multiple AWS accounts into a central Amazon S3 bucket. To use this feature, all AWS accounts must be listed in AWS Organizations."
+}
