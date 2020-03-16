@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS S3 Control",
+    "description": "Amazon S3 now supports Batch Operations job tagging."
+}
