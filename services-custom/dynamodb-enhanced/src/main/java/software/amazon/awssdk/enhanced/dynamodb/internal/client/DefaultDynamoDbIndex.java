@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PaginatedInd
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.QueryOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.ScanOperation;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -63,6 +64,11 @@ public class DefaultDynamoDbIndex<T> implements DynamoDbIndex<T> {
         QueryEnhancedRequest.Builder builder = QueryEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return query(builder.build());
+    }
+
+    @Override
+    public SdkIterable<Page<T>> query(QueryConditional queryConditional) {
+        return query(r -> r.queryConditional(queryConditional));
     }
 
     @Override

@@ -23,9 +23,8 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBeginsWith;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -126,7 +125,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
     }
 
     @Before
@@ -142,11 +141,11 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void queryAllRecordsDefaultSettings() {
+    public void queryAllRecordsDefaultSettings_shortcutForm() {
         insertRecords();
 
         Iterator<Page<Record>> results =
-            mappedTable.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))).iterator();
+            mappedTable.query(keyEqualTo(k -> k.partitionValue("id-value"))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();

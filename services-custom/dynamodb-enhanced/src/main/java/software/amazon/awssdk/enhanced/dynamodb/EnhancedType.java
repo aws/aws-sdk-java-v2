@@ -198,6 +198,19 @@ public class EnhancedType<T> {
      *     <li>If the provided type is null.</li>
      * </ol>
      */
+    public static <T> EnhancedType<SortedSet<T>> sortedSetOf(Class<T> valueType) {
+        return new EnhancedType<>(DefaultParameterizedType.parameterizedType(SortedSet.class, valueType));
+    }
+
+    /**
+     * Create a type token for a sorted set, with the provided value type class.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided type is null.</li>
+     * </ol>
+     */
     public static <T> EnhancedType<SortedSet<T>> sortedSetOf(EnhancedType<T> valueType) {
         return new EnhancedType<>(SortedSet.class, Arrays.asList(valueType), null);
     }

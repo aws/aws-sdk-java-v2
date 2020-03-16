@@ -35,7 +35,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
@@ -242,7 +241,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         
         Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
 
@@ -258,7 +257,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
 
         assertThat(result, is(record));
@@ -279,7 +278,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
@@ -287,14 +286,14 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                .setAttribute2("five")
                                .setAttribute3("six");
 
-        mappedTable.putItem(Record.class, r -> r.item(record2));
+        mappedTable.putItem(r -> r.item(record2));
         Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
 
         assertThat(result, is(record2));
     }
 
     @Test
-    public void putThenDeleteItem() {
+    public void putThenDeleteItem_usingShortcutForm() {
         Record record = new Record()
                               .setId("id-value")
                               .setSort("sort-value")
@@ -302,11 +301,11 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(record);
         Record beforeDeleteResult =
-            mappedTable.deleteItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
+            mappedTable.deleteItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build());
         Record afterDeleteResult =
-            mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
+            mappedTable.getItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build());
 
         assertThat(beforeDeleteResult, is(record));
         assertThat(afterDeleteResult, is(nullValue()));
@@ -321,7 +320,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         record.setAttribute("four");
 
         Expression conditionExpression = Expression.builder()
@@ -349,7 +348,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         record.setAttribute("four");
 
         Expression conditionExpression = Expression.builder()
@@ -381,7 +380,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -407,7 +406,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -424,7 +423,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void updateOverwriteCompleteRecord() {
+    public void updateOverwriteCompleteRecord_usingShortcutForm() {
         Record record = new Record()
                               .setId("id-value")
                               .setSort("sort-value")
@@ -432,14 +431,14 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(record);
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four")
                                .setAttribute2("five")
                                .setAttribute3("six");
-        Record result = mappedTable.updateItem(Record.class, r -> r.item(record2));
+        Record result = mappedTable.updateItem(record2);
 
         assertThat(result, is(record2));
     }
@@ -451,7 +450,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setSort("sort-value")
                               .setAttribute("one");
 
-        Record result = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record result = mappedTable.updateItem(r -> r.item(record));
 
         assertThat(result, is(record));
     }
@@ -462,7 +461,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setId("id-value")
                               .setSort("sort-value");
 
-        Record result = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record result = mappedTable.updateItem(r -> r.item(record));
         assertThat(result, is(record));
     }
 
@@ -475,12 +474,12 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four");
-        Record result = mappedTable.updateItem(Record.class, r -> r.item(record2));
+        Record result = mappedTable.updateItem(r -> r.item(record2));
 
         assertThat(result, is(record2));
     }
@@ -494,7 +493,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
@@ -522,12 +521,12 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         ShortRecord record2 = new ShortRecord()
                                          .setId("id-value")
                                          .setSort("sort-value")
                                          .setAttribute("four");
-        ShortRecord shortResult = mappedShortTable.updateItem(ShortRecord.class, r -> r.item(record2));
+        ShortRecord shortResult = mappedShortTable.updateItem(r -> r.item(record2));
         Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue(record.getId()).sortValue(record.getSort())));
 
         Record expectedResult = new Record()
@@ -549,7 +548,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         Record updateRecord = new Record().setId("id-value").setSort("sort-value");
 
         Record result = mappedTable.updateItem(UpdateItemEnhancedRequest.builder(Record.class)
@@ -569,7 +568,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         record.setAttribute("four");
 
         Expression conditionExpression = Expression.builder()
@@ -598,7 +597,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.putItem(Record.class, r -> r.item(record));
+        mappedTable.putItem(r -> r.item(record));
         record.setAttribute("four");
 
         Expression conditionExpression = Expression.builder()
@@ -622,7 +621,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                          .setId("id-value")
                                          .setSort("sort-value")
                                          .setAttribute("one");
-        mappedShortTable.putItem(ShortRecord.class, r -> r.item(shortRecord));
+        mappedShortTable.putItem(r -> r.item(shortRecord));
         Record expectedRecord = new Record()
                                       .setId("id-value")
                                       .setSort("sort-value")

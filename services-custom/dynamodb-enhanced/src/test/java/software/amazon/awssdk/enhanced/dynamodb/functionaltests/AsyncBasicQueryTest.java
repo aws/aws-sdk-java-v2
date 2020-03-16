@@ -126,7 +126,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)).join());
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)).join());
     }
     
     @Before
@@ -143,11 +143,11 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void queryAllRecordsDefaultSettings() {
+    public void queryAllRecordsDefaultSettings_usingShortcutForm() {
         insertRecords();
 
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("id-value"))));
+            mappedTable.query(keyEqualTo(k -> k.partitionValue("id-value")));
         
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);

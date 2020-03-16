@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentMap;
 
 import org.junit.Test;
@@ -104,6 +105,22 @@ public class EnhancedTypeTest {
         EnhancedType<Deque<String>> type = EnhancedType.dequeOf(EnhancedType.of(String.class));
 
         assertThat(type.rawClass()).isEqualTo(Deque.class);
+        assertThat(type.rawClassParameters()).containsExactly(EnhancedType.of(String.class));
+    }
+
+    @Test
+    public void sortedSetOf_ReturnsRawClassOfDeque_WhenSpecifyingClass() {
+        EnhancedType<SortedSet<String>> type = EnhancedType.sortedSetOf(String.class);
+
+        assertThat(type.rawClass()).isEqualTo(SortedSet.class);
+        assertThat(type.rawClassParameters()).containsExactly(EnhancedType.of(String.class));
+    }
+
+    @Test
+    public void sortedSetOf_ReturnsRawClassOfDeque_WhenSpecifyingEnhancedType() {
+        EnhancedType<SortedSet<String>> type = EnhancedType.sortedSetOf(EnhancedType.of(String.class));
+
+        assertThat(type.rawClass()).isEqualTo(SortedSet.class);
         assertThat(type.rawClassParameters()).containsExactly(EnhancedType.of(String.class));
     }
 

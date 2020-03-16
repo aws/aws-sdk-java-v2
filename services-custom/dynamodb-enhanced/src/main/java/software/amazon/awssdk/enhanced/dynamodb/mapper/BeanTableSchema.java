@@ -97,11 +97,9 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
 
     private final StaticTableSchema<T> wrappedTableSchema;
-    private final Class<T> beanClass;
 
-    private BeanTableSchema(StaticTableSchema<T> staticTableSchema, Class<T> beanClass) {
+    private BeanTableSchema(StaticTableSchema<T> staticTableSchema) {
         this.wrappedTableSchema = staticTableSchema;
-        this.beanClass = beanClass;
     }
 
     /**
@@ -112,15 +110,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
      * @return An initialized {@link BeanTableSchema}
      */
     public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
-        return new BeanTableSchema<>(createStaticTableSchema(beanClass), beanClass);
-    }
-
-    /**
-     * Returns the bean class this object was created with.
-     * @return The bean class that was supplied to the static constructor of this object.
-     */
-    public Class<T> beanClass() {
-        return this.beanClass;
+        return new BeanTableSchema<>(createStaticTableSchema(beanClass));
     }
 
     /**
@@ -170,6 +160,11 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
     @Override
     public TableMetadata tableMetadata() {
         return wrappedTableSchema.tableMetadata();
+    }
+
+    @Override
+    public EnhancedType<T> itemType() {
+        return wrappedTableSchema.itemType();
     }
 
     private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass) {

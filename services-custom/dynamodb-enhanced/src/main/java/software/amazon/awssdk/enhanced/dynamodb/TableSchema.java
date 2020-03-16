@@ -108,4 +108,11 @@ public interface TableSchema<T> {
      * @return A {@link TableMetadata} object that contains structural information about the table being modelled.
      */
     TableMetadata tableMetadata();
+
+    /**
+     * Returns the {@link EnhancedType} that represents the 'Type' of the Java object this table schema object maps to
+     * and from.
+     * @return The {@link EnhancedType} of the modelled item this TableSchema maps to.
+     */
+    EnhancedType<T> itemType();
 }

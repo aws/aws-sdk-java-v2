@@ -40,6 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
@@ -121,6 +122,11 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
+    public CompletableFuture<T> deleteItem(Key key) {
+        return deleteItem(r -> r.key(key));
+    }
+
+    @Override
     public CompletableFuture<T> getItem(GetItemEnhancedRequest request) {
         TableOperation<T, ?, ?, T> operation = GetItemOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
@@ -131,6 +137,11 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
         GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return getItem(builder.build());
+    }
+
+    @Override
+    public CompletableFuture<T> getItem(Key key) {
+        return getItem(r -> r.key(key));
     }
 
     @Override
@@ -147,17 +158,27 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
+    public SdkPublisher<Page<T>> query(QueryConditional queryConditional) {
+        return query(r -> r.queryConditional(queryConditional));
+    }
+
+    @Override
     public CompletableFuture<Void> putItem(PutItemEnhancedRequest<T> request) {
         TableOperation<T, ?, ?, Void> operation = PutItemOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
-    public CompletableFuture<Void> putItem(Class<? extends T> itemClass,
-                                           Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
-        PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(itemClass);
+    public CompletableFuture<Void> putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        PutItemEnhancedRequest.Builder<T> builder =
+            PutItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
         return putItem(builder.build());
+    }
+
+    @Override
+    public CompletableFuture<Void> putItem(T item) {
+        return putItem(r -> r.item(item));
     }
 
     @Override
@@ -185,11 +206,16 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
-    public CompletableFuture<T> updateItem(Class<? extends T> itemClass,
-                                           Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
-        UpdateItemEnhancedRequest.Builder<T> builder = UpdateItemEnhancedRequest.builder(itemClass);
+    public CompletableFuture<T> updateItem(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        UpdateItemEnhancedRequest.Builder<T> builder =
+            UpdateItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
         return updateItem(builder.build());
+    }
+
+    @Override
+    public CompletableFuture<T> updateItem(T item) {
+        return updateItem(r -> r.item(item));
     }
 
     @Override

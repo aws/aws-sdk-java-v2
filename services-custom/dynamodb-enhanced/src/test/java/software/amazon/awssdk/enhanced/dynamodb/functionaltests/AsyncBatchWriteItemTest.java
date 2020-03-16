@@ -210,7 +210,7 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void singleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
 
         List<WriteBatch> writeBatches =
             singletonList(WriteBatch.builder(Record1.class)
@@ -226,8 +226,8 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void multipleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
 
         List<WriteBatch> writeBatches =
             asList(WriteBatch.builder(Record1.class)
@@ -249,8 +249,8 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void mixedCommands() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
 
         enhancedAsyncClient.batchWriteItem(r -> r.writeBatches(
             WriteBatch.builder(Record1.class)

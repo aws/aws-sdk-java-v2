@@ -209,7 +209,7 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void singleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
 
         WriteBatch singleDeleteBatch = WriteBatch.builder(Record1.class)
                                                  .mappedTableResource(mappedTable1)
@@ -229,8 +229,8 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void multipleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
 
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
             BatchWriteItemEnhancedRequest.builder()
@@ -255,8 +255,8 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void mixedCommands() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0)));
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
 
         enhancedClient.batchWriteItem(r -> r.writeBatches(
             WriteBatch.builder(Record1.class)
