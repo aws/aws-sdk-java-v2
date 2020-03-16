@@ -152,12 +152,12 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.delete(DeleteItemEnhancedRequest.builder().key(key).build()).join();
+     * MyItem previouslyPersistedItem = mappedTable.delete(DeleteItemEnhancedRequest.builder().key(key).build()).join();
      * }
      * </pre>
      *
      * @param request A {@link DeleteItemEnhancedRequest} with key and optional directives for deleting an item from the table.
-     * @return a {@link CompletableFuture} of the deleted item
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> deleteItem(DeleteItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
@@ -179,13 +179,13 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.delete(r -> r.key(key)).join();
+     * MyItem previouslyPersistedItem = mappedTable.delete(r -> r.key(key)).join();
      * }
      * </pre>
      *
      * @param requestConsumer A {@link Consumer} of {@link DeleteItemEnhancedRequest} with key and
      * optional directives for deleting an item from the table.
-     * @return a {@link CompletableFuture} of the deleted item
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
@@ -201,14 +201,36 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.delete(key);
+     * MyItem previouslyPersistedItem = mappedTable.delete(key).join;
      * }
      * </pre>
      *
      * @param key A {@link Key} that will be used to match a specific record to delete from the database table.
-     * @return a {@link CompletableFuture} of the deleted item
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> deleteItem(Key key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using just the key of a supplied modelled 'key item' object.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem previouslyPersistedItem = mappedTable.deleteItem(keyItem).join();
+     * }
+     * </pre>
+     *
+     * @param keyItem A modelled item with the primary key fields set that will be used to match a specific record to
+     *                delete from the database table.
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
+     */
+    default CompletableFuture<T> deleteItem(T keyItem) {
         throw new UnsupportedOperationException();
     }
 
@@ -230,7 +252,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * </pre>
      *
      * @param request A {@link GetItemEnhancedRequest} with key and optional directives for retrieving an item from the table.
-     * @return a {@link CompletableFuture} of the retrieved item
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> getItem(GetItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
@@ -274,7 +296,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * MyItem item = mappedTable.getItem(key);
+     * MyItem item = mappedTable.getItem(key).join();
      * }
      * </pre>
      *
@@ -282,6 +304,28 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * @return a {@link CompletableFuture} of the retrieved item
      */
     default CompletableFuture<T> getItem(Key key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Retrieves a single item from the mapped table using just the key of a supplied modelled 'key item'.
+     * <p>
+     * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.getItem(keyItem).join();
+     * }
+     * </pre>
+     *
+     * @param keyItem A modelled item with the primary key fields set that will be used to match a specific record to
+     *                retrieve from the database table.
+     * @return a {@link CompletableFuture} of the retrieved item
+     */
+    default CompletableFuture<T> getItem(T keyItem) {
         throw new UnsupportedOperationException();
     }
 
@@ -588,7 +632,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * MyItem item = mappedTable.updateItem(item);
+     * MyItem item = mappedTable.updateItem(item).join();
      * }
      * </pre>
      *

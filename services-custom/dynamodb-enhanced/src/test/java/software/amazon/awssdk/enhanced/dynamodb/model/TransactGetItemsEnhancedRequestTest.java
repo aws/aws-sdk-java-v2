@@ -68,8 +68,8 @@ public class TransactGetItemsEnhancedRequestTest {
 
         TransactGetItemsEnhancedRequest builtObject =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(k -> k.partitionValue(fakeItem.getId())))
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(k -> k.partitionValue(fakeItem.getId())))
+                                           .addGetItem(fakeItemMappedTable, fakeItem)
+                                           .addGetItem(fakeItemMappedTable, fakeItem)
                                            .build();
 
         assertThat(builtObject.transactGetItems(), is(getTransactGetItems(fakeItem)));

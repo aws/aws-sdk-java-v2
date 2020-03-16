@@ -32,8 +32,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
  * Synchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
  * and therefore knows how to map records from that table into a modelled object.
  * <p>
- * By default, all command methods throw an {@link UnsupportedOperationException} to prevent interface extensions from breaking
- * implementing classes.
+ * By default, all command methods throw an {@link UnsupportedOperationException} to prevent interface extensions from
+ * breaking implementing classes.
  * <p>
  * @param <T> The type of the modelled object.
  */
@@ -55,10 +55,10 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * <p>
      * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
      * <p>
-     * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous operation and that
-     * the table may not immediately be available for writes and reads. Currently, there is no mechanism supported within this
-     * library to wait for/check the status of a created table. You must provide this functionality yourself.
-     * Consult the CreateTable documentation for further details and constraints.
+     * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous
+     * operation and that the table may not immediately be available for writes and reads. Currently, there is no
+     * mechanism supported within this library to wait for/check the status of a created table. You must provide this
+     * functionality yourself. Consult the CreateTable documentation for further details and constraints.
      * <p>
      * Example:
      * <pre>
@@ -86,13 +86,13 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * <p>
      * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
      * <p>
-     * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous operation and that
-     * the table may not immediately be available for writes and reads. Currently, there is no mechanism supported within this
-     * library to wait for/check the status of a created table. You must provide this functionality yourself.
-     * Consult the CreateTable documentation for further details and constraints.
+     * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous
+     * operation and that the table may not immediately be available for writes and reads. Currently, there is no
+     * mechanism supported within this library to wait for/check the status of a created table. You must provide this
+     * functionality yourself. Consult the CreateTable documentation for further details and constraints.
      * <p>
-     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
-     * manually via {@link CreateTableEnhancedRequest#builder()}.
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link CreateTableEnhancedRequest#builder()}.
      * <p>
      * Example:
      * <pre>
@@ -106,8 +106,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * }
      * </pre>
      *
-     * @param requestConsumer A {@link Consumer} of {@link CreateTableEnhancedRequest.Builder} containing optional parameters
-     * for table creation.
+     * @param requestConsumer A {@link Consumer} of {@link CreateTableEnhancedRequest.Builder} containing optional
+     *                        parameters for table creation.
      */
     default void createTable(Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
@@ -118,10 +118,10 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * <p>
      * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
      * <p>
-     * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous operation and that
-     * the table may not immediately be available for writes and reads. Currently, there is no mechanism supported within this
-     * library to wait for/check the status of a created table. You must provide this functionality yourself.
-     * Consult the CreateTable documentation for further details and constraints.
+     * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous
+     * operation and that the table may not immediately be available for writes and reads. Currently, there is no
+     * mechanism supported within this library to wait for/check the status of a created table. You must provide this
+     * functionality yourself. Consult the CreateTable documentation for further details and constraints.
      * <p>
      * Example:
      * <pre>
@@ -149,12 +149,13 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.delete(DeleteItemEnhancedRequest.builder().key(key).build());
+     * MyItem previouslyPersistedItem = mappedTable.delete(DeleteItemEnhancedRequest.builder().key(key).build());
      * }
      * </pre>
      *
-     * @param request A {@link DeleteItemEnhancedRequest} with key and optional directives for deleting an item from the table.
-     * @return The deleted item
+     * @param request A {@link DeleteItemEnhancedRequest} with key and optional directives for deleting an item from the
+     *                table.
+     * @return The item that was persisted in the database before it was deleted.
      */
     default T deleteItem(DeleteItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
@@ -169,20 +170,20 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
      * further details and constraints.
      * <p>
-     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
-     * manually via {@link DeleteItemEnhancedRequest#builder()}.
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link DeleteItemEnhancedRequest#builder()}.
      * <p>
      * Example:
      * <pre>
      * {@code
      *
-     * mappedTable.delete(r -> r.key(key));
+     * MyItem previouslyPersistedItem = mappedTable.delete(r -> r.key(key));
      * }
      * </pre>
      *
      * @param requestConsumer A {@link Consumer} of {@link DeleteItemEnhancedRequest} with key and
      * optional directives for deleting an item from the table.
-     * @return The deleted item
+     * @return The item that was persisted in the database before it was deleted.
      */
     default T deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
@@ -198,14 +199,36 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.delete(key);
+     * MyItem previouslyPersistedItem = mappedTable.delete(key);
      * }
      * </pre>
      *
      * @param key A {@link Key} that will be used to match a specific record to delete from the database table.
-     * @return The deleted item
+     * @return The item that was persisted in the database before it was deleted.
      */
     default T deleteItem(Key key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using just the key of a supplied modelled 'key item' object.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem previouslyPersistedItem = mappedTable.deleteItem(keyItem);
+     * }
+     * </pre>
+     *
+     * @param keyItem A modelled item with the primary key fields set that will be used to match a specific record to
+     *                delete from the database table.
+     * @return The item that was persisted in the database before it was deleted.
+     */
+    default T deleteItem(T keyItem) {
         throw new UnsupportedOperationException();
     }
 
@@ -243,8 +266,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
      * further details and constraints.
      * <p>
-     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
-     * manually via {@link GetItemEnhancedRequest#builder()}.
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link GetItemEnhancedRequest#builder()}.
      * <p>
      * Example:
      * <pre>
@@ -254,8 +277,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * }
      * </pre>
      *
-     * @param requestConsumer A {@link Consumer} of {@link GetItemEnhancedRequest.Builder} with key and optional directives
-     * for retrieving an item from the table.
+     * @param requestConsumer A {@link Consumer} of {@link GetItemEnhancedRequest.Builder} with key and optional
+     *                        directives for retrieving an item from the table.
      * @return The retrieved item
      */
     default T getItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
@@ -284,8 +307,30 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     }
 
     /**
-     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a list of
-     * items matching the given conditions.
+     * Retrieves a single item from the mapped table using just the key of a supplied modelled 'key item'.
+     * <p>
+     * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.getItem(keyItem);
+     * }
+     * </pre>
+     *
+     * @param keyItem A modelled item with the primary key fields set that will be used to match a specific record to
+     *                retrieve from the database table.
+     * @return The retrieved item
+     */
+    default T getItem(T keyItem) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a
+     * list of items matching the given conditions.
      * <p>
      * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
      * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
@@ -318,8 +363,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     }
 
     /**
-     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a list of
-     * items matching the given conditions.
+     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a
+     * list of items matching the given conditions.
      * <p>
      * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
      * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
@@ -332,8 +377,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
      * further details and constraints.
      * <p>
-     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
-     * manually via {@link DeleteItemEnhancedRequest#builder()}.
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link DeleteItemEnhancedRequest#builder()}.
      * <p>
      * Example:
      * <pre>
@@ -344,8 +389,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * }
      * </pre>
      *
-     * @param requestConsumer A {@link Consumer} of {@link QueryEnhancedRequest} defining the query conditions and how to
-     * handle the results.
+     * @param requestConsumer A {@link Consumer} of {@link QueryEnhancedRequest} defining the query conditions and how
+     *                        to handle the results.
      * @return an iterator of type {@link SdkIterable} with paginated results (see {@link Page}).
      */
     default SdkIterable<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
@@ -381,8 +426,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     }
 
     /**
-     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be replaced with
-     * this item.
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link PutItemEnhancedRequest}.
@@ -406,8 +451,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     }
 
     /**
-     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be replaced with
-     * this item.
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link PutItemEnhancedRequest}.

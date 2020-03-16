@@ -180,6 +180,39 @@ public class BatchWriteItemOperationTest {
     }
 
     @Test
+    public void generateRequest_multipleTables_mixedCommands_usingKeyItemForm() {
+        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
+            BatchWriteItemEnhancedRequest.builder()
+                                         .writeBatches(
+                                             WriteBatch.builder(FakeItem.class)
+                                                       .mappedTableResource(fakeItemMappedTable)
+                                                       .addPutItem(FAKE_ITEMS.get(0))
+                                                       .addDeleteItem(FAKE_ITEMS.get(1))
+                                                       .addPutItem(FAKE_ITEMS.get(2))
+                                                       .build(),
+                                             WriteBatch.builder(FakeItemWithSort.class)
+                                                       .mappedTableResource(fakeItemWithSortMappedTable)
+                                                       .addDeleteItem(FAKESORT_ITEMS.get(0))
+                                                       .addPutItem(FAKESORT_ITEMS.get(1))
+                                                       .addDeleteItem(FAKESORT_ITEMS.get(2))
+                                                       .build())
+                                         .build();
+
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(batchWriteItemEnhancedRequest);
+
+        BatchWriteItemRequest request = operation.generateRequest(mockExtension);
+
+        List<WriteRequest> writeRequests1 = request.requestItems().get(TABLE_NAME);
+        List<WriteRequest> writeRequests2 = request.requestItems().get(TABLE_NAME_2);
+        assertThat(writeRequests1, containsInAnyOrder(putRequest(FAKE_ITEM_MAPS.get(0)),
+                                                      deleteRequest(FAKE_ITEM_MAPS.get(1)),
+                                                      putRequest(FAKE_ITEM_MAPS.get(2))));
+        assertThat(writeRequests2, containsInAnyOrder(deleteRequest(FAKESORT_ITEM_MAPS.get(0)),
+                                                      putRequest(FAKESORT_ITEM_MAPS.get(1)),
+                                                      deleteRequest(FAKESORT_ITEM_MAPS.get(2))));
+    }
+
+    @Test
     public void generateRequest_multipleTables_extensionOnlyTransformsPutsAndNotDeletes() {
 
         // Use the mock extension to transform every item based on table name

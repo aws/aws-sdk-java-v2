@@ -266,7 +266,12 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute3("three");
 
         mappedTable.putItem(r -> r.item(record)).join();
-        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
+
+        Record keyItem = new Record();
+        keyItem.setId("id-value");
+        keyItem.setSort("sort-value");
+
+        Record result = mappedTable.getItem(keyItem).join();
 
         assertThat(result, is(record));
     }
@@ -312,6 +317,25 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.putItem(record).join();
         Record beforeDeleteResult =
             mappedTable.deleteItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build()).join();
+        Record afterDeleteResult =
+            mappedTable.getItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build()).join();
+
+        assertThat(beforeDeleteResult, is(record));
+        assertThat(afterDeleteResult, is(nullValue()));
+    }
+
+    @Test
+    public void putThenDeleteItem_usingKeyItemForm() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        mappedTable.putItem(record).join();
+        Record beforeDeleteResult =
+            mappedTable.deleteItem(record).join();
         Record afterDeleteResult =
             mappedTable.getItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build()).join();
 
