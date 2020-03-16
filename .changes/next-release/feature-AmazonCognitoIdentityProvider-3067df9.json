@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "description": "Additional response field \"CompromisedCredentialsDetected\" added to AdminListUserAuthEvents."
-}

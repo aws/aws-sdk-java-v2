@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "description": "This release adds the ability to update the task placement strategy and constraints for Amazon ECS services."
-}

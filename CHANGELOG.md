@@ -1,3 +1,32 @@
+# __2.10.87__ __2020-03-16__
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 now supports Batch Operations job tagging.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Additional response field "CompromisedCredentialsDetected" added to AdminListUserAuthEvents.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - The enhanced DDB client table schema now supports custom AttributeConverterProviders, and StaticAttribute can take individual AttributeConverter to override default attribute converter behavior.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds the ability to update the task placement strategy and constraints for Amazon ECS services.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache now supports Global Datastore for Redis. Global Datastore for Redis offers fully managed, fast, reliable and secure cross-region replication. Using Global Datastore for Redis, you can create cross-region read replica clusters for ElastiCache for Redis to enable low-latency reads and disaster recovery across regions. You can create, modify and describe a Global Datastore, as well as add or remove regions from your Global Datastore and promote a region as primary in Global Datastore.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Resource data sync for AWS Systems Manager Inventory now includes destination data sharing. This feature enables you to synchronize inventory data from multiple AWS accounts into a central Amazon S3 bucket. To use this feature, all AWS accounts must be listed in AWS Organizations.
+
 # __2.10.86__ __2020-03-13__
 ## __Amazon AppConfig__
   - ### Features
