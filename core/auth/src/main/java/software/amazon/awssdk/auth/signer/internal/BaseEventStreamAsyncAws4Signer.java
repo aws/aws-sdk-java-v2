@@ -28,6 +28,7 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -67,7 +68,6 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
 
     @Override
     protected AsyncRequestBody transformRequestProvider(String headerSignature,
-                                                        byte[] signingKey,
                                                         Aws4SignerRequestParams signerRequestParams,
                                                         Aws4SignerParams signerParams,
                                                         AsyncRequestBody asyncRequestBody) {
@@ -80,7 +80,8 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
          * Map publisher with signing function
          */
         Publisher<ByteBuffer> publisherWithSignedFrame =
-            transformRequestBodyPublisher(publisherWithTrailingEmptyFrame, headerSignature, signingKey, signerRequestParams);
+            transformRequestBodyPublisher(publisherWithTrailingEmptyFrame, headerSignature,
+                                          signerParams.awsCredentials(), signerRequestParams);
 
         AsyncRequestBody transformedRequestBody = AsyncRequestBody.fromPublisher(publisherWithSignedFrame);
 
@@ -105,16 +106,16 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
     }
 
     private Publisher<ByteBuffer> transformRequestBodyPublisher(Publisher<ByteBuffer> publisher, String headerSignature,
-                                                                byte[] signingKey, Aws4SignerRequestParams signerRequestParams) {
+                                                                AwsCredentials credentials,
+                                                                Aws4SignerRequestParams signerRequestParams) {
         return SdkPublisher.adapt(publisher)
-                           .map(getDataFrameSigner(headerSignature, signingKey, signerRequestParams));
+                           .map(getDataFrameSigner(headerSignature, credentials, signerRequestParams));
     }
 
-    private Function<ByteBuffer, ByteBuffer> getDataFrameSigner(String headerSignature, byte[] signingKey,
+    private Function<ByteBuffer, ByteBuffer> getDataFrameSigner(String headerSignature,
+                                                                AwsCredentials credentials,
                                                                 Aws4SignerRequestParams signerRequestParams) {
         return new Function<ByteBuffer, ByteBuffer>() {
-
-            final byte[] key = signingKey;
             final Aws4SignerRequestParams requestParams = signerRequestParams;
 
             /**
@@ -132,10 +133,19 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
                 nonSignatureHeaders.put(EVENT_STREAM_DATE, HeaderValue.fromTimestamp(signingInstant));
 
                 /**
+                 * Derive Signing Key
+                 */
+                AwsCredentials sanitizedCredentials = sanitizeCredentials(credentials);
+                byte[] signingKey = deriveSigningKey(sanitizedCredentials,
+                                                     signingInstant,
+                                                     requestParams.getRegionName(),
+                                                     requestParams.getServiceSigningName());
+                /**
                  * Calculate rolling signature
                  */
+
                 byte[] payload = byteBuffer.array();
-                byte[] signatureBytes = signEventStream(priorSignature, key, signingInstant, requestParams,
+                byte[] signatureBytes = signEventStream(priorSignature, signingKey, signingInstant, requestParams,
                                                         nonSignatureHeaders, payload);
                 priorSignature = BinaryUtils.toHex(signatureBytes);
 
@@ -249,5 +259,4 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
             return transformedRequestBody.contentLength();
         }
     }
-
 }

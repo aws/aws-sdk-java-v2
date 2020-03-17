@@ -129,6 +129,11 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public T deleteItem(T keyItem) {
+        return deleteItem(keyFrom(keyItem));
+    }
+
+    @Override
     public T getItem(GetItemEnhancedRequest request) {
         TableOperation<T, ?, ?, T> operation = GetItemOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
@@ -144,6 +149,11 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     public T getItem(Key key) {
         return getItem(r -> r.key(key));
+    }
+
+    @Override
+    public T getItem(T keyItem) {
+        return getItem(keyFrom(keyItem));
     }
 
     @Override

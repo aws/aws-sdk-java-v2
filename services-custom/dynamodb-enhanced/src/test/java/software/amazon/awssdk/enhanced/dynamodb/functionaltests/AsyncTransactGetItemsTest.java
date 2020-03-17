@@ -30,6 +30,7 @@ import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -154,10 +155,10 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
 
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(0)))
-                                           .addGetItem(mappedTable2, r -> r.key(k -> k.partitionValue(0)))
-                                           .addGetItem(mappedTable2, r -> r.key(k -> k.partitionValue(1)))
-                                           .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(1)))
+                                           .addGetItem(mappedTable1, Key.builder().partitionValue(0).build())
+                                           .addGetItem(mappedTable2, Key.builder().partitionValue(0).build())
+                                           .addGetItem(mappedTable2, Key.builder().partitionValue(1).build())
+                                           .addGetItem(mappedTable1, Key.builder().partitionValue(1).build())
                                            .build();
 
         List<Document> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();
@@ -175,10 +176,10 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
 
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(0)))
-                                           .addGetItem(mappedTable2, r -> r.key(k -> k.partitionValue(0)))
-                                           .addGetItem(mappedTable2, r -> r.key(k -> k.partitionValue(5)))
-                                           .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(1)))
+                                           .addGetItem(mappedTable1, Key.builder().partitionValue(0).build())
+                                           .addGetItem(mappedTable2, Key.builder().partitionValue(0).build())
+                                           .addGetItem(mappedTable2, Key.builder().partitionValue(5).build())
+                                           .addGetItem(mappedTable1, Key.builder().partitionValue(1).build())
                                            .build();
 
         List<Document> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();

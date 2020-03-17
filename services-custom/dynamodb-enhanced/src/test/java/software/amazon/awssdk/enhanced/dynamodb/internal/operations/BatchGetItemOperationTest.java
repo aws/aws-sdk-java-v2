@@ -136,6 +136,36 @@ public class BatchGetItemOperationTest {
     }
 
     @Test
+    public void getServiceCall_usingKeyItemForm_makesTheRightCallAndReturnsResponse() {
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
+            BatchGetItemEnhancedRequest.builder()
+                                       .readBatches(ReadBatch.builder(FakeItem.class)
+                                                             .mappedTableResource(fakeItemMappedTable)
+                                                             .addGetItem(FAKE_ITEMS.get(0))
+                                                             .build())
+                                       .build();
+
+        BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
+
+        BatchGetItemRequest batchGetItemRequest =
+            BatchGetItemRequest.builder()
+                               .requestItems(singletonMap("test-table",
+                                                          KeysAndAttributes.builder()
+                                                                           .keys(singletonList(FAKE_ITEM_MAPS.get(0)))
+                                                                           .build()))
+                               .build();
+
+        BatchGetItemIterable expectedResponse = mock(BatchGetItemIterable.class);
+        when(mockDynamoDbClient.batchGetItemPaginator(any(BatchGetItemRequest.class))).thenReturn(expectedResponse);
+
+        SdkIterable<BatchGetItemResponse> response =
+            operation.serviceCall(mockDynamoDbClient).apply(batchGetItemRequest);
+
+        assertThat(response, sameInstance(expectedResponse));
+        verify(mockDynamoDbClient).batchGetItemPaginator(batchGetItemRequest);
+    }
+
+    @Test
     public void generateRequest_multipleBatches_multipleTableSchemas() {
         BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
             BatchGetItemEnhancedRequest.builder()

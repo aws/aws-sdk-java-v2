@@ -20,7 +20,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -57,11 +56,8 @@ public abstract class BaseAsyncAws4Signer extends BaseAws4Signer implements Asyn
     @SdkTestInternalApi
     protected final AsyncRequestBody signAsync(SdkHttpFullRequest request, AsyncRequestBody asyncRequestBody,
                                                Aws4SignerRequestParams requestParams, Aws4SignerParams signingParams) {
-        AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
-        byte[] signingKey = deriveSigningKey(sanitizedCredentials, requestParams);
-
         String headerSignature = getHeaderSignature(request);
-        return transformRequestProvider(headerSignature, signingKey, requestParams, signingParams, asyncRequestBody);
+        return transformRequestProvider(headerSignature, requestParams, signingParams, asyncRequestBody);
     }
 
     /**
@@ -70,7 +66,6 @@ public abstract class BaseAsyncAws4Signer extends BaseAws4Signer implements Asyn
      * Can be overriden by subclasses to provide specific signing method
      */
     protected abstract AsyncRequestBody transformRequestProvider(String headerSignature,
-                                                                 byte[] signingKey,
                                                                  Aws4SignerRequestParams signerRequestParams,
                                                                  Aws4SignerParams signerParams,
                                                                  AsyncRequestBody asyncRequestBody);
