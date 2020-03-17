@@ -20,7 +20,9 @@ import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_C
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -143,7 +145,6 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
                 /**
                  * Calculate rolling signature
                  */
-
                 byte[] payload = byteBuffer.array();
                 byte[] signatureBytes = signEventStream(priorSignature, signingKey, signingInstant, requestParams,
                                                         nonSignatureHeaders, payload);
@@ -160,6 +161,13 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
                  * Encode signed event to byte
                  */
                 Message signedMessage = new Message(sortHeaders(headers), payload);
+
+                if (LOG.isLoggingLevelEnabled("trace")) {
+                    LOG.trace(() -> "Signed message: " + toDebugString(signedMessage, false));
+                } else {
+                    LOG.debug(() -> "Signed message: " + toDebugString(signedMessage, true));
+                }
+
                 return signedMessage.toByteBuffer();
             }
         };
@@ -258,5 +266,36 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
         public Optional<Long> contentLength() {
             return transformedRequestBody.contentLength();
         }
+    }
+
+    static String toDebugString(Message m, boolean truncatePayload) {
+        StringBuilder sb = new StringBuilder("Message = {headers={");
+        Map<String, HeaderValue> headers = m.getHeaders();
+
+        Iterator<Map.Entry<String, HeaderValue>> headersIter = headers.entrySet().iterator();
+
+        while (headersIter.hasNext()) {
+            Map.Entry<String, HeaderValue> h = headersIter.next();
+
+            sb.append(h.getKey()).append("={").append(h.getValue().toString()).append("}");
+
+            if (headersIter.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        sb.append("}, payload=");
+
+        byte[] payload = m.getPayload();
+
+        byte[] payloadToLog;
+        if (truncatePayload) {
+            // Would be nice if BinaryUtils.toHex() could take an array index range instead so we don't need to copy
+            payloadToLog = Arrays.copyOf(payload, Math.min(32, payload.length));
+        } else {
+            payloadToLog = payload;
+        }
+
+        return sb.append(BinaryUtils.toHex(payloadToLog)).append("}").toString();
     }
 }
