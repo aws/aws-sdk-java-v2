@@ -180,8 +180,9 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
                                                                                       resultKeyType)))
                          .addCode(getIteratorLambdaBlock(resultKey, resultKeyModel))
                          .addCode("\n")
-                         .addStatement("return $T.builder().pagesIterable(this).itemIteratorFunction(getIterator).build()",
-                                       PaginatedItemsIterable.class)
+                         .addStatement("return $T.<$T, $T>builder().pagesIterable(this).itemIteratorFunction(getIterator).build"
+                                       + "()",
+                                       PaginatedItemsIterable.class, responseType(), resultKeyType)
                          .addJavadoc(CodeBlock.builder()
                                               .add("Returns an iterable to iterate through the paginated {@link $T#$L()} member."
                                                    + " The returned iterable is used to iterate through the results across all "

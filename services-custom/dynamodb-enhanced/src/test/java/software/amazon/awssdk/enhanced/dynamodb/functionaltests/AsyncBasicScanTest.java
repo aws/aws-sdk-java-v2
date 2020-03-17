@@ -138,6 +138,16 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void scanAllRecordsDefaultSettings_viaItems() {
+        insertRecords();
+
+        SdkPublisher<Record> publisher = mappedTable.scan(ScanEnhancedRequest.builder().build()).items();
+        List<Record> results = drainPublisher(publisher, 10);
+
+        assertThat(results, is(RECORDS));
+    }
+
+    @Test
     public void scanAllRecordsWithFilter() {
         insertRecords();
         Map<String, AttributeValue> expressionValues = new HashMap<>();
@@ -160,10 +170,31 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void scanAllRecordsWithFilter_viaItems() {
+        insertRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                                          .expression("sort >= :min_value AND sort <= :max_value")
+                                          .expressionValues(expressionValues)
+                                          .build();
+
+        SdkPublisher<Record> publisher =
+            mappedTable.scan(ScanEnhancedRequest.builder().filterExpression(expression).build()).items();
+
+        List<Record> results = drainPublisher(publisher, 3);
+
+        assertThat(results,
+                   is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
+    }
+
+    @Test
     public void scanLimit() {
         insertRecords();
 
         SdkPublisher<Page<Record>> publisher = mappedTable.scan(r -> r.limit(5));
+        publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
 
         List<Page<Record>> results = drainPublisher(publisher, 3);
 
@@ -180,6 +211,15 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void scanLimit_viaItems() {
+        insertRecords();
+
+        SdkPublisher<Record> publisher = mappedTable.scan(r -> r.limit(5)).items();
+        List<Record> results = drainPublisher(publisher, 10);
+        assertThat(results, is(RECORDS));
+    }
+
+    @Test
     public void scanEmpty() {
         SdkPublisher<Page<Record>> publisher = mappedTable.scan();
         List<Page<Record>> results = drainPublisher(publisher, 1);
@@ -187,6 +227,14 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
 
         assertThat(page.items(), is(empty()));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanEmpty_viaItems() {
+        SdkPublisher<Record> publisher = mappedTable.scan().items();
+        List<Record> results = drainPublisher(publisher, 0);
+
+        assertThat(results, is(empty()));
     }
 
     @Test
@@ -200,6 +248,17 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
 
         assertThat(page.items(), is(RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanExclusiveStartKey_viaItems() {
+        insertRecords();
+        SdkPublisher<Record> publisher =
+            mappedTable.scan(ScanEnhancedRequest.builder().exclusiveStartKey(getKeyMap(7)).build()).items();
+
+        List<Record> results = drainPublisher(publisher, 2);
+
+        assertThat(results, is(RECORDS.subList(8, 10)));
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {

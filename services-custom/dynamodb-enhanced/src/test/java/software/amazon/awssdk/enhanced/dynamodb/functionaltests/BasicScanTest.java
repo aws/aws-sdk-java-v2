@@ -35,6 +35,7 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -127,6 +128,8 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     public void scanAllRecordsDefaultSettings() {
         insertRecords();
 
+        mappedTable.scan(ScanEnhancedRequest.builder().build())
+                   .forEach(p -> p.items().forEach(item -> System.out.println(item)));
         Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.builder().build()).iterator();
 
         assertThat(results.hasNext(), is(true));
@@ -135,6 +138,14 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
 
         assertThat(page.items(), is(RECORDS));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecordsDefaultSettings_viaItems() {
+        insertRecords();
+
+        SdkIterable<Record> items = mappedTable.scan(ScanEnhancedRequest.builder().limit(2).build()).items();
+        assertThat(items.stream().collect(Collectors.toList()), is(RECORDS));
     }
 
     @Test
@@ -181,6 +192,13 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
+    public void scanLimit_viaItems() {
+        insertRecords();
+        SdkIterable<Record> results = mappedTable.scan(r -> r.limit(5)).items();
+        assertThat(results.stream().collect(Collectors.toList()), is(RECORDS));
+    }
+
+    @Test
     public void scanEmpty() {
         Iterator<Page<Record>> results = mappedTable.scan().iterator();
         assertThat(results.hasNext(), is(true));
@@ -188,6 +206,12 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(empty()));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanEmpty_viaItems() {
+        Iterator<Record> results = mappedTable.scan().items().iterator();
+        assertThat(results.hasNext(), is(false));
     }
 
     @Test
@@ -201,6 +225,14 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanExclusiveStartKey_viaItems() {
+        insertRecords();
+        SdkIterable<Record> results =
+            mappedTable.scan(r -> r.exclusiveStartKey(getKeyMap(7))).items();
+        assertThat(results.stream().collect(Collectors.toList()), is(RECORDS.subList(8, 10)));
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {

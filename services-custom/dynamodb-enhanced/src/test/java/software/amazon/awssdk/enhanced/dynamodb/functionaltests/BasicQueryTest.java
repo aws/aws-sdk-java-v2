@@ -37,12 +37,14 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -156,6 +158,16 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
+    public void queryAllRecordsDefaultSettings_shortcutForm_viaItems() {
+        insertRecords();
+
+        PageIterable<Record> query = mappedTable.query(keyEqualTo(k -> k.partitionValue("id-value")));
+        SdkIterable<Record> results = query.items();
+
+        assertThat(results.stream().collect(Collectors.toList()), is(RECORDS));
+    }
+
+    @Test
     public void queryAllRecordsWithFilter() {
         insertRecords();
         Map<String, AttributeValue> expressionValues = new HashMap<>();
@@ -242,6 +254,14 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
+    public void queryEmpty_viaItems() {
+        PageIterable<Record> query = mappedTable.query(keyEqualTo(k -> k.partitionValue("id-value")));
+        SdkIterable<Record> results = query.items();
+
+        assertThat(results.stream().collect(Collectors.toList()), is(empty()));
+    }
+
+    @Test
     public void queryExclusiveStartKey() {
         Map<String, AttributeValue> exclusiveStartKey = new HashMap<>();
         exclusiveStartKey.put("id", stringValue("id-value"));
@@ -259,5 +279,21 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryExclusiveStartKey_viaItems() {
+        Map<String, AttributeValue> exclusiveStartKey = new HashMap<>();
+        exclusiveStartKey.put("id", stringValue("id-value"));
+        exclusiveStartKey.put("sort", numberValue(7));
+        insertRecords();
+        SdkIterable<Record> results =
+            mappedTable.query(QueryEnhancedRequest.builder()
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                  .exclusiveStartKey(exclusiveStartKey)
+                                                  .build())
+                       .items();
+
+        assertThat(results.stream().collect(Collectors.toList()), is(RECORDS.subList(8, 10)));
     }
 }

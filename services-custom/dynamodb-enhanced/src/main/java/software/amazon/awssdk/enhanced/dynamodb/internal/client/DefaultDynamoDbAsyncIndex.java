@@ -55,7 +55,7 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
 
     @Override
     public SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
-        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
+        PaginatedIndexOperation<T, ?, ?> operation = QueryOperation.create(request);
         return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, extension, dynamoDbClient);
     }
 
@@ -73,7 +73,7 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
 
     @Override
     public SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
-        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
+        PaginatedIndexOperation<T, ?, ?> operation = ScanOperation.create(request);
         return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, extension, dynamoDbClient);
     }
 
