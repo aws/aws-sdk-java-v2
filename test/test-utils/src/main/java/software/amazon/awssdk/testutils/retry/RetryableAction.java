@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public final class RetryableAction<T> {
     public static <T> T doRetryableAction(Callable<T> callable, RetryableParams params) throws
                                                                                         Exception {
         Validate.isTrue(params.getMaxAttempts() > 0, "maxAttempts");
-        return new RetryableAction<T>(callable, params).call();
+        return new RetryableAction<>(callable, params).call();
     }
 
     private T call() throws Exception {

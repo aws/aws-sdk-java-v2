@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -158,5 +159,46 @@ public class BinaryUtilsTest {
         assertFalse(partial1 == partial2);
         assertTrue(partial1.length == 3);
         assertTrue(Arrays.equals(new byte[] {2, 3, 4}, partial1));
+    }
+
+    @Test
+    public void testCopyRemainingBytesFrom_nullBuffer() {
+        assertThat(BinaryUtils.copyRemainingBytesFrom(null)).isNull();
+    }
+
+    @Test
+    public void testCopyRemainingBytesFrom_noRemainingBytes() {
+        ByteBuffer bb = ByteBuffer.allocate(1);
+        bb.put(new byte[]{1});
+        bb.flip();
+
+        bb.get();
+
+        assertThat(BinaryUtils.copyRemainingBytesFrom(bb)).hasSize(0);
+    }
+
+    @Test
+    public void testCopyRemainingBytesFrom_fullBuffer() {
+        ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.put(new byte[]{1, 2, 3, 4});
+        bb.flip();
+
+        byte[] copy = BinaryUtils.copyRemainingBytesFrom(bb);
+        assertThat(bb).isEqualTo(ByteBuffer.wrap(copy));
+        assertThat(copy).hasSize(4);
+    }
+
+    @Test
+    public void testCopyRemainingBytesFrom_partiallyReadBuffer() {
+        ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.put(new byte[]{1, 2, 3, 4});
+        bb.flip();
+
+        bb.get();
+        bb.get();
+
+        byte[] copy = BinaryUtils.copyRemainingBytesFrom(bb);
+        assertThat(bb).isEqualTo(ByteBuffer.wrap(copy));
+        assertThat(copy).hasSize(2);
     }
 }

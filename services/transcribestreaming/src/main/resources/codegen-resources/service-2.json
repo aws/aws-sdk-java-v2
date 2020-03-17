@@ -131,8 +131,8 @@
     "ItemType":{
       "type":"string",
       "enum":[
-        "PRONUNCIATION",
-        "PUNCTUATION"
+        "pronunciation",
+        "punctuation"
       ]
     },
     "LanguageCode":{
@@ -142,7 +142,8 @@
         "en-GB",
         "es-US",
         "fr-CA",
-        "fr-FR"
+        "fr-FR",
+        "en-AU"
       ]
     },
     "LimitExceededException":{
@@ -173,15 +174,15 @@
         },
         "StartTime":{
           "shape":"Double",
-          "documentation":"<p>The offset in milliseconds from the beginning of the audio stream to the beginning of the result.</p>"
+          "documentation":"<p>The offset in seconds from the beginning of the audio stream to the beginning of the result.</p>"
         },
         "EndTime":{
           "shape":"Double",
-          "documentation":"<p>The offset in milliseconds from the beginning of the audio stream to the end of the result.</p>"
+          "documentation":"<p>The offset in seconds from the beginning of the audio stream to the end of the result.</p>"
         },
         "IsPartial":{
           "shape":"Boolean",
-          "documentation":"<p> <code>true</code> to indicate that Amazon Transcribe has additional transcription data to send, <code>false</code> to indicate that this is the last transcription result for the audio stream.</p>"
+          "documentation":"<p>Amazon Transcribe divides the incoming audio stream into segments at natural points in the audio. Transcription results are returned based on these segments. </p> <p>The <code>IsPartial</code> field is <code>true</code> to indicate that Amazon Transcribe has additional transcription data to send, <code>false</code> to indicate that this is the last transcription result for the segment.</p>"
         },
         "Alternatives":{
           "shape":"AlternativeList",
@@ -209,7 +210,7 @@
       "members":{
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>Indicates the language used in the input audio stream.</p>",
+          "documentation":"<p>Indicates the source language used in the input audio stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-code"
         },

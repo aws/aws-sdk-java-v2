@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import software.amazon.awssdk.utils.ToString;
  * @see SystemPropertyCredentialsProvider
  * @see EnvironmentVariableCredentialsProvider
  * @see ProfileCredentialsProvider
+ * @see WebIdentityTokenFileCredentialsProvider
  * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
@@ -70,6 +71,7 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
             AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
                     SystemPropertyCredentialsProvider.create(),
                     EnvironmentVariableCredentialsProvider.create(),
+                    WebIdentityTokenFileCredentialsProvider.create(),
                     ProfileCredentialsProvider.create(),
                     ContainerCredentialsProvider.builder()
                                                 .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
@@ -120,7 +122,8 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
         /**
          * Created with {@link #builder()}.
          */
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Controls whether the provider should reuse the last successful credentials provider in the chain. Reusing the last

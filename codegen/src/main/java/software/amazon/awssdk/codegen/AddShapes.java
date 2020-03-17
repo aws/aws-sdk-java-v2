@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -82,6 +82,7 @@ abstract class AddShapes {
         shapeModel.setWrapper(shape.isWrapper());
         shapeModel.withIsEventStream(shape.isEventStream());
         shapeModel.withIsEvent(shape.isEvent());
+        shapeModel.withXmlNamespace(shape.getXmlNamespace());
 
         boolean hasHeaderMember = false;
         boolean hasStatusCodeMember = false;
@@ -178,12 +179,14 @@ abstract class AddShapes {
                 .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, parentShape, shape))
                 .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName, parentShape, shape))
                 .withFluentEnumSetterMethodName(namingStrategy.getFluentEnumSetterMethodName(c2jMemberName, parentShape, shape))
+                .withExistenceCheckMethodName(namingStrategy.getExistenceCheckMethodName(c2jMemberName, parentShape))
                 .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName, parentShape, shape))
                 .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName, parentShape, shape));
         memberModel.setIdempotencyToken(c2jMemberDefinition.isIdempotencyToken());
         memberModel.setEventPayload(c2jMemberDefinition.isEventPayload());
         memberModel.setEventHeader(c2jMemberDefinition.isEventHeader());
         memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointDiscoveryId());
+        memberModel.setXmlAttribute(c2jMemberDefinition.isXmlAttribute());
 
         // Pass the xmlNameSpace from the member reference
         if (c2jMemberDefinition.getXmlNamespace() != null) {
@@ -193,6 +196,20 @@ abstract class AddShapes {
         // Additional member model metadata for list/map/enum types
         fillContainerTypeMemberMetadata(allC2jShapes, c2jMemberDefinition.getShape(), memberModel,
                                         protocol);
+
+
+        String deprecatedName = c2jMemberDefinition.getDeprecatedName();
+        if (StringUtils.isNotBlank(deprecatedName)) {
+            checkForValidDeprecatedName(c2jMemberName, shape);
+
+            memberModel.setDeprecatedName(deprecatedName);
+            memberModel.setDeprecatedFluentGetterMethodName(
+                namingStrategy.getFluentGetterMethodName(deprecatedName, parentShape, shape));
+            memberModel.setDeprecatedFluentSetterMethodName(
+                namingStrategy.getFluentSetterMethodName(deprecatedName, parentShape, shape));
+            memberModel.setDeprecatedBeanStyleSetterMethodName(
+                namingStrategy.getBeanStyleSetterMethodName(deprecatedName, parentShape, shape));
+        }
 
         ParameterHttpMapping httpMapping = generateParameterHttpMapping(parentShape,
                                                                               c2jMemberName,
@@ -214,6 +231,26 @@ abstract class AddShapes {
         memberModel.setHttp(httpMapping);
 
         return memberModel;
+    }
+
+    private void checkForValidDeprecatedName(String c2jMemberName, Shape memberShape) {
+        if (memberShape.getEnumValues() != null) {
+            throw new IllegalStateException(String.format(
+                "Member %s has enum values and a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
+
+        if (isListShape(memberShape)) {
+            throw new IllegalStateException(String.format(
+                "Member %s is a list and has a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
+
+        if (isMapShape(memberShape)) {
+            throw new IllegalStateException(String.format(
+                "Member %s is a map and has a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
     }
 
     private boolean isSensitiveShapeOrContainer(Member member, Map<String, Shape> allC2jShapes) {

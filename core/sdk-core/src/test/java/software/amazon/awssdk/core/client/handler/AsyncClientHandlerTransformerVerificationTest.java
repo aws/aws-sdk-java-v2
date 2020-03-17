@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +43,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.RetryableException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -100,6 +102,22 @@ public class AsyncClientHandlerTransformerVerificationTest {
 
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
                 .thenReturn(VoidSdkResponse.builder().build());
+    }
+
+    @Test
+    public void marshallerThrowsException_shouldTriggerExceptionOccurred() {
+        SdkClientException exception = SdkClientException.create("Could not handle response");
+        when(marshaller.marshall(any(SdkRequest.class))).thenThrow(exception);
+        AtomicBoolean exceptionOccurred = new AtomicBoolean(false);
+        executeAndWaitError(new TestTransformer<SdkResponse, Void>(){
+            @Override
+            public void exceptionOccurred(Throwable error) {
+                exceptionOccurred.set(true);
+                super.exceptionOccurred(error);
+            }
+        });
+
+        assertThat(exceptionOccurred.get()).isTrue();
     }
 
     @Test

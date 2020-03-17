@@ -732,6 +732,11 @@
     "AddOutputRequest": {
       "type": "structure",
       "members": {
+        "CidrAllowList": {
+          "shape": "__listOf__string",
+          "locationName": "cidrAllowList",
+          "documentation": "The range of IP addresses that should be allowed to initiate output requests to this flow. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -767,10 +772,15 @@
           "locationName": "protocol",
           "documentation": "The protocol to use for the output."
         },
+        "RemoteId": {
+          "shape": "__string",
+          "locationName": "remoteId",
+          "documentation": "The remote ID for the Zixi-pull output stream."
+        },
         "SmoothingLatency": {
           "shape": "__integer",
           "locationName": "smoothingLatency",
-          "documentation": "The smoothing latency in milliseconds for RTP and RTP-FEC streams."
+          "documentation": "The smoothing latency in milliseconds for RIST, RTP, and RTP-FEC streams."
         },
         "StreamId": {
           "shape": "__string",
@@ -780,8 +790,6 @@
       },
       "documentation": "The output that you want to add to this flow.",
       "required": [
-        "Destination",
-        "Port",
         "Protocol"
       ]
     },
@@ -986,6 +994,11 @@
     "Entitlement": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -1099,6 +1112,11 @@
     "GrantEntitlementRequest": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -1295,6 +1313,11 @@
     "ListedEntitlement": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "EntitlementArn": {
           "shape": "__string",
           "locationName": "entitlementArn",
@@ -1396,6 +1419,11 @@
     "Output": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -1453,7 +1481,9 @@
       "enum": [
         "zixi-push",
         "rtp-fec",
-        "rtp"
+        "rtp",
+        "zixi-pull",
+        "rist"
       ]
     },
     "RemoveFlowOutputRequest": {
@@ -1586,12 +1616,12 @@
         "MaxBitrate": {
           "shape": "__integer",
           "locationName": "maxBitrate",
-          "documentation": "The smoothing max bitrate for RTP and RTP-FEC streams."
+          "documentation": "The smoothing max bitrate for RIST, RTP, and RTP-FEC streams."
         },
         "MaxLatency": {
           "shape": "__integer",
           "locationName": "maxLatency",
-          "documentation": "The maximum latency in milliseconds for Zixi-based streams."
+          "documentation": "The maximum latency in milliseconds. This parameter applies only to RIST-based and Zixi-based streams."
         },
         "Name": {
           "shape": "__string",
@@ -1611,7 +1641,7 @@
         "WhitelistCidr": {
           "shape": "__string",
           "locationName": "whitelistCidr",
-          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
         }
       },
       "documentation": "The settings for the source of the flow."
@@ -1619,6 +1649,11 @@
     "Source": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "Decryption": {
           "shape": "Encryption",
           "locationName": "decryption",
@@ -1662,7 +1697,7 @@
         "WhitelistCidr": {
           "shape": "__string",
           "locationName": "whitelistCidr",
-          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
         }
       },
       "documentation": "The settings for the source of the flow.",
@@ -1790,25 +1825,35 @@
     "Transport": {
       "type": "structure",
       "members": {
+        "CidrAllowList": {
+          "shape": "__listOf__string",
+          "locationName": "cidrAllowList",
+          "documentation": "The range of IP addresses that should be allowed to initiate output requests to this flow. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+        },
         "MaxBitrate": {
           "shape": "__integer",
           "locationName": "maxBitrate",
-          "documentation": "The smoothing max bitrate for RTP and RTP-FEC streams."
+          "documentation": "The smoothing max bitrate for RIST, RTP, and RTP-FEC streams."
         },
         "MaxLatency": {
           "shape": "__integer",
           "locationName": "maxLatency",
-          "documentation": "The maximum latency in milliseconds for Zixi-based streams."
+          "documentation": "The maximum latency in milliseconds. This parameter applies only to RIST-based and Zixi-based streams."
         },
         "Protocol": {
           "shape": "Protocol",
           "locationName": "protocol",
           "documentation": "The protocol that is used by the source or output."
         },
+        "RemoteId": {
+          "shape": "__string",
+          "locationName": "remoteId",
+          "documentation": "The remote ID for the Zixi-pull stream."
+        },
         "SmoothingLatency": {
           "shape": "__integer",
           "locationName": "smoothingLatency",
-          "documentation": "The smoothing latency in milliseconds for RTP and RTP-FEC streams."
+          "documentation": "The smoothing latency in milliseconds for RIST, RTP, and RTP-FEC streams."
         },
         "StreamId": {
           "shape": "__string",
@@ -1947,6 +1992,11 @@
     "UpdateFlowOutputRequest": {
       "type": "structure",
       "members": {
+        "CidrAllowList": {
+          "shape": "__listOf__string",
+          "locationName": "cidrAllowList",
+          "documentation": "The range of IP addresses that should be allowed to initiate output requests to this flow. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -1989,10 +2039,15 @@
           "locationName": "protocol",
           "documentation": "The protocol to use for the output."
         },
+        "RemoteId": {
+          "shape": "__string",
+          "locationName": "remoteId",
+          "documentation": "The remote ID for the Zixi-pull stream."
+        },
         "SmoothingLatency": {
           "shape": "__integer",
           "locationName": "smoothingLatency",
-          "documentation": "The smoothing latency in milliseconds for RTP and RTP-FEC streams."
+          "documentation": "The smoothing latency in milliseconds for RIST, RTP, and RTP-FEC streams."
         },
         "StreamId": {
           "shape": "__string",
@@ -2052,12 +2107,12 @@
         "MaxBitrate": {
           "shape": "__integer",
           "locationName": "maxBitrate",
-          "documentation": "The smoothing max bitrate for RTP and RTP-FEC streams."
+          "documentation": "The smoothing max bitrate for RIST, RTP, and RTP-FEC streams."
         },
         "MaxLatency": {
           "shape": "__integer",
           "locationName": "maxLatency",
-          "documentation": "The maximum latency in milliseconds for Zixi-based streams."
+          "documentation": "The maximum latency in milliseconds. This parameter applies only to RIST-based and Zixi-based streams."
         },
         "Protocol": {
           "shape": "Protocol",
@@ -2078,7 +2133,7 @@
         "WhitelistCidr": {
           "shape": "__string",
           "locationName": "whitelistCidr",
-          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
         }
       },
       "documentation": "A request to update the source of a flow.",

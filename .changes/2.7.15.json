@@ -1,0 +1,26 @@
+{
+    "version": "2.7.15",
+    "date": "2019-07-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "MediaConvert adds support for specifying priority (-50 to 50) on jobs submitted to on demand or reserved queues"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "description": "Amazon Route 53 now supports the Middle East (Bahrain) Region (me-south-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "description": "Amazon Polly adds support for Neural text-to-speech engine."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed the issue where `AsyncResponseHandler#prepare` was not invoked before `#onHeaders`. See [#1343](https://github.com/aws/aws-sdk-java-v2/issues/1343)."
+        }
+    ]
+}

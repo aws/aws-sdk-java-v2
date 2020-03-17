@@ -55,7 +55,7 @@
         {"shape":"InsufficientCapabilitiesException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Creates a list of changes that will be applied to a stack so that you can review the changes before executing them. You can create a change set for a stack that doesn't exist or an existing stack. If you create a change set for a stack that doesn't exist, the change set shows all of the resources that AWS CloudFormation will create. If you create a change set for an existing stack, AWS CloudFormation compares the stack's information with the information that you submit in the change set and lists the differences. Use change sets to understand which resources AWS CloudFormation will create or change, and how it will change resources in an existing stack, before you create or update a stack.</p> <p>To create a change set for a stack that doesn't exist, for the <code>ChangeSetType</code> parameter, specify <code>CREATE</code>. To create a change set for an existing stack, specify <code>UPDATE</code> for the <code>ChangeSetType</code> parameter. After the <code>CreateChangeSet</code> call successfully completes, AWS CloudFormation starts creating the change set. To check the status of the change set or to review it, use the <a>DescribeChangeSet</a> action.</p> <p>When you are satisfied with the changes the change set will make, execute the change set by using the <a>ExecuteChangeSet</a> action. AWS CloudFormation doesn't make changes until you execute the change set.</p>"
+      "documentation":"<p>Creates a list of changes that will be applied to a stack so that you can review the changes before executing them. You can create a change set for a stack that doesn't exist or an existing stack. If you create a change set for a stack that doesn't exist, the change set shows all of the resources that AWS CloudFormation will create. If you create a change set for an existing stack, AWS CloudFormation compares the stack's information with the information that you submit in the change set and lists the differences. Use change sets to understand which resources AWS CloudFormation will create or change, and how it will change resources in an existing stack, before you create or update a stack.</p> <p>To create a change set for a stack that doesn't exist, for the <code>ChangeSetType</code> parameter, specify <code>CREATE</code>. To create a change set for an existing stack, specify <code>UPDATE</code> for the <code>ChangeSetType</code> parameter. To create a change set for an import operation, specify <code>IMPORT</code> for the <code>ChangeSetType</code> parameter. After the <code>CreateChangeSet</code> call successfully completes, AWS CloudFormation starts creating the change set. To check the status of the change set or to review it, use the <a>DescribeChangeSet</a> action.</p> <p>When you are satisfied with the changes the change set will make, execute the change set by using the <a>ExecuteChangeSet</a> action. AWS CloudFormation doesn't make changes until you execute the change set.</p>"
     },
     "CreateStack":{
       "name":"CreateStack",
@@ -95,7 +95,7 @@
         {"shape":"InvalidOperationException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Creates stack instances for the specified accounts, within the specified regions. A stack instance refers to a stack in a specific account and region. <code>Accounts</code> and <code>Regions</code> are required parameters—you must specify at least one account and one region. </p>"
+      "documentation":"<p>Creates stack instances for the specified accounts, within the specified regions. A stack instance refers to a stack in a specific account and region. You must specify at least one value for either <code>Accounts</code> or <code>DeploymentTargets</code>, and you must specify at least one value for <code>Regions</code>.</p>"
     },
     "CreateStackSet":{
       "name":"CreateStackSet",
@@ -179,6 +179,24 @@
         {"shape":"OperationInProgressException"}
       ],
       "documentation":"<p>Deletes a stack set. Before you can delete a stack set, all of its member stack instances must be deleted. For more information about how to do this, see <a>DeleteStackInstances</a>. </p>"
+    },
+    "DeregisterType":{
+      "name":"DeregisterType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeregisterTypeInput"},
+      "output":{
+        "shape":"DeregisterTypeOutput",
+        "resultWrapper":"DeregisterTypeResult"
+      },
+      "errors":[
+        {"shape":"CFNRegistryException"},
+        {"shape":"TypeNotFoundException"}
+      ],
+      "documentation":"<p>Removes a type or type version from active use in the CloudFormation registry. If a type or type version is deregistered, it cannot be used in CloudFormation operations.</p> <p>To deregister a type, you must individually deregister all registered versions of that type. If a type has only a single registered version, deregistering that version results in the type itself being deregistered. </p> <p>You cannot deregister the default version of a type, unless it is the only registered version of that type, in which case the type itself is deregistered as well. </p>",
+      "idempotent":true
     },
     "DescribeAccountLimits":{
       "name":"DescribeAccountLimits",
@@ -337,6 +355,41 @@
       },
       "documentation":"<p>Returns the description for the specified stack; if no stack name was specified, then it returns the description for all the stacks created.</p> <note> <p>If the stack does not exist, an <code>AmazonCloudFormationException</code> is returned.</p> </note>"
     },
+    "DescribeType":{
+      "name":"DescribeType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeTypeInput"},
+      "output":{
+        "shape":"DescribeTypeOutput",
+        "resultWrapper":"DescribeTypeResult"
+      },
+      "errors":[
+        {"shape":"CFNRegistryException"},
+        {"shape":"TypeNotFoundException"}
+      ],
+      "documentation":"<p>Returns detailed information about a type that has been registered.</p> <p>If you specify a <code>VersionId</code>, <code>DescribeType</code> returns information about that specific type version. Otherwise, it returns information about the default type version.</p>",
+      "idempotent":true
+    },
+    "DescribeTypeRegistration":{
+      "name":"DescribeTypeRegistration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeTypeRegistrationInput"},
+      "output":{
+        "shape":"DescribeTypeRegistrationOutput",
+        "resultWrapper":"DescribeTypeRegistrationResult"
+      },
+      "errors":[
+        {"shape":"CFNRegistryException"}
+      ],
+      "documentation":"<p>Returns information about a type's registration, including its current status and type and version identifiers.</p> <p>When you initiate a registration request using <code> <a>RegisterType</a> </code>, you can then use <code> <a>DescribeTypeRegistration</a> </code> to monitor the progress of that registration request.</p> <p>Once the registration request has completed, use <code> <a>DescribeType</a> </code> to return detailed informaiton about a type.</p>",
+      "idempotent":true
+    },
     "DetectStackDrift":{
       "name":"DetectStackDrift",
       "http":{
@@ -362,6 +415,24 @@
         "resultWrapper":"DetectStackResourceDriftResult"
       },
       "documentation":"<p>Returns information about whether a resource's actual configuration differs, or has <i>drifted</i>, from it's expected configuration, as defined in the stack template and any values specified as template parameters. This information includes actual and expected property values for resources in which AWS CloudFormation detects drift. Only resource properties explicitly defined in the stack template are checked for drift. For more information about stack and resource drift, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-drift.html\">Detecting Unregulated Configuration Changes to Stacks and Resources</a>.</p> <p>Use <code>DetectStackResourceDrift</code> to detect drift on individual resources, or <a>DetectStackDrift</a> to detect drift on all resources in a given stack that support drift detection.</p> <p>Resources that do not currently support drift detection cannot be checked. For a list of resources that support drift detection, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-drift-resource-list.html\">Resources that Support Drift Detection</a>.</p>"
+    },
+    "DetectStackSetDrift":{
+      "name":"DetectStackSetDrift",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DetectStackSetDriftInput"},
+      "output":{
+        "shape":"DetectStackSetDriftOutput",
+        "resultWrapper":"DetectStackSetDriftResult"
+      },
+      "errors":[
+        {"shape":"InvalidOperationException"},
+        {"shape":"OperationInProgressException"},
+        {"shape":"StackSetNotFoundException"}
+      ],
+      "documentation":"<p>Detect drift on a stack set. When CloudFormation performs drift detection on a stack set, it performs drift detection on the stack associated with each stack instance in the stack set. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-drift.html\">How CloudFormation Performs Drift Detection on a Stack Set</a>.</p> <p> <code>DetectStackSetDrift</code> returns the <code>OperationId</code> of the stack set drift detection operation. Use this operation id with <code> <a>DescribeStackSetOperation</a> </code> to monitor the progress of the drift detection operation. The drift detection operation may take some time, depending on the number of stack instances included in the stack set, as well as the number of resources included in each stack.</p> <p>Once the operation has completed, use the following actions to return drift information:</p> <ul> <li> <p>Use <code> <a>DescribeStackSet</a> </code> to return detailed informaiton about the stack set, including detailed information about the last <i>completed</i> drift operation performed on the stack set. (Information about drift operations that are in progress is not included.)</p> </li> <li> <p>Use <code> <a>ListStackInstances</a> </code> to return a list of stack instances belonging to the stack set, including the drift status and last drift time checked of each instance.</p> </li> <li> <p>Use <code> <a>DescribeStackInstance</a> </code> to return detailed information about a specific stack instance, including its drift status and last drift time checked.</p> </li> </ul> <p>For more information on performing a drift detection operation on a stack set, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-drift.html\">Detecting Unmanaged Changes in Stack Sets</a>. </p> <p>You can only run a single drift detection operation on a given stack set at one time. </p> <p>To stop a drift detection stack set operation, use <code> <a>StopStackSetOperation</a> </code>.</p>"
     },
     "EstimateTemplateCost":{
       "name":"EstimateTemplateCost",
@@ -567,6 +638,92 @@
       },
       "documentation":"<p>Returns the summary information for stacks whose status matches the specified StackStatusFilter. Summary information for stacks that have been deleted is kept for 90 days after the stack is deleted. If no StackStatusFilter is specified, summary information for all stacks is returned (including existing stacks and stacks that have been deleted).</p>"
     },
+    "ListTypeRegistrations":{
+      "name":"ListTypeRegistrations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTypeRegistrationsInput"},
+      "output":{
+        "shape":"ListTypeRegistrationsOutput",
+        "resultWrapper":"ListTypeRegistrationsResult"
+      },
+      "errors":[
+        {"shape":"CFNRegistryException"}
+      ],
+      "documentation":"<p>Returns a list of registration tokens for the specified type(s).</p>",
+      "idempotent":true
+    },
+    "ListTypeVersions":{
+      "name":"ListTypeVersions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTypeVersionsInput"},
+      "output":{
+        "shape":"ListTypeVersionsOutput",
+        "resultWrapper":"ListTypeVersionsResult"
+      },
+      "errors":[
+        {"shape":"CFNRegistryException"}
+      ],
+      "documentation":"<p>Returns summary information about the versions of a type.</p>",
+      "idempotent":true
+    },
+    "ListTypes":{
+      "name":"ListTypes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTypesInput"},
+      "output":{
+        "shape":"ListTypesOutput",
+        "resultWrapper":"ListTypesResult"
+      },
+      "errors":[
+        {"shape":"CFNRegistryException"}
+      ],
+      "documentation":"<p>Returns summary information about types that have been registered with CloudFormation.</p>",
+      "idempotent":true
+    },
+    "RecordHandlerProgress":{
+      "name":"RecordHandlerProgress",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RecordHandlerProgressInput"},
+      "output":{
+        "shape":"RecordHandlerProgressOutput",
+        "resultWrapper":"RecordHandlerProgressResult"
+      },
+      "errors":[
+        {"shape":"InvalidStateTransitionException"},
+        {"shape":"OperationStatusCheckFailedException"}
+      ],
+      "documentation":"<p>Reports progress of a resource handler to CloudFormation.</p> <p>Reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>. Do not use this API in your code.</p>",
+      "idempotent":true
+    },
+    "RegisterType":{
+      "name":"RegisterType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RegisterTypeInput"},
+      "output":{
+        "shape":"RegisterTypeOutput",
+        "resultWrapper":"RegisterTypeResult"
+      },
+      "errors":[
+        {"shape":"CFNRegistryException"}
+      ],
+      "documentation":"<p>Registers a type with the CloudFormation service. Registering a type makes it available for use in CloudFormation templates in your AWS account, and includes:</p> <ul> <li> <p>Validating the resource schema</p> </li> <li> <p>Determining which handlers have been specified for the resource</p> </li> <li> <p>Making the resource type available for use in your account</p> </li> </ul> <p>For more information on how to develop types and ready them for registeration, see <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html\">Creating Resource Providers</a> in the <i>CloudFormation CLI User Guide</i>.</p> <p>Once you have initiated a registration request using <code> <a>RegisterType</a> </code>, you can use <code> <a>DescribeTypeRegistration</a> </code> to monitor the progress of the registration request.</p>",
+      "idempotent":true
+    },
     "SetStackPolicy":{
       "name":"SetStackPolicy",
       "http":{
@@ -575,6 +732,24 @@
       },
       "input":{"shape":"SetStackPolicyInput"},
       "documentation":"<p>Sets a stack policy for a specified stack.</p>"
+    },
+    "SetTypeDefaultVersion":{
+      "name":"SetTypeDefaultVersion",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SetTypeDefaultVersionInput"},
+      "output":{
+        "shape":"SetTypeDefaultVersionOutput",
+        "resultWrapper":"SetTypeDefaultVersionResult"
+      },
+      "errors":[
+        {"shape":"CFNRegistryException"},
+        {"shape":"TypeNotFoundException"}
+      ],
+      "documentation":"<p>Specify the default version of a type. The default version of a type will be used in CloudFormation operations.</p>",
+      "idempotent":true
     },
     "SignalResource":{
       "name":"SignalResource",
@@ -673,7 +848,7 @@
         "shape":"UpdateTerminationProtectionOutput",
         "resultWrapper":"UpdateTerminationProtectionResult"
       },
-      "documentation":"<p>Updates termination protection for the specified stack. If a user attempts to delete a stack with termination protection enabled, the operation fails and the stack remains unchanged. For more information, see <a href=\"AWSCloudFormation/latest/UserGuide/using-cfn-protect-stacks.html\">Protecting a Stack From Being Deleted</a> in the <i>AWS CloudFormation User Guide</i>.</p> <p> For <a href=\"AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html\">nested stacks</a>, termination protection is set on the root stack and cannot be changed directly on the nested stack.</p>"
+      "documentation":"<p>Updates termination protection for the specified stack. If a user attempts to delete a stack with termination protection enabled, the operation fails and the stack remains unchanged. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-protect-stacks.html\">Protecting a Stack From Being Deleted</a> in the <i>AWS CloudFormation User Guide</i>.</p> <p> For <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html\">nested stacks</a>, termination protection is set on the root stack and cannot be changed directly on the nested stack.</p>"
     },
     "ValidateTemplate":{
       "name":"ValidateTemplate",
@@ -692,7 +867,7 @@
   "shapes":{
     "Account":{
       "type":"string",
-      "pattern":"[0-9]{12}"
+      "pattern":"^[0-9]{12}$"
     },
     "AccountGateResult":{
       "type":"structure",
@@ -722,14 +897,14 @@
       "members":{
         "Name":{
           "shape":"LimitName",
-          "documentation":"<p>The name of the account limit.</p>"
+          "documentation":"<p>The name of the account limit.</p> <p>Values: <code>ConcurrentResourcesLimit</code> | <code>StackLimit</code> | <code>StackOutputsLimit</code> </p>"
         },
         "Value":{
           "shape":"LimitValue",
           "documentation":"<p>The value that is associated with the account limit name.</p>"
         }
       },
-      "documentation":"<p>The AccountLimit data type. For more information about account limits, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html\">AWS CloudFormation Limits</a> in the <i>AWS CloudFormation User Guide</i>.</p>"
+      "documentation":"<p>The AccountLimit data type. </p> <p>CloudFormation has the following limits per account:</p> <ul> <li> <p>Number of concurrent resources</p> </li> <li> <p>Number of stacks</p> </li> <li> <p>Number of stack outputs</p> </li> </ul> <p>For more information about these account limits, and other CloudFormation limits, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html\">AWS CloudFormation Limits</a> in the <i>AWS CloudFormation User Guide</i>.</p>"
     },
     "AccountLimitList":{
       "type":"list",
@@ -757,6 +932,21 @@
       "exception":true
     },
     "Arn":{"type":"string"},
+    "AutoDeployment":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"AutoDeploymentNullable",
+          "documentation":"<p>If set to <code>true</code>, StackSets automatically deploys additional stack instances to AWS Organizations accounts that are added to a target organization or organizational unit (OU) in the specified Regions. If an account is removed from a target organization or OU, StackSets deletes stack instances from the account in the specified Regions.</p>"
+        },
+        "RetainStacksOnAccountRemoval":{
+          "shape":"RetainStacksOnAccountRemovalNullable",
+          "documentation":"<p>If set to <code>true</code>, stack resources are retained when an account is removed from a target organization or OU. If set to <code>false</code>, stack resources are deleted. Specify only if <code>Enabled</code> is set to <code>True</code>.</p>"
+        }
+      },
+      "documentation":"<p>[<code>Service-managed</code> permissions] Describes whether StackSets automatically deploys to AWS Organizations accounts that are added to a target organization or organizational unit (OU).</p>"
+    },
+    "AutoDeploymentNullable":{"type":"boolean"},
     "BoxedInteger":{
       "type":"integer",
       "box":true
@@ -766,6 +956,19 @@
       "box":true,
       "max":100,
       "min":1
+    },
+    "CFNRegistryException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>An error occurred during a CloudFormation registry operation.</p>",
+      "error":{
+        "code":"CFNRegistryException",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
     },
     "CancelUpdateStackInput":{
       "type":"structure",
@@ -815,7 +1018,8 @@
       "enum":[
         "Add",
         "Modify",
-        "Remove"
+        "Remove",
+        "Import"
       ]
     },
     "ChangeSetId":{
@@ -908,7 +1112,8 @@
       "type":"string",
       "enum":[
         "CREATE",
-        "UPDATE"
+        "UPDATE",
+        "IMPORT"
       ]
     },
     "ChangeSource":{
@@ -998,7 +1203,7 @@
         },
         "Capabilities":{
           "shape":"Capabilities",
-          "documentation":"<p>In some cases, you must explicity acknowledge that your stack template contains certain capabilities in order for AWS CloudFormation to create the stack.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stacks, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some template contain macros. Macros perform custom processing on templates; this can include simple actions like find-and-replace operations, all the way to extensive transformations of entire templates. Because of this, users typically create a change set from the processed template, so that they can review the changes resulting from the macros before actually creating the stack. If your stack template contains one or more macros, and you choose to create a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.</p> <note> <p>This capacity does not apply to creating change sets, and specifying it when creating change sets has no effect.</p> <p>Also, change sets do not currently support nested stacks. If you want to create a stack from a stack template that contains macros <i>and</i> nested stacks, you must create or update the stack directly from the template using the <a>CreateStack</a> or <a>UpdateStack</a> action, and specifying this capability.</p> </note> <p>For more information on macros, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> </li> </ul>"
+          "documentation":"<p>In some cases, you must explicitly acknowledge that your stack template contains certain capabilities in order for AWS CloudFormation to create the stack.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stacks, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some template contain macros. Macros perform custom processing on templates; this can include simple actions like find-and-replace operations, all the way to extensive transformations of entire templates. Because of this, users typically create a change set from the processed template, so that they can review the changes resulting from the macros before actually creating the stack. If your stack template contains one or more macros, and you choose to create a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.</p> <note> <p>This capacity does not apply to creating change sets, and specifying it when creating change sets has no effect.</p> <p>Also, change sets do not currently support nested stacks. If you want to create a stack from a stack template that contains macros <i>and</i> nested stacks, you must create or update the stack directly from the template using the <a>CreateStack</a> or <a>UpdateStack</a> action, and specifying this capability.</p> </note> <p>For more information on macros, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> </li> </ul>"
         },
         "ResourceTypes":{
           "shape":"ResourceTypes",
@@ -1034,7 +1239,11 @@
         },
         "ChangeSetType":{
           "shape":"ChangeSetType",
-          "documentation":"<p>The type of change set operation. To create a change set for a new stack, specify <code>CREATE</code>. To create a change set for an existing stack, specify <code>UPDATE</code>.</p> <p>If you create a change set for a new stack, AWS Cloudformation creates a stack with a unique stack ID, but no template or resources. The stack will be in the <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-describing-stacks.html#d0e11995\"> <code>REVIEW_IN_PROGRESS</code> </a> state until you execute the change set.</p> <p>By default, AWS CloudFormation specifies <code>UPDATE</code>. You can't use the <code>UPDATE</code> type to create a change set for a new stack or the <code>CREATE</code> type to create a change set for an existing stack.</p>"
+          "documentation":"<p>The type of change set operation. To create a change set for a new stack, specify <code>CREATE</code>. To create a change set for an existing stack, specify <code>UPDATE</code>. To create a change set for an import operation, specify <code>IMPORT</code>.</p> <p>If you create a change set for a new stack, AWS Cloudformation creates a stack with a unique stack ID, but no template or resources. The stack will be in the <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-describing-stacks.html#d0e11995\"> <code>REVIEW_IN_PROGRESS</code> </a> state until you execute the change set.</p> <p>By default, AWS CloudFormation specifies <code>UPDATE</code>. You can't use the <code>UPDATE</code> type to create a change set for a new stack or the <code>CREATE</code> type to create a change set for an existing stack.</p>"
+        },
+        "ResourcesToImport":{
+          "shape":"ResourcesToImport",
+          "documentation":"<p>The resources to import into your stack.</p>"
         }
       },
       "documentation":"<p>The input for the <a>CreateChangeSet</a> action.</p>"
@@ -1091,7 +1300,7 @@
         },
         "Capabilities":{
           "shape":"Capabilities",
-          "documentation":"<p>In some cases, you must explicity acknowledge that your stack template contains certain capabilities in order for AWS CloudFormation to create the stack.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stacks, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some template contain macros. Macros perform custom processing on templates; this can include simple actions like find-and-replace operations, all the way to extensive transformations of entire templates. Because of this, users typically create a change set from the processed template, so that they can review the changes resulting from the macros before actually creating the stack. If your stack template contains one or more macros, and you choose to create a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.</p> <p>Change sets do not currently support nested stacks. If you want to create a stack from a stack template that contains macros <i>and</i> nested stacks, you must create the stack directly from the template using this capability.</p> <important> <p>You should only create stacks directly from a stack template that contains macros if you know what processing the macro performs.</p> <p>Each macro relies on an underlying Lambda service function for processing stack templates. Be aware that the Lambda function owner can update the function operation without AWS CloudFormation being notified.</p> </important> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> </li> </ul>"
+          "documentation":"<p>In some cases, you must explicitly acknowledge that your stack template contains certain capabilities in order for AWS CloudFormation to create the stack.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stacks, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some template contain macros. Macros perform custom processing on templates; this can include simple actions like find-and-replace operations, all the way to extensive transformations of entire templates. Because of this, users typically create a change set from the processed template, so that they can review the changes resulting from the macros before actually creating the stack. If your stack template contains one or more macros, and you choose to create a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.</p> <p>Change sets do not currently support nested stacks. If you want to create a stack from a stack template that contains macros <i>and</i> nested stacks, you must create the stack directly from the template using this capability.</p> <important> <p>You should only create stacks directly from a stack template that contains macros if you know what processing the macro performs.</p> <p>Each macro relies on an underlying Lambda service function for processing stack templates. Be aware that the Lambda function owner can update the function operation without AWS CloudFormation being notified.</p> </important> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> </li> </ul>"
         },
         "ResourceTypes":{
           "shape":"ResourceTypes",
@@ -1132,7 +1341,6 @@
       "type":"structure",
       "required":[
         "StackSetName",
-        "Accounts",
         "Regions"
       ],
       "members":{
@@ -1142,7 +1350,11 @@
         },
         "Accounts":{
           "shape":"AccountList",
-          "documentation":"<p>The names of one or more AWS accounts that you want to create stack instances in the specified region(s) for.</p>"
+          "documentation":"<p>[Self-managed permissions] The names of one or more AWS accounts that you want to create stack instances in the specified region(s) for.</p> <p>You can specify <code>Accounts</code> or <code>DeploymentTargets</code>, but not both.</p>"
+        },
+        "DeploymentTargets":{
+          "shape":"DeploymentTargets",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The AWS Organizations accounts for which to create stack instances in the specified Regions.</p> <p>You can specify <code>Accounts</code> or <code>DeploymentTargets</code>, but not both.</p>"
         },
         "Regions":{
           "shape":"RegionList",
@@ -1208,7 +1420,7 @@
         },
         "Capabilities":{
           "shape":"Capabilities",
-          "documentation":"<p>In some cases, you must explicity acknowledge that your stack set template contains certain capabilities in order for AWS CloudFormation to create the stack set and related stack instances.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stack sets, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some templates contain macros. If your stack template contains one or more macros, and you choose to create a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> <note> <p>Stack sets do not currently support macros in stack templates. (This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.) Even if you specify this capability, if you include a macro in your template the stack set operation will fail.</p> </note> </li> </ul>"
+          "documentation":"<p>In some cases, you must explicitly acknowledge that your stack set template contains certain capabilities in order for AWS CloudFormation to create the stack set and related stack instances.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stack sets, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some templates contain macros. If your stack template contains one or more macros, and you choose to create a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> <note> <p>Stack sets do not currently support macros in stack templates. (This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.) Even if you specify this capability, if you include a macro in your template the stack set operation will fail.</p> </note> </li> </ul>"
         },
         "Tags":{
           "shape":"Tags",
@@ -1221,6 +1433,14 @@
         "ExecutionRoleName":{
           "shape":"ExecutionRoleName",
           "documentation":"<p>The name of the IAM execution role to use to create the stack set. If you do not specify an execution role, AWS CloudFormation uses the <code>AWSCloudFormationStackSetExecutionRole</code> role for the stack set operation.</p> <p>Specify an IAM role only if you are using customized execution roles to control which stack resources users and groups can include in their stack sets. </p>"
+        },
+        "PermissionModel":{
+          "shape":"PermissionModels",
+          "documentation":"<p>Describes how the IAM roles required for stack set operations are created. By default, <code>SELF-MANAGED</code> is specified.</p> <ul> <li> <p>With <code>self-managed</code> permissions, you must create the administrator and execution roles required to deploy to target accounts. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html\">Grant Self-Managed Stack Set Permissions</a>.</p> </li> <li> <p>With <code>service-managed</code> permissions, StackSets automatically creates the IAM roles required to deploy to accounts managed by AWS Organizations. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-service-managed.html\">Grant Service-Managed Stack Set Permissions</a>.</p> </li> </ul>"
+        },
+        "AutoDeployment":{
+          "shape":"AutoDeployment",
+          "documentation":"<p>Describes whether StackSets automatically deploys to AWS Organizations accounts that are added to the target organization or organizational unit (OU). Specify only if <code>PermissionModel</code> is <code>SERVICE_MANAGED</code>.</p> <p>If you specify <code>AutoDeployment</code>, do not specify <code>DeploymentTargets</code> or <code>Regions</code>.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1299,7 +1519,6 @@
       "type":"structure",
       "required":[
         "StackSetName",
-        "Accounts",
         "Regions",
         "RetainStacks"
       ],
@@ -1310,7 +1529,11 @@
         },
         "Accounts":{
           "shape":"AccountList",
-          "documentation":"<p>The names of the AWS accounts that you want to delete stack instances for.</p>"
+          "documentation":"<p>[Self-managed permissions] The names of the AWS accounts that you want to delete stack instances for.</p> <p>You can specify <code>Accounts</code> or <code>DeploymentTargets</code>, but not both.</p>"
+        },
+        "DeploymentTargets":{
+          "shape":"DeploymentTargets",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The AWS Organizations accounts from which to delete stack instances.</p> <p>You can specify <code>Accounts</code> or <code>DeploymentTargets</code>, but not both.</p>"
         },
         "Regions":{
           "shape":"RegionList",
@@ -1356,6 +1579,53 @@
       }
     },
     "DeletionTime":{"type":"timestamp"},
+    "DeploymentTargets":{
+      "type":"structure",
+      "members":{
+        "Accounts":{
+          "shape":"AccountList",
+          "documentation":"<p>The names of one or more AWS accounts for which you want to deploy stack set updates.</p>"
+        },
+        "OrganizationalUnitIds":{
+          "shape":"OrganizationalUnitIdList",
+          "documentation":"<p>The organization root ID or organizational unit (OUs) IDs to which StackSets deploys.</p>"
+        }
+      },
+      "documentation":"<p>[<code>Service-managed</code> permissions] The AWS Organizations accounts to which StackSets deploys.</p> <p>For update operations, you can specify either <code>Accounts</code> or <code>OrganizationalUnitIds</code>. For create and delete operations, specify <code>OrganizationalUnitIds</code>.</p>"
+    },
+    "DeprecatedStatus":{
+      "type":"string",
+      "enum":[
+        "LIVE",
+        "DEPRECATED"
+      ]
+    },
+    "DeregisterTypeInput":{
+      "type":"structure",
+      "members":{
+        "Arn":{
+          "shape":"PrivateTypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of type.</p> <p>Currently the only valid value is <code>RESOURCE</code>.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the type.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "VersionId":{
+          "shape":"TypeVersionId",
+          "documentation":"<p>The ID of a specific version of the type. The version ID is the value at the end of the Amazon Resource Name (ARN) assigned to the type version when it is registered.</p>"
+        }
+      }
+    },
+    "DeregisterTypeOutput":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "DescribeAccountLimitsInput":{
       "type":"structure",
       "members":{
@@ -1742,6 +2012,123 @@
       },
       "documentation":"<p>The output for a <a>DescribeStacks</a> action.</p>"
     },
+    "DescribeTypeInput":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of type. </p> <p>Currently the only valid value is <code>RESOURCE</code>.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the type.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "Arn":{
+          "shape":"TypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "VersionId":{
+          "shape":"TypeVersionId",
+          "documentation":"<p>The ID of a specific version of the type. The version ID is the value at the end of the Amazon Resource Name (ARN) assigned to the type version when it is registered.</p> <p>If you specify a <code>VersionId</code>, <code>DescribeType</code> returns information about that specific type version. Otherwise, it returns information about the default type version.</p>"
+        }
+      }
+    },
+    "DescribeTypeOutput":{
+      "type":"structure",
+      "members":{
+        "Arn":{
+          "shape":"TypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type.</p>"
+        },
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of type. </p> <p>Currently the only valid value is <code>RESOURCE</code>.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the registered type.</p>"
+        },
+        "DefaultVersionId":{
+          "shape":"TypeVersionId",
+          "documentation":"<p>The ID of the default version of the type. The default version is used when the type version is not specified.</p> <p>To set the default version of a type, use <code> <a>SetTypeDefaultVersion</a> </code>. </p>"
+        },
+        "Description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the registered type.</p>"
+        },
+        "Schema":{
+          "shape":"TypeSchema",
+          "documentation":"<p>The schema that defines the type.</p> <p>For more information on type schemas, see <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-schema.html\">Resource Provider Schema</a> in the <i>CloudFormation CLI User Guide</i>.</p>"
+        },
+        "ProvisioningType":{
+          "shape":"ProvisioningType",
+          "documentation":"<p>The provisioning behavior of the type. AWS CloudFormation determines the provisioning type during registration, based on the types of handlers in the schema handler package submitted.</p> <p>Valid values include:</p> <ul> <li> <p> <code>FULLY_MUTABLE</code>: The type includes an update handler to process updates to the type during stack update operations.</p> </li> <li> <p> <code>IMMUTABLE</code>: The type does not include an update handler, so the type cannot be updated and must instead be replaced during stack update operations.</p> </li> <li> <p> <code>NON_PROVISIONABLE</code>: The type does not include all of the following handlers, and therefore cannot actually be provisioned.</p> <ul> <li> <p>create</p> </li> <li> <p>read</p> </li> <li> <p>delete</p> </li> </ul> </li> </ul>"
+        },
+        "DeprecatedStatus":{
+          "shape":"DeprecatedStatus",
+          "documentation":"<p>The deprecation status of the type.</p> <p>Valid values include:</p> <ul> <li> <p> <code>LIVE</code>: The type is registered and can be used in CloudFormation operations, dependent on its provisioning behavior and visibility scope.</p> </li> <li> <p> <code>DEPRECATED</code>: The type has been deregistered and can no longer be used in CloudFormation operations. </p> </li> </ul>"
+        },
+        "LoggingConfig":{
+          "shape":"LoggingConfig",
+          "documentation":"<p>Contains logging configuration information for a type.</p>"
+        },
+        "ExecutionRoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM execution role used to register the type. If your resource type calls AWS APIs in any of its handlers, you must create an <i> <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html\">IAM execution role</a> </i> that includes the necessary permissions to call those AWS APIs, and provision that execution role in your account. CloudFormation then assumes that execution role to provide your resource type with the appropriate credentials.</p>"
+        },
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The scope at which the type is visible and usable in CloudFormation operations.</p> <p>Valid values include:</p> <ul> <li> <p> <code>PRIVATE</code>: The type is only visible and usable within the account in which it is registered. Currently, AWS CloudFormation marks any types you register as <code>PRIVATE</code>.</p> </li> <li> <p> <code>PUBLIC</code>: The type is publically visible and usable within any Amazon account.</p> </li> </ul>"
+        },
+        "SourceUrl":{
+          "shape":"OptionalSecureUrl",
+          "documentation":"<p>The URL of the source code for the type.</p>"
+        },
+        "DocumentationUrl":{
+          "shape":"OptionalSecureUrl",
+          "documentation":"<p>The URL of a page providing detailed documentation for this type.</p>"
+        },
+        "LastUpdated":{
+          "shape":"Timestamp",
+          "documentation":"<p>When the specified type version was registered.</p>"
+        },
+        "TimeCreated":{
+          "shape":"Timestamp",
+          "documentation":"<p>When the specified type version was registered.</p>"
+        }
+      }
+    },
+    "DescribeTypeRegistrationInput":{
+      "type":"structure",
+      "required":["RegistrationToken"],
+      "members":{
+        "RegistrationToken":{
+          "shape":"RegistrationToken",
+          "documentation":"<p>The identifier for this registration request.</p> <p>This registration token is generated by CloudFormation when you initiate a registration request using <code> <a>RegisterType</a> </code>.</p>"
+        }
+      }
+    },
+    "DescribeTypeRegistrationOutput":{
+      "type":"structure",
+      "members":{
+        "ProgressStatus":{
+          "shape":"RegistrationStatus",
+          "documentation":"<p>The current status of the type registration request.</p>"
+        },
+        "Description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the type registration request.</p>"
+        },
+        "TypeArn":{
+          "shape":"TypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type being registered.</p> <p>For registration requests with a <code>ProgressStatus</code> of other than <code>COMPLETE</code>, this will be <code>null</code>.</p>"
+        },
+        "TypeVersionArn":{
+          "shape":"TypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of this specific version of the type being registered.</p> <p>For registration requests with a <code>ProgressStatus</code> of other than <code>COMPLETE</code>, this will be <code>null</code>.</p>"
+        }
+      }
+    },
     "Description":{
       "type":"string",
       "max":1024,
@@ -1798,6 +2185,31 @@
         }
       }
     },
+    "DetectStackSetDriftInput":{
+      "type":"structure",
+      "required":["StackSetName"],
+      "members":{
+        "StackSetName":{
+          "shape":"StackSetNameOrId",
+          "documentation":"<p>The name of the stack set on which to perform the drift detection operation.</p>"
+        },
+        "OperationPreferences":{"shape":"StackSetOperationPreferences"},
+        "OperationId":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p> <i>The ID of the stack set operation.</i> </p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "DetectStackSetDriftOutput":{
+      "type":"structure",
+      "members":{
+        "OperationId":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>The ID of the drift detection stack set operation. </p> <p>you can use this operation id with <code> <a>DescribeStackSetOperation</a> </code> to monitor the progress of the drift detection operation. </p>"
+        }
+      }
+    },
     "DifferenceType":{
       "type":"string",
       "enum":[
@@ -1807,7 +2219,16 @@
       ]
     },
     "DisableRollback":{"type":"boolean"},
+    "DriftedStackInstancesCount":{
+      "type":"integer",
+      "min":0
+    },
     "EnableTerminationProtection":{"type":"boolean"},
+    "ErrorMessage":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
     "EstimateTemplateCostInput":{
       "type":"structure",
       "members":{
@@ -1909,6 +2330,10 @@
     "Exports":{
       "type":"list",
       "member":{"shape":"Export"}
+    },
+    "FailedStackInstancesCount":{
+      "type":"integer",
+      "min":0
     },
     "FailureToleranceCount":{
       "type":"integer",
@@ -2028,13 +2453,44 @@
         "DeclaredTransforms":{
           "shape":"TransformsList",
           "documentation":"<p>A list of the transforms that are declared in the template.</p>"
+        },
+        "ResourceIdentifierSummaries":{
+          "shape":"ResourceIdentifierSummaries",
+          "documentation":"<p>A list of resource identifier summaries that describe the target resources of an import operation and the properties you can provide during the import to identify the target resources. For example, <code>BucketName</code> is a possible identifier property for an <code>AWS::S3::Bucket</code> resource. </p>"
         }
       },
       "documentation":"<p>The output for the <a>GetTemplateSummary</a> action.</p>"
     },
+    "HandlerErrorCode":{
+      "type":"string",
+      "enum":[
+        "NotUpdatable",
+        "InvalidRequest",
+        "AccessDenied",
+        "InvalidCredentials",
+        "AlreadyExists",
+        "NotFound",
+        "ResourceConflict",
+        "Throttling",
+        "ServiceLimitExceeded",
+        "NotStabilized",
+        "GeneralServiceException",
+        "ServiceInternalError",
+        "NetworkFailure",
+        "InternalFailure"
+      ]
+    },
     "Imports":{
       "type":"list",
       "member":{"shape":"StackName"}
+    },
+    "InProgressStackInstancesCount":{
+      "type":"integer",
+      "min":0
+    },
+    "InSyncStackInstancesCount":{
+      "type":"integer",
+      "min":0
     },
     "InsufficientCapabilitiesException":{
       "type":"structure",
@@ -2067,6 +2523,18 @@
       "documentation":"<p>The specified operation isn't valid.</p>",
       "error":{
         "code":"InvalidOperationException",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "InvalidStateTransitionException":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Error reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>. CloudFormation does not return this error to users.</p>",
+      "error":{
+        "code":"InvalidStateTransition",
         "httpStatusCode":400,
         "senderFault":true
       },
@@ -2361,6 +2829,152 @@
       },
       "documentation":"<p>The output for <a>ListStacks</a> action.</p>"
     },
+    "ListTypeRegistrationsInput":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of type.</p> <p>Currently the only valid value is <code>RESOURCE</code>.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the type.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "TypeArn":{
+          "shape":"TypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "RegistrationStatusFilter":{
+          "shape":"RegistrationStatus",
+          "documentation":"<p>The current status of the type registration request.</p> <p>The default is <code>IN_PROGRESS</code>.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be returned with a single call. If the number of available results exceeds this maximum, the response includes a <code>NextToken</code> value that you can assign to the <code>NextToken</code> request parameter to get the next set of results.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the previous paginated request didn't return all of the remaining results, the response object's <code>NextToken</code> parameter value is set to a token. To retrieve the next set of results, call this action again and assign that token to the request object's <code>NextToken</code> parameter. If there are no remaining results, the previous response object's <code>NextToken</code> parameter is set to <code>null</code>.</p>"
+        }
+      }
+    },
+    "ListTypeRegistrationsOutput":{
+      "type":"structure",
+      "members":{
+        "RegistrationTokenList":{
+          "shape":"RegistrationTokenList",
+          "documentation":"<p> A list of type registration tokens.</p> <p>Use <code> <a>DescribeTypeRegistration</a> </code> to return detailed information about a type registration request.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the request doesn't return all of the remaining results, <code>NextToken</code> is set to a token. To retrieve the next set of results, call this action again and assign that token to the request object's <code>NextToken</code> parameter. If the request returns all results, <code>NextToken</code> is set to <code>null</code>.</p>"
+        }
+      }
+    },
+    "ListTypeVersionsInput":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of the type.</p> <p>Currently the only valid value is <code>RESOURCE</code>.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the type for which you want version summary information.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "Arn":{
+          "shape":"PrivateTypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type for which you want version summary information.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be returned with a single call. If the number of available results exceeds this maximum, the response includes a <code>NextToken</code> value that you can assign to the <code>NextToken</code> request parameter to get the next set of results.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the previous paginated request didn't return all of the remaining results, the response object's <code>NextToken</code> parameter value is set to a token. To retrieve the next set of results, call this action again and assign that token to the request object's <code>NextToken</code> parameter. If there are no remaining results, the previous response object's <code>NextToken</code> parameter is set to <code>null</code>.</p>"
+        },
+        "DeprecatedStatus":{
+          "shape":"DeprecatedStatus",
+          "documentation":"<p>The deprecation status of the type versions that you want to get summary information about.</p> <p>Valid values include:</p> <ul> <li> <p> <code>LIVE</code>: The type version is registered and can be used in CloudFormation operations, dependent on its provisioning behavior and visibility scope.</p> </li> <li> <p> <code>DEPRECATED</code>: The type version has been deregistered and can no longer be used in CloudFormation operations. </p> </li> </ul> <p>The default is <code>LIVE</code>.</p>"
+        }
+      }
+    },
+    "ListTypeVersionsOutput":{
+      "type":"structure",
+      "members":{
+        "TypeVersionSummaries":{
+          "shape":"TypeVersionSummaries",
+          "documentation":"<p>A list of <code>TypeVersionSummary</code> structures that contain information about the specified type's versions.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the request doesn't return all of the remaining results, <code>NextToken</code> is set to a token. To retrieve the next set of results, call this action again and assign that token to the request object's <code>NextToken</code> parameter. If the request returns all results, <code>NextToken</code> is set to <code>null</code>.</p>"
+        }
+      }
+    },
+    "ListTypesInput":{
+      "type":"structure",
+      "members":{
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The scope at which the type is visible and usable in CloudFormation operations.</p> <p>Valid values include:</p> <ul> <li> <p> <code>PRIVATE</code>: The type is only visible and usable within the account in which it is registered. Currently, AWS CloudFormation marks any types you create as <code>PRIVATE</code>.</p> </li> <li> <p> <code>PUBLIC</code>: The type is publically visible and usable within any Amazon account.</p> </li> </ul> <p>The default is <code>PRIVATE</code>.</p>"
+        },
+        "ProvisioningType":{
+          "shape":"ProvisioningType",
+          "documentation":"<p>The provisioning behavior of the type. AWS CloudFormation determines the provisioning type during registration, based on the types of handlers in the schema handler package submitted.</p> <p>Valid values include:</p> <ul> <li> <p> <code>FULLY_MUTABLE</code>: The type includes an update handler to process updates to the type during stack update operations.</p> </li> <li> <p> <code>IMMUTABLE</code>: The type does not include an update handler, so the type cannot be updated and must instead be replaced during stack update operations.</p> </li> <li> <p> <code>NON_PROVISIONABLE</code>: The type does not include create, read, and delete handlers, and therefore cannot actually be provisioned.</p> </li> </ul>"
+        },
+        "DeprecatedStatus":{
+          "shape":"DeprecatedStatus",
+          "documentation":"<p>The deprecation status of the types that you want to get summary information about.</p> <p>Valid values include:</p> <ul> <li> <p> <code>LIVE</code>: The type is registered for use in CloudFormation operations.</p> </li> <li> <p> <code>DEPRECATED</code>: The type has been deregistered and can no longer be used in CloudFormation operations. </p> </li> </ul>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be returned with a single call. If the number of available results exceeds this maximum, the response includes a <code>NextToken</code> value that you can assign to the <code>NextToken</code> request parameter to get the next set of results.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the previous paginated request didn't return all of the remaining results, the response object's <code>NextToken</code> parameter value is set to a token. To retrieve the next set of results, call this action again and assign that token to the request object's <code>NextToken</code> parameter. If there are no remaining results, the previous response object's <code>NextToken</code> parameter is set to <code>null</code>.</p>"
+        }
+      }
+    },
+    "ListTypesOutput":{
+      "type":"structure",
+      "members":{
+        "TypeSummaries":{
+          "shape":"TypeSummaries",
+          "documentation":"<p>A list of <code>TypeSummary</code> structures that contain information about the specified types.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the request doesn't return all of the remaining results, <code>NextToken</code> is set to a token. To retrieve the next set of results, call this action again and assign that token to the request object's <code>NextToken</code> parameter. If the request returns all results, <code>NextToken</code> is set to <code>null</code>.</p>"
+        }
+      }
+    },
+    "LogGroupName":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "pattern":"[\\.\\-_/#A-Za-z0-9]+"
+    },
+    "LoggingConfig":{
+      "type":"structure",
+      "required":[
+        "LogRoleArn",
+        "LogGroupName"
+      ],
+      "members":{
+        "LogRoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the role that CloudFormation should assume when sending log entries to CloudWatch logs.</p>"
+        },
+        "LogGroupName":{
+          "shape":"LogGroupName",
+          "documentation":"<p>The Amazon CloudWatch log group to which CloudFormation sends error logging information when invoking the type's handlers.</p>"
+        }
+      },
+      "documentation":"<p>Contains logging configuration information for a type.</p>"
+    },
     "LogicalResourceId":{"type":"string"},
     "LogicalResourceIds":{
       "type":"list",
@@ -2455,6 +3069,39 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "OperationStatus":{
+      "type":"string",
+      "enum":[
+        "PENDING",
+        "IN_PROGRESS",
+        "SUCCESS",
+        "FAILED"
+      ]
+    },
+    "OperationStatusCheckFailedException":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Error reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>. CloudFormation does not return this error to users.</p>",
+      "error":{
+        "code":"ConditionalCheckFailed",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "OptionalSecureUrl":{
+      "type":"string",
+      "max":4096
+    },
+    "OrganizationalUnitId":{
+      "type":"string",
+      "pattern":"^(ou-[a-z0-9]{4,32}-[a-z0-9]{8,32}|r-[a-z0-9]{4,32})$"
+    },
+    "OrganizationalUnitIdList":{
+      "type":"list",
+      "member":{"shape":"OrganizationalUnitId"}
     },
     "Output":{
       "type":"structure",
@@ -2557,6 +3204,13 @@
       "type":"list",
       "member":{"shape":"Parameter"}
     },
+    "PermissionModels":{
+      "type":"string",
+      "enum":[
+        "SERVICE_MANAGED",
+        "SELF_MANAGED"
+      ]
+    },
     "PhysicalResourceId":{"type":"string"},
     "PhysicalResourceIdContext":{
       "type":"list",
@@ -2580,6 +3234,11 @@
         }
       },
       "documentation":"<p>Context information that enables AWS CloudFormation to uniquely identify a resource. AWS CloudFormation uses context key-value pairs in cases where a resource's logical and physical IDs are not enough to uniquely identify that resource. Each context key-value pair specifies a resource that contains the targeted resource.</p>"
+    },
+    "PrivateTypeArn":{
+      "type":"string",
+      "max":1024,
+      "pattern":"arn:aws[A-Za-z0-9-]{0,64}:cloudformation:[A-Za-z0-9-]{1,64}:[0-9]{12}:type/.+"
     },
     "Properties":{"type":"string"},
     "PropertyDifference":{
@@ -2617,11 +3276,128 @@
     "PropertyName":{"type":"string"},
     "PropertyPath":{"type":"string"},
     "PropertyValue":{"type":"string"},
+    "ProvisioningType":{
+      "type":"string",
+      "enum":[
+        "NON_PROVISIONABLE",
+        "IMMUTABLE",
+        "FULLY_MUTABLE"
+      ]
+    },
     "Reason":{"type":"string"},
-    "Region":{"type":"string"},
+    "RecordHandlerProgressInput":{
+      "type":"structure",
+      "required":[
+        "BearerToken",
+        "OperationStatus"
+      ],
+      "members":{
+        "BearerToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>.</p>"
+        },
+        "OperationStatus":{
+          "shape":"OperationStatus",
+          "documentation":"<p>Reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>.</p>"
+        },
+        "CurrentOperationStatus":{
+          "shape":"OperationStatus",
+          "documentation":"<p>Reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>.</p>"
+        },
+        "StatusMessage":{
+          "shape":"StatusMessage",
+          "documentation":"<p>Reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>.</p>"
+        },
+        "ErrorCode":{
+          "shape":"HandlerErrorCode",
+          "documentation":"<p>Reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>.</p>"
+        },
+        "ResourceModel":{
+          "shape":"ResourceModel",
+          "documentation":"<p>Reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>Reserved for use by the <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html\">CloudFormation CLI</a>.</p>"
+        }
+      }
+    },
+    "RecordHandlerProgressOutput":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "Region":{
+      "type":"string",
+      "pattern":"^[a-zA-Z0-9-]{1,128}$"
+    },
     "RegionList":{
       "type":"list",
       "member":{"shape":"Region"}
+    },
+    "RegisterTypeInput":{
+      "type":"structure",
+      "required":[
+        "TypeName",
+        "SchemaHandlerPackage"
+      ],
+      "members":{
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of type.</p> <p>Currently, the only valid value is <code>RESOURCE</code>.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the type being registered.</p> <p>We recommend that type names adhere to the following pattern: <i>company_or_organization</i>::<i>service</i>::<i>type</i>.</p> <note> <p>The following organization namespaces are reserved and cannot be used in your resource type names:</p> <ul> <li> <p> <code>Alexa</code> </p> </li> <li> <p> <code>AMZN</code> </p> </li> <li> <p> <code>Amazon</code> </p> </li> <li> <p> <code>AWS</code> </p> </li> <li> <p> <code>Custom</code> </p> </li> <li> <p> <code>Dev</code> </p> </li> </ul> </note>"
+        },
+        "SchemaHandlerPackage":{
+          "shape":"S3Url",
+          "documentation":"<p>A url to the S3 bucket containing the schema handler package that contains the schema, event handlers, and associated files for the type you want to register.</p> <p>For information on generating a schema handler package for the type you want to register, see <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-cli-submit.html\">submit</a> in the <i>CloudFormation CLI User Guide</i>.</p> <note> <p>As part of registering a resource provider type, CloudFormation must be able to access the S3 bucket which contains the schema handler package for that resource provider. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html#registry-register-permissions\">IAM Permissions for Registering a Resource Provider</a> in the <i>AWS CloudFormation User Guide</i>.</p> </note>"
+        },
+        "LoggingConfig":{
+          "shape":"LoggingConfig",
+          "documentation":"<p>Specifies logging configuration information for a type.</p>"
+        },
+        "ExecutionRoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM execution role to use to register the type. If your resource type calls AWS APIs in any of its handlers, you must create an <i> <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html\">IAM execution role</a> </i> that includes the necessary permissions to call those AWS APIs, and provision that execution role in your account. CloudFormation then assumes that execution role to provide your resource type with the appropriate credentials.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"RequestToken",
+          "documentation":"<p>A unique identifier that acts as an idempotency key for this registration request. Specifying a client request token prevents CloudFormation from generating more than one version of a type from the same registeration request, even if the request is submitted multiple times. </p>"
+        }
+      }
+    },
+    "RegisterTypeOutput":{
+      "type":"structure",
+      "members":{
+        "RegistrationToken":{
+          "shape":"RegistrationToken",
+          "documentation":"<p>The identifier for this registration request.</p> <p>Use this registration token when calling <code> <a>DescribeTypeRegistration</a> </code>, which returns information about the status and IDs of the type registration. </p>"
+        }
+      }
+    },
+    "RegistrationStatus":{
+      "type":"string",
+      "enum":[
+        "COMPLETE",
+        "IN_PROGRESS",
+        "FAILED"
+      ]
+    },
+    "RegistrationToken":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9][-a-zA-Z0-9]*"
+    },
+    "RegistrationTokenList":{
+      "type":"list",
+      "member":{"shape":"RegistrationToken"}
+    },
+    "RegistryType":{
+      "type":"string",
+      "enum":["RESOURCE"]
     },
     "Replacement":{
       "type":"string",
@@ -2630,6 +3406,12 @@
         "False",
         "Conditional"
       ]
+    },
+    "RequestToken":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9][-a-zA-Z0-9]*"
     },
     "RequiresRecreation":{
       "type":"string",
@@ -2710,6 +3492,54 @@
       "type":"list",
       "member":{"shape":"ResourceChangeDetail"}
     },
+    "ResourceIdentifierProperties":{
+      "type":"map",
+      "key":{"shape":"ResourceIdentifierPropertyKey"},
+      "value":{"shape":"ResourceIdentifierPropertyValue"},
+      "max":256,
+      "min":1
+    },
+    "ResourceIdentifierPropertyKey":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "ResourceIdentifierPropertyValue":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "ResourceIdentifierSummaries":{
+      "type":"list",
+      "member":{"shape":"ResourceIdentifierSummary"}
+    },
+    "ResourceIdentifierSummary":{
+      "type":"structure",
+      "members":{
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The template resource type of the target resources, such as <code>AWS::S3::Bucket</code>.</p>"
+        },
+        "LogicalResourceIds":{
+          "shape":"LogicalResourceIds",
+          "documentation":"<p>The logical IDs of the target resources of the specified <code>ResourceType</code>, as defined in the import template.</p>"
+        },
+        "ResourceIdentifiers":{
+          "shape":"ResourceIdentifiers",
+          "documentation":"<p>The resource properties you can provide during the import to identify your target resources. For example, <code>BucketName</code> is a possible identifier property for <code>AWS::S3::Bucket</code> resources.</p>"
+        }
+      },
+      "documentation":"<p>Describes the target resources of a specific type in your import template (for example, all <code>AWS::S3::Bucket</code> resources) and the properties you can provide during the import to identify resources of that type.</p>"
+    },
+    "ResourceIdentifiers":{
+      "type":"list",
+      "member":{"shape":"ResourceIdentifierPropertyKey"}
+    },
+    "ResourceModel":{
+      "type":"string",
+      "max":16384,
+      "min":1
+    },
     "ResourceProperties":{"type":"string"},
     "ResourceSignalStatus":{
       "type":"string",
@@ -2735,7 +3565,13 @@
         "DELETE_SKIPPED",
         "UPDATE_IN_PROGRESS",
         "UPDATE_FAILED",
-        "UPDATE_COMPLETE"
+        "UPDATE_COMPLETE",
+        "IMPORT_FAILED",
+        "IMPORT_COMPLETE",
+        "IMPORT_IN_PROGRESS",
+        "IMPORT_ROLLBACK_IN_PROGRESS",
+        "IMPORT_ROLLBACK_FAILED",
+        "IMPORT_ROLLBACK_COMPLETE"
       ]
     },
     "ResourceStatusReason":{"type":"string"},
@@ -2757,6 +3593,29 @@
       },
       "documentation":"<p>The field that AWS CloudFormation will change, such as the name of a resource's property, and whether the resource will be recreated.</p>"
     },
+    "ResourceToImport":{
+      "type":"structure",
+      "required":[
+        "ResourceType",
+        "LogicalResourceId",
+        "ResourceIdentifier"
+      ],
+      "members":{
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The type of resource to import into your stack, such as <code>AWS::S3::Bucket</code>. </p>"
+        },
+        "LogicalResourceId":{
+          "shape":"LogicalResourceId",
+          "documentation":"<p>The logical ID of the target resource as specified in the template.</p>"
+        },
+        "ResourceIdentifier":{
+          "shape":"ResourceIdentifierProperties",
+          "documentation":"<p>A key-value pair that identifies the target resource. The key is an identifier property (for example, <code>BucketName</code> for <code>AWS::S3::Bucket</code> resources) and the value is the actual property value (for example, <code>MyS3Bucket</code>).</p>"
+        }
+      },
+      "documentation":"<p>Describes the target resource of an import operation.</p>"
+    },
     "ResourceToSkip":{
       "type":"string",
       "pattern":"[a-zA-Z0-9]+|[a-zA-Z][-a-zA-Z0-9]*\\.[a-zA-Z0-9]+"
@@ -2770,6 +3629,11 @@
       "type":"list",
       "member":{"shape":"ResourceType"}
     },
+    "ResourcesToImport":{
+      "type":"list",
+      "member":{"shape":"ResourceToImport"},
+      "max":200
+    },
     "ResourcesToSkip":{
       "type":"list",
       "member":{"shape":"ResourceToSkip"}
@@ -2780,10 +3644,17 @@
     },
     "RetainStacks":{"type":"boolean"},
     "RetainStacksNullable":{"type":"boolean"},
+    "RetainStacksOnAccountRemovalNullable":{"type":"boolean"},
     "RoleARN":{
       "type":"string",
       "max":2048,
       "min":20
+    },
+    "RoleArn":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"arn:.+:iam::[0-9]{12}:role/.+"
     },
     "RollbackConfiguration":{
       "type":"structure",
@@ -2822,6 +3693,11 @@
       "member":{"shape":"RollbackTrigger"},
       "max":5
     },
+    "S3Url":{
+      "type":"string",
+      "max":4096,
+      "min":1
+    },
     "Scope":{
       "type":"list",
       "member":{"shape":"ResourceAttribute"}
@@ -2844,6 +3720,32 @@
         }
       },
       "documentation":"<p>The input for the <a>SetStackPolicy</a> action.</p>"
+    },
+    "SetTypeDefaultVersionInput":{
+      "type":"structure",
+      "members":{
+        "Arn":{
+          "shape":"PrivateTypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type for which you want version summary information.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of type.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the type.</p> <p>Conditional: You must specify either <code>TypeName</code> and <code>Type</code>, or <code>Arn</code>.</p>"
+        },
+        "VersionId":{
+          "shape":"TypeVersionId",
+          "documentation":"<p>The ID of a specific version of the type. The version ID is the value at the end of the Amazon Resource Name (ARN) assigned to the type version when it is registered.</p>"
+        }
+      }
+    },
+    "SetTypeDefaultVersionOutput":{
+      "type":"structure",
+      "members":{
+      }
     },
     "SignalResourceInput":{
       "type":"structure",
@@ -2963,7 +3865,7 @@
         },
         "RootId":{
           "shape":"StackId",
-          "documentation":"<p>For nested stacks--stacks created as resources for another stack--the stack ID of the the top-level stack to which the nested stack ultimately belongs.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html\">Working with Nested Stacks</a> in the <i>AWS CloudFormation User Guide</i>.</p>"
+          "documentation":"<p>For nested stacks--stacks created as resources for another stack--the stack ID of the top-level stack to which the nested stack ultimately belongs.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html\">Working with Nested Stacks</a> in the <i>AWS CloudFormation User Guide</i>.</p>"
         },
         "DriftInformation":{
           "shape":"StackDriftInformation",
@@ -3099,7 +4001,7 @@
         },
         "Account":{
           "shape":"Account",
-          "documentation":"<p>The name of the AWS account that the stack instance is associated with.</p>"
+          "documentation":"<p>[Self-managed permissions] The name of the AWS account that the stack instance is associated with.</p>"
         },
         "StackId":{
           "shape":"StackId",
@@ -3116,6 +4018,18 @@
         "StatusReason":{
           "shape":"Reason",
           "documentation":"<p>The explanation for the specific status code that is assigned to this stack instance.</p>"
+        },
+        "OrganizationalUnitId":{
+          "shape":"OrganizationalUnitId",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The organization root ID or organizational unit (OU) ID that the stack instance is associated with.</p>"
+        },
+        "DriftStatus":{
+          "shape":"StackDriftStatus",
+          "documentation":"<p>Status of the stack instance's actual configuration compared to the expected template and parameter configuration of the stack set to which it belongs. </p> <ul> <li> <p> <code>DRIFTED</code>: The stack differs from the expected template and parameter configuration of the stack set to which it belongs. A stack instance is considered to have drifted if one or more of the resources in the associated stack have drifted.</p> </li> <li> <p> <code>NOT_CHECKED</code>: AWS CloudFormation has not checked if the stack instance differs from its expected stack set configuration.</p> </li> <li> <p> <code>IN_SYNC</code>: The stack instance's actual configuration matches its expected stack set configuration.</p> </li> <li> <p> <code>UNKNOWN</code>: This value is reserved for future use.</p> </li> </ul>"
+        },
+        "LastDriftCheckTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>Most recent time when CloudFormation performed a drift detection operation on the stack instance. This value will be <code>NULL</code> for any stack instance on which drift detection has not yet been performed.</p>"
         }
       },
       "documentation":"<p>An AWS CloudFormation stack, in a specific account and region, that's part of a stack set operation. A stack instance is a reference to an attempted or actual stack in a given account within a given region. A stack instance can exist without a stack—for example, if the stack couldn't be created for some reason. A stack instance is associated with only one stack set. Each stack instance contains the ID of its associated stack set, as well as the ID of the actual stack and the stack status.</p>"
@@ -3157,7 +4071,7 @@
         },
         "Account":{
           "shape":"Account",
-          "documentation":"<p>The name of the AWS account that the stack instance is associated with.</p>"
+          "documentation":"<p>[Self-managed permissions] The name of the AWS account that the stack instance is associated with.</p>"
         },
         "StackId":{
           "shape":"StackId",
@@ -3170,6 +4084,18 @@
         "StatusReason":{
           "shape":"Reason",
           "documentation":"<p>The explanation for the specific status code assigned to this stack instance.</p>"
+        },
+        "OrganizationalUnitId":{
+          "shape":"OrganizationalUnitId",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The organization root ID or organizational unit (OU) ID that the stack instance is associated with.</p>"
+        },
+        "DriftStatus":{
+          "shape":"StackDriftStatus",
+          "documentation":"<p>Status of the stack instance's actual configuration compared to the expected template and parameter configuration of the stack set to which it belongs. </p> <ul> <li> <p> <code>DRIFTED</code>: The stack differs from the expected template and parameter configuration of the stack set to which it belongs. A stack instance is considered to have drifted if one or more of the resources in the associated stack have drifted.</p> </li> <li> <p> <code>NOT_CHECKED</code>: AWS CloudFormation has not checked if the stack instance differs from its expected stack set configuration.</p> </li> <li> <p> <code>IN_SYNC</code>: The stack instance's actual configuration matches its expected stack set configuration.</p> </li> <li> <p> <code>UNKNOWN</code>: This value is reserved for future use.</p> </li> </ul>"
+        },
+        "LastDriftCheckTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>Most recent time when CloudFormation performed a drift detection operation on the stack instance. This value will be <code>NULL</code> for any stack instance on which drift detection has not yet been performed.</p>"
         }
       },
       "documentation":"<p>The structure that contains summary information about a stack instance.</p>"
@@ -3504,11 +4430,83 @@
         "ExecutionRoleName":{
           "shape":"ExecutionRoleName",
           "documentation":"<p>The name of the IAM execution role used to create or update the stack set. </p> <p>Use customized execution roles to control which stack resources users and groups can include in their stack sets. </p>"
+        },
+        "StackSetDriftDetectionDetails":{
+          "shape":"StackSetDriftDetectionDetails",
+          "documentation":"<p>Detailed information about the drift status of the stack set.</p> <p>For stack sets, contains information about the last <i>completed</i> drift operation performed on the stack set. Information about drift operations currently in progress is not included.</p>"
+        },
+        "AutoDeployment":{
+          "shape":"AutoDeployment",
+          "documentation":"<p>[<code>Service-managed</code> permissions] Describes whether StackSets automatically deploys to AWS Organizations accounts that are added to a target organization or organizational unit (OU).</p>"
+        },
+        "PermissionModel":{
+          "shape":"PermissionModels",
+          "documentation":"<p>Describes how the IAM roles required for stack set operations are created.</p> <ul> <li> <p>With <code>self-managed</code> permissions, you must create the administrator and execution roles required to deploy to target accounts. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html\">Grant Self-Managed Stack Set Permissions</a>.</p> </li> <li> <p>With <code>service-managed</code> permissions, StackSets automatically creates the IAM roles required to deploy to accounts managed by AWS Organizations. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-service-managed.html\">Grant Service-Managed Stack Set Permissions</a>.</p> </li> </ul>"
+        },
+        "OrganizationalUnitIds":{
+          "shape":"OrganizationalUnitIdList",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The organization root ID or organizational unit (OUs) IDs to which stacks in your stack set have been deployed.</p>"
         }
       },
       "documentation":"<p>A structure that contains information about a stack set. A stack set enables you to provision stacks into AWS accounts and across regions by using a single CloudFormation template. In the stack set, you specify the template to use, as well as any parameters and capabilities that the template requires. </p>"
     },
     "StackSetARN":{"type":"string"},
+    "StackSetDriftDetectionDetails":{
+      "type":"structure",
+      "members":{
+        "DriftStatus":{
+          "shape":"StackSetDriftStatus",
+          "documentation":"<p>Status of the stack set's actual configuration compared to its expected template and parameter configuration. A stack set is considered to have drifted if one or more of its stack instances have drifted from their expected template and parameter configuration.</p> <ul> <li> <p> <code>DRIFTED</code>: One or more of the stack instances belonging to the stack set stack differs from the expected template and parameter configuration. A stack instance is considered to have drifted if one or more of the resources in the associated stack have drifted.</p> </li> <li> <p> <code>NOT_CHECKED</code>: AWS CloudFormation has not checked the stack set for drift.</p> </li> <li> <p> <code>IN_SYNC</code>: All of the stack instances belonging to the stack set stack match from the expected template and parameter configuration.</p> </li> </ul>"
+        },
+        "DriftDetectionStatus":{
+          "shape":"StackSetDriftDetectionStatus",
+          "documentation":"<p>The status of the stack set drift detection operation.</p> <ul> <li> <p> <code>COMPLETED</code>: The drift detection operation completed without failing on any stack instances.</p> </li> <li> <p> <code>FAILED</code>: The drift detection operation exceeded the specified failure tolerance. </p> </li> <li> <p> <code>PARTIAL_SUCCESS</code>: The drift detection operation completed without exceeding the failure tolerance for the operation.</p> </li> <li> <p> <code>IN_PROGRESS</code>: The drift detection operation is currently being performed.</p> </li> <li> <p> <code>STOPPED</code>: The user has cancelled the drift detection operation.</p> </li> </ul>"
+        },
+        "LastDriftCheckTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>Most recent time when CloudFormation performed a drift detection operation on the stack set. This value will be <code>NULL</code> for any stack set on which drift detection has not yet been performed.</p>"
+        },
+        "TotalStackInstancesCount":{
+          "shape":"TotalStackInstancesCount",
+          "documentation":"<p>The total number of stack instances belonging to this stack set. </p> <p>The total number of stack instances is equal to the total of:</p> <ul> <li> <p>Stack instances that match the stack set configuration. </p> </li> <li> <p>Stack instances that have drifted from the stack set configuration. </p> </li> <li> <p>Stack instances where the drift detection operation has failed.</p> </li> <li> <p>Stack instances currently being checked for drift.</p> </li> </ul>"
+        },
+        "DriftedStackInstancesCount":{
+          "shape":"DriftedStackInstancesCount",
+          "documentation":"<p>The number of stack instances that have drifted from the expected template and parameter configuration of the stack set. A stack instance is considered to have drifted if one or more of the resources in the associated stack do not match their expected configuration.</p>"
+        },
+        "InSyncStackInstancesCount":{
+          "shape":"InSyncStackInstancesCount",
+          "documentation":"<p>The number of stack instances which match the expected template and parameter configuration of the stack set.</p>"
+        },
+        "InProgressStackInstancesCount":{
+          "shape":"InProgressStackInstancesCount",
+          "documentation":"<p>The number of stack instances that are currently being checked for drift.</p>"
+        },
+        "FailedStackInstancesCount":{
+          "shape":"FailedStackInstancesCount",
+          "documentation":"<p>The number of stack instances for which the drift detection operation failed.</p>"
+        }
+      },
+      "documentation":"<p>Detailed information about the drift status of the stack set.</p> <p>For stack sets, contains information about the last <i>completed</i> drift operation performed on the stack set. Information about drift operations in-progress is not included. </p> <p>For stack set operations, includes information about drift operations currently being performed on the stack set.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-drift.html\">Detecting Unmanaged Changes in Stack Sets</a> in the <i>AWS CloudFormation User Guide</i>.</p>"
+    },
+    "StackSetDriftDetectionStatus":{
+      "type":"string",
+      "enum":[
+        "COMPLETED",
+        "FAILED",
+        "PARTIAL_SUCCESS",
+        "IN_PROGRESS",
+        "STOPPED"
+      ]
+    },
+    "StackSetDriftStatus":{
+      "type":"string",
+      "enum":[
+        "DRIFTED",
+        "IN_SYNC",
+        "NOT_CHECKED"
+      ]
+    },
     "StackSetId":{"type":"string"},
     "StackSetName":{"type":"string"},
     "StackSetNameOrId":{
@@ -3556,7 +4554,7 @@
         },
         "Status":{
           "shape":"StackSetOperationStatus",
-          "documentation":"<p>The status of the operation. </p> <ul> <li> <p> <code>FAILED</code>: The operation exceeded the specified failure tolerance. The failure tolerance value that you've set for an operation is applied for each region during stack create and update operations. If the number of failed stacks within a region exceeds the failure tolerance, the status of the operation in the region is set to <code>FAILED</code>. This in turn sets the status of the operation as a whole to <code>FAILED</code>, and AWS CloudFormation cancels the operation in any remaining regions.</p> </li> <li> <p> <code>RUNNING</code>: The operation is currently being performed.</p> </li> <li> <p> <code>STOPPED</code>: The user has cancelled the operation.</p> </li> <li> <p> <code>STOPPING</code>: The operation is in the process of stopping, at user request. </p> </li> <li> <p> <code>SUCCEEDED</code>: The operation completed creating or updating all the specified stacks without exceeding the failure tolerance for the operation.</p> </li> </ul>"
+          "documentation":"<p>The status of the operation. </p> <ul> <li> <p> <code>FAILED</code>: The operation exceeded the specified failure tolerance. The failure tolerance value that you've set for an operation is applied for each region during stack create and update operations. If the number of failed stacks within a region exceeds the failure tolerance, the status of the operation in the region is set to <code>FAILED</code>. This in turn sets the status of the operation as a whole to <code>FAILED</code>, and AWS CloudFormation cancels the operation in any remaining regions.</p> </li> <li> <p> <code>QUEUED</code>: [Service-managed permissions] For automatic deployments that require a sequence of operations. The operation is queued to be performed. For more information, see the <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html#stackset-status-codes\">stack set operation status codes</a> in the AWS CloudFormation User Guide.</p> </li> <li> <p> <code>RUNNING</code>: The operation is currently being performed.</p> </li> <li> <p> <code>STOPPED</code>: The user has cancelled the operation.</p> </li> <li> <p> <code>STOPPING</code>: The operation is in the process of stopping, at user request. </p> </li> <li> <p> <code>SUCCEEDED</code>: The operation completed creating or updating all the specified stacks without exceeding the failure tolerance for the operation.</p> </li> </ul>"
         },
         "OperationPreferences":{
           "shape":"StackSetOperationPreferences",
@@ -3581,6 +4579,14 @@
         "EndTimestamp":{
           "shape":"Timestamp",
           "documentation":"<p>The time at which the stack set operation ended, across all accounts and regions specified. Note that this doesn't necessarily mean that the stack set operation was successful, or even attempted, in each account or region.</p>"
+        },
+        "DeploymentTargets":{
+          "shape":"DeploymentTargets",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The AWS Organizations accounts affected by the stack operation.</p>"
+        },
+        "StackSetDriftDetectionDetails":{
+          "shape":"StackSetDriftDetectionDetails",
+          "documentation":"<p>Detailed information about the drift status of the stack set. This includes information about drift operations currently being performed on the stack set.</p> <p>this information will only be present for stack set operations whose <code>Action</code> type is <code>DETECT_DRIFT</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-drift.html\">Detecting Unmanaged Changes in Stack Sets</a> in the AWS CloudFormation User Guide.</p>"
         }
       },
       "documentation":"<p>The structure that contains information about a stack set operation. </p>"
@@ -3590,7 +4596,8 @@
       "enum":[
         "CREATE",
         "UPDATE",
-        "DELETE"
+        "DELETE",
+        "DETECT_DRIFT"
       ]
     },
     "StackSetOperationPreferences":{
@@ -3638,7 +4645,7 @@
       "members":{
         "Account":{
           "shape":"Account",
-          "documentation":"<p>The name of the AWS account for this operation result.</p>"
+          "documentation":"<p>[Self-managed permissions] The name of the AWS account for this operation result.</p>"
         },
         "Region":{
           "shape":"Region",
@@ -3655,6 +4662,10 @@
         "AccountGateResult":{
           "shape":"AccountGateResult",
           "documentation":"<p>The results of the account gate function AWS CloudFormation invokes, if present, before proceeding with stack set operations in an account</p>"
+        },
+        "OrganizationalUnitId":{
+          "shape":"OrganizationalUnitId",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The organization root ID or organizational unit (OU) ID for this operation result.</p>"
         }
       },
       "documentation":"<p>The structure that contains information about a specified operation's results for a given account in a given region.</p>"
@@ -3666,7 +4677,8 @@
         "SUCCEEDED",
         "FAILED",
         "STOPPING",
-        "STOPPED"
+        "STOPPED",
+        "QUEUED"
       ]
     },
     "StackSetOperationSummaries":{
@@ -3686,7 +4698,7 @@
         },
         "Status":{
           "shape":"StackSetOperationStatus",
-          "documentation":"<p>The overall status of the operation.</p> <ul> <li> <p> <code>FAILED</code>: The operation exceeded the specified failure tolerance. The failure tolerance value that you've set for an operation is applied for each region during stack create and update operations. If the number of failed stacks within a region exceeds the failure tolerance, the status of the operation in the region is set to <code>FAILED</code>. This in turn sets the status of the operation as a whole to <code>FAILED</code>, and AWS CloudFormation cancels the operation in any remaining regions.</p> </li> <li> <p> <code>RUNNING</code>: The operation is currently being performed.</p> </li> <li> <p> <code>STOPPED</code>: The user has cancelled the operation.</p> </li> <li> <p> <code>STOPPING</code>: The operation is in the process of stopping, at user request. </p> </li> <li> <p> <code>SUCCEEDED</code>: The operation completed creating or updating all the specified stacks without exceeding the failure tolerance for the operation.</p> </li> </ul>"
+          "documentation":"<p>The overall status of the operation.</p> <ul> <li> <p> <code>FAILED</code>: The operation exceeded the specified failure tolerance. The failure tolerance value that you've set for an operation is applied for each region during stack create and update operations. If the number of failed stacks within a region exceeds the failure tolerance, the status of the operation in the region is set to <code>FAILED</code>. This in turn sets the status of the operation as a whole to <code>FAILED</code>, and AWS CloudFormation cancels the operation in any remaining regions.</p> </li> <li> <p> <code>QUEUED</code>: [Service-managed permissions] For automatic deployments that require a sequence of operations. The operation is queued to be performed. For more information, see the <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html#stackset-status-codes\">stack set operation status codes</a> in the AWS CloudFormation User Guide.</p> </li> <li> <p> <code>RUNNING</code>: The operation is currently being performed.</p> </li> <li> <p> <code>STOPPED</code>: The user has cancelled the operation.</p> </li> <li> <p> <code>STOPPING</code>: The operation is in the process of stopping, at user request. </p> </li> <li> <p> <code>SUCCEEDED</code>: The operation completed creating or updating all the specified stacks without exceeding the failure tolerance for the operation.</p> </li> </ul>"
         },
         "CreationTimestamp":{
           "shape":"Timestamp",
@@ -3728,6 +4740,22 @@
         "Status":{
           "shape":"StackSetStatus",
           "documentation":"<p>The status of the stack set.</p>"
+        },
+        "AutoDeployment":{
+          "shape":"AutoDeployment",
+          "documentation":"<p>[<code>Service-managed</code> permissions] Describes whether StackSets automatically deploys to AWS Organizations accounts that are added to a target organizational unit (OU).</p>"
+        },
+        "PermissionModel":{
+          "shape":"PermissionModels",
+          "documentation":"<p>Describes how the IAM roles required for stack set operations are created.</p> <ul> <li> <p>With <code>self-managed</code> permissions, you must create the administrator and execution roles required to deploy to target accounts. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html\">Grant Self-Managed Stack Set Permissions</a>.</p> </li> <li> <p>With <code>service-managed</code> permissions, StackSets automatically creates the IAM roles required to deploy to accounts managed by AWS Organizations. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-service-managed.html\">Grant Service-Managed Stack Set Permissions</a>.</p> </li> </ul>"
+        },
+        "DriftStatus":{
+          "shape":"StackDriftStatus",
+          "documentation":"<p>Status of the stack set's actual configuration compared to its expected template and parameter configuration. A stack set is considered to have drifted if one or more of its stack instances have drifted from their expected template and parameter configuration.</p> <ul> <li> <p> <code>DRIFTED</code>: One or more of the stack instances belonging to the stack set stack differs from the expected template and parameter configuration. A stack instance is considered to have drifted if one or more of the resources in the associated stack have drifted.</p> </li> <li> <p> <code>NOT_CHECKED</code>: AWS CloudFormation has not checked the stack set for drift.</p> </li> <li> <p> <code>IN_SYNC</code>: All of the stack instances belonging to the stack set stack match from the expected template and parameter configuration.</p> </li> <li> <p> <code>UNKNOWN</code>: This value is reserved for future use.</p> </li> </ul>"
+        },
+        "LastDriftCheckTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>Most recent time when CloudFormation performed a drift detection operation on the stack set. This value will be <code>NULL</code> for any stack set on which drift detection has not yet been performed.</p>"
         }
       },
       "documentation":"<p>The structures that contain summary information about the specified stack set.</p>"
@@ -3751,7 +4779,12 @@
         "UPDATE_ROLLBACK_FAILED",
         "UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS",
         "UPDATE_ROLLBACK_COMPLETE",
-        "REVIEW_IN_PROGRESS"
+        "REVIEW_IN_PROGRESS",
+        "IMPORT_IN_PROGRESS",
+        "IMPORT_COMPLETE",
+        "IMPORT_ROLLBACK_IN_PROGRESS",
+        "IMPORT_ROLLBACK_FAILED",
+        "IMPORT_ROLLBACK_COMPLETE"
       ]
     },
     "StackStatusFilter":{
@@ -3809,7 +4842,7 @@
         },
         "RootId":{
           "shape":"StackId",
-          "documentation":"<p>For nested stacks--stacks created as resources for another stack--the stack ID of the the top-level stack to which the nested stack ultimately belongs.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html\">Working with Nested Stacks</a> in the <i>AWS CloudFormation User Guide</i>.</p>"
+          "documentation":"<p>For nested stacks--stacks created as resources for another stack--the stack ID of the top-level stack to which the nested stack ultimately belongs.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html\">Working with Nested Stacks</a> in the <i>AWS CloudFormation User Guide</i>.</p>"
         },
         "DriftInformation":{
           "shape":"StackDriftInformationSummary",
@@ -3837,6 +4870,10 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "StatusMessage":{
+      "type":"string",
+      "max":1024
     },
     "StopStackSetOperationInput":{
       "type":"structure",
@@ -3953,12 +4990,118 @@
       },
       "exception":true
     },
+    "TotalStackInstancesCount":{
+      "type":"integer",
+      "min":0
+    },
     "TransformName":{"type":"string"},
     "TransformsList":{
       "type":"list",
       "member":{"shape":"TransformName"}
     },
     "Type":{"type":"string"},
+    "TypeArn":{
+      "type":"string",
+      "max":1024,
+      "pattern":"arn:aws[A-Za-z0-9-]{0,64}:cloudformation:[A-Za-z0-9-]{1,64}:([0-9]{12})?:type/.+"
+    },
+    "TypeName":{
+      "type":"string",
+      "max":196,
+      "min":10,
+      "pattern":"[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}"
+    },
+    "TypeNotFoundException":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The specified type does not exist in the CloudFormation registry.</p>",
+      "error":{
+        "code":"TypeNotFoundException",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "TypeSchema":{
+      "type":"string",
+      "max":16777216,
+      "min":1
+    },
+    "TypeSummaries":{
+      "type":"list",
+      "member":{"shape":"TypeSummary"}
+    },
+    "TypeSummary":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of type.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the type.</p>"
+        },
+        "DefaultVersionId":{
+          "shape":"TypeVersionId",
+          "documentation":"<p>The ID of the default version of the type. The default version is used when the type version is not specified.</p> <p>To set the default version of a type, use <code> <a>SetTypeDefaultVersion</a> </code>. </p>"
+        },
+        "TypeArn":{
+          "shape":"TypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type.</p>"
+        },
+        "LastUpdated":{
+          "shape":"Timestamp",
+          "documentation":"<p>When the current default version of the type was registered.</p>"
+        },
+        "Description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the type.</p>"
+        }
+      },
+      "documentation":"<p>Contains summary information about the specified CloudFormation type.</p>"
+    },
+    "TypeVersionId":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[A-Za-z0-9-]+"
+    },
+    "TypeVersionSummaries":{
+      "type":"list",
+      "member":{"shape":"TypeVersionSummary"}
+    },
+    "TypeVersionSummary":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"RegistryType",
+          "documentation":"<p>The kind of type.</p>"
+        },
+        "TypeName":{
+          "shape":"TypeName",
+          "documentation":"<p>The name of the type.</p>"
+        },
+        "VersionId":{
+          "shape":"TypeVersionId",
+          "documentation":"<p>The ID of a specific version of the type. The version ID is the value at the end of the Amazon Resource Name (ARN) assigned to the type version when it is registered.</p>"
+        },
+        "Arn":{
+          "shape":"TypeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the type version.</p>"
+        },
+        "TimeCreated":{
+          "shape":"Timestamp",
+          "documentation":"<p>When the version was registered.</p>"
+        },
+        "Description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the type version.</p>"
+        }
+      },
+      "documentation":"<p>Contains summary information about a specific version of a CloudFormation type.</p>"
+    },
     "UpdateStackInput":{
       "type":"structure",
       "required":["StackName"],
@@ -3993,7 +5136,7 @@
         },
         "Capabilities":{
           "shape":"Capabilities",
-          "documentation":"<p>In some cases, you must explicity acknowledge that your stack template contains certain capabilities in order for AWS CloudFormation to update the stack.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stacks, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some template contain macros. Macros perform custom processing on templates; this can include simple actions like find-and-replace operations, all the way to extensive transformations of entire templates. Because of this, users typically create a change set from the processed template, so that they can review the changes resulting from the macros before actually updating the stack. If your stack template contains one or more macros, and you choose to update a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.</p> <p>Change sets do not currently support nested stacks. If you want to update a stack from a stack template that contains macros <i>and</i> nested stacks, you must update the stack directly from the template using this capability.</p> <important> <p>You should only update stacks directly from a stack template that contains macros if you know what processing the macro performs.</p> <p>Each macro relies on an underlying Lambda service function for processing stack templates. Be aware that the Lambda function owner can update the function operation without AWS CloudFormation being notified.</p> </important> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> </li> </ul>"
+          "documentation":"<p>In some cases, you must explicitly acknowledge that your stack template contains certain capabilities in order for AWS CloudFormation to update the stack.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stacks, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some template contain macros. Macros perform custom processing on templates; this can include simple actions like find-and-replace operations, all the way to extensive transformations of entire templates. Because of this, users typically create a change set from the processed template, so that they can review the changes resulting from the macros before actually updating the stack. If your stack template contains one or more macros, and you choose to update a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.</p> <p>Change sets do not currently support nested stacks. If you want to update a stack from a stack template that contains macros <i>and</i> nested stacks, you must update the stack directly from the template using this capability.</p> <important> <p>You should only update stacks directly from a stack template that contains macros if you know what processing the macro performs.</p> <p>Each macro relies on an underlying Lambda service function for processing stack templates. Be aware that the Lambda function owner can update the function operation without AWS CloudFormation being notified.</p> </important> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> </li> </ul>"
         },
         "ResourceTypes":{
           "shape":"ResourceTypes",
@@ -4034,7 +5177,6 @@
       "type":"structure",
       "required":[
         "StackSetName",
-        "Accounts",
         "Regions"
       ],
       "members":{
@@ -4044,7 +5186,11 @@
         },
         "Accounts":{
           "shape":"AccountList",
-          "documentation":"<p>The names of one or more AWS accounts for which you want to update parameter values for stack instances. The overridden parameter values will be applied to all stack instances in the specified accounts and regions.</p>"
+          "documentation":"<p>[Self-managed permissions] The names of one or more AWS accounts for which you want to update parameter values for stack instances. The overridden parameter values will be applied to all stack instances in the specified accounts and regions.</p> <p>You can specify <code>Accounts</code> or <code>DeploymentTargets</code>, but not both.</p>"
+        },
+        "DeploymentTargets":{
+          "shape":"DeploymentTargets",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The AWS Organizations accounts for which you want to update parameter values for stack instances. If your update targets OUs, the overridden parameter values only apply to the accounts that are currently in the target OUs and their child OUs. Accounts added to the target OUs and their child OUs in the future won't use the overridden values.</p> <p>You can specify <code>Accounts</code> or <code>DeploymentTargets</code>, but not both.</p>"
         },
         "Regions":{
           "shape":"RegionList",
@@ -4114,7 +5260,7 @@
         },
         "Capabilities":{
           "shape":"Capabilities",
-          "documentation":"<p>In some cases, you must explicity acknowledge that your stack template contains certain capabilities in order for AWS CloudFormation to update the stack set and its associated stack instances.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stacks sets, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some templates contain macros. If your stack template contains one or more macros, and you choose to update a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> <important> <p>Stack sets do not currently support macros in stack templates. (This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.) Even if you specify this capability, if you include a macro in your template the stack set operation will fail.</p> </important> </li> </ul>"
+          "documentation":"<p>In some cases, you must explicitly acknowledge that your stack template contains certain capabilities in order for AWS CloudFormation to update the stack set and its associated stack instances.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your AWS account; for example, by creating new AWS Identity and Access Management (IAM) users. For those stacks sets, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability. </p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>. </p> </li> <li> <p>If you don't specify either of these capabilities, AWS CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html\"> AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html\"> AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html\"> AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html\"> AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html\"> AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user.html\"> AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-addusertogroup.html\"> AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html#capabilities\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some templates contain macros. If your stack template contains one or more macros, and you choose to update a stack directly from the processed template, without first reviewing the resulting changes in a change set, you must acknowledge this capability. For more information, see <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Using AWS CloudFormation Macros to Perform Custom Processing on Templates</a>.</p> <important> <p>Stack sets do not currently support macros in stack templates. (This includes the <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/create-reusable-transform-function-snippets-and-add-to-your-template-with-aws-include-transform.html\">AWS::Include</a> and <a href=\"http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by AWS CloudFormation.) Even if you specify this capability, if you include a macro in your template the stack set operation will fail.</p> </important> </li> </ul>"
         },
         "Tags":{
           "shape":"Tags",
@@ -4132,6 +5278,18 @@
           "shape":"ExecutionRoleName",
           "documentation":"<p>The name of the IAM execution role to use to update the stack set. If you do not specify an execution role, AWS CloudFormation uses the <code>AWSCloudFormationStackSetExecutionRole</code> role for the stack set operation.</p> <p>Specify an IAM role only if you are using customized execution roles to control which stack resources users and groups can include in their stack sets. </p> <p> If you specify a customized execution role, AWS CloudFormation uses that role to update the stack. If you do not specify a customized execution role, AWS CloudFormation performs the update using the role previously associated with the stack set, so long as you have permissions to perform operations on the stack set.</p>"
         },
+        "DeploymentTargets":{
+          "shape":"DeploymentTargets",
+          "documentation":"<p>[<code>Service-managed</code> permissions] The AWS Organizations accounts in which to update associated stack instances.</p> <p>To update all the stack instances associated with this stack set, do not specify <code>DeploymentTargets</code> or <code>Regions</code>.</p> <p>If the stack set update includes changes to the template (that is, if <code>TemplateBody</code> or <code>TemplateURL</code> is specified), or the <code>Parameters</code>, AWS CloudFormation marks all stack instances with a status of <code>OUTDATED</code> prior to updating the stack instances in the specified accounts and Regions. If the stack set update does not include changes to the template or parameters, AWS CloudFormation updates the stack instances in the specified accounts and Regions, while leaving all other stack instances with their existing stack instance status.</p>"
+        },
+        "PermissionModel":{
+          "shape":"PermissionModels",
+          "documentation":"<p>Describes how the IAM roles required for stack set operations are created. You cannot modify <code>PermissionModel</code> if there are stack instances associated with your stack set.</p> <ul> <li> <p>With <code>self-managed</code> permissions, you must create the administrator and execution roles required to deploy to target accounts. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html\">Grant Self-Managed Stack Set Permissions</a>.</p> </li> <li> <p>With <code>service-managed</code> permissions, StackSets automatically creates the IAM roles required to deploy to accounts managed by AWS Organizations. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-service-managed.html\">Grant Service-Managed Stack Set Permissions</a>.</p> </li> </ul>"
+        },
+        "AutoDeployment":{
+          "shape":"AutoDeployment",
+          "documentation":"<p>[<code>Service-managed</code> permissions] Describes whether StackSets automatically deploys to AWS Organizations accounts that are added to a target organization or organizational unit (OU).</p> <p>If you specify <code>AutoDeployment</code>, do not specify <code>DeploymentTargets</code> or <code>Regions</code>.</p>"
+        },
         "OperationId":{
           "shape":"ClientRequestToken",
           "documentation":"<p>The unique ID for this stack set operation. </p> <p>The operation ID also functions as an idempotency token, to ensure that AWS CloudFormation performs the stack set operation only once, even if you retry the request multiple times. You might retry stack set operation requests to ensure that AWS CloudFormation successfully received them.</p> <p>If you don't specify an operation ID, AWS CloudFormation generates one automatically.</p> <p>Repeating this stack set operation with a new operation ID retries all stack instances whose status is <code>OUTDATED</code>. </p>",
@@ -4139,7 +5297,7 @@
         },
         "Accounts":{
           "shape":"AccountList",
-          "documentation":"<p>The accounts in which to update associated stack instances. If you specify accounts, you must also specify the regions in which to update stack set instances.</p> <p>To update <i>all</i> the stack instances associated with this stack set, do not specify the <code>Accounts</code> or <code>Regions</code> properties.</p> <p>If the stack set update includes changes to the template (that is, if the <code>TemplateBody</code> or <code>TemplateURL</code> properties are specified), or the <code>Parameters</code> property, AWS CloudFormation marks all stack instances with a status of <code>OUTDATED</code> prior to updating the stack instances in the specified accounts and regions. If the stack set update does not include changes to the template or parameters, AWS CloudFormation updates the stack instances in the specified accounts and regions, while leaving all other stack instances with their existing stack instance status. </p>"
+          "documentation":"<p>[Self-managed permissions] The accounts in which to update associated stack instances. If you specify accounts, you must also specify the regions in which to update stack set instances.</p> <p>To update <i>all</i> the stack instances associated with this stack set, do not specify the <code>Accounts</code> or <code>Regions</code> properties.</p> <p>If the stack set update includes changes to the template (that is, if the <code>TemplateBody</code> or <code>TemplateURL</code> properties are specified), or the <code>Parameters</code> property, AWS CloudFormation marks all stack instances with a status of <code>OUTDATED</code> prior to updating the stack instances in the specified accounts and regions. If the stack set update does not include changes to the template or parameters, AWS CloudFormation updates the stack instances in the specified accounts and regions, while leaving all other stack instances with their existing stack instance status. </p>"
         },
         "Regions":{
           "shape":"RegionList",
@@ -4226,7 +5384,14 @@
       "documentation":"<p>The output for <a>ValidateTemplate</a> action.</p>"
     },
     "Value":{"type":"string"},
-    "Version":{"type":"string"}
+    "Version":{"type":"string"},
+    "Visibility":{
+      "type":"string",
+      "enum":[
+        "PUBLIC",
+        "PRIVATE"
+      ]
+    }
   },
   "documentation":"<fullname>AWS CloudFormation</fullname> <p>AWS CloudFormation allows you to create and manage AWS infrastructure deployments predictably and repeatedly. You can use AWS CloudFormation to leverage AWS products, such as Amazon Elastic Compute Cloud, Amazon Elastic Block Store, Amazon Simple Notification Service, Elastic Load Balancing, and Auto Scaling to build highly-reliable, highly scalable, cost-effective applications without creating or configuring the underlying AWS infrastructure.</p> <p>With AWS CloudFormation, you declare all of your resources and dependencies in a template file. The template defines a collection of resources as a single unit called a stack. AWS CloudFormation creates and deletes all member resources of the stack together and manages all dependencies between the resources for you.</p> <p>For more information about AWS CloudFormation, see the <a href=\"http://aws.amazon.com/cloudformation/\">AWS CloudFormation Product Page</a>.</p> <p>Amazon CloudFormation makes use of other AWS products. If you need additional technical information about a specific AWS product, you can find the product's technical documentation at <a href=\"https://docs.aws.amazon.com/\">docs.aws.amazon.com</a>.</p>"
 }

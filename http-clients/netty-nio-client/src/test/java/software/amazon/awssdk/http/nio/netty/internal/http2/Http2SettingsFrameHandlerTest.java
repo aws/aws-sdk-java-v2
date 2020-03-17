@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_POOL_RECORD;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 
@@ -92,7 +92,7 @@ public class Http2SettingsFrameHandlerTest {
     }
 
     @Test
-    public void exceptionCaught_shouldHandleErrorCloseChannel() throws InterruptedException {
+    public void exceptionCaught_shouldHandleErrorCloseChannel() throws Exception {
         Throwable cause = new Throwable(new RuntimeException("BOOM"));
         handler.exceptionCaught(context, cause);
         verifyChannelError(cause.getClass());
@@ -105,7 +105,7 @@ public class Http2SettingsFrameHandlerTest {
     }
 
     private void verifyChannelError(Class<? extends Throwable> cause) throws InterruptedException {
-        channel.attr(CHANNEL_POOL_RECORD).set(null);
+        channel.attr(HTTP2_MULTIPLEXED_CHANNEL_POOL).set(null);
 
         channel.runAllPendingTasks();
 

@@ -1,0 +1,21 @@
+{
+    "version": "2.9.9",
+    "date": "2019-09-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "This release of Amazon Elastic Container Service (Amazon ECS) removes FirelensConfiguration from the DescribeTask output during the FireLens public preview."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Amplify",
+            "description": "This release adds access logs APIs and artifact APIs for AWS Amplify Console."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Update the pool size for default async future completion executor service. See [#1251](https://github.com/aws/aws-sdk-java-v2/issues/1251), [#994](https://github.com/aws/aws-sdk-java-v2/issues/994)"
+        }
+    ]
+}

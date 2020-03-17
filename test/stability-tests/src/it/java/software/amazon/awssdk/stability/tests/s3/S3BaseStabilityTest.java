@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
@@ -46,7 +47,9 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
                                      .httpClientBuilder(NettyNioAsyncHttpClient.builder()
                                                                                .maxConcurrency(CONCURRENCY))
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                     .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10)))
+                                     .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
+                                                                  // Retry at test level
+                                                                  .retryPolicy(RetryPolicy.none()))
                                      .build();
 
 

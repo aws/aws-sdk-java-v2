@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
@@ -85,6 +86,18 @@ public class ProfileCredentialsProviderTest {
             assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
             assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
         });
+    }
+
+    @Test
+    public void profileWithWebIdentityToken() {
+        String token = "/User/home/test";
+
+        ProfileFile file = profileFile("[default]\n"
+                                       + "aws_access_key_id = defaultAccessKey\n"
+                                       + "aws_secret_access_key = defaultSecretAccessKey\n"
+                                       + "web_identity_token_file = " + token);
+
+        assertThat(file.profile("default").get().property(ProfileProperty.WEB_IDENTITY_TOKEN_FILE).get()).isEqualTo(token);
     }
 
     private ProfileFile profileFile(String string) {

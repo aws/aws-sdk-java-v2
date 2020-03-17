@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -63,9 +63,9 @@ public final class XmlAsserts {
         Diff diff = new Diff(expectedXml, actualXml);
         diff.overrideElementQualifier(new RecursiveElementNameAndTextQualifier());
         if (!diff.similar()) {
-            fail(String.format("\nExpected the following XML\n" + formatXml(expectedXml) +
-                               "\nbut actual XML was\n\n" +
-                               formatXml(actualXml)));
+            fail("\nExpected the following XML\n" + formatXml(expectedXml) +
+                 "\nbut actual XML was\n\n" +
+                 formatXml(actualXml));
         }
     }
 

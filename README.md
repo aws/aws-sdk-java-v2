@@ -38,35 +38,6 @@ section of the developer guide.
 
 The recommended way to use the AWS SDK for Java in your project is to consume it from Maven. 
 
-#### Whole SDK ####
-
-You can import the whole SDK into your project (includes all services) as follows:
-
-```xml
-<dependency>
-  <groupId>software.amazon.awssdk</groupId>
-  <artifactId>aws-sdk-java</artifactId>
-  <version>2.7.5</version>
-</dependency>
-```
-
-#### Individual Services ####
-
-Alternatively you can add dependencies for the specific services you use only:
-
-```xml
-<dependency>
-  <groupId>software.amazon.awssdk</groupId>
-  <artifactId>ec2</artifactId>
-  <version>2.7.5</version>
-</dependency>
-<dependency>
-  <groupId>software.amazon.awssdk</groupId>
-  <artifactId>s3</artifactId>
-  <version>2.7.5</version>
-</dependency>
-```
-
 #### Importing the BOM ####
 
 To automatically manage module versions (currently all modules have the same version, but this may not always be the case) we recommend you use the [Bill of Materials][bom] import as follows:
@@ -77,7 +48,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.7.5</version>
+      <version>2.10.88</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -102,6 +73,34 @@ Then individual models may omit the `version` from their dependency statement:
     <artifactId>dynamodb</artifactId>
   </dependency>
 </dependencies>
+```
+#### Individual Services ####
+
+Alternatively you can add dependencies for the specific services you use only:
+
+```xml
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>ec2</artifactId>
+  <version>2.10.88</version>
+</dependency>
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>s3</artifactId>
+  <version>2.10.88</version>
+</dependency>
+```
+
+#### Whole SDK ####
+
+You can import the whole SDK into your project (includes *ALL* services). Please note that it is recommended to only import the modules you need.
+
+```xml
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>aws-sdk-java</artifactId>
+  <version>2.10.88</version>
+</dependency>
 ```
 
 See the [Set up the AWS SDK for Java][docs-setup] section of the developer guide for more usage information.

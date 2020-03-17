@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -44,6 +44,14 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      * Scope name to use during signing of a request.
      */
     public static final AwsClientOption<String> SERVICE_SIGNING_NAME = new AwsClientOption<>(String.class);
+
+    /**
+     * The first part of the URL in the DNS name for the service. Eg. in the endpoint "dynamodb.amazonaws.com", this is the
+     * "dynamodb".
+     *
+     * For standard services, this should match the "endpointPrefix" field in the AWS model.
+     */
+    public static final AwsClientOption<String> ENDPOINT_PREFIX = new AwsClientOption<>(String.class);
 
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);

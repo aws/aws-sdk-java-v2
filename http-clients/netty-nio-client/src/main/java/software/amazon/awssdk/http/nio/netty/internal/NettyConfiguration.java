@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.http.TlsTrustManagersProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -36,6 +38,7 @@ public final class NettyConfiguration {
     public static final int EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS = 2;
     public static final int EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS = 15;
     public static final int EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS = 16;
+    public static final int HTTP2_CONNECTION_PING_TIMEOUT_SECONDS = 5;
 
     private final AttributeMap configuration;
 
@@ -63,10 +66,6 @@ public final class NettyConfiguration {
         return configuration.get(MAX_PENDING_CONNECTION_ACQUIRES);
     }
 
-    public boolean trustAllCertificates() {
-        return configuration.get(TRUST_ALL_CERTIFICATES);
-    }
-
     public int readTimeoutMillis() {
         return saturatedCast(configuration.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis());
     }
@@ -85,5 +84,17 @@ public final class NettyConfiguration {
 
     public boolean reapIdleConnections() {
         return configuration.get(SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS);
+    }
+
+    public TlsKeyManagersProvider tlsKeyManagersProvider() {
+        return configuration.get(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER);
+    }
+
+    public TlsTrustManagersProvider tlsTrustManagersProvider() {
+        return configuration.get(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER);
+    }
+
+    public boolean trustAllCertificates() {
+        return configuration.get(TRUST_ALL_CERTIFICATES);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ServiceConfiguration;
+import software.amazon.awssdk.services.s3.internal.usearnregion.UseArnRegionProviderChain;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -28,6 +29,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Immutable
 @ThreadSafe
 public final class S3Configuration implements ServiceConfiguration, ToCopyableBuilder<S3Configuration.Builder, S3Configuration> {
+    private static final UseArnRegionProviderChain USE_ARN_REGION_PROVIDER_CHAIN = UseArnRegionProviderChain.create();
+
     /**
      * The default setting for use of path style addressing.
      */
@@ -60,6 +63,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     private final boolean dualstackEnabled;
     private final boolean checksumValidationEnabled;
     private final boolean chunkedEncodingEnabled;
+    private final boolean useArnRegionEnabled;
 
     private S3Configuration(DefaultS3ServiceConfigurationBuilder builder) {
         this.dualstackEnabled = resolveBoolean(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
@@ -70,6 +74,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
             throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
         }
         this.chunkedEncodingEnabled = resolveBoolean(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
+        this.useArnRegionEnabled = Boolean.TRUE.equals(builder.useArnRegionEnabled) ? builder.useArnRegionEnabled :
+            resolveUseArnRegionEnabled();
     }
 
     /**
@@ -153,8 +159,22 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         return chunkedEncodingEnabled;
     }
 
+    /**
+     * Returns whether the client is allowed to make cross-region calls when an S3 Access Point ARN has a different
+     * region to the one configured on the client.
+     * <p>
+     * @return True if a different region in the ARN can be used.
+     */
+    public boolean useArnRegionEnabled() {
+        return useArnRegionEnabled;
+    }
+
     private boolean resolveBoolean(Boolean customerSuppliedValue, boolean defaultValue) {
         return customerSuppliedValue == null ? defaultValue : customerSuppliedValue;
+    }
+
+    private boolean resolveUseArnRegionEnabled() {
+        return USE_ARN_REGION_PROVIDER_CHAIN.resolveUseArnRegion().orElse(false);
     }
 
     @Override
@@ -162,7 +182,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         return builder()
                 .dualstackEnabled(dualstackEnabled)
                 .accelerateModeEnabled(accelerateModeEnabled)
-                .pathStyleAccessEnabled(pathStyleAccessEnabled);
+                .pathStyleAccessEnabled(pathStyleAccessEnabled)
+                .useArnRegionEnabled(useArnRegionEnabled);
     }
 
     @NotThreadSafe
@@ -226,6 +247,15 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * @see S3Configuration#chunkedEncodingEnabled()
          */
         Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled);
+
+        /**
+         * If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one
+         * the client was configured with, this flag must be set to 'true' to permit the client to make a
+         * cross-region call to the region specified in the ARN otherwise an exception will be thrown.
+         *
+         * @see S3Configuration#useArnRegionEnabled()
+         */
+        Builder useArnRegionEnabled(Boolean useArnRegionEnabled);
     }
 
     private static final class DefaultS3ServiceConfigurationBuilder implements Builder {
@@ -235,6 +265,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean pathStyleAccessEnabled;
         private Boolean checksumValidationEnabled;
         private Boolean chunkedEncodingEnabled;
+        private Boolean useArnRegionEnabled;
 
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
@@ -279,6 +310,15 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
 
         public void setChunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
             chunkedEncodingEnabled(chunkedEncodingEnabled);
+        }
+
+        public Builder useArnRegionEnabled(Boolean useArnRegionEnabled) {
+            this.useArnRegionEnabled = useArnRegionEnabled;
+            return this;
+        }
+
+        public void setUseArnRegionEnabled(Boolean useArnRegionEnabled) {
+            useArnRegionEnabled(useArnRegionEnabled);
         }
 
         public S3Configuration build() {

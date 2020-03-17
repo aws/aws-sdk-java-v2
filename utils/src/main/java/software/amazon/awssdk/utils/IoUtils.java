@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -41,16 +41,13 @@ public final class IoUtils {
      * Caller is responsible for closing the given input stream.
      */
     public static byte[] toByteArray(InputStream is) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        try {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             byte[] b = new byte[BUFFER_SIZE];
             int n = 0;
             while ((n = is.read(b)) != -1) {
                 output.write(b, 0, n);
             }
             return output.toByteArray();
-        } finally {
-            output.close();
         }
     }
 

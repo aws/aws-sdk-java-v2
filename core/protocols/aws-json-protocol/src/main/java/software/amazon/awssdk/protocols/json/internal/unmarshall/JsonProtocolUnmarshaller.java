@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -121,11 +121,11 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
-        SdkField<?> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
+        SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
         Map<String, Object> map = new HashMap<>();
         jsonContent.fields().forEach((fieldName, value) -> {
             JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
-            map.put(fieldName, unmarshaller.unmarshall(context, value, (SdkField<Object>) valueInfo));
+            map.put(fieldName, unmarshaller.unmarshall(context, value, valueInfo));
         });
         return map;
     }
@@ -137,10 +137,10 @@ public final class JsonProtocolUnmarshaller {
         return jsonContent.items()
                           .stream()
                           .map(item -> {
-                              SdkField<?> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
+                              SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
                               JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(),
                                                                                               memberInfo.marshallingType());
-                              return unmarshaller.unmarshall(context, item, (SdkField<Object>) memberInfo);
+                              return unmarshaller.unmarshall(context, item, memberInfo);
                           })
                           .collect(Collectors.toList());
     }

@@ -1,0 +1,14 @@
+{
+  "shapeModifiers": {
+    "MapDeprecationFailureRequest": {
+      "modify": [
+        {
+          "CannotDeprecateMap": {
+            "emitPropertyName": "ShouldNotWork",
+            "existingNameDeprecated": true
+          }
+        }
+      ]
+    }
+  }
+}

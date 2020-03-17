@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -199,7 +199,7 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
         if (modifier.getInject() != null) {
             for (Map<String, Member> injects : modifier.getInject()) {
                 if (shape.getMembers() == null) {
-                    shape.setMembers(new HashMap<String, Member>());
+                    shape.setMembers(new HashMap<>());
                 }
                 shape.getMembers().putAll(injects);
             }
@@ -217,6 +217,10 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
             // to avoid breaking marshaller code
             if (member.getLocationName() == null) {
                 member.setLocationName(memberToModify);
+            }
+
+            if (modifyModel.isExistingNameDeprecated()) {
+                member.setDeprecatedName(memberToModify);
             }
 
             shape.getMembers().put(modifyModel.getEmitPropertyName(), member);

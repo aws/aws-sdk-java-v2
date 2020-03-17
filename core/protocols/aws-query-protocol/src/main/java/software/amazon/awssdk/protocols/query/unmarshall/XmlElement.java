@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -35,12 +36,14 @@ public final class XmlElement {
     private final HashMap<String, List<XmlElement>> childrenByElement;
     private final List<XmlElement> children;
     private final String textContent;
+    private final Map<String, String> attributes;
 
     private XmlElement(Builder builder) {
         this.elementName = builder.elementName;
         this.childrenByElement = new HashMap<>(builder.childrenByElement);
         this.children = Collections.unmodifiableList(new ArrayList<>(builder.children));
         this.textContent = builder.textContent;
+        this.attributes = Collections.unmodifiableMap(new HashMap<>(builder.attributes));
     }
 
     /**
@@ -110,6 +113,20 @@ public final class XmlElement {
     }
 
     /**
+     * Retrieves an optional attribute by attribute name.
+     */
+    public Optional<String> getOptionalAttributeByName(String attribute) {
+        return Optional.ofNullable(attributes.get(attribute));
+    }
+
+    /**
+     * Retrieves the attributes associated with the element
+     */
+    public Map<String, String> attributes() {
+        return attributes;
+    }
+
+    /**
      * @return New {@link Builder} instance.
      */
     public static Builder builder() {
@@ -129,9 +146,10 @@ public final class XmlElement {
     public static final class Builder {
 
         private String elementName;
-        private final HashMap<String, List<XmlElement>> childrenByElement = new HashMap<>();
+        private final Map<String, List<XmlElement>> childrenByElement = new HashMap<>();
         private final List<XmlElement> children = new ArrayList<>();
         private String textContent = "";
+        private Map<String, String> attributes = new HashMap<>();
 
         private Builder() {
         }
@@ -150,6 +168,11 @@ public final class XmlElement {
 
         public Builder textContent(String textContent) {
             this.textContent = textContent;
+            return this;
+        }
+
+        public Builder attributes(Map<String, String> attributes) {
+            this.attributes = attributes;
             return this;
         }
 

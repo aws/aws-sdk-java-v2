@@ -61,6 +61,22 @@
       ],
       "documentation":"<p>Cancels the specified simulation job.</p>"
     },
+    "CancelSimulationJobBatch":{
+      "name":"CancelSimulationJobBatch",
+      "http":{
+        "method":"POST",
+        "requestUri":"/cancelSimulationJobBatch"
+      },
+      "input":{"shape":"CancelSimulationJobBatchRequest"},
+      "output":{"shape":"CancelSimulationJobBatchResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Cancels a simulation job batch. When you cancel a simulation job batch, you are also cancelling all of the active simulation jobs created as part of the batch. </p>"
+    },
     "CreateDeploymentJob":{
       "name":"CreateDeploymentJob",
       "http":{
@@ -374,6 +390,21 @@
       ],
       "documentation":"<p>Describes a simulation job.</p>"
     },
+    "DescribeSimulationJobBatch":{
+      "name":"DescribeSimulationJobBatch",
+      "http":{
+        "method":"POST",
+        "requestUri":"/describeSimulationJobBatch"
+      },
+      "input":{"shape":"DescribeSimulationJobBatchRequest"},
+      "output":{"shape":"DescribeSimulationJobBatchResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Describes a simulation job batch.</p>"
+    },
     "ListDeploymentJobs":{
       "name":"ListDeploymentJobs",
       "http":{
@@ -388,7 +419,7 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of deployment jobs for a fleet. You can optionally provide filters to retrieve specific deployment jobs. </p> <note> <p> </p> </note>"
+      "documentation":"<p>Returns a list of deployment jobs for a fleet. You can optionally provide filters to retrieve specific deployment jobs. </p>"
     },
     "ListFleets":{
       "name":"ListFleets",
@@ -451,6 +482,20 @@
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Returns a list of simulation applications. You can optionally provide filters to retrieve specific simulation applications. </p>"
+    },
+    "ListSimulationJobBatches":{
+      "name":"ListSimulationJobBatches",
+      "http":{
+        "method":"POST",
+        "requestUri":"/listSimulationJobBatches"
+      },
+      "input":{"shape":"ListSimulationJobBatchesRequest"},
+      "output":{"shape":"ListSimulationJobBatchesResponse"},
+      "errors":[
+        {"shape":"InvalidParameterException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Returns a list simulation job batches. You can optionally provide filters to retrieve specific simulation batch jobs. </p>"
     },
     "ListSimulationJobs":{
       "name":"ListSimulationJobs",
@@ -516,6 +561,23 @@
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Restarts a running simulation job.</p>"
+    },
+    "StartSimulationJobBatch":{
+      "name":"StartSimulationJobBatch",
+      "http":{
+        "method":"POST",
+        "requestUri":"/startSimulationJobBatch"
+      },
+      "input":{"shape":"StartSimulationJobBatchRequest"},
+      "output":{"shape":"StartSimulationJobBatchResponse"},
+      "errors":[
+        {"shape":"InvalidParameterException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"IdempotentParameterMismatchException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Starts a new simulation job batch. The batch is defined using one or more <code>SimulationJobRequest</code> objects. </p>"
     },
     "SyncDeploymentJob":{
       "name":"SyncDeploymentJob",
@@ -647,7 +709,23 @@
         }
       }
     },
+    "BatchPolicy":{
+      "type":"structure",
+      "members":{
+        "timeoutInSeconds":{
+          "shape":"BatchTimeoutInSeconds",
+          "documentation":"<p>The amount of time, in seconds, to wait for the batch to complete. </p> <p>If a batch times out, and there are pending requests that were failing due to an internal failure (like <code>InternalServiceError</code>), they will be moved to the failed list and the batch status will be <code>Failed</code>. If the pending requests were failing for any other reason, the failed pending requests will be moved to the failed list and the batch status will be <code>TimedOut</code>. </p>"
+        },
+        "maxConcurrency":{
+          "shape":"MaxConcurrency",
+          "documentation":"<p>The number of active simulation jobs create as part of the batch that can be in an active state at the same time. </p> <p>Active states include: <code>Pending</code>,<code>Preparing</code>, <code>Running</code>, <code>Restarting</code>, <code>RunningFailed</code> and <code>Terminating</code>. All other states are terminal states. </p>"
+        }
+      },
+      "documentation":"<p>Information about the batch policy.</p>"
+    },
+    "BatchTimeoutInSeconds":{"type":"long"},
     "Boolean":{"type":"boolean"},
+    "BoxedBoolean":{"type":"boolean"},
     "CancelDeploymentJobRequest":{
       "type":"structure",
       "required":["job"],
@@ -659,6 +737,21 @@
       }
     },
     "CancelDeploymentJobResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "CancelSimulationJobBatchRequest":{
+      "type":"structure",
+      "required":["batch"],
+      "members":{
+        "batch":{
+          "shape":"Arn",
+          "documentation":"<p>The id of the batch to cancel.</p>"
+        }
+      }
+    },
+    "CancelSimulationJobBatchResponse":{
       "type":"structure",
       "members":{
       }
@@ -824,7 +917,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>The robot software suite used by the robot application.</p>"
+          "documentation":"<p>The robot software suite (ROS distribuition) used by the robot application.</p>"
         },
         "tags":{
           "shape":"TagMap",
@@ -853,7 +946,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>The robot software suite used by the robot application.</p>"
+          "documentation":"<p>The robot software suite (ROS distribution) used by the robot application.</p>"
         },
         "lastUpdatedAt":{
           "shape":"LastUpdatedAt",
@@ -904,7 +997,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>The robot software suite used by the robot application.</p>"
+          "documentation":"<p>The robot software suite (ROS distribution) used by the robot application.</p>"
         },
         "lastUpdatedAt":{
           "shape":"LastUpdatedAt",
@@ -977,8 +1070,7 @@
         "name",
         "sources",
         "simulationSoftwareSuite",
-        "robotSoftwareSuite",
-        "renderingEngine"
+        "robotSoftwareSuite"
       ],
       "members":{
         "name":{
@@ -995,7 +1087,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>The robot software suite of the simulation application.</p>"
+          "documentation":"<p>The robot software suite (ROS distribution) used by the simulation application.</p>"
         },
         "renderingEngine":{
           "shape":"RenderingEngine",
@@ -1032,7 +1124,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>Information about the robot software suite.</p>"
+          "documentation":"<p>Information about the robot software suite (ROS distribution).</p>"
         },
         "renderingEngine":{
           "shape":"RenderingEngine",
@@ -1091,7 +1183,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>Information about the robot software suite.</p>"
+          "documentation":"<p>Information about the robot software suite (ROS distribution).</p>"
         },
         "renderingEngine":{
           "shape":"RenderingEngine",
@@ -1123,6 +1215,10 @@
           "shape":"OutputLocation",
           "documentation":"<p>Location for output files generated by the simulation job.</p>"
         },
+        "loggingConfig":{
+          "shape":"LoggingConfig",
+          "documentation":"<p>The logging configuration.</p>"
+        },
         "maxJobDurationInSeconds":{
           "shape":"JobDuration",
           "documentation":"<p>The maximum simulation job duration in seconds (up to 14 days or 1,209,600 seconds. When <code>maxJobDurationInSeconds</code> is reached, the simulation job will status will transition to <code>Completed</code>.</p>"
@@ -1143,6 +1239,10 @@
           "shape":"SimulationApplicationConfigs",
           "documentation":"<p>The simulation application to use in the simulation job.</p>"
         },
+        "dataSources":{
+          "shape":"DataSourceConfigs",
+          "documentation":"<p>Specify data sources to mount read-only files from S3 into your simulation. These files are available under <code>/opt/robomaker/datasources/data_source_name</code>. </p> <note> <p>There is a limit of 100 files and a combined size of 25GB for all <code>DataSourceConfig</code> objects. </p> </note>"
+        },
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>A map that contains tag keys and tag values that are attached to the simulation job.</p>"
@@ -1152,6 +1252,11 @@
           "documentation":"<p>If your simulation job accesses resources in a VPC, you provide this parameter identifying the list of security group IDs and subnet IDs. These must belong to the same VPC. You must provide at least one security group and one subnet ID. </p>"
         }
       }
+    },
+    "CreateSimulationJobRequests":{
+      "type":"list",
+      "member":{"shape":"SimulationJobRequest"},
+      "min":1
     },
     "CreateSimulationJobResponse":{
       "type":"structure",
@@ -1188,6 +1293,10 @@
           "shape":"OutputLocation",
           "documentation":"<p>Simulation job output files location.</p>"
         },
+        "loggingConfig":{
+          "shape":"LoggingConfig",
+          "documentation":"<p>The logging configuration.</p>"
+        },
         "maxJobDurationInSeconds":{
           "shape":"JobDuration",
           "documentation":"<p>The maximum simulation job duration in seconds. </p>"
@@ -1208,6 +1317,10 @@
           "shape":"SimulationApplicationConfigs",
           "documentation":"<p>The simulation application used by the simulation job.</p>"
         },
+        "dataSources":{
+          "shape":"DataSources",
+          "documentation":"<p>The data sources for the simulation job.</p>"
+        },
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The list of all tags added to the simulation job.</p>"
@@ -1219,6 +1332,61 @@
       }
     },
     "CreatedAt":{"type":"timestamp"},
+    "DataSource":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the data source.</p>"
+        },
+        "s3Bucket":{
+          "shape":"S3Bucket",
+          "documentation":"<p>The S3 bucket where the data files are located.</p>"
+        },
+        "s3Keys":{
+          "shape":"S3KeyOutputs",
+          "documentation":"<p>The list of S3 keys identifying the data source files.</p>"
+        }
+      },
+      "documentation":"<p>Information about a data source.</p>"
+    },
+    "DataSourceConfig":{
+      "type":"structure",
+      "required":[
+        "name",
+        "s3Bucket",
+        "s3Keys"
+      ],
+      "members":{
+        "name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the data source.</p>"
+        },
+        "s3Bucket":{
+          "shape":"S3Bucket",
+          "documentation":"<p>The S3 bucket where the data files are located.</p>"
+        },
+        "s3Keys":{
+          "shape":"S3Keys",
+          "documentation":"<p>The list of S3 keys identifying the data source files.</p>"
+        }
+      },
+      "documentation":"<p>Information about a data source.</p>"
+    },
+    "DataSourceConfigs":{
+      "type":"list",
+      "member":{"shape":"DataSourceConfig"},
+      "max":5,
+      "min":1
+    },
+    "DataSourceNames":{
+      "type":"list",
+      "member":{"shape":"Name"}
+    },
+    "DataSources":{
+      "type":"list",
+      "member":{"shape":"DataSource"}
+    },
     "DeleteFleetRequest":{
       "type":"structure",
       "required":["fleet"],
@@ -1326,6 +1494,14 @@
         "failureThresholdPercentage":{
           "shape":"Percentage",
           "documentation":"<p>The percentage of deployments that need to fail before stopping deployment.</p>"
+        },
+        "robotDeploymentTimeoutInSeconds":{
+          "shape":"DeploymentTimeout",
+          "documentation":"<p>The amount of time, in seconds, to wait for deployment to a single robot to complete. Choose a time between 1 minute and 7 days. The default is 5 hours.</p>"
+        },
+        "downloadConditionFile":{
+          "shape":"S3Object",
+          "documentation":"<p>The download condition file.</p>"
         }
       },
       "documentation":"<p>Information about a deployment configuration.</p>"
@@ -1379,14 +1555,17 @@
         "RobotDeploymentNoResponse",
         "RobotAgentConnectionTimeout",
         "GreengrassDeploymentFailed",
+        "InvalidGreengrassGroup",
         "MissingRobotArchitecture",
         "MissingRobotApplicationArchitecture",
         "MissingRobotDeploymentResource",
         "GreengrassGroupVersionDoesNotExist",
+        "LambdaDeleted",
         "ExtractingBundleFailure",
         "PreLaunchFileFailure",
         "PostLaunchFileFailure",
         "BadPermissionError",
+        "DownloadConditionFailed",
         "InternalServerError"
       ]
     },
@@ -1437,6 +1616,7 @@
         "Canceled"
       ]
     },
+    "DeploymentTimeout":{"type":"long"},
     "DeploymentVersion":{
       "type":"string",
       "max":255,
@@ -1610,7 +1790,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>The robot software suite used by the robot application.</p>"
+          "documentation":"<p>The robot software suite (ROS distribution) used by the robot application.</p>"
         },
         "revisionId":{
           "shape":"RevisionId",
@@ -1720,7 +1900,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>Information about the robot software suite.</p>"
+          "documentation":"<p>Information about the robot software suite (ROS distribution).</p>"
         },
         "renderingEngine":{
           "shape":"RenderingEngine",
@@ -1737,6 +1917,69 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The list of all tags added to the specified simulation application.</p>"
+        }
+      }
+    },
+    "DescribeSimulationJobBatchRequest":{
+      "type":"structure",
+      "required":["batch"],
+      "members":{
+        "batch":{
+          "shape":"Arn",
+          "documentation":"<p>The id of the batch to describe.</p>"
+        }
+      }
+    },
+    "DescribeSimulationJobBatchResponse":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the batch.</p>"
+        },
+        "status":{
+          "shape":"SimulationJobBatchStatus",
+          "documentation":"<p>The status of the batch.</p> <dl> <dt>Pending</dt> <dd> <p>The simulation job batch request is pending.</p> </dd> <dt>InProgress</dt> <dd> <p>The simulation job batch is in progress. </p> </dd> <dt>Failed</dt> <dd> <p>The simulation job batch failed. One or more simulation job requests could not be completed due to an internal failure (like <code>InternalServiceError</code>). See <code>failureCode</code> and <code>failureReason</code> for more information.</p> </dd> <dt>Completed</dt> <dd> <p>The simulation batch job completed. A batch is complete when (1) there are no pending simulation job requests in the batch and none of the failed simulation job requests are due to <code>InternalServiceError</code> and (2) when all created simulation jobs have reached a terminal state (for example, <code>Completed</code> or <code>Failed</code>). </p> </dd> <dt>Canceled</dt> <dd> <p>The simulation batch job was cancelled.</p> </dd> <dt>Canceling</dt> <dd> <p>The simulation batch job is being cancelled.</p> </dd> <dt>Completing</dt> <dd> <p>The simulation batch job is completing.</p> </dd> <dt>TimingOut</dt> <dd> <p>The simulation job batch is timing out.</p> <p>If a batch timing out, and there are pending requests that were failing due to an internal failure (like <code>InternalServiceError</code>), the batch status will be <code>Failed</code>. If there are no such failing request, the batch status will be <code>TimedOut</code>. </p> </dd> <dt>TimedOut</dt> <dd> <p>The simulation batch job timed out.</p> </dd> </dl>"
+        },
+        "lastUpdatedAt":{
+          "shape":"LastUpdatedAt",
+          "documentation":"<p>The time, in milliseconds since the epoch, when the simulation job batch was last updated.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The time, in milliseconds since the epoch, when the simulation job batch was created.</p>"
+        },
+        "clientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>"
+        },
+        "batchPolicy":{
+          "shape":"BatchPolicy",
+          "documentation":"<p>The batch policy.</p>"
+        },
+        "failureCode":{
+          "shape":"SimulationJobBatchErrorCode",
+          "documentation":"<p>The failure code of the simulation job batch.</p>"
+        },
+        "failureReason":{
+          "shape":"GenericString",
+          "documentation":"<p>The reason the simulation job batch failed.</p>"
+        },
+        "failedRequests":{
+          "shape":"FailedCreateSimulationJobRequests",
+          "documentation":"<p>A list of failed create simulation job requests. The request failed to be created into a simulation job. Failed requests do not have a simulation job ID. </p>"
+        },
+        "pendingRequests":{
+          "shape":"CreateSimulationJobRequests",
+          "documentation":"<p>A list of pending simulation job requests. These requests have not yet been created into simulation jobs.</p>"
+        },
+        "createdRequests":{
+          "shape":"SimulationJobSummaries",
+          "documentation":"<p>A list of created simulation job summaries.</p>"
+        },
+        "tags":{
+          "shape":"TagMap",
+          "documentation":"<p>A map that contains tag keys and tag values that are attached to the simulation job batch.</p>"
         }
       }
     },
@@ -1793,6 +2036,10 @@
           "shape":"OutputLocation",
           "documentation":"<p>Location for output files generated by the simulation job.</p>"
         },
+        "loggingConfig":{
+          "shape":"LoggingConfig",
+          "documentation":"<p>The logging configuration.</p>"
+        },
         "maxJobDurationInSeconds":{
           "shape":"JobDuration",
           "documentation":"<p>The maximum job duration in seconds. The value must be 8 days (691,200 seconds) or less.</p>"
@@ -1813,6 +2060,10 @@
           "shape":"SimulationApplicationConfigs",
           "documentation":"<p>A list of simulation applications.</p>"
         },
+        "dataSources":{
+          "shape":"DataSources",
+          "documentation":"<p>The data sources for the simulation job.</p>"
+        },
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The list of all tags added to the specified simulation job.</p>"
@@ -1820,6 +2071,10 @@
         "vpcConfig":{
           "shape":"VPCConfigResponse",
           "documentation":"<p>The VPC configuration.</p>"
+        },
+        "networkInterface":{
+          "shape":"NetworkInterface",
+          "documentation":"<p>The network interface information for the simulation job.</p>"
         }
       }
     },
@@ -1839,7 +2094,35 @@
     "EnvironmentVariableValue":{
       "type":"string",
       "max":1024,
-      "min":1
+      "min":1,
+      "pattern":".*"
+    },
+    "FailedAt":{"type":"timestamp"},
+    "FailedCreateSimulationJobRequest":{
+      "type":"structure",
+      "members":{
+        "request":{
+          "shape":"SimulationJobRequest",
+          "documentation":"<p>The simulation job request.</p>"
+        },
+        "failureReason":{
+          "shape":"GenericString",
+          "documentation":"<p>The failure reason of the simulation job request.</p>"
+        },
+        "failureCode":{
+          "shape":"SimulationJobErrorCode",
+          "documentation":"<p>The failure code.</p>"
+        },
+        "failedAt":{
+          "shape":"FailedAt",
+          "documentation":"<p>The time, in milliseconds since the epoch, when the simulation job batch failed.</p>"
+        }
+      },
+      "documentation":"<p>Information about a failed create simulation job request.</p>"
+    },
+    "FailedCreateSimulationJobRequests":{
+      "type":"list",
+      "member":{"shape":"FailedCreateSimulationJobRequest"}
     },
     "FailureBehavior":{
       "type":"string",
@@ -1911,7 +2194,12 @@
       "min":0
     },
     "GenericInteger":{"type":"integer"},
-    "GenericString":{"type":"string"},
+    "GenericString":{
+      "type":"string",
+      "max":1024,
+      "min":0,
+      "pattern":".*"
+    },
     "IamRole":{
       "type":"string",
       "max":255,
@@ -1921,7 +2209,8 @@
     "Id":{
       "type":"string",
       "max":1224,
-      "min":1
+      "min":1,
+      "pattern":".*"
     },
     "IdempotentParameterMismatchException":{
       "type":"structure",
@@ -1932,6 +2221,7 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "Integer":{"type":"integer"},
     "InternalServerException":{
       "type":"structure",
       "members":{
@@ -1971,6 +2261,14 @@
         "environmentVariables":{
           "shape":"EnvironmentVariableMap",
           "documentation":"<p>The environment variables for the application launch.</p>"
+        },
+        "portForwardingConfig":{
+          "shape":"PortForwardingConfig",
+          "documentation":"<p>The port forwarding configuration.</p>"
+        },
+        "streamUI":{
+          "shape":"Boolean",
+          "documentation":"<p>Boolean indicating whether a streaming session will be configured for the application. If <code>True</code>, AWS RoboMaker will configure a connection so you can interact with your application as it is running in the simulation. You must configure and luanch the component. It must have a graphical user interface. </p>"
         }
       },
       "documentation":"<p>Information about a launch configuration.</p>"
@@ -1993,11 +2291,11 @@
         },
         "nextToken":{
           "shape":"PaginationToken",
-          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListDeploymentJobs</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p> <note> <p>This token should be treated as an opaque identifier that is only used to retrieve the next items in a list and not for other programmatic purposes.</p> </note>"
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListDeploymentJobs</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p>"
         },
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of deployment job results returned by <code>ListDeploymentJobs</code> in paginated output. When this parameter is used, <code>ListDeploymentJobs</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListDeploymentJobs</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListDeploymentJobs</code> returns up to 100 results and a <code>nextToken</code> value if applicable. </p>"
+          "documentation":"<p>When this parameter is used, <code>ListDeploymentJobs</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListDeploymentJobs</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 200. If this parameter is not used, then <code>ListDeploymentJobs</code> returns up to 200 results and a <code>nextToken</code> value if applicable. </p>"
         }
       }
     },
@@ -2023,7 +2321,7 @@
         },
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of deployment job results returned by <code>ListFleets</code> in paginated output. When this parameter is used, <code>ListFleets</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListFleets</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListFleets</code> returns up to 100 results and a <code>nextToken</code> value if applicable. </p>"
+          "documentation":"<p>When this parameter is used, <code>ListFleets</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListFleets</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 200. If this parameter is not used, then <code>ListFleets</code> returns up to 200 results and a <code>nextToken</code> value if applicable. </p>"
         },
         "filters":{
           "shape":"Filters",
@@ -2053,11 +2351,11 @@
         },
         "nextToken":{
           "shape":"PaginationToken",
-          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListRobotApplications</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p> <note> <p>This token should be treated as an opaque identifier that is only used to retrieve the next items in a list and not for other programmatic purposes.</p> </note>"
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListRobotApplications</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p>"
         },
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of deployment job results returned by <code>ListRobotApplications</code> in paginated output. When this parameter is used, <code>ListRobotApplications</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListRobotApplications</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListRobotApplications</code> returns up to 100 results and a <code>nextToken</code> value if applicable. </p>"
+          "documentation":"<p>When this parameter is used, <code>ListRobotApplications</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListRobotApplications</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListRobotApplications</code> returns up to 100 results and a <code>nextToken</code> value if applicable. </p>"
         },
         "filters":{
           "shape":"Filters",
@@ -2083,11 +2381,11 @@
       "members":{
         "nextToken":{
           "shape":"PaginationToken",
-          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListRobots</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p> <note> <p>This token should be treated as an opaque identifier that is only used to retrieve the next items in a list and not for other programmatic purposes.</p> </note>"
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListRobots</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p>"
         },
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of deployment job results returned by <code>ListRobots</code> in paginated output. When this parameter is used, <code>ListRobots</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListRobots</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListRobots</code> returns up to 100 results and a <code>nextToken</code> value if applicable. </p>"
+          "documentation":"<p>When this parameter is used, <code>ListRobots</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListRobots</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 200. If this parameter is not used, then <code>ListRobots</code> returns up to 200 results and a <code>nextToken</code> value if applicable. </p>"
         },
         "filters":{
           "shape":"Filters",
@@ -2117,11 +2415,11 @@
         },
         "nextToken":{
           "shape":"PaginationToken",
-          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListSimulationApplications</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p> <note> <p>This token should be treated as an opaque identifier that is only used to retrieve the next items in a list and not for other programmatic purposes.</p> </note>"
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListSimulationApplications</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p>"
         },
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of deployment job results returned by <code>ListSimulationApplications</code> in paginated output. When this parameter is used, <code>ListSimulationApplications</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListSimulationApplications</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListSimulationApplications</code> returns up to 100 results and a <code>nextToken</code> value if applicable. </p>"
+          "documentation":"<p>When this parameter is used, <code>ListSimulationApplications</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListSimulationApplications</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListSimulationApplications</code> returns up to 100 results and a <code>nextToken</code> value if applicable. </p>"
         },
         "filters":{
           "shape":"Filters",
@@ -2142,6 +2440,36 @@
         }
       }
     },
+    "ListSimulationJobBatchesRequest":{
+      "type":"structure",
+      "members":{
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListSimulationJobBatches</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. </p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>When this parameter is used, <code>ListSimulationJobBatches</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListSimulationJobBatches</code> request with the returned <code>nextToken</code> value. </p>"
+        },
+        "filters":{
+          "shape":"Filters",
+          "documentation":"<p>Optional filters to limit results.</p>"
+        }
+      }
+    },
+    "ListSimulationJobBatchesResponse":{
+      "type":"structure",
+      "members":{
+        "simulationJobBatchSummaries":{
+          "shape":"SimulationJobBatchSummaries",
+          "documentation":"<p>A list of simulation job batch summaries.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The <code>nextToken</code> value to include in a future <code>ListSimulationJobBatches</code> request. When the results of a <code>ListSimulationJobBatches</code> request exceed <code>maxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return. </p>"
+        }
+      }
+    },
     "ListSimulationJobsRequest":{
       "type":"structure",
       "members":{
@@ -2151,7 +2479,7 @@
         },
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of deployment job results returned by <code>ListSimulationJobs</code> in paginated output. When this parameter is used, <code>ListSimulationJobs</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListSimulationJobs</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListSimulationJobs</code> returns up to 100 results and a <code>nextToken</code> value if applicable. </p>"
+          "documentation":"<p>When this parameter is used, <code>ListSimulationJobs</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListSimulationJobs</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 1000. If this parameter is not used, then <code>ListSimulationJobs</code> returns up to 1000 results and a <code>nextToken</code> value if applicable. </p>"
         },
         "filters":{
           "shape":"Filters",
@@ -2194,6 +2522,18 @@
         }
       }
     },
+    "LoggingConfig":{
+      "type":"structure",
+      "required":["recordAllRosTopics"],
+      "members":{
+        "recordAllRosTopics":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>A boolean indicating whether to record all ROS topics.</p>"
+        }
+      },
+      "documentation":"<p>The logging configuration.</p>"
+    },
+    "MaxConcurrency":{"type":"integer"},
     "MaxResults":{"type":"integer"},
     "Name":{
       "type":"string",
@@ -2201,9 +2541,34 @@
       "min":1,
       "pattern":"[a-zA-Z0-9_\\-]*"
     },
+    "NetworkInterface":{
+      "type":"structure",
+      "members":{
+        "networkInterfaceId":{
+          "shape":"GenericString",
+          "documentation":"<p>The ID of the network interface.</p>"
+        },
+        "privateIpAddress":{
+          "shape":"GenericString",
+          "documentation":"<p>The IPv4 address of the network interface within the subnet.</p>"
+        },
+        "publicIpAddress":{
+          "shape":"GenericString",
+          "documentation":"<p>The IPv4 public address of the network interface.</p>"
+        }
+      },
+      "documentation":"<p>Describes a network interface.</p>"
+    },
     "NonEmptyString":{
       "type":"string",
-      "min":1
+      "max":255,
+      "min":1,
+      "pattern":".+"
+    },
+    "NonSystemPort":{
+      "type":"integer",
+      "max":65535,
+      "min":1024
     },
     "OutputLocation":{
       "type":"structure",
@@ -2228,7 +2593,8 @@
     "Path":{
       "type":"string",
       "max":1024,
-      "min":1
+      "min":1,
+      "pattern":".*"
     },
     "PercentDone":{
       "type":"float",
@@ -2239,6 +2605,49 @@
       "type":"integer",
       "max":100,
       "min":1
+    },
+    "Port":{
+      "type":"integer",
+      "max":65535,
+      "min":1
+    },
+    "PortForwardingConfig":{
+      "type":"structure",
+      "members":{
+        "portMappings":{
+          "shape":"PortMappingList",
+          "documentation":"<p>The port mappings for the configuration.</p>"
+        }
+      },
+      "documentation":"<p>Configuration information for port forwarding.</p>"
+    },
+    "PortMapping":{
+      "type":"structure",
+      "required":[
+        "jobPort",
+        "applicationPort"
+      ],
+      "members":{
+        "jobPort":{
+          "shape":"Port",
+          "documentation":"<p>The port number on the simulation job instance to use as a remote connection point. </p>"
+        },
+        "applicationPort":{
+          "shape":"NonSystemPort",
+          "documentation":"<p>The port number on the application.</p>"
+        },
+        "enableOnPublicIp":{
+          "shape":"Boolean",
+          "documentation":"<p>A Boolean indicating whether to enable this port mapping on public IP.</p>"
+        }
+      },
+      "documentation":"<p>An object representing a port mapping.</p>"
+    },
+    "PortMappingList":{
+      "type":"list",
+      "member":{"shape":"PortMapping"},
+      "max":10,
+      "min":0
     },
     "ProgressDetail":{
       "type":"structure",
@@ -2312,6 +2721,8 @@
     },
     "RenderingEngineVersionType":{
       "type":"string",
+      "max":4,
+      "min":1,
       "pattern":"1.x"
     },
     "ResourceAlreadyExistsException":{
@@ -2425,9 +2836,7 @@
     },
     "RobotApplicationNames":{
       "type":"list",
-      "member":{"shape":"Name"},
-      "max":1,
-      "min":1
+      "member":{"shape":"Name"}
     },
     "RobotApplicationSummaries":{
       "type":"list",
@@ -2456,7 +2865,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>Information about a robot software suite.</p>"
+          "documentation":"<p>Information about a robot software suite (ROS distribution).</p>"
         }
       },
       "documentation":"<p>Summary information for a robot application.</p>"
@@ -2500,6 +2909,7 @@
       "enum":[
         "Validating",
         "DownloadingExtracting",
+        "ExecutingDownloadCondition",
         "ExecutingPreLaunch",
         "Launching",
         "ExecutingPostLaunch",
@@ -2515,24 +2925,28 @@
       "members":{
         "name":{
           "shape":"RobotSoftwareSuiteType",
-          "documentation":"<p>The name of the robot software suite.</p>"
+          "documentation":"<p>The name of the robot software suite (ROS distribution).</p>"
         },
         "version":{
           "shape":"RobotSoftwareSuiteVersionType",
-          "documentation":"<p>The version of the robot software suite.</p>"
+          "documentation":"<p>The version of the robot software suite (ROS distribution).</p>"
         }
       },
-      "documentation":"<p>Information about a robot software suite.</p>"
+      "documentation":"<p>Information about a robot software suite (ROS distribution).</p>"
     },
     "RobotSoftwareSuiteType":{
       "type":"string",
-      "enum":["ROS"]
+      "enum":[
+        "ROS",
+        "ROS2"
+      ]
     },
     "RobotSoftwareSuiteVersionType":{
       "type":"string",
       "enum":[
         "Kinetic",
-        "Melodic"
+        "Melodic",
+        "Dashing"
       ]
     },
     "RobotStatus":{
@@ -2565,6 +2979,52 @@
       "max":1024,
       "min":1,
       "pattern":".*"
+    },
+    "S3KeyOutput":{
+      "type":"structure",
+      "members":{
+        "s3Key":{
+          "shape":"S3Key",
+          "documentation":"<p>The S3 key.</p>"
+        },
+        "etag":{
+          "shape":"S3Etag",
+          "documentation":"<p>The etag for the object.</p>"
+        }
+      },
+      "documentation":"<p>Information about S3 keys.</p>"
+    },
+    "S3KeyOutputs":{
+      "type":"list",
+      "member":{"shape":"S3KeyOutput"}
+    },
+    "S3Keys":{
+      "type":"list",
+      "member":{"shape":"S3Key"},
+      "max":100,
+      "min":1
+    },
+    "S3Object":{
+      "type":"structure",
+      "required":[
+        "bucket",
+        "key"
+      ],
+      "members":{
+        "bucket":{
+          "shape":"S3Bucket",
+          "documentation":"<p>The bucket containing the object.</p>"
+        },
+        "key":{
+          "shape":"S3Key",
+          "documentation":"<p>The key of the object.</p>"
+        },
+        "etag":{
+          "shape":"S3Etag",
+          "documentation":"<p>The etag of the object.</p>"
+        }
+      },
+      "documentation":"<p>Information about an S3 object.</p>"
     },
     "SecurityGroups":{
       "type":"list",
@@ -2611,9 +3071,7 @@
     },
     "SimulationApplicationNames":{
       "type":"list",
-      "member":{"shape":"Name"},
-      "max":1,
-      "min":1
+      "member":{"shape":"Name"}
     },
     "SimulationApplicationSummaries":{
       "type":"list",
@@ -2642,7 +3100,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>Information about a robot software suite.</p>"
+          "documentation":"<p>Information about a robot software suite (ROS distribution).</p>"
         },
         "simulationSoftwareSuite":{
           "shape":"SimulationSoftwareSuite",
@@ -2694,6 +3152,10 @@
           "shape":"OutputLocation",
           "documentation":"<p>Location for output files generated by the simulation job.</p>"
         },
+        "loggingConfig":{
+          "shape":"LoggingConfig",
+          "documentation":"<p>The logging configuration.</p>"
+        },
         "maxJobDurationInSeconds":{
           "shape":"JobDuration",
           "documentation":"<p>The maximum simulation job duration in seconds. The value must be 8 days (691,200 seconds) or less.</p>"
@@ -2714,6 +3176,10 @@
           "shape":"SimulationApplicationConfigs",
           "documentation":"<p>A list of simulation applications.</p>"
         },
+        "dataSources":{
+          "shape":"DataSources",
+          "documentation":"<p>The data sources for the simulation job.</p>"
+        },
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>A map that contains tag keys and tag values that are attached to the simulation job.</p>"
@@ -2721,9 +3187,69 @@
         "vpcConfig":{
           "shape":"VPCConfigResponse",
           "documentation":"<p>VPC configuration information.</p>"
+        },
+        "networkInterface":{
+          "shape":"NetworkInterface",
+          "documentation":"<p>Information about a network interface.</p>"
         }
       },
       "documentation":"<p>Information about a simulation job.</p>"
+    },
+    "SimulationJobBatchErrorCode":{
+      "type":"string",
+      "enum":["InternalServiceError"]
+    },
+    "SimulationJobBatchStatus":{
+      "type":"string",
+      "enum":[
+        "Pending",
+        "InProgress",
+        "Failed",
+        "Completed",
+        "Canceled",
+        "Canceling",
+        "Completing",
+        "TimingOut",
+        "TimedOut"
+      ]
+    },
+    "SimulationJobBatchSummaries":{
+      "type":"list",
+      "member":{"shape":"SimulationJobBatchSummary"}
+    },
+    "SimulationJobBatchSummary":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the batch.</p>"
+        },
+        "lastUpdatedAt":{
+          "shape":"LastUpdatedAt",
+          "documentation":"<p>The time, in milliseconds since the epoch, when the simulation job batch was last updated.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The time, in milliseconds since the epoch, when the simulation job batch was created.</p>"
+        },
+        "status":{
+          "shape":"SimulationJobBatchStatus",
+          "documentation":"<p>The status of the simulation job batch.</p> <dl> <dt>Pending</dt> <dd> <p>The simulation job batch request is pending.</p> </dd> <dt>InProgress</dt> <dd> <p>The simulation job batch is in progress. </p> </dd> <dt>Failed</dt> <dd> <p>The simulation job batch failed. One or more simulation job requests could not be completed due to an internal failure (like <code>InternalServiceError</code>). See <code>failureCode</code> and <code>failureReason</code> for more information.</p> </dd> <dt>Completed</dt> <dd> <p>The simulation batch job completed. A batch is complete when (1) there are no pending simulation job requests in the batch and none of the failed simulation job requests are due to <code>InternalServiceError</code> and (2) when all created simulation jobs have reached a terminal state (for example, <code>Completed</code> or <code>Failed</code>). </p> </dd> <dt>Canceled</dt> <dd> <p>The simulation batch job was cancelled.</p> </dd> <dt>Canceling</dt> <dd> <p>The simulation batch job is being cancelled.</p> </dd> <dt>Completing</dt> <dd> <p>The simulation batch job is completing.</p> </dd> <dt>TimingOut</dt> <dd> <p>The simulation job batch is timing out.</p> <p>If a batch timing out, and there are pending requests that were failing due to an internal failure (like <code>InternalServiceError</code>), the batch status will be <code>Failed</code>. If there are no such failing request, the batch status will be <code>TimedOut</code>. </p> </dd> <dt>TimedOut</dt> <dd> <p>The simulation batch job timed out.</p> </dd> </dl>"
+        },
+        "failedRequestCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of failed simulation job requests.</p>"
+        },
+        "pendingRequestCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of pending simulation job requests.</p>"
+        },
+        "createdRequestCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of created simulation job requests.</p>"
+        }
+      },
+      "documentation":"<p>Information about a simulation job batch.</p>"
     },
     "SimulationJobErrorCode":{
       "type":"string",
@@ -2733,6 +3259,7 @@
         "SimulationApplicationCrash",
         "BadPermissionsRobotApplication",
         "BadPermissionsSimulationApplication",
+        "BadPermissionsS3Object",
         "BadPermissionsS3Output",
         "BadPermissionsCloudwatchLogs",
         "SubnetIpLimitExceeded",
@@ -2740,12 +3267,63 @@
         "BadPermissionsUserCredentials",
         "InvalidBundleRobotApplication",
         "InvalidBundleSimulationApplication",
+        "InvalidS3Resource",
+        "LimitExceeded",
+        "MismatchedEtag",
         "RobotApplicationVersionMismatchedEtag",
         "SimulationApplicationVersionMismatchedEtag",
+        "ResourceNotFound",
+        "RequestThrottled",
+        "BatchTimedOut",
+        "BatchCanceled",
+        "InvalidInput",
+        "WrongRegionS3Bucket",
         "WrongRegionS3Output",
         "WrongRegionRobotApplication",
         "WrongRegionSimulationApplication"
       ]
+    },
+    "SimulationJobRequest":{
+      "type":"structure",
+      "required":["maxJobDurationInSeconds"],
+      "members":{
+        "outputLocation":{"shape":"OutputLocation"},
+        "loggingConfig":{"shape":"LoggingConfig"},
+        "maxJobDurationInSeconds":{
+          "shape":"JobDuration",
+          "documentation":"<p>The maximum simulation job duration in seconds. The value must be 8 days (691,200 seconds) or less.</p>"
+        },
+        "iamRole":{
+          "shape":"IamRole",
+          "documentation":"<p>The IAM role name that allows the simulation instance to call the AWS APIs that are specified in its associated policies on your behalf. This is how credentials are passed in to your simulation job. </p>"
+        },
+        "failureBehavior":{
+          "shape":"FailureBehavior",
+          "documentation":"<p>The failure behavior the simulation job.</p> <dl> <dt>Continue</dt> <dd> <p>Restart the simulation job in the same host instance.</p> </dd> <dt>Fail</dt> <dd> <p>Stop the simulation job and terminate the instance.</p> </dd> </dl>"
+        },
+        "useDefaultApplications":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Boolean indicating whether to use default simulation tool applications.</p>"
+        },
+        "robotApplications":{
+          "shape":"RobotApplicationConfigs",
+          "documentation":"<p>The robot applications to use in the simulation job.</p>"
+        },
+        "simulationApplications":{
+          "shape":"SimulationApplicationConfigs",
+          "documentation":"<p>The simulation applications to use in the simulation job.</p>"
+        },
+        "dataSources":{
+          "shape":"DataSourceConfigs",
+          "documentation":"<p>Specify data sources to mount read-only files from S3 into your simulation. These files are available under <code>/opt/robomaker/datasources/data_source_name</code>. </p> <note> <p>There is a limit of 100 files and a combined size of 25GB for all <code>DataSourceConfig</code> objects. </p> </note>"
+        },
+        "vpcConfig":{"shape":"VPCConfig"},
+        "tags":{
+          "shape":"TagMap",
+          "documentation":"<p>A map that contains tag keys and tag values that are attached to the simulation job request.</p>"
+        }
+      },
+      "documentation":"<p>Information about a simulation job request.</p>"
     },
     "SimulationJobStatus":{
       "type":"string",
@@ -2794,6 +3372,10 @@
         "robotApplicationNames":{
           "shape":"RobotApplicationNames",
           "documentation":"<p>A list of simulation job robot application names.</p>"
+        },
+        "dataSourceNames":{
+          "shape":"DataSourceNames",
+          "documentation":"<p>The names of the data sources.</p>"
         }
       },
       "documentation":"<p>Summary information for a simulation job.</p>"
@@ -2818,11 +3400,16 @@
     },
     "SimulationSoftwareSuiteType":{
       "type":"string",
-      "enum":["Gazebo"]
+      "enum":[
+        "Gazebo",
+        "RosbagPlay"
+      ]
     },
     "SimulationSoftwareSuiteVersionType":{
       "type":"string",
-      "pattern":"7|9"
+      "max":1024,
+      "min":0,
+      "pattern":"7|9|Kinetic|Melodic|Dashing"
     },
     "SimulationTimeMillis":{"type":"long"},
     "Source":{
@@ -2872,6 +3459,78 @@
     "Sources":{
       "type":"list",
       "member":{"shape":"Source"}
+    },
+    "StartSimulationJobBatchRequest":{
+      "type":"structure",
+      "required":["createSimulationJobRequests"],
+      "members":{
+        "clientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        },
+        "batchPolicy":{
+          "shape":"BatchPolicy",
+          "documentation":"<p>The batch policy.</p>"
+        },
+        "createSimulationJobRequests":{
+          "shape":"CreateSimulationJobRequests",
+          "documentation":"<p>A list of simulation job requests to create in the batch.</p>"
+        },
+        "tags":{
+          "shape":"TagMap",
+          "documentation":"<p>A map that contains tag keys and tag values that are attached to the deployment job batch.</p>"
+        }
+      }
+    },
+    "StartSimulationJobBatchResponse":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (arn) of the batch.</p>"
+        },
+        "status":{
+          "shape":"SimulationJobBatchStatus",
+          "documentation":"<p>The status of the simulation job batch.</p> <dl> <dt>Pending</dt> <dd> <p>The simulation job batch request is pending.</p> </dd> <dt>InProgress</dt> <dd> <p>The simulation job batch is in progress. </p> </dd> <dt>Failed</dt> <dd> <p>The simulation job batch failed. One or more simulation job requests could not be completed due to an internal failure (like <code>InternalServiceError</code>). See <code>failureCode</code> and <code>failureReason</code> for more information.</p> </dd> <dt>Completed</dt> <dd> <p>The simulation batch job completed. A batch is complete when (1) there are no pending simulation job requests in the batch and none of the failed simulation job requests are due to <code>InternalServiceError</code> and (2) when all created simulation jobs have reached a terminal state (for example, <code>Completed</code> or <code>Failed</code>). </p> </dd> <dt>Canceled</dt> <dd> <p>The simulation batch job was cancelled.</p> </dd> <dt>Canceling</dt> <dd> <p>The simulation batch job is being cancelled.</p> </dd> <dt>Completing</dt> <dd> <p>The simulation batch job is completing.</p> </dd> <dt>TimingOut</dt> <dd> <p>The simulation job batch is timing out.</p> <p>If a batch timing out, and there are pending requests that were failing due to an internal failure (like <code>InternalServiceError</code>), the batch status will be <code>Failed</code>. If there are no such failing request, the batch status will be <code>TimedOut</code>. </p> </dd> <dt>TimedOut</dt> <dd> <p>The simulation batch job timed out.</p> </dd> </dl>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The time, in milliseconds since the epoch, when the simulation job batch was created.</p>"
+        },
+        "clientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>"
+        },
+        "batchPolicy":{
+          "shape":"BatchPolicy",
+          "documentation":"<p>The batch policy.</p>"
+        },
+        "failureCode":{
+          "shape":"SimulationJobBatchErrorCode",
+          "documentation":"<p>The failure code if the simulation job batch failed.</p>"
+        },
+        "failureReason":{
+          "shape":"GenericString",
+          "documentation":"<p>The reason the simulation job batch failed.</p>"
+        },
+        "failedRequests":{
+          "shape":"FailedCreateSimulationJobRequests",
+          "documentation":"<p>A list of failed simulation job requests. The request failed to be created into a simulation job. Failed requests do not have a simulation job ID. </p>"
+        },
+        "pendingRequests":{
+          "shape":"CreateSimulationJobRequests",
+          "documentation":"<p>A list of pending simulation job requests. These requests have not yet been created into simulation jobs.</p>"
+        },
+        "createdRequests":{
+          "shape":"SimulationJobSummaries",
+          "documentation":"<p>A list of created simulation job request summaries.</p>"
+        },
+        "tags":{
+          "shape":"TagMap",
+          "documentation":"<p>A map that contains tag keys and tag values that are attached to the deployment job batch.</p>"
+        }
+      }
     },
     "Subnets":{
       "type":"list",
@@ -3034,7 +3693,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>The robot software suite used by the robot application.</p>"
+          "documentation":"<p>The robot software suite (ROS distribution) used by the robot application.</p>"
         },
         "currentRevisionId":{
           "shape":"RevisionId",
@@ -3063,7 +3722,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>The robot software suite used by the robot application.</p>"
+          "documentation":"<p>The robot software suite (ROS distribution) used by the robot application.</p>"
         },
         "lastUpdatedAt":{
           "shape":"LastUpdatedAt",
@@ -3081,8 +3740,7 @@
         "application",
         "sources",
         "simulationSoftwareSuite",
-        "robotSoftwareSuite",
-        "renderingEngine"
+        "robotSoftwareSuite"
       ],
       "members":{
         "application":{
@@ -3099,7 +3757,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>Information about the robot software suite.</p>"
+          "documentation":"<p>Information about the robot software suite (ROS distribution).</p>"
         },
         "renderingEngine":{
           "shape":"RenderingEngine",
@@ -3136,7 +3794,7 @@
         },
         "robotSoftwareSuite":{
           "shape":"RobotSoftwareSuite",
-          "documentation":"<p>Information about the robot software suite.</p>"
+          "documentation":"<p>Information about the robot software suite (ROS distribution).</p>"
         },
         "renderingEngine":{
           "shape":"RenderingEngine",
@@ -3201,6 +3859,8 @@
     },
     "VersionQualifier":{
       "type":"string",
+      "max":255,
+      "min":1,
       "pattern":"ALL"
     },
     "errorMessage":{"type":"string"}

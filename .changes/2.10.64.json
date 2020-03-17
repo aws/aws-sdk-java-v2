@@ -1,0 +1,26 @@
+{
+    "version": "2.10.64",
+    "date": "2020-02-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "Improves discoverability by adding operation methods for deleteItem(), getItem(), putItem and updateItem(), as applicable. These methods take a request object as parameter. Execute() methods for the table interface is removed since they are no longer needed."
+        },
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "description": "When there is an I/O error on an http2 request, the SDK will start shutting down the connection - stopping using the http2 connection for new requests and closing it after all streams are finished."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage VOD",
+            "description": "Adds support for DASH with multiple media presentation description periods triggered by presence of SCTE-35 ad markers in the manifest.Also adds optional configuration for DASH SegmentTemplateFormat to refer to segments by Number with Duration, Number with Timeline or Time with Timeline and compact the manifest by combining duplicate SegmentTemplate tags."
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -33,8 +34,10 @@ import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
+import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.Image;
+import software.amazon.awssdk.services.ec2.model.InstanceStateName;
 import software.amazon.awssdk.services.ec2.model.Placement;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
@@ -72,6 +75,7 @@ import software.amazon.awssdk.services.elasticloadbalancing.model.SetLoadBalance
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListServerCertificatesRequest;
 import software.amazon.awssdk.services.iam.model.ServerCertificateMetadata;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
@@ -196,6 +200,11 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
                 .imageId(ebs_hvm_ami_id).minCount(1).maxCount(1).build();
         instanceId = ec2.runInstances(runInstancesRequest)
                         .instances().get(0).instanceId();
+
+        Waiter.run(() -> ec2.describeInstances(b -> b.instanceIds(instanceId)))
+              .until(r -> InstanceStateName.RUNNING.equals(r.reservations().get(0).instances().get(0).state().name()))
+              .ignoringException(Ec2Exception.class)
+              .orFailAfter(Duration.ofMinutes(10));
 
         // Register it with our load balancer
         List<Instance> instances = elb.registerInstancesWithLoadBalancer(

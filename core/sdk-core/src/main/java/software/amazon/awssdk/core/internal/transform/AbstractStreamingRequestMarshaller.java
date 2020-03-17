@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -57,6 +57,11 @@ public abstract class AbstractStreamingRequestMarshaller<T> implements Marshalle
                                     boolean requiresLength,
                                     boolean transferEncoding,
                                     boolean useHttp2) {
+
+        if (marshalled.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
+            return;
+        }
+
         if (contentLength.isPresent()) {
             marshalled.putHeader(CONTENT_LENGTH, Long.toString(contentLength.get()));
             return;

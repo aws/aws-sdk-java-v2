@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,17 @@ package software.amazon.awssdk.codegen.model.service;
 
 public class XmlNamespace {
 
+    private String prefix;
+
     private String uri;
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
 
     public String getUri() {
         return uri;
@@ -26,5 +36,4 @@ public class XmlNamespace {
     public void setUri(String uri) {
         this.uri = uri;
     }
-
 }

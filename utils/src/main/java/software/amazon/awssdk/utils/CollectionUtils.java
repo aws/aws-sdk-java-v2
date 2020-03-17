@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public final class CollectionUtils {
      * Returns a new list containing the second list appended to the first list.
      */
     public static <T> List<T> mergeLists(List<T> list1, List<T> list2) {
-        List<T> merged = new LinkedList<T>();
+        List<T> merged = new LinkedList<>();
         if (list1 != null) {
             merged.addAll(list1);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -82,7 +82,6 @@ public class PartitionMetadataProviderGenerator implements PoetClass {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, PartitionMetadata>builder()", ImmutableMap.class);
 
         partitions.getPartitions()
-                  .stream()
                   .forEach(p -> builder.add(".put($S, new $T())", p.getPartition(), partitionMetadataClass(p.getPartition())));
 
         return builder.add(".build()").build();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ public final class RegionValidationUtil {
 
     private static final String FIPS_PREFIX = "fips-";
 
-    private RegionValidationUtil() {}
+    private RegionValidationUtil() {
+    }
 
     /**
      * Determines if a given region string is a "valid" AWS region.

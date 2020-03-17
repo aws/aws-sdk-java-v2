@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -80,7 +80,10 @@ public final class ProfileFile {
      * Get the default profile file, using the credentials file from "~/.aws/credentials", the config file from "~/.aws/config"
      * and the "default" profile. This default behavior can be customized using the
      * {@link ProfileFileSystemSetting#AWS_SHARED_CREDENTIALS_FILE}, {@link ProfileFileSystemSetting#AWS_CONFIG_FILE} and
-     * {@link ProfileFileSystemSetting#AWS_PROFILE} settings or by specifying a different profile file and profile name
+     * {@link ProfileFileSystemSetting#AWS_PROFILE} settings or by specifying a different profile file and profile name.
+     *
+     * <p>
+     * The file is read each time this method is invoked.
      */
     public static ProfileFile defaultProfileFile() {
         return ProfileFile.aggregator()
@@ -210,7 +213,8 @@ public final class ProfileFile {
         private Path contentLocation;
         private Type type;
 
-        private BuilderImpl() {}
+        private BuilderImpl() {
+        }
 
         @Override
         public Builder content(InputStream contentStream) {

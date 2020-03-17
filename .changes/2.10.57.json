@@ -1,0 +1,71 @@
+{
+    "version": "2.10.57",
+    "date": "2020-02-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "description": "Adding KVM as a support hypervisor"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Deliver exceptions to stream channels correctly if there's an exception thrown on connection. This also fixes a bug where publisher signals onComplete if the stream is closed as a result of outbound GOAWAY."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "description": "This release adds support for tagging Amazon WorkMail organizations."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "description": "Fixed an issue where fields in `ListObjectVersionsResponse` and `ListMultipartUploadsResponse` are not decoded correctly when encodingType is specified as url. See [#1601](https://github.com/aws/aws-sdk-java-v2/issues/1601)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "description": "Updated ThrottlingException documentation to report that the error code is 400, and not 429, to reflect actual system behaviour."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "Changing usage of typed builders for PutItem, UpdateItem and StaticTableSchema to explicitly provide class type."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "description": "This release enables AWS MSK customers to list Apache Kafka versions that are supported on AWS MSK clusters. Also includes changes to expose additional details of a cluster's state in DescribeCluster and ListClusters APIs."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Throws `IOException` for the race condition where an HTTP2 connection gets reused at the same time it gets inactive so that failed requests can be retried"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "Renames top level sync/async MappedDatabase interfaces as DynamoDbEnhancedClient interfaces. Also adds builder definitions to the interfaces together with a static method that returns the default implementation of the builder."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "This feature ensures that an instance is patched up to the available patches on a particular date. It can be enabled by selecting the 'ApproveUntilDate' option as the auto-approval rule while creating the patch baseline. ApproveUntilDate - The cutoff date for auto approval of released patches. Any patches released on or before this date will be installed automatically."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "description": "Documentation updates for CloudFront"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Amazon VPC Flow Logs adds support for 1-minute aggregation intervals."
+        }
+    ]
+}

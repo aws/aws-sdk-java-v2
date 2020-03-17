@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -178,6 +179,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Add a single header to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given header set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
@@ -193,6 +196,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Add a single header with multiple values to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given header set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
@@ -205,6 +210,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Configure headers to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given headers set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values currently configured in the builder.
@@ -223,14 +230,23 @@ public final class ClientOverrideConfiguration
          */
         Builder retryPolicy(RetryPolicy retryPolicy);
 
-        RetryPolicy retryPolicy();
-
         /**
          * Configure the retry policy the should be used when handling failure cases.
          */
         default Builder retryPolicy(Consumer<RetryPolicy.Builder> retryPolicy) {
             return retryPolicy(RetryPolicy.builder().applyMutation(retryPolicy).build());
         }
+
+        /**
+         * Configure the retry mode used to determine the retry policy that is used when handling failure cases. This is
+         * shorthand for {@code retryPolicy(RetryPolicy.forRetryMode(retryMode))}, and overrides any configured retry policy on
+         * this builder.
+         */
+        default Builder retryPolicy(RetryMode retryMode) {
+            return retryPolicy(RetryPolicy.forRetryMode(retryMode));
+        }
+
+        RetryPolicy retryPolicy();
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as

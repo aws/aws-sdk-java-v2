@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
                                                                .build())
                                             .addMethod(setup());
 
-        model.simpleMethodsRequiringTesting().stream().map(o -> simpleMethodsTest(o)).forEach(builder::addMethod);
+        model.simpleMethodsRequiringTesting().stream().map(this::simpleMethodsTest).forEach(builder::addMethod);
 
         return builder.build();
     }

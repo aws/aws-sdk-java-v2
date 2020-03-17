@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.intermediate;
 
 import static software.amazon.awssdk.codegen.internal.Constant.LF;
+import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultExistenceCheck;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultFluentReturn;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultGetter;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultGetterParam;
@@ -24,11 +25,15 @@ import static software.amazon.awssdk.codegen.internal.DocumentationUtils.default
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHtmlTags;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.squareup.javapoet.ClassName;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -70,6 +75,8 @@ public class MemberModel extends DocumentationModel {
 
     private String fluentEnumSetterMethodName;
 
+    private String existenceCheckMethodName;
+
     private String beanStyleGetterName;
 
     private String beanStyleSetterName;
@@ -85,6 +92,16 @@ public class MemberModel extends DocumentationModel {
     private boolean endpointDiscoveryId;
 
     private boolean sensitive;
+
+    private boolean xmlAttribute;
+
+    private String deprecatedName;
+
+    private String fluentDeprecatedGetterMethodName;
+
+    private String fluentDeprecatedSetterMethodName;
+
+    private String deprecatedBeanStyleSetterMethodName;
 
     public String getName() {
         return name;
@@ -242,6 +259,19 @@ public class MemberModel extends DocumentationModel {
 
     public MemberModel withFluentEnumSetterMethodName(String fluentEnumSetterMethodName) {
         setFluentEnumSetterMethodName(fluentEnumSetterMethodName);
+        return this;
+    }
+
+    public String getExistenceCheckMethodName() {
+        return existenceCheckMethodName;
+    }
+
+    public void setExistenceCheckMethodName(String existenceCheckMethodName) {
+        this.existenceCheckMethodName = existenceCheckMethodName;
+    }
+
+    public MemberModel withExistenceCheckMethodName(String existenceCheckMethodName) {
+        setExistenceCheckMethodName(existenceCheckMethodName);
         return this;
     }
 
@@ -406,6 +436,12 @@ public class MemberModel extends DocumentationModel {
             }
         }
 
+        if (getAutoConstructClassIfExists().isPresent()) {
+            appendParagraph(docBuilder,
+                            "You can use {@link #%s()} to see if a value was sent in this field.",
+                            getExistenceCheckMethodName());
+        }
+
         String variableDesc = StringUtils.isNotBlank(documentation) ? documentation : defaultGetterParam().replace("%s", name);
 
         docBuilder.append("@return ")
@@ -413,6 +449,14 @@ public class MemberModel extends DocumentationModel {
                   .append(getEnumDoc());
 
         return docBuilder.toString();
+    }
+
+    public String getDeprecatedGetterDocumentation() {
+        String getterDocumentation = getGetterDocumentation();
+        return getterDocumentation
+               + LF
+               + "@deprecated Use {@link #" + getFluentGetterMethodName() + "()}"
+               + LF;
     }
 
     private boolean returnTypeIs(Class<?> clazz) {
@@ -425,6 +469,17 @@ public class MemberModel extends DocumentationModel {
                + LF
                + "@return " + stripHtmlTags(defaultFluentReturn())
                + getEnumDoc();
+    }
+
+    public String getExistenceCheckDocumentation() {
+        return defaultExistenceCheck().replace("%s", name) + LF;
+    }
+
+    public String getDeprecatedSetterDocumentation() {
+        return getFluentSetterDocumentation()
+            + LF
+            + "@deprecated Use {@link #" + getFluentSetterMethodName() + "(" + setterModel.getSimpleType() + ")}"
+            + LF;
     }
 
     public String getDefaultConsumerFluentSetterDocumentation() {
@@ -544,6 +599,32 @@ public class MemberModel extends DocumentationModel {
         return sensitive;
     }
 
+    public boolean isXmlAttribute() {
+        return xmlAttribute;
+    }
+
+    public void setXmlAttribute(boolean xmlAttribute) {
+        this.xmlAttribute = xmlAttribute;
+    }
+
+    public MemberModel withXmlAttribtue(boolean xmlAttribtue) {
+        this.xmlAttribute = xmlAttribtue;
+        return this;
+    }
+
+    public String getDeprecatedName() {
+        return deprecatedName;
+    }
+
+    public void setDeprecatedName(String deprecatedName) {
+        this.deprecatedName = deprecatedName;
+    }
+
+    public MemberModel withDeprecatedName(String deprecatedName) {
+        this.deprecatedName = deprecatedName;
+        return this;
+    }
+
     @JsonIgnore
     public boolean hasBuilder() {
         return !(isSimple() || isList() || isMap());
@@ -597,5 +678,39 @@ public class MemberModel extends DocumentationModel {
                .append(LF)
                .append("</p>")
                .append(LF);
+    }
+
+    public Optional<ClassName> getAutoConstructClassIfExists() {
+        if (isList()) {
+            return Optional.of(ClassName.get(SdkAutoConstructList.class));
+        } else if (isMap()) {
+            return Optional.of(ClassName.get(SdkAutoConstructMap.class));
+        }
+
+        return Optional.empty();
+    }
+
+    public void setDeprecatedFluentGetterMethodName(String fluentDeprecatedGetterMethodName) {
+        this.fluentDeprecatedGetterMethodName = fluentDeprecatedGetterMethodName;
+    }
+
+    public String getDeprecatedFluentGetterMethodName() {
+        return fluentDeprecatedGetterMethodName;
+    }
+
+    public void setDeprecatedFluentSetterMethodName(String fluentDeprecatedSetterMethodName) {
+        this.fluentDeprecatedSetterMethodName = fluentDeprecatedSetterMethodName;
+    }
+
+    public String getDeprecatedFluentSetterMethodName() {
+        return fluentDeprecatedSetterMethodName;
+    }
+
+    public String getDeprecatedBeanStyleSetterMethodName() {
+        return deprecatedBeanStyleSetterMethodName;
+    }
+
+    public void setDeprecatedBeanStyleSetterMethodName(String deprecatedBeanStyleSetterMethodName) {
+        this.deprecatedBeanStyleSetterMethodName = deprecatedBeanStyleSetterMethodName;
     }
 }

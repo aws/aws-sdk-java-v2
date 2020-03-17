@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -194,9 +194,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .beginControlFlow("try")
                .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
                .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
-               .addCode(protocolSpec.responseHandler(model, opModel))
-               .addCode(protocolSpec.errorResponseHandler(opModel))
-               .addCode(eventToByteBufferPublisher(opModel));
+               .addCode(protocolSpec.responseHandler(model, opModel));
+        protocolSpec.errorResponseHandler(opModel).ifPresent(builder::addCode);
+        builder.addCode(eventToByteBufferPublisher(opModel));
 
         if (opModel.getEndpointDiscovery() != null) {
             builder.addStatement("$T cachedEndpoint = null", URI.class);
@@ -298,7 +298,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addAnnotation(Override.class)
                          .addStatement("return $T.create($L)",
                                        returnType,
-                                       config.getCreateMethodParams().stream().collect(Collectors.joining(",")))
+                                       String.join(",", config.getCreateMethodParams()))
                          .build();
     }
 }

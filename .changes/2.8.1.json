@@ -1,0 +1,21 @@
+{
+    "version": "2.8.1",
+    "date": "2019-09-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "description": "Amazon EKS DescribeCluster API returns a new OIDC issuer field that can be used to create OIDC identity provider for IAM for Service Accounts feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "description": "MediaFormat is now optional for StartTranscriptionJob API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "description": "Added support for new history events"
+        }
+    ]
+}

@@ -253,10 +253,18 @@
                 "HlsConfiguration": {
                     "documentation": "<p>The configuration for HLS content. </p>", 
                     "shape": "HlsConfiguration"
-                }, 
+                },
+                "LivePreRollConfiguration" : {
+                    "shape" : "LivePreRollConfiguration",
+                    "documentation" : "<p>The configuration for pre-roll ad insertion.</p>"
+                },
                 "Name": {
                     "documentation": "<p>The identifier for the playback configuration.</p>", 
                     "shape": "__string"
+                }, 
+                "PersonalizationThresholdSeconds" : {
+                    "documentation": "<p>The maximum duration of underfilled ad time (in seconds) allowed in an ad break.</p>",
+                    "shape" : "__integerMin1"
                 }, 
                 "PlaybackConfigurationArn": {
                     "documentation": "<p>The Amazon Resource Name (ARN) for the playback configuration. </p>", 
@@ -353,7 +361,7 @@
                 }
             }, 
             "type": "structure"
-        }, 
+        },
         "OriginManifestType": {
             "enum": [
                 "SINGLE_PERIOD", 
@@ -409,13 +417,31 @@
                     "documentation": "<p>The name that is used to associate this playback configuration with a custom transcode profile. This overrides the dynamic transcoding defaults of MediaTailor. Use this only if you have already set up custom profiles with the help of AWS Support.</p>", 
                     "shape": "__string"
                 }, 
+                "PersonalizationThresholdSeconds" : {
+                    "documentation": "<p>The maximum duration of underfilled ad time (in seconds) allowed in an ad break.</p>",
+                    "shape" : "__integerMin1"
+                }, 
                 "VideoContentSourceUrl": {
                     "documentation": "<p>The URL prefix for the master playlist for the stream, minus the asset ID. The maximum length is 512 characters.</p>", 
                     "shape": "__string"
                 }
             }, 
             "type": "structure"
-        }, 
+        },
+        "LivePreRollConfiguration" : {
+            "type" : "structure",
+            "members" : {
+                "AdDecisionServerUrl" : {
+                    "shape" : "__string",
+                    "documentation" : "<p>The URL for the ad decision server (ADS) for pre-roll ads. This includes the specification of static parameters and placeholders for dynamic parameters. AWS Elemental MediaTailor substitutes player-specific and session-specific parameters as needed when calling the ADS. Alternately, for testing, you can provide a static VAST URL. The maximum length is 25,000 characters.</p>"
+                },
+                "MaxDurationSeconds" : {
+                    "shape" : "__integer",
+                    "documentation" : "The maximum allowed duration for the pre-roll ad avail. AWS Elemental MediaTailor won't play pre-roll ads to exceed this duration, regardless of the total duration of ads that the ADS returns."
+                }
+            },
+            "documentation" : "<p>The configuration for pre-roll ad insertion.</p>"
+        },
         "PutPlaybackConfigurationRequest": {
             "members": {
                 "AdDecisionServerUrl": {
@@ -429,10 +455,18 @@
                 "DashConfiguration": {
                     "documentation": "<p>The configuration for DASH content. </p>", 
                     "shape": "DashConfigurationForPut"
-                }, 
+                },
+                "LivePreRollConfiguration" : {
+                    "shape" : "LivePreRollConfiguration",
+                    "documentation" : "<p>The configuration for pre-roll ad insertion.</p>"
+                },
                 "Name": {
                     "documentation": "<p>The identifier for the playback configuration.</p>", 
                     "shape": "__string"
+                }, 
+                "PersonalizationThresholdSeconds" : {
+                    "documentation": "<p>The maximum duration of underfilled ad time (in seconds) allowed in an ad break.</p>",
+                    "shape" : "__integerMin1"
                 }, 
                 "SlateAdUrl": {
                     "documentation": "<p>The URL for a high-quality video asset to transcode and use to fill in time that's not used by ads. AWS Elemental MediaTailor shows the slate to fill in gaps in media content. Configuring the slate is optional for non-VPAID configurations. For VPAID, the slate is required because MediaTailor provides it in the slots that are designated for dynamic ad content. The slate must be a high-quality asset that contains both audio and video. </p>", 
@@ -471,10 +505,18 @@
                 "HlsConfiguration": {
                     "documentation": "<p>The configuration for HLS content. </p>", 
                     "shape": "HlsConfiguration"
-                }, 
+                },
+                "LivePreRollConfiguration" : {
+                    "shape" : "LivePreRollConfiguration",
+                    "documentation" : "<p>The configuration for pre-roll ad insertion.</p>"
+                },
                 "Name": {
                     "documentation": "<p>The identifier for the playback configuration.</p>", 
                     "shape": "__string"
+                },
+                "PersonalizationThresholdSeconds" : {
+                    "documentation": "<p>The maximum duration of underfilled ad time (in seconds) allowed in an ad break.</p>",
+                    "shape" : "__integerMin1"
                 }, 
                 "PlaybackConfigurationArn": {
                     "documentation": "<p>The Amazon Resource Name (ARN) for the playback configuration. </p>", 
@@ -571,6 +613,10 @@
         }, 
         "__integer": {
             "type": "integer"
+        },
+        "__integerMin1": {
+            "type": "integer",
+            "min": 1
         }, 
         "__integerMin1Max100": {
             "max": 100, 

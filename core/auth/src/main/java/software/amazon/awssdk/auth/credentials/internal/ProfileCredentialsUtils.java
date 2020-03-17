@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package software.amazon.awssdk.auth.credentials.internal;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -95,9 +97,15 @@ public final class ProfileCredentialsUtils {
         if (properties.containsKey(ProfileProperty.ROLE_ARN)) {
             boolean hasSourceProfile = properties.containsKey(ProfileProperty.SOURCE_PROFILE);
             boolean hasCredentialSource = properties.containsKey(ProfileProperty.CREDENTIAL_SOURCE);
+            boolean hasWebIdentityTokenFile = properties.containsKey(ProfileProperty.WEB_IDENTITY_TOKEN_FILE);
+            boolean hasRoleArn = properties.containsKey(ProfileProperty.ROLE_ARN);
             Validate.validState(!(hasSourceProfile && hasCredentialSource),
                                 "Invalid profile file: profile has both %s and %s.",
                                 ProfileProperty.SOURCE_PROFILE, ProfileProperty.CREDENTIAL_SOURCE);
+
+            if (hasWebIdentityTokenFile && hasRoleArn) {
+                return Optional.ofNullable(roleAndWebIdentityTokenProfileCredentialsProvider());
+            }
 
             if (hasSourceProfile) {
                 return Optional.ofNullable(roleAndSourceProfileBasedProfileCredentialsProvider(children));
@@ -153,6 +161,23 @@ public final class ProfileCredentialsUtils {
         return ProcessCredentialsProvider.builder()
                                          .command(properties.get(ProfileProperty.CREDENTIAL_PROCESS))
                                          .build();
+    }
+
+    private AwsCredentialsProvider roleAndWebIdentityTokenProfileCredentialsProvider() {
+        requireProperties(ProfileProperty.ROLE_ARN, ProfileProperty.WEB_IDENTITY_TOKEN_FILE);
+
+        String roleArn = properties.get(ProfileProperty.ROLE_ARN);
+        String roleSessionName = properties.get(ProfileProperty.ROLE_SESSION_NAME);
+        Path webIdentityTokenFile = Paths.get(properties.get(ProfileProperty.WEB_IDENTITY_TOKEN_FILE));
+
+        WebIdentityTokenCredentialProperties credentialProperties =
+            WebIdentityTokenCredentialProperties.builder()
+                                                .roleArn(roleArn)
+                                                .roleSessionName(roleSessionName)
+                                                .webIdentityTokenFile(webIdentityTokenFile)
+                                                .build();
+
+        return WebIdentityCredentialsUtils.factory().create(credentialProperties);
     }
 
     /**

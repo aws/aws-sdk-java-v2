@@ -1,0 +1,11 @@
+{
+    "version": "2.7.33",
+    "date": "2019-08-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "Documentation updates for organizations"
+        }
+    ]
+}

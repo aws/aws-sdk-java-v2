@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,15 +25,11 @@ import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Frame;
-import io.netty.handler.codec.http2.Http2GoAwayFrame;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
 import io.netty.handler.codec.http2.Http2ResetFrame;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Converts {@link Http2Frame}s to {@link HttpObject}s. Ignores the majority of {@link Http2Frame}s like PING
@@ -41,9 +37,6 @@ import software.amazon.awssdk.utils.BinaryUtils;
  */
 @SdkInternalApi
 public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2Frame> {
-
-    public Http2ToHttpInboundAdapter() {
-    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Http2Frame frame) throws Exception {
@@ -54,8 +47,6 @@ public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2
             ctx.channel().read();
         } else if (frame instanceof Http2ResetFrame) {
             onRstStreamRead((Http2ResetFrame) frame, ctx);
-        } else if (frame instanceof Http2GoAwayFrame) {
-            onGoAwayRead((Http2GoAwayFrame) frame, ctx);
         } else {
             // TODO this is related to the inbound window update bug. Revisit
             ctx.channel().parent().read();
@@ -76,38 +67,14 @@ public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2
         }
     }
 
-    private void onGoAwayRead(Http2GoAwayFrame goAwayFrame, ChannelHandlerContext ctx) throws Http2Exception {
-        ctx.fireExceptionCaught(new GoawayException(goAwayFrame.errorCode(), goAwayFrame.content()));
-    }
-
     private void onRstStreamRead(Http2ResetFrame resetFrame, ChannelHandlerContext ctx) throws Http2Exception {
         ctx.fireExceptionCaught(new Http2ResetException(resetFrame.errorCode()));
     }
 
-    public static class Http2ResetException extends IOException {
+    public static final class Http2ResetException extends IOException {
 
         Http2ResetException(long errorCode) {
             super(String.format("Connection reset. Error - %s(%d)", Http2Error.valueOf(errorCode).name(), errorCode));
-        }
-    }
-
-    /**
-     * Exception thrown when a GOAWAY frame is sent by the service.
-     */
-    private static class GoawayException extends IOException {
-
-        private final long errorCode;
-        private final byte[] debugData;
-
-        GoawayException(long errorCode, ByteBuf debugData) {
-            this.errorCode = errorCode;
-            this.debugData = BinaryUtils.copyBytesFrom(debugData.nioBuffer());
-        }
-
-        @Override
-        public String getMessage() {
-            return String.format("GOAWAY received. Error Code = %d, Debug Data = %s",
-                                 errorCode, new String(debugData, StandardCharsets.UTF_8));
         }
     }
 }

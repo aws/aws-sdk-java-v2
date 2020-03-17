@@ -1,0 +1,46 @@
+{
+    "version": "2.10.82",
+    "date": "2020-03-09",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Use the last seen HTTP/1.1 header value for headers defined to only appear once in an HTTP message instead of merging them all into a list. The order in which header values are inspected is: headers set by the request marshaller, overridden headers set on the client, then finally overridden headers set on the SDK request object. See https://tools.ietf.org/html/rfc2616#section-4.2 for more information."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Added support for \"retry modes\". A retry mode allows configuring multiple SDK parameters at once using default retry profiles, some of which are standardized between AWS SDK languages. See RetryMode javadoc for more information."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed an issue where specifying your own retry policy would override AWS and service-specific retry conditions. By default, all retry policies now have AWS and service-specific retry conditions added. This can be disabled via the new `RetryPolicy.furtherRefinementsAllowed(false)`."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed an issue where the retry condition returned by `RetryPolicy.retryCondition` differed from the one specified by `RetryPolicy.Builder.retryCondition`. The old value can be accessed via the new `RetryPolicy.aggregateRetryCondition`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Added the ability to configure or disable the default retry throttling behavior of the SDK that 'kicks in' during a large volume of retriable service call errors. This behavior can now be configured via `RetryPolicy.retryCapacityCondition`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "description": "AWS Elemental MediaLive now supports the ability to configure the Preferred Channel Pipeline for channels contributing to a Multiplex."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "description": "Added new settings for Kinesis target to include detailed transaction info; to capture table DDL details; to use single-line unformatted json, which can be directly queried by AWS Athena if data is streamed into S3 through AWS Kinesis Firehose. Added CdcInsertsAndUpdates in S3 target settings to allow capture ongoing insertions and updates only."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Amazon Virtual Private Cloud (VPC) NAT Gateway adds support for tagging on resource creation."
+        }
+    ]
+}

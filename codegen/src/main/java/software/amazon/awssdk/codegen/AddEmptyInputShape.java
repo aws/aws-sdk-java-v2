@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
             Map<String, OperationModel> javaOperationMap) {
         Map<String, Operation> operations = serviceModel.getOperations();
 
-        Map<String, ShapeModel> emptyInputShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> emptyInputShapes = new HashMap<>();
 
         for (Map.Entry<String, Operation> entry : operations.entrySet()) {
             String operationName = entry.getKey();

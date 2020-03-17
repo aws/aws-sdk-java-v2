@@ -31,7 +31,7 @@
         {"shape":"OptimisticLockException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Authorizes the DDoS Response team (DRT) to access the specified Amazon S3 bucket containing your flow logs. You can associate up to 10 Amazon S3 buckets with your subscription.</p> <p>To use the services of the DRT and make an <code>AssociateDRTLogBucket</code> request, you must be subscribed to the <a href=\"https://aws.amazon.com/premiumsupport/business-support/\">Business Support plan</a> or the <a href=\"https://aws.amazon.com/premiumsupport/enterprise-support/\">Enterprise Support plan</a>.</p>"
+      "documentation":"<p>Authorizes the DDoS Response team (DRT) to access the specified Amazon S3 bucket containing your AWS WAF logs. You can associate up to 10 Amazon S3 buckets with your subscription.</p> <p>To use the services of the DRT and make an <code>AssociateDRTLogBucket</code> request, you must be subscribed to the <a href=\"https://aws.amazon.com/premiumsupport/business-support/\">Business Support plan</a> or the <a href=\"https://aws.amazon.com/premiumsupport/enterprise-support/\">Enterprise Support plan</a>.</p>"
     },
     "AssociateDRTRole":{
       "name":"AssociateDRTRole",
@@ -50,6 +50,23 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Authorizes the DDoS Response team (DRT), using the specified role, to access your AWS account to assist with DDoS attack mitigation during potential attacks. This enables the DRT to inspect your AWS WAF configuration and create or update AWS WAF rules and web ACLs.</p> <p>You can associate only one <code>RoleArn</code> with your subscription. If you submit an <code>AssociateDRTRole</code> request for an account that already has an associated role, the new <code>RoleArn</code> will replace the existing <code>RoleArn</code>. </p> <p>Prior to making the <code>AssociateDRTRole</code> request, you must attach the <a href=\"https://console.aws.amazon.com/iam/home?#/policies/arn:aws:iam::aws:policy/service-role/AWSShieldDRTAccessPolicy\">AWSShieldDRTAccessPolicy</a> managed policy to the role you will specify in the request. For more information see <a href=\" https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_manage-attach-detach.html\">Attaching and Detaching IAM Policies</a>. The role must also trust the service principal <code> drt.shield.amazonaws.com</code>. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html\">IAM JSON Policy Elements: Principal</a>.</p> <p>The DRT will have access only to your AWS WAF and Shield resources. By submitting this request, you authorize the DRT to inspect your AWS WAF and Shield configuration and create and update AWS WAF rules and web ACLs on your behalf. The DRT takes these actions only if explicitly authorized by you.</p> <p>You must have the <code>iam:PassRole</code> permission to make an <code>AssociateDRTRole</code> request. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html\">Granting a User Permissions to Pass a Role to an AWS Service</a>. </p> <p>To use the services of the DRT and make an <code>AssociateDRTRole</code> request, you must be subscribed to the <a href=\"https://aws.amazon.com/premiumsupport/business-support/\">Business Support plan</a> or the <a href=\"https://aws.amazon.com/premiumsupport/enterprise-support/\">Enterprise Support plan</a>.</p>"
+    },
+    "AssociateHealthCheck":{
+      "name":"AssociateHealthCheck",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AssociateHealthCheckRequest"},
+      "output":{"shape":"AssociateHealthCheckResponse"},
+      "errors":[
+        {"shape":"InternalErrorException"},
+        {"shape":"LimitsExceededException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"OptimisticLockException"}
+      ],
+      "documentation":"<p>Adds health-based detection to the Shield Advanced protection for a resource. Shield Advanced health-based detection uses the health of your AWS resource to improve responsiveness and accuracy in attack detection and mitigation. </p> <p>You define the health check in Route 53 and then associate it with your Shield Advanced protection. For more information, see <a href=\"https://docs.aws.amazon.com/waf/latest/developerguide/ddos-overview.html#ddos-advanced-health-check-option\">Shield Advanced Health-Based Detection</a> in the <a href=\"https://docs.aws.amazon.com/waf/latest/developerguide/\">AWS WAF and AWS Shield Developer Guide</a>. </p>"
     },
     "CreateProtection":{
       "name":"CreateProtection",
@@ -82,7 +99,7 @@
         {"shape":"InternalErrorException"},
         {"shape":"ResourceAlreadyExistsException"}
       ],
-      "documentation":"<p>Activates AWS Shield Advanced for an account.</p> <p>As part of this request you can specify <code>EmergencySettings</code> that automaticaly grant the DDoS response team (DRT) needed permissions to assist you during a suspected DDoS attack. For more information see <a href=\"https://docs.aws.amazon.com/waf/latest/developerguide/authorize-DRT.html\">Authorize the DDoS Response Team to Create Rules and Web ACLs on Your Behalf</a>.</p> <p>When you initally create a subscription, your subscription is set to be automatically renewed at the end of the existing subscription period. You can change this by submitting an <code>UpdateSubscription</code> request. </p>"
+      "documentation":"<p>Activates AWS Shield Advanced for an account.</p> <p>As part of this request you can specify <code>EmergencySettings</code> that automaticaly grant the DDoS response team (DRT) needed permissions to assist you during a suspected DDoS attack. For more information see <a href=\"https://docs.aws.amazon.com/waf/latest/developerguide/authorize-DRT.html\">Authorize the DDoS Response Team to Create Rules and Web ACLs on Your Behalf</a>.</p> <p>To use the services of the DRT, you must be subscribed to the <a href=\"https://aws.amazon.com/premiumsupport/business-support/\">Business Support plan</a> or the <a href=\"https://aws.amazon.com/premiumsupport/enterprise-support/\">Enterprise Support plan</a>.</p> <p>When you initally create a subscription, your subscription is set to be automatically renewed at the end of the existing subscription period. You can change this by submitting an <code>UpdateSubscription</code> request. </p>"
     },
     "DeleteProtection":{
       "name":"DeleteProtection",
@@ -202,7 +219,7 @@
         {"shape":"OptimisticLockException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Removes the DDoS Response team's (DRT) access to the specified Amazon S3 bucket containing your flow logs.</p> <p>To make a <code>DisassociateDRTLogBucket</code> request, you must be subscribed to the <a href=\"https://aws.amazon.com/premiumsupport/business-support/\">Business Support plan</a> or the <a href=\"https://aws.amazon.com/premiumsupport/enterprise-support/\">Enterprise Support plan</a>. However, if you are not subscribed to one of these support plans, but had been previously and had granted the DRT access to your account, you can submit a <code>DisassociateDRTLogBucket</code> request to remove this access.</p>"
+      "documentation":"<p>Removes the DDoS Response team's (DRT) access to the specified Amazon S3 bucket containing your AWS WAF logs.</p> <p>To make a <code>DisassociateDRTLogBucket</code> request, you must be subscribed to the <a href=\"https://aws.amazon.com/premiumsupport/business-support/\">Business Support plan</a> or the <a href=\"https://aws.amazon.com/premiumsupport/enterprise-support/\">Enterprise Support plan</a>. However, if you are not subscribed to one of these support plans, but had been previously and had granted the DRT access to your account, you can submit a <code>DisassociateDRTLogBucket</code> request to remove this access.</p>"
     },
     "DisassociateDRTRole":{
       "name":"DisassociateDRTRole",
@@ -219,6 +236,22 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Removes the DDoS Response team's (DRT) access to your AWS account.</p> <p>To make a <code>DisassociateDRTRole</code> request, you must be subscribed to the <a href=\"https://aws.amazon.com/premiumsupport/business-support/\">Business Support plan</a> or the <a href=\"https://aws.amazon.com/premiumsupport/enterprise-support/\">Enterprise Support plan</a>. However, if you are not subscribed to one of these support plans, but had been previously and had granted the DRT access to your account, you can submit a <code>DisassociateDRTRole</code> request to remove this access.</p>"
+    },
+    "DisassociateHealthCheck":{
+      "name":"DisassociateHealthCheck",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisassociateHealthCheckRequest"},
+      "output":{"shape":"DisassociateHealthCheckResponse"},
+      "errors":[
+        {"shape":"InternalErrorException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"OptimisticLockException"}
+      ],
+      "documentation":"<p>Removes health-based detection from the Shield Advanced protection for a resource. Shield Advanced health-based detection uses the health of your AWS resource to improve responsiveness and accuracy in attack detection and mitigation. </p> <p>You define the health check in Route 53 and then associate or disassociate it with your Shield Advanced protection. For more information, see <a href=\"https://docs.aws.amazon.com/waf/latest/developerguide/ddos-overview.html#ddos-advanced-health-check-option\">Shield Advanced Health-Based Detection</a> in the <a href=\"https://docs.aws.amazon.com/waf/latest/developerguide/\">AWS WAF and AWS Shield Developer Guide</a>. </p>"
     },
     "GetSubscriptionState":{
       "name":"GetSubscriptionState",
@@ -311,7 +344,7 @@
       "members":{
         "message":{"shape":"errorMessage"}
       },
-      "documentation":"<p>In order to grant the necessary access to the DDoS Response Team, the user submitting <code>AssociateDRTRole</code> must have the <code>iam:PassRole</code> permission. This error indicates the user did not have the appropriate permissions. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html\">Granting a User Permissions to Pass a Role to an AWS Service</a>. </p>",
+      "documentation":"<p>In order to grant the necessary access to the DDoS Response Team, the user submitting the request must have the <code>iam:PassRole</code> permission. This error indicates the user did not have the appropriate permissions. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html\">Granting a User Permissions to Pass a Role to an AWS Service</a>. </p>",
       "exception":true
     },
     "AssociateDRTLogBucketRequest":{
@@ -320,7 +353,7 @@
       "members":{
         "LogBucket":{
           "shape":"LogBucket",
-          "documentation":"<p>The Amazon S3 bucket that contains your flow logs.</p>"
+          "documentation":"<p>The Amazon S3 bucket that contains your AWS WAF logs.</p>"
         }
       }
     },
@@ -340,6 +373,28 @@
       }
     },
     "AssociateDRTRoleResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "AssociateHealthCheckRequest":{
+      "type":"structure",
+      "required":[
+        "ProtectionId",
+        "HealthCheckArn"
+      ],
+      "members":{
+        "ProtectionId":{
+          "shape":"ProtectionId",
+          "documentation":"<p>The unique identifier (ID) for the <a>Protection</a> object to add the health check association to. </p>"
+        },
+        "HealthCheckArn":{
+          "shape":"HealthCheckArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the health check to associate with the protection.</p>"
+        }
+      }
+    },
+    "AssociateHealthCheckResponse":{
       "type":"structure",
       "members":{
       }
@@ -404,11 +459,11 @@
       "members":{
         "AttackLayer":{
           "shape":"AttackLayer",
-          "documentation":"<p>The type of DDoS event that was observed. <code>NETWORK</code> indicates layer 3 and layer 4 events and <code>APPLICATION</code> indicates layer 7 events.</p>"
+          "documentation":"<p>The type of distributed denial of service (DDoS) event that was observed. <code>NETWORK</code> indicates layer 3 and layer 4 events and <code>APPLICATION</code> indicates layer 7 events.</p>"
         },
         "AttackPropertyIdentifier":{
           "shape":"AttackPropertyIdentifier",
-          "documentation":"<p>Defines the DDoS attack property information that is provided.</p>"
+          "documentation":"<p>Defines the DDoS attack property information that is provided. The <code>WORDPRESS_PINGBACK_REFLECTOR</code> and <code>WORDPRESS_PINGBACK_SOURCE</code> values are valid only for WordPress reflective pingback DDoS attacks.</p>"
         },
         "TopContributors":{
           "shape":"TopContributors",
@@ -433,7 +488,9 @@
         "SOURCE_ASN",
         "SOURCE_COUNTRY",
         "SOURCE_IP_ADDRESS",
-        "SOURCE_USER_AGENT"
+        "SOURCE_USER_AGENT",
+        "WORDPRESS_PINGBACK_REFLECTOR",
+        "WORDPRESS_PINGBACK_SOURCE"
       ]
     },
     "AttackSummaries":{
@@ -473,7 +530,7 @@
       "members":{
         "VectorType":{
           "shape":"String",
-          "documentation":"<p>The attack type. Valid values:</p> <ul> <li> <p>UDP_TRAFFIC</p> </li> <li> <p>UDP_FRAGMENT</p> </li> <li> <p>GENERIC_UDP_REFLECTION</p> </li> <li> <p>DNS_REFLECTION</p> </li> <li> <p>NTP_REFLECTION</p> </li> <li> <p>CHARGEN_REFLECTION</p> </li> <li> <p>SSDP_REFLECTION</p> </li> <li> <p>PORT_MAPPER</p> </li> <li> <p>RIP_REFLECTION</p> </li> <li> <p>SNMP_REFLECTION</p> </li> <li> <p>MSSQL_REFLECTION</p> </li> <li> <p>NET_BIOS_REFLECTION</p> </li> <li> <p>SYN_FLOOD</p> </li> <li> <p>ACK_FLOOD</p> </li> <li> <p>REQUEST_FLOOD</p> </li> </ul>"
+          "documentation":"<p>The attack type. Valid values:</p> <ul> <li> <p>UDP_TRAFFIC</p> </li> <li> <p>UDP_FRAGMENT</p> </li> <li> <p>GENERIC_UDP_REFLECTION</p> </li> <li> <p>DNS_REFLECTION</p> </li> <li> <p>NTP_REFLECTION</p> </li> <li> <p>CHARGEN_REFLECTION</p> </li> <li> <p>SSDP_REFLECTION</p> </li> <li> <p>PORT_MAPPER</p> </li> <li> <p>RIP_REFLECTION</p> </li> <li> <p>SNMP_REFLECTION</p> </li> <li> <p>MSSQL_REFLECTION</p> </li> <li> <p>NET_BIOS_REFLECTION</p> </li> <li> <p>SYN_FLOOD</p> </li> <li> <p>ACK_FLOOD</p> </li> <li> <p>REQUEST_FLOOD</p> </li> <li> <p>HTTP_REFLECTION</p> </li> <li> <p>UDS_REFLECTION</p> </li> <li> <p>MEMCACHED_REFLECTION</p> </li> </ul>"
         }
       },
       "documentation":"<p>Describes the attack.</p>"
@@ -659,7 +716,7 @@
       "members":{
         "LogBucket":{
           "shape":"LogBucket",
-          "documentation":"<p>The Amazon S3 bucket that contains your flow logs.</p>"
+          "documentation":"<p>The Amazon S3 bucket that contains your AWS WAF logs.</p>"
         }
       }
     },
@@ -674,6 +731,28 @@
       }
     },
     "DisassociateDRTRoleResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "DisassociateHealthCheckRequest":{
+      "type":"structure",
+      "required":[
+        "ProtectionId",
+        "HealthCheckArn"
+      ],
+      "members":{
+        "ProtectionId":{
+          "shape":"ProtectionId",
+          "documentation":"<p>The unique identifier (ID) for the <a>Protection</a> object to remove the health check association from. </p>"
+        },
+        "HealthCheckArn":{
+          "shape":"HealthCheckArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the health check that is associated with the protection.</p>"
+        }
+      }
+    },
+    "DisassociateHealthCheckResponse":{
       "type":"structure",
       "members":{
       }
@@ -720,6 +799,17 @@
           "documentation":"<p>The status of the subscription.</p>"
         }
       }
+    },
+    "HealthCheckArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"^arn:aws:route53:::healthcheck/\\S{36}$"
+    },
+    "HealthCheckId":{"type":"string"},
+    "HealthCheckIds":{
+      "type":"list",
+      "member":{"shape":"HealthCheckId"}
     },
     "Integer":{"type":"integer"},
     "InternalErrorException":{
@@ -928,6 +1018,10 @@
         "ResourceArn":{
           "shape":"ResourceArn",
           "documentation":"<p>The ARN (Amazon Resource Name) of the AWS resource that is protected.</p>"
+        },
+        "HealthCheckIds":{
+          "shape":"HealthCheckIds",
+          "documentation":"<p>The unique identifier (ID) for the Route 53 health check that's associated with the protection. </p>"
         }
       },
       "documentation":"<p>An object that represents a resource that is under DDoS protection.</p>"

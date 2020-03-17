@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
-import java.util.Iterator;
 
 /**
  * Used to retrieve information about the JVM memory.
@@ -51,21 +50,18 @@ public final class Memory {
         // How ? http://stackoverflow.com/questions/697336/how-do-i-programmatically-find-out-my-permgen-space-usage
         //       http://stackoverflow.com/questions/8356416/xxmaxpermsize-with-or-without-xxpermsize
         StringBuilder sb = new StringBuilder();
-        Iterator<MemoryPoolMXBean> iter =
-                ManagementFactory.getMemoryPoolMXBeans().iterator();
-        while (iter.hasNext()) {
-            MemoryPoolMXBean item = iter.next();
+        for (MemoryPoolMXBean item : ManagementFactory.getMemoryPoolMXBeans()) {
             String name = item.getName();
             MemoryType type = item.getType();
             MemoryUsage usage = item.getUsage();
             MemoryUsage peak = item.getPeakUsage();
             MemoryUsage collections = item.getCollectionUsage();
-            sb.append(String.format("Memory pool name: " + name
-                                    + ", type: " + type
-                                    + ", usage: " + usage
-                                    + ", peak: " + peak
-                                    + ", collections: " + collections
-                                    + "\n"));
+            sb.append("Memory pool name: " + name
+                      + ", type: " + type
+                      + ", usage: " + usage
+                      + ", peak: " + peak
+                      + ", collections: " + collections
+                      + "\n");
         }
         return sb.toString();
     }

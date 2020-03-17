@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,9 +24,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+
 import org.junit.Test;
+
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
@@ -67,9 +70,8 @@ public class SdkTransactionIdInHeaderTest extends WireMockTestBase {
             httpClient.requestExecutionBuilder()
                       .request(request)
                       .originalRequest(NoopTestRequest.builder().build())
-                      .errorResponseHandler(stubErrorHandler())
                       .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(request))
-                      .execute();
+                      .execute(combinedSyncResponseHandler(null, stubErrorHandler()));
             fail("Expected exception");
         } catch (SdkServiceException expected) {
             // Ignored or expected.

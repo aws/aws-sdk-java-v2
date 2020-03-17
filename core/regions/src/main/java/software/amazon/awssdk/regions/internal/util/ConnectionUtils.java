@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,10 +31,14 @@ public class ConnectionUtils {
     }
 
     public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers) throws IOException {
+        return connectToEndpoint(endpoint, headers, "GET");
+    }
+
+    public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers, String method) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
-        connection.setConnectTimeout(1000 * 2);
-        connection.setReadTimeout(1000 * 5);
-        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(1000);
+        connection.setReadTimeout(1000);
+        connection.setRequestMethod(method);
         connection.setDoOutput(true);
         headers.forEach(connection::addRequestProperty);
         connection.setInstanceFollowRedirects(false);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 
@@ -25,7 +26,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Unit tests {@link Validate}.
@@ -33,6 +36,8 @@ import org.junit.Test;
  * Adapted from https://github.com/apache/commons-lang.
  */
 public class ValidateTest  {
+    @Rule
+    public ExpectedException expected = ExpectedException.none();
 
     //-----------------------------------------------------------------------
     @Test
@@ -523,4 +528,53 @@ public class ValidateTest  {
         Validate.mutuallyExclusive("error", null, "foo", "bar");
     }
 
+    @Test
+    public void isPositiveOrNullInteger_null_returnsNull() {
+        assertNull(Validate.isPositiveOrNull((Integer) null, "foo"));
+    }
+
+    @Test
+    public void isPositiveOrNullInteger_positive_returnsInteger() {
+        Integer num = 42;
+        assertEquals(num, Validate.isPositiveOrNull(num, "foo"));
+    }
+
+    @Test
+    public void isPositiveOrNullInteger_zero_throws() {
+        expected.expect(IllegalArgumentException.class);
+        expected.expectMessage("foo");
+        Validate.isPositiveOrNull(0, "foo");
+    }
+
+    @Test
+    public void isPositiveOrNullInteger_negative_throws() {
+        expected.expect(IllegalArgumentException.class);
+        expected.expectMessage("foo");
+        Validate.isPositiveOrNull(-1, "foo");
+    }
+
+    @Test
+    public void isPositiveOrNullLong_null_returnsNull() {
+        assertNull(Validate.isPositiveOrNull((Long) null, "foo"));
+    }
+
+    @Test
+    public void isPositiveOrNullLong_positive_returnsInteger() {
+        Long num = 42L;
+        assertEquals(num, Validate.isPositiveOrNull(num, "foo"));
+    }
+
+    @Test
+    public void isPositiveOrNullLong_zero_throws() {
+        expected.expect(IllegalArgumentException.class);
+        expected.expectMessage("foo");
+        Validate.isPositiveOrNull(0L, "foo");
+    }
+
+    @Test
+    public void isPositiveOrNullLong_negative_throws() {
+        expected.expect(IllegalArgumentException.class);
+        expected.expectMessage("foo");
+        Validate.isPositiveOrNull(-1L, "foo");
+    }
 }

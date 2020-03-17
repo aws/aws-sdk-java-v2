@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 
 package software.amazon.awssdk.codegen.poet.transform.protocols;
+
+import static software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils.isEventStreamParentModel;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -101,6 +103,10 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
         if (shapeModel.isHasStreamingMember()) {
             initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
+        }
+
+        if (isEventStreamParentModel(shapeModel)) {
+            initializationCodeBlockBuilder.add(".hasEventStreamingInput(true)");
         }
 
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();

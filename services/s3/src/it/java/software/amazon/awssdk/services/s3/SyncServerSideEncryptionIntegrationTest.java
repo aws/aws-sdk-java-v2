@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,47 +14,22 @@
  */
 package software.amazon.awssdk.services.s3;
 
-import static org.assertj.core.api.Fail.fail;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AES256;
-import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.UUID;
-import javax.crypto.KeyGenerator;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
-import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.SdkAsserts;
 import software.amazon.awssdk.utils.Md5Utils;
 
-public class SyncServerSideEncryptionIntegrationTest extends S3IntegrationTestBase {
-
-    private static final String BUCKET = temporaryBucketName(GetObjectIntegrationTest.class);
-
-    private static File file;
-
-    @BeforeClass
-    public static void setupFixture() throws IOException {
-        createBucket(BUCKET);
-        file = new RandomTempFile(10_000);
-    }
-
-    @AfterClass
-    public static void tearDownFixture() {
-        deleteBucketAndAllContents(BUCKET);
-        file.delete();
-    }
-
+public class SyncServerSideEncryptionIntegrationTest extends ServerSideEncryptionIntegrationTestBase {
     @Test
     public void sse_AES256_succeeds() throws Exception {
         String key = UUID.randomUUID().toString();
@@ -124,15 +99,23 @@ public class SyncServerSideEncryptionIntegrationTest extends S3IntegrationTestBa
         SdkAsserts.assertFileEqualsStream(file, response);
     }
 
-    private static byte[] generateSecretKey() {
-        KeyGenerator generator;
-        try {
-            generator = KeyGenerator.getInstance("AES");
-            generator.init(256, new SecureRandom());
-            return generator.generateKey().getEncoded();
-        } catch (Exception e) {
-            fail("Unable to generate symmetric key: " + e.getMessage());
-            return null;
-        }
+    @Test
+    public void sse_onBucket_succeeds() throws FileNotFoundException {
+        String key = UUID.randomUUID().toString();
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .key(key)
+                                                   .bucket(BUCKET_WITH_SSE)
+                                                   .build();
+
+        s3.putObject(request, file.toPath());
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .key(key)
+                                                            .bucket(BUCKET_WITH_SSE)
+                                                            .build();
+
+        String response = s3.getObject(getObjectRequest, ResponseTransformer.toBytes()).asUtf8String();
+        SdkAsserts.assertStringEqualsStream(response, new FileInputStream(file));
     }
 }

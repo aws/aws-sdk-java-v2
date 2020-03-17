@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -53,7 +53,29 @@ public class AsyncStreamingRequestMarshallerTest {
     }
 
     @Test
-    public void contentLengthHeaderIsSet_IfPresent() {
+    public void contentLengthIsPresent_shouldNotOverride() {
+        long contentLengthOnRequest = 1L;
+        long contengLengthOnRequestBody = 5L;
+        when(requestBody.contentLength()).thenReturn(Optional.of(contengLengthOnRequestBody));
+
+        AsyncStreamingRequestMarshaller marshaller = createMarshaller(true, true, true);
+
+        SdkHttpFullRequest requestWithContentLengthHeader = generateBasicRequest().toBuilder()
+                                                                                  .appendHeader(Header.CONTENT_LENGTH,
+                                                                                   String.valueOf(contentLengthOnRequest))
+                                                                                  .build();
+
+
+        when(delegate.marshall(any())).thenReturn(requestWithContentLengthHeader);
+        SdkHttpFullRequest httpFullRequest = marshaller.marshall(object);
+
+        assertThat(httpFullRequest.firstMatchingHeader(Header.CONTENT_LENGTH)).isPresent();
+        assertContentLengthValue(httpFullRequest, contentLengthOnRequest);
+    }
+
+
+    @Test
+    public void contentLengthOnRequestBody_shouldAddContentLengthHeader() {
         long value = 5L;
         when(requestBody.contentLength()).thenReturn(Optional.of(value));
 

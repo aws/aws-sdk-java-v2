@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -34,7 +33,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public final class DefaultSdkAutoConstructMap<K, V> implements SdkAutoConstructMap<K, V> {
     private static final DefaultSdkAutoConstructMap INSTANCE = new DefaultSdkAutoConstructMap();
 
-    private final Map<K, V> impl = Collections.unmodifiableMap(Collections.emptyMap());
+    private final Map<K, V> impl = Collections.emptyMap();
 
     private DefaultSdkAutoConstructMap() {
     }
@@ -102,5 +101,20 @@ public final class DefaultSdkAutoConstructMap<K, V> implements SdkAutoConstructM
     @Override
     public Set<Entry<K, V>> entrySet() {
         return impl.entrySet();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return impl.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return impl.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return impl.toString();
     }
 }

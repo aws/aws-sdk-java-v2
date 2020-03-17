@@ -24,7 +24,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Activates the gateway you previously deployed on your host. In the activation process, you specify information such as the region you want to use for storing snapshots or tapes, the time zone for scheduled snapshots the gateway snapshot schedule window, an activation key, and a name for your gateway. The activation process also associates your gateway with your account; for more information, see <a>UpdateGatewayInformation</a>.</p> <note> <p>You must turn on the gateway VM before you can activate your gateway.</p> </note>"
+      "documentation":"<p>Activates the gateway you previously deployed on your host. In the activation process, you specify information such as the AWS Region that you want to use for storing snapshots or tapes, the time zone for scheduled snapshots the gateway snapshot schedule window, an activation key, and a name for your gateway. The activation process also associates your gateway with your account; for more information, see <a>UpdateGatewayInformation</a>.</p> <note> <p>You must turn on the gateway VM before you can activate your gateway.</p> </note>"
     },
     "AddCache":{
       "name":"AddCache",
@@ -164,7 +164,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Creates a Network File System (NFS) file share on an existing file gateway. In Storage Gateway, a file share is a file system mount point backed by Amazon S3 cloud storage. Storage Gateway exposes file shares using a NFS interface. This operation is only supported for file gateways.</p> <important> <p>File gateway requires AWS Security Token Service (AWS STS) to be activated to enable you create a file share. Make sure AWS STS is activated in the region you are creating your file gateway in. If AWS STS is not activated in the region, activate it. For information about how to activate AWS STS, see Activating and Deactivating AWS STS in an AWS Region in the AWS Identity and Access Management User Guide. </p> <p>File gateway does not support creating hard or symbolic links on a file share.</p> </important>"
+      "documentation":"<p>Creates a Network File System (NFS) file share on an existing file gateway. In Storage Gateway, a file share is a file system mount point backed by Amazon S3 cloud storage. Storage Gateway exposes file shares using a NFS interface. This operation is only supported for file gateways.</p> <important> <p>File gateway requires AWS Security Token Service (AWS STS) to be activated to enable you create a file share. Make sure AWS STS is activated in the AWS Region you are creating your file gateway in. If AWS STS is not activated in the AWS Region, activate it. For information about how to activate AWS STS, see Activating and Deactivating AWS STS in an AWS Region in the AWS Identity and Access Management User Guide. </p> <p>File gateway does not support creating hard or symbolic links on a file share.</p> </important>"
     },
     "CreateSMBFileShare":{
       "name":"CreateSMBFileShare",
@@ -264,7 +264,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Deletes the bandwidth rate limits of a gateway. You can delete either the upload and download bandwidth rate limit, or you can delete both. If you delete only one of the limits, the other limit remains unchanged. To specify which gateway to work with, use the Amazon Resource Name (ARN) of the gateway in your request.</p>"
+      "documentation":"<p>Deletes the bandwidth rate limits of a gateway. You can delete either the upload and download bandwidth rate limit, or you can delete both. If you delete only one of the limits, the other limit remains unchanged. To specify which gateway to work with, use the Amazon Resource Name (ARN) of the gateway in your request. This operation is supported for the stored volume, cached volume and tape gateway types.</p>"
     },
     "DeleteChapCredentials":{
       "name":"DeleteChapCredentials",
@@ -278,7 +278,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Deletes Challenge-Handshake Authentication Protocol (CHAP) credentials for a specified iSCSI target and initiator pair.</p>"
+      "documentation":"<p>Deletes Challenge-Handshake Authentication Protocol (CHAP) credentials for a specified iSCSI target and initiator pair. This operation is supported in volume and tape gateway types.</p>"
     },
     "DeleteFileShare":{
       "name":"DeleteFileShare",
@@ -364,6 +364,20 @@
       ],
       "documentation":"<p>Deletes the specified storage volume that you previously created using the <a>CreateCachediSCSIVolume</a> or <a>CreateStorediSCSIVolume</a> API. This operation is only supported in the cached volume and stored volume types. For stored volume gateways, the local disk that was configured as the storage volume is not deleted. You can reuse the local disk to create another storage volume. </p> <p>Before you delete a volume, make sure there are no iSCSI connections to the volume you are deleting. You should also make sure there is no snapshot in progress. You can use the Amazon Elastic Compute Cloud (Amazon EC2) API to query snapshots on the volume you are deleting and check the snapshot status. For more information, go to <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeSnapshots.html\">DescribeSnapshots</a> in the <i>Amazon Elastic Compute Cloud API Reference</i>.</p> <p>In the request, you must provide the Amazon Resource Name (ARN) of the storage volume you want to delete.</p>"
     },
+    "DescribeAvailabilityMonitorTest":{
+      "name":"DescribeAvailabilityMonitorTest",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeAvailabilityMonitorTestInput"},
+      "output":{"shape":"DescribeAvailabilityMonitorTestOutput"},
+      "errors":[
+        {"shape":"InvalidGatewayRequestException"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Returns information about the most recent High Availability monitoring test that was performed on the host in a cluster. If a test isn't performed, the status and start time in the response would be null.</p>"
+    },
     "DescribeBandwidthRateLimit":{
       "name":"DescribeBandwidthRateLimit",
       "http":{
@@ -376,7 +390,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Returns the bandwidth rate limits of a gateway. By default, these limits are not set, which means no bandwidth rate limiting is in effect.</p> <p>This operation only returns a value for a bandwidth rate limit only if the limit is set. If no limits are set for the gateway, then this operation returns only the gateway ARN in the response body. To specify which gateway to describe, use the Amazon Resource Name (ARN) of the gateway in your request.</p>"
+      "documentation":"<p>Returns the bandwidth rate limits of a gateway. By default, these limits are not set, which means no bandwidth rate limiting is in effect. This operation is supported for the stored volume, cached volume and tape gateway types.'</p> <p>This operation only returns a value for a bandwidth rate limit only if the limit is set. If no limits are set for the gateway, then this operation returns only the gateway ARN in the response body. To specify which gateway to describe, use the Amazon Resource Name (ARN) of the gateway in your request.</p>"
     },
     "DescribeCache":{
       "name":"DescribeCache",
@@ -418,7 +432,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Returns an array of Challenge-Handshake Authentication Protocol (CHAP) credentials information for a specified iSCSI target, one for each target-initiator pair.</p>"
+      "documentation":"<p>Returns an array of Challenge-Handshake Authentication Protocol (CHAP) credentials information for a specified iSCSI target, one for each target-initiator pair. This operation is supported in the volume and tape gateway types.</p>"
     },
     "DescribeGatewayInformation":{
       "name":"DescribeGatewayInformation",
@@ -614,7 +628,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Disconnects a volume from an iSCSI connection and then detaches the volume from the specified gateway. Detaching and attaching a volume enables you to recover your data from one gateway to a different gateway without creating a snapshot. It also makes it easier to move your volumes from an on-premises gateway to a gateway hosted on an Amazon EC2 instance.</p>"
+      "documentation":"<p>Disconnects a volume from an iSCSI connection and then detaches the volume from the specified gateway. Detaching and attaching a volume enables you to recover your data from one gateway to a different gateway without creating a snapshot. It also makes it easier to move your volumes from an on-premises gateway to a gateway hosted on an Amazon EC2 instance. This operation is only supported in the volume gateway type.</p>"
     },
     "DisableGateway":{
       "name":"DisableGateway",
@@ -670,7 +684,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Lists gateways owned by an AWS account in a region specified in the request. The returned list is ordered by gateway Amazon Resource Name (ARN).</p> <p>By default, the operation returns a maximum of 100 gateways. This operation supports pagination that allows you to optionally reduce the number of gateways returned in a response.</p> <p>If you have more gateways than are returned in a response (that is, the response returns only a truncated list of your gateways), the response contains a marker that you can specify in your next request to fetch the next page of gateways.</p>"
+      "documentation":"<p>Lists gateways owned by an AWS account in an AWS Region specified in the request. The returned list is ordered by gateway Amazon Resource Name (ARN).</p> <p>By default, the operation returns a maximum of 100 gateways. This operation supports pagination that allows you to optionally reduce the number of gateways returned in a response.</p> <p>If you have more gateways than are returned in a response (that is, the response returns only a truncated list of your gateways), the response contains a marker that you can specify in your next request to fetch the next page of gateways.</p>"
     },
     "ListLocalDisks":{
       "name":"ListLocalDisks",
@@ -698,7 +712,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Lists the tags that have been added to the specified resource. This operation is only supported in the cached volume, stored volume and tape gateway type.</p>"
+      "documentation":"<p>Lists the tags that have been added to the specified resource. This operation is supported in storage gateways of all types.</p>"
     },
     "ListTapes":{
       "name":"ListTapes",
@@ -768,7 +782,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Sends you notification through CloudWatch Events when all files written to your NFS file share have been uploaded to Amazon S3.</p> <p>AWS Storage Gateway can send a notification through Amazon CloudWatch Events when all files written to your file share up to that point in time have been uploaded to Amazon S3. These files include files written to the NFS file share up to the time that you make a request for notification. When the upload is done, Storage Gateway sends you notification through an Amazon CloudWatch Event. You can configure CloudWatch Events to send the notification through event targets such as Amazon SNS or AWS Lambda function. This operation is only supported for file gateways.</p> <p>For more information, see Getting File Upload Notification in the Storage Gateway User Guide (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-upload-notification). </p>"
+      "documentation":"<p>Sends you notification through CloudWatch Events when all files written to your file share have been uploaded to Amazon S3.</p> <p>AWS Storage Gateway can send a notification through Amazon CloudWatch Events when all files written to your file share up to that point in time have been uploaded to Amazon S3. These files include files written to the file share up to the time that you make a request for notification. When the upload is done, Storage Gateway sends you notification through an Amazon CloudWatch Event. You can configure CloudWatch Events to send the notification through event targets such as Amazon SNS or AWS Lambda function. This operation is only supported for file gateways.</p> <p>For more information, see Getting File Upload Notification in the Storage Gateway User Guide (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-upload-notification). </p>"
     },
     "RefreshCache":{
       "name":"RefreshCache",
@@ -782,7 +796,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Refreshes the cache for the specified file share. This operation finds objects in the Amazon S3 bucket that were added, removed or replaced since the gateway last listed the bucket's contents and cached the results. This operation is only supported in the file gateway type. You can subscribe to be notified through an Amazon CloudWatch event when your RefreshCache operation completes. For more information, see <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification\">Getting Notified About File Operations</a>.</p> <p>When this API is called, it only initiates the refresh operation. When the API call completes and returns a success code, it doesn't necessarily mean that the file refresh has completed. You should use the refresh-complete notification to determine that the operation has completed before you check for new files on the gateway file share. You can subscribe to be notified through an CloudWatch event when your <code>RefreshCache</code> operation completes. </p>"
+      "documentation":"<p>Refreshes the cache for the specified file share. This operation finds objects in the Amazon S3 bucket that were added, removed or replaced since the gateway last listed the bucket's contents and cached the results. This operation is only supported in the file gateway type. You can subscribe to be notified through an Amazon CloudWatch event when your RefreshCache operation completes. For more information, see <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification\">Getting Notified About File Operations</a>.</p> <p>When this API is called, it only initiates the refresh operation. When the API call completes and returns a success code, it doesn't necessarily mean that the file refresh has completed. You should use the refresh-complete notification to determine that the operation has completed before you check for new files on the gateway file share. You can subscribe to be notified through an CloudWatch event when your <code>RefreshCache</code> operation completes. </p> <p>Throttle limit: This API is asynchronous so the gateway will accept no more than two refreshes at any time. We recommend using the refresh-complete CloudWatch event notification before issuing additional requests. For more information, see <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification\">Getting Notified About File Operations</a>.</p> <p>If you invoke the RefreshCache API when two requests are already being processed, any new request will cause an <code>InvalidGatewayRequestException</code> error because too many requests were sent to the server.</p> <p>For more information, see \"https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification\".</p>"
     },
     "RemoveTagsFromResource":{
       "name":"RemoveTagsFromResource",
@@ -796,7 +810,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Removes one or more tags from the specified resource. This operation is only supported in the cached volume, stored volume and tape gateway types.</p>"
+      "documentation":"<p>Removes one or more tags from the specified resource. This operation is supported in storage gateways of all types.</p>"
     },
     "ResetCache":{
       "name":"ResetCache",
@@ -882,6 +896,20 @@
       ],
       "documentation":"<p>Shuts down a gateway. To specify which gateway to shut down, use the Amazon Resource Name (ARN) of the gateway in the body of your request.</p> <p>The operation shuts down the gateway service component running in the gateway's virtual machine (VM) and not the host VM.</p> <note> <p>If you want to shut down the VM, it is recommended that you first shut down the gateway component in the VM to avoid unpredictable conditions.</p> </note> <p>After the gateway is shutdown, you cannot call any other API except <a>StartGateway</a>, <a>DescribeGatewayInformation</a>, and <a>ListGateways</a>. For more information, see <a>ActivateGateway</a>. Your applications cannot read from or write to the gateway's storage volumes, and there are no snapshots taken.</p> <note> <p>When you make a shutdown request, you will get a <code>200 OK</code> success response immediately. However, it might take some time for the gateway to shut down. You can call the <a>DescribeGatewayInformation</a> API to check the status. For more information, see <a>ActivateGateway</a>.</p> </note> <p>If do not intend to use the gateway again, you must delete the gateway (using <a>DeleteGateway</a>) to no longer pay software charges associated with the gateway.</p>"
     },
+    "StartAvailabilityMonitorTest":{
+      "name":"StartAvailabilityMonitorTest",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartAvailabilityMonitorTestInput"},
+      "output":{"shape":"StartAvailabilityMonitorTestOutput"},
+      "errors":[
+        {"shape":"InvalidGatewayRequestException"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Start a test that verifies that the specified gateway is configured for High Availability monitoring in your host environment. This request only initiates the test and that a successful response only indicates that the test was started. It doesn't indicate that the test passed. For the status of the test, invoke the <code>DescribeAvailabilityMonitorTest</code> API. </p> <note> <p>Starting this test will cause your gateway to go offline for a brief period.</p> </note>"
+    },
     "StartGateway":{
       "name":"StartGateway",
       "http":{
@@ -908,7 +936,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Updates the bandwidth rate limits of a gateway. You can update both the upload and download bandwidth rate limit or specify only one of the two. If you don't set a bandwidth rate limit, the existing rate limit remains.</p> <p>By default, a gateway's bandwidth rate limits are not set. If you don't set any limit, the gateway does not have any limitations on its bandwidth usage and could potentially use the maximum available bandwidth.</p> <p>To specify which gateway to update, use the Amazon Resource Name (ARN) of the gateway in your request.</p>"
+      "documentation":"<p>Updates the bandwidth rate limits of a gateway. You can update both the upload and download bandwidth rate limit or specify only one of the two. If you don't set a bandwidth rate limit, the existing rate limit remains. This operation is supported for the stored volume, cached volume and tape gateway types.'</p> <p>By default, a gateway's bandwidth rate limits are not set. If you don't set any limit, the gateway does not have any limitations on its bandwidth usage and could potentially use the maximum available bandwidth.</p> <p>To specify which gateway to update, use the Amazon Resource Name (ARN) of the gateway in your request.</p>"
     },
     "UpdateChapCredentials":{
       "name":"UpdateChapCredentials",
@@ -922,7 +950,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Updates the Challenge-Handshake Authentication Protocol (CHAP) credentials for a specified iSCSI target. By default, a gateway does not have CHAP enabled; however, for added security, you might use it.</p> <important> <p>When you update CHAP credentials, all existing connections on the target are closed and initiators must reconnect with the new credentials.</p> </important>"
+      "documentation":"<p>Updates the Challenge-Handshake Authentication Protocol (CHAP) credentials for a specified iSCSI target. By default, a gateway does not have CHAP enabled; however, for added security, you might use it. This operation is supported in the volume and tape gateway types.</p> <important> <p>When you update CHAP credentials, all existing connections on the target are closed and initiators must reconnect with the new credentials.</p> </important>"
     },
     "UpdateGatewayInformation":{
       "name":"UpdateGatewayInformation",
@@ -1006,7 +1034,7 @@
         {"shape":"InvalidGatewayRequestException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Updates the SMB security strategy on a file gateway. This action is only supported in file gateways.</p>"
+      "documentation":"<p>Updates the SMB security strategy on a file gateway. This action is only supported in file gateways.</p> <note> <p>This API is called Security level in the User Guide.</p> <p>A higher security level can affect performance of the gateway.</p> </note>"
     },
     "UpdateSnapshotSchedule":{
       "name":"UpdateSnapshotSchedule",
@@ -1061,7 +1089,7 @@
         },
         "GatewayRegion":{
           "shape":"RegionId",
-          "documentation":"<p>A value that indicates the region where you want to store your data. The gateway region specified must be the same region as the region in your <code>Host</code> header in the request. For more information about available regions and endpoints for AWS Storage Gateway, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region\">Regions and Endpoints</a> in the <i>Amazon Web Services Glossary</i>.</p> <p> Valid Values: See <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region\">AWS Storage Gateway Regions and Endpoints</a> in the AWS General Reference. </p>"
+          "documentation":"<p>A value that indicates the AWS Region where you want to store your data. The gateway AWS Region specified must be the same AWS Region as the AWS Region in your <code>Host</code> header in the request. For more information about available AWS Regions and endpoints for AWS Storage Gateway, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region\">Regions and Endpoints</a> in the <i>Amazon Web Services Glossary</i>.</p> <p> Valid Values: See <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region\">AWS Storage Gateway Regions and Endpoints</a> in the AWS General Reference. </p>"
         },
         "GatewayType":{
           "shape":"GatewayType",
@@ -1077,7 +1105,7 @@
         },
         "Tags":{
           "shape":"Tags",
-          "documentation":"<p>A list of up to 50 tags that can be assigned to the gateway. Each tag is a key-value pair.</p> <note> <p>Valid characters for key and value are letters, spaces, and numbers representable in UTF-8 format, and the following special characters: + - = . _ : / @. The maximum length of a tag's key is 128 characters, and the maximum length for a tag's value is 256.</p> </note>"
+          "documentation":"<p>A list of up to 50 tags that you can assign to the gateway. Each tag is a key-value pair.</p> <note> <p>Valid characters for key and value are letters, spaces, and numbers that can be represented in UTF-8 format, and the following special characters: + - = . _ : / @. The maximum length of a tag's key is 128 characters, and the maximum length for a tag's value is 256 characters.</p> </note>"
         }
       },
       "documentation":"<p>A JSON object containing one or more of the following fields:</p> <ul> <li> <p> <a>ActivateGatewayInput$ActivationKey</a> </p> </li> <li> <p> <a>ActivateGatewayInput$GatewayName</a> </p> </li> <li> <p> <a>ActivateGatewayInput$GatewayRegion</a> </p> </li> <li> <p> <a>ActivateGatewayInput$GatewayTimezone</a> </p> </li> <li> <p> <a>ActivateGatewayInput$GatewayType</a> </p> </li> <li> <p> <a>ActivateGatewayInput$TapeDriveType</a> </p> </li> <li> <p> <a>ActivateGatewayInput$MediumChangerType</a> </p> </li> </ul>"
@@ -1087,12 +1115,24 @@
       "members":{
         "GatewayARN":{"shape":"GatewayARN"}
       },
-      "documentation":"<p>AWS Storage Gateway returns the Amazon Resource Name (ARN) of the activated gateway. It is a string made of information such as your account, gateway name, and region. This ARN is used to reference the gateway in other API operations as well as resource-based authorization.</p> <note> <p>For gateways activated prior to September 02, 2015, the gateway ARN contains the gateway name rather than the gateway ID. Changing the name of the gateway has no effect on the gateway ARN.</p> </note>"
+      "documentation":"<p>AWS Storage Gateway returns the Amazon Resource Name (ARN) of the activated gateway. It is a string made of information such as your account, gateway name, and AWS Region. This ARN is used to reference the gateway in other API operations as well as resource-based authorization.</p> <note> <p>For gateways activated prior to September 02, 2015, the gateway ARN contains the gateway name rather than the gateway ID. Changing the name of the gateway has no effect on the gateway ARN.</p> </note>"
     },
     "ActivationKey":{
       "type":"string",
       "max":50,
       "min":1
+    },
+    "ActiveDirectoryStatus":{
+      "type":"string",
+      "enum":[
+        "ACCESS_DENIED",
+        "DETACHED",
+        "JOINED",
+        "JOINING",
+        "NETWORK_ERROR",
+        "TIMEOUT",
+        "UNKNOWN_ERROR"
+      ]
     },
     "AddCacheInput":{
       "type":"structure",
@@ -1261,6 +1301,14 @@
       "max":15,
       "min":5
     },
+    "AvailabilityMonitorTestStatus":{
+      "type":"string",
+      "enum":[
+        "COMPLETE",
+        "FAILED",
+        "PENDING"
+      ]
+    },
     "BandwidthDownloadRateLimit":{
       "type":"long",
       "min":102400
@@ -1421,6 +1469,10 @@
       "max":100,
       "min":5
     },
+    "CloudWatchLogGroupARN":{
+      "type":"string",
+      "max":562
+    },
     "CreateCachediSCSIVolumeInput":{
       "type":"structure",
       "required":[
@@ -1466,7 +1518,7 @@
         },
         "Tags":{
           "shape":"Tags",
-          "documentation":"<p>A list of up to 50 tags that can be assigned to a cached volume. Each tag is a key-value pair.</p> <note> <p>Valid characters for key and value are letters, spaces, and numbers representable in UTF-8 format, and the following special characters: + - = . _ : / @. The maximum length of a tag's key is 128 characters, and the maximum length for a tag's value is 256.</p> </note>"
+          "documentation":"<p>A list of up to 50 tags that you can assign to a cached volume. Each tag is a key-value pair.</p> <note> <p>Valid characters for key and value are letters, spaces, and numbers that you can represent in UTF-8 format, and the following special characters: + - = . _ : / @. The maximum length of a tag's key is 128 characters, and the maximum length for a tag's value is 256 characters.</p> </note>"
         }
       }
     },
@@ -1624,7 +1676,7 @@
         },
         "AdminUserList":{
           "shape":"FileShareUserList",
-          "documentation":"<p>A list of users or groups in the Active Directory that have administrator rights to the file share. A group must be prefixed with the @ character. For example <code>@group1</code>. Can only be set if Authentication is set to <code>ActiveDirectory</code>.</p>"
+          "documentation":"<p>A list of users in the Active Directory that will be granted administrator privileges on the file share. These users can do all file operations as the super-user. </p> <important> <p>Use this option very carefully, because any user in this list can do anything they like on the file share, regardless of file permissions.</p> </important>"
         },
         "ValidUserList":{
           "shape":"FileShareUserList",
@@ -1669,6 +1721,10 @@
         "SnapshotDescription":{
           "shape":"SnapshotDescription",
           "documentation":"<p>Textual description of the snapshot that appears in the Amazon EC2 console, Elastic Block Store snapshots panel in the <b>Description</b> field, and in the AWS Storage Gateway snapshot <b>Details</b> pane, <b>Description</b> field</p>"
+        },
+        "Tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of up to 50 tags that can be assigned to a snapshot. Each tag is a key-value pair.</p> <note> <p>Valid characters for key and value are letters, spaces, and numbers representable in UTF-8 format, and the following special characters: + - = . _ : / @. The maximum length of a tag's key is 128 characters, and the maximum length for a tag's value is 256.</p> </note>"
         }
       }
     },
@@ -1799,7 +1855,7 @@
       "members":{
         "GatewayARN":{
           "shape":"GatewayARN",
-          "documentation":"<p>The unique Amazon Resource Name (ARN) that represents the gateway to associate the virtual tape with. Use the <a>ListGateways</a> operation to return a list of gateways for your account and region.</p>"
+          "documentation":"<p>The unique Amazon Resource Name (ARN) that represents the gateway to associate the virtual tape with. Use the <a>ListGateways</a> operation to return a list of gateways for your account and AWS Region.</p>"
         },
         "TapeSizeInBytes":{
           "shape":"TapeSize",
@@ -1850,7 +1906,7 @@
       "members":{
         "GatewayARN":{
           "shape":"GatewayARN",
-          "documentation":"<p>The unique Amazon Resource Name (ARN) that represents the gateway to associate the virtual tapes with. Use the <a>ListGateways</a> operation to return a list of gateways for your account and region.</p>"
+          "documentation":"<p>The unique Amazon Resource Name (ARN) that represents the gateway to associate the virtual tapes with. Use the <a>ListGateways</a> operation to return a list of gateways for your account and AWS Region.</p>"
         },
         "TapeSizeInBytes":{
           "shape":"TapeSize",
@@ -2051,7 +2107,7 @@
       "members":{
         "GatewayARN":{
           "shape":"GatewayARN",
-          "documentation":"<p>The unique Amazon Resource Name (ARN) of the gateway that the virtual tape to delete is associated with. Use the <a>ListGateways</a> operation to return a list of gateways for your account and region.</p>"
+          "documentation":"<p>The unique Amazon Resource Name (ARN) of the gateway that the virtual tape to delete is associated with. Use the <a>ListGateways</a> operation to return a list of gateways for your account and AWS Region.</p>"
         },
         "TapeARN":{
           "shape":"TapeARN",
@@ -2090,6 +2146,27 @@
         }
       },
       "documentation":"<p>A JSON object containing the of the storage volume that was deleted</p>"
+    },
+    "DescribeAvailabilityMonitorTestInput":{
+      "type":"structure",
+      "required":["GatewayARN"],
+      "members":{
+        "GatewayARN":{"shape":"GatewayARN"}
+      }
+    },
+    "DescribeAvailabilityMonitorTestOutput":{
+      "type":"structure",
+      "members":{
+        "GatewayARN":{"shape":"GatewayARN"},
+        "Status":{
+          "shape":"AvailabilityMonitorTestStatus",
+          "documentation":"<p>The status of the High Availability monitoring test. If a test hasn't been performed, the value of this field is null.</p>"
+        },
+        "StartTime":{
+          "shape":"Time",
+          "documentation":"<p>The time the High Availability monitoring test was started. If a test hasn't been performed, the value of this field is null.</p>"
+        }
+      }
     },
     "DescribeBandwidthRateLimitInput":{
       "type":"structure",
@@ -2251,6 +2328,14 @@
         "VPCEndpoint":{
           "shape":"string",
           "documentation":"<p>The configuration settings for the virtual private cloud (VPC) endpoint for your gateway. </p>"
+        },
+        "CloudWatchLogGroupARN":{
+          "shape":"CloudWatchLogGroupARN",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon CloudWatch Log Group that is used to monitor events in the gateway.</p>"
+        },
+        "HostEnvironment":{
+          "shape":"HostEnvironment",
+          "documentation":"<p>The type of hypervisor environment used by the host.</p>"
         }
       },
       "documentation":"<p>A JSON object containing the following fields:</p>"
@@ -2347,13 +2432,17 @@
           "shape":"DomainName",
           "documentation":"<p>The name of the domain that the gateway is joined to.</p>"
         },
+        "ActiveDirectoryStatus":{
+          "shape":"ActiveDirectoryStatus",
+          "documentation":"<p>Indicates the status of a gateway that is a member of the Active Directory domain.</p> <ul> <li> <p>ACCESS_DENIED: Indicates that the <code>JoinDomain</code> operation failed due to an authentication error.</p> </li> <li> <p>DETACHED: Indicates that gateway is not joined to a domain.</p> </li> <li> <p>JOINED: Indicates that the gateway has successfully joined a domain.</p> </li> <li> <p>JOINING: Indicates that a <code>JoinDomain</code> operation is in progress.</p> </li> <li> <p>NETWORK_ERROR: Indicates that <code>JoinDomain</code> operation failed due to a network or connectivity error.</p> </li> <li> <p>TIMEOUT: Indicates that the <code>JoinDomain</code> operation failed because the operation didn't complete within the allotted time.</p> </li> <li> <p>UNKNOWN_ERROR: Indicates that the <code>JoinDomain</code> operation failed due to another type of error.</p> </li> </ul>"
+        },
         "SMBGuestPasswordSet":{
           "shape":"Boolean",
           "documentation":"<p>This value is true if a password for the guest user “smbguest” is set, and otherwise false.</p>"
         },
         "SMBSecurityStrategy":{
           "shape":"SMBSecurityStrategy",
-          "documentation":"<p>The type of security strategy that was specified for file gateway.</p> <p>ClientSpecified: SMBv1 is enabled, SMB signing is offered but not required, SMB encryption is offered but not required.</p> <p>MandatorySigning: SMBv1 is disabled, SMB signing is required, SMB encryption is offered but not required.</p> <p>MandatoryEncryption: SMBv1 is disabled, SMB signing is offered but not required, SMB encryption is required.</p>"
+          "documentation":"<p>The type of security strategy that was specified for file gateway.</p> <p>ClientSpecified: if you use this option, requests are established based on what is negotiated by the client. This option is recommended when you want to maximize compatibility across different clients in your environment. </p> <p>MandatorySigning: if you use this option, file gateway only allows connections from SMBv2 or SMBv3 clients that have signing enabled. This option works with SMB clients on Microsoft Windows Vista, Windows Server 2008 or newer. </p> <p>MandatoryEncryption: if you use this option, file gateway only allows connections from SMBv3 clients that have encryption enabled. This option is highly recommended for environments that handle sensitive data. This option works with SMB clients on Microsoft Windows 8, Windows Server 2012 or newer. </p>"
         }
       }
     },
@@ -2390,6 +2479,10 @@
         "Timezone":{
           "shape":"GatewayTimezone",
           "documentation":"<p>A value that indicates the time zone of the gateway.</p>"
+        },
+        "Tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of up to 50 tags assigned to the snapshot schedule, sorted alphabetically by key name. Each tag is a key-value pair. For a gateway with more than 10 tags assigned, you can view all tags using the <code>ListTagsForResource</code> API operation.</p>"
         }
       }
     },
@@ -2791,6 +2884,7 @@
         "LocalStorageLimitExceeded",
         "LunAlreadyAllocated ",
         "LunInvalid",
+        "JoinDomainInProgress",
         "MaximumContentLengthExceeded",
         "MaximumTapeCartridgeCountExceeded",
         "MaximumVolumeCountExceeded",
@@ -2901,7 +2995,7 @@
     },
     "GatewayARN":{
       "type":"string",
-      "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a>ListGateways</a> operation to return a list of gateways for your account and region.</p>",
+      "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a>ListGateways</a> operation to return a list of gateways for your account and AWS Region.</p>",
       "max":500,
       "min":50
     },
@@ -2919,7 +3013,7 @@
         },
         "GatewayARN":{
           "shape":"GatewayARN",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a>ListGateways</a> operation to return a list of gateways for your account and region.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a>ListGateways</a> operation to return a list of gateways for your account and AWS Region.</p>"
         },
         "GatewayType":{
           "shape":"GatewayType",
@@ -2982,6 +3076,16 @@
     "Host":{
       "type":"string",
       "pattern":"^(([a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9\\-]*[A-Za-z0-9])(:(\\d+))?$"
+    },
+    "HostEnvironment":{
+      "type":"string",
+      "enum":[
+        "VMWARE",
+        "HYPER-V",
+        "EC2",
+        "KVM",
+        "OTHER"
+      ]
     },
     "Hosts":{
       "type":"list",
@@ -3052,7 +3156,7 @@
       "members":{
         "GatewayARN":{
           "shape":"GatewayARN",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <code>ListGateways</code> operation to return a list of gateways for your account and region.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <code>ListGateways</code> operation to return a list of gateways for your account and AWS Region.</p>"
         },
         "DomainName":{
           "shape":"DomainName",
@@ -3060,15 +3164,19 @@
         },
         "OrganizationalUnit":{
           "shape":"OrganizationalUnit",
-          "documentation":"<p>The organizational unit (OU) is a container with an Active Directory that can hold users, groups, computers, and other OUs and this parameter specifies the OU that the gateway will join within the AD domain.</p>"
+          "documentation":"<p>The organizational unit (OU) is a container in an Active Directory that can hold users, groups, computers, and other OUs and this parameter specifies the OU that the gateway will join within the AD domain.</p>"
         },
         "DomainControllers":{
           "shape":"Hosts",
           "documentation":"<p>List of IPv4 addresses, NetBIOS names, or host names of your domain server. If you need to specify the port number include it after the colon (“:”). For example, <code>mydc.mydomain.com:389</code>.</p>"
         },
+        "TimeoutInSeconds":{
+          "shape":"TimeoutInSeconds",
+          "documentation":"<p>Specifies the time in seconds, in which the <code>JoinDomain</code> operation must complete. The default is 20 seconds.</p>"
+        },
         "UserName":{
           "shape":"DomainUserName",
-          "documentation":"<p>Sets the user name of user who has permission to add the gateway to the Active Directory domain.</p>"
+          "documentation":"<p>Sets the user name of user who has permission to add the gateway to the Active Directory domain. The domain user account should be enabled to join computers to the domain. For example, you can use the domain administrator account or an account with delegated permissions to join computers to the domain.</p>"
         },
         "Password":{
           "shape":"DomainUserPassword",
@@ -3083,6 +3191,10 @@
         "GatewayARN":{
           "shape":"GatewayARN",
           "documentation":"<p>The unique Amazon Resource Name (ARN) of the gateway that joined the domain.</p>"
+        },
+        "ActiveDirectoryStatus":{
+          "shape":"ActiveDirectoryStatus",
+          "documentation":"<p>Indicates the status of the gateway as a member of the Active Directory domain.</p> <ul> <li> <p>ACCESS_DENIED: Indicates that the <code>JoinDomain</code> operation failed due to an authentication error.</p> </li> <li> <p>DETACHED: Indicates that gateway is not joined to a domain.</p> </li> <li> <p>JOINED: Indicates that the gateway has successfully joined a domain.</p> </li> <li> <p>JOINING: Indicates that a <code>JoinDomain</code> operation is in progress.</p> </li> <li> <p>NETWORK_ERROR: Indicates that <code>JoinDomain</code> operation failed due to a network or connectivity error.</p> </li> <li> <p>TIMEOUT: Indicates that the <code>JoinDomain</code> operation failed because the operation didn't complete within the allotted time.</p> </li> <li> <p>UNKNOWN_ERROR: Indicates that the <code>JoinDomain</code> operation failed due to another type of error.</p> </li> </ul>"
         }
       },
       "documentation":"<p>JoinDomainOutput</p>"
@@ -3596,7 +3708,7 @@
         },
         "GatewayARN":{
           "shape":"GatewayARN",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway you want to retrieve the virtual tape to. Use the <a>ListGateways</a> operation to return a list of gateways for your account and region.</p> <p>You retrieve archived virtual tapes to only one gateway and the gateway must be a tape gateway.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway you want to retrieve the virtual tape to. Use the <a>ListGateways</a> operation to return a list of gateways for your account and AWS Region.</p> <p>You retrieve archived virtual tapes to only one gateway and the gateway must be a tape gateway.</p>"
         }
       },
       "documentation":"<p>RetrieveTapeArchiveInput</p>"
@@ -3809,6 +3921,19 @@
       "documentation":"<p>The user mapped to anonymous user. Valid options are the following: </p> <ul> <li> <p> <code>RootSquash</code> - Only root is mapped to anonymous user.</p> </li> <li> <p> <code>NoSquash</code> - No one is mapped to anonymous user</p> </li> <li> <p> <code>AllSquash</code> - Everyone is mapped to anonymous user.</p> </li> </ul>",
       "max":15,
       "min":5
+    },
+    "StartAvailabilityMonitorTestInput":{
+      "type":"structure",
+      "required":["GatewayARN"],
+      "members":{
+        "GatewayARN":{"shape":"GatewayARN"}
+      }
+    },
+    "StartAvailabilityMonitorTestOutput":{
+      "type":"structure",
+      "members":{
+        "GatewayARN":{"shape":"GatewayARN"}
+      }
     },
     "StartGatewayInput":{
       "type":"structure",
@@ -4088,7 +4213,7 @@
         },
         "GatewayARN":{
           "shape":"GatewayARN",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a>ListGateways</a> operation to return a list of gateways for your account and region.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a>ListGateways</a> operation to return a list of gateways for your account and AWS Region.</p>"
         },
         "PoolId":{
           "shape":"PoolId",
@@ -4148,6 +4273,11 @@
       "pattern":"^[-\\.;a-z0-9]+$"
     },
     "Time":{"type":"timestamp"},
+    "TimeoutInSeconds":{
+      "type":"integer",
+      "max":3600,
+      "min":0
+    },
     "UpdateBandwidthRateLimitInput":{
       "type":"structure",
       "required":["GatewayARN"],
@@ -4221,6 +4351,10 @@
         "GatewayTimezone":{
           "shape":"GatewayTimezone",
           "documentation":"<p>A value that indicates the time zone of the gateway.</p>"
+        },
+        "CloudWatchLogGroupARN":{
+          "shape":"CloudWatchLogGroupARN",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon CloudWatch log group that you want to use to monitor and log events in the gateway. </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html\">What Is Amazon CloudWatch Logs?</a>.</p>"
         }
       }
     },
@@ -4388,7 +4522,7 @@
         },
         "AdminUserList":{
           "shape":"FileShareUserList",
-          "documentation":"<p>A list of users or groups in the Active Directory that have administrator rights to the file share. A group must be prefixed with the @ character. For example <code>@group1</code>. Can only be set if Authentication is set to <code>ActiveDirectory</code>.</p>"
+          "documentation":"<p>A list of users in the Active Directory that have administrator rights to the file share. A group must be prefixed with the @ character. For example <code>@group1</code>. Can only be set if Authentication is set to <code>ActiveDirectory</code>.</p>"
         },
         "ValidUserList":{
           "shape":"FileShareUserList",
@@ -4421,7 +4555,7 @@
         "GatewayARN":{"shape":"GatewayARN"},
         "SMBSecurityStrategy":{
           "shape":"SMBSecurityStrategy",
-          "documentation":"<p>Specifies the type of security strategy.</p> <p>ClientSpecified: SMBv1 is enabled, SMB signing is offered but not required, SMB encryption is offered but not required.</p> <p>MandatorySigning: SMBv1 is disabled, SMB signing is required, SMB encryption is offered but not required.</p> <p>MandatoryEncryption: SMBv1 is disabled, SMB signing is offered but not required, SMB encryption is required.</p>"
+          "documentation":"<p>Specifies the type of security strategy.</p> <p>ClientSpecified: if you use this option, requests are established based on what is negotiated by the client. This option is recommended when you want to maximize compatibility across different clients in your environment. </p> <p>MandatorySigning: if you use this option, file gateway only allows connections from SMBv2 or SMBv3 clients that have signing enabled. This option works with SMB clients on Microsoft Windows Vista, Windows Server 2008 or newer. </p> <p>MandatoryEncryption: if you use this option, file gateway only allows connections from SMBv3 clients that have encryption enabled. This option is highly recommended for environments that handle sensitive data. This option works with SMB clients on Microsoft Windows 8, Windows Server 2012 or newer. </p>"
         }
       }
     },
@@ -4669,5 +4803,5 @@
     "long":{"type":"long"},
     "string":{"type":"string"}
   },
-  "documentation":"<fullname>AWS Storage Gateway Service</fullname> <p>AWS Storage Gateway is the service that connects an on-premises software appliance with cloud-based storage to provide seamless and secure integration between an organization's on-premises IT environment and the AWS storage infrastructure. The service enables you to securely upload data to the AWS cloud for cost effective backup and rapid disaster recovery.</p> <p>Use the following links to get started using the <i>AWS Storage Gateway Service API Reference</i>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#AWSStorageGatewayHTTPRequestsHeaders\">AWS Storage Gateway Required Request Headers</a>: Describes the required headers that you must send with every POST request to AWS Storage Gateway.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#AWSStorageGatewaySigningRequests\">Signing Requests</a>: AWS Storage Gateway requires that you authenticate every request you send; this topic describes how sign such a request.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#APIErrorResponses\">Error Responses</a>: Provides reference information about AWS Storage Gateway errors.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_Operations.html\">Operations in AWS Storage Gateway</a>: Contains detailed descriptions of all AWS Storage Gateway operations, their request parameters, response elements, possible errors, and examples of requests and responses.</p> </li> <li> <p> <a href=\"http://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region\">AWS Storage Gateway Regions and Endpoints:</a> Provides a list of each AWS region and endpoints available for use with AWS Storage Gateway. </p> </li> </ul> <note> <p>AWS Storage Gateway resource IDs are in uppercase. When you use these resource IDs with the Amazon EC2 API, EC2 expects resource IDs in lowercase. You must change your resource ID to lowercase to use it with the EC2 API. For example, in Storage Gateway the ID for a volume might be <code>vol-AA22BB012345DAF670</code>. When you use this ID with the EC2 API, you must change it to <code>vol-aa22bb012345daf670</code>. Otherwise, the EC2 API might not behave as expected.</p> </note> <important> <p>IDs for Storage Gateway volumes and Amazon EBS snapshots created from gateway volumes are changing to a longer format. Starting in December 2016, all new volumes and snapshots will be created with a 17-character string. Starting in April 2016, you will be able to use these longer IDs so you can test your systems with the new format. For more information, see <a href=\"https://aws.amazon.com/ec2/faqs/#longer-ids\">Longer EC2 and EBS Resource IDs</a>. </p> <p> For example, a volume Amazon Resource Name (ARN) with the longer volume ID format looks like the following:</p> <p> <code>arn:aws:storagegateway:us-west-2:111122223333:gateway/sgw-12A3456B/volume/vol-1122AABBCCDDEEFFG</code>.</p> <p>A snapshot ID with the longer ID format looks like the following: <code>snap-78e226633445566ee</code>.</p> <p>For more information, see <a href=\"https://forums.aws.amazon.com/ann.jspa?annID=3557\">Announcement: Heads-up – Longer AWS Storage Gateway volume and snapshot IDs coming in 2016</a>.</p> </important>"
+  "documentation":"<fullname>AWS Storage Gateway Service</fullname> <p>AWS Storage Gateway is the service that connects an on-premises software appliance with cloud-based storage to provide seamless and secure integration between an organization's on-premises IT environment and the AWS storage infrastructure. The service enables you to securely upload data to the AWS cloud for cost effective backup and rapid disaster recovery.</p> <p>Use the following links to get started using the <i>AWS Storage Gateway Service API Reference</i>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#AWSStorageGatewayHTTPRequestsHeaders\">AWS Storage Gateway Required Request Headers</a>: Describes the required headers that you must send with every POST request to AWS Storage Gateway.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#AWSStorageGatewaySigningRequests\">Signing Requests</a>: AWS Storage Gateway requires that you authenticate every request you send; this topic describes how sign such a request.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#APIErrorResponses\">Error Responses</a>: Provides reference information about AWS Storage Gateway errors.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_Operations.html\">Operations in AWS Storage Gateway</a>: Contains detailed descriptions of all AWS Storage Gateway operations, their request parameters, response elements, possible errors, and examples of requests and responses.</p> </li> <li> <p> <a href=\"http://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region\">AWS Storage Gateway Regions and Endpoints:</a> Provides a list of each AWS Region and the endpoints available for use with AWS Storage Gateway. </p> </li> </ul> <note> <p>AWS Storage Gateway resource IDs are in uppercase. When you use these resource IDs with the Amazon EC2 API, EC2 expects resource IDs in lowercase. You must change your resource ID to lowercase to use it with the EC2 API. For example, in Storage Gateway the ID for a volume might be <code>vol-AA22BB012345DAF670</code>. When you use this ID with the EC2 API, you must change it to <code>vol-aa22bb012345daf670</code>. Otherwise, the EC2 API might not behave as expected.</p> </note> <important> <p>IDs for Storage Gateway volumes and Amazon EBS snapshots created from gateway volumes are changing to a longer format. Starting in December 2016, all new volumes and snapshots will be created with a 17-character string. Starting in April 2016, you will be able to use these longer IDs so you can test your systems with the new format. For more information, see <a href=\"https://aws.amazon.com/ec2/faqs/#longer-ids\">Longer EC2 and EBS Resource IDs</a>. </p> <p> For example, a volume Amazon Resource Name (ARN) with the longer volume ID format looks like the following:</p> <p> <code>arn:aws:storagegateway:us-west-2:111122223333:gateway/sgw-12A3456B/volume/vol-1122AABBCCDDEEFFG</code>.</p> <p>A snapshot ID with the longer ID format looks like the following: <code>snap-78e226633445566ee</code>.</p> <p>For more information, see <a href=\"https://forums.aws.amazon.com/ann.jspa?annID=3557\">Announcement: Heads-up – Longer AWS Storage Gateway volume and snapshot IDs coming in 2016</a>.</p> </important>"
 }

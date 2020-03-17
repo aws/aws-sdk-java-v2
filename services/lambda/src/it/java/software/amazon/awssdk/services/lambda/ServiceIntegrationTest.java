@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                                                                     .code(FunctionCode.builder().zipFile(functionBits).build())
                                                                     .handler("helloworld.handler")
                                                                     .memorySize(128)
-                                                                    .runtime(Runtime.NODEJS8_10)
+                                                                    .runtime(Runtime.NODEJS12_X)
                                                                     .timeout(10)
                                                                     .role(lambdaServiceRoleArn)).join();
 

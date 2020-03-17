@@ -1,0 +1,16 @@
+{
+    "version": "2.10.34",
+    "date": "2019-12-12",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixing exception using `RequestBody.fromInputStream` on non-resettable `InputStreams` by making `reset` conditional on `markSupported`. See [#1544](https://github.com/aws/aws-sdk-java-v2/issues/1544) / [#1545](https://github.com/aws/aws-sdk-java-v2/issues/1545)"
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "description": "This release includes improvements and fixes bugs for the IAM Access Analyzer feature."
+        }
+    ]
+}

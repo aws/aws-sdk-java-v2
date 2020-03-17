@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.Map;
 import java.util.Stack;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -80,6 +81,23 @@ final class XmlWriter {
         if (rootElement && xmlns != null) {
             append(" xmlns=\"" + xmlns + "\"");
             rootElement = false;
+        }
+        append(">");
+        elementStack.push(element);
+        return this;
+    }
+
+    /**
+     * Start to write an element with xml attributes.
+     *
+     * @param element the elment to write
+     * @param attributes the xml attribtues
+     * @return the XmlWriter
+     */
+    XmlWriter startElement(String element, Map<String, String> attributes) {
+        append("<" + element);
+        for (Map.Entry<String, String> attribute: attributes.entrySet()) {
+            append(" " + attribute.getKey() + "=\"" + attribute.getValue() + "\"");
         }
         append(">");
         elementStack.push(element);

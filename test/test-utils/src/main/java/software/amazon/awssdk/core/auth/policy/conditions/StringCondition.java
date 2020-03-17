@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class StringCondition extends Condition {
     public StringCondition(StringComparisonType type, String key, String value) {
         super.type = type.toString();
         super.conditionKey = key;
-        super.values = Arrays.asList(new String[] {value});
+        super.values = Arrays.asList(value);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ public class Statement {
 
     private String id;
     private Effect effect;
-    private List<Principal> principals = new ArrayList<Principal>();
-    private List<Action> actions = new ArrayList<Action>();
+    private List<Principal> principals = new ArrayList<>();
+    private List<Action> actions = new ArrayList<>();
     private List<Resource> resources;
-    private List<Condition> conditions = new ArrayList<Condition>();
+    private List<Condition> conditions = new ArrayList<>();
 
     /**
      * Constructs a new access control policy statement with the specified
@@ -196,7 +196,7 @@ public class Statement {
      *            The list of actions to which this policy statement applies.
      */
     public void setActions(Collection<Action> actions) {
-        this.actions = new ArrayList<Action>(actions);
+        this.actions = new ArrayList<>(actions);
     }
 
     /**
@@ -247,7 +247,7 @@ public class Statement {
      *            The resources associated with this policy statement.
      */
     public void setResources(Collection<Resource> resources) {
-        this.resources = new ArrayList<Resource>(resources);
+        this.resources = new ArrayList<>(resources);
     }
 
     /**
@@ -363,7 +363,7 @@ public class Statement {
      *            The list of principals associated with this policy statement.
      */
     public void setPrincipals(Collection<Principal> principals) {
-        this.principals = new ArrayList<Principal>(principals);
+        this.principals = new ArrayList<>(principals);
     }
 
     /**
@@ -378,7 +378,7 @@ public class Statement {
      *            The list of principals associated with this policy statement.
      */
     public void setPrincipals(Principal... principals) {
-        setPrincipals(new ArrayList<Principal>(Arrays.asList(principals)));
+        setPrincipals(new ArrayList<>(Arrays.asList(principals)));
     }
 
     /**

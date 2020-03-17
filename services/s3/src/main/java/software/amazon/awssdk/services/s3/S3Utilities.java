@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.internal.S3EndpointUtils;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.utils.Validate;
 
@@ -46,8 +47,8 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <pre>
  * S3Utilities utilities = S3Utilities.builder().region(Region.US_WEST_2).build()
- * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build()
- * URL url = pathStyleUtilities.getUrl(request);
+ * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
+ * URL url = utilities.getUrl(request);
  * </pre>
  * </p>
  *
@@ -58,8 +59,8 @@ import software.amazon.awssdk.utils.Validate;
  * <pre>
  * S3Client s3client = S3Client.create();
  * S3Utilities utilities = s3client.utilities();
- * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build()
- * URL url = pathStyleUtilities.getUrl(request);
+ * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
+ * URL url = utilities.getUrl(request);
  * </pre>
  * </p>
  *
@@ -140,19 +141,26 @@ public final class S3Utilities {
     public URL getUrl(GetUrlRequest getUrlRequest) {
         Region resolvedRegion = resolveRegionForGetUrl(getUrlRequest);
         URI resolvedEndpoint = resolveEndpoint(getUrlRequest.endpoint(), resolvedRegion);
+        boolean endpointOverridden = getUrlRequest.endpoint() != null;
 
         SdkHttpFullRequest marshalledRequest = createMarshalledRequest(getUrlRequest, resolvedEndpoint);
 
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket(getUrlRequest.bucket())
+                                                            .key(getUrlRequest.key())
+                                                            .build();
+
         SdkHttpRequest httpRequest = S3EndpointUtils.applyEndpointConfiguration(marshalledRequest,
-                                                                                getUrlRequest,
+                                                                                getObjectRequest,
                                                                                 resolvedRegion,
                                                                                 s3Configuration,
-                                                                                getUrlRequest.bucket());
+                                                                                endpointOverridden)
+                                                    .sdkHttpRequest();
 
         try {
             return httpRequest.getUri().toURL();
         } catch (MalformedURLException exception) {
-            throw SdkException.create(String.format("Generated URI is malformed: " + httpRequest.getUri()),
+            throw SdkException.create("Generated URI is malformed: " + httpRequest.getUri(),
                                       exception);
         }
     }

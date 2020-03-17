@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,13 +14,16 @@
  */
 package software.amazon.awssdk.services.transcribestreaming;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.BeforeClass;
@@ -29,6 +32,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.transcribestreaming.model.AudioStream;
 import software.amazon.awssdk.services.transcribestreaming.model.LanguageCode;
@@ -51,6 +58,7 @@ public class TranscribeStreamingIntegrationTest {
     public static void setup() throws URISyntaxException {
         client = TranscribeStreamingAsyncClient.builder()
                                                .region(Region.US_EAST_1)
+                                               .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor()))
                                                .credentialsProvider(getCredentials())
                                                .build();
     }
@@ -109,6 +117,16 @@ public class TranscribeStreamingIntegrationTest {
         @Override
         public void subscribe(Subscriber<? super AudioStream> s) {
             s.onSubscribe(new TestSubscription(s, inputStream));
+        }
+    }
+
+    private static class VerifyHeaderInterceptor implements ExecutionInterceptor {
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            List<String> contentTypeHeader = context.httpRequest().headers().get(CONTENT_TYPE);
+            assertThat(contentTypeHeader.size()).isEqualTo(1);
+            assertThat(contentTypeHeader.get(0)).isEqualTo(Mimetype.MIMETYPE_EVENT_STREAM);
         }
     }
 }

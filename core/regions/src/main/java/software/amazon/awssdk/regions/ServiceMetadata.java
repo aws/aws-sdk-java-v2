@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -55,6 +55,13 @@ public interface ServiceMetadata {
      * @return The list of regions this service is currently available in.
      */
     List<Region> regions();
+
+    /**
+     * Retrieve the service-specific partition configuration of each partition in which this service is currently available.
+     *
+     * @return The list of service-specific service metadata for each partition in which this service is available.
+     */
+    List<ServicePartitionMetadata> servicePartitions();
 
     /**
      * Load the service metadata for the provided service endpoint prefix. This should only be used when you do not wish to have

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import static software.amazon.awssdk.utils.Validate.notNull;
+
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -24,7 +27,6 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.ToString;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link AssumeRoleWithWebIdentityRequest}
@@ -41,16 +43,16 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 @ThreadSafe
 public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredentialsProvider {
-    private final AssumeRoleWithWebIdentityRequest assumeRoleWithWebIdentityRequest;
+    private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
 
     /**
      * @see #builder()
      */
     private StsAssumeRoleWithWebIdentityCredentialsProvider(Builder builder) {
         super(builder, "sts-assume-role-with-web-identity-credentials-provider");
-        Validate.notNull(builder.assumeRoleWithWebIdentityRequest, "Assume role with web identity request must not be null.");
+        notNull(builder.assumeRoleWithWebIdentityRequestSupplier, "Assume role with web identity request must not be null.");
 
-        this.assumeRoleWithWebIdentityRequest = builder.assumeRoleWithWebIdentityRequest;
+        this.assumeRoleWithWebIdentityRequest = builder.assumeRoleWithWebIdentityRequestSupplier;
     }
 
     /**
@@ -62,7 +64,9 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCr
 
     @Override
     protected Credentials getUpdatedCredentials(StsClient stsClient) {
-        return stsClient.assumeRoleWithWebIdentity(assumeRoleWithWebIdentityRequest).credentials();
+        AssumeRoleWithWebIdentityRequest request = assumeRoleWithWebIdentityRequest.get();
+        notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
+        return stsClient.assumeRoleWithWebIdentity(request).credentials();
     }
 
     @Override
@@ -78,7 +82,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCr
      */
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleWithWebIdentityCredentialsProvider> {
-        private AssumeRoleWithWebIdentityRequest assumeRoleWithWebIdentityRequest;
+        private Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequestSupplier;
 
         private Builder() {
             super(StsAssumeRoleWithWebIdentityCredentialsProvider::new);
@@ -92,7 +96,18 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCr
          * @return This object for chained calls.
          */
         public Builder refreshRequest(AssumeRoleWithWebIdentityRequest assumeRoleWithWebIdentityRequest) {
-            this.assumeRoleWithWebIdentityRequest = assumeRoleWithWebIdentityRequest;
+            return refreshRequest(() -> assumeRoleWithWebIdentityRequest);
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(AssumeRoleWithWebIdentityRequest)}, but takes a {@link Supplier} to supply the
+         * request to STS.
+         *
+         * @param assumeRoleWithWebIdentityRequestSupplier A supplier
+         * @return This object for chained calls.
+         */
+        public Builder refreshRequest(Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest) {
+            this.assumeRoleWithWebIdentityRequestSupplier = assumeRoleWithWebIdentityRequest;
             return this;
         }
 

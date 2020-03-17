@@ -1,0 +1,26 @@
+{
+    "version": "2.7.7",
+    "date": "2019-07-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "This release of Amazon Elastic Container Service (Amazon ECS) introduces support for cluster settings. Cluster settings specify whether CloudWatch Container Insights is enabled or disabled for the cluster."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "description": "Amazon Comprehend now supports multiple entities for custom entity recognition"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeDeploy",
+            "description": "Documentation updates for codedeploy"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "description": "Updates for Elasticache"
+        }
+    ]
+}

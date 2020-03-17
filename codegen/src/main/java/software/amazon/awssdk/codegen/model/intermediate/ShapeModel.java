@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.customization.ShapeCustomizationInfo;
+import software.amazon.awssdk.codegen.model.service.XmlNamespace;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class ShapeModel extends DocumentationModel implements HasDeprecation {
@@ -65,6 +66,8 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private boolean isEventStream;
 
     private boolean isEvent;
+
+    private XmlNamespace xmlNamespace;
 
     public ShapeModel(@JsonProperty("c2jName") String c2jName) {
         this.c2jName = c2jName;
@@ -162,7 +165,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      */
     @JsonIgnore
     public List<MemberModel> getUnboundMembers() {
-        List<MemberModel> unboundMembers = new ArrayList<MemberModel>();
+        List<MemberModel> unboundMembers = new ArrayList<>();
         if (members != null) {
             for (MemberModel member : members) {
                 if (member.getHttp().getLocation() == null) {
@@ -224,7 +227,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      * If all members in shape have eventheader trait, then there is no payload
      */
     public boolean hasNoEventPayload() {
-        return members == null || members.stream().allMatch(m -> m.isEventHeader());
+        return members == null || members.stream().allMatch(MemberModel::isEventHeader);
     }
 
     public boolean isHasStreamingMember() {
@@ -347,7 +350,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void addMember(MemberModel member) {
         if (this.members == null) {
-            this.members = new ArrayList<MemberModel>();
+            this.members = new ArrayList<>();
         }
         members.add(member);
     }
@@ -362,7 +365,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void addEnum(EnumModel enumModel) {
         if (this.enums == null) {
-            this.enums = new ArrayList<EnumModel>();
+            this.enums = new ArrayList<>();
         }
         this.enums.add(enumModel);
     }
@@ -400,7 +403,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     }
 
     public Map<String, MemberModel> getMembersAsMap() {
-        Map<String, MemberModel> shapeMembers = new HashMap<String, MemberModel>();
+        Map<String, MemberModel> shapeMembers = new HashMap<>();
 
         // Creating a map of shape's members. This map is used below when
         // fetching the details of a member.
@@ -557,5 +560,18 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     public ShapeModel withIsEvent(boolean isEvent) {
         this.isEvent = isEvent;
         return this;
+    }
+
+    public XmlNamespace getXmlNamespace() {
+        return xmlNamespace;
+    }
+
+    public ShapeModel withXmlNamespace(XmlNamespace xmlNamespace) {
+        this.xmlNamespace = xmlNamespace;
+        return this;
+    }
+
+    public void setXmlNamespace(XmlNamespace xmlNamespace) {
+        this.xmlNamespace = xmlNamespace;
     }
 }

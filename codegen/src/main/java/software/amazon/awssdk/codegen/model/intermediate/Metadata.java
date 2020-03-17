@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -517,6 +517,11 @@ public class Metadata {
         return protocol == Protocol.EC2 ||
                protocol == Protocol.QUERY ||
                protocol == Protocol.REST_XML;
+    }
+
+    public boolean isQueryProtocol() {
+        return protocol == Protocol.EC2 ||
+               protocol == Protocol.QUERY;
     }
 
     /**

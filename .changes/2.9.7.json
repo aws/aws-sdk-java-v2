@@ -1,0 +1,21 @@
+{
+    "version": "2.9.7",
+    "date": "2019-09-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "description": "API Update for AWS Global Accelerator to support for DNS aliasing."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "description": "This release adds a new DeleteConnection API to delete the connection between a replication instance and an endpoint. It also adds an optional S3 setting to specify the precision of any TIMESTAMP column values written to an S3 object file in .parquet format."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "Enable G4D and R5 instances in SageMaker Hosting Services"
+        }
+    ]
+}

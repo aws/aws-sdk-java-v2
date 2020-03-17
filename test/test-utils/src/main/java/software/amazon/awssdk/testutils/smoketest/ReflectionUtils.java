@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -67,12 +67,7 @@ public final class ReflectionUtils {
 
             return constructor.newInstance(params);
 
-        } catch (InstantiationException ex) {
-            throw new IllegalStateException(
-                    "Could not invoke " + constructor.toGenericString(),
-                    ex);
-
-        } catch (IllegalAccessException ex) {
+        } catch (InstantiationException | IllegalAccessException ex) {
             throw new IllegalStateException(
                     "Could not invoke " + constructor.toGenericString(),
                     ex);
@@ -155,7 +150,7 @@ public final class ReflectionUtils {
      * @return the list of matching values
      */
     public static List<Object> getAllByPath(Object target, List<String> path) {
-        List<Object> results = new LinkedList<Object>();
+        List<Object> results = new LinkedList<>();
 
         // TODO: Can we unroll this and do it iteratively?
         getAllByPath(target, path, 0, results);
@@ -577,7 +572,7 @@ public final class ReflectionUtils {
     }
 
     public static <T> T newInstanceWithAllFieldsSet(Class<T> clz) {
-        List<RandomSupplier<?>> emptyRandomSuppliers = new ArrayList<RandomSupplier<?>>();
+        List<RandomSupplier<?>> emptyRandomSuppliers = new ArrayList<>();
         return newInstanceWithAllFieldsSet(clz, emptyRandomSuppliers);
     }
 
@@ -610,7 +605,7 @@ public final class ReflectionUtils {
                 if (bool == null) {
                     setField(instance, field, RANDOM.nextBoolean());
                 } else {
-                    setField(instance, field, !Boolean.valueOf(bool.toString()));
+                    setField(instance, field, !Boolean.parseBoolean(bool.toString()));
                 }
             } else if (type.isAssignableFrom(String.class)) {
                 setField(instance, field, UUID.randomUUID().toString());

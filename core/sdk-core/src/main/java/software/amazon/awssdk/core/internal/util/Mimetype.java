@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -66,6 +66,8 @@ public final class Mimetype {
     public static final String MIMETYPE_GZIP = "application/x-gzip";
 
     public static final String MIMETYPE_TEXT_PLAIN = "text/plain; charset=UTF-8";
+
+    public static final String MIMETYPE_EVENT_STREAM = "application/vnd.amazon.eventstream";
 
     private static final Logger LOG = LoggerFactory.getLogger(Mimetype.class);
 

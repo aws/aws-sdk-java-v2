@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -58,8 +58,19 @@ public class PoetClientFunctionalTests {
         assertThat(syncClientClass, generatesTo("test-query-client-class.java"));
     }
 
+
+    @Test
+    public void asyncClientClassQuery() throws Exception {
+        AsyncClientClass syncClientClass = createAsyncClientClass(ClientTestModels.queryServiceModels());
+        assertThat(syncClientClass, generatesTo("test-query-async-client-class.java"));
+    }
+
     private SyncClientClass createSyncClientClass(IntermediateModel model) {
         return new SyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/"));
+    }
+
+    private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
+        return new AsyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/"));
     }
 
     @Test

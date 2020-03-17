@@ -165,6 +165,20 @@
       ],
       "documentation":"<p>Provides more detail about the cluster step.</p>"
     },
+    "GetBlockPublicAccessConfiguration":{
+      "name":"GetBlockPublicAccessConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetBlockPublicAccessConfigurationInput"},
+      "output":{"shape":"GetBlockPublicAccessConfigurationOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Returns the Amazon EMR block public access configuration for your AWS account in the current Region. For more information see <a href=\"https://docs.aws.amazon.com/emr/latest/ManagementGuide/configure-block-public-access.html\">Configure Block Public Access for Amazon EMR</a> in the <i>Amazon EMR Management Guide</i>.</p>"
+    },
     "ListBootstrapActions":{
       "name":"ListBootstrapActions",
       "http":{
@@ -261,7 +275,21 @@
         {"shape":"InternalServerException"},
         {"shape":"InvalidRequestException"}
       ],
-      "documentation":"<p>Provides a list of steps for the cluster in reverse order unless you specify stepIds with the request.</p>"
+      "documentation":"<p>Provides a list of steps for the cluster in reverse order unless you specify <code>stepIds</code> with the request of filter by <code>StepStates</code>. You can specify a maximum of ten <code>stepIDs</code>.</p>"
+    },
+    "ModifyCluster":{
+      "name":"ModifyCluster",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyClusterInput"},
+      "output":{"shape":"ModifyClusterOutput"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Modifies the number of steps that can be executed concurrently for the cluster specified using ClusterID.</p>"
     },
     "ModifyInstanceFleet":{
       "name":"ModifyInstanceFleet",
@@ -297,6 +325,20 @@
       "input":{"shape":"PutAutoScalingPolicyInput"},
       "output":{"shape":"PutAutoScalingPolicyOutput"},
       "documentation":"<p>Creates or updates an automatic scaling policy for a core instance group or task instance group in an Amazon EMR cluster. The automatic scaling policy defines how an instance group dynamically adds and terminates EC2 instances in response to the value of a CloudWatch metric.</p>"
+    },
+    "PutBlockPublicAccessConfiguration":{
+      "name":"PutBlockPublicAccessConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"PutBlockPublicAccessConfigurationInput"},
+      "output":{"shape":"PutBlockPublicAccessConfigurationOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Creates or updates an Amazon EMR block public access configuration for your AWS account in the current Region. For more information see <a href=\"https://docs.aws.amazon.com/emr/latest/ManagementGuide/configure-block-public-access.html\">Configure Block Public Access for Amazon EMR</a> in the <i>Amazon EMR Management Guide</i>.</p>"
     },
     "RemoveAutoScalingPolicy":{
       "name":"RemoveAutoScalingPolicy",
@@ -357,7 +399,7 @@
       "errors":[
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Sets whether all AWS Identity and Access Management (IAM) users under your account can access the specified clusters (job flows). This action works on running clusters. You can also set the visibility of a cluster when you launch it using the <code>VisibleToAllUsers</code> parameter of <a>RunJobFlow</a>. The SetVisibleToAllUsers action can be called only by an IAM user who created the cluster or the AWS account that owns the cluster.</p>"
+      "documentation":"<p>Sets the <a>Cluster$VisibleToAllUsers</a> value, which determines whether the cluster is visible to all IAM users of the AWS account associated with the cluster. Only the IAM user who created the cluster or the AWS account root user can call this action. The default value, <code>true</code>, indicates that all IAM users in the AWS account can perform cluster actions if they have the proper IAM policy permissions. If set to <code>false</code>, only the IAM user that created the cluster can perform actions. This action works on running clusters. You can override the default <code>true</code> setting when you create a cluster by using the <code>VisibleToAllUsers</code> parameter with <code>RunJobFlow</code>.</p>"
     },
     "TerminateJobFlows":{
       "name":"TerminateJobFlows",
@@ -409,6 +451,10 @@
         "InstanceFleetId":{
           "shape":"InstanceFleetId",
           "documentation":"<p>The unique identifier of the instance fleet.</p>"
+        },
+        "ClusterArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name of the cluster.</p>"
         }
       }
     },
@@ -440,6 +486,10 @@
         "InstanceGroupIds":{
           "shape":"InstanceGroupIdsList",
           "documentation":"<p>Instance group IDs of the newly created instance groups.</p>"
+        },
+        "ClusterArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name of the cluster.</p>"
         }
       },
       "documentation":"<p>Output from an AddInstanceGroups call.</p>"
@@ -530,6 +580,11 @@
       "type":"list",
       "member":{"shape":"Application"}
     },
+    "ArnType":{
+      "type":"string",
+      "max":2048,
+      "min":20
+    },
     "AutoScalingPolicy":{
       "type":"structure",
       "required":[
@@ -613,6 +668,39 @@
       },
       "documentation":"<p>The status of an automatic scaling policy. </p>"
     },
+    "BlockPublicAccessConfiguration":{
+      "type":"structure",
+      "required":["BlockPublicSecurityGroupRules"],
+      "members":{
+        "BlockPublicSecurityGroupRules":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether EMR block public access is enabled (<code>true</code>) or disabled (<code>false</code>). By default, the value is <code>false</code> for accounts that have created EMR clusters before July 2019. For accounts created after this, the default is <code>true</code>.</p>"
+        },
+        "PermittedPublicSecurityGroupRuleRanges":{
+          "shape":"PortRanges",
+          "documentation":"<p>Specifies ports and port ranges that are permitted to have security group rules that allow inbound traffic from all public sources. For example, if Port 23 (Telnet) is specified for <code>PermittedPublicSecurityGroupRuleRanges</code>, Amazon EMR allows cluster creation if a security group associated with the cluster has a rule that allows inbound traffic on Port 23 from IPv4 0.0.0.0/0 or IPv6 port ::/0 as the source.</p> <p>By default, Port 22, which is used for SSH access to the cluster EC2 instances, is in the list of <code>PermittedPublicSecurityGroupRuleRanges</code>.</p>"
+        }
+      },
+      "documentation":"<p>A configuration for Amazon EMR block public access. When <code>BlockPublicSecurityGroupRules</code> is set to <code>true</code>, Amazon EMR prevents cluster creation if one of the cluster's security groups has a rule that allows inbound traffic from 0.0.0.0/0 or ::/0 on a port, unless the port is specified as an exception using <code>PermittedPublicSecurityGroupRuleRanges</code>.</p>"
+    },
+    "BlockPublicAccessConfigurationMetadata":{
+      "type":"structure",
+      "required":[
+        "CreationDateTime",
+        "CreatedByArn"
+      ],
+      "members":{
+        "CreationDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time that the configuration was created.</p>"
+        },
+        "CreatedByArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name that created or last modified the configuration.</p>"
+        }
+      },
+      "documentation":"<p>Properties that describe the AWS principal that created the <code>BlockPublicAccessConfiguration</code> using the <code>PutBlockPublicAccessConfiguration</code> action as well as the date and time that the configuration was created. Each time a configuration for block public access is updated, Amazon EMR updates this metadata.</p>"
+    },
     "Boolean":{"type":"boolean"},
     "BooleanObject":{"type":"boolean"},
     "BootstrapActionConfig":{
@@ -675,6 +763,10 @@
     },
     "CancelStepsInput":{
       "type":"structure",
+      "required":[
+        "ClusterId",
+        "StepIds"
+      ],
       "members":{
         "ClusterId":{
           "shape":"XmlStringMaxLen256",
@@ -683,6 +775,10 @@
         "StepIds":{
           "shape":"StepIdsList",
           "documentation":"<p>The list of <code>StepIDs</code> to cancel. Use <a>ListSteps</a> to get steps and their states for the specified cluster.</p>"
+        },
+        "StepCancellationOption":{
+          "shape":"StepCancellationOption",
+          "documentation":"<p>The option to choose for cancelling <code>RUNNING</code> steps. By default, the value is <code>SEND_INTERRUPT</code>.</p>"
         }
       },
       "documentation":"<p>The input argument to the <a>CancelSteps</a> operation.</p>"
@@ -719,7 +815,7 @@
         },
         "EvaluationPeriods":{
           "shape":"Integer",
-          "documentation":"<p>The number of periods, expressed in seconds using <code>Period</code>, during which the alarm condition must exist before the alarm triggers automatic scaling activity. The default value is <code>1</code>.</p>"
+          "documentation":"<p>The number of periods, in five-minute increments, during which the alarm condition must exist before the alarm triggers automatic scaling activity. The default value is <code>1</code>.</p>"
         },
         "MetricName":{
           "shape":"String",
@@ -789,7 +885,7 @@
         },
         "ReleaseLabel":{
           "shape":"String",
-          "documentation":"<p>The Amazon EMR release label, which determines the version of open-source application packages installed on the cluster. Release labels are in the form <code>emr-x.x.x</code>, where x.x.x is an Amazon EMR release version, for example, <code>emr-5.14.0</code>. For more information about Amazon EMR release versions and included application versions and features, see <a href=\"https://docs.aws.amazon.com/emr/latest/ReleaseGuide/\">https://docs.aws.amazon.com/emr/latest/ReleaseGuide/</a>. The release label applies only to Amazon EMR releases versions 4.x and later. Earlier versions use <code>AmiVersion</code>.</p>"
+          "documentation":"<p>The Amazon EMR release label, which determines the version of open-source application packages installed on the cluster. Release labels are in the form <code>emr-x.x.x</code>, where x.x.x is an Amazon EMR release version such as <code>emr-5.14.0</code>. For more information about Amazon EMR release versions and included application versions and features, see <a href=\"https://docs.aws.amazon.com/emr/latest/ReleaseGuide/\">https://docs.aws.amazon.com/emr/latest/ReleaseGuide/</a>. The release label applies only to Amazon EMR releases version 4.0 and later. Earlier versions use <code>AmiVersion</code>.</p>"
         },
         "AutoTerminate":{
           "shape":"Boolean",
@@ -801,7 +897,7 @@
         },
         "VisibleToAllUsers":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether the cluster is visible to all IAM users of the AWS account associated with the cluster. If this value is set to <code>true</code>, all IAM users of that AWS account can view and manage the cluster if they have the proper policy permissions set. If this value is <code>false</code>, only the IAM user that created the cluster can view and manage it. This value can be changed using the <a>SetVisibleToAllUsers</a> action.</p>"
+          "documentation":"<p>Indicates whether the cluster is visible to all IAM users of the AWS account associated with the cluster. The default value, <code>true</code>, indicates that all IAM users in the AWS account can perform cluster actions if they have the proper IAM policy permissions. If this value is <code>false</code>, only the IAM user that created the cluster can perform actions. This value can be changed on a running cluster by using the <a>SetVisibleToAllUsers</a> action. You can override the default value of <code>true</code> when you create a cluster by using the <code>VisibleToAllUsers</code> parameter of the <code>RunJobFlow</code> action.</p>"
         },
         "Applications":{
           "shape":"ApplicationList",
@@ -854,6 +950,18 @@
         "KerberosAttributes":{
           "shape":"KerberosAttributes",
           "documentation":"<p>Attributes for Kerberos configuration when Kerberos authentication is enabled using a security configuration. For more information see <a href=\"https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-kerberos.html\">Use Kerberos Authentication</a> in the <i>EMR Management Guide</i>.</p>"
+        },
+        "ClusterArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name of the cluster.</p>"
+        },
+        "StepConcurrencyLevel":{
+          "shape":"Integer",
+          "documentation":"<p>Specifies the number of steps that can be executed concurrently.</p>"
+        },
+        "OutpostArn":{
+          "shape":"OptionalArnType",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Outpost where the cluster is launched. </p>"
         }
       },
       "documentation":"<p>The detailed description of the cluster.</p>"
@@ -938,6 +1046,14 @@
         "NormalizedInstanceHours":{
           "shape":"Integer",
           "documentation":"<p>An approximation of the cost of the cluster, represented in m1.small/hours. This value is incremented one time for every hour an m1.small instance runs. Larger instances are weighted more, so an EC2 instance that is roughly four times more expensive would result in the normalized instance hours being incremented by four. This result is only an approximation and does not reflect the actual billing rate.</p>"
+        },
+        "ClusterArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name of the cluster.</p>"
+        },
+        "OutpostArn":{
+          "shape":"OptionalArnType",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Outpost where the cluster is launched. </p>"
         }
       },
       "documentation":"<p>The summary description of the cluster.</p>"
@@ -1261,11 +1377,11 @@
         },
         "Ec2SubnetId":{
           "shape":"String",
-          "documentation":"<p>To launch the cluster in Amazon VPC, set this parameter to the identifier of the Amazon VPC subnet where you want the cluster to launch. If you do not specify this value, the cluster is launched in the normal AWS cloud, outside of a VPC.</p> <p>Amazon VPC currently does not support cluster compute quadruple extra large (cc1.4xlarge) instances. Thus, you cannot specify the cc1.4xlarge instance type for nodes of a cluster launched in a VPC.</p>"
+          "documentation":"<p>Set this parameter to the identifier of the Amazon VPC subnet where you want the cluster to launch. If you do not specify this value, and your account supports EC2-Classic, the cluster launches in EC2-Classic.</p>"
         },
         "RequestedEc2SubnetIds":{
           "shape":"XmlStringMaxLen256List",
-          "documentation":"<p>Applies to clusters configured with the instance fleets option. Specifies the unique identifier of one or more Amazon EC2 subnets in which to launch EC2 cluster instances. Subnets must exist within the same VPC. Amazon EMR chooses the EC2 subnet with the best fit from among the list of <code>RequestedEc2SubnetIds</code>, and then launches all cluster instances within that Subnet. If this value is not specified, and the account and region support EC2-Classic networks, the cluster launches instances in the EC2-Classic network and uses <code>RequestedEc2AvailabilityZones</code> instead of this setting. If EC2-Classic is not supported, and no Subnet is specified, Amazon EMR chooses the subnet for you. <code>RequestedEc2SubnetIDs</code> and <code>RequestedEc2AvailabilityZones</code> cannot be specified together.</p>"
+          "documentation":"<p>Applies to clusters configured with the instance fleets option. Specifies the unique identifier of one or more Amazon EC2 subnets in which to launch EC2 cluster instances. Subnets must exist within the same VPC. Amazon EMR chooses the EC2 subnet with the best fit from among the list of <code>RequestedEc2SubnetIds</code>, and then launches all cluster instances within that Subnet. If this value is not specified, and the account and Region support EC2-Classic networks, the cluster launches instances in the EC2-Classic network and uses <code>RequestedEc2AvailabilityZones</code> instead of this setting. If EC2-Classic is not supported, and no Subnet is specified, Amazon EMR chooses the subnet for you. <code>RequestedEc2SubnetIDs</code> and <code>RequestedEc2AvailabilityZones</code> cannot be specified together.</p>"
         },
         "Ec2AvailabilityZone":{
           "shape":"String",
@@ -1325,6 +1441,28 @@
         }
       },
       "documentation":"<p>The details of the step failure. The service attempts to detect the root cause for many common failures.</p>"
+    },
+    "GetBlockPublicAccessConfigurationInput":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "GetBlockPublicAccessConfigurationOutput":{
+      "type":"structure",
+      "required":[
+        "BlockPublicAccessConfiguration",
+        "BlockPublicAccessConfigurationMetadata"
+      ],
+      "members":{
+        "BlockPublicAccessConfiguration":{
+          "shape":"BlockPublicAccessConfiguration",
+          "documentation":"<p>A configuration for Amazon EMR block public access. The configuration applies to all clusters created in your account for the current Region. The configuration specifies whether block public access is enabled. If block public access is enabled, security groups associated with the cluster cannot have rules that allow inbound traffic from 0.0.0.0/0 or ::/0 on a port, unless the port is specified as an exception using <code>PermittedPublicSecurityGroupRuleRanges</code> in the <code>BlockPublicAccessConfiguration</code>. By default, Port 22 (SSH) is an exception, and public access is allowed on this port. You can change this by updating the block public access configuration to remove the exception.</p>"
+        },
+        "BlockPublicAccessConfigurationMetadata":{
+          "shape":"BlockPublicAccessConfigurationMetadata",
+          "documentation":"<p>Properties that describe the AWS principal that created the <code>BlockPublicAccessConfiguration</code> using the <code>PutBlockPublicAccessConfiguration</code> action as well as the date and time that the configuration was created. Each time a configuration for block public access is updated, Amazon EMR updates this metadata.</p>"
+        }
+      }
     },
     "HadoopJarStepConfig":{
       "type":"structure",
@@ -1648,7 +1786,7 @@
         },
         "BidPrice":{
           "shape":"String",
-          "documentation":"<p>The maximum Spot price your are willing to pay for EC2 instances.</p> <p>An optional, nullable field that applies if the <code>MarketType</code> for the instance group is specified as <code>SPOT</code>. Specify the maximum spot price in USD. If the value is NULL and <code>SPOT</code> is specified, the maximum Spot price is set equal to the On-Demand price.</p>"
+          "documentation":"<p>The bid price for each EC2 Spot instance type as defined by <code>InstanceType</code>. Expressed in USD. If neither <code>BidPrice</code> nor <code>BidPriceAsPercentageOfOnDemandPrice</code> is provided, <code>BidPriceAsPercentageOfOnDemandPrice</code> defaults to 100%.</p>"
         },
         "InstanceType":{
           "shape":"InstanceType",
@@ -1723,7 +1861,7 @@
         },
         "BidPrice":{
           "shape":"XmlStringMaxLen256",
-          "documentation":"<p>The maximum Spot price your are willing to pay for EC2 instances.</p> <p>An optional, nullable field that applies if the <code>MarketType</code> for the instance group is specified as <code>SPOT</code>. Specify the maximum spot price in USD. If the value is NULL and <code>SPOT</code> is specified, the maximum Spot price is set equal to the On-Demand price.</p>"
+          "documentation":"<p>The bid price for each EC2 Spot instance type as defined by <code>InstanceType</code>. Expressed in USD. If neither <code>BidPrice</code> nor <code>BidPriceAsPercentageOfOnDemandPrice</code> is provided, <code>BidPriceAsPercentageOfOnDemandPrice</code> defaults to 100%.</p>"
         },
         "InstanceType":{
           "shape":"InstanceType",
@@ -1782,7 +1920,7 @@
         },
         "BidPrice":{
           "shape":"XmlStringMaxLen256",
-          "documentation":"<p>The maximum Spot price your are willing to pay for EC2 instances.</p> <p>An optional, nullable field that applies if the <code>MarketType</code> for the instance group is specified as <code>SPOT</code>. Specified in USD. If the value is NULL and <code>SPOT</code> is specified, the maximum Spot price is set equal to the On-Demand price.</p>"
+          "documentation":"<p>The bid price for each EC2 Spot instance type as defined by <code>InstanceType</code>. Expressed in USD. If neither <code>BidPrice</code> nor <code>BidPriceAsPercentageOfOnDemandPrice</code> is provided, <code>BidPriceAsPercentageOfOnDemandPrice</code> defaults to 100%.</p>"
         },
         "InstanceType":{
           "shape":"InstanceType",
@@ -2220,7 +2358,7 @@
         },
         "VisibleToAllUsers":{
           "shape":"Boolean",
-          "documentation":"<p>Specifies whether the cluster is visible to all IAM users of the AWS account associated with the cluster. If this value is set to <code>true</code>, all IAM users of that AWS account can view and (if they have the proper policy permissions set) manage the cluster. If it is set to <code>false</code>, only the IAM user that created the cluster can view and manage it. This value can be changed using the <a>SetVisibleToAllUsers</a> action.</p>"
+          "documentation":"<p>Indicates whether the cluster is visible to all IAM users of the AWS account associated with the cluster. The default value, <code>true</code>, indicates that all IAM users in the AWS account can perform cluster actions if they have the proper IAM policy permissions. If this value is <code>false</code>, only the IAM user that created the cluster can perform actions. This value can be changed on a running cluster by using the <a>SetVisibleToAllUsers</a> action. You can override the default value of <code>true</code> when you create a cluster by using the <code>VisibleToAllUsers</code> parameter of the <code>RunJobFlow</code> action.</p>"
         },
         "JobFlowRole":{
           "shape":"XmlString",
@@ -2342,7 +2480,7 @@
         },
         "Ec2SubnetId":{
           "shape":"XmlStringMaxLen256",
-          "documentation":"<p>Applies to clusters that use the uniform instance group configuration. To launch the cluster in Amazon Virtual Private Cloud (Amazon VPC), set this parameter to the identifier of the Amazon VPC subnet where you want the cluster to launch. If you do not specify this value, the cluster launches in the normal Amazon Web Services cloud, outside of an Amazon VPC, if the account launching the cluster supports EC2 Classic networks in the region where the cluster launches.</p> <p>Amazon VPC currently does not support cluster compute quadruple extra large (cc1.4xlarge) instances. Thus you cannot specify the cc1.4xlarge instance type for clusters launched in an Amazon VPC.</p>"
+          "documentation":"<p>Applies to clusters that use the uniform instance group configuration. To launch the cluster in Amazon Virtual Private Cloud (Amazon VPC), set this parameter to the identifier of the Amazon VPC subnet where you want the cluster to launch. If you do not specify this value and your account supports EC2-Classic, the cluster launches in EC2-Classic.</p>"
         },
         "Ec2SubnetIds":{
           "shape":"XmlStringMaxLen256List",
@@ -2688,7 +2826,7 @@
         },
         "StepIds":{
           "shape":"XmlStringList",
-          "documentation":"<p>The filter to limit the step list based on the identifier of the steps.</p>"
+          "documentation":"<p>The filter to limit the step list based on the identifier of the steps. You can specify a maximum of ten Step IDs. The character constraint applies to the overall length of the array.</p>"
         },
         "Marker":{
           "shape":"Marker",
@@ -2738,6 +2876,29 @@
       "type":"list",
       "member":{"shape":"MetricDimension"}
     },
+    "ModifyClusterInput":{
+      "type":"structure",
+      "required":["ClusterId"],
+      "members":{
+        "ClusterId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the cluster.</p>"
+        },
+        "StepConcurrencyLevel":{
+          "shape":"Integer",
+          "documentation":"<p>The number of steps that can be executed concurrently. You can specify a maximum of 256 steps. </p>"
+        }
+      }
+    },
+    "ModifyClusterOutput":{
+      "type":"structure",
+      "members":{
+        "StepConcurrencyLevel":{
+          "shape":"Integer",
+          "documentation":"<p>The number of steps that can be executed concurrently.</p>"
+        }
+      }
+    },
     "ModifyInstanceFleetInput":{
       "type":"structure",
       "required":[
@@ -2777,6 +2938,11 @@
       "type":"double",
       "min":0.0
     },
+    "OptionalArnType":{
+      "type":"string",
+      "max":2048,
+      "min":0
+    },
     "PlacementType":{
       "type":"structure",
       "members":{
@@ -2790,6 +2956,30 @@
         }
       },
       "documentation":"<p>The Amazon EC2 Availability Zone configuration of the cluster (job flow).</p>"
+    },
+    "Port":{
+      "type":"integer",
+      "max":65535,
+      "min":0
+    },
+    "PortRange":{
+      "type":"structure",
+      "required":["MinRange"],
+      "members":{
+        "MinRange":{
+          "shape":"Port",
+          "documentation":"<p>The smallest port number in a specified range of port numbers.</p>"
+        },
+        "MaxRange":{
+          "shape":"Port",
+          "documentation":"<p>The smallest port number in a specified range of port numbers.</p>"
+        }
+      },
+      "documentation":"<p>A list of port ranges that are permitted to allow inbound traffic from all public IP addresses. To specify a single port, use the same value for <code>MinRange</code> and <code>MaxRange</code>.</p>"
+    },
+    "PortRanges":{
+      "type":"list",
+      "member":{"shape":"PortRange"}
     },
     "PutAutoScalingPolicyInput":{
       "type":"structure",
@@ -2827,7 +3017,26 @@
         "AutoScalingPolicy":{
           "shape":"AutoScalingPolicyDescription",
           "documentation":"<p>The automatic scaling policy definition.</p>"
+        },
+        "ClusterArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name of the cluster.</p>"
         }
+      }
+    },
+    "PutBlockPublicAccessConfigurationInput":{
+      "type":"structure",
+      "required":["BlockPublicAccessConfiguration"],
+      "members":{
+        "BlockPublicAccessConfiguration":{
+          "shape":"BlockPublicAccessConfiguration",
+          "documentation":"<p>A configuration for Amazon EMR block public access. The configuration applies to all clusters created in your account for the current Region. The configuration specifies whether block public access is enabled. If block public access is enabled, security groups associated with the cluster cannot have rules that allow inbound traffic from 0.0.0.0/0 or ::/0 on a port, unless the port is specified as an exception using <code>PermittedPublicSecurityGroupRuleRanges</code> in the <code>BlockPublicAccessConfiguration</code>. By default, Port 22 (SSH) is an exception, and public access is allowed on this port. You can change this by updating <code>BlockPublicSecurityGroupRules</code> to remove the exception.</p>"
+        }
+      }
+    },
+    "PutBlockPublicAccessConfigurationOutput":{
+      "type":"structure",
+      "members":{
       }
     },
     "RemoveAutoScalingPolicyInput":{
@@ -2909,7 +3118,7 @@
         },
         "ReleaseLabel":{
           "shape":"XmlStringMaxLen256",
-          "documentation":"<p>The Amazon EMR release label, which determines the version of open-source application packages installed on the cluster. Release labels are in the form <code>emr-x.x.x</code>, where x.x.x is an Amazon EMR release version, for example, <code>emr-5.14.0</code>. For more information about Amazon EMR release versions and included application versions and features, see <a href=\"https://docs.aws.amazon.com/emr/latest/ReleaseGuide/\">https://docs.aws.amazon.com/emr/latest/ReleaseGuide/</a>. The release label applies only to Amazon EMR releases versions 4.x and later. Earlier versions use <code>AmiVersion</code>.</p>"
+          "documentation":"<p>The Amazon EMR release label, which determines the version of open-source application packages installed on the cluster. Release labels are in the form <code>emr-x.x.x</code>, where x.x.x is an Amazon EMR release version such as <code>emr-5.14.0</code>. For more information about Amazon EMR release versions and included application versions and features, see <a href=\"https://docs.aws.amazon.com/emr/latest/ReleaseGuide/\">https://docs.aws.amazon.com/emr/latest/ReleaseGuide/</a>. The release label applies only to Amazon EMR releases version 4.0 and later. Earlier versions use <code>AmiVersion</code>.</p>"
         },
         "Instances":{
           "shape":"JobFlowInstancesConfig",
@@ -2941,7 +3150,7 @@
         },
         "VisibleToAllUsers":{
           "shape":"Boolean",
-          "documentation":"<p>Whether the cluster is visible to all IAM users of the AWS account associated with the cluster. If this value is set to <code>true</code>, all IAM users of that AWS account can view and (if they have the proper policy permissions set) manage the cluster. If it is set to <code>false</code>, only the IAM user that created the cluster can view and manage it.</p>"
+          "documentation":"<p>A value of <code>true</code> indicates that all IAM users in the AWS account can perform cluster actions if they have the proper IAM policy permissions. This is the default. A value of <code>false</code> indicates that only the IAM user who created the cluster can perform actions.</p>"
         },
         "JobFlowRole":{
           "shape":"XmlString",
@@ -2982,6 +3191,10 @@
         "KerberosAttributes":{
           "shape":"KerberosAttributes",
           "documentation":"<p>Attributes for Kerberos configuration when Kerberos authentication is enabled using a security configuration. For more information see <a href=\"https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-kerberos.html\">Use Kerberos Authentication</a> in the <i>EMR Management Guide</i>.</p>"
+        },
+        "StepConcurrencyLevel":{
+          "shape":"Integer",
+          "documentation":"<p>Specifies the number of steps that can be executed concurrently. The default value is <code>1</code>. The maximum value is <code>256</code>.</p>"
         }
       },
       "documentation":"<p> Input to the <a>RunJobFlow</a> operation. </p>"
@@ -2992,6 +3205,10 @@
         "JobFlowId":{
           "shape":"XmlStringMaxLen256",
           "documentation":"<p>An unique identifier for the job flow.</p>"
+        },
+        "ClusterArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name of the cluster.</p>"
         }
       },
       "documentation":"<p> The result of the <a>RunJobFlow</a> operation. </p>"
@@ -3142,11 +3359,11 @@
       "members":{
         "JobFlowIds":{
           "shape":"XmlStringList",
-          "documentation":"<p>Identifiers of the job flows to receive the new visibility setting.</p>"
+          "documentation":"<p>The unique identifier of the job flow (cluster).</p>"
         },
         "VisibleToAllUsers":{
           "shape":"Boolean",
-          "documentation":"<p>Whether the specified clusters are visible to all IAM users of the AWS account associated with the cluster. If this value is set to True, all IAM users of that AWS account can view and, if they have the proper IAM policy permissions set, manage the clusters. If it is set to False, only the IAM user that created a cluster can view and manage it.</p>"
+          "documentation":"<p>A value of <code>true</code> indicates that all IAM users in the AWS account can perform cluster actions if they have the proper IAM policy permissions. This is the default. A value of <code>false</code> indicates that only the IAM user who created the cluster can perform actions.</p>"
         }
       },
       "documentation":"<p>The input to the SetVisibleToAllUsers action.</p>"
@@ -3248,6 +3465,13 @@
         }
       },
       "documentation":"<p>This represents a step in a cluster.</p>"
+    },
+    "StepCancellationOption":{
+      "type":"string",
+      "enum":[
+        "SEND_INTERRUPT",
+        "TERMINATE_PROCESS"
+      ]
     },
     "StepConfig":{
       "type":"structure",

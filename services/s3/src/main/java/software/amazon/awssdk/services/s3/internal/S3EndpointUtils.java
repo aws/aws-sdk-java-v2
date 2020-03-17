@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,13 +22,22 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointBuilder;
+import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
+import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
+import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
+import software.amazon.awssdk.services.s3.internal.resource.S3ResourceType;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Utilities for working with Amazon S3 bucket names, such as validation and
@@ -47,11 +56,18 @@ public final class S3EndpointUtils {
      * Returns a new instance of the given {@link SdkHttpRequest} by applying any endpoint changes based on
      * the given {@link S3Configuration} options.
      */
-    public static SdkHttpRequest applyEndpointConfiguration(SdkHttpRequest request,
-                                                            Object originalRequest,
-                                                            Region region,
-                                                            S3Configuration serviceConfiguration,
-                                                            String bucketName) {
+    public static ConfiguredS3SdkHttpRequest applyEndpointConfiguration(SdkHttpRequest request,
+                                                                        SdkRequest originalRequest,
+                                                                        Region region,
+                                                                        S3Configuration serviceConfiguration,
+                                                                        boolean endpointOverridden) {
+        String bucketName = originalRequest.getValueForField("Bucket", String.class).orElse(null);
+        String key = originalRequest.getValueForField("Key", String.class).orElse(null);
+
+        if (bucketName != null && isArn(bucketName)) {
+            return applyEndpointConfigurationForAccessPointArn(request, region, endpointOverridden,
+                                                               serviceConfiguration, bucketName, key);
+        }
 
         SdkHttpRequest.Builder mutableRequest = request.toBuilder();
 
@@ -66,7 +82,108 @@ public final class S3EndpointUtils {
             }
         }
 
-        return mutableRequest.build();
+        return ConfiguredS3SdkHttpRequest.builder()
+                                         .sdkHttpRequest(mutableRequest.build())
+                                         .build();
+    }
+
+    private static ConfiguredS3SdkHttpRequest applyEndpointConfigurationForAccessPointArn(
+            SdkHttpRequest request,
+            Region region,
+            boolean endpointOverridden,
+            S3Configuration serviceConfiguration,
+            String bucketName,
+            String key) {
+
+        Arn resourceArn = Arn.fromString(bucketName);
+        S3Resource s3Resource = S3ArnConverter.create().convertArn(resourceArn);
+
+        if (S3ResourceType.fromValue(s3Resource.type()) != S3ResourceType.ACCESS_POINT) {
+            throw new IllegalArgumentException("An ARN was passed as a bucket parameter to an S3 operation, "
+                                               + "however it does not appear to be a valid S3 access point ARN.");
+        }
+
+        String arnRegion = resourceArn.region().orElseThrow(() -> new IllegalArgumentException(
+            "An S3 access point ARN must have a region"));
+
+        if (isFipsRegion(region.toString())) {
+            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3"
+                                               + " operation if the S3 client has been configured with a FIPS"
+                                               + " enabled region.");
+        }
+
+        if (serviceConfiguration != null && serviceConfiguration.accelerateModeEnabled()) {
+            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3 "
+                                               + "operation if the S3 client has been configured with accelerate mode"
+                                               + " enabled.");
+        }
+
+        if (serviceConfiguration != null && serviceConfiguration.pathStyleAccessEnabled()) {
+            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3 "
+                                               + "operation if the S3 client has been configured with path style "
+                                               + "addressing enabled.");
+        }
+
+        if (endpointOverridden) {
+            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3"
+                                               + " operation if the S3 client has been configured with an endpoint "
+                                               + "override.");
+        }
+
+        if (serviceConfiguration == null || !serviceConfiguration.useArnRegionEnabled()) {
+            if (!region.id().equals(arnRegion)) {
+                throw new IllegalArgumentException(
+                    String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
+                                  + "does not match the region the client was configured with. To enable this "
+                                  + "behavior and prevent this exception set 'useArnRegionEnabled' to true in the "
+                                  + "configuration when building the S3 client. Provided region: '%s'; client region:"
+                                  + " '%s'.", arnRegion, region));
+            }
+        }
+
+        PartitionMetadata clientPartitionMetadata = PartitionMetadata.of(region);
+        String clientPartition = clientPartitionMetadata.id();
+
+        if (clientPartition == null || clientPartition.isEmpty() || !s3Resource.partition().isPresent()
+            || !clientPartition.equals(s3Resource.partition().get())) {
+            throw new IllegalArgumentException(
+                String.format("The partition field of the ARN being passed as a bucket parameter to an S3 operation "
+                              + "does not match the partition the S3 client has been configured with. Provided "
+                              + "partition: '%s'; client partition: '%s'.", s3Resource.partition().orElse(""),
+                              clientPartition));
+        }
+
+        S3AccessPointResource s3EndpointResource =
+            Validate.isInstanceOf(S3AccessPointResource.class, s3Resource,
+                                  "An ARN was passed as a bucket parameter to an S3 operation, however it does not "
+                                  + "appear to be a valid S3 access point ARN.");
+
+        // DualstackEnabled considered false by default
+        boolean dualstackEnabled = serviceConfiguration != null && serviceConfiguration.dualstackEnabled();
+
+        URI accessPointUri =
+            S3AccessPointBuilder.create()
+                                .accessPointName(s3EndpointResource.accessPointName())
+                                .accountId(
+                                    s3EndpointResource.accountId().orElseThrow(() -> new IllegalArgumentException(
+                                        "An S3 access point ARN must have an account ID")))
+                                .region(arnRegion)
+                                .protocol(request.protocol())
+                                .domain(clientPartitionMetadata.dnsSuffix())
+                                .dualstackEnabled(dualstackEnabled)
+                                .toUri();
+
+        SdkHttpRequest httpRequest = request.toBuilder()
+                                            .protocol(accessPointUri.getScheme())
+                                            .host(accessPointUri.getHost())
+                                            .port(accessPointUri.getPort())
+                                            .encodedPath(key)
+                                            .build();
+
+        return ConfiguredS3SdkHttpRequest.builder()
+                                         .sdkHttpRequest(httpRequest)
+                                         .signingRegionModification(Region.of(arnRegion))
+                                         .build();
     }
 
     /**
@@ -75,11 +192,13 @@ public final class S3EndpointUtils {
      * a regional dualstack endpoint for IPV6 (i.e. s3.dualstack.us-east-1.amazonaws.com).
      */
     private static URI resolveEndpoint(SdkHttpRequest request,
-                                       Object originalRequest,
+                                       SdkRequest originalRequest,
                                        Region region,
                                        S3Configuration serviceConfiguration) {
-        RegionMetadata regionMetadata = RegionMetadata.of(region);
+
         String protocol = request.protocol();
+
+        RegionMetadata regionMetadata = RegionMetadata.of(region);
 
         if (isAccelerateEnabled(serviceConfiguration) && isAccelerateSupported(originalRequest)) {
             return accelerateEndpoint(serviceConfiguration, regionMetadata, protocol);
@@ -128,7 +247,7 @@ public final class S3EndpointUtils {
      * @param originalRequest Request object to identify the operation.
      * @return True if accelerate is supported for the given operation, false if not.
      */
-    private static boolean isAccelerateSupported(Object originalRequest) {
+    private static boolean isAccelerateSupported(SdkRequest originalRequest) {
         return !ACCELERATE_DISABLED_OPERATIONS.contains(originalRequest.getClass());
     }
 
@@ -148,5 +267,13 @@ public final class S3EndpointUtils {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    private static boolean isArn(String s) {
+        return s.startsWith("arn:");
+    }
+
+    private static boolean isFipsRegion(String region) {
+        return region.startsWith("fips-") || region.endsWith("-fips");
     }
 }

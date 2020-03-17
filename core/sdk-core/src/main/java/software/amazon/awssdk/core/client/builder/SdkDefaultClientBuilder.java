@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -188,15 +188,18 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
         return configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                          .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
-                                         .option(RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
+                                         .option(RETRY_POLICY, RetryPolicy.defaultRetryPolicy()
+                                                                          .toBuilder()
+                                                                          .additionalRetryConditionsAllowed(false)
+                                                                          .build())
                                          .option(USER_AGENT_PREFIX, UserAgentUtils.getUserAgent())
                                          .option(USER_AGENT_SUFFIX, "")
                                          .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     /**
-     * Optionally overidden by child implementations to derive implementation-specific configuration from the default-applied
-     * configuration. (eg. AWS's endpoint, derived from the region).
+     * Optionally overridden by child implementations to derive implementation-specific configuration from the
+     * default-applied configuration. (eg. AWS's endpoint, derived from the region).
      */
     protected SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
         return configuration;
@@ -264,16 +267,20 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Finalize which async executor service will be used for the created client.
+     * Finalize which async executor service will be used for the created client. The default async executor
+     * service has at least 8 core threads and can scale up to at least 64 threads when needed depending
+     * on the number of processors available.
      */
     private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
         Supplier<Executor> defaultExecutor = () -> {
-            ThreadPoolExecutor executor = new ThreadPoolExecutor(50, 50,
+            int processors = Runtime.getRuntime().availableProcessors();
+            int corePoolSize = Math.max(8, processors);
+            int maxPoolSize = Math.max(64, processors * 2);
+            ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
                                                                  10, TimeUnit.SECONDS,
-                                                                 new LinkedBlockingQueue<>(10_000),
+                                                                 new LinkedBlockingQueue<>(1_000),
                                                                  new ThreadFactoryBuilder()
                                                                      .threadNamePrefix("sdk-async-response").build());
-
             // Allow idle core threads to time out
             executor.allowCoreThreadTimeOut(true);
             return executor;
@@ -305,6 +312,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         Validate.paramNotNull(endpointOverride, "endpointOverride");
         Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
         clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
+        clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
         return thisBuilder();
     }
 
@@ -420,5 +428,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             // Do nothing, this client is managed by the customer.
         }
     }
+
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
@@ -33,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.PutBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 
 /**
@@ -95,10 +98,7 @@ public class ObjectTaggingIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void getObjectTagging_Succeeds() {
-        List<Tag> tagSet = new ArrayList<>();
-        tagSet.add(Tag.builder().key("foo").value("1").build());
-        tagSet.add(Tag.builder().key("bar").value("2").build());
-        tagSet.add(Tag.builder().key("baz").value("3").build());
+        List<Tag> tagSet = tags();
 
         Tagging tags = Tagging.builder().tagSet(tagSet).build();
 
@@ -147,10 +147,7 @@ public class ObjectTaggingIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void copyObject_Succeeds_WithNewTags() {
-        List<Tag> tagSet = new ArrayList<>();
-        tagSet.add(Tag.builder().key("foo").value("1").build());
-        tagSet.add(Tag.builder().key("bar").value("2").build());
-        tagSet.add(Tag.builder().key("baz").value("3").build());
+        List<Tag> tagSet = tags();
 
         Tagging tags = Tagging.builder().tagSet(tagSet).build();
 
@@ -183,12 +180,43 @@ public class ObjectTaggingIntegrationTest extends S3IntegrationTestBase {
         assertThat(getTaggingResult).containsExactlyInAnyOrder(tagsCopy.tagSet().toArray(new Tag[tagsCopy.tagSet().size()]));
     }
 
-    @Test
-    public void testDeleteObjectTagging() {
+    private List<Tag> tags() {
         List<Tag> tagSet = new ArrayList<>();
         tagSet.add(Tag.builder().key("foo").value("1").build());
         tagSet.add(Tag.builder().key("bar").value("2").build());
         tagSet.add(Tag.builder().key("baz").value("3").build());
+        return tagSet;
+    }
+
+    @Test
+    public void multipartUploadWithNewTags_shouldSucceed() {
+        List<Tag> tagSet = tags();
+
+        Tagging tags = Tagging.builder().tagSet(tagSet).build();
+
+        String key = makeNewKey();
+        String uploadId =
+            s3.createMultipartUpload(b -> b.tagging(tags).bucket(BUCKET).key(key)).uploadId();
+
+        UploadPartResponse uploadPartResponse = s3.uploadPart(b -> b.bucket(BUCKET).key(key).partNumber(1).uploadId(uploadId),
+                                                              RequestBody.fromString(RandomStringUtils.random(1000)));
+        CompletedMultipartUpload parts =
+            CompletedMultipartUpload.builder().parts(p -> p.partNumber(1).eTag(uploadPartResponse.eTag()).build()).build();
+
+        s3.completeMultipartUpload(b -> b.bucket(BUCKET).key(key).multipartUpload(parts).uploadId(uploadId).build());
+
+        List<Tag> getTaggingResult = s3.getObjectTagging(GetObjectTaggingRequest.builder()
+                                                                                .bucket(BUCKET)
+                                                                                .key(key)
+                                                                                .build())
+                                       .tagSet();
+
+        assertThat(getTaggingResult).containsExactlyInAnyOrder(tags.tagSet().toArray(new Tag[0]));
+    }
+
+    @Test
+    public void testDeleteObjectTagging() {
+        List<Tag> tagSet = tags();
 
         Tagging tags = Tagging.builder().tagSet(tagSet).build();
 

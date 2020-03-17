@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class IpAddressCondition extends Condition {
     public IpAddressCondition(IpAddressComparisonType type, String ipAddressRange) {
         super.type = type.toString();
         super.conditionKey = ConditionFactory.SOURCE_IP_CONDITION_KEY;
-        super.values = Arrays.asList(new String[] {ipAddressRange});
+        super.values = Arrays.asList(ipAddressRange);
     }
 
     /**

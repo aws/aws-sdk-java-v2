@@ -1,0 +1,26 @@
+{
+    "version": "2.10.36",
+    "date": "2019-12-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AmazonMQ",
+            "description": "Amazon MQ now supports throughput-optimized message brokers, backed by Amazon EBS."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "description": "New Ontology linking APIs will provides medication concepts normalization and Diagnoses codes from input text. In this release we will provide two APIs - RxNorm and ICD10-CM."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "description": "CopyObjectRequest now has `destinationBucket` and `destinationKey` properties for clarity.\nThe existing names, `bucket` and `key`, are deprecated."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "You can now configure your EC2 Fleet to preferentially use EC2 Capacity Reservations for launching On-Demand instances, enabling you to fully utilize the available (and unused) Capacity Reservations before launching On-Demand instances on net new capacity."
+        }
+    ]
+}

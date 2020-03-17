@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.core.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.fail;
 
@@ -32,6 +35,7 @@ import org.junit.Test;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -119,6 +123,21 @@ public class AsyncClientHandlerExceptionTest {
         final SdkClientException e = SdkClientException.create("Could not handle response");
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class))).thenThrow(e);
         doVerify(() -> clientHandler.execute(executionParams), e);
+    }
+
+    @Test
+    public void streamingRequest_marshallingException_shouldInvokeExceptionOccurred() throws Exception {
+        AsyncResponseTransformer asyncResponseTransformer = mock(AsyncResponseTransformer.class);
+        CompletableFuture<?> future = new CompletableFuture<>();
+        when(asyncResponseTransformer.prepare()).thenReturn(future);
+
+        SdkClientException exception = SdkClientException.create("Could not handle response");
+        when(marshaller.marshall(any(SdkRequest.class))).thenThrow(exception);
+
+        doVerify(() -> clientHandler.execute(executionParams, asyncResponseTransformer), exception);
+
+        verify(asyncResponseTransformer, times(1)).prepare();
+        verify(asyncResponseTransformer, times(1)).exceptionOccurred(exception);
     }
 
     private void doVerify(Supplier<CompletableFuture<?>> s, final Throwable expectedException) {

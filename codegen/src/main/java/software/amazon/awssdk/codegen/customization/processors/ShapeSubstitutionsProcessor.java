@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -46,12 +46,12 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
     /**
      * parentShapeName -> {memberName -> originalShape}
      */
-    private final Map<String, Map<String, String>> substitutedShapeMemberReferences = new HashMap<String, Map<String, String>>();
+    private final Map<String, Map<String, String>> substitutedShapeMemberReferences = new HashMap<>();
 
     /**
      * parentShapeName -> {listTypeMemberName -> originalShapeOfTheMemberOfTheListTypeMember...}
      */
-    private final Map<String, Map<String, String>> substitutedListMemberReferences = new HashMap<String, Map<String, String>>();
+    private final Map<String, Map<String, String>> substitutedListMemberReferences = new HashMap<>();
 
     ShapeSubstitutionsProcessor(
             Map<String, ShapeSubstitution> shapeSubstitutions) {

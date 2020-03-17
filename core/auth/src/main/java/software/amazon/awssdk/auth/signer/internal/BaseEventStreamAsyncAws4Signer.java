@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_C
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -28,6 +30,7 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -67,7 +70,6 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
 
     @Override
     protected AsyncRequestBody transformRequestProvider(String headerSignature,
-                                                        byte[] signingKey,
                                                         Aws4SignerRequestParams signerRequestParams,
                                                         Aws4SignerParams signerParams,
                                                         AsyncRequestBody asyncRequestBody) {
@@ -80,7 +82,8 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
          * Map publisher with signing function
          */
         Publisher<ByteBuffer> publisherWithSignedFrame =
-            transformRequestBodyPublisher(publisherWithTrailingEmptyFrame, headerSignature, signingKey, signerRequestParams);
+            transformRequestBodyPublisher(publisherWithTrailingEmptyFrame, headerSignature,
+                                          signerParams.awsCredentials(), signerRequestParams);
 
         AsyncRequestBody transformedRequestBody = AsyncRequestBody.fromPublisher(publisherWithSignedFrame);
 
@@ -105,16 +108,16 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
     }
 
     private Publisher<ByteBuffer> transformRequestBodyPublisher(Publisher<ByteBuffer> publisher, String headerSignature,
-                                                                byte[] signingKey, Aws4SignerRequestParams signerRequestParams) {
+                                                                AwsCredentials credentials,
+                                                                Aws4SignerRequestParams signerRequestParams) {
         return SdkPublisher.adapt(publisher)
-                           .map(getDataFrameSigner(headerSignature, signingKey, signerRequestParams));
+                           .map(getDataFrameSigner(headerSignature, credentials, signerRequestParams));
     }
 
-    private Function<ByteBuffer, ByteBuffer> getDataFrameSigner(String headerSignature, byte[] signingKey,
+    private Function<ByteBuffer, ByteBuffer> getDataFrameSigner(String headerSignature,
+                                                                AwsCredentials credentials,
                                                                 Aws4SignerRequestParams signerRequestParams) {
         return new Function<ByteBuffer, ByteBuffer>() {
-
-            final byte[] key = signingKey;
             final Aws4SignerRequestParams requestParams = signerRequestParams;
 
             /**
@@ -129,14 +132,21 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
                  */
                 Map<String, HeaderValue> nonSignatureHeaders = new HashMap<>();
                 Instant signingInstant = requestParams.getSigningClock().instant();
-                String signingDate = Aws4SignerUtils.formatTimestamp(signingInstant);
                 nonSignatureHeaders.put(EVENT_STREAM_DATE, HeaderValue.fromTimestamp(signingInstant));
 
+                /**
+                 * Derive Signing Key
+                 */
+                AwsCredentials sanitizedCredentials = sanitizeCredentials(credentials);
+                byte[] signingKey = deriveSigningKey(sanitizedCredentials,
+                                                     signingInstant,
+                                                     requestParams.getRegionName(),
+                                                     requestParams.getServiceSigningName());
                 /**
                  * Calculate rolling signature
                  */
                 byte[] payload = byteBuffer.array();
-                byte[] signatureBytes = signEventStream(priorSignature, key, signingDate, requestParams,
+                byte[] signatureBytes = signEventStream(priorSignature, signingKey, signingInstant, requestParams,
                                                         nonSignatureHeaders, payload);
                 priorSignature = BinaryUtils.toHex(signatureBytes);
 
@@ -151,6 +161,13 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
                  * Encode signed event to byte
                  */
                 Message signedMessage = new Message(sortHeaders(headers), payload);
+
+                if (LOG.isLoggingLevelEnabled("trace")) {
+                    LOG.trace(() -> "Signed message: " + toDebugString(signedMessage, false));
+                } else {
+                    LOG.debug(() -> "Signed message: " + toDebugString(signedMessage, true));
+                }
+
                 return signedMessage.toByteBuffer();
             }
         };
@@ -162,7 +179,7 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
      *
      * @param priorSignature signature of previous frame (Header frame is the 0th frame)
      * @param signingKey derived signing key
-     * @param date siging date
+     * @param signingInstant the instant at which this message is being signed
      * @param requestParams request parameters
      * @param nonSignatureHeaders non-signature headers
      * @param payload event stream payload
@@ -171,7 +188,7 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
     private byte[] signEventStream(
         String priorSignature,
         byte[] signingKey,
-        String date,
+        Instant signingInstant,
         Aws4SignerRequestParams requestParams,
         Map<String, HeaderValue> nonSignatureHeaders,
         byte[] payload) {
@@ -180,9 +197,9 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
         String stringToSign =
             EVENT_STREAM_PAYLOAD +
             SignerConstant.LINE_SEPARATOR +
-            date +
+            Aws4SignerUtils.formatTimestamp(signingInstant) +
             SignerConstant.LINE_SEPARATOR +
-            requestParams.getScope() +
+            computeScope(signingInstant, requestParams) +
             SignerConstant.LINE_SEPARATOR +
             priorSignature +
             SignerConstant.LINE_SEPARATOR +
@@ -193,6 +210,13 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
         // calculate signature
         return sign(stringToSign.getBytes(StandardCharsets.UTF_8), signingKey,
                     SigningAlgorithm.HmacSHA256);
+    }
+
+    private String computeScope(Instant signingInstant, Aws4SignerRequestParams requestParams) {
+        return Aws4SignerUtils.formatDateStamp(signingInstant) + "/" +
+               requestParams.getRegionName() + "/" +
+               requestParams.getServiceSigningName() + "/" +
+               SignerConstant.AWS4_TERMINATOR;
     }
 
     /**
@@ -244,4 +268,34 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
         }
     }
 
+    static String toDebugString(Message m, boolean truncatePayload) {
+        StringBuilder sb = new StringBuilder("Message = {headers={");
+        Map<String, HeaderValue> headers = m.getHeaders();
+
+        Iterator<Map.Entry<String, HeaderValue>> headersIter = headers.entrySet().iterator();
+
+        while (headersIter.hasNext()) {
+            Map.Entry<String, HeaderValue> h = headersIter.next();
+
+            sb.append(h.getKey()).append("={").append(h.getValue().toString()).append("}");
+
+            if (headersIter.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        sb.append("}, payload=");
+
+        byte[] payload = m.getPayload();
+
+        byte[] payloadToLog;
+        if (truncatePayload) {
+            // Would be nice if BinaryUtils.toHex() could take an array index range instead so we don't need to copy
+            payloadToLog = Arrays.copyOf(payload, Math.min(32, payload.length));
+        } else {
+            payloadToLog = payload;
+        }
+
+        return sb.append(BinaryUtils.toHex(payloadToLog)).append("}").toString();
+    }
 }

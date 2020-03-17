@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -94,6 +95,13 @@ public abstract class BytesWrapper {
      */
     public final InputStream asInputStream() {
         return new ByteArrayInputStream(bytes);
+    }
+
+    /**
+     * @return The output as a {@link ContentStreamProvider}.
+     */
+    public final ContentStreamProvider asContentStreamProvider() {
+        return this::asInputStream;
     }
 
     @Override

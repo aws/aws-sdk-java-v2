@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 class NonCollectionSetters extends AbstractMemberSetters {
     NonCollectionSetters(IntermediateModel intermediateModel,
@@ -51,6 +52,18 @@ class NonCollectionSetters extends AbstractMemberSetters {
                                        .build());
         }
 
+        if (memberModel().getDeprecatedName() != null) {
+            MethodSpec.Builder builder = fluentAbstractSetterDeclaration(
+                memberModel().getDeprecatedFluentSetterMethodName(),
+                memberAsParameter(),
+                returnType);
+
+            fluentDeclarations.add(builder
+                                       .addJavadoc("$L", memberModel().getDeprecatedSetterDocumentation())
+                                       .addAnnotation(Deprecated.class)
+                                       .build());
+        }
+
         if (memberModel().hasBuilder()) {
             fluentDeclarations.add(fluentConsumerFluentSetter(returnType));
         }
@@ -66,6 +79,10 @@ class NonCollectionSetters extends AbstractMemberSetters {
 
         if (memberModel().getEnumType() != null) {
             fluentSetters.add(fluentEnumToStringSetter(returnType));
+        }
+
+        if (memberModel().getDeprecatedName() != null) {
+            fluentSetters.add(fluentAssignmentSetter(memberModel().getDeprecatedFluentSetterMethodName(), returnType));
         }
 
         return fluentSetters;
@@ -96,15 +113,31 @@ class NonCollectionSetters extends AbstractMemberSetters {
     }
 
     @Override
-    public MethodSpec beanStyle() {
-        MethodSpec.Builder builder = beanStyleSetterBuilder()
-            .addCode(beanCopySetterBody());
+    public List<MethodSpec> beanStyle() {
+        List<MethodSpec> methods = new ArrayList<>();
+        methods.add(beanStyleSetterBuilder()
+                        .addCode(beanCopySetterBody())
+                        .build());
 
-        return builder.build();
+        if (StringUtils.isNotBlank(memberModel().getDeprecatedBeanStyleSetterMethodName())) {
+            methods.add(deprecatedBeanStyleSetterBuilder()
+                            .addCode(beanCopySetterBody())
+                            .addAnnotation(Deprecated.class)
+                            .addJavadoc("@deprecated Use {@link #" + memberModel().getBeanStyleSetterMethodName() + "} instead")
+                            .build());
+        }
+
+        return methods;
     }
 
     private MethodSpec fluentAssignmentSetter(TypeName returnType) {
         return fluentSetterBuilder(returnType)
+            .addCode(copySetterBody().toBuilder().addStatement("return this").build())
+            .build();
+    }
+
+    private MethodSpec fluentAssignmentSetter(String methodName, TypeName returnType) {
+        return fluentSetterBuilder(methodName, returnType)
             .addCode(copySetterBody().toBuilder().addStatement("return this").build())
             .build();
     }
@@ -130,7 +163,8 @@ class NonCollectionSetters extends AbstractMemberSetters {
 
     private CodeBlock enumToStringAssignmentBody() {
         return CodeBlock.builder()
-                        .addStatement("this.$N($N.toString())", memberModel().getFluentSetterMethodName(), fieldName())
+                        .addStatement("this.$N($N == null ? null : $N.toString())", memberModel().getFluentSetterMethodName(),
+                                      fieldName(), fieldName())
                         .build();
     }
 
