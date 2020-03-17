@@ -22,11 +22,13 @@ import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
  * Synchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -332,10 +334,11 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a
      * list of items matching the given conditions.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * The result can be accessed either through iterable {@link Page}s or {@link Page#items()} directly. If you are iterating
+     * the pages, the result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
      * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
-     * ascending order by default; this behavior can be overridden in the {@link QueryEnhancedRequest}.
+     * the resulting iterator will contain an empty page. Results are sorted by sort key value in ascending order by default;
+     * this behavior can be overridden in the {@link QueryEnhancedRequest}.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link QueryEnhancedRequest}.
@@ -344,56 +347,57 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * further details and constraints.
      * <p>
      * Example:
+     * <p>
+     * 1) Iterating through pages
+     *
      * <pre>
      * {@code
-     *
      * QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build());
-     * Iterator<Page<MyItem>> results = mappedTable.query(QueryEnhancedRequest.builder()
+     * PageIterable<MyItem> results = table.query(QueryEnhancedRequest.builder()
      *                                                                        .queryConditional(queryConditional)
      *                                                                        .build());
+     * results.stream().forEach(p -> p.items().forEach(item -> System.out.println(item)))
      * }
      * </pre>
      *
+     * 2) Iterating through items
+     *
+     * <pre>
+     * {@code
+     * results.items().stream().forEach(item -> System.out.println(item));
+     * }
+     * </pre>
+     *
+     * @see #query(QueryConditional)
+     * @see #query(Consumer)
+     * @see DynamoDbClient#queryPaginator
      * @param request A {@link QueryEnhancedRequest} defining the query conditions and how
      * to handle the results.
      * @return an iterator of type {@link SdkIterable} with paginated results (see {@link Page}).
      */
-    default SdkIterable<Page<T>> query(QueryEnhancedRequest request) {
+    default PageIterable<T> query(QueryEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a
-     * list of items matching the given conditions.
-     * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
-     * ascending order by default; this behavior can be overridden in the {@link QueryEnhancedRequest}.
-     * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link QueryEnhancedRequest}.
-     * <p>
-     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
-     * further details and constraints.
-     * <p>
-     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
-     * create one manually via {@link DeleteItemEnhancedRequest#builder()}.
+     * This is a convenience method that creates an instance of the request builder avoiding the need to create one
+     * manually via {@link QueryEnhancedRequest#builder()}.
      * <p>
      * Example:
      * <pre>
      * {@code
      *
-     * Iterator<Page<MyItem>> results =
+     * PageIterable<MyItem> results =
      *     mappedTable.query(r -> r.queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue("id-value"))));
      * }
      * </pre>
-     *
-     * @param requestConsumer A {@link Consumer} of {@link QueryEnhancedRequest} defining the query conditions and how
-     *                        to handle the results.
+     * @see #query(QueryEnhancedRequest)
+     * @see #query(QueryConditional)
+     * @param requestConsumer A {@link Consumer} of {@link QueryEnhancedRequest} defining the query conditions and how to
+     * handle the results.
      * @return an iterator of type {@link SdkIterable} with paginated results (see {@link Page}).
      */
-    default SdkIterable<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
+    default PageIterable<T> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -401,27 +405,22 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a
      * list of items matching the given conditions.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
-     * ascending order.
-     * <p>
-     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
-     * further details and constraints.
-     * <p>
      * Example:
      * <pre>
      * {@code
      *
-     * Iterator<Page<MyItem>> results =
+     * PageIterable<MyItem> results =
      *     mappedTable.query(QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build()));
      * }
      * </pre>
      *
+     * @see #query(QueryEnhancedRequest)
+     * @see #query(Consumer)
+     * @see DynamoDbClient#queryPaginator
      * @param queryConditional A {@link QueryConditional} defining the matching criteria for records to be queried.
      * @return an iterator of type {@link SdkIterable} with paginated results (see {@link Page}).
      */
-    default SdkIterable<Page<T>> query(QueryConditional queryConditional) {
+    default PageIterable<T> query(QueryConditional queryConditional) {
         throw new UnsupportedOperationException();
     }
 
@@ -499,72 +498,88 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     /**
      * Scans the table and retrieves all items.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
+     * The result can be accessed either through iterable {@link Page}s or items across all pages directly. Each time a
+     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
      * the resulting iterator will contain an empty page.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link ScanEnhancedRequest}.
      * <p>
      * Example:
+     * <p>
+     * 1) Iterating through pages
      * <pre>
      * {@code
      *
-     * Iterator<Page<MyItem>> results = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * PageIterable<MyItem> results = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * results.stream().forEach(p -> p.items().forEach(item -> System.out.println(item)))
      * }
      * </pre>
      *
+     * <p>
+     * 2) Iterating through items
+     * <pre>
+     * {@code
+     *
+     * PageIterable<MyItem> results = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * results.items().stream().forEach(item -> System.out.println(item));
+     * }
+     * </pre>
+     *
+     * @see #scan(Consumer)
+     * @see #scan()
+     * @see DynamoDbClient#scanPaginator
      * @param request A {@link ScanEnhancedRequest} defining how to handle the results.
      * @return an iterator of type {@link SdkIterable} with paginated results (see {@link Page}).
      */
-    default SdkIterable<Page<T>> scan(ScanEnhancedRequest request) {
+    default PageIterable<T> scan(ScanEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Scans the table and retrieves all items.
-     * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page.
-     * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link ScanEnhancedRequest}.
+     * This is a convenience method that creates an instance of the request builder avoiding the need to create one
+     * manually via {@link ScanEnhancedRequest#builder()}.
+     *
      * <p>
      * Example:
      * <pre>
      * {@code
      *
-     * Iterator<Page<MyItem>> results = mappedTable.scan(r -> r.limit(5));
+     * PageIterable<MyItem> results = mappedTable.scan(r -> r.limit(5));
      * }
      * </pre>
      *
+     * @see #scan(ScanEnhancedRequest)
+     * @see #scan()
      * @param requestConsumer A {@link Consumer} of {@link ScanEnhancedRequest} defining the query conditions and how to
      * handle the results.
      * @return an iterator of type {@link SdkIterable} with paginated results (see {@link Page}).
      */
-    default SdkIterable<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
+    default PageIterable<T> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Scans the table and retrieves all items using default settings.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
+     * The result can be accessed either through iterable {@link Page}s or items across all pages directly. Each time a
+     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
      * the resulting iterator will contain an empty page.
      * <p>
      * Example:
      * <pre>
      * {@code
      *
-     * Iterator<Page<MyItem>> results = mappedTable.scan();
+     * PageIterable<MyItem> results = mappedTable.scan();
      * }
      * </pre>
      *
+     * @see #scan(ScanEnhancedRequest)
+     * @see #scan(Consumer)
+     * @see DynamoDbClient#scanPaginator
      * @return an iterator of type {@link SdkIterable} with paginated results (see {@link Page}).
      */
-    default SdkIterable<Page<T>> scan() {
+    default PageIterable<T> scan() {
         throw new UnsupportedOperationException();
     }
 

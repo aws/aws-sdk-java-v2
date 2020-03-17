@@ -55,7 +55,7 @@ public class DefaultDynamoDbIndex<T> implements DynamoDbIndex<T> {
 
     @Override
     public SdkIterable<Page<T>> query(QueryEnhancedRequest request) {
-        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
+        PaginatedIndexOperation<T, ?, ?> operation = QueryOperation.create(request);
         return operation.executeOnSecondaryIndex(tableSchema, tableName, indexName, extension, dynamoDbClient);
     }
 
@@ -73,7 +73,7 @@ public class DefaultDynamoDbIndex<T> implements DynamoDbIndex<T> {
 
     @Override
     public SdkIterable<Page<T>> scan(ScanEnhancedRequest request) {
-        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
+        PaginatedIndexOperation<T, ?, ?> operation = ScanOperation.create(request);
         return operation.executeOnSecondaryIndex(tableSchema, tableName, indexName, extension, dynamoDbClient);
     }
 
