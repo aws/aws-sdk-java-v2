@@ -288,9 +288,9 @@ public class BatchGetItemOperationTest {
 
         BatchGetResultPage resultsPage = operation.transformResponse(fakeResults, null);
 
-        List<FakeItem> fakeItemResultsPage = resultsPage.getResultsForTable(fakeItemMappedTable);
+        List<FakeItem> fakeItemResultsPage = resultsPage.resultsForTable(fakeItemMappedTable);
         List<FakeItemWithSort> fakeItemWithSortResultsPage =
-            resultsPage.getResultsForTable(fakeItemWithSortMappedTable);
+            resultsPage.resultsForTable(fakeItemWithSortMappedTable);
 
         assertThat(fakeItemResultsPage, containsInAnyOrder(FAKE_ITEMS.get(0), FAKE_ITEMS.get(1)));
         assertThat(fakeItemWithSortResultsPage, containsInAnyOrder(FAKESORT_ITEMS.get(0)));
@@ -323,9 +323,9 @@ public class BatchGetItemOperationTest {
 
         BatchGetResultPage resultsPage = operation.transformResponse(fakeResults, mockExtension);
 
-        List<FakeItem> fakeItemResultsPage = resultsPage.getResultsForTable(fakeItemMappedTable);
+        List<FakeItem> fakeItemResultsPage = resultsPage.resultsForTable(fakeItemMappedTable);
         List<FakeItemWithSort> fakeItemWithSortResultsPage =
-            resultsPage.getResultsForTable(fakeItemWithSortMappedTable);
+            resultsPage.resultsForTable(fakeItemWithSortMappedTable);
 
 
         assertThat(fakeItemResultsPage, containsInAnyOrder(FAKE_ITEMS.get(3), FAKE_ITEMS.get(4)));
@@ -339,7 +339,7 @@ public class BatchGetItemOperationTest {
 
         BatchGetResultPage resultsPage = operation.transformResponse(fakeResults, null);
 
-        assertThat(resultsPage.getResultsForTable(fakeItemMappedTable), is(emptyList()));
+        assertThat(resultsPage.resultsForTable(fakeItemMappedTable), is(emptyList()));
     }
 
     private static BatchGetItemEnhancedRequest emptyRequest() {

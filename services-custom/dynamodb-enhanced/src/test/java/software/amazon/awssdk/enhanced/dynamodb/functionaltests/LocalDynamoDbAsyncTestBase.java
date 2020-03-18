@@ -30,7 +30,7 @@ public class LocalDynamoDbAsyncTestBase extends LocalDynamoDbTestBase {
         return dynamoDbAsyncClient;
     }
 
-    protected static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
+    public static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
         BufferingSubscriber<T> subscriber = new BufferingSubscriber<>();
         publisher.subscribe(subscriber);
         subscriber.waitForCompletion(1000L);
