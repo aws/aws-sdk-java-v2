@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS MediaConnect",
+    "description": "Feature adds the ability for a flow to have multiple redundant sources that provides resiliency to a source failing. The new APIs added to enable the feature are, AddFlowSources, RemoveFlowSource and UpdateFlow."
+}
