@@ -31,8 +31,8 @@ import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 @SdkInternalApi
-public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest, ScanResponse, Page<T>>,
-                                         PaginatedIndexOperation<T, ScanRequest, ScanResponse, Page<T>> {
+public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest, ScanResponse>,
+                                         PaginatedIndexOperation<T, ScanRequest, ScanResponse> {
 
     private final ScanEnhancedRequest request;
 

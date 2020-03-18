@@ -19,7 +19,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -37,7 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOp
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -157,20 +156,20 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
-    public SdkIterable<Page<T>> query(QueryEnhancedRequest request) {
-        PaginatedTableOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
+    public PageIterable<T> query(QueryEnhancedRequest request) {
+        PaginatedTableOperation<T, ?, ?> operation = QueryOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
-    public SdkIterable<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
+    public PageIterable<T> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
         QueryEnhancedRequest.Builder builder = QueryEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return query(builder.build());
     }
 
     @Override
-    public SdkIterable<Page<T>> query(QueryConditional queryConditional) {
+    public PageIterable<T> query(QueryConditional queryConditional) {
         return query(r -> r.queryConditional(queryConditional));
     }
 
@@ -194,20 +193,20 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
-    public SdkIterable<Page<T>> scan(ScanEnhancedRequest request) {
-        PaginatedTableOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
+    public PageIterable<T> scan(ScanEnhancedRequest request) {
+        PaginatedTableOperation<T, ?, ?> operation = ScanOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
-    public SdkIterable<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
+    public PageIterable<T> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
         ScanEnhancedRequest.Builder builder = ScanEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return scan(builder.build());
     }
 
     @Override
-    public SdkIterable<Page<T>> scan() {
+    public PageIterable<T> scan() {
         return scan(ScanEnhancedRequest.builder().build());
     }
 
