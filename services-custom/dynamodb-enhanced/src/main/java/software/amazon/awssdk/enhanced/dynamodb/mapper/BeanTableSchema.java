@@ -29,12 +29,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -45,6 +48,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -187,6 +191,9 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
                                                                 .newItemSupplier(newObjectSupplier);
 
+        Optional<AttributeConverterProvider> attributeConverterProvider = converterProviderAnnotation(dynamoDbBean);
+        attributeConverterProvider.ifPresent(builder::attributeConverterProvider);
+
         List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
 
         Arrays.stream(beanInfo.getPropertyDescriptors())
@@ -202,13 +209,25 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                       StaticAttribute.Builder<T, ?> attributeBuilder =
                           staticAttributeBuilder(propertyDescriptor, beanClass);
 
+                      Optional<AttributeConverter> attributeConverter = attributeConverterAnnotation(propertyDescriptor);
+                      attributeConverter.ifPresent(attributeBuilder::attributeConverter);
+
                       addTagsToAttribute(attributeBuilder, propertyDescriptor);
                       attributes.add(attributeBuilder.build());
                   }
               });
 
         builder.attributes(attributes);
+
         return builder.build();
+    }
+
+    private static Optional<AttributeConverterProvider> converterProviderAnnotation(DynamoDbBean dynamoDbBean) {
+        Class<?>[] converterClasses = dynamoDbBean.converterProviders();
+        //TODO: temporary solution to pick one AttributeConverterProvider.
+        return converterClasses.length > 0 ?
+               Optional.of((AttributeConverterProvider) newObjectSupplierForClass(converterClasses[0]).get()) :
+               Optional.empty();
     }
 
     @SuppressWarnings("unchecked")
@@ -234,6 +253,13 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                               .name(attributeNameForProperty(propertyDescriptor))
                               .getter(getterForProperty(propertyDescriptor, beanClass))
                               .setter(setterForProperty(propertyDescriptor, beanClass));
+    }
+
+    private static Optional<AttributeConverter> attributeConverterAnnotation(PropertyDescriptor propertyDescriptor) {
+        DynamoDbConvertedBy attributeConverterBean = propertyAnnotation(propertyDescriptor, DynamoDbConvertedBy.class);
+        Optional<Class<?>> optionalClass = Optional.ofNullable(attributeConverterBean)
+                                                   .map(DynamoDbConvertedBy::value);
+        return optionalClass.map(clazz -> (AttributeConverter) newObjectSupplierForClass(clazz).get());
     }
 
     /**
