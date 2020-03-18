@@ -10,4 +10,4 @@ phases:
       - mvn install -P quick -pl :sdk-benchmarks --am
       - mvn install -pl :bom-internal
       - cd test/sdk-benchmarks
-      - mvn exec:exec
+      - java -jar target/benchmarks.jar -f 1 -wi 8 -i 8 software.amazon.awssdk.benchmark.enhanced.dynamodb

@@ -36,6 +36,9 @@ import software.amazon.awssdk.benchmark.apicall.protocol.QueryProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.XmlProtocolBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetOverheadBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutOverheadBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.V1MapperComparisonBenchmark;
 import software.amazon.awssdk.utils.Logger;
 
 
@@ -58,6 +61,12 @@ public class BenchmarkRunner {
         V2OptimizedClientCreationBenchmark.class.getSimpleName(),
         V2DefaultClientCreationBenchmark.class.getSimpleName());
 
+    private static final List<String> MAPPER_BENCHMARKS = Arrays.asList(
+            EnhancedClientGetOverheadBenchmark.class.getSimpleName(),
+            EnhancedClientPutOverheadBenchmark.class.getSimpleName(),
+            V1MapperComparisonBenchmark.class.getSimpleName()
+    );
+
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
 
     private final List<String> benchmarksToRun;
@@ -74,6 +83,7 @@ public class BenchmarkRunner {
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
         benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
         benchmarksToRun.addAll(COLD_START_BENCHMARKS);
+        benchmarksToRun.addAll(MAPPER_BENCHMARKS);
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
 
