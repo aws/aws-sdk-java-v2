@@ -123,12 +123,12 @@ fully documented in the Javadoc of the interfaces referenced in these examples.
    PageIterable<Customer> customers = customerTable.scan();
    
    // BatchGetItem
-   batchResults = enhancedClient.batchGetItem(r -> r.addReadBatch(ReadBatch.builder(Customer.class)
-                                                                           .mappedTableResource(customerTable)
-                                                                           .addGetItem(key1)
-                                                                           .addGetItem(key2)
-                                                                           .addGetItem(key3)
-                                                                           .build()));
+   BatchGetResultPageIterable batchResults = enhancedClient.batchGetItem(r -> r.addReadBatch(ReadBatch.builder(Customer.class)
+                                                                               .mappedTableResource(customerTable)
+                                                                               .addGetItem(key1)
+                                                                               .addGetItem(key2)
+                                                                               .addGetItem(key3)
+                                                                               .build()));
    
    // BatchWriteItem
    batchResults = enhancedClient.batchWriteItem(r -> r.addWriteBatch(WriteBatch.builder(Customer.class)
