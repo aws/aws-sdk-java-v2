@@ -1,3 +1,20 @@
+# __2.10.89__ __2020-03-18__
+## __AWS MediaConnect__
+  - ### Features
+    - Feature adds the ability for a flow to have multiple redundant sources that provides resiliency to a source failing. The new APIs added to enable the feature are, AddFlowSources, RemoveFlowSource and UpdateFlow.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Personalize__
+  - ### Features
+    - [Personalize] Adds support for returning hyperparameter values of the best performing model in a HPO job.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updated the MaxRecords type in DescribeExportTasks to Integer.
+
 # __2.10.88__ __2020-03-17__
 ## __AWS Elemental MediaConvert__
   - ### Features

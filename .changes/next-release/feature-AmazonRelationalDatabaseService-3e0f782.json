@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "description": "Updated the MaxRecords type in DescribeExportTasks to Integer."
-}
