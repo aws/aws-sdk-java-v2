@@ -183,6 +183,30 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void queryAllRecordsWithFilter_viaItems() {
+        insertRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                                          .expression("#value >= :min_value AND #value <= :max_value")
+                                          .expressionValues(expressionValues)
+                                          .expressionNames(Collections.singletonMap("#value", "value"))
+                                          .build();
+
+        SdkPublisher<Record> publisher =
+            mappedTable.query(QueryEnhancedRequest.builder()
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                  .filterExpression(expression)
+                                                  .build()).items();
+
+        List<Record> results = drainPublisher(publisher, 3);
+
+        assertThat(results,
+                   is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
+    }
+
+    @Test
     public void queryBetween() {
         insertRecords();
         Key fromKey = Key.builder().partitionValue("id-value").sortValue(3).build();
@@ -195,6 +219,19 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         assertThat(page.items(),
                    is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryBetween_viaItems() {
+        insertRecords();
+        Key fromKey = Key.builder().partitionValue("id-value").sortValue(3).build();
+        Key toKey = Key.builder().partitionValue("id-value").sortValue(5).build();
+        SdkPublisher<Record> publisher = mappedTable.query(r -> r.queryConditional(QueryConditional.sortBetween(fromKey, toKey))).items();
+
+        List<Record> results = drainPublisher(publisher, 3);
+
+        assertThat(results,
+                   is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
     }
 
     @Test
@@ -226,6 +263,20 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void queryLimit_viaItems() {
+        insertRecords();
+        SdkPublisher<Record> publisher =
+            mappedTable.query(QueryEnhancedRequest.builder()
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                  .limit(5)
+                                                  .build())
+                       .items();
+
+        List<Record> results = drainPublisher(publisher, 10);
+        assertThat(results, is(RECORDS));
+    }
+
+    @Test
     public void queryEmpty() {
         SdkPublisher<Page<Record>> publisher =
             mappedTable.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("id-value"))));
@@ -235,6 +286,15 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
 
         assertThat(page.items(), is(empty()));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryEmpty_viaItems() {
+        SdkPublisher<Record> publisher =
+            mappedTable.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))).items();
+
+        List<Record> results = drainPublisher(publisher, 0);
+        assertThat(results, is(empty()));
     }
 
     @Test

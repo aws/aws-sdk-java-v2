@@ -18,16 +18,17 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -333,50 +334,56 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a list of
      * items matching the given conditions.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
+     * The return type is a custom publisher that can be subscribed to request a stream of {@link Page}s or
+     * a stream of items across all pages. Results are sorted by sort key value in
      * ascending order by default; this behavior can be overridden in the {@link QueryEnhancedRequest}.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link QueryEnhancedRequest}.
      * <p>
-     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
-     * further details and constraints.
+     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation
+     * {@link DynamoDbAsyncClient#queryPaginator} for further details and constraints.
      * <p>
      * Example:
+     * <p>
+     * 1) Subscribing to {@link Page}s
      * <pre>
      * {@code
      *
      * QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build());
-     * SdkPublisher<Page<MyItem>> publisher = mappedTable.query(QueryEnhancedRequest.builder()
-     *                                                                              .queryConditional(queryConditional)
-     *                                                                              .build());
+     * PagePublisher<MyItem> publisher = mappedTable.query(QueryEnhancedRequest.builder()
+     *                                                                         .queryConditional(queryConditional)
+     *                                                                         .build());
+     * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
+     * }
+     * <p>
+     * 2) Subscribing to items across all pages
+     * <pre>
+     * {@code
+     *
+     * QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build());
+     * PagePublisher<MyItem> publisher = mappedTable.query(QueryEnhancedRequest.builder()
+     *                                                                         .queryConditional(queryConditional)
+     *                                                                         .build())
+     *                                              .items();
+     * publisher.items().subscribe(item -> System.out.println(item));
      * }
      * </pre>
      *
+     * @see #query(Consumer)
+     * @see #query(QueryConditional)
+     * @see DynamoDbAsyncClient#queryPaginator
      * @param request A {@link QueryEnhancedRequest} defining the query conditions and how
      * to handle the results.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
+    default PagePublisher<T> query(QueryEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a list of
      * items matching the given conditions.
-     * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
-     * ascending order by default; this behavior can be overridden in the {@link QueryEnhancedRequest}.
-     * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link QueryEnhancedRequest}.
-     * <p>
-     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
-     * further details and constraints.
      * <p>
      * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
      * manually via {@link QueryEnhancedRequest#builder()}.
@@ -385,16 +392,19 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> publisher =
+     * PagePublisher<MyItem> publisher =
      *     mappedTable.query(r -> r.queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue("id-value"))));
      * }
      * </pre>
      *
+     * @see #query(QueryEnhancedRequest)
+     * @see #query(QueryConditional)
+     * @see DynamoDbAsyncClient#queryPaginator
      * @param requestConsumer A {@link Consumer} of {@link QueryEnhancedRequest} defining the query conditions and how to
      * handle the results.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
+    default PagePublisher<T> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -414,15 +424,18 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> results =
+     * PagePublisher<MyItem> results =
      *     mappedTable.query(QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build()));
      * }
      * </pre>
      *
+     * @see #query(QueryEnhancedRequest)
+     * @see #query(Consumer)
+     * @see DynamoDbAsyncClient#queryPaginator
      * @param queryConditional A {@link QueryConditional} defining the matching criteria for records to be queried.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> query(QueryConditional queryConditional) {
+    default PagePublisher<T> query(QueryConditional queryConditional) {
         throw new UnsupportedOperationException();
     }
 
@@ -503,72 +516,83 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     /**
      * Scans the table and retrieves all items.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page.
+     * The return type is a custom publisher that can be subscribed to request a stream of {@link Page}s or
+     * a stream of flattened items across all pages. Each time a result page is retrieved, a scan call is made
+     * to DynamoDb to get those entries. If no matches are found, the resulting iterator will contain an empty page.
+     *
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link ScanEnhancedRequest}.
      * <p>
      * Example:
+     * <p>
+     * 1) Subscribing to {@link Page}s
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * PagePublisher<MyItem> publisher = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
      * }
      * </pre>
      *
+     * <p>
+     * 2) Subscribing to items across all pages.
+     * <pre>
+     * {@code
+     *
+     * PagePublisher<MyItem> publisher = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * publisher.items().subscribe(item -> System.out.println(item));
+     * }
+     * </pre>
+     *
+     * @see #scan(Consumer)
+     * @see #scan()
+     * @see DynamoDbAsyncClient#scanPaginator
      * @param request A {@link ScanEnhancedRequest} defining how to handle the results.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
+    default PagePublisher<T> scan(ScanEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Scans the table and retrieves all items.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page.
-     * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link ScanEnhancedRequest}.
-     * <p>
      * Example:
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan(r -> r.limit(5));
+     * PagePublisher<MyItem> publisher = mappedTable.scan(r -> r.limit(5));
      * }
      * </pre>
-     *
+     * 
+     * @see #scan(ScanEnhancedRequest)
+     * @see #scan()
+     * @see DynamoDbAsyncClient#scanPaginator
      * @param requestConsumer A {@link Consumer} of {@link ScanEnhancedRequest} defining the query conditions and how to
      * handle the results.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
+    default PagePublisher<T> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Scans the table and retrieves all items using default settings.
-     * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page.
-     * <p>
+     *
      * Example:
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan();
+     * PagePublisher<MyItem> publisher = mappedTable.scan();
      * }
      * </pre>
-     *
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @see #scan(ScanEnhancedRequest)
+     * @see #scan(Consumer)
+     * @see DynamoDbAsyncClient#scanPaginator
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> scan() {
+    default PagePublisher<T> scan() {
         throw new UnsupportedOperationException();
     }
 

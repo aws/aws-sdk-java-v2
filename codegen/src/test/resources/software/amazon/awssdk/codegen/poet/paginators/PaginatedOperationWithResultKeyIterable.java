@@ -104,7 +104,8 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
             }
             return Collections.emptyIterator();
         };
-        return PaginatedItemsIterable.builder().pagesIterable(this).itemIteratorFunction(getIterator).build();
+        return PaginatedItemsIterable.<PaginatedOperationWithResultKeyResponse, SimpleStruct> builder().pagesIterable(this)
+                                                                                                       .itemIteratorFunction(getIterator).build();
     }
 
     private class PaginatedOperationWithResultKeyResponseFetcher implements

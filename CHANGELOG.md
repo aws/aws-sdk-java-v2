@@ -1,3 +1,12 @@
+# __2.10.90__ __2020-03-19__
+## __AWS Certificate Manager__
+  - ### Features
+    - AWS Certificate Manager documentation updated on API calls ImportCertificate and ListCertificate. Specific updates included input constraints, private key size for import and next token size for list.
+
+## __AWS Outposts__
+  - ### Features
+    - Documentation updates for AWS Outposts.
+
 # __2.10.89__ __2020-03-18__
 ## __AWS MediaConnect__
   - ### Features
