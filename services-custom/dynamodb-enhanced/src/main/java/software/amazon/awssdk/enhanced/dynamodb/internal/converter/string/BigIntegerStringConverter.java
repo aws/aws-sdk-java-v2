@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.math.BigInteger;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -33,15 +32,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class BigIntegerStringConverter implements StringConverter<BigInteger> {
-    private BigIntegerStringConverter() { }
+    private BigIntegerStringConverter() {
+    }
 
     public static BigIntegerStringConverter create() {
         return new BigIntegerStringConverter();
     }
 
     @Override
-    public TypeToken<BigInteger> type() {
-        return TypeToken.of(BigInteger.class);
+    public EnhancedType<BigInteger> type() {
+        return EnhancedType.of(BigInteger.class);
     }
 
     @Override

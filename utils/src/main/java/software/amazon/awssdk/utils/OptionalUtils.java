@@ -27,7 +27,8 @@ public final class OptionalUtils {
     /**
      * This class should be used statically.
      */
-    private OptionalUtils() {}
+    private OptionalUtils() {
+    }
 
     /**
      * Attempt to find a present-valued optional in a list of optionals.

@@ -34,13 +34,13 @@ public final class PaginatedItemsIterable<ResponseT, ItemT> implements SdkIterab
     private final SdkIterable<ResponseT> pagesIterable;
     private final Function<ResponseT, Iterator<ItemT>> getItemIterator;
 
-    private PaginatedItemsIterable(BuilderImpl builder) {
+    private PaginatedItemsIterable(BuilderImpl<ResponseT, ItemT> builder) {
         this.pagesIterable = builder.pagesIterable;
         this.getItemIterator = builder.itemIteratorFunction;
     }
 
-    public static Builder builder() {
-        return new BuilderImpl();
+    public static <R, T> Builder<R, T> builder() {
+        return new BuilderImpl<>();
     }
 
     @Override
@@ -86,33 +86,36 @@ public final class PaginatedItemsIterable<ResponseT, ItemT> implements SdkIterab
         }
     }
 
-    public interface Builder {
-        Builder pagesIterable(SdkIterable sdkIterable);
+    public interface Builder<ResponseT, ItemT> {
+        Builder<ResponseT, ItemT> pagesIterable(SdkIterable<ResponseT> sdkIterable);
 
-        Builder itemIteratorFunction(Function itemIteratorFunction);
+        Builder<ResponseT, ItemT> itemIteratorFunction(Function<ResponseT, Iterator<ItemT>> itemIteratorFunction);
 
-        PaginatedItemsIterable build();
+        PaginatedItemsIterable<ResponseT, ItemT> build();
     }
 
-    private static final class BuilderImpl implements Builder {
-        private SdkIterable pagesIterable;
-        private Function itemIteratorFunction;
+    private static final class BuilderImpl<ResponseT, ItemT> implements Builder<ResponseT, ItemT> {
+        private SdkIterable<ResponseT> pagesIterable;
+        private Function<ResponseT, Iterator<ItemT>> itemIteratorFunction;
+
+        private BuilderImpl() {
+        }
 
         @Override
-        public Builder pagesIterable(SdkIterable pagesIterable) {
+        public Builder<ResponseT, ItemT> pagesIterable(SdkIterable<ResponseT> pagesIterable) {
             this.pagesIterable = pagesIterable;
             return this;
         }
 
         @Override
-        public Builder itemIteratorFunction(Function itemIteratorFunction) {
+        public Builder<ResponseT, ItemT> itemIteratorFunction(Function<ResponseT, Iterator<ItemT>> itemIteratorFunction) {
             this.itemIteratorFunction = itemIteratorFunction;
             return this;
         }
 
         @Override
-        public PaginatedItemsIterable build() {
-            return new PaginatedItemsIterable(this);
+        public PaginatedItemsIterable<ResponseT, ItemT> build() {
+            return new PaginatedItemsIterable<>(this);
         }
     }
 }

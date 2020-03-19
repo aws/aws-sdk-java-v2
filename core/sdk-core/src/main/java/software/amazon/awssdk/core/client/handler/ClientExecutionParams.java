@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.client.handler;
 
 import java.net.URI;
-
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Response;

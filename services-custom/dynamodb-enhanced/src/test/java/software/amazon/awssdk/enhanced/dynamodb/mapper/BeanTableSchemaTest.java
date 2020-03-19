@@ -32,11 +32,11 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
@@ -706,9 +706,9 @@ public class BeanTableSchemaTest {
     }
 
     @Test
-    public void beanClass_returnsCorrectClass() {
+    public void itemType_returnsCorrectClass() {
         BeanTableSchema<SimpleBean> beanTableSchema = BeanTableSchema.create(SimpleBean.class);
 
-        assertThat(beanTableSchema.beanClass(), is(equalTo(SimpleBean.class)));
+        assertThat(beanTableSchema.itemType(), is(equalTo(EnhancedType.of(SimpleBean.class))));
     }
 }

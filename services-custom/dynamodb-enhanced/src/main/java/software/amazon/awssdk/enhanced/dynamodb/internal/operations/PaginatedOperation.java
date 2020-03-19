@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
@@ -27,7 +26,9 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.TransformIterable;
-import software.amazon.awssdk.enhanced.dynamodb.internal.TransformPublisher;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -51,10 +52,9 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
  *                  {@link DynamoDbAsyncClient}.
  * @param <ResponseT> The type of the response object for the DynamoDb call in the low level {@link DynamoDbClient}
  *                  or {@link DynamoDbAsyncClient}.
- * @param <ResultT> The type of the mapped result object that will be returned by the execution of this operation.
  */
 @SdkInternalApi
-public interface PaginatedOperation<ItemT, RequestT, ResponseT, ResultT> {
+public interface PaginatedOperation<ItemT, RequestT, ResponseT> {
     /**
      * This method generates the request that needs to be sent to a low level {@link DynamoDbClient}.
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
@@ -92,19 +92,22 @@ public interface PaginatedOperation<ItemT, RequestT, ResponseT, ResultT> {
      *                                        this operation. A null value here will result in no modifications.
      * @return A high level result object as specified by the implementation of this operation.
      */
-    ResultT transformResponse(ResponseT response,
-                              TableSchema<ItemT> tableSchema,
-                              OperationContext context,
-                              DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension);
+    Page<ItemT> transformResponse(ResponseT response,
+                                  TableSchema<ItemT> tableSchema,
+                                  OperationContext context,
+                                  DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension);
 
     /**
      * Default implementation of a complete synchronous execution of this operation against either the primary or a
      * secondary index.
+     * <p>
      * It performs three steps:
-     * 1) Call generateRequest() to get the request object.
-     * 2) Call getServiceCall() and call it using the request object generated in the previous step.
-     * 3) Wraps the {@link SdkIterable} that was returned by the previous step with a transformation that turns each
-     * object returned to a high level result.
+     * <ol>
+     * <li> Call {@link #generateRequest} to get the request object.</li>
+     * <li> Call {@link #asyncServiceCall} and call it using the request object generated in the previous step.</li>
+     * <li> Wraps the {@link SdkIterable} that was returned by the previous step with a transformation that turns each
+     * object returned to a high level result.</li>
+     * </ol>
      *
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
      * @param context An object containing the context, or target, of the command execution.
@@ -113,23 +116,29 @@ public interface PaginatedOperation<ItemT, RequestT, ResponseT, ResultT> {
      *                  operation. A null value here will result in no modifications.
      * @return A high level result object as specified by the implementation of this operation.
      */
-    default SdkIterable<ResultT> execute(TableSchema<ItemT> tableSchema,
-                                         OperationContext context,
-                                         DynamoDbEnhancedClientExtension extension,
-                                         DynamoDbClient dynamoDbClient) {
+    default PageIterable<ItemT> execute(TableSchema<ItemT> tableSchema,
+                                        OperationContext context,
+                                        DynamoDbEnhancedClientExtension extension,
+                                        DynamoDbClient dynamoDbClient) {
         RequestT request = generateRequest(tableSchema, context, extension);
         SdkIterable<ResponseT> response = serviceCall(dynamoDbClient).apply(request);
-        return TransformIterable.of(response, r -> transformResponse(r, tableSchema, context, extension));
+
+        SdkIterable<Page<ItemT>> pageIterables =
+            TransformIterable.of(response, r -> transformResponse(r, tableSchema, context, extension));
+        return PageIterable.create(pageIterables);
     }
 
     /**
      * Default implementation of a complete non-blocking asynchronous execution of this operation against either the
      * primary or a secondary index.
+     * <p>
      * It performs three steps:
-     * 1) Call generateRequest() to get the request object.
-     * 2) Call getServiceCall() and call it using the request object generated in the previous step.
-     * 3) Wraps the {@link SdkPublisher} returned by the SDK in a new one that calls transformResponse() to
+     * <ol>
+     * <li> Call {@link #generateRequest} to get the request object.
+     * <li> Call {@link #asyncServiceCall} and call it using the request object generated in the previous step.
+     * <li> Wraps the {@link SdkPublisher} returned by the SDK in a new one that calls transformResponse() to
      * convert the response objects published to a high level result.
+     * </ol>
      *
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
      * @param context An object containing the context, or target, of the command execution.
@@ -139,13 +148,12 @@ public interface PaginatedOperation<ItemT, RequestT, ResponseT, ResultT> {
      * @return An {@link SdkPublisher} that will publish pages of the high level result object as specified by the
      * implementation of this operation.
      */
-    default SdkPublisher<ResultT> executeAsync(TableSchema<ItemT> tableSchema,
+    default PagePublisher<ItemT> executeAsync(TableSchema<ItemT> tableSchema,
                                                OperationContext context,
                                                DynamoDbEnhancedClientExtension extension,
                                                DynamoDbAsyncClient dynamoDbAsyncClient) {
         RequestT request = generateRequest(tableSchema, context, extension);
         SdkPublisher<ResponseT> response = asyncServiceCall(dynamoDbAsyncClient).apply(request);
-
-        return TransformPublisher.of(response, r -> transformResponse(r, tableSchema, context, extension));
+        return PagePublisher.create(response.map(r -> transformResponse(r, tableSchema, context, extension)));
     }
 }

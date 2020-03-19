@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.util.concurrent.atomic.AtomicLong;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -35,15 +34,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class AtomicLongStringConverter implements StringConverter<AtomicLong> {
     private static LongStringConverter LONG_CONVERTER = LongStringConverter.create();
 
-    private AtomicLongStringConverter() { }
+    private AtomicLongStringConverter() {
+    }
 
     public static AtomicLongStringConverter create() {
         return new AtomicLongStringConverter();
     }
 
     @Override
-    public TypeToken<AtomicLong> type() {
-        return TypeToken.of(AtomicLong.class);
+    public EnhancedType<AtomicLong> type() {
+        return EnhancedType.of(AtomicLong.class);
     }
 
     @Override

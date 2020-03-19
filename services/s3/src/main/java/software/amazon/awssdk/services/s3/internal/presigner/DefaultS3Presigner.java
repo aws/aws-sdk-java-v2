@@ -464,7 +464,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     public static final class Builder extends DefaultSdkPresigner.Builder<Builder>
         implements S3Presigner.Builder {
 
-        private Builder() {}
+        private Builder() {
+        }
 
         @Override
         public S3Presigner build() {

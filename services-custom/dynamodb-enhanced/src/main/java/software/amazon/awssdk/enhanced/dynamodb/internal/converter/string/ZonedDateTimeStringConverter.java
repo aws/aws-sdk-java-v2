@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.time.ZonedDateTime;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -30,15 +29,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class ZonedDateTimeStringConverter implements StringConverter<ZonedDateTime> {
-    private ZonedDateTimeStringConverter() { }
+    private ZonedDateTimeStringConverter() {
+    }
 
     public static ZonedDateTimeStringConverter create() {
         return new ZonedDateTimeStringConverter();
     }
 
     @Override
-    public TypeToken<ZonedDateTime> type() {
-        return TypeToken.of(ZonedDateTime.class);
+    public EnhancedType<ZonedDateTime> type() {
+        return EnhancedType.of(ZonedDateTime.class);
     }
 
     @Override

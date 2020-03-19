@@ -33,6 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -77,7 +78,11 @@ public class UpdateItemOperation<T>
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
         WriteModification transformation =
-            extension != null ? extension.beforeWrite(itemMap, operationContext, tableMetadata) : null;
+            extension != null ? extension.beforeWrite(DefaultDynamoDbExtensionContext.builder()
+                                                                                     .items(itemMap)
+                                                                                     .operationContext(operationContext)
+                                                                                     .tableMetadata(tableMetadata)
+                                                                                     .build()) : null;
 
         if (transformation != null && transformation.transformedItem() != null) {
             itemMap = transformation.transformedItem();
@@ -215,20 +220,20 @@ public class UpdateItemOperation<T>
         /* Merge in conditional expression from extension WriteModification if applicable */
         if (transformation != null && transformation.additionalConditionalExpression() != null) {
             expressionNames =
-                Expression.coalesceNames(expressionNames,
-                                         transformation.additionalConditionalExpression().expressionNames());
+                Expression.joinNames(expressionNames,
+                                     transformation.additionalConditionalExpression().expressionNames());
             expressionValues =
-                Expression.coalesceValues(expressionValues,
-                                          transformation.additionalConditionalExpression().expressionValues());
+                Expression.joinValues(expressionValues,
+                                      transformation.additionalConditionalExpression().expressionValues());
             conditionExpressionString = transformation.additionalConditionalExpression().expression();
         }
 
         /* Merge in conditional expression from specified 'conditionExpression' if applicable */
         if (this.request.conditionExpression() != null) {
-            expressionNames = Expression.coalesceNames(expressionNames, this.request.conditionExpression().expressionNames());
-            expressionValues = Expression.coalesceValues(expressionValues, this.request.conditionExpression().expressionValues());
-            conditionExpressionString = Expression.coalesceExpressions(conditionExpressionString,
-                                                                       this.request.conditionExpression().expression(), " AND ");
+            expressionNames = Expression.joinNames(expressionNames, this.request.conditionExpression().expressionNames());
+            expressionValues = Expression.joinValues(expressionValues, this.request.conditionExpression().expressionValues());
+            conditionExpressionString = Expression.joinExpressions(conditionExpressionString,
+                                                                   this.request.conditionExpression().expression(), " AND ");
         }
 
         // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.

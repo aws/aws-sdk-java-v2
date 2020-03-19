@@ -16,17 +16,16 @@
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Simple object for storing a modification to a write operation.
- *
+ * <p>
  * If a transformedItem is supplied then this item will be completely substituted in place of the item that was
  * previously going to be written.
- *
+ * <p>
  * If an additionalConditionalExpression is supplied then this condition will be coalesced with any other conditions
  * and added as a parameter to the write operation.
  */

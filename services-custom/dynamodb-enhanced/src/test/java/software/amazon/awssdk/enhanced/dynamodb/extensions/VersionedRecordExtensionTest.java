@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -44,7 +45,11 @@ public class VersionedRecordExtensionTest {
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
 
         ReadModification result =
-            versionedRecordExtension.afterRead(fakeItemMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+            versionedRecordExtension.afterRead(DefaultDynamoDbExtensionContext
+                                               .builder()
+                                               .items(fakeItemMap)
+                                               .tableMetadata(FakeItem.getTableMetadata())
+                                               .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result, is(ReadModification.builder().build()));
     }
@@ -54,9 +59,12 @@ public class VersionedRecordExtensionTest {
         FakeItem fakeItem = createUniqueFakeItem();
 
         WriteModification result =
-            versionedRecordExtension.beforeWrite(FakeItem.getTableSchema().itemToMap(fakeItem, true),
-                                                 PRIMARY_CONTEXT,
-                                                 FakeItem.getTableMetadata());
+            versionedRecordExtension.beforeWrite(
+                DefaultDynamoDbExtensionContext
+                    .builder()
+                    .items(FakeItem.getTableSchema().itemToMap(fakeItem, true))
+                    .tableMetadata(FakeItem.getTableMetadata())
+                    .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result.additionalConditionalExpression(),
                    is(Expression.builder().expression("attribute_not_exists(version)").build()));
@@ -70,9 +78,11 @@ public class VersionedRecordExtensionTest {
         fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("1").build());
 
         WriteModification result =
-            versionedRecordExtension.beforeWrite(FakeItem.getTableSchema().itemToMap(fakeItem, true),
-                                                 PRIMARY_CONTEXT,
-                                                 FakeItem.getTableMetadata());
+            versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                     .builder()
+                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true))
+                                                     .tableMetadata(FakeItem.getTableMetadata())
+                                                     .operationContext(PRIMARY_CONTEXT).build());
 
 
         assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
@@ -89,7 +99,11 @@ public class VersionedRecordExtensionTest {
         fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("1").build());
 
         WriteModification result =
-            versionedRecordExtension.beforeWrite(inputMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+            versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                     .builder()
+                                                     .items(inputMap)
+                                                     .tableMetadata(FakeItem.getTableMetadata())
+                                                     .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
     }
@@ -100,9 +114,11 @@ public class VersionedRecordExtensionTest {
         fakeItem.setVersion(13);
 
         WriteModification result =
-            versionedRecordExtension.beforeWrite(FakeItem.getTableSchema().itemToMap(fakeItem, true),
-                                                 PRIMARY_CONTEXT,
-                                                 FakeItem.getTableMetadata());
+            versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                     .builder()
+                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true))
+                                                     .tableMetadata(FakeItem.getTableMetadata())
+                                                     .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result.additionalConditionalExpression(),
                    is(Expression.builder()
@@ -121,9 +137,11 @@ public class VersionedRecordExtensionTest {
         fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("14").build());
 
         WriteModification result =
-            versionedRecordExtension.beforeWrite(FakeItem.getTableSchema().itemToMap(fakeItem, true),
-                                                 PRIMARY_CONTEXT,
-                                                 FakeItem.getTableMetadata());
+            versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                     .builder()
+                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true))
+                                                     .tableMetadata(FakeItem.getTableMetadata())
+                                                     .operationContext(PRIMARY_CONTEXT).build());
 
 
         assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
@@ -135,9 +153,11 @@ public class VersionedRecordExtensionTest {
         Map<String, AttributeValue> itemMap =
             new HashMap<>(FakeItemWithSort.getTableSchema().itemToMap(fakeItemWithSort, true));
 
-        WriteModification writeModification = versionedRecordExtension.beforeWrite(itemMap,
-                                                                                   PRIMARY_CONTEXT,
-                                                                                   FakeItemWithSort.getTableSchema().tableMetadata());
+        WriteModification writeModification = versionedRecordExtension.beforeWrite( DefaultDynamoDbExtensionContext.builder()
+                                                                                                                   .items(itemMap)
+                                                                                                                   .operationContext(PRIMARY_CONTEXT)
+                                                                                                                   .tableMetadata(FakeItemWithSort.getTableMetadata())
+                                                                                                                   .build());
 
         assertThat(writeModification, is(WriteModification.builder().build()));
     }
@@ -149,6 +169,11 @@ public class VersionedRecordExtensionTest {
             new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
         fakeItemWIthBadVersion.put("version", AttributeValue.builder().s("14").build());
 
-        versionedRecordExtension.beforeWrite(fakeItemWIthBadVersion, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        versionedRecordExtension.beforeWrite(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .items(fakeItemWIthBadVersion)
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .tableMetadata(FakeItem.getTableMetadata())
+                                           .build());
     }
 }

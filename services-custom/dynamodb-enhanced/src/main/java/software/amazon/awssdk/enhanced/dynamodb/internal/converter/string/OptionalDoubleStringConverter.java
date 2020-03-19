@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.util.OptionalDouble;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -32,15 +31,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class OptionalDoubleStringConverter implements StringConverter<OptionalDouble> {
     private static DoubleStringConverter DOUBLE_CONVERTER = DoubleStringConverter.create();
 
-    private OptionalDoubleStringConverter() { }
+    private OptionalDoubleStringConverter() {
+    }
 
     public static OptionalDoubleStringConverter create() {
         return new OptionalDoubleStringConverter();
     }
 
     @Override
-    public TypeToken<OptionalDouble> type() {
-        return TypeToken.of(OptionalDouble.class);
+    public EnhancedType<OptionalDouble> type() {
+        return EnhancedType.of(OptionalDouble.class);
     }
 
     @Override

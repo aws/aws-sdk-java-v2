@@ -16,17 +16,16 @@
 package software.amazon.awssdk.enhanced.dynamodb.mocktests;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mocktests.BatchGetTestUtils.stubResponseWithUnprocessedKeys;
 import static software.amazon.awssdk.enhanced.dynamodb.mocktests.BatchGetTestUtils.stubSuccessfulResponse;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,7 +35,6 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mocktests.BatchGetTestUtils.Record;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPage;
@@ -46,7 +44,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 public class AsyncBatchGetItemTest {
 
-    private DynamoDbAsyncClient dynamoDbClient;
     private DynamoDbEnhancedAsyncClient enhancedClient;
     private DynamoDbAsyncTable<Record> table;
 
@@ -56,19 +53,22 @@ public class AsyncBatchGetItemTest {
     @Before
     public void setup() {
 
-        dynamoDbClient = DynamoDbAsyncClient.builder()
-                                            .region(Region.US_WEST_2)
-                                            .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
-                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                            .build();
+        DynamoDbAsyncClient dynamoDbClient =
+            DynamoDbAsyncClient.builder()
+                               .region(Region.US_WEST_2)
+                               .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
+                               .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                               .build();
         enhancedClient = DynamoDbEnhancedAsyncClient.builder()
                                                     .dynamoDbClient(dynamoDbClient)
                                                     .build();
         StaticTableSchema<Record> tableSchema = StaticTableSchema.builder(Record.class)
                                                                  .newItemSupplier(Record::new)
-                                                                 .attributes(attribute("id", TypeToken.of(Integer.class),
-                                                                                       Record::getId,
-                                                                                       Record::setId).as(primaryPartitionKey()))
+                                                                 .addAttribute(Integer.class,
+                                                                               a -> a.name("id")
+                                                                                     .getter(Record::getId)
+                                                                                     .setter(Record::setId)
+                                                                                     .tags(primaryPartitionKey()))
                                                                  .build();
         table = enhancedClient.table("table", tableSchema);
     }

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;

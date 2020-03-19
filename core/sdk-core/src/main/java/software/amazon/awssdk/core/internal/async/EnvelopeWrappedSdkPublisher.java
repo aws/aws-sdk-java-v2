@@ -16,11 +16,9 @@
 package software.amazon.awssdk.core.internal.async;
 
 import java.util.function.BiFunction;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 

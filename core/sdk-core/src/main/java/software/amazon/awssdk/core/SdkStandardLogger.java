@@ -36,5 +36,6 @@ public final class SdkStandardLogger {
      */
     public static final Logger REQUEST_ID_LOGGER = Logger.loggerFor("software.amazon.awssdk.requestId");
 
-    private SdkStandardLogger() {}
+    private SdkStandardLogger() {
+    }
 }

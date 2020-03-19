@@ -176,9 +176,11 @@ public class HttpStreamsClientHandler extends HttpStreamsHandler<HttpResponse, H
 
     private static class NoOpSubscription implements Subscription {
         @Override
-        public void request(long n) {}
+        public void request(long n) {
+        }
 
         @Override
-        public void cancel() {}
+        public void cancel() {
+        }
     }
 }

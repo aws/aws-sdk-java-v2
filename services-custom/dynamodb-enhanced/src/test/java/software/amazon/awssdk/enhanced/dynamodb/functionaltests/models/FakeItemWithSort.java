@@ -15,25 +15,32 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.Objects;
 import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithSort {
     private static final StaticTableSchema<FakeItemWithSort> FAKE_ITEM_MAPPER =
         StaticTableSchema.builder(FakeItemWithSort.class)
                          .newItemSupplier(FakeItemWithSort::new)
-                         .attributes(
-                             attribute("id", TypeToken.of(String.class), FakeItemWithSort::getId, FakeItemWithSort::setId).as(primaryPartitionKey()),
-                             attribute("sort", TypeToken.of(String.class), FakeItemWithSort::getSort, FakeItemWithSort::setSort).as(primarySortKey()),
-                             attribute("other_attribute_1", TypeToken.of(String.class), FakeItemWithSort::getOtherAttribute1, FakeItemWithSort::setOtherAttribute1),
-                             attribute("other_attribute_2", TypeToken.of(String.class), FakeItemWithSort::getOtherAttribute2, FakeItemWithSort::setOtherAttribute2))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeItemWithSort::getId)
+                                                           .setter(FakeItemWithSort::setId)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("sort")
+                                                           .getter(FakeItemWithSort::getSort)
+                                                           .setter(FakeItemWithSort::setSort)
+                                                           .tags(primarySortKey()))
+                         .addAttribute(String.class, a -> a.name("other_attribute_1")
+                                                           .getter(FakeItemWithSort::getOtherAttribute1)
+                                                           .setter(FakeItemWithSort::setOtherAttribute1))
+                         .addAttribute(String.class, a -> a.name("other_attribute_2")
+                                                           .getter(FakeItemWithSort::getOtherAttribute2)
+                                                           .setter(FakeItemWithSort::setOtherAttribute2))
                          .build();
 
     private String id;

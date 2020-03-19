@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.time.Period;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -30,15 +29,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class PeriodStringConverter implements StringConverter<Period> {
-    private PeriodStringConverter() { }
+    private PeriodStringConverter() {
+    }
 
     public static PeriodStringConverter create() {
         return new PeriodStringConverter();
     }
 
     @Override
-    public TypeToken<Period> type() {
-        return TypeToken.of(Period.class);
+    public EnhancedType<Period> type() {
+        return EnhancedType.of(Period.class);
     }
 
     @Override

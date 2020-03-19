@@ -1,3 +1,157 @@
+# __2.10.90__ __2020-03-19__
+## __AWS Certificate Manager__
+  - ### Features
+    - AWS Certificate Manager documentation updated on API calls ImportCertificate and ListCertificate. Specific updates included input constraints, private key size for import and next token size for list.
+
+## __AWS Outposts__
+  - ### Features
+    - Documentation updates for AWS Outposts.
+
+# __2.10.89__ __2020-03-18__
+## __AWS MediaConnect__
+  - ### Features
+    - Feature adds the ability for a flow to have multiple redundant sources that provides resiliency to a source failing. The new APIs added to enable the feature are, AddFlowSources, RemoveFlowSource and UpdateFlow.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Personalize__
+  - ### Features
+    - [Personalize] Adds support for returning hyperparameter values of the best performing model in a HPO job.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updated the MaxRecords type in DescribeExportTasks to Integer.
+
+# __2.10.88__ __2020-03-17__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for: AV1 encoding in File Group MP4, DASH and CMAF DASH outputs; PCM/WAV audio output in MPEG2-TS containers; and Opus audio in Webm inputs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix an issue where the signing key is created only once at the start of the request for event streaming requests. This causes requests that span two or more days to have signing errors once the date changes because the signing key was derived only once using the date at the beginning of the request.
+
+# __2.10.87__ __2020-03-16__
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 now supports Batch Operations job tagging.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Additional response field "CompromisedCredentialsDetected" added to AdminListUserAuthEvents.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - The enhanced DDB client table schema now supports custom AttributeConverterProviders, and StaticAttribute can take individual AttributeConverter to override default attribute converter behavior.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds the ability to update the task placement strategy and constraints for Amazon ECS services.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache now supports Global Datastore for Redis. Global Datastore for Redis offers fully managed, fast, reliable and secure cross-region replication. Using Global Datastore for Redis, you can create cross-region read replica clusters for ElastiCache for Redis to enable low-latency reads and disaster recovery across regions. You can create, modify and describe a Global Datastore, as well as add or remove regions from your Global Datastore and promote a region as primary in Global Datastore.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Resource data sync for AWS Systems Manager Inventory now includes destination data sharing. This feature enables you to synchronize inventory data from multiple AWS accounts into a central Amazon S3 bucket. To use this feature, all AWS accounts must be listed in AWS Organizations.
+
+# __2.10.86__ __2020-03-13__
+## __Amazon AppConfig__
+  - ### Features
+    - This release adds S3 as a configuration source provider.
+
+# __2.10.85__ __2020-03-12__
+## __AWS IoT__
+  - ### Features
+    - As part of this release, we are extending capability of AWS IoT Rules Engine to support IoT Cloudwatch log action. The IoT Cloudwatch log rule action lets you send messages from IoT sensors and applications to Cloudwatch logs for troubleshooting and debugging.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - The AWS Security Finding Format is being augmented with the following changes. 21 new resource types without corresponding details objects are added. Another new resource type, AwsS3Object, has an accompanying details object. Severity.Label is a new string field that indicates the severity of a finding. The available values are: INFORMATIONAL, LOW, MEDIUM, HIGH, CRITICAL. The new string field Workflow.Status indicates the status of the investigation into a finding. The available values are: NEW, NOTIFIED, RESOLVED, SUPPRESSED.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Amazon Lex now supports tagging for bots, bot aliases and bot channels.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Amazon API Gateway HTTP APIs is now generally available. HTTP APIs offer the core functionality of REST API at up to 71% lower price compared to REST API, 60% lower p99 latency, and is significantly easier to use. As part of general availability, we added new features to route requests to private backends such as private ALBs, NLBs, and IP/ports. We also brought over a set of features from REST API such as Stage Variables, and Stage/Route level throttling. Custom domain names can also now be used with both REST And HTTP APIs.
+
+# __2.10.84__ __2020-03-11__
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for elasticfilesystem
+
+## __Amazon Redshift__
+  - ### Features
+    - Amazon Redshift now supports operations to pause and resume a cluster on demand or on a schedule.
+
+# __2.10.83__ __2020-03-10__
+## __AWS IoT Events__
+  - ### Features
+    - API update that adds a new parameter, durationExpression, to SetTimerAction, and deprecates seconds
+
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - Change the disbursement data set to look past 31 days instead until the beginning of the month.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Reverts a recent change from 2.10.70 where the json protocol type was changed to application/json, this is now back to application/x-amz-json-1.1.
+
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - AWS Serverless Application Repository now supports sharing applications privately with AWS Organizations.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe's Automatic Content Redaction feature enables you to automatically redact sensitive personally identifiable information (PII) from transcription results. It replaces each instance of an identified PII utterance with a [PII] tag in the transcript.
+
+# __2.10.82__ __2020-03-09__
+## __AWS Database Migration Service__
+  - ### Features
+    - Added new settings for Kinesis target to include detailed transaction info; to capture table DDL details; to use single-line unformatted json, which can be directly queried by AWS Athena if data is streamed into S3 through AWS Kinesis Firehose. Added CdcInsertsAndUpdates in S3 target settings to allow capture ongoing insertions and updates only.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports the ability to configure the Preferred Channel Pipeline for channels contributing to a Multiplex.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for "retry modes". A retry mode allows configuring multiple SDK parameters at once using default retry profiles, some of which are standardized between AWS SDK languages. See RetryMode javadoc for more information.
+    - Added the ability to configure or disable the default retry throttling behavior of the SDK that 'kicks in' during a large volume of retriable service call errors. This behavior can now be configured via `RetryPolicy.retryCapacityCondition`.
+
+  - ### Bugfixes
+    - Fixed an issue where specifying your own retry policy would override AWS and service-specific retry conditions. By default, all retry policies now have AWS and service-specific retry conditions added. This can be disabled via the new `RetryPolicy.furtherRefinementsAllowed(false)`.
+    - Fixed an issue where the retry condition returned by `RetryPolicy.retryCondition` differed from the one specified by `RetryPolicy.Builder.retryCondition`. The old value can be accessed via the new `RetryPolicy.aggregateRetryCondition`.
+    - Use the last seen HTTP/1.1 header value for headers defined to only appear once in an HTTP message instead of merging them all into a list. The order in which header values are inspected is: headers set by the request marshaller, overridden headers set on the client, then finally overridden headers set on the SDK request object. See https://tools.ietf.org/html/rfc2616#section-4.2 for more information.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon Virtual Private Cloud (VPC) NAT Gateway adds support for tagging on resource creation.
+
 # __2.10.81__ __2020-03-06__
 ## __AWS App Mesh__
   - ### Features

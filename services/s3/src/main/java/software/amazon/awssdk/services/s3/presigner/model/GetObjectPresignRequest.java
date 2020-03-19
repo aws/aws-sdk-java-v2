@@ -129,7 +129,8 @@ public final class GetObjectPresignRequest
     private static final class DefaultBuilder extends PresignRequest.DefaultBuilder<DefaultBuilder> implements Builder {
         private GetObjectRequest getObjectRequest;
 
-        private DefaultBuilder() {}
+        private DefaultBuilder() {
+        }
 
         private DefaultBuilder(GetObjectPresignRequest request) {
             super(request);

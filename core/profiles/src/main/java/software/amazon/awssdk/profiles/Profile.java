@@ -150,7 +150,8 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
         /**
          * @see #builder()
          */
-        private BuilderImpl() {}
+        private BuilderImpl() {
+        }
 
         @Override
         public Builder name(String name) {

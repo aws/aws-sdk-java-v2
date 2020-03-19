@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +57,18 @@ public final class SdkHttpUtils {
                             "|" +
                             Pattern.quote("%2F"));
 
-    private SdkHttpUtils() {}
+    // List of headers that may appear only once in a request; i.e. is not a list of values.
+    // Taken from https://github.com/apache/httpcomponents-client/blob/81c1bc4dc3ca5a3134c5c60e8beff08be2fd8792/httpclient5-cache/src/test/java/org/apache/hc/client5/http/impl/cache/HttpTestUtils.java#L69-L85 with modifications:
+    // removed: accept-ranges, if-match, if-none-match, vary since it looks like they're defined as lists
+    private static final Set<String> SINGLE_HEADERS = Stream.of("age", "authorization",
+            "content-length", "content-location", "content-md5", "content-range", "content-type",
+            "date", "etag", "expires", "from", "host", "if-modified-since", "if-range",
+            "if-unmodified-since", "last-modified", "location", "max-forwards",
+            "proxy-authorization", "range", "referer", "retry-after", "server", "user-agent")
+            .collect(Collectors.toSet());
+
+    private SdkHttpUtils() {
+    }
 
     /**
      * Encode a string according to RFC 3986: encoding for URI paths, query strings, etc.
@@ -296,5 +308,9 @@ public final class SdkHttpUtils {
      */
     public static Optional<String> firstMatchingHeader(Map<String, List<String>> headers, String header) {
         return allMatchingHeaders(headers, header).findFirst();
+    }
+
+    public static boolean isSingleHeader(String h) {
+        return SINGLE_HEADERS.contains(StringUtils.lowerCase(h));
     }
 }

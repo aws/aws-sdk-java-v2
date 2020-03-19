@@ -16,10 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
-
 import java.util.Objects;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemComposedSubclass2 extends FakeItemComposedAbstractSubclass2 {
@@ -27,10 +24,10 @@ public class FakeItemComposedSubclass2 extends FakeItemComposedAbstractSubclass2
         StaticTableSchema.builder(FakeItemComposedSubclass2.class)
                          .newItemSupplier(FakeItemComposedSubclass2::new)
                          .extend(getSubclassTableSchema())
-                         .attributes(attribute("composed_subclass_2",
-                                               TypeToken.of(String.class),
-                                               FakeItemComposedSubclass2::getComposedAttribute2,
-                                               FakeItemComposedSubclass2::setComposedAttribute2))
+                         .addAttribute(String.class,
+                                       a -> a.name("composed_subclass_2")
+                                             .getter(FakeItemComposedSubclass2::getComposedAttribute2)
+                                             .setter(FakeItemComposedSubclass2::setComposedAttribute2))
                          .build();
 
     private String composedAttribute2;

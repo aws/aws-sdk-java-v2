@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.time.MonthDay;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -30,15 +29,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class MonthDayStringConverter implements StringConverter<MonthDay> {
-    private MonthDayStringConverter() { }
+    private MonthDayStringConverter() {
+    }
 
     public static MonthDayStringConverter create() {
         return new MonthDayStringConverter();
     }
 
     @Override
-    public TypeToken<MonthDay> type() {
-        return TypeToken.of(MonthDay.class);
+    public EnhancedType<MonthDay> type() {
+        return EnhancedType.of(MonthDay.class);
     }
 
     @Override

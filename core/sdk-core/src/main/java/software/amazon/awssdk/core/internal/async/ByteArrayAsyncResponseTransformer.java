@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;

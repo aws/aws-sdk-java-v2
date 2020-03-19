@@ -54,7 +54,7 @@ public interface DynamoDbAsyncIndex<T> {
      * <pre>
      * {@code
      *
-     * QueryConditional queryConditional = QueryConditional.equalTo(Key.builder().partitionValue("id-value").build());
+     * QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build());
      * SdkPublisher<Page<MyItem>> publisher = mappedIndex.query(QueryEnhancedRequest.builder()
      *                                                                              .queryConditional(queryConditional)
      *                                                                              .build());
@@ -92,7 +92,7 @@ public interface DynamoDbAsyncIndex<T> {
      * {@code
      *
      * SdkPublisher<Page<MyItem>> publisher =
-     *     mappedIndex.query(r -> r.queryConditional(QueryConditional.equalTo(k -> k.partitionValue("id-value"))));
+     *     mappedIndex.query(r -> r.queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue("id-value"))));
      * }
      * </pre>
      *
@@ -101,6 +101,34 @@ public interface DynamoDbAsyncIndex<T> {
      * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
      */
     default SdkPublisher<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Executes a query against the secondary index of the table using a {@link QueryConditional} expression to retrieve
+     * a list of items matching the given conditions.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
+     * ascending order.
+     * <p>
+     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * SdkPublisher<Page<MyItem>> results =
+     *     mappedIndex.query(QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build()));
+     * }
+     * </pre>
+     *
+     * @param queryConditional A {@link QueryConditional} defining the matching criteria for records to be queried.
+     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     */
+    default SdkPublisher<Page<T>> query(QueryConditional queryConditional) {
         throw new UnsupportedOperationException();
     }
 

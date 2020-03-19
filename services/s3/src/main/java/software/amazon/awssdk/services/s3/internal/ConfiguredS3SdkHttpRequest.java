@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.internal;
 
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -82,7 +81,8 @@ public class ConfiguredS3SdkHttpRequest
         private SdkHttpRequest sdkHttpRequest;
         private Region signingRegionModification;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder sdkHttpRequest(SdkHttpRequest sdkHttpRequest) {
             this.sdkHttpRequest = sdkHttpRequest;

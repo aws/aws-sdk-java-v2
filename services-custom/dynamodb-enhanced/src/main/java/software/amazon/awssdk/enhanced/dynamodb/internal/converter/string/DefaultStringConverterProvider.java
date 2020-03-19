@@ -19,11 +19,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverterProvider;
@@ -80,7 +79,7 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 public class DefaultStringConverterProvider implements StringConverterProvider {
 
-    private final ConcurrentHashMap<TypeToken<?>, StringConverter<?>> converterCache =
+    private final ConcurrentHashMap<EnhancedType<?>, StringConverter<?>> converterCache =
         new ConcurrentHashMap<>();
 
     private DefaultStringConverterProvider(Builder builder) {
@@ -148,12 +147,12 @@ public class DefaultStringConverterProvider implements StringConverterProvider {
     }
 
     @Override
-    public <T> StringConverter converterFor(TypeToken<T> typeToken) {
+    public <T> StringConverter converterFor(EnhancedType<T> enhancedType) {
         @SuppressWarnings("unchecked") // We initialized correctly, so this is safe.
-        StringConverter<T> converter = (StringConverter<T>) converterCache.get(typeToken);
+        StringConverter<T> converter = (StringConverter<T>) converterCache.get(enhancedType);
 
         if (converter == null) {
-            throw new IllegalArgumentException("No string converter exists for " + typeToken.rawClass());
+            throw new IllegalArgumentException("No string converter exists for " + enhancedType.rawClass());
         }
 
         return converter;
@@ -165,7 +164,8 @@ public class DefaultStringConverterProvider implements StringConverterProvider {
     public static class Builder {
         private List<StringConverter<?>> converters = new ArrayList<>();
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder addConverters(Collection<? extends StringConverter<?>> converters) {
             Validate.paramNotNull(converters, "converters");

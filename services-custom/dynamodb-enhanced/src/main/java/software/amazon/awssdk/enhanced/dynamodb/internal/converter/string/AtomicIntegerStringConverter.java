@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -35,15 +34,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class AtomicIntegerStringConverter implements StringConverter<AtomicInteger> {
     private static IntegerStringConverter INTEGER_CONVERTER = IntegerStringConverter.create();
 
-    private AtomicIntegerStringConverter() { }
+    private AtomicIntegerStringConverter() {
+    }
 
     public static AtomicIntegerStringConverter create() {
         return new AtomicIntegerStringConverter();
     }
 
     @Override
-    public TypeToken<AtomicInteger> type() {
-        return TypeToken.of(AtomicInteger.class);
+    public EnhancedType<AtomicInteger> type() {
+        return EnhancedType.of(AtomicInteger.class);
     }
 
     @Override

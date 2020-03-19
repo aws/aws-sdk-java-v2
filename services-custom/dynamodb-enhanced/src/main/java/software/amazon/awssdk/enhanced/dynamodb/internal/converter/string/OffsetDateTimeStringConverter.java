@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.time.OffsetDateTime;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -30,15 +29,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class OffsetDateTimeStringConverter implements StringConverter<OffsetDateTime> {
-    private OffsetDateTimeStringConverter() { }
+    private OffsetDateTimeStringConverter() {
+    }
 
     public static OffsetDateTimeStringConverter create() {
         return new OffsetDateTimeStringConverter();
     }
 
     @Override
-    public TypeToken<OffsetDateTime> type() {
-        return TypeToken.of(OffsetDateTime.class);
+    public EnhancedType<OffsetDateTime> type() {
+        return EnhancedType.of(OffsetDateTime.class);
     }
 
     @Override

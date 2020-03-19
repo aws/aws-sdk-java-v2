@@ -18,16 +18,17 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -152,12 +153,12 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.delete(DeleteItemEnhancedRequest.builder().key(key).build()).join();
+     * MyItem previouslyPersistedItem = mappedTable.delete(DeleteItemEnhancedRequest.builder().key(key).build()).join();
      * }
      * </pre>
      *
      * @param request A {@link DeleteItemEnhancedRequest} with key and optional directives for deleting an item from the table.
-     * @return a {@link CompletableFuture} of the deleted item
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> deleteItem(DeleteItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
@@ -179,15 +180,58 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.delete(r -> r.key(key)).join();
+     * MyItem previouslyPersistedItem = mappedTable.delete(r -> r.key(key)).join();
      * }
      * </pre>
      *
      * @param requestConsumer A {@link Consumer} of {@link DeleteItemEnhancedRequest} with key and
      * optional directives for deleting an item from the table.
-     * @return a {@link CompletableFuture} of the deleted item
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem previouslyPersistedItem = mappedTable.delete(key).join;
+     * }
+     * </pre>
+     *
+     * @param key A {@link Key} that will be used to match a specific record to delete from the database table.
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
+     */
+    default CompletableFuture<T> deleteItem(Key key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using just the key of a supplied modelled 'key item' object.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem previouslyPersistedItem = mappedTable.deleteItem(keyItem).join();
+     * }
+     * </pre>
+     *
+     * @param keyItem A modelled item with the primary key fields set that will be used to match a specific record to
+     *                delete from the database table.
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
+     */
+    default CompletableFuture<T> deleteItem(T keyItem) {
         throw new UnsupportedOperationException();
     }
 
@@ -209,7 +253,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * </pre>
      *
      * @param request A {@link GetItemEnhancedRequest} with key and optional directives for retrieving an item from the table.
-     * @return a {@link CompletableFuture} of the retrieved item
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> getItem(GetItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
@@ -244,36 +288,45 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     }
 
     /**
-     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a list of
-     * items matching the given conditions.
+     * Retrieves a single item from the mapped table using a supplied primary {@link Key}.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
-     * ascending order by default; this behavior can be overridden in the {@link QueryEnhancedRequest}.
-     * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link QueryEnhancedRequest}.
-     * <p>
-     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
+     * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
      * further details and constraints.
      * <p>
      * Example:
      * <pre>
      * {@code
      *
-     * QueryConditional queryConditional = QueryConditional.equalTo(Key.builder().partitionValue("id-value").build());
-     * SdkPublisher<Page<MyItem>> publisher = mappedTable.query(QueryEnhancedRequest.builder()
-     *                                                                              .queryConditional(queryConditional)
-     *                                                                              .build());
+     * MyItem item = mappedTable.getItem(key).join();
      * }
      * </pre>
      *
-     * @param request A {@link QueryEnhancedRequest} defining the query conditions and how
-     * to handle the results.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @param key A {@link Key} that will be used to match a specific record to retrieve from the database table.
+     * @return a {@link CompletableFuture} of the retrieved item
      */
-    default SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
+    default CompletableFuture<T> getItem(Key key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Retrieves a single item from the mapped table using just the key of a supplied modelled 'key item'.
+     * <p>
+     * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.getItem(keyItem).join();
+     * }
+     * </pre>
+     *
+     * @param keyItem A modelled item with the primary key fields set that will be used to match a specific record to
+     *                retrieve from the database table.
+     * @return a {@link CompletableFuture} of the retrieved item
+     */
+    default CompletableFuture<T> getItem(T keyItem) {
         throw new UnsupportedOperationException();
     }
 
@@ -281,16 +334,56 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a list of
      * items matching the given conditions.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
+     * The return type is a custom publisher that can be subscribed to request a stream of {@link Page}s or
+     * a stream of items across all pages. Results are sorted by sort key value in
      * ascending order by default; this behavior can be overridden in the {@link QueryEnhancedRequest}.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link QueryEnhancedRequest}.
      * <p>
-     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
-     * further details and constraints.
+     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation
+     * {@link DynamoDbAsyncClient#queryPaginator} for further details and constraints.
+     * <p>
+     * Example:
+     * <p>
+     * 1) Subscribing to {@link Page}s
+     * <pre>
+     * {@code
+     *
+     * QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build());
+     * PagePublisher<MyItem> publisher = mappedTable.query(QueryEnhancedRequest.builder()
+     *                                                                         .queryConditional(queryConditional)
+     *                                                                         .build());
+     * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
+     * }
+     * <p>
+     * 2) Subscribing to items across all pages
+     * <pre>
+     * {@code
+     *
+     * QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build());
+     * PagePublisher<MyItem> publisher = mappedTable.query(QueryEnhancedRequest.builder()
+     *                                                                         .queryConditional(queryConditional)
+     *                                                                         .build())
+     *                                              .items();
+     * publisher.items().subscribe(item -> System.out.println(item));
+     * }
+     * </pre>
+     *
+     * @see #query(Consumer)
+     * @see #query(QueryConditional)
+     * @see DynamoDbAsyncClient#queryPaginator
+     * @param request A {@link QueryEnhancedRequest} defining the query conditions and how
+     * to handle the results.
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
+     */
+    default PagePublisher<T> query(QueryEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a list of
+     * items matching the given conditions.
      * <p>
      * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
      * manually via {@link QueryEnhancedRequest#builder()}.
@@ -299,16 +392,50 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> publisher =
-     *     mappedTable.query(r -> r.queryConditional(QueryConditional.equalTo(k -> k.partitionValue("id-value"))));
+     * PagePublisher<MyItem> publisher =
+     *     mappedTable.query(r -> r.queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue("id-value"))));
      * }
      * </pre>
      *
+     * @see #query(QueryEnhancedRequest)
+     * @see #query(QueryConditional)
+     * @see DynamoDbAsyncClient#queryPaginator
      * @param requestConsumer A {@link Consumer} of {@link QueryEnhancedRequest} defining the query conditions and how to
      * handle the results.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
+    default PagePublisher<T> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Executes a query against the primary index of the table using a {@link QueryConditional} expression to retrieve a
+     * list of items matching the given conditions.
+     * <p>
+     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
+     * result page is retrieved, a query call is made to DynamoDb to get those entries. If no matches are found,
+     * the resulting iterator will contain an empty page. Results are sorted by sort key value in
+     * ascending order.
+     * <p>
+     * This operation calls the low-level DynamoDB API Query operation. Consult the Query documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * PagePublisher<MyItem> results =
+     *     mappedTable.query(QueryConditional.keyEqualTo(Key.builder().partitionValue("id-value").build()));
+     * }
+     * </pre>
+     *
+     * @see #query(QueryEnhancedRequest)
+     * @see #query(Consumer)
+     * @see DynamoDbAsyncClient#queryPaginator
+     * @param queryConditional A {@link QueryConditional} defining the matching criteria for records to be queried.
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
+     */
+    default PagePublisher<T> query(QueryConditional queryConditional) {
         throw new UnsupportedOperationException();
     }
 
@@ -332,7 +459,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *
      * @param request A {@link PutItemEnhancedRequest} that includes the item to enter into
      * the table, its class and optional directives.
-     * @return a {@link CompletableFuture} of {@link Void}.
+     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
      */
     default CompletableFuture<Void> putItem(PutItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
@@ -352,88 +479,120 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * mappedTable.putItem(MyItem.class, r -> r.item(item)).join();
+     * mappedTable.putItem(r -> r.item(item)).join();
      * }
      * </pre>
      *
      * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
      * to enter into the table, its class and optional directives.
-     * @return a {@link CompletableFuture} of {@link Void}.
+     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
      */
-    default CompletableFuture<Void> putItem(Class<? extends T> itemClass,
-                                            Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default CompletableFuture<Void> putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(item);
+     * }
+     * </pre>
+     *
+     * @param item the modelled item to be inserted into or overwritten in the database table.
+     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
+     */
+    default CompletableFuture<Void> putItem(T item) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Scans the table and retrieves all items.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page.
+     * The return type is a custom publisher that can be subscribed to request a stream of {@link Page}s or
+     * a stream of flattened items across all pages. Each time a result page is retrieved, a scan call is made
+     * to DynamoDb to get those entries. If no matches are found, the resulting iterator will contain an empty page.
+     *
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link ScanEnhancedRequest}.
      * <p>
      * Example:
+     * <p>
+     * 1) Subscribing to {@link Page}s
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * PagePublisher<MyItem> publisher = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
      * }
      * </pre>
      *
+     * <p>
+     * 2) Subscribing to items across all pages.
+     * <pre>
+     * {@code
+     *
+     * PagePublisher<MyItem> publisher = mappedTable.scan(ScanEnhancedRequest.builder().consistentRead(true).build());
+     * publisher.items().subscribe(item -> System.out.println(item));
+     * }
+     * </pre>
+     *
+     * @see #scan(Consumer)
+     * @see #scan()
+     * @see DynamoDbAsyncClient#scanPaginator
      * @param request A {@link ScanEnhancedRequest} defining how to handle the results.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
+    default PagePublisher<T> scan(ScanEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Scans the table and retrieves all items.
      * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page.
-     * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link ScanEnhancedRequest}.
-     * <p>
      * Example:
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan(r -> r.limit(5));
+     * PagePublisher<MyItem> publisher = mappedTable.scan(r -> r.limit(5));
      * }
      * </pre>
-     *
+     * 
+     * @see #scan(ScanEnhancedRequest)
+     * @see #scan()
+     * @see DynamoDbAsyncClient#scanPaginator
      * @param requestConsumer A {@link Consumer} of {@link ScanEnhancedRequest} defining the query conditions and how to
      * handle the results.
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
+    default PagePublisher<T> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Scans the table and retrieves all items using default settings.
-     * <p>
-     * The result is accessed through iterable pages (see {@link Page}) in an interactive way; each time a
-     * result page is retrieved, a scan call is made to DynamoDb to get those entries. If no matches are found,
-     * the resulting iterator will contain an empty page.
-     * <p>
+     *
      * Example:
      * <pre>
      * {@code
      *
-     * SdkPublisher<Page<MyItem>> publisher = mappedTable.scan();
+     * PagePublisher<MyItem> publisher = mappedTable.scan();
      * }
      * </pre>
-     *
-     * @return a publisher {@link SdkPublisher} with paginated results (see {@link Page}).
+     * @see #scan(ScanEnhancedRequest)
+     * @see #scan(Consumer)
+     * @see DynamoDbAsyncClient#scanPaginator
+     * @return a publisher {@link PagePublisher} with paginated results (see {@link Page}).
      */
-    default SdkPublisher<Page<T>> scan() {
+    default PagePublisher<T> scan() {
         throw new UnsupportedOperationException();
     }
 
@@ -475,7 +634,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * <pre>
      * {@code
      *
-     * MyItem item = mappedTable.updateItem(MyItem.class, r -> r.item(item)).join();
+     * MyItem item = mappedTable.updateItem(r -> r.item(item)).join();
      * }
      * </pre>
      *
@@ -483,8 +642,28 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * to be updated, its class and optional directives.
      * @return a {@link CompletableFuture} of the updated item
      */
-    default CompletableFuture<T> updateItem(Class<? extends T> itemClass,
-                                            Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default CompletableFuture<T> updateItem(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.updateItem(item).join();
+     * }
+     * </pre>
+     *
+     * @param item the modelled item to be inserted into or updated in the database table.
+     * @return a {@link CompletableFuture} of the updated item
+     */
+    default CompletableFuture<T> updateItem(T item) {
         throw new UnsupportedOperationException();
     }
 }

@@ -17,13 +17,13 @@ package software.amazon.awssdk.core.internal.http;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -32,9 +32,8 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @SdkInternalApi
 public final class HttpClientDependencies implements SdkAutoCloseable {
-    private final ClockSkewAdjuster clockSkewAdjuster = new ClockSkewAdjuster();
+    private final ClockSkewAdjuster clockSkewAdjuster;
     private final SdkClientConfiguration clientConfiguration;
-    private final CapacityManager capacityManager;
 
     /**
      * Time offset may be mutated by {@link RequestPipeline} implementations if a clock skew is detected.
@@ -42,8 +41,8 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
     private volatile int timeOffset = SdkGlobalTime.getGlobalTimeOffset();
 
     private HttpClientDependencies(Builder builder) {
+        this.clockSkewAdjuster = builder.clockSkewAdjuster != null ? builder.clockSkewAdjuster : new ClockSkewAdjuster();
         this.clientConfiguration = paramNotNull(builder.clientConfiguration, "ClientConfiguration");
-        this.capacityManager = paramNotNull(builder.capacityManager, "CapacityManager");
     }
 
     public static Builder builder() {
@@ -52,13 +51,6 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
 
     public SdkClientConfiguration clientConfiguration() {
         return clientConfiguration;
-    }
-
-    /**
-     * @return CapacityManager object used for retry throttling.
-     */
-    public CapacityManager retryCapacity() {
-        return capacityManager;
     }
 
     /**
@@ -92,18 +84,26 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
      * Builder for {@link HttpClientDependencies}.
      */
     public static class Builder {
+        private ClockSkewAdjuster clockSkewAdjuster;
         private SdkClientConfiguration clientConfiguration;
-        private CapacityManager capacityManager;
 
-        private Builder() {}
+        private Builder() {
+        }
+
+        public Builder clockSkewAdjuster(ClockSkewAdjuster clockSkewAdjuster) {
+            this.clockSkewAdjuster = clockSkewAdjuster;
+            return this;
+        }
 
         public Builder clientConfiguration(SdkClientConfiguration clientConfiguration) {
             this.clientConfiguration = clientConfiguration;
             return this;
         }
 
-        public Builder capacityManager(CapacityManager capacityManager) {
-            this.capacityManager = capacityManager;
+        public Builder clientConfiguration(Consumer<SdkClientConfiguration.Builder> clientConfiguration) {
+            SdkClientConfiguration.Builder c = SdkClientConfiguration.builder();
+            clientConfiguration.accept(c);
+            clientConfiguration(c.build());
             return this;
         }
 

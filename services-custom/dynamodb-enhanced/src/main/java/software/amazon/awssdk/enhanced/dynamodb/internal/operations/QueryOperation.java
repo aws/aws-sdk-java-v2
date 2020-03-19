@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import java.util.Map;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
@@ -35,8 +34,8 @@ import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 @SdkInternalApi
-public class QueryOperation<T> implements PaginatedTableOperation<T, QueryRequest, QueryResponse, Page<T>>,
-                                          PaginatedIndexOperation<T, QueryRequest, QueryResponse, Page<T>> {
+public class QueryOperation<T> implements PaginatedTableOperation<T, QueryRequest, QueryResponse>,
+                                          PaginatedIndexOperation<T, QueryRequest, QueryResponse> {
 
     private final QueryEnhancedRequest request;
 
@@ -57,8 +56,8 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
         Map<String, String> expressionNames = queryExpression.expressionNames();
 
         if (this.request.filterExpression() != null) {
-            expressionValues = Expression.coalesceValues(expressionValues, this.request.filterExpression().expressionValues());
-            expressionNames = Expression.coalesceNames(expressionNames, this.request.filterExpression().expressionNames());
+            expressionValues = Expression.joinValues(expressionValues, this.request.filterExpression().expressionValues());
+            expressionNames = Expression.joinNames(expressionNames, this.request.filterExpression().expressionNames());
         }
 
         QueryRequest.Builder queryRequest = QueryRequest.builder()

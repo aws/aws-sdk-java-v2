@@ -22,26 +22,41 @@ import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.RetryableException;
+import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.conditions.TokenBucketExceptionCostFunction;
 import software.amazon.awssdk.http.HttpStatusCode;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class SdkDefaultRetrySetting {
+    public static final String SDK_RETRY_INFO_HEADER = "amz-sdk-retry";
 
-    /**
-     * When throttled retries are enabled, each retry attempt will consume this much capacity.
-     * Successful retry attempts will release this capacity back to the pool while failed retries
-     * will not.  Successful initial (non-retry) requests will always release 1 capacity unit to the
-     * pool.
-     */
-    public static final int RETRY_THROTTLING_COST = 5;
+    public static final class Legacy {
+        private static final int THROTTLE_EXCEPTION_TOKEN_COST = 0;
+        private static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
 
-    /**
-     * When throttled retries are enabled, this is the total number of subsequent failed retries
-     * that may be attempted before retry capacity is fully drained.
-     */
-    public static final int THROTTLED_RETRIES = 100;
+        public static final TokenBucketExceptionCostFunction COST_FUNCTION =
+            TokenBucketExceptionCostFunction.builder()
+                                            .throttlingExceptionCost(THROTTLE_EXCEPTION_TOKEN_COST)
+                                            .defaultExceptionCost(DEFAULT_EXCEPTION_TOKEN_COST)
+                                            .build();
+    }
+
+    public static final class Standard {
+        private static final int THROTTLE_EXCEPTION_TOKEN_COST = 5;
+        private static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
+
+        public static final TokenBucketExceptionCostFunction COST_FUNCTION =
+            TokenBucketExceptionCostFunction.builder()
+                                            .throttlingExceptionCost(THROTTLE_EXCEPTION_TOKEN_COST)
+                                            .defaultExceptionCost(DEFAULT_EXCEPTION_TOKEN_COST)
+                                            .build();
+    }
+
+    public static final int TOKEN_BUCKET_SIZE = 500;
 
     public static final Duration BASE_DELAY = Duration.ofMillis(100);
 
@@ -69,5 +84,39 @@ public final class SdkDefaultRetrySetting {
         RETRYABLE_EXCEPTIONS = unmodifiableSet(retryableExceptions);
     }
 
-    private SdkDefaultRetrySetting() {}
+    private SdkDefaultRetrySetting() {
+    }
+
+    public static Integer maxAttempts(RetryMode retryMode) {
+        Integer maxAttempts = SdkSystemSetting.AWS_MAX_ATTEMPTS.getIntegerValue().orElse(null);
+
+        if (maxAttempts == null) {
+            switch (retryMode) {
+                case LEGACY:
+                    maxAttempts = 4;
+                    break;
+                case STANDARD:
+                    maxAttempts = 3;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown retry mode: " + retryMode);
+            }
+        }
+
+        Validate.isPositive(maxAttempts, "Maximum attempts must be positive, but was " + maxAttempts);
+
+        return maxAttempts;
+    }
+
+    public static TokenBucketExceptionCostFunction tokenCostFunction(RetryMode retryMode) {
+        switch (retryMode) {
+            case LEGACY: return Legacy.COST_FUNCTION;
+            case STANDARD: return Standard.COST_FUNCTION;
+            default: throw new IllegalStateException("Unsupported RetryMode: " + retryMode);
+        }
+    }
+
+    public static Integer defaultMaxAttempts() {
+        return maxAttempts(RetryMode.defaultRetryMode());
+    }
 }

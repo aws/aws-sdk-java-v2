@@ -134,6 +134,22 @@ public final class ReadBatch {
          */
         Builder<T> addGetItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer);
 
+        /**
+         * Adds a GetItem request with a primary {@link Key} to the builder.
+         *
+         * @param key A {@link Key} to match the record retrieved from the database.
+         * @return a builder of this type
+         */
+        Builder<T> addGetItem(Key key);
+
+        /**
+         * Adds a GetItem request to the builder.
+         *
+         * @param keyItem an item that will have its key fields used to match a record to retrieve from the database.
+         * @return a builder of this type
+         */
+        Builder<T> addGetItem(T keyItem);
+
         ReadBatch build();
     }
 
@@ -196,22 +212,36 @@ public final class ReadBatch {
         private BuilderImpl() {
         }
 
+        @Override
         public Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource) {
             this.mappedTableResource = mappedTableResource;
             return this;
         }
 
+        @Override
         public Builder<T> addGetItem(GetItemEnhancedRequest request) {
             requests.add(request);
             return this;
         }
 
+        @Override
         public Builder<T> addGetItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
             GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
             requestConsumer.accept(builder);
             return addGetItem(builder.build());
         }
 
+        @Override
+        public Builder<T> addGetItem(Key key) {
+            return addGetItem(r -> r.key(key));
+        }
+
+        @Override
+        public Builder<T> addGetItem(T keyItem) {
+            return addGetItem(this.mappedTableResource.keyFrom(keyItem));
+        }
+
+        @Override
         public ReadBatch build() {
             return new ReadBatch(this);
         }

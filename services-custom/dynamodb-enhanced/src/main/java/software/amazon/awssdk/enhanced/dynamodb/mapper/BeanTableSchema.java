@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanConstructor;
@@ -97,11 +97,9 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
 
     private final StaticTableSchema<T> wrappedTableSchema;
-    private final Class<T> beanClass;
 
-    private BeanTableSchema(StaticTableSchema<T> staticTableSchema, Class<T> beanClass) {
+    private BeanTableSchema(StaticTableSchema<T> staticTableSchema) {
         this.wrappedTableSchema = staticTableSchema;
-        this.beanClass = beanClass;
     }
 
     /**
@@ -112,15 +110,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
      * @return An initialized {@link BeanTableSchema}
      */
     public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
-        return new BeanTableSchema<>(createStaticTableSchema(beanClass), beanClass);
-    }
-
-    /**
-     * Returns the bean class this object was created with.
-     * @return The bean class that was supplied to the static constructor of this object.
-     */
-    public Class<T> beanClass() {
-        return this.beanClass;
+        return new BeanTableSchema<>(createStaticTableSchema(beanClass));
     }
 
     /**
@@ -172,6 +162,11 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         return wrappedTableSchema.tableMetadata();
     }
 
+    @Override
+    public EnhancedType<T> itemType() {
+        return wrappedTableSchema.itemType();
+    }
+
     private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass) {
         DynamoDbBean dynamoDbBean = beanClass.getAnnotation(DynamoDbBean.class);
 
@@ -192,7 +187,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
                                                                 .newItemSupplier(newObjectSupplier);
 
-        List<Attribute.AttributeSupplier<T>> attributes = new ArrayList<>();
+        List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
 
         Arrays.stream(beanInfo.getPropertyDescriptors())
               .filter(BeanTableSchema::isMappableProperty)
@@ -204,10 +199,11 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                                       getterForProperty(propertyDescriptor, beanClass),
                                       setterForProperty(propertyDescriptor, beanClass));
                   } else {
-                      Attribute.AttributeSupplier<T> attributeSupplier = createAttributeSupplier(propertyDescriptor, beanClass);
+                      StaticAttribute.Builder<T, ?> attributeBuilder =
+                          staticAttributeBuilder(propertyDescriptor, beanClass);
 
-                      addTagsToAttribute(attributeSupplier, propertyDescriptor);
-                      attributes.add(attributeSupplier);
+                      addTagsToAttribute(attributeBuilder, propertyDescriptor);
+                      attributes.add(attributeBuilder.build());
                   }
               });
 
@@ -216,25 +212,28 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Attribute.AttributeSupplier<T> createAttributeSupplier(PropertyDescriptor propertyDescriptor,
-                                                                              Class<T> beanClass) {
+    private static <T> StaticAttribute.Builder<T, ?> staticAttributeBuilder(PropertyDescriptor propertyDescriptor,
+                                                                            Class<T> beanClass) {
+
         Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
+        EnhancedType<?> propertyTypeToken = null;
 
         if (propertyType instanceof Class) {
             Class<?> clazz = (Class<?>) propertyType;
             if (clazz.getAnnotation(DynamoDbBean.class) != null) {
-                return Attributes.attribute(
-                    attributeNameForProperty(propertyDescriptor),
-                    TypeToken.documentOf((Class<T>) clazz, (TableSchema<T>) createStaticTableSchema(clazz)),
-                    getterForProperty(propertyDescriptor, beanClass),
-                    setterForProperty(propertyDescriptor, beanClass));
+                propertyTypeToken = EnhancedType.documentOf((Class<Object>) clazz,
+                                                         (TableSchema<Object>) createStaticTableSchema(clazz));
             }
         }
 
-        return Attributes.attribute(attributeNameForProperty(propertyDescriptor),
-                                    TypeToken.of(propertyDescriptor.getReadMethod().getGenericReturnType()),
-                                    getterForProperty(propertyDescriptor, beanClass),
-                                    setterForProperty(propertyDescriptor, beanClass));
+        if (propertyTypeToken == null) {
+            propertyTypeToken = EnhancedType.of(propertyDescriptor.getReadMethod().getGenericReturnType());
+        }
+
+        return StaticAttribute.builder(beanClass, propertyTypeToken)
+                              .name(attributeNameForProperty(propertyDescriptor))
+                              .getter(getterForProperty(propertyDescriptor, beanClass))
+                              .setter(setterForProperty(propertyDescriptor, beanClass));
     }
 
     /**
@@ -242,7 +241,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
      * If the meta-annotation is found, it attempts to create an annotation tag based on a standard named static method
      * of the class that tag has been annotated with passing in the original property annotation as an argument.
      */
-    private static void addTagsToAttribute(Attribute.AttributeSupplier<?> attributeSupplier,
+    private static void addTagsToAttribute(StaticAttribute.Builder<?, ?> attributeBuilder,
                                            PropertyDescriptor propertyDescriptor) {
 
         propertyAnnotations(propertyDescriptor).forEach(annotation -> {
@@ -260,7 +259,8 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                     throw new RuntimeException(
                         String.format("Could not find a static method named '%s' on class '%s' that returns " +
                                           "an AttributeTag for annotation '%s'", ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME,
-                                      tagClass, annotation.annotationType()), e);               }
+                                      tagClass, annotation.annotationType()), e);
+                }
 
                 if (!Modifier.isStatic(tagMethod.getModifiers())) {
                     throw new RuntimeException(
@@ -269,16 +269,16 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                                       tagClass, annotation.annotationType()));
                 }
 
-                AttributeTag attributeTag;
+                StaticAttributeTag staticAttributeTag;
                 try {
-                    attributeTag = (AttributeTag) tagMethod.invoke(null, annotation);
+                    staticAttributeTag = (StaticAttributeTag) tagMethod.invoke(null, annotation);
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     throw new RuntimeException(
                         String.format("Could not invoke method to create AttributeTag for annotation '%s' on class " +
                                           "'%s'.", annotation.annotationType(), tagClass), e);
                 }
 
-                attributeSupplier.as(attributeTag);
+                attributeBuilder.addTag(staticAttributeTag);
             }
         });
     }

@@ -54,7 +54,8 @@ public final class Endpoint implements Cloneable {
      */
     private String sslCommonName;
 
-    public Endpoint() {}
+    public Endpoint() {
+    }
 
     /**
      * Merges the given endpoints and returns the merged one.

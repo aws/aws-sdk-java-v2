@@ -17,17 +17,18 @@ package software.amazon.awssdk.core.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.core.internal.retry.RetryHandler.HEADER_SDK_RETRY_INFO;
+import static software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting.SDK_RETRY_INFO_HEADER;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import org.junit.Test;
-
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -49,28 +50,35 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
     public void retriedRequest_AppendsCorrectRetryCountInUserAgent() throws Exception {
         stubFor(get(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse().withStatus(500)));
 
-        executeRequest();
+        executeRequest(false);
 
-        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(HEADER_SDK_RETRY_INFO, containing("0/0/")));
-        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(HEADER_SDK_RETRY_INFO, containing("1/0/")));
-        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(HEADER_SDK_RETRY_INFO, containing("2/10/")));
-        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(HEADER_SDK_RETRY_INFO, containing("3/20/")));
+        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(SDK_RETRY_INFO_HEADER, equalTo("0/0/")));
+        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(SDK_RETRY_INFO_HEADER, equalTo("1/0/")));
+        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(SDK_RETRY_INFO_HEADER, equalTo("2/10/")));
+        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(SDK_RETRY_INFO_HEADER, equalTo("3/20/")));
     }
 
     @Test
     public void retriedRequest_AppendsCorrectRetryCountInUserAgent_throttlingEnabled() throws Exception {
         stubFor(get(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse().withStatus(500)));
 
-        executeRequest();
+        executeRequest(true);
 
-        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(HEADER_SDK_RETRY_INFO, containing("0/0/500")));
-        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(HEADER_SDK_RETRY_INFO, containing("1/0/495")));
-        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(HEADER_SDK_RETRY_INFO, containing("2/10/490")));
-        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(HEADER_SDK_RETRY_INFO, containing("3/20/485")));
+        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(SDK_RETRY_INFO_HEADER, equalTo("0/0/")));
+        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(SDK_RETRY_INFO_HEADER, equalTo("1/0/495")));
+        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(SDK_RETRY_INFO_HEADER, equalTo("2/10/490")));
+        verify(1, getRequestedFor(urlEqualTo(RESOURCE_PATH)).withHeader(SDK_RETRY_INFO_HEADER, equalTo("3/20/485")));
     }
 
-    private void executeRequest() throws Exception {
-        RetryPolicy policy = RetryPolicy.builder().backoffStrategy(new SimpleArrayBackoffStrategy(BACKOFF_VALUES)).build();
+    private void executeRequest(boolean throttlingEnabled) throws Exception {
+        RetryPolicy policy = RetryPolicy.builder()
+                                        .backoffStrategy(new SimpleArrayBackoffStrategy(BACKOFF_VALUES))
+                                        .applyMutation(b -> {
+                                            if (!throttlingEnabled) {
+                                                b.retryCapacityCondition(null);
+                                            }
+                                        })
+                                        .build();
 
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, HttpTestUtils.testSdkHttpClient())

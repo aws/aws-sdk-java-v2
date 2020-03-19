@@ -15,16 +15,15 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
-import static software.amazon.awssdk.utils.DateUtils.numberOfDaysSinceEpoch;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -160,24 +159,28 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * http://docs.aws.amazon
      * .com/general/latest/gr/sigv4-calculate-signature.html
      */
-    protected byte[] deriveSigningKey(AwsCredentials credentials, Aws4SignerRequestParams signerRequestParams) {
+    protected final byte[] deriveSigningKey(AwsCredentials credentials, Aws4SignerRequestParams signerRequestParams) {
+        return deriveSigningKey(credentials,
+                Instant.ofEpochMilli(signerRequestParams.getRequestSigningDateTimeMilli()),
+                signerRequestParams.getRegionName(),
+                signerRequestParams.getServiceSigningName());
+    }
 
-        String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
-        long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getRequestSigningDateTimeMilli());
-
+    protected final byte[] deriveSigningKey(AwsCredentials credentials, Instant signingInstant, String region, String service) {
+        String cacheKey = createSigningCacheKeyName(credentials, region, service);
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 
-        if (signerKey != null && daysSinceEpochSigningDate == signerKey.getNumberOfDaysSinceEpoch()) {
+        if (signerKey != null && signerKey.isValidForDate(signingInstant)) {
             return signerKey.getSigningKey();
         }
 
         LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
-            TimeUnit.DAYS.toMillis(daysSinceEpochSigningDate));
+                signingInstant.toEpochMilli());
         byte[] signingKey = newSigningKey(credentials,
-            signerRequestParams.getFormattedRequestSigningDate(),
-            signerRequestParams.getRegionName(),
-            signerRequestParams.getServiceSigningName());
-        SIGNER_CACHE.add(cacheKey, new SignerKey(daysSinceEpochSigningDate, signingKey));
+                Aws4SignerUtils.formatDateStamp(signingInstant),
+                region,
+                service);
+        SIGNER_CACHE.add(cacheKey, new SignerKey(signingInstant, signingKey));
         return signingKey;
     }
 
@@ -228,14 +231,10 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         return stringToSign;
     }
 
-
-    /**
-     * Computes the name to be used to reference the signing key in the cache.
-     */
-    private String computeSigningCacheKeyName(AwsCredentials credentials,
-                                              Aws4SignerRequestParams signerRequestParams) {
-        return credentials.secretAccessKey() + "-" + signerRequestParams.getRegionName() + "-" +
-               signerRequestParams.getServiceSigningName();
+    private String createSigningCacheKeyName(AwsCredentials credentials,
+                                             String regionName,
+                                             String serviceName) {
+        return credentials.secretAccessKey() + "-" + regionName + "-" + serviceName;
     }
 
     /**

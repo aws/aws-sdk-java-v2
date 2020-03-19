@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.util.OptionalLong;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -32,15 +31,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class OptionalLongStringConverter implements StringConverter<OptionalLong> {
     private static LongStringConverter LONG_CONVERTER = LongStringConverter.create();
 
-    private OptionalLongStringConverter() { }
+    private OptionalLongStringConverter() {
+    }
 
     public static OptionalLongStringConverter create() {
         return new OptionalLongStringConverter();
     }
 
     @Override
-    public TypeToken<OptionalLong> type() {
-        return TypeToken.of(OptionalLong.class);
+    public EnhancedType<OptionalLong> type() {
+        return EnhancedType.of(OptionalLong.class);
     }
 
     @Override

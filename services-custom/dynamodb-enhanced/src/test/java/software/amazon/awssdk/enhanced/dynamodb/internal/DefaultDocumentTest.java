@@ -32,9 +32,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -72,16 +74,18 @@ public class DefaultDocumentTest {
         FakeItem fakeItem2 = FakeItem.createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         Map<String, AttributeValue> fakeItemMap2 = FakeItem.getTableSchema().itemToMap(fakeItem2, true);
-        when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
             .thenReturn(ReadModification.builder().transformedItem(fakeItemMap2).build());
 
         Document defaultDocument = DefaultDocument.create(fakeItemMap);
 
         DynamoDbTable<FakeItem> mappedTable = createMappedTable(mockDynamoDbEnhancedClientExtension);
         assertThat(defaultDocument.getItem(mappedTable), is(fakeItem2));
-        verify(mockDynamoDbEnhancedClientExtension).afterRead(fakeItemMap,
-                                                              OperationContext.create(mappedTable.tableName()),
-                                                              FakeItem.getTableMetadata());
+        verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
+                                                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                                                             .operationContext(OperationContext.create(mappedTable.tableName()))
+                                                                                             .items(fakeItemMap).build()
+        );
     }
 
     @Test

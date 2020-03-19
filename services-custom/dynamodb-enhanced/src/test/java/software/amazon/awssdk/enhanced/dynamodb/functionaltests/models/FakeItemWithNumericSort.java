@@ -15,13 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.Random;
 import java.util.UUID;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithNumericSort {
@@ -30,11 +28,14 @@ public class FakeItemWithNumericSort {
     private static final StaticTableSchema<FakeItemWithNumericSort> FAKE_ITEM_MAPPER =
         StaticTableSchema.builder(FakeItemWithNumericSort.class)
                          .newItemSupplier(FakeItemWithNumericSort::new)
-                         .attributes(
-                            attribute("id", TypeToken.of(String.class), FakeItemWithNumericSort::getId, FakeItemWithNumericSort::setId)
-                                .as(primaryPartitionKey()),
-                            attribute("sort", TypeToken.of(Integer.class), FakeItemWithNumericSort::getSort, FakeItemWithNumericSort::setSort)
-                                .as(primarySortKey()))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeItemWithNumericSort::getId)
+                                                           .setter(FakeItemWithNumericSort::setId)
+                                                           .addTag(primaryPartitionKey()))
+                         .addAttribute(Integer.class, a -> a.name("sort")
+                                                            .getter(FakeItemWithNumericSort::getSort)
+                                                            .setter(FakeItemWithNumericSort::setSort)
+                                                            .addTag(primarySortKey()))
                          .build();
 
     private String id;

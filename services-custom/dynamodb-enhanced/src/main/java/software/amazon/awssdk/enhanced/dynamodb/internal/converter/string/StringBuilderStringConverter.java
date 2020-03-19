@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -28,15 +28,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class StringBuilderStringConverter implements StringConverter<StringBuilder> {
-    private StringBuilderStringConverter() { }
+    private StringBuilderStringConverter() {
+    }
 
     public static StringBuilderStringConverter create() {
         return new StringBuilderStringConverter();
     }
 
     @Override
-    public TypeToken<StringBuilder> type() {
-        return TypeToken.of(StringBuilder.class);
+    public EnhancedType<StringBuilder> type() {
+        return EnhancedType.of(StringBuilder.class);
     }
 
     @Override

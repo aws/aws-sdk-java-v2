@@ -21,9 +21,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,11 +35,11 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
@@ -88,9 +87,14 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
-                         .attributes(
-                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
-                             attribute("sort", TypeToken.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(Record::getId)
+                                                           .setter(Record::setId)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(Integer.class, a -> a.name("sort")
+                                                            .getter(Record::getSort)
+                                                            .setter(Record::setSort)
+                                                            .tags(primarySortKey()))
                          .build();
 
     private static final List<Record> RECORDS =
@@ -105,7 +109,7 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
     }
 
     @Before
@@ -124,6 +128,8 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     public void scanAllRecordsDefaultSettings() {
         insertRecords();
 
+        mappedTable.scan(ScanEnhancedRequest.builder().build())
+                   .forEach(p -> p.items().forEach(item -> System.out.println(item)));
         Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.builder().build()).iterator();
 
         assertThat(results.hasNext(), is(true));
@@ -132,6 +138,14 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
 
         assertThat(page.items(), is(RECORDS));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecordsDefaultSettings_viaItems() {
+        insertRecords();
+
+        SdkIterable<Record> items = mappedTable.scan(ScanEnhancedRequest.builder().limit(2).build()).items();
+        assertThat(items.stream().collect(Collectors.toList()), is(RECORDS));
     }
 
     @Test
@@ -178,6 +192,13 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
+    public void scanLimit_viaItems() {
+        insertRecords();
+        SdkIterable<Record> results = mappedTable.scan(r -> r.limit(5)).items();
+        assertThat(results.stream().collect(Collectors.toList()), is(RECORDS));
+    }
+
+    @Test
     public void scanEmpty() {
         Iterator<Page<Record>> results = mappedTable.scan().iterator();
         assertThat(results.hasNext(), is(true));
@@ -185,6 +206,12 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(empty()));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanEmpty_viaItems() {
+        Iterator<Record> results = mappedTable.scan().items().iterator();
+        assertThat(results.hasNext(), is(false));
     }
 
     @Test
@@ -198,6 +225,14 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanExclusiveStartKey_viaItems() {
+        insertRecords();
+        SdkIterable<Record> results =
+            mappedTable.scan(r -> r.exclusiveStartKey(getKeyMap(7))).items();
+        assertThat(results.stream().collect(Collectors.toList()), is(RECORDS.subList(8, 10)));
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {

@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.time.Year;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -30,15 +29,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class YearStringConverter implements StringConverter<Year> {
-    private YearStringConverter() { }
+    private YearStringConverter() {
+    }
 
     public static YearStringConverter create() {
         return new YearStringConverter();
     }
 
     @Override
-    public TypeToken<Year> type() {
-        return TypeToken.of(Year.class);
+    public EnhancedType<Year> type() {
+        return EnhancedType.of(Year.class);
     }
 
     @Override

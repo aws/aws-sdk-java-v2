@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -30,15 +30,16 @@ import software.amazon.awssdk.utils.BinaryUtils;
 @ThreadSafe
 @Immutable
 public class SdkBytesStringConverter implements StringConverter<SdkBytes> {
-    private SdkBytesStringConverter() { }
+    private SdkBytesStringConverter() {
+    }
 
     public static SdkBytesStringConverter create() {
         return new SdkBytesStringConverter();
     }
 
     @Override
-    public TypeToken<SdkBytes> type() {
-        return TypeToken.of(SdkBytes.class);
+    public EnhancedType<SdkBytes> type() {
+        return EnhancedType.of(SdkBytes.class);
     }
 
     @Override

@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
 
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncIndex;
@@ -29,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PaginatedInd
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.QueryOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.ScanOperation;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -55,7 +55,7 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
 
     @Override
     public SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
-        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
+        PaginatedIndexOperation<T, ?, ?> operation = QueryOperation.create(request);
         return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, extension, dynamoDbClient);
     }
 
@@ -67,8 +67,13 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
     }
 
     @Override
+    public SdkPublisher<Page<T>> query(QueryConditional queryConditional) {
+        return query(r -> r.queryConditional(queryConditional));
+    }
+
+    @Override
     public SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
-        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
+        PaginatedIndexOperation<T, ?, ?> operation = ScanOperation.create(request);
         return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, extension, dynamoDbClient);
     }
 

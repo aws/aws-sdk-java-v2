@@ -18,17 +18,15 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.extensions;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -36,19 +34,23 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * extension. The order in which extensions will be used depends on the operation, for write operations they will be
  * called in forward order, for read operations they will be called in reverse order. For example :-
  *
+ * <p>
  * If you create a chain of three extensions:
- * ChainMapperExtension.of(extension1, extension2, extension3);
+ * ChainMapperExtension.create(extension1, extension2, extension3);
  *
+ * <p>
  * When performing any kind of write operation (eg: PutItem, UpdateItem) the beforeWrite() method will be called in
  * forward order:
  *
  * {@literal extension1 -> extension2 -> extension3}
  *
+ * <p>
  * So the output of extension1 will be passed into extension2, and then the output of extension2 into extension3 and
  * so on. For operations that read (eg: GetItem, UpdateItem) the afterRead() method will be called in reverse order:
  *
  * {@literal extension3 -> extension2 -> extension1}
  *
+ * <p>
  * This is designed to create a layered pattern when dealing with multiple extensions. One thing to note is that
  * UpdateItem acts as both a write operation and a read operation so the chain will be called both ways within a
  * single operation.
@@ -85,42 +87,45 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
      * Multiple conditional statements will be separated by the string " AND ". Expression values will be coalesced
      * unless they conflict in which case an exception will be thrown.
      *
-     * @param item The {@link AttributeValue} map of the item to be written.
-     * @param tableMetadata A {@link TableMetadata} object describing the structure of the modelled table.
+     * @param context A {@link DynamoDbExtensionContext.BeforeWrite} context
      * @return A single {@link WriteModification} representing the coalesced results of all the chained extensions.
      */
     @Override
-    public WriteModification beforeWrite(Map<String, AttributeValue> item,
-                                         OperationContext operationContext,
-                                         TableMetadata tableMetadata) {
-        AtomicReference<Map<String, AttributeValue>> transformedItem = new AtomicReference<>();
-        AtomicReference<Expression> conditionalExpression = new AtomicReference<>();
+    public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
+        Map<String, AttributeValue> transformedItem = null;
+        Expression conditionalExpression = null;
 
-        this.extensionChain.forEach(extension -> {
-            Map<String, AttributeValue> itemToTransform = transformedItem.get() == null ? item : transformedItem.get();
-            WriteModification writeModification = extension.beforeWrite(itemToTransform,
-                                                                        operationContext,
-                                                                        tableMetadata);
+        for (DynamoDbEnhancedClientExtension extension : this.extensionChain) {
+            Map<String, AttributeValue> itemToTransform = transformedItem == null ? context.items() : transformedItem;
+
+            DynamoDbExtensionContext.BeforeWrite beforeWrite =
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(itemToTransform)
+                                               .operationContext(context.operationContext())
+                                               .tableMetadata(context.tableMetadata())
+                                               .build();
+
+            WriteModification writeModification = extension.beforeWrite(beforeWrite);
 
             if (writeModification.transformedItem() != null) {
-                transformedItem.set(writeModification.transformedItem());
+                transformedItem = writeModification.transformedItem();
             }
 
             if (writeModification.additionalConditionalExpression() != null) {
-                if (conditionalExpression.get() == null) {
-                    conditionalExpression.set(writeModification.additionalConditionalExpression());
+                if (conditionalExpression == null) {
+                    conditionalExpression = writeModification.additionalConditionalExpression();
                 } else {
-                    conditionalExpression.set(
-                        Expression.coalesce(conditionalExpression.get(),
-                                            writeModification.additionalConditionalExpression(),
-                                            " AND "));
+                    conditionalExpression =
+                        Expression.join(conditionalExpression,
+                                        writeModification.additionalConditionalExpression(),
+                                        " AND ");
                 }
             }
-        });
+        }
 
         return WriteModification.builder()
-                                .transformedItem(transformedItem.get())
-                                .additionalConditionalExpression(conditionalExpression.get())
+                                .transformedItem(transformedItem)
+                                .additionalConditionalExpression(conditionalExpression)
                                 .build();
     }
 
@@ -128,27 +133,34 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
      * Implementation of the {@link DynamoDbEnhancedClientExtension} interface that will call all the chained extensions
      * in reverse order, passing the results of each one to the next and coalescing the results into a single modification.
      *
-     * @param item The {@link AttributeValue} map of the item that is being read.
-     * @param tableMetadata A {@link TableMetadata} object describing the structure of the modelled table.
+     * @param context A {@link DynamoDbExtensionContext.AfterRead} context
      * @return A single {@link ReadModification} representing the final transformation of all the chained extensions.
      */
     @Override
-    public ReadModification afterRead(Map<String, AttributeValue> item,
-                                      OperationContext operationContext,
-                                      TableMetadata tableMetadata) {
-        AtomicReference<Map<String, AttributeValue>> transformedItem = new AtomicReference<>();
+    public ReadModification afterRead(DynamoDbExtensionContext.AfterRead context) {
+        Map<String, AttributeValue> transformedItem = null;
 
-        this.extensionChain.descendingIterator().forEachRemaining(extension -> {
-            Map<String, AttributeValue> itemToTransform = transformedItem.get() == null ? item : transformedItem.get();
-            ReadModification readModification = extension.afterRead(itemToTransform, operationContext, tableMetadata);
+        Iterator<DynamoDbEnhancedClientExtension> iterator = extensionChain.descendingIterator();
+
+        while (iterator.hasNext()) {
+            Map<String, AttributeValue> itemToTransform =
+                transformedItem == null ? context.items() : transformedItem;
+
+            DynamoDbExtensionContext.AfterRead afterRead =
+                DefaultDynamoDbExtensionContext.builder().items(itemToTransform)
+                                               .operationContext(context.operationContext())
+                                               .tableMetadata(context.tableMetadata())
+                                               .build();
+
+            ReadModification readModification = iterator.next().afterRead(afterRead);
 
             if (readModification.transformedItem() != null) {
-                transformedItem.set(readModification.transformedItem());
+                transformedItem = readModification.transformedItem();
             }
-        });
+        }
 
         return ReadModification.builder()
-                               .transformedItem(transformedItem.get())
+                               .transformedItem(transformedItem)
                                .build();
     }
 }

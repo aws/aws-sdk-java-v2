@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
@@ -29,20 +29,21 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class ShortStringConverter implements StringConverter<Short>, PrimitiveConverter<Short> {
-    private ShortStringConverter() { }
+    private ShortStringConverter() {
+    }
 
     public static ShortStringConverter create() {
         return new ShortStringConverter();
     }
 
     @Override
-    public TypeToken<Short> type() {
-        return TypeToken.of(Short.class);
+    public EnhancedType<Short> type() {
+        return EnhancedType.of(Short.class);
     }
 
     @Override
-    public TypeToken<Short> primitiveType() {
-        return TypeToken.of(short.class);
+    public EnhancedType<Short> primitiveType() {
+        return EnhancedType.of(short.class);
     }
 
     @Override

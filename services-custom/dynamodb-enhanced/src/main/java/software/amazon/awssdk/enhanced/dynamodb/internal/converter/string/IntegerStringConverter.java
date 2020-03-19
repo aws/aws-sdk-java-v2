@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
@@ -29,20 +29,21 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 @ThreadSafe
 @Immutable
 public class IntegerStringConverter implements StringConverter<Integer>, PrimitiveConverter<Integer> {
-    private IntegerStringConverter() { }
+    private IntegerStringConverter() {
+    }
 
     public static IntegerStringConverter create() {
         return new IntegerStringConverter();
     }
 
     @Override
-    public TypeToken<Integer> type() {
-        return TypeToken.of(Integer.class);
+    public EnhancedType<Integer> type() {
+        return EnhancedType.of(Integer.class);
     }
 
     @Override
-    public TypeToken<Integer> primitiveType() {
-        return TypeToken.of(int.class);
+    public EnhancedType<Integer> primitiveType() {
+        return EnhancedType.of(int.class);
     }
 
     @Override

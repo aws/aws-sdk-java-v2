@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.string;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 
 /**
@@ -35,15 +34,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 public class AtomicBooleanStringConverter implements StringConverter<AtomicBoolean> {
     private static BooleanStringConverter BOOLEAN_CONVERTER = BooleanStringConverter.create();
 
-    private AtomicBooleanStringConverter() { }
+    private AtomicBooleanStringConverter() {
+    }
 
     public static AtomicBooleanStringConverter create() {
         return new AtomicBooleanStringConverter();
     }
 
     @Override
-    public TypeToken<AtomicBoolean> type() {
-        return TypeToken.of(AtomicBoolean.class);
+    public EnhancedType<AtomicBoolean> type() {
+        return EnhancedType.of(AtomicBoolean.class);
     }
 
     @Override

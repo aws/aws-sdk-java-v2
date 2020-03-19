@@ -28,7 +28,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalQuery;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
 import software.amazon.awssdk.utils.Validate;
@@ -39,7 +38,8 @@ public final class TimeConversion {
     private static final OffsetDateTimeVisitor OFFSET_DATE_TIME_VISITOR = new OffsetDateTimeVisitor();
     private static final ZonedDateTimeVisitor ZONED_DATE_TIME_VISITOR = new ZonedDateTimeVisitor();
 
-    private TimeConversion() {}
+    private TimeConversion() {
+    }
 
     public static EnhancedAttributeValue toIntegerAttributeValue(Instant instant) {
         long instantSeconds = instant.getEpochSecond();

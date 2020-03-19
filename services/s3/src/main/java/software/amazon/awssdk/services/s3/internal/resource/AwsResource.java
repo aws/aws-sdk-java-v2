@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**

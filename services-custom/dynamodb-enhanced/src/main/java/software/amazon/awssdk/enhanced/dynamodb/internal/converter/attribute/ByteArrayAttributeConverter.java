@@ -20,9 +20,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -52,8 +52,8 @@ public final class ByteArrayAttributeConverter implements AttributeConverter<byt
     }
 
     @Override
-    public TypeToken<byte[]> type() {
-        return TypeToken.of(byte[].class);
+    public EnhancedType<byte[]> type() {
+        return EnhancedType.of(byte[].class);
     }
 
     @Override

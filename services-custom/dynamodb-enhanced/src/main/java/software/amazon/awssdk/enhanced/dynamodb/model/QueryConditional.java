@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -32,9 +31,11 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.conditional.SingleKeyIt
  * any specific table or schema and can be re-used in different contexts.
  * <p>
  * Example:
+ * <pr>
  * {@code
- * QueryConditional partitionValueGreaterThanTen = QueryConditional.greaterThan(k -> k.partitionValue(10));
+ * QueryConditional sortValueGreaterThanFour = QueryConditional.sortGreaterThan(k -> k.partitionValue(10).sortValue(4));
  * }
+ * </pr>
  */
 @SdkPublicApi
 public interface QueryConditional {
@@ -42,7 +43,7 @@ public interface QueryConditional {
      * Creates a {@link QueryConditional} that matches when the key of an index is equal to a specific value.
      * @param key the literal key used to compare the value of the index against
      */
-    static QueryConditional equalTo(Key key) {
+    static QueryConditional keyEqualTo(Key key) {
         return new EqualToConditional(key);
     }
 
@@ -50,17 +51,17 @@ public interface QueryConditional {
      * Creates a {@link QueryConditional} that matches when the key of an index is equal to a specific value.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
-    static QueryConditional equalTo(Consumer<Key.Builder> keyConsumer) {
+    static QueryConditional keyEqualTo(Consumer<Key.Builder> keyConsumer) {
         Key.Builder builder = Key.builder();
         keyConsumer.accept(builder);
-        return equalTo(builder.build());
+        return keyEqualTo(builder.build());
     }
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is greater than a specific value.
      * @param key the literal key used to compare the value of the index against
      */
-    static QueryConditional greaterThan(Key key) {
+    static QueryConditional sortGreaterThan(Key key) {
         return new SingleKeyItemConditional(key, ">");
     }
 
@@ -68,10 +69,10 @@ public interface QueryConditional {
      * Creates a {@link QueryConditional} that matches when the key of an index is greater than a specific value.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
-    static QueryConditional greaterThan(Consumer<Key.Builder> keyConsumer) {
+    static QueryConditional sortGreaterThan(Consumer<Key.Builder> keyConsumer) {
         Key.Builder builder = Key.builder();
         keyConsumer.accept(builder);
-        return greaterThan(builder.build());
+        return sortGreaterThan(builder.build());
     }
 
     /**
@@ -79,7 +80,7 @@ public interface QueryConditional {
      * value.
      * @param key the literal key used to compare the value of the index against
      */
-    static QueryConditional greaterThanOrEqualTo(Key key) {
+    static QueryConditional sortGreaterThanOrEqualTo(Key key) {
         return new SingleKeyItemConditional(key, ">=");
     }
 
@@ -88,17 +89,17 @@ public interface QueryConditional {
      * value.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
-    static QueryConditional greaterThanOrEqualTo(Consumer<Key.Builder> keyConsumer) {
+    static QueryConditional sortGreaterThanOrEqualTo(Consumer<Key.Builder> keyConsumer) {
         Key.Builder builder = Key.builder();
         keyConsumer.accept(builder);
-        return greaterThanOrEqualTo(builder.build());
+        return sortGreaterThanOrEqualTo(builder.build());
     }
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is less than a specific value.
      * @param key the literal key used to compare the value of the index against
      */
-    static QueryConditional lessThan(Key key) {
+    static QueryConditional sortLessThan(Key key) {
         return new SingleKeyItemConditional(key, "<");
     }
 
@@ -106,10 +107,10 @@ public interface QueryConditional {
      * Creates a {@link QueryConditional} that matches when the key of an index is less than a specific value.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
-    static QueryConditional lessThan(Consumer<Key.Builder> keyConsumer) {
+    static QueryConditional sortLessThan(Consumer<Key.Builder> keyConsumer) {
         Key.Builder builder = Key.builder();
         keyConsumer.accept(builder);
-        return lessThan(builder.build());
+        return sortLessThan(builder.build());
     }
 
     /**
@@ -117,7 +118,7 @@ public interface QueryConditional {
      * value.
      * @param key the literal key used to compare the value of the index against
      */
-    static QueryConditional lessThanOrEqualTo(Key key) {
+    static QueryConditional sortLessThanOrEqualTo(Key key) {
         return new SingleKeyItemConditional(key, "<=");
     }
 
@@ -126,10 +127,10 @@ public interface QueryConditional {
      * value.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
-    static QueryConditional lessThanOrEqualTo(Consumer<Key.Builder> keyConsumer) {
+    static QueryConditional sortLessThanOrEqualTo(Consumer<Key.Builder> keyConsumer) {
         Key.Builder builder = Key.builder();
         keyConsumer.accept(builder);
-        return lessThanOrEqualTo(builder.build());
+        return sortLessThanOrEqualTo(builder.build());
     }
 
     /**
@@ -137,7 +138,7 @@ public interface QueryConditional {
      * @param keyFrom the literal key used to compare the start of the range to compare the value of the index against
      * @param keyTo the literal key used to compare the end of the range to compare the value of the index against
      */
-    static QueryConditional between(Key keyFrom, Key keyTo) {
+    static QueryConditional sortBetween(Key keyFrom, Key keyTo) {
         return new BetweenConditional(keyFrom, keyTo);
     }
 
@@ -148,19 +149,19 @@ public interface QueryConditional {
      * @param keyToConsumer 'builder consumer' for the literal key used to compare the end of the range to compare the
      *                      value of the index against
      */
-    static QueryConditional between(Consumer<Key.Builder> keyFromConsumer, Consumer<Key.Builder> keyToConsumer) {
+    static QueryConditional sortBetween(Consumer<Key.Builder> keyFromConsumer, Consumer<Key.Builder> keyToConsumer) {
         Key.Builder builderFrom = Key.builder();
         Key.Builder builderTo = Key.builder();
         keyFromConsumer.accept(builderFrom);
         keyToConsumer.accept(builderTo);
-        return between(builderFrom.build(), builderTo.build());
+        return sortBetween(builderFrom.build(), builderTo.build());
     }
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index begins with a specific value.
      * @param key the literal key used to compare the start of the value of the index against
      */
-    static QueryConditional beginsWith(Key key) {
+    static QueryConditional sortBeginsWith(Key key) {
         return new BeginsWithConditional(key);
     }
 
@@ -169,10 +170,10 @@ public interface QueryConditional {
      * @param keyConsumer 'builder consumer'  the literal key used to compare the start of the value of the index
      *                    against
      */
-    static QueryConditional beginsWith(Consumer<Key.Builder> keyConsumer) {
+    static QueryConditional sortBeginsWith(Consumer<Key.Builder> keyConsumer) {
         Key.Builder builder = Key.builder();
         keyConsumer.accept(builder);
-        return beginsWith(builder.build());
+        return sortBeginsWith(builder.build());
     }
 
     /**
