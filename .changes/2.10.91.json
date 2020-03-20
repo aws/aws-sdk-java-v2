@@ -1,0 +1,16 @@
+{
+    "version": "2.10.91",
+    "date": "2020-03-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "description": "Added \"productId\" and \"portfolioId\" to responses from CreateConstraint, UpdateConstraint, ListConstraintsForPortfolio, and DescribeConstraint APIs"
+        }
+    ]
+}

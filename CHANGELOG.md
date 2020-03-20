@@ -1,3 +1,12 @@
+# __2.10.91__ __2020-03-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Added "productId" and "portfolioId" to responses from CreateConstraint, UpdateConstraint, ListConstraintsForPortfolio, and DescribeConstraint APIs
+
 # __2.10.90__ __2020-03-19__
 ## __AWS Certificate Manager__
   - ### Features
