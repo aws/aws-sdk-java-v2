@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog",
+    "description": "Added \"productId\" and \"portfolioId\" to responses from CreateConstraint, UpdateConstraint, ListConstraintsForPortfolio, and DescribeConstraint APIs"
+}
