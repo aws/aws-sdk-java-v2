@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
  * Defines one result page with retrieved items in the result of a batchGetItem() operation, such as
  * {@link DynamoDbEnhancedClient#batchGetItem(BatchGetItemEnhancedRequest)}.
  * <p>
- * Use the {@link #getResultsForTable(MappedTableResource)} method once for each table present in the request
+ * Use the {@link #resultsForTable(MappedTableResource)} method once for each table present in the request
  * to retrieve items from that table in the page.
  */
 @SdkPublicApi
@@ -61,7 +61,7 @@ public final class BatchGetResultPage {
      * @param <T> the type of the table items
      * @return a list of items
      */
-    public <T> List<T> getResultsForTable(MappedTableResource<T> mappedTable) {
+    public <T> List<T> resultsForTable(MappedTableResource<T> mappedTable) {
         List<Map<String, AttributeValue>> results =
             batchGetItemResponse.responses()
                                 .getOrDefault(mappedTable.tableName(), emptyList());

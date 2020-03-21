@@ -2,361 +2,344 @@
   {
     "id": "apicall.httpclient.async.NettyClientH1NonTlsBenchmark.concurrentApiCall-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.539"
+      "date": "2020-03-18T20:11:42.308"
     },
     "statistics": {
-      "mean": 11953.741893432696,
-      "variance": 47530.034301188265,
-      "standardDeviation": 218.01383970103427,
-      "max": 12372.362415239815,
-      "min": 11719.587724827139,
+      "mean": 11083.712145086858,
+      "variance": 8687.140893505537,
+      "standardDeviation": 93.20483299435463,
+      "max": 11201.90868543306,
+      "min": 10902.251879180842,
       "n": 10,
-      "sum": 119537.41893432697
+      "sum": 110837.12145086858
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyClientH1NonTlsBenchmark.sequentialApiCall-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.544"
+      "date": "2020-03-18T20:11:42.314"
     },
     "statistics": {
-      "mean": 3474.8929618663287,
-      "variance": 712.0377962331736,
-      "standardDeviation": 26.684036355716007,
-      "max": 3505.5433448106787,
-      "min": 3415.4832560499217,
+      "mean": 3133.078992847664,
+      "variance": 1068.4543621730531,
+      "standardDeviation": 32.687220165885215,
+      "max": 3168.0172510726,
+      "min": 3074.6431126456655,
       "n": 10,
-      "sum": 34748.929618663286
+      "sum": 31330.78992847664
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyHttpClientH1Benchmark.concurrentApiCall-Throughput-sslProviderValue-jdk",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.544"
+      "date": "2020-03-18T20:11:42.314"
     },
     "statistics": {
-      "mean": 9699.896431884776,
-      "variance": 76032.40025479376,
-      "standardDeviation": 275.73973281845645,
-      "max": 10206.843184671103,
-      "min": 9468.303441931195,
+      "mean": 9400.788325804802,
+      "variance": 1622.9542174492854,
+      "standardDeviation": 40.28590594053068,
+      "max": 9457.777847805768,
+      "min": 9341.909058431082,
       "n": 10,
-      "sum": 96998.96431884775
+      "sum": 94007.88325804802
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyHttpClientH1Benchmark.concurrentApiCall-Throughput-sslProviderValue-openssl",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.544"
+      "date": "2020-03-18T20:11:42.314"
     },
     "statistics": {
-      "mean": 10446.03380714306,
-      "variance": 66413.66363464146,
-      "standardDeviation": 257.7084857637432,
-      "max": 10923.23707364524,
-      "min": 10204.627718853411,
+      "mean": 10081.234880927226,
+      "variance": 2505.9361253161246,
+      "standardDeviation": 50.05932605735044,
+      "max": 10172.340399895851,
+      "min": 10022.546988640313,
       "n": 10,
-      "sum": 104460.3380714306
+      "sum": 100812.34880927225
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyHttpClientH1Benchmark.sequentialApiCall-Throughput-sslProviderValue-jdk",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.544"
+      "date": "2020-03-18T20:11:42.315"
     },
     "statistics": {
-      "mean": 2512.7905373200633,
-      "variance": 91.50695734966303,
-      "standardDeviation": 9.565926894434382,
-      "max": 2526.984094567836,
-      "min": 2495.5718551901746,
+      "mean": 2318.064309904416,
+      "variance": 1794.725237106914,
+      "standardDeviation": 42.36419758601494,
+      "max": 2362.020636579015,
+      "min": 2217.173827814984,
       "n": 10,
-      "sum": 25127.905373200632
+      "sum": 23180.64309904416
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyHttpClientH1Benchmark.sequentialApiCall-Throughput-sslProviderValue-openssl",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.544"
+      "date": "2020-03-18T20:11:42.315"
     },
     "statistics": {
-      "mean": 2784.4975432258934,
-      "variance": 450.46863826270305,
-      "standardDeviation": 21.22424647102231,
-      "max": 2818.4210467256917,
-      "min": 2744.7963740556124,
+      "mean": 2668.2980888540214,
+      "variance": 10194.040190854324,
+      "standardDeviation": 100.96553962047805,
+      "max": 2787.7737717880227,
+      "min": 2556.3548857046126,
       "n": 10,
-      "sum": 27844.975432258936
+      "sum": 26682.980888540213
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyHttpClientH2Benchmark.concurrentApiCall-Throughput-sslProviderValue-jdk",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.544"
+      "date": "2020-03-18T20:11:42.315"
     },
     "statistics": {
-      "mean": 7283.504799574257,
-      "variance": 2940.452504351831,
-      "standardDeviation": 54.22593940497325,
-      "max": 7341.573192234993,
-      "min": 7160.770039331679,
+      "mean": 6452.047990499835,
+      "variance": 844.6625223962324,
+      "standardDeviation": 29.063078336546393,
+      "max": 6499.658012694073,
+      "min": 6401.143996944477,
       "n": 10,
-      "sum": 72835.04799574257
+      "sum": 64520.47990499835
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyHttpClientH2Benchmark.concurrentApiCall-Throughput-sslProviderValue-openssl",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.545"
+      "date": "2020-03-18T20:11:42.315"
     },
     "statistics": {
-      "mean": 8384.82208375372,
-      "variance": 916.1282854797893,
-      "standardDeviation": 30.267611162425574,
-      "max": 8426.604455073824,
-      "min": 8321.092978907209,
+      "mean": 7299.549654768969,
+      "variance": 6802.210622023329,
+      "standardDeviation": 82.47551528801338,
+      "max": 7377.236551369815,
+      "min": 7142.628565890159,
       "n": 10,
-      "sum": 83848.22083753718
+      "sum": 72995.49654768969
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyHttpClientH2Benchmark.sequentialApiCall-Throughput-sslProviderValue-jdk",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.545"
+      "date": "2020-03-18T20:11:42.315"
     },
     "statistics": {
-      "mean": 2477.2975472033204,
-      "variance": 840.2618882518038,
-      "standardDeviation": 28.987271141861626,
-      "max": 2521.960405726022,
-      "min": 2428.703690483765,
+      "mean": 2253.2698214846414,
+      "variance": 440.12404468422363,
+      "standardDeviation": 20.979133554182443,
+      "max": 2277.64629879439,
+      "min": 2214.79534117503,
       "n": 10,
-      "sum": 24772.975472033202
+      "sum": 22532.698214846412
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.async.NettyHttpClientH2Benchmark.sequentialApiCall-Throughput-sslProviderValue-openssl",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.545"
+      "date": "2020-03-18T20:11:42.316"
     },
     "statistics": {
-      "mean": 2590.8112289580376,
-      "variance": 454.61212848034586,
-      "standardDeviation": 21.321635220600363,
-      "max": 2616.8156380507344,
-      "min": 2540.5786144254553,
+      "mean": 2349.62389971199,
+      "variance": 605.1860304937383,
+      "standardDeviation": 24.600529069386663,
+      "max": 2387.296816018288,
+      "min": 2305.4407773762227,
       "n": 10,
-      "sum": 25908.11228958038
+      "sum": 23496.238997119897
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.sync.ApacheHttpClientBenchmark.concurrentApiCall-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.545"
+      "date": "2020-03-18T20:11:42.316"
     },
     "statistics": {
-      "mean": 16866.337334610893,
-      "variance": 101462.03409398827,
-      "standardDeviation": 318.531056718161,
-      "max": 17190.064649926695,
-      "min": 16269.141724682142,
+      "mean": 15097.57607845867,
+      "variance": 765986.0501891866,
+      "standardDeviation": 875.2062900763377,
+      "max": 16056.36834170701,
+      "min": 14137.646966796729,
       "n": 10,
-      "sum": 168663.37334610894
+      "sum": 150975.7607845867
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.sync.ApacheHttpClientBenchmark.sequentialApiCall-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.545"
+      "date": "2020-03-18T20:11:42.316"
     },
     "statistics": {
-      "mean": 4226.017857222098,
-      "variance": 3066.661807525882,
-      "standardDeviation": 55.37744854655081,
-      "max": 4305.988492552596,
-      "min": 4134.085450279892,
+      "mean": 3932.902248629381,
+      "variance": 3061.581931234147,
+      "standardDeviation": 55.331563607349345,
+      "max": 4034.253595323324,
+      "min": 3860.187186029488,
       "n": 10,
-      "sum": 42260.17857222098
+      "sum": 39329.02248629381
     }
-  },
-  {
+  }, {
     "id": "apicall.httpclient.sync.UrlConnectionHttpClientBenchmark.sequentialApiCall-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.545"
+      "date": "2020-03-18T20:11:42.316"
     },
     "statistics": {
-      "mean": 174.7664801674713,
-      "variance": 12.515295546405632,
-      "standardDeviation": 3.5376963615332553,
-      "max": 178.6770241537442,
-      "min": 166.3421471658005,
+      "mean": 769.724367683772,
+      "variance": 57.31368679644894,
+      "standardDeviation": 7.570580347400649,
+      "max": 788.1624697524128,
+      "min": 761.9236689968031,
       "n": 10,
-      "sum": 1747.6648016747129
+      "sum": 7697.24367683772
     }
-  },
-  {
+  }, {
     "id": "apicall.protocol.Ec2ProtocolBenchmark.successfulResponse-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.545"
+      "date": "2020-03-18T20:11:42.317"
     },
     "statistics": {
-      "mean": 9841.459076464273,
-      "variance": 10949.247996138049,
-      "standardDeviation": 104.63865440714558,
-      "max": 9965.24912712474,
-      "min": 9722.623015204204,
+      "mean": 9487.796808217518,
+      "variance": 574.9827758049166,
+      "standardDeviation": 23.978798464579427,
+      "max": 9527.963191787714,
+      "min": 9447.731608355678,
       "n": 10,
-      "sum": 98414.59076464272
+      "sum": 94877.96808217518
     }
-  },
-  {
+  }, {
     "id": "apicall.protocol.JsonProtocolBenchmark.successfulResponse-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.546"
+      "date": "2020-03-18T20:11:42.317"
     },
     "statistics": {
-      "mean": 16430.407523053836,
-      "variance": 29331.706560699487,
-      "standardDeviation": 171.26501849677152,
-      "max": 16638.092602848086,
-      "min": 16262.768049018146,
+      "mean": 15239.050304507653,
+      "variance": 5086.056215892704,
+      "standardDeviation": 71.31659144892375,
+      "max": 15346.02562533864,
+      "min": 15154.244391844419,
       "n": 10,
-      "sum": 164304.07523053835
+      "sum": 152390.50304507653
     }
-  },
-  {
+  }, {
     "id": "apicall.protocol.QueryProtocolBenchmark.successfulResponse-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.546"
+      "date": "2020-03-18T20:11:42.317"
     },
     "statistics": {
-      "mean": 10599.011117216372,
-      "variance": 975.0013823076044,
-      "standardDeviation": 31.225012126620616,
-      "max": 10644.281296039415,
-      "min": 10551.650476781753,
+      "mean": 10511.163793405529,
+      "variance": 11710.799056333717,
+      "standardDeviation": 108.21644540611061,
+      "max": 10633.736168153604,
+      "min": 10382.859111007954,
       "n": 10,
-      "sum": 105990.11117216373
+      "sum": 105111.63793405528
     }
-  },
-  {
+  }, {
     "id": "apicall.protocol.XmlProtocolBenchmark.successfulResponse-Throughput",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "Throughput",
-      "date": "2019-10-01T20:07:52.546"
+      "date": "2020-03-18T20:11:42.317"
     },
     "statistics": {
-      "mean": 9303.178155788462,
-      "variance": 21561.58218389355,
-      "standardDeviation": 146.83862633480862,
-      "max": 9463.863235819606,
-      "min": 9137.897225156119,
+      "mean": 8484.220376124444,
+      "variance": 27557.34797047023,
+      "standardDeviation": 166.00406010236685,
+      "max": 8658.753596062446,
+      "min": 8296.688244439016,
       "n": 10,
-      "sum": 93031.78155788462
+      "sum": 84842.20376124444
     }
-  },
-  {
+  }, {
     "id": "coldstart.V2OptimizedClientCreationBenchmark.createClient-SampleTime",
     "params": {
-      "sdkVersion": "2.9.11",
+      "sdkVersion": "2.10.89",
       "jdkVersion": "1.8.0_222",
       "jvmName": "OpenJDK 64-Bit Server VM",
       "jvmVersion": "25.222-b10",
       "mode": "SampleTime",
-      "date": "2019-10-01T20:07:52.56"
+      "date": "2020-03-18T20:11:42.33"
     },
     "statistics": {
-      "mean": 0.11715317741749746,
-      "variance": 24.391494667328747,
-      "standardDeviation": 4.9387746119183,
-      "max": 3544.1868799999997,
-      "min": 0.09088,
-      "n": 1293869,
-      "sum": 151580.86451200003
+      "mean": 0.19604848685545748,
+      "variance": 15.024731435678909,
+      "standardDeviation": 3.876174845860144,
+      "max": 1572.864,
+      "min": 0.169216,
+      "n": 771613,
+      "sum": 151273.5610880001
     }
   }
 ]

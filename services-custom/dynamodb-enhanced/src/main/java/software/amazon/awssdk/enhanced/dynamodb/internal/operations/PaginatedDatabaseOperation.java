@@ -22,7 +22,6 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.internal.TransformIterable;
-import software.amazon.awssdk.enhanced.dynamodb.internal.TransformPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -109,6 +108,6 @@ public interface PaginatedDatabaseOperation<RequestT, ResponseT, ResultT> {
 
         RequestT request = generateRequest(extension);
         SdkPublisher<ResponseT> response = asyncServiceCall(dynamoDbAsyncClient).apply(request);
-        return TransformPublisher.of(response, r -> transformResponse(r, extension));
+        return response.map(r -> transformResponse(r, extension));
     }
 }

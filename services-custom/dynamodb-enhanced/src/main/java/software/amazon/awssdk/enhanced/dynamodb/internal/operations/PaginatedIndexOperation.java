@@ -17,9 +17,10 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -34,11 +35,10 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
  * @param <ItemT> The modelled object that this table maps records to.
  * @param <RequestT>  The type of the request object for the DynamoDb call in the low level {@link DynamoDbClient}.
  * @param <ResponseT> The type of the response object for the DynamoDb call in the low level {@link DynamoDbClient}.
- * @param <ResultT> The type of the mapped result object that will be returned by the execution of this operation.
  */
 @SdkInternalApi
-public interface PaginatedIndexOperation<ItemT, RequestT, ResponseT, ResultT>
-    extends PaginatedOperation<ItemT, RequestT, ResponseT, ResultT> {
+public interface PaginatedIndexOperation<ItemT, RequestT, ResponseT>
+    extends PaginatedOperation<ItemT, RequestT, ResponseT> {
     /**
      * Default implementation of a complete synchronous execution of this operation against a secondary index. It will
      * construct a context based on the given table name and secondary index name and then call execute() on the
@@ -53,11 +53,11 @@ public interface PaginatedIndexOperation<ItemT, RequestT, ResponseT, ResultT>
      *                  operation. A null value here will result in no modifications.
      * @return A high level result object as specified by the implementation of this operation.
      */
-    default SdkIterable<ResultT> executeOnSecondaryIndex(TableSchema<ItemT> tableSchema,
-                                                         String tableName,
-                                                         String indexName,
-                                                         DynamoDbEnhancedClientExtension extension,
-                                                         DynamoDbClient dynamoDbClient) {
+    default PageIterable<ItemT> executeOnSecondaryIndex(TableSchema<ItemT> tableSchema,
+                                                        String tableName,
+                                                        String indexName,
+                                                        DynamoDbEnhancedClientExtension extension,
+                                                        DynamoDbClient dynamoDbClient) {
         OperationContext context = OperationContext.create(tableName, indexName);
         return execute(tableSchema, context, extension, dynamoDbClient);
     }
@@ -76,11 +76,11 @@ public interface PaginatedIndexOperation<ItemT, RequestT, ResponseT, ResultT>
      *                  operation. A null value here will result in no modifications.
      * @return A high level result object as specified by the implementation of this operation.
      */
-    default SdkPublisher<ResultT> executeOnSecondaryIndexAsync(TableSchema<ItemT> tableSchema,
-                                                               String tableName,
-                                                               String indexName,
-                                                               DynamoDbEnhancedClientExtension extension,
-                                                               DynamoDbAsyncClient dynamoDbAsyncClient) {
+    default SdkPublisher<Page<ItemT>> executeOnSecondaryIndexAsync(TableSchema<ItemT> tableSchema,
+                                                                   String tableName,
+                                                                   String indexName,
+                                                                   DynamoDbEnhancedClientExtension extension,
+                                                                   DynamoDbAsyncClient dynamoDbAsyncClient) {
         OperationContext context = OperationContext.create(tableName, indexName);
         return executeAsync(tableSchema, context, extension, dynamoDbAsyncClient);
     }

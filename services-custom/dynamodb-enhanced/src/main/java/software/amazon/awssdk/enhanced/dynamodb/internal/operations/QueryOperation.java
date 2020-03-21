@@ -34,8 +34,8 @@ import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 @SdkInternalApi
-public class QueryOperation<T> implements PaginatedTableOperation<T, QueryRequest, QueryResponse, Page<T>>,
-                                          PaginatedIndexOperation<T, QueryRequest, QueryResponse, Page<T>> {
+public class QueryOperation<T> implements PaginatedTableOperation<T, QueryRequest, QueryResponse>,
+                                          PaginatedIndexOperation<T, QueryRequest, QueryResponse> {
 
     private final QueryEnhancedRequest request;
 

@@ -285,8 +285,8 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
          * A higher-precedence {@link AttributeConverterProvider} than the default one provided by the table schema.
          * The {@link AttributeConverterProvider} must provide {@link AttributeConverter}s for all types used in the schema.
          * <p>
-         * The table schema default provider has an internal AttributeConverterProvider which provides standard converters
-         * for most primitive and common Java types. Use custom AttributeConverterProvider only when you have specific
+         * The table schema has a default, internal, AttributeConverterProvider which provides standard converters
+         * for most primitive and common Java types. Use custom AttributeConverterProvider when you have specific
          * needs for type conversion that the defaults do not cover.
          */
         public Builder<T> attributeConverterProvider(AttributeConverterProvider attributeConverterProvider) {

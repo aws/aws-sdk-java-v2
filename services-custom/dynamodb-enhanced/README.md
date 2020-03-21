@@ -117,18 +117,18 @@ fully documented in the Javadoc of the interfaces referenced in these examples.
    Customer deletedCustomer = customerTable.deleteItem(Key.builder().partitionValue("a123").sortValue(456).build());
    
    // Query
-   Iterable<Page<Customer>> customers = customerTable.query(equalTo(k -> k.partitionValue("a123")));
+   PageIterable<Customer> customers = customerTable.query(equalTo(k -> k.partitionValue("a123")));
 
    // Scan
-   Iterable<Page<Customer>> customers = customerTable.scan();
+   PageIterable<Customer> customers = customerTable.scan();
    
    // BatchGetItem
-   batchResults = enhancedClient.batchGetItem(r -> r.addReadBatch(ReadBatch.builder(Customer.class)
-                                                                           .mappedTableResource(customerTable)
-                                                                           .addGetItem(key1)
-                                                                           .addGetItem(key2)
-                                                                           .addGetItem(key3)
-                                                                           .build()));
+   BatchGetResultPageIterable batchResults = enhancedClient.batchGetItem(r -> r.addReadBatch(ReadBatch.builder(Customer.class)
+                                                                               .mappedTableResource(customerTable)
+                                                                               .addGetItem(key1)
+                                                                               .addGetItem(key2)
+                                                                               .addGetItem(key3)
+                                                                               .build()));
    
    // BatchWriteItem
    batchResults = enhancedClient.batchWriteItem(r -> r.addWriteBatch(WriteBatch.builder(Customer.class)
@@ -156,7 +156,7 @@ index. Here's an example of how to do this:
    ```java
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   Iterable<Page<Customer>> customersWithName = 
+   PageIterable<Customer> customersWithName = 
        customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    ```
 
@@ -190,7 +190,7 @@ key differences:
    application can then subscribe a handler to that publisher and deal
    with the results asynchronously without having to block:
    ```java
-   SdkPublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
+   PagePublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    results.subscribe(myCustomerResultsProcessor);
    // Perform other work and let the processor handle the results asynchronously
    ```
