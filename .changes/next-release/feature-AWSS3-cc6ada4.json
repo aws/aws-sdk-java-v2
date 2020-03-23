@@ -1,0 +1,5 @@
+{
+    "category": "AWS S3", 
+    "type": "feature", 
+    "description": "Allow DefaultS3Presigner.Builder to take a custom S3Configuration"
+}
