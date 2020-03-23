@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AmazonApiGatewayV2",
+    "description": "Documentation updates to reflect that the default timeout for integrations is now 30 seconds for HTTP APIs."
+}
