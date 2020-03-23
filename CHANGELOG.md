@@ -1,3 +1,21 @@
+# __2.11.0__ __2020-03-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump minor version to '2.11.0-SNAPSHOT' because of [#1692](https://github.com/aws/aws-sdk-java-v2/issues/1692)
+    - Updating dependency version: netty 4.1.42.Final -> 4.1.46.Final (contains the fix for reducing heap usage for netty client)
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding new error code IamLimitExceeded for Nodegroups in EKS
+
+## __Amazon Route 53__
+  - ### Features
+    - Documentation updates for Route 53.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Documentation updates to reflect that the default timeout for integrations is now 30 seconds for HTTP APIs.
+
 # __2.10.91__ __2020-03-20__
 ## __AWS SDK for Java v2__
   - ### Features
