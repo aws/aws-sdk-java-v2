@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "description": "Adding new error code IamLimitExceeded for Nodegroups in EKS"
-}
