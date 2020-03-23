@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.presigner.DefaultS3Presigner;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
@@ -512,6 +513,16 @@ public interface S3Presigner extends SdkPresigner {
     @SdkPublicApi
     @NotThreadSafe
     interface Builder extends SdkPresigner.Builder {
+        /**
+         * Allows providing a custom S3 serviceConfiguration by providing a {@link S3Configuration} object;
+         *
+         * Note: chunkedEncodingEnabled and checksumValidationEnabled do not apply to presigned requests.
+         *
+         * @param serviceConfiguration {@link S3Configuration}
+         * @return this Builder
+         */
+        Builder serviceConfiguration(S3Configuration serviceConfiguration);
+
         @Override
         Builder region(Region region);
 

@@ -30,7 +30,6 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
@@ -41,6 +40,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 @RunWith(MockitoJUnitRunner.class)
 public class S3PresignerTest {
     private static final URI FAKE_URL;
+    private static final String BUCKET = "some-bucket";
 
     private S3Presigner presigner;
 
@@ -64,8 +64,12 @@ public class S3PresignerTest {
                           .credentialsProvider(() -> AwsBasicCredentials.create("x", "x"));
     }
 
+
     private S3Presigner generateMaximal() {
         return S3Presigner.builder()
+                          .serviceConfiguration(S3Configuration.builder()
+                                .checksumValidationEnabled(false)
+                                .build())
                           .credentialsProvider(() -> AwsBasicCredentials.create("x", "x"))
                           .region(Region.US_EAST_1)
                           .endpointOverride(FAKE_URL)
@@ -324,5 +328,129 @@ public class S3PresignerTest {
             assertThat(expires).containsOnlyDigits();
             assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
         });
+    }
+
+    @Test
+    public void getObject_S3ConfigurationCanBeOverriddenToLeverageTransferAcceleration() {
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                    .accelerateModeEnabled(true)
+                    .build())
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                        .getObjectRequest(go -> go.bucket("foo34343434")
+                                .key("bar")));
+
+
+        System.out.println(presignedRequest.url());
+
+        assertThat(presignedRequest.httpRequest().host()).contains(".s3-accelerate.");
+    }
+
+
+    @Test
+    public void accelerateEnabled_UsesVirtualAddressingWithAccelerateEndpoint() {
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                .accelerateModeEnabled(true)
+                .build())
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                        .getObjectRequest(go -> go.bucket(BUCKET)
+                                .key("bar")));
+
+        assertThat(presignedRequest.httpRequest().host()).isEqualTo(String.format("%s.s3-accelerate.amazonaws.com", BUCKET));
+    }
+
+    /**
+     * Dualstack uses regional endpoints that support virtual addressing.
+     */
+    @Test
+    public void dualstackEnabled_UsesVirtualAddressingWithDualstackEndpoint() throws Exception {
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                .dualstackEnabled(true)
+                .build())
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                        .getObjectRequest(go -> go.bucket(BUCKET)
+                                .key("bar")));
+
+        assertThat(presignedRequest.httpRequest().host()).contains(String.format("%s.s3.dualstack.us-west-2.amazonaws.com", BUCKET));
+    }
+
+    /**
+     * Dualstack also supports path style endpoints just like the normal endpoints.
+     */
+    @Test
+    public void dualstackAndPathStyleEnabled_UsesPathStyleAddressingWithDualstackEndpoint() throws Exception {
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                .dualstackEnabled(true)
+                .pathStyleAccessEnabled(true)
+                .build())
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                        .getObjectRequest(go -> go.bucket(BUCKET)
+                                .key("bar")));
+
+        assertThat(presignedRequest.httpRequest().host()).isEqualTo("s3.dualstack.us-west-2.amazonaws.com");
+        assertThat(presignedRequest.url().toString()).startsWith(String.format("https://s3.dualstack.us-west-2.amazonaws.com/%s/%s?", BUCKET, "bar"));
+    }
+
+    /**
+     * When dualstack and accelerate are both enabled there is a special, global dualstack endpoint we must use.
+     */
+    @Test
+    public void dualstackAndAccelerateEnabled_UsesDualstackAccelerateEndpoint() throws Exception {
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                .dualstackEnabled(true)
+                .accelerateModeEnabled(true)
+                .build())
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                        .getObjectRequest(go -> go.bucket(BUCKET)
+                                .key("bar")));
+
+        assertThat(presignedRequest.httpRequest().host()).isEqualTo(String.format("%s.s3-accelerate.dualstack.amazonaws.com", BUCKET));
+    }
+
+    @Test
+    public void accessPointArn_differentRegion_useArnRegionTrue() throws Exception {
+        String customEndpoint = "https://foobar-12345678910.s3-accesspoint.us-west-2.amazonaws.com";
+        String accessPointArn = "arn:aws:s3:us-west-2:12345678910:accesspoint:foobar";
+
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                .useArnRegionEnabled(true)
+                .build())
+                .build();
+
+        PresignedGetObjectRequest presignedRequest =
+                presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                        .getObjectRequest(go -> go.bucket(accessPointArn)
+                                .key("bar")));
+
+        assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
+    }
+
+    @Test
+    public void accessPointArn_differentRegion_useArnRegionFalse_throwsIllegalArgumentException() throws Exception {
+        String accessPointArn = "arn:aws:s3:us-east-1:12345678910:accesspoint:foobar";
+
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                .useArnRegionEnabled(false)
+                .build())
+                .build();
+
+        assertThatThrownBy(() -> presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                        .getObjectRequest(go -> go.bucket(accessPointArn).key("bar"))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("region");
     }
 }
