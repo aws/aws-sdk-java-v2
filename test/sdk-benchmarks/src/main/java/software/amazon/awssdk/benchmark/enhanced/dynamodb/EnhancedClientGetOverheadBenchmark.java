@@ -78,12 +78,12 @@ public class EnhancedClientGetOverheadBenchmark {
 
 
     @Benchmark
-    public Object llGet(TestState s) {
+    public Object lowLevelGet(TestState s) {
         return s.dynamoDb.getItem(GetItemRequest.builder().build());
     }
 
     @Benchmark
-    public Object enhGet(TestState s) {
+    public Object enhanceGet(TestState s) {
         return s.table.getItem(testKey);
     }
 

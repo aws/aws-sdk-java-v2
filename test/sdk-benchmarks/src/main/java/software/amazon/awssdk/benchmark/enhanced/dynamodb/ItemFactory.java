@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import software.amazon.awssdk.core.SdkBytes;
 
 abstract class ItemFactory<T> {
@@ -65,40 +67,7 @@ abstract class ItemFactory<T> {
         b.setHashKey(randomS());
         b.setStringAttr(randomS());
         b.setBinaryAttr(randomBytes());
-        b.setListAttr(Arrays.asList(randomS(),
-                randomS(),
-                randomS(),
-
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS(),
-                randomS()));
+        b.setListAttr(IntStream.range(0, 32).mapToObj(i -> randomS()).collect(Collectors.toList()));
 
         Map<String, SdkBytes> mapAttr1 = new HashMap<>();
         mapAttr1.put("key1", randomBytes());
@@ -109,40 +78,10 @@ abstract class ItemFactory<T> {
 
         Map<String, List<SdkBytes>> mapAttr2 = new HashMap<>();
         mapAttr2.put("key1", Arrays.asList(randomBytes()));
-        mapAttr2.put("key2", Arrays.asList(
-                randomBytes(),
-                randomBytes()));
-        mapAttr2.put("key3", Arrays.asList(
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes()));
-        mapAttr2.put("key4", Arrays.asList(
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes()));
-        mapAttr2.put("key5", Arrays.asList(
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes(),
-                randomBytes()));
+        mapAttr2.put("key2", IntStream.range(0, 2).mapToObj(i -> randomBytes()).collect(Collectors.toList()));
+        mapAttr2.put("key3", IntStream.range(0, 4).mapToObj(i -> randomBytes()).collect(Collectors.toList()));
+        mapAttr2.put("key4", IntStream.range(0, 8).mapToObj(i -> randomBytes()).collect(Collectors.toList()));
+        mapAttr2.put("key5", IntStream.range(0, 16).mapToObj(i -> randomBytes()).collect(Collectors.toList()));
 
         b.setMapAttr2(mapAttr2);
 
@@ -151,14 +90,13 @@ abstract class ItemFactory<T> {
 
         List<Map<String, List<SdkBytes>>> value = Arrays.asList(
                 ImmutableMapParameter.<String, List<SdkBytes>>builder()
-                        .put("key1", Arrays.asList(randomBytes(), randomBytes()))
+                        .put("key1", IntStream.range(0, 2).mapToObj(i -> randomBytes()).collect(Collectors.toList()))
                         .build(),
                 ImmutableMapParameter.<String, List<SdkBytes>>builder()
-                        .put("key2", Arrays.asList(randomBytes(), randomBytes(), randomBytes(), randomBytes()))
+                        .put("key2", IntStream.range(0, 4).mapToObj(i -> randomBytes()).collect(Collectors.toList()))
                         .build(),
                 ImmutableMapParameter.<String, List<SdkBytes>>builder()
-                        .put("key3", Arrays.asList(randomBytes(), randomBytes(), randomBytes(), randomBytes(),
-                                                   randomBytes(), randomBytes(), randomBytes(), randomBytes()))
+                        .put("key3", IntStream.range(0, 8).mapToObj(i -> randomBytes()).collect(Collectors.toList()))
                         .build()
         );
 

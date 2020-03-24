@@ -137,6 +137,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb-enhanced</artifactId>
+            <!-- TODO: Remove '-PREVIEW' when the client is GA -->
             <version>${awsjavasdk.version}-PREVIEW</version>
         </dependency>
         <dependency>
