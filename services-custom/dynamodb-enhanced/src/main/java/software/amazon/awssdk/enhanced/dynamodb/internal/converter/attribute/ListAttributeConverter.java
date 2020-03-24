@@ -135,10 +135,9 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
 
         @Override
         public AttributeValue transformFrom(T input) {
-            return EnhancedAttributeValue.fromListOfAttributeValues(
-                input.stream()
-                     .map(e -> EnhancedAttributeValue.fromAttributeValue(elementConverter.transformFrom(e)))
-                     .collect(toList()))
+            return EnhancedAttributeValue.fromListOfAttributeValues(input.stream()
+                                                                         .map(elementConverter::transformFrom)
+                                                                         .collect(toList()))
                                          .toAttributeValue();
         }
 
@@ -148,31 +147,31 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
                                          .convert(new TypeConvertingVisitor<T>(type.rawClass(), ListAttributeConverter.class) {
                                              @Override
                                              public T convertSetOfStrings(List<String> value) {
-                                                 return convertCollection(value, EnhancedAttributeValue::fromString);
+                                                 return convertCollection(value, v -> AttributeValue.builder().s(v).build());
                                              }
 
                                              @Override
                                              public T convertSetOfNumbers(List<String> value) {
-                                                 return convertCollection(value, EnhancedAttributeValue::fromNumber);
+                                                 return convertCollection(value, v -> AttributeValue.builder().n(v).build());
                                              }
 
                                              @Override
                                              public T convertSetOfBytes(List<SdkBytes> value) {
-                                                 return convertCollection(value, EnhancedAttributeValue::fromBytes);
+                                                 return convertCollection(value, v -> AttributeValue.builder().b(v).build());
                                              }
 
                                              @Override
-                                             public T convertListOfAttributeValues(List<EnhancedAttributeValue> value) {
+                                             public T convertListOfAttributeValues(List<AttributeValue> value) {
                                                  return convertCollection(value, Function.identity());
                                              }
 
                                              private <V> T convertCollection(Collection<V> collection,
-                                                                             Function<V, EnhancedAttributeValue> transformFrom) {
+                                                                             Function<V, AttributeValue> transformFrom) {
                                                  Collection<Object> result = (Collection<Object>) collectionConstructor.get();
 
                                                  collection.stream()
                                                            .map(transformFrom)
-                                                           .map(v -> elementConverter.transformTo(v.toAttributeValue()))
+                                                           .map(elementConverter::transformTo)
                                                            .forEach(result::add);
 
                                                  // This is a safe cast - We know the values we added to the list

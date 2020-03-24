@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -108,7 +109,7 @@ public abstract class TypeConvertingVisitor<T> {
      * Invoked when visiting an attribute in which {@link EnhancedAttributeValue#isMap()} is true. The provided value is the
      * underlying value of the {@link EnhancedAttributeValue} being converted.
      */
-    public T convertMap(Map<String, EnhancedAttributeValue> value) {
+    public T convertMap(Map<String, AttributeValue> value) {
         return defaultConvert(AttributeValueType.M, value);
     }
 
@@ -172,7 +173,7 @@ public abstract class TypeConvertingVisitor<T> {
      * Invoked when visiting an attribute in which {@link EnhancedAttributeValue#isListOfAttributeValues()} is true. The provided
      * value is the underlying value of the {@link EnhancedAttributeValue} being converted.
      */
-    public T convertListOfAttributeValues(List<EnhancedAttributeValue> value) {
+    public T convertListOfAttributeValues(List<AttributeValue> value) {
         return defaultConvert(AttributeValueType.L, value);
     }
 

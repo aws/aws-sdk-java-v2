@@ -54,7 +54,7 @@ public final class UuidAttributeConverter implements AttributeConverter<UUID> {
 
     @Override
     public AttributeValue transformFrom(UUID input) {
-        return EnhancedAttributeValue.fromString(STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().s(STRING_CONVERTER.toString(input)).build();
     }
 
     @Override
