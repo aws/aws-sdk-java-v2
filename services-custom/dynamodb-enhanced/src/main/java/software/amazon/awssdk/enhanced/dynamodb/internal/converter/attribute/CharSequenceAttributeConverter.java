@@ -63,7 +63,7 @@ public final class CharSequenceAttributeConverter implements AttributeConverter<
 
     @Override
     public AttributeValue transformFrom(CharSequence input) {
-        return EnhancedAttributeValue.fromString(CHAR_SEQUENCE_STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().s(CHAR_SEQUENCE_STRING_CONVERTER.toString(input)).build();
     }
 
     @Override

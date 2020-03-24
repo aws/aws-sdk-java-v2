@@ -66,7 +66,7 @@ public final class BooleanAttributeConverter implements AttributeConverter<Boole
 
     @Override
     public AttributeValue transformFrom(Boolean input) {
-        return EnhancedAttributeValue.fromBoolean(input).toAttributeValue();
+        return AttributeValue.builder().bool(input).build();
     }
 
     @Override

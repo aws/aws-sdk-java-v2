@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -48,7 +47,7 @@ public final class AttributeValues {
      * @return An {@link AttributeValue} of type S that represents the string literal.
      */
     public static AttributeValue stringValue(String value) {
-        return EnhancedAttributeValue.fromString(value).toAttributeValue();
+        return AttributeValue.builder().s(value).build();
     }
 
     /**
@@ -57,7 +56,7 @@ public final class AttributeValues {
      * @return An {@link AttributeValue} of type n that represents the numeric literal.
      */
     public static AttributeValue numberValue(Number value) {
-        return EnhancedAttributeValue.fromNumber(value.toString()).toAttributeValue();
+        return AttributeValue.builder().n(value.toString()).build();
     }
 
     /**
@@ -66,6 +65,6 @@ public final class AttributeValues {
      * @return An {@link AttributeValue} of type B that represents the binary literal.
      */
     public static AttributeValue binaryValue(SdkBytes value) {
-        return EnhancedAttributeValue.fromBytes(value).toAttributeValue();
+        return AttributeValue.builder().b(value).build();
     }
 }

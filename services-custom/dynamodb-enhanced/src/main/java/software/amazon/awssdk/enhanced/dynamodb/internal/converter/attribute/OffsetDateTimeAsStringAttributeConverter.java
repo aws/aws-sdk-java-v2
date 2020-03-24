@@ -85,7 +85,7 @@ public final class OffsetDateTimeAsStringAttributeConverter implements Attribute
 
     @Override
     public AttributeValue transformFrom(OffsetDateTime input) {
-        return TimeConversion.toStringAttributeValue(input).toAttributeValue();
+        return TimeConversion.toStringAttributeValue(input);
     }
 
     @Override

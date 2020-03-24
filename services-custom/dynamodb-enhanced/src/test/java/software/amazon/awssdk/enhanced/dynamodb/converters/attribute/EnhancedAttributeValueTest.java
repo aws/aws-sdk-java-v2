@@ -26,6 +26,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class EnhancedAttributeValueTest {
     @Test
@@ -79,78 +80,71 @@ public class EnhancedAttributeValueTest {
             assertThat(v.type()).isEqualTo(AttributeValueType.BS);
         });
 
-        assertThat(EnhancedAttributeValue.fromListOfAttributeValues(Arrays.asList(EnhancedAttributeValue.fromString("foo"),
-                                                                              EnhancedAttributeValue.fromBoolean(true)))).satisfies(v -> {
+        assertThat(EnhancedAttributeValue.fromListOfAttributeValues(Arrays.asList(AttributeValue.builder().s("foo").build(),
+                                                                                  AttributeValue.builder().bool(true).build()))).satisfies(v -> {
             assertThat(v.isListOfAttributeValues()).isTrue();
-            assertThat(v.asListOfAttributeValues().get(0).asString()).isEqualTo("foo");
-            assertThat(v.asListOfAttributeValues().get(1).asBoolean()).isEqualTo(true);
+            assertThat(v.asListOfAttributeValues().get(0).s()).isEqualTo("foo");
+            assertThat(v.asListOfAttributeValues().get(1).bool()).isEqualTo(true);
             assertThat(v.type()).isEqualTo(AttributeValueType.L);
         });
 
-        Map<String, EnhancedAttributeValue> map = new LinkedHashMap<>();
-        map.put("a", EnhancedAttributeValue.fromString("foo"));
-        map.put("b", EnhancedAttributeValue.fromBoolean(true));
+        Map<String, AttributeValue> map = new LinkedHashMap<>();
+        map.put("a", AttributeValue.builder().s("foo").build());
+        map.put("b", AttributeValue.builder().bool(true).build());
         assertThat(EnhancedAttributeValue.fromMap(map)).satisfies(v -> {
             assertThat(v.isMap()).isTrue();
-            assertThat(v.asMap().get("a").asString()).isEqualTo("foo");
-            assertThat(v.asMap().get("b").asBoolean()).isEqualTo(true);
+            assertThat(v.asMap().get("a").s()).isEqualTo("foo");
+            assertThat(v.asMap().get("b").bool()).isEqualTo(true);
             assertThat(v.type()).isEqualTo(AttributeValueType.M);
         });
     }
 
     @Test
     public void fromGeneratedTypeMethodsCreateCorrectType() {
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().nul(true).build()))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().nul(true).build()))
                 .isEqualTo(EnhancedAttributeValue.nullValue());
 
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().s("foo").build()))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().s("foo").build()))
                 .isEqualTo(EnhancedAttributeValue.fromString("foo"));
 
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().n("1").build()))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().n("1").build()))
                 .isEqualTo(EnhancedAttributeValue.fromNumber("1"));
 
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().bool(true).build()))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().bool(true).build()))
                 .isEqualTo(EnhancedAttributeValue.fromBoolean(true));
 
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().b(SdkBytes.fromUtf8String("foo")).build()))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().b(SdkBytes.fromUtf8String("foo")).build()))
                 .isEqualTo(EnhancedAttributeValue.fromBytes(SdkBytes.fromUtf8String("foo")));
 
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().ss(Arrays.asList("foo", "bar")).build()))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().ss(Arrays.asList("foo", "bar")).build()))
                 .isEqualTo(EnhancedAttributeValue.fromSetOfStrings(Arrays.asList("foo", "bar")));
 
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().ns(Arrays.asList("1", "2")).build()))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().ns(Arrays.asList("1", "2")).build()))
                 .isEqualTo(EnhancedAttributeValue.fromSetOfNumbers(Arrays.asList("1", "2")));
 
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder()
-                                                                                                                               .bs(Arrays.asList(SdkBytes.fromUtf8String("foo"),
-                                                                                                                                                 SdkBytes.fromUtf8String("foo2")))
-                                                                                                                               .build()))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder()
+                                                                           .bs(Arrays.asList(SdkBytes.fromUtf8String("foo"),
+                                                                                             SdkBytes.fromUtf8String("foo2")))
+                                                                           .build()))
                 .isEqualTo(EnhancedAttributeValue.fromSetOfBytes(Arrays.asList(SdkBytes.fromUtf8String("foo"),
                                                                            SdkBytes.fromUtf8String("foo2"))));
 
-        List<software.amazon.awssdk.services.dynamodb.model.AttributeValue> l = Arrays.asList(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().s("foo").build(),
-                                                                                              software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().n("1").build());
-        List<EnhancedAttributeValue> list = Arrays.asList(EnhancedAttributeValue.fromString("foo"), EnhancedAttributeValue.fromNumber("1"));
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().l(l).build()))
+        List<AttributeValue> list = Arrays.asList(AttributeValue.builder().s("foo").build(),
+                                                  AttributeValue.builder().n("1").build());
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().l(list).build()))
                 .isEqualTo(EnhancedAttributeValue.fromListOfAttributeValues(list));
 
-        Map<String, software.amazon.awssdk.services.dynamodb.model.AttributeValue> m = new LinkedHashMap<>();
-        m.put("foo", software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().s("foo").build());
-        m.put("bar", software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().n("1").build());
-        Map<String, EnhancedAttributeValue> map = new LinkedHashMap<>();
-        map.put("foo", EnhancedAttributeValue.fromString("foo"));
-        map.put("bar", EnhancedAttributeValue.fromNumber("1"));
+        Map<String, AttributeValue> map = new LinkedHashMap<>();
+        map.put("foo", AttributeValue.builder().s("foo").build());
+        map.put("bar", AttributeValue.builder().n("1").build());
 
-        assertThat(EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().m(m).build()))
-                .isEqualTo(EnhancedAttributeValue.fromMap(map));
-
-        assertThat(EnhancedAttributeValue.fromAttributeValueMap(m))
+        assertThat(EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().m(map).build()))
                 .isEqualTo(EnhancedAttributeValue.fromMap(map));
     }
 
     @Test
     public void emptyAttributeValuesCannotBeConverted() {
-        assertThatThrownBy(() -> EnhancedAttributeValue.fromAttributeValue(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().build()))
+        assertThatThrownBy(() -> EnhancedAttributeValue.fromAttributeValue(AttributeValue.builder().build()))
                 .isInstanceOf(IllegalStateException.class);
     }
 
@@ -159,15 +153,11 @@ public class EnhancedAttributeValueTest {
         List<String> strings = Arrays.asList("foo", "bar");
         List<SdkBytes> bytes = Arrays.asList(SdkBytes.fromUtf8String("foo"), SdkBytes.fromUtf8String("bar"));
 
-        List<EnhancedAttributeValue> itemAttributes = Arrays.asList(EnhancedAttributeValue.fromString("foo"), EnhancedAttributeValue.fromNumber("1"));
-        List<software.amazon.awssdk.services.dynamodb.model.AttributeValue> attributes = Arrays.asList(software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().s("foo").build(), software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().n("1").build());
+        List<AttributeValue> attributes = Arrays.asList(AttributeValue.builder().s("foo").build(), AttributeValue.builder().n("1").build());
 
-        Map<String, software.amazon.awssdk.services.dynamodb.model.AttributeValue> attributeMap = new LinkedHashMap<>();
-        attributeMap.put("foo", software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().s("foo").build());
-        attributeMap.put("bar", software.amazon.awssdk.services.dynamodb.model.AttributeValue.builder().n("1").build());
-        Map<String, EnhancedAttributeValue> itemAttributeMap = new LinkedHashMap<>();
-        itemAttributeMap.put("foo", EnhancedAttributeValue.fromString("foo"));
-        itemAttributeMap.put("bar", EnhancedAttributeValue.fromNumber("1"));
+        Map<String, AttributeValue> attributeMap = new LinkedHashMap<>();
+        attributeMap.put("foo", AttributeValue.builder().s("foo").build());
+        attributeMap.put("bar", AttributeValue.builder().n("1").build());
 
         assertThat(EnhancedAttributeValue.nullValue().toAttributeValue().nul()).isEqualTo(true);
         assertThat(EnhancedAttributeValue.fromString("foo").toAttributeValue().s()).isEqualTo("foo");
@@ -177,53 +167,8 @@ public class EnhancedAttributeValueTest {
         assertThat(EnhancedAttributeValue.fromSetOfStrings(strings).toAttributeValue().ss()).isEqualTo(strings);
         assertThat(EnhancedAttributeValue.fromSetOfNumbers(strings).toAttributeValue().ns()).isEqualTo(strings);
         assertThat(EnhancedAttributeValue.fromSetOfBytes(bytes).toAttributeValue().bs()).isEqualTo(bytes);
-        assertThat(EnhancedAttributeValue.fromListOfAttributeValues(itemAttributes).toAttributeValue().l()).isEqualTo(attributes);
-        assertThat(EnhancedAttributeValue.fromMap(itemAttributeMap).toAttributeValue().m()).isEqualTo(attributeMap);
-        assertThat(EnhancedAttributeValue.fromMap(itemAttributeMap).toAttributeValueMap()).isEqualTo(attributeMap);
-    }
-
-    @Test
-    public void conversionToStringIsCorrect() {
-        List<String> strings = Arrays.asList("foo", "bar");
-        List<SdkBytes> bytes = Arrays.asList(SdkBytes.fromUtf8String("foo"), SdkBytes.fromUtf8String("bar"));
-
-        List<EnhancedAttributeValue> itemAttributes = Arrays.asList(EnhancedAttributeValue.fromString("foo"),
-                                                                EnhancedAttributeValue.fromNumber("1"));
-
-        Map<String, EnhancedAttributeValue> itemAttributeMap = new LinkedHashMap<>();
-        itemAttributeMap.put("foo", EnhancedAttributeValue.fromString("foo"));
-        itemAttributeMap.put("bar", EnhancedAttributeValue.fromNumber("1"));
-
-        assertThat(EnhancedAttributeValue.nullValue().toString())
-                .isEqualTo("EnhancedAttributeValue(type=NULL, value=null)");
-
-        assertThat(EnhancedAttributeValue.fromString("foo").toString())
-                .isEqualTo("EnhancedAttributeValue(type=S, value=foo)");
-
-        assertThat(EnhancedAttributeValue.fromNumber("1").toString())
-                .isEqualTo("EnhancedAttributeValue(type=N, value=1)");
-
-        assertThat(EnhancedAttributeValue.fromBoolean(false).toString())
-                .isEqualTo("EnhancedAttributeValue(type=BOOL, value=false)");
-
-        assertThat(EnhancedAttributeValue.fromBytes(SdkBytes.fromUtf8String("foo")).toString())
-                .isEqualTo("EnhancedAttributeValue(type=B, value=SdkBytes(bytes=0x666f6f))");
-
-        assertThat(EnhancedAttributeValue.fromSetOfStrings(strings).toString())
-                .isEqualTo("EnhancedAttributeValue(type=SS, value=[foo, bar])");
-
-        assertThat(EnhancedAttributeValue.fromSetOfNumbers(strings).toString())
-                .isEqualTo("EnhancedAttributeValue(type=NS, value=[foo, bar])");
-
-        assertThat(EnhancedAttributeValue.fromSetOfBytes(bytes).toString())
-                .isEqualTo("EnhancedAttributeValue(type=BS, value=[SdkBytes(bytes=0x666f6f), SdkBytes(bytes=0x626172)])");
-
-        assertThat(EnhancedAttributeValue.fromListOfAttributeValues(itemAttributes).toString())
-                .isEqualTo("EnhancedAttributeValue(type=L, value=[EnhancedAttributeValue(type=S, value=foo), " +
-                           "EnhancedAttributeValue(type=N, value=1)])");
-
-        assertThat(EnhancedAttributeValue.fromMap(itemAttributeMap).toString())
-                .isEqualTo("EnhancedAttributeValue(type=M, value={foo=EnhancedAttributeValue(type=S, value=foo), " +
-                           "bar=EnhancedAttributeValue(type=N, value=1)})");
+        assertThat(EnhancedAttributeValue.fromListOfAttributeValues(attributes).toAttributeValue().l()).isEqualTo(attributes);
+        assertThat(EnhancedAttributeValue.fromMap(attributeMap).toAttributeValue().m()).isEqualTo(attributeMap);
+        assertThat(EnhancedAttributeValue.fromMap(attributeMap).toAttributeValueMap()).isEqualTo(attributeMap);
     }
 }

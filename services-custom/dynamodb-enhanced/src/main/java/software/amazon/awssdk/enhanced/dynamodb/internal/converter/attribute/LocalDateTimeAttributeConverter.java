@@ -105,7 +105,7 @@ public final class LocalDateTimeAttributeConverter implements AttributeConverter
                        padLeft2(input.getMinute()) +
                        padLeft2(input.getSecond()) +
                        (input.getNano() == 0 ? "" : "." + padLeft(9, input.getNano()));
-        return EnhancedAttributeValue.fromNumber(value).toAttributeValue();
+        return AttributeValue.builder().n(value).build();
     }
 
     @Override

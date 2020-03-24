@@ -80,7 +80,7 @@ public final class ZonedDateTimeAsStringAttributeConverter implements AttributeC
 
     @Override
     public AttributeValue transformFrom(ZonedDateTime input) {
-        return TimeConversion.toStringAttributeValue(input).toAttributeValue();
+        return TimeConversion.toStringAttributeValue(input);
     }
 
     @Override
