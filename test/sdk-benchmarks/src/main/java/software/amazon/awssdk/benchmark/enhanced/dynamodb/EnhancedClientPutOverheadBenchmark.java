@@ -46,12 +46,12 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @State(Scope.Benchmark)
 public class EnhancedClientPutOverheadBenchmark {
     @Benchmark
-    public void llPut(TestState s) {
+    public void lowLevelPut(TestState s) {
         s.ddb.putItem(r -> r.item(s.testItem.av));
     }
 
     @Benchmark
-    public void enhPut(TestState s) {
+    public void enhancedPut(TestState s) {
         s.enhTable.putItem(s.testItem.bean);
     }
 
