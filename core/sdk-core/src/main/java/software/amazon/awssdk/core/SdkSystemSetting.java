@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.utils.SystemSetting;
 
 /**
@@ -149,7 +152,21 @@ public enum SdkSystemSetting implements SystemSetting {
      * the SDK to use the {@code s3.us-east-1.amazonaws.com} endpoint when using the {@code US_EAST_1} region instead of
      * the global {@code s3.amazonaws.com}. Using the regional endpoint is disabled by default.
      */
-    AWS_S3_US_EAST_1_REGIONAL_ENDPOINT("aws.s3UseUsEast1RegionalEndpoint", null);
+    AWS_S3_US_EAST_1_REGIONAL_ENDPOINT("aws.s3UseUsEast1RegionalEndpoint", null),
+
+    /**
+     * Which {@link RetryMode} to use for the default {@link RetryPolicy}, when one is not specified at the client level.
+     */
+    AWS_RETRY_MODE("aws.retryMode", null),
+
+    /**
+     * Defines the default value for {@link RetryPolicy.Builder#numRetries(Integer)}, if the retry count is not overridden in the
+     * retry policy configured via {@link ClientOverrideConfiguration.Builder#retryPolicy(RetryPolicy)}. This is one more than
+     * the number of retries, so aws.maxAttempts = 1 is 0 retries.
+     */
+    AWS_MAX_ATTEMPTS("aws.maxAttempts", null),
+
+    ;
 
     private final String systemProperty;
     private final String defaultValue;

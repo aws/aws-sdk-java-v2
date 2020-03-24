@@ -1,3 +1,590 @@
+# __2.11.0__ __2020-03-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump minor version to '2.11.0-SNAPSHOT' because of [#1692](https://github.com/aws/aws-sdk-java-v2/issues/1692)
+    - Updating dependency version: netty 4.1.42.Final -> 4.1.46.Final (contains the fix for reducing heap usage for netty client)
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding new error code IamLimitExceeded for Nodegroups in EKS
+
+## __Amazon Route 53__
+  - ### Features
+    - Documentation updates for Route 53.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Documentation updates to reflect that the default timeout for integrations is now 30 seconds for HTTP APIs.
+
+# __2.10.91__ __2020-03-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Added "productId" and "portfolioId" to responses from CreateConstraint, UpdateConstraint, ListConstraintsForPortfolio, and DescribeConstraint APIs
+
+# __2.10.90__ __2020-03-19__
+## __AWS Certificate Manager__
+  - ### Features
+    - AWS Certificate Manager documentation updated on API calls ImportCertificate and ListCertificate. Specific updates included input constraints, private key size for import and next token size for list.
+
+## __AWS Outposts__
+  - ### Features
+    - Documentation updates for AWS Outposts.
+
+# __2.10.89__ __2020-03-18__
+## __AWS MediaConnect__
+  - ### Features
+    - Feature adds the ability for a flow to have multiple redundant sources that provides resiliency to a source failing. The new APIs added to enable the feature are, AddFlowSources, RemoveFlowSource and UpdateFlow.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Personalize__
+  - ### Features
+    - [Personalize] Adds support for returning hyperparameter values of the best performing model in a HPO job.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updated the MaxRecords type in DescribeExportTasks to Integer.
+
+# __2.10.88__ __2020-03-17__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for: AV1 encoding in File Group MP4, DASH and CMAF DASH outputs; PCM/WAV audio output in MPEG2-TS containers; and Opus audio in Webm inputs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix an issue where the signing key is created only once at the start of the request for event streaming requests. This causes requests that span two or more days to have signing errors once the date changes because the signing key was derived only once using the date at the beginning of the request.
+
+# __2.10.87__ __2020-03-16__
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 now supports Batch Operations job tagging.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Additional response field "CompromisedCredentialsDetected" added to AdminListUserAuthEvents.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - The enhanced DDB client table schema now supports custom AttributeConverterProviders, and StaticAttribute can take individual AttributeConverter to override default attribute converter behavior.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds the ability to update the task placement strategy and constraints for Amazon ECS services.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache now supports Global Datastore for Redis. Global Datastore for Redis offers fully managed, fast, reliable and secure cross-region replication. Using Global Datastore for Redis, you can create cross-region read replica clusters for ElastiCache for Redis to enable low-latency reads and disaster recovery across regions. You can create, modify and describe a Global Datastore, as well as add or remove regions from your Global Datastore and promote a region as primary in Global Datastore.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Resource data sync for AWS Systems Manager Inventory now includes destination data sharing. This feature enables you to synchronize inventory data from multiple AWS accounts into a central Amazon S3 bucket. To use this feature, all AWS accounts must be listed in AWS Organizations.
+
+# __2.10.86__ __2020-03-13__
+## __Amazon AppConfig__
+  - ### Features
+    - This release adds S3 as a configuration source provider.
+
+# __2.10.85__ __2020-03-12__
+## __AWS IoT__
+  - ### Features
+    - As part of this release, we are extending capability of AWS IoT Rules Engine to support IoT Cloudwatch log action. The IoT Cloudwatch log rule action lets you send messages from IoT sensors and applications to Cloudwatch logs for troubleshooting and debugging.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - The AWS Security Finding Format is being augmented with the following changes. 21 new resource types without corresponding details objects are added. Another new resource type, AwsS3Object, has an accompanying details object. Severity.Label is a new string field that indicates the severity of a finding. The available values are: INFORMATIONAL, LOW, MEDIUM, HIGH, CRITICAL. The new string field Workflow.Status indicates the status of the investigation into a finding. The available values are: NEW, NOTIFIED, RESOLVED, SUPPRESSED.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Amazon Lex now supports tagging for bots, bot aliases and bot channels.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Amazon API Gateway HTTP APIs is now generally available. HTTP APIs offer the core functionality of REST API at up to 71% lower price compared to REST API, 60% lower p99 latency, and is significantly easier to use. As part of general availability, we added new features to route requests to private backends such as private ALBs, NLBs, and IP/ports. We also brought over a set of features from REST API such as Stage Variables, and Stage/Route level throttling. Custom domain names can also now be used with both REST And HTTP APIs.
+
+# __2.10.84__ __2020-03-11__
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for elasticfilesystem
+
+## __Amazon Redshift__
+  - ### Features
+    - Amazon Redshift now supports operations to pause and resume a cluster on demand or on a schedule.
+
+# __2.10.83__ __2020-03-10__
+## __AWS IoT Events__
+  - ### Features
+    - API update that adds a new parameter, durationExpression, to SetTimerAction, and deprecates seconds
+
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - Change the disbursement data set to look past 31 days instead until the beginning of the month.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Reverts a recent change from 2.10.70 where the json protocol type was changed to application/json, this is now back to application/x-amz-json-1.1.
+
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - AWS Serverless Application Repository now supports sharing applications privately with AWS Organizations.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe's Automatic Content Redaction feature enables you to automatically redact sensitive personally identifiable information (PII) from transcription results. It replaces each instance of an identified PII utterance with a [PII] tag in the transcript.
+
+# __2.10.82__ __2020-03-09__
+## __AWS Database Migration Service__
+  - ### Features
+    - Added new settings for Kinesis target to include detailed transaction info; to capture table DDL details; to use single-line unformatted json, which can be directly queried by AWS Athena if data is streamed into S3 through AWS Kinesis Firehose. Added CdcInsertsAndUpdates in S3 target settings to allow capture ongoing insertions and updates only.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports the ability to configure the Preferred Channel Pipeline for channels contributing to a Multiplex.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for "retry modes". A retry mode allows configuring multiple SDK parameters at once using default retry profiles, some of which are standardized between AWS SDK languages. See RetryMode javadoc for more information.
+    - Added the ability to configure or disable the default retry throttling behavior of the SDK that 'kicks in' during a large volume of retriable service call errors. This behavior can now be configured via `RetryPolicy.retryCapacityCondition`.
+
+  - ### Bugfixes
+    - Fixed an issue where specifying your own retry policy would override AWS and service-specific retry conditions. By default, all retry policies now have AWS and service-specific retry conditions added. This can be disabled via the new `RetryPolicy.furtherRefinementsAllowed(false)`.
+    - Fixed an issue where the retry condition returned by `RetryPolicy.retryCondition` differed from the one specified by `RetryPolicy.Builder.retryCondition`. The old value can be accessed via the new `RetryPolicy.aggregateRetryCondition`.
+    - Use the last seen HTTP/1.1 header value for headers defined to only appear once in an HTTP message instead of merging them all into a list. The order in which header values are inspected is: headers set by the request marshaller, overridden headers set on the client, then finally overridden headers set on the SDK request object. See https://tools.ietf.org/html/rfc2616#section-4.2 for more information.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon Virtual Private Cloud (VPC) NAT Gateway adds support for tagging on resource creation.
+
+# __2.10.81__ __2020-03-06__
+## __AWS App Mesh__
+  - ### Features
+    - App Mesh now supports sharing a Mesh with other AWS accounts. Customers can use AWS Resource Access Manager to share their Mesh with other accounts in their organization to connection applications within a single service mesh. See https://docs.aws.amazon.com/app-mesh/latest/userguide/sharing.html for details.
+
+## __AWS RoboMaker__
+  - ### Features
+    - Added support for streaming a GUI from robot and simulation applications
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Signer__
+  - ### Features
+    - This release enables signing image format override in PutSigningProfile requests, adding two more enum fields, JSONEmbedded and JSONDetached. This release also extends the length limit of SigningProfile name from 20 to 64.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release provides customers with a self-service option to enable Local Zones.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Amazon GuardDuty findings now include the OutpostArn if the finding is generated for an AWS Outposts EC2 host.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Expand Http2 connection-level flow control window when a new stream is acquired on that connection so that the connection-level window size is proportional to the number of streams.
+
+# __2.10.80__ __2020-03-05__
+## __AWS OpsWorks CM__
+  - ### Features
+    - Updated the Tag regex pattern to align with AWS tagging APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Adds javadoc to operation methods and request/response objects.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now create AWS Client VPN Endpoints with a specified VPC and Security Group. Additionally, you can modify these attributes when modifying the endpoint.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Amazon EKS now supports adding a KMS key to your cluster for envelope encryption of Kubernetes secrets.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add a new finding field for EC2 findings indicating the instance's local IP address involved in the threat.
+
+# __2.10.79__ __2020-03-04__
+## __Amazon Pinpoint__
+  - ### Features
+    - This release of the Amazon Pinpoint API introduces support for integrating recommender models with email, push notification, and SMS message templates. You can now use these types of templates to connect to recommender models and add personalized recommendations to messages that you send from campaigns and journeys.
+
+# __2.10.78__ __2020-03-03__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC Flow Logs adds support for tags and tagging on resource creation.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix an issue where the Netty client was prematurely considering an HTTP/2 request body as sent, but was still in the process of being transferred to the remote endpoint.
+
+# __2.10.77__ __2020-03-02__
+## __AWS Comprehend Medical__
+  - ### Features
+    - New Time Expression feature, part of DetectEntitiesV2 API will provide temporal relations to existing NERe entities such as Medication, Test, Treatment, Procedure and Medical conditions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Introducing Amazon CloudWatch Composite Alarms
+
+# __2.10.76__ __2020-02-28__
+## __AWS Config__
+  - ### Features
+    - Correcting list of supported resource types.
+
+# __2.10.75__ __2020-02-28__
+## __AWS App Mesh__
+  - ### Features
+    - App Mesh now supports Transport Layer Security (TLS) between Virtual Nodes in a Mesh. Customers can use managed certificates from an AWS Certificate Manager Private Certificate Authority or bring their own certificates from the local file system to encrypt traffic between their workloads. See https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual-node-tls.html for details.
+
+## __AWS Config__
+  - ### Features
+    - Accepts a structured query language (SQL) SELECT command and an aggregator name, performs the corresponding search on resources aggregated by the aggregator, and returns resource configurations matching the properties.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue adds resource tagging support for Machine Learning Transforms and adds a new API, ListMLTransforms to support tag filtering. With this feature, customers can use tags in AWS Glue to organize and control access to Machine Learning Transforms.
+
+## __Access Analyzer__
+  - ### Features
+    - This release includes improvements and fixes bugs for the IAM Access Analyzer feature.
+
+## __Amazon Augmented AI Runtime__
+  - ### Features
+    - This release updates Amazon Augmented AI ListHumanLoops API, DescribeHumanLoop response, StartHumanLoop response and type names of SDK fields.
+
+## __Amazon CodeGuru Profiler__
+  - ### Features
+    - Documentation updates for Amazon CodeGuru Profiler
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added SearchDashboards API that allows listing of dashboards that a specific user has access to.
+
+## __Amazon WorkDocs__
+  - ### Features
+    - Documentation updates for workdocs
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Added a target group attribute to support sticky sessions for Network Load Balancers.
+
+# __2.10.74__ __2020-02-27__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release adds support for adding tags to accelerators and bringing your own IP address to AWS Global Accelerator (BYOIP).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Adds support to create notification contacts in Amazon Lightsail, and to create instance, database, and load balancer metric alarms that notify you based on the value of a metric relative to a threshold that you specify.
+
+# __2.10.73__ __2020-02-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub has added to the DescribeProducts API operation a new response field called IntegrationTypes. The IntegrationTypes field lists the types of actions that a product performs relative to Security Hub such as send findings to Security Hub and receive findings from Security Hub.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Added the BeanTableSchema implementation of TableSchema that allows a TableSchema to be instantiated from an annotated Java bean class which can then be used with the DynamoDB Enhanced Client.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release changes the RunInstances CLI and SDK's so that if you do not specify a client token, a randomly generated token is used for the request to ensure idempotency.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker UpdateEndpoint API now supports retained variant properties, e.g., instance count, variant weight. SageMaker ListTrials API filter by TrialComponentName. Make ExperimentConfig name length limits consistent with CreateExperiment, CreateTrial, and CreateTrialComponent APIs.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe's Automatic Content Redaction feature enables you to automatically redact sensitive personally identifiable information (PII) from transcription results. It replaces each instance of an identified PII utterance with a [PII] tag in the transcript.
+
+# __2.10.72__ __2020-02-25__
+## __AWS Outposts__
+  - ### Features
+    - This release adds DeleteSite and DeleteOutpost.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - This release increases the maximum allowed size of SecretString or SecretBinary from 10KB to 64KB in the CreateSecret, UpdateSecret, PutSecretValue and GetSecretValue APIs.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for CloudWatch Logs for Standard Workflows.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Improves discoverability by adding consumer-style methods for all client, table and index operations.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK has added support for Broker Log delivery to CloudWatch, S3, and Firehose.
+
+# __2.10.71__ __2020-02-24__
+## __AWS IoT Events__
+  - ### Features
+    - Documentation updates for iotcolumbo
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - This release allows you to create and manage tags for event buses.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Documentation updates for docdb
+
+## __Amazon EventBridge__
+  - ### Features
+    - This release allows you to create and manage tags for event buses.
+
+## __Amazon FSx__
+  - ### Features
+    - Announcing persistent file systems for Amazon FSx for Lustre that are ideal for longer-term storage and workloads, and a new generation of scratch file systems that offer higher burst throughput for spiky workloads.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - AWS Snowball adds a field for entering your GSTIN when creating AWS Snowball jobs in the Asia Pacific (Mumbai) region.
+
+# __2.10.70__ __2020-02-21__
+## __AWS WAFV2__
+  - ### Features
+    - Documentation updates for AWS WAF (wafv2) to correct the guidance for associating a web ACL to a CloudFront distribution.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Improves discoverability by adding consumer-style methods for all client, table and index operations.
+
+## __Amazon Redshift__
+  - ### Features
+    - Extend elastic resize to support resizing clusters to different instance types.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release of EC2 Image Builder increases the maximum policy document size for Image Builder resource-based policy APIs.
+
+# __2.10.69__ __2020-02-20__
+## __AWS Savings Plans__
+  - ### Features
+    - Added support for AWS Lambda in Compute Savings Plans
+
+## __Amazon AppConfig__
+  - ### Features
+    - This release adds exponential growth type support for deployment strategies.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - As of this release of the Amazon Pinpoint API, the Title property is optional for the CampaignEmailMessage object.
+
+# __2.10.68__ __2020-02-19__
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now supports Ruby 2.7
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - "ListPortfolioAccess" API now has a new optional parameter "OrganizationParentId". When it is provided and if the portfolio with the "PortfolioId" given was shared with an organization or organizational unit with "OrganizationParentId", all accounts in the organization sub-tree under parent which inherit an organizational portfolio share will be listed, rather than all accounts with external shares. To accommodate long lists returned from the new option, the API now supports pagination.
+
+## __Auto Scaling__
+  - ### Features
+    - Doc update for EC2 Auto Scaling: Add Enabled parameter for PutScalingPolicy
+
+# __2.10.67__ __2020-02-18__
+## __Amazon Chime__
+  - ### Features
+    - Added AudioFallbackUrl to support Chime SDK client.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release supports Microsoft Active Directory authentication for Amazon Aurora.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now supports the ability to enable/disable target tracking, step scaling, and simple scaling policies.
+
+# __2.10.66__ __2020-02-17__
+## __AWS Cloud9__
+  - ### Features
+    - AWS Cloud9 now supports the ability to tag Cloud9 development environments.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Amazon DynamoDB enables you to restore your DynamoDB backup or table data across AWS Regions such that the restored table is created in a different AWS Region from where the source table or backup resides. You can do cross-region restores between AWS commercial Regions, AWS China Regions, and AWS GovCloud (US) Regions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2
+
+## __Amazon Rekognition__
+  - ### Features
+    - This update adds the ability to detect text in videos and adds filters to image and video text detection.
+
+# __2.10.65__ __2020-02-14__
+## __AWS MediaTailor__
+  - ### Features
+    - AWS Elemental MediaTailor SDK now allows configuration of Personalization Threshold for HLS and DASH streams.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub has released a new DescribeStandards API action. This API action allows a customer to list all of the standards available in an account. For each standard, the list provides the customer with the standard name, description, and ARN. Customers can use the ARN as an input to the BatchEnableStandards API action. To learn more, visit our API documentation.
+
+## __AWS Shield__
+  - ### Features
+    - This release adds support for associating Amazon Route 53 health checks to AWS Shield Advanced protected resources.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now enable Multi-Attach on Provisioned IOPS io1 volumes through the create-volume API.
+
+## __Amazon S3__
+  - ### Features
+    - Added support for presigning `CreateMultipartUpload`, `UploadPart`, `CompleteMultipartUpload`, and `AbortMultipartUpload` requests.
+
+# __2.10.64__ __2020-02-13__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - Adds support for DASH with multiple media presentation description periods triggered by presence of SCTE-35 ad markers in the manifest.Also adds optional configuration for DASH SegmentTemplateFormat to refer to segments by Number with Duration, Number with Timeline or Time with Timeline and compact the manifest by combining duplicate SegmentTemplate tags.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Improves discoverability by adding operation methods for deleteItem(), getItem(), putItem and updateItem(), as applicable. These methods take a request object as parameter. Execute() methods for the table interface is removed since they are no longer needed.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - When there is an I/O error on an http2 request, the SDK will start shutting down the connection - stopping using the http2 connection for new requests and closing it after all streams are finished.
+
+# __2.10.63__ __2020-02-12__
+## __AWS Directory Service__
+  - ### Features
+    - Release to add the ExpirationDateTime as an output to ListCertificates so as to ease customers to look into their certificate lifetime and make timely decisions about renewing them.
+
+## __AWS Glue__
+  - ### Features
+    - Adding ability to add arguments that cannot be overridden to AWS Glue jobs
+
+## __Amazon Chime__
+  - ### Features
+    - Documentation updates for Amazon Chime
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for tagging public IPv4 pools.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Amazon Elasticsearch Service now offers fine-grained access control, which adds multiple capabilities to give tighter control over data. New features include the ability to use roles to define granular permissions for indices, documents, or fields and to extend Kibana with read-only views and secure multi-tenant support.
+
+## __Amazon Neptune__
+  - ### Features
+    - This launch enables Neptune start-db-cluster and stop-db-cluster. Stopping and starting Amazon Neptune clusters helps you manage costs for development and test environments. You can temporarily stop all the DB instances in your cluster, instead of setting up and tearing down all the DB instances each time that you use the cluster.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for access control rules management in Amazon WorkMail.
+
+# __2.10.62__ __2020-02-11__
+## __AWS CloudFormation__
+  - ### Features
+    - This release of AWS CloudFormation StackSets allows you to centrally manage deployments to all the accounts in your organization or specific organizational units (OUs) in AWS Organizations. You will also be able to enable automatic deployments to any new accounts added to your organization or OUs. The permissions needed to deploy across accounts will automatically be taken care of by the StackSets service.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Features:This release adds a new setting for a user pool to allow if customer wants their user signup/signin with case insensitive username. The current default setting is case sensitive, and for our next release we will change it to case insensitive.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Now Supports Tagging Spot Fleet.
+
+# __2.10.61__ __2020-02-10__
+## __AWS Key Management Service__
+  - ### Features
+    - The ConnectCustomKeyStore API now provides a new error code (SUBNET_NOT_FOUND) for customers to better troubleshoot if their "connect-custom-key-store" operation fails.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Added clarifying information that Amazon DocumentDB shares operational technology with Amazon RDS and Amazon Neptune.
+
+# __2.10.60__ __2020-02-07__
+## __AWS RoboMaker__
+  - ### Features
+    - This release adds support for simulation job batches
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Improves discoverability by renaming the table and index interfaces to be consistent with the client interface naming, and by adding operation methods for createTable(), scan() and query(), as applicable. These methods take a request object as parameter. Execute() methods for the index interface is removed since they are no longer needed.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for RDS: when restoring a DB cluster from a snapshot, must create DB instances
+
+## __EC2 Image Builder__
+  - ### Features
+    - This version of the SDK includes bug fixes and documentation updates.
+
 # __2.10.59__ __2020-02-06__
 ## __AWS AppSync__
   - ### Features

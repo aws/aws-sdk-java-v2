@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.s3.presigner.model;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -93,7 +92,8 @@ public class PresignedPutObjectRequest
     private static final class DefaultBuilder
             extends PresignedRequest.DefaultBuilder<DefaultBuilder>
             implements Builder {
-        private DefaultBuilder() { }
+        private DefaultBuilder() {
+        }
 
         private DefaultBuilder(PresignedPutObjectRequest request) {
             super(request);

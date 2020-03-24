@@ -42,7 +42,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Information that enables AppConfig to access the configuration source. Valid configuration sources include Systems Manager (SSM) documents and SSM Parameter Store parameters. A configuration profile includes the following information.</p> <ul> <li> <p>The Uri location of the configuration data.</p> </li> <li> <p>The AWS Identity and Access Management (IAM) role that provides access to the configuration data.</p> </li> <li> <p>A validator for the configuration data. Available validators include either a JSON Schema or an AWS Lambda function.</p> </li> </ul>"
+      "documentation":"<p>Information that enables AppConfig to access the configuration source. Valid configuration sources include Systems Manager (SSM) documents, SSM Parameter Store parameters, and Amazon S3 objects. A configuration profile includes the following information.</p> <ul> <li> <p>The Uri location of the configuration data.</p> </li> <li> <p>The AWS Identity and Access Management (IAM) role that provides access to the configuration data.</p> </li> <li> <p>A validator for the configuration data. Available validators include either a JSON Schema or an AWS Lambda function.</p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/appconfig-creating-configuration-and-profile.html\">Create a Configuration and a Configuration Profile</a> in the <i>AWS AppConfig User Guide</i>.</p>"
     },
     "CreateDeploymentStrategy":{
       "name":"CreateDeploymentStrategy",
@@ -672,7 +672,7 @@
         },
         "LocationUri":{
           "shape":"Uri",
-          "documentation":"<p>A URI to locate the configuration. You can specify either a Systems Manager (SSM) document or an SSM Parameter Store parameter. For an SSM document, specify either the document name in the format <code>ssm-document://&lt;Document name&gt;</code> or the Amazon Resource Name (ARN). For a parameter, specify either the parameter name in the format <code>ssm-parameter://&lt;Parameter name&gt;</code> or the ARN.</p>"
+          "documentation":"<p>A URI to locate the configuration. You can specify a Systems Manager (SSM) document, an SSM Parameter Store parameter, or an Amazon S3 object. For an SSM document, specify either the document name in the format <code>ssm-document://&lt;Document_name&gt;</code> or the Amazon Resource Name (ARN). For a parameter, specify either the parameter name in the format <code>ssm-parameter://&lt;Parameter_name&gt;</code> or the ARN. For an Amazon S3 object, specify the URI in the following format: <code>s3://&lt;bucket&gt;/&lt;objectKey&gt; </code>. Here is an example: s3://my-bucket/my-app/us-east-1/my-config.json</p>"
         },
         "RetrievalRoleArn":{
           "shape":"Arn",
@@ -721,7 +721,7 @@
         },
         "GrowthType":{
           "shape":"GrowthType",
-          "documentation":"<p>The algorithm used to define how percentage grows over time.</p>"
+          "documentation":"<p>The algorithm used to define how percentage grows over time. AWS AppConfig supports the following growth types:</p> <p> <b>Linear</b>: For this type, AppConfig processes the deployment by dividing the total number of targets by the value specified for <code>Step percentage</code>. For example, a linear deployment that uses a <code>Step percentage</code> of 10 deploys the configuration to 10 percent of the hosts. After those deployments are complete, the system deploys the configuration to the next 10 percent. This continues until 100% of the targets have successfully received the configuration.</p> <p> <b>Exponential</b>: For this type, AppConfig processes the deployment exponentially using the following formula: <code>G*(2^N)</code>. In this formula, <code>G</code> is the growth factor specified by the user and <code>N</code> is the number of steps until the configuration is deployed to all targets. For example, if you specify a growth factor of 2, then the system rolls out the configuration as follows:</p> <p> <code>2*(2^0)</code> </p> <p> <code>2*(2^1)</code> </p> <p> <code>2*(2^2)</code> </p> <p>Expressed numerically, the deployment rolls out as follows: 2% of the targets, 4% of the targets, 8% of the targets, and continues until the configuration has been deployed to all targets.</p>"
         },
         "ReplicateTo":{
           "shape":"ReplicateTo",
@@ -1143,19 +1143,19 @@
       "members":{
         "Application":{
           "shape":"StringWithLengthBetween1And64",
-          "documentation":"<p>The application to get.</p>",
+          "documentation":"<p>The application to get. Specify either the application name or the application ID.</p>",
           "location":"uri",
           "locationName":"Application"
         },
         "Environment":{
           "shape":"StringWithLengthBetween1And64",
-          "documentation":"<p>The environment to get.</p>",
+          "documentation":"<p>The environment to get. Specify either the environment name or the environment ID.</p>",
           "location":"uri",
           "locationName":"Environment"
         },
         "Configuration":{
           "shape":"StringWithLengthBetween1And64",
-          "documentation":"<p>The configuration to get.</p>",
+          "documentation":"<p>The configuration to get. Specify either the configuration name or the configuration ID.</p>",
           "location":"uri",
           "locationName":"Configuration"
         },
@@ -1242,7 +1242,10 @@
     },
     "GrowthType":{
       "type":"string",
-      "enum":["LINEAR"]
+      "enum":[
+        "LINEAR",
+        "EXPONENTIAL"
+      ]
     },
     "Id":{
       "type":"string",
@@ -1700,7 +1703,7 @@
         },
         "GrowthType":{
           "shape":"GrowthType",
-          "documentation":"<p>The algorithm used to define how percentage grows over time.</p>"
+          "documentation":"<p>The algorithm used to define how percentage grows over time. AWS AppConfig supports the following growth types:</p> <p> <b>Linear</b>: For this type, AppConfig processes the deployment by increments of the growth factor evenly distributed over the deployment time. For example, a linear deployment that uses a growth factor of 20 initially makes the configuration available to 20 percent of the targets. After 1/5th of the deployment time has passed, the system updates the percentage to 40 percent. This continues until 100% of the targets are set to receive the deployed configuration.</p> <p> <b>Exponential</b>: For this type, AppConfig processes the deployment exponentially using the following formula: <code>G*(2^N)</code>. In this formula, <code>G</code> is the growth factor specified by the user and <code>N</code> is the number of steps until the configuration is deployed to all targets. For example, if you specify a growth factor of 2, then the system rolls out the configuration as follows:</p> <p> <code>2*(2^0)</code> </p> <p> <code>2*(2^1)</code> </p> <p> <code>2*(2^2)</code> </p> <p>Expressed numerically, the deployment rolls out as follows: 2% of the targets, 4% of the targets, 8% of the targets, and continues until the configuration has been deployed to all targets.</p>"
         }
       }
     },
@@ -1783,7 +1786,7 @@
         },
         "Content":{
           "shape":"StringWithLengthBetween0And32768",
-          "documentation":"<p>Either the JSON Schema content or an AWS Lambda function name.</p>"
+          "documentation":"<p>Either the JSON Schema content or the Amazon Resource Name (ARN) of an AWS Lambda function.</p>"
         }
       },
       "documentation":"<p>A validator provides a syntactic or semantic check to ensure the configuration you want to deploy functions as intended. To validate your application configuration data, you provide a schema or a Lambda function that runs against the configuration. The configuration deployment or update can only proceed when the configuration data is valid.</p>"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -188,7 +188,10 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
         return configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                          .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
-                                         .option(RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
+                                         .option(RETRY_POLICY, RetryPolicy.defaultRetryPolicy()
+                                                                          .toBuilder()
+                                                                          .additionalRetryConditionsAllowed(false)
+                                                                          .build())
                                          .option(USER_AGENT_PREFIX, UserAgentUtils.getUserAgent())
                                          .option(USER_AGENT_SUFFIX, "")
                                          .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));

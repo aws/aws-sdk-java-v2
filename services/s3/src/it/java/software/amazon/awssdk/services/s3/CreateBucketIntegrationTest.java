@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import org.junit.AfterClass;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.utils.S3TestUtils;
+import software.amazon.awssdk.testutils.Waiter;
 
 public class CreateBucketIntegrationTest extends S3IntegrationTestBase {
 
@@ -44,9 +44,8 @@ public class CreateBucketIntegrationTest extends S3IntegrationTestBase {
     public void createBucket_InUsEast1_Succeeds() {
         US_EAST_1_CLIENT.createBucket(CreateBucketRequest.builder().bucket(US_EAST_1_BUCKET_NAME).build());
 
-        String region = US_EAST_1_CLIENT.getBucketLocation(GetBucketLocationRequest.builder()
-                                                                         .bucket(US_EAST_1_BUCKET_NAME)
-                                                                         .build())
+        String region = Waiter.run(() -> US_EAST_1_CLIENT.getBucketLocation(r -> r.bucket(US_EAST_1_BUCKET_NAME)))
+                              .orFail()
                               .locationConstraintAsString();
         assertThat(region).isEqualToIgnoringCase("");
     }
@@ -56,7 +55,9 @@ public class CreateBucketIntegrationTest extends S3IntegrationTestBase {
         S3Client client = S3Client.builder().region(Region.US_WEST_2).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
 
-        String region = client.getBucketLocation(GetBucketLocationRequest.builder().bucket(BUCKET_NAME).build()).locationConstraintAsString();
+        String region = Waiter.run(() -> client.getBucketLocation(r -> r.bucket(BUCKET_NAME)))
+                              .orFail()
+                              .locationConstraintAsString();
         assertThat(region).isEqualToIgnoringCase("us-west-2");
     }
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.10.60-SNAPSHOT</version>
+    <version>2.11.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -66,8 +66,6 @@
         <module>utils</module>
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
-        <module>test/dynamodbdocument-v1</module>
-        <module>test/dynamodbmapper-v1</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -93,10 +91,10 @@
         <slf4j.version>1.7.28</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <commons.io.version>2.5</commons.io.version>
-        <equalsverifier.version>2.3.3</equalsverifier.version>
+        <equalsverifier.version>3.1.13</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml#L286 -->
-        <netty.version>4.1.42.Final</netty.version>
+        <netty.version>4.1.46.Final</netty.version>
         <unitils.version>3.3</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -119,21 +117,22 @@
         <assertj.version>3.8.0</assertj.version>
         <guava.version>28.2-jre</guava.version>
         <jimfs.version>1.1</jimfs.version>
+        <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
         <commons-lang.verson>2.3</commons-lang.verson>
-        <netty-open-ssl-version>2.0.25.Final</netty-open-ssl-version>
+        <netty-open-ssl-version>2.0.29.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.11.477</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <checkstyle.version>8.18</checkstyle.version>
+        <checkstyle.version>8.29</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
@@ -405,6 +404,11 @@
                         <ignoredUsedUndeclaredDependency>com.fasterxml.jackson.core:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
                     </ignoredUsedUndeclaredDependencies>
+                    <ignoredUnusedDeclaredDependencies>
+                        <!-- TODO: fix this when we've re-merged with netty-reactive-streams -->
+                        <ignoredUnusedDeclaredDependency>com.typesafe.netty:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
 
@@ -418,9 +422,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
-                <configuration>
-                    <destFile>${sonar.jacoco.reportPath}</destFile>
-                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
@@ -473,27 +474,6 @@
                 <spotbugs.skip>true</spotbugs.skip>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
             </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>${jacoco-maven-plugin.version}</version>
-                        <configuration>
-                            <destFile>${sonar.jacoco.reportPath}</destFile>
-                            <append>true</append>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>default-prepare-agent</id>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
 
         <profile>

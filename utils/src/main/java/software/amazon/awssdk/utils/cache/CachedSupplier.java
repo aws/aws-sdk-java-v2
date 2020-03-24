@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -202,6 +202,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * Free any resources associated with the strategy. This is invoked when the {@link CachedSupplier#close()} method is
          * invoked.
          */
-        default void close() {}
+        default void close() {
+        }
     }
 }

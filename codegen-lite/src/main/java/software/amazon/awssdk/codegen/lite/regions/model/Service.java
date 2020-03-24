@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ public final class Service {
      */
     private Boolean isRegionalized;
 
-    public Service() {}
+    public Service() {
+    }
 
     public Service(@JsonProperty(value = "endpoints") Map<String, Endpoint> endpoints) {
         this.endpoints = Validate.paramNotNull(endpoints, "endpoints");

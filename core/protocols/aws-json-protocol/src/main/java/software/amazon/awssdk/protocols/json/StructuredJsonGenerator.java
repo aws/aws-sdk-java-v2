@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ public interface StructuredJsonGenerator {
      * No-op implementation that ignores all calls and returns empty bytes from getBytes.
      */
     StructuredJsonGenerator NO_OP = new StructuredJsonGenerator() {
-
-        private final byte[] emptyBytes = new byte[0];
 
         @Override
         public StructuredJsonGenerator writeStartArray() {
@@ -126,7 +124,7 @@ public interface StructuredJsonGenerator {
 
         @Override
         public byte[] getBytes() {
-            return emptyBytes;
+            return null;
         }
 
         @Override

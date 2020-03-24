@@ -1,0 +1,36 @@
+{
+    "version": "2.10.71",
+    "date": "2020-02-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "description": "Documentation updates for docdb"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "description": "Documentation updates for iotcolumbo"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "description": "Announcing persistent file systems for Amazon FSx for Lustre that are ideal for longer-term storage and workloads, and a new generation of scratch file systems that offer higher burst throughput for spiky workloads."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "description": "This release allows you to create and manage tags for event buses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "description": "This release allows you to create and manage tags for event buses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "description": "AWS Snowball adds a field for entering your GSTIN when creating AWS Snowball jobs in the Asia Pacific (Mumbai) region."
+        }
+    ]
+}

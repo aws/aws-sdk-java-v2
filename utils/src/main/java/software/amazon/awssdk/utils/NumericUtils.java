@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
@@ -39,6 +40,14 @@ public final class NumericUtils {
             return Integer.MIN_VALUE;
         }
         return (int) value;
+    }
+
+    public static Duration min(Duration a, Duration b) {
+        return (a.compareTo(b) < 0) ? a : b;
+    }
+
+    public static Duration max(Duration a, Duration b) {
+        return (a.compareTo(b) > 0) ? a : b;
     }
 
 }

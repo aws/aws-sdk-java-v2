@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class EndpointUtils {
-    private EndpointUtils() {}
+    private EndpointUtils() {
+    }
 
     /**
      * Generate an endpoint from the provided endpoint protocol, url prefix, and region.

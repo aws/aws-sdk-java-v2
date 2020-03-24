@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -87,7 +87,8 @@ public final class EC2MetadataUtils {
     private static final InstanceProviderTokenEndpointProvider TOKEN_ENDPOINT_PROVIDER =
             new InstanceProviderTokenEndpointProvider();
 
-    private EC2MetadataUtils() {}
+    private EC2MetadataUtils() {
+    }
 
     static {
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

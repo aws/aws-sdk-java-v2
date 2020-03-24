@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -172,6 +172,17 @@ public class MultiplexedChannelRecord {
             childrenToClose.stream()
                            .filter(cc -> cc.stream().id() > lastStreamId)
                            .forEach(cc -> cc.pipeline().fireExceptionCaught(exception));
+        });
+    }
+
+    /**
+     * Prevent new streams from being acquired from the existing connection.
+     */
+    void closeToNewStreams() {
+        doInEventLoop(connection.eventLoop(), () -> {
+            if (state == RecordState.OPEN) {
+                state = RecordState.CLOSED_TO_NEW;
+            }
         });
     }
 

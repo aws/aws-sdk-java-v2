@@ -1,0 +1,36 @@
+{
+    "version": "2.10.72",
+    "date": "2020-02-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "description": "This release increases the maximum allowed size of SecretString or SecretBinary from 10KB to 64KB in the CreateSecret, UpdateSecret, PutSecretValue and GetSecretValue APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "Improves discoverability by adding consumer-style methods for all client, table and index operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "description": "This release adds support for CloudWatch Logs for Standard Workflows."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "description": "Amazon MSK has added support for Broker Log delivery to CloudWatch, S3, and Firehose."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "description": "This release adds DeleteSite and DeleteOutpost."
+        }
+    ]
+}
