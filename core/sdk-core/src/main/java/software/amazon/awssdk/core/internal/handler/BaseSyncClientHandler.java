@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.handler;
 
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;

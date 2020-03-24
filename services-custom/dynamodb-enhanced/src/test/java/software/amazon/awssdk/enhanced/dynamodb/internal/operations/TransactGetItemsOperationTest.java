@@ -33,20 +33,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DefaultDocument;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -104,13 +104,13 @@ public class TransactGetItemsOperationTest {
     }
 
     @Test
-    public void generateRequest_getsFromMultipleTables() {
+    public void generateRequest_getsFromMultipleTables_usingShortcutForm() {
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(FAKE_ITEM_KEYS.get(0)))
-                                           .addGetItem(fakeItemWithSortMappedTable, r -> r.key(FAKESORT_ITEM_KEYS.get(0)))
-                                           .addGetItem(fakeItemWithSortMappedTable, r -> r.key(FAKESORT_ITEM_KEYS.get(1)))
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(FAKE_ITEM_KEYS.get(1)))
+                                           .addGetItem(fakeItemMappedTable, FAKE_ITEM_KEYS.get(0))
+                                           .addGetItem(fakeItemWithSortMappedTable, FAKESORT_ITEM_KEYS.get(0))
+                                           .addGetItem(fakeItemWithSortMappedTable, FAKESORT_ITEM_KEYS.get(1))
+                                           .addGetItem(fakeItemMappedTable, FAKE_ITEM_KEYS.get(1))
                                            .build();
 
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);
@@ -131,10 +131,10 @@ public class TransactGetItemsOperationTest {
     }
 
     @Test
-    public void getServiceCall_makesTheRightCallAndReturnsResponse() {
+    public void getServiceCall_makesTheRightCallAndReturnsResponse_usingKeyItemForm() {
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(FAKE_ITEM_KEYS.get(0)))
+                                           .addGetItem(fakeItemMappedTable, FAKE_ITEMS.get(0))
                                            .build();
 
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);
@@ -168,12 +168,12 @@ public class TransactGetItemsOperationTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<TransactGetResultPage> result = operation.transformResponse(response, null);
+        List<Document> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
-                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
-                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(1)),
-                                    TransactGetResultPage.create(FAKE_ITEM_MAPS.get(1))));
+        assertThat(result, contains(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
+                                    DefaultDocument.create(FAKESORT_ITEM_MAPS.get(0)),
+                                    DefaultDocument.create(FAKESORT_ITEM_MAPS.get(1)),
+                                    DefaultDocument.create(FAKE_ITEM_MAPS.get(1))));
     }
 
     @Test
@@ -206,10 +206,10 @@ public class TransactGetItemsOperationTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<TransactGetResultPage> result = operation.transformResponse(response, null);
+        List<Document> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
-                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
+        assertThat(result, contains(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
+                                    DefaultDocument.create(FAKESORT_ITEM_MAPS.get(0)),
                                     null));
     }
 
@@ -225,11 +225,11 @@ public class TransactGetItemsOperationTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<TransactGetResultPage> result = operation.transformResponse(response, null);
+        List<Document> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
-                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
-                                    TransactGetResultPage.create(emptyMap())));
+        assertThat(result, contains(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
+                                    DefaultDocument.create(FAKESORT_ITEM_MAPS.get(0)),
+                                    DefaultDocument.create(emptyMap())));
     }
 
     private static TransactGetItemsEnhancedRequest emptyRequest() {

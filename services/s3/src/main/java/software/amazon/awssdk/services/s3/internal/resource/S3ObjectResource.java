@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;

@@ -93,5 +93,12 @@ public final class ProfileProperty {
      */
     public static final String S3_US_EAST_1_REGIONAL_ENDPOINT = "s3_us_east_1_regional_endpoint";
 
-    private ProfileProperty() {}
+    /**
+     * The "retry mode" to be used for clients created using the currently-configured profile. Values supported by all SDKs are
+     * "legacy" and "standard". See the {@code RetryMode} class JavaDoc for more information.
+     */
+    public static final String RETRY_MODE = "retry_mode";
+
+    private ProfileProperty() {
+    }
 }

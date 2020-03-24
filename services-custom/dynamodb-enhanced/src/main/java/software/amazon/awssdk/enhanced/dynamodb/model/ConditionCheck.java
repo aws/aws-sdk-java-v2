@@ -16,8 +16,8 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -26,6 +26,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationCon
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableWriteOperation;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
+/**
+ * Use ConditionCheck as a part of the composite operation transactGetItems (for example
+ * {@link DynamoDbEnhancedClient#transactGetItems(TransactGetItemsEnhancedRequest)}) to determine
+ * if the other actions that are part of the same transaction should take effect.
+ * <p>
+ * A valid ConditionCheck object should contain a reference to the primary key of the table that finds items with a matching key,
+ * together with a condition (of type {@link Expression}) to evaluate the primary key.
+ *
+ * @param <T> The type of the modelled object.
+ */
 @SdkPublicApi
 public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
     private final Key key;
@@ -36,10 +46,16 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         this.conditionExpression = conditionExpression;
     }
 
+    /**
+     * Creates a newly initialized builder for this object.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Returns a builder initialized with all existing values on the object.
+     */
     public Builder toBuilder() {
         return new Builder().key(key).conditionExpression(conditionExpression);
     }
@@ -63,10 +79,16 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
                                 .build();
     }
 
+    /**
+     * Returns the primary {@link Key} that the condition is valid for, or null if it doesn't exist.
+     */
     public Key key() {
         return key;
     }
 
+    /**
+     * Returns the condition {@link Expression} set on this object, or null if it doesn't exist.
+     */
     public Expression conditionExpression() {
         return conditionExpression;
     }
@@ -96,6 +118,11 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         return result;
     }
 
+    /**
+     * A builder that is used to create a condition check with the desired parameters.
+     * <p>
+     * A valid builder must define both a {@link Key} and an {@link Expression}.
+     */
     public static final class Builder  {
         private Key key;
         private Expression conditionExpression;
@@ -103,17 +130,40 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         private Builder() {
         }
 
+        /**
+         * Sets the primary {@link Key} that will be used together with the condition expression.
+         *
+         * @param key the primary key to use in the operation.
+         * @return a builder of this type
+         */
         public Builder key(Key key) {
             this.key = key;
             return this;
         }
 
+        /**
+         * Sets the primary {@link Key} that will be used together with the condition expression
+         * on the builder by accepting a consumer of {@link Key.Builder}.
+         *
+         * @param keyConsumer a {@link Consumer} of {@link Key}
+         * @return a builder of this type
+         */
         public Builder key(Consumer<Key.Builder> keyConsumer) {
             Key.Builder builder = Key.builder();
             keyConsumer.accept(builder);
             return key(builder.build());
         }
 
+        /**
+         * Defines a logical expression on the attributes of table items that match the supplied primary key value(s).
+         * If the expression evaluates to true, the transaction operation succeeds. If the expression evaluates to false,
+         * the transaction will not succeed.
+         * <p>
+         * See {@link Expression} for condition syntax and examples.
+         *
+         * @param conditionExpression a condition written as an {@link Expression}
+         * @return a builder of this type
+         */
         public Builder conditionExpression(Expression conditionExpression) {
             this.conditionExpression = conditionExpression;
             return this;

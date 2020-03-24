@@ -15,45 +15,35 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
-import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeType;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public final class StaticAttributeType<T> implements AttributeType<T> {
-    private final Function<T, AttributeValue> objectTransformer;
-    private final Function<AttributeValue, T> attributeValueTransformer;
+    private final AttributeConverter<T> attributeConverter;
     private final AttributeValueType attributeValueType;
 
-    private StaticAttributeType(Function<T, AttributeValue> objectTransformer,
-                                Function<AttributeValue, T> attributeValueTransformer, AttributeValueType attributeValueType) {
-        this.objectTransformer = objectTransformer;
-        this.attributeValueTransformer = attributeValueTransformer;
-        this.attributeValueType = attributeValueType;
+    private StaticAttributeType(AttributeConverter<T> attributeConverter) {
+        this.attributeConverter = attributeConverter;
+        this.attributeValueType = attributeConverter.attributeValueType();
     }
 
-    public static <T> StaticAttributeType<T> create(
-        Function<T, AttributeValue> objectTransformer,
-        Function<AttributeValue, T> attributeValueTransformer,
-        AttributeValueType attributeValueType) {
+    public static <T> AttributeType<T> create(
+        AttributeConverter<T> attributeConverter) {
 
-        return new StaticAttributeType<>(objectTransformer, attributeValueTransformer, attributeValueType);
+        return new StaticAttributeType<>(attributeConverter);
     }
 
-    @Override
     public AttributeValue objectToAttributeValue(T object) {
-        return this.objectTransformer.apply(object);
+        return this.attributeConverter.transformFrom(object);
     }
 
-    @Override
     public T attributeValueToObject(AttributeValue attributeValue) {
-        return this.attributeValueTransformer.apply(attributeValue);
+        return this.attributeConverter.transformTo(attributeValue);
     }
 
-    @Override
     public AttributeValueType attributeValueType() {
         return attributeValueType;
     }

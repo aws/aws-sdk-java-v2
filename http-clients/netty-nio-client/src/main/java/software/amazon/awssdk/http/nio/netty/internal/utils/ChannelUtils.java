@@ -26,7 +26,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public final class ChannelUtils {
-    private ChannelUtils() {}
+    private ChannelUtils() {
+    }
 
     /**
      * Removes handlers of the given class types from the pipeline.

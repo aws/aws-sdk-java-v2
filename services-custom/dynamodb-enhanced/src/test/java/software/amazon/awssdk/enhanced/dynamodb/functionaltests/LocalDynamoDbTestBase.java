@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import java.util.UUID;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;

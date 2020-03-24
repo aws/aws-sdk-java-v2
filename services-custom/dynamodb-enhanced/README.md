@@ -22,7 +22,7 @@ values used are also completely arbitrary.
        private String accountId;
        private int subId;            // primitive types are supported
        private String name;
-       private String createdDate;
+       private Instant createdDate;
        
        @DynamoDbPartitionKey
        public String getAccountId() { return this.accountId; }
@@ -40,15 +40,15 @@ values used are also completely arbitrary.
        // Defines an LSI (customers_by_date) with a sort key of 'createdDate' and also declares the 
        // same attribute as a sort key for the GSI named 'customers_by_name'
        @DynamoDbSecondarySortKey(indexNames = {"customers_by_date", "customers_by_name"})
-       public String getCreatedDate() { return this.createdDate; }
-       public void setCreatedDate(String createdDate) { this.createdDate = createdDate; }
+       public Instant getCreatedDate() { return this.createdDate; }
+       public void setCreatedDate(Instant createdDate) { this.createdDate = createdDate; }
    }
    ```
    
-2. Create a TableSchema for your class. For this example we are using the 'BeanTableSchema' that will scan your bean
+2. Create a TableSchema for your class. For this example we are using the 'bean' TableSchema that will scan your bean
    class and use the annotations to infer the table structure and attributes :
    ```java
-   static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = BeanTableSchema.create(Customer.class);
+   static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = TableSchema.fromBean(Customer.class);
    ```
    
    If you would prefer to skip the slightly costly bean inference for a faster solution, you can instead declare your 
@@ -56,26 +56,25 @@ values used are also completely arbitrary.
    bean naming standards nor does it need to be annotated. This example is equivalent to the bean example : 
    ```java
    static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-     StaticTableSchema.builder(Customer.class)
+     TableSchema.builder(Customer.class)
        .newItemSupplier(Customer::new)
-       .attributes(
-         stringAttribute("account_id", 
-                         Customer::getAccountId, 
-                         Customer::setAccountId)
-            .as(primaryPartitionKey()),
-         integerNumberAttribute("sub_id", 
-                                Customer::getSubId, 
-                                Customer::setSubId)
-            .as(primarySortKey()),
-         stringAttribute("name", 
-                         Customer::getName, 
-                         Customer::setName)
-            .as(secondaryPartitionKey("customers_by_name")),
-         stringAttribute("created_date", 
-                         Customer::getCreatedDate, 
-                         Customer::setCreatedDate)
-            .as(secondarySortKey("customers_by_date"), 
-                secondarySortKey("customers_by_name")))
+       .addAttribute(String.class, a -> a.name("account_id")
+                                         .getter(Customer::getAccountId)
+                                         .setter(Customer::setAccountId)
+                                         .tags(primaryPartitionKey()))
+       .addAttribute(Integer.class, a -> a.name("sub_id")
+                                          .getter(Customer::getSubId)
+                                          .setter(Customer::setSubId)
+                                          .tags(primarySortKey()))
+       .addAttribute(String.class, a -> a.name("name")
+                                         .getter(Customer::getName)
+                                         .setter(Customer::setName)
+                                         .tags(secondaryPartitionKey("customers_by_name")))
+       .addAttribute(Instant.class, a -> a.name("created_date")
+                                          .getter(Customer::getCreatedDate)
+                                          .setter(Customer::setCreatedDate)
+                                          .tags(secondarySortKey("customers_by_date"),
+                                                secondarySortKey("customers_by_name")))
        .build();
    ```
    
@@ -96,111 +95,59 @@ values used are also completely arbitrary.
 ### Common primitive operations
 These all strongly map to the primitive DynamoDB operations they are
 named after. The examples below are the most simple variants of each
-operation possible, using the the two styles available for constructing
-requests with either builder or consumers. These commands can be 
-customized by using the builders provided for each command and offer 
-most of the features available in the low-level DynamoDB SDK client.
+operation possible. Each operation can be further customized by passing 
+in an enhanced request object. These enhanced request objects offer most 
+of the features available in the low-level DynamoDB SDK client and are
+fully documented in the Javadoc of the interfaces referenced in these examples.
 
    ```java
    // CreateTable
    customerTable.createTable();
-   customerTable.createTable(CreateTableEnhancedRequest.builder().build());
    
    // GetItem
-   Customer customer = customerTable.getItem(r -> r.key(k -> k.partitionValue("a123")));
-   Customer customer = customerTable.getItem(GetItemEnhancedRequest.builder()
-                                                                   .key(Key.builder().partitionValue("a123").build())
-                                                                   .build()); 
+   Customer customer = customerTable.getItem(Key.builder().partitionValue("a123").build());
+
    // UpdateItem
-   Customer updatedCustomer = customerTable.updateItem(Customer.class, r -> r.item(customer));
-   Customer updatedCustomer = customerTable.updateItem(UpdateItemEnhancedRequest.builder(Customer.class)
-                                                                                .item(customer)
-                                                                                .build());
+   Customer updatedCustomer = customerTable.updateItem(customer);
    
    // PutItem
-   customerTable.putItem(Customer.class, r -> r.item(customer));
-   customerTable.putItem(PutItemEnhancedRequest.builder(Customer.class)
-                                               .item(customer)
-                                               .build());
+   customerTable.putItem(customer);
    
    // DeleteItem
-   Customer deletedCustomer = customerTable.deleteItem(r -> r.key(k -> partitionValue("a123").sortValue(456)));
-   Customer deletedCustomer = customerTable.deleteItem(
-        DeleteItemEnhancedRequest.builder()
-                                 .key(Key.builder().partitionValue("a123").sortValue(456).build())
-                                 .build());
+   Customer deletedCustomer = customerTable.deleteItem(Key.builder().partitionValue("a123").sortValue(456).build());
    
    // Query
-   Iterable<Page<Customer>> customers = customerTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("a123"))));
-   Iterable<Page<Customer>> customers = 
-        customerTable.query(QueryEnhancedRequest.builder()
-                                                .queryConditional(equalTo(Key.builder().partitionValue("a123").build()))
-                                                .build());
+   PageIterable<Customer> customers = customerTable.query(equalTo(k -> k.partitionValue("a123")));
+
    // Scan
-   Iterable<Page<Customer>> customers = customerTable.scan();
-   Iterable<Page<Customer>> customers = customerTable.scan(ScanEnhancedRequest.builder().build());
+   PageIterable<Customer> customers = customerTable.scan();
    
    // BatchGetItem
-   batchResults = enhancedClient.batchGetItem(r -> r.addReadBatch(ReadBatch.builder(Customer.class)
-                                                                           .mappedTableResource(customerTable)
-                                                                           .addGetItem(i -> i.key(key1))
-                                                                           .addGetItem(i -> i.key(key2))
-                                                                           .addGetItem(i -> i.key(key3))
-                                                                           .build()));
-   batchResults = enhancedClient.batchGetItem(
-       BatchGetItemEnhancedRequest.builder()
-                                  .readBatches(ReadBatch.builder(Customer.class)
-                                                        .mappedTableResource(customerTable)
-                                                        .addGetItem(GetItemEnhancedRequest.builder().key(key1).build())
-                                                        .addGetItem(GetItemEnhancedRequest.builder().key(key2).build())
-                                                        .addGetItem(GetItemEnhancedRequest.builder().key(key3).build())
-                                                        .build())
-                                  .build());
+   BatchGetResultPageIterable batchResults = enhancedClient.batchGetItem(r -> r.addReadBatch(ReadBatch.builder(Customer.class)
+                                                                               .mappedTableResource(customerTable)
+                                                                               .addGetItem(key1)
+                                                                               .addGetItem(key2)
+                                                                               .addGetItem(key3)
+                                                                               .build()));
    
    // BatchWriteItem
    batchResults = enhancedClient.batchWriteItem(r -> r.addWriteBatch(WriteBatch.builder(Customer.class)
                                                                                .mappedTableResource(customerTable)
-                                                                               .addPutItem(i -> i.item(customer))
-                                                                               .addDeleteItem(i -> i.key(key1))
-                                                                               .addDeleteItem(i -> i.key(key1))
+                                                                               .addPutItem(customer)
+                                                                               .addDeleteItem(key1)
+                                                                               .addDeleteItem(key1)
                                                                                .build()));
-   batchResults = enhancedClient.batchWriteItem(
-       BatchWriteItemEnhancedRequest.builder()
-                                    .addWriteBatch(WriteBatch.builder(Customer.class)
-                                                             .mappedTableResource(customerTable)
-                                                             .addPutItem(PutItemEnhancedRequest.builder(Customer.class).item(customer).build())
-                                                             .addDeleteItem(DeleteItemEnhancedRequest.builder().key(key1).build())
-                                                             .addDeleteItem(DeleteItemEnhancedRequest.builder().key(key2).build())
-                                                             .build())
-                                    .build());
    
    // TransactGetItems
-   transactResults = enhancedClient.transactGetItems(r -> r.addGetItem(customerTable, r -> r.key(key1))
-                                                           .addGetItem(customerTable, r -> r.key(key2));
-   transactResults = enhancedClient.transactGetItems(
-       TransactGetItemsEnhancedRequest.builder()
-                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(key1).build())
-                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(key2).build())
-                                      .build());
+   transactResults = enhancedClient.transactGetItems(r -> r.addGetItem(customerTable, key1)
+                                                           .addGetItem(customerTable, key2));
    
    // TransactWriteItems
-   enhancedClient.transactWriteItems(r -> r.addConditionCheck(customerTable, i -> i.key(orderKey).conditionExpression(conditionExpression))
-                                           .addUpdateItem(customerTable, Customer.class, i -> i.item(customer))
-                                           .addDeleteItem(customerTable, i -> i.key(key)));
-
-   enhancedClient.transactWriteItems(
-       TransactWriteItemsEnhancedRequest.builder()
-                                        .addConditionCheck(customerTable, ConditionCheck.builder()
-                                                                                        .key(orderKey)
-                                                                                        .conditionExpression(conditionExpression)
-                                                                                        .build())
-                                        .addUpdateItem(customerTable, UpdateItemEnhancedRequest.builder(Customer.class)
-                                                                                               .item(customer)
-                                                                                               .build())
-                                        .addDeleteItem(customerTable, DeleteItemEnhancedRequest.builder()
-                                                                                               .key(key)
-                                                                                               .build())
-                                        .build());
+   enhancedClient.transactWriteItems(r -> r.addConditionCheck(customerTable, 
+                                                              i -> i.key(orderKey)
+                                                                    .conditionExpression(conditionExpression))
+                                           .addUpdateItem(customerTable, customer)
+                                           .addDeleteItem(customerTable, key));
 ```
    
 ### Using secondary indices
@@ -209,7 +156,8 @@ index. Here's an example of how to do this:
    ```java
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   Iterable<Page<Customer>> customersWithName = customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
+   PageIterable<Customer> customersWithName = 
+       customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    ```
 
 ### Non-blocking asynchronous operations
@@ -242,7 +190,7 @@ key differences:
    application can then subscribe a handler to that publisher and deal
    with the results asynchronously without having to block:
    ```java
-   SdkPublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
+   PagePublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    results.subscribe(myCustomerResultsProcessor);
    // Perform other work and let the processor handle the results asynchronously
    ```
@@ -293,10 +241,11 @@ number tag a numeric attribute in the TableSchema:
 ```
 Or using a StaticTableSchema:
 ```java
-    integerNumberAttribute("version", 
-                           Customer::getVersion, 
-                           Customer::setVersion)
-        .as(version())          // Apply the 'version' tag to the attribute                         
+    .addAttribute(Integer.class, a -> a.name("version")
+                                       .getter(Customer::getVersion)
+                                       .setter(Customer::setVersion)
+                                        // Apply the 'version' tag to the attribute
+                                       .tags(versionAttribute())                         
 ```
 
 ## Advanced StaticTableSchema scenarios

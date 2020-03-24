@@ -20,7 +20,7 @@ phases:
       if ! curl -f --head $SONATYPE_URL; then
         mkdir -p $CREDENTIALS
         aws s3 cp s3://aws-java-sdk-release-credentials/ $CREDENTIALS/ --recursive
-        mvn clean deploy -B -s $SETTINGS_XML -Dgpg.homedir=$GPG_HOME -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Ddoclint=none -pl !:dynamodbdocument-v1,!:dynamodbmapper-v1,!:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:tests-coverage-reporting,!:stability-tests -DautoReleaseAfterClose=true -DstagingProgressTimeoutMinutes=30
+        mvn clean deploy -B -s $SETTINGS_XML -Dgpg.homedir=$GPG_HOME -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Ddoclint=none -pl !:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:tests-coverage-reporting,!:stability-tests -DautoReleaseAfterClose=true -DstagingProgressTimeoutMinutes=30
       else
         echo "This version was already released."
       fi

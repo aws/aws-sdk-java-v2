@@ -20,13 +20,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 
+/**
+ * Defines a collection of primary keys for items in a table, stored as {@link KeysAndAttributes}, and
+ * used for the batchGetItem() operation (such as
+ * {@link DynamoDbEnhancedClient#batchGetItem(BatchGetItemEnhancedRequest)}) as part of a
+ * {@link BatchGetItemEnhancedRequest}.
+ * <p>
+ * A valid request object should contain one or more primary keys.
+ */
 @SdkPublicApi
 public final class ReadBatch {
     private final String tableName;
@@ -37,14 +46,27 @@ public final class ReadBatch {
         this.keysAndAttributes = generateKeysAndAttributes(builder.requests, builder.mappedTableResource);
     }
 
+    /**
+     * Creates a newly initialized builder for a read batch.
+     *
+     * @param itemClass the class that items in this table map to
+     * @param <T> The type of the modelled object, corresponding to itemClass
+     * @return a ReadBatch builder
+     */
     public static <T> Builder<T> builder(Class<? extends T> itemClass) {
         return new BuilderImpl<>();
     }
 
+    /**
+     * Returns the table name associated with this batch.
+     */
     public String tableName() {
         return tableName;
     }
 
+    /**
+     * Returns the collection of keys and attributes, see {@link KeysAndAttributes}, in this read batch.
+     */
     public KeysAndAttributes keysAndAttributes() {
         return keysAndAttributes;
     }
@@ -77,12 +99,56 @@ public final class ReadBatch {
         return result;
     }
 
+    /**
+     * A builder that is used to create a request with the desired parameters.
+     * <p>
+     * A valid builder must define a {@link MappedTableResource} and add at least one
+     * {@link GetItemEnhancedRequest}.
+     *
+     * @param <T> the type that items in this table map to
+     */
     public interface Builder<T> {
+
+        /**
+         * Sets the mapped table resource (table) that the items in this read batch should come from.
+         *
+         * @param mappedTableResource the table reference
+         * @return a builder of this type
+         */
         Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource);
 
+        /**
+         * Adds a {@link GetItemEnhancedRequest} with a primary {@link Key} to the builder.
+         *
+         * @param request A {@link GetItemEnhancedRequest}
+         * @return a builder of this type
+         */
         Builder<T> addGetItem(GetItemEnhancedRequest request);
 
+        /**
+         * Adds a {@link GetItemEnhancedRequest} with a primary {@link Key} to the builder by accepting a consumer of
+         * {@link GetItemEnhancedRequest.Builder}.
+         *
+         * @param requestConsumer a {@link Consumer} of {@link GetItemEnhancedRequest}
+         * @return a builder of this type
+         */
         Builder<T> addGetItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer);
+
+        /**
+         * Adds a GetItem request with a primary {@link Key} to the builder.
+         *
+         * @param key A {@link Key} to match the record retrieved from the database.
+         * @return a builder of this type
+         */
+        Builder<T> addGetItem(Key key);
+
+        /**
+         * Adds a GetItem request to the builder.
+         *
+         * @param keyItem an item that will have its key fields used to match a record to retrieve from the database.
+         * @return a builder of this type
+         */
+        Builder<T> addGetItem(T keyItem);
 
         ReadBatch build();
     }
@@ -146,22 +212,36 @@ public final class ReadBatch {
         private BuilderImpl() {
         }
 
+        @Override
         public Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource) {
             this.mappedTableResource = mappedTableResource;
             return this;
         }
 
+        @Override
         public Builder<T> addGetItem(GetItemEnhancedRequest request) {
             requests.add(request);
             return this;
         }
 
+        @Override
         public Builder<T> addGetItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
             GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
             requestConsumer.accept(builder);
             return addGetItem(builder.build());
         }
 
+        @Override
+        public Builder<T> addGetItem(Key key) {
+            return addGetItem(r -> r.key(key));
+        }
+
+        @Override
+        public Builder<T> addGetItem(T keyItem) {
+            return addGetItem(this.mappedTableResource.keyFrom(keyItem));
+        }
+
+        @Override
         public ReadBatch build() {
             return new ReadBatch(this);
         }

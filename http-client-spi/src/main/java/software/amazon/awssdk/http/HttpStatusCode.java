@@ -62,5 +62,6 @@ public final class HttpStatusCode {
     public static final int SERVICE_UNAVAILABLE = 503;
     public static final int GATEWAY_TIMEOUT = 504;
 
-    private HttpStatusCode() {}
+    private HttpStatusCode() {
+    }
 }

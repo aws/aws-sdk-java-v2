@@ -17,10 +17,8 @@ package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
 import java.util.Optional;
 import java.util.function.Function;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPojo;

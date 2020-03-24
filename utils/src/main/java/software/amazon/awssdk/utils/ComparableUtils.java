@@ -20,7 +20,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public final class ComparableUtils {
-    private ComparableUtils() {}
+    private ComparableUtils() {
+    }
 
     /**
      * Does a safe comparison of two {@link Comparable} objects accounting for nulls

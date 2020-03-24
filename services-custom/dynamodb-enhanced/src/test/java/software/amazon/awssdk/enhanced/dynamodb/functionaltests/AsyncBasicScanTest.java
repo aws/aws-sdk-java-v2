@@ -21,10 +21,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,11 +86,16 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
 
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
-                   .newItemSupplier(Record::new)
-                   .attributes(
-                       stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                       integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()))
-        .build();
+                         .newItemSupplier(Record::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(Record::getId)
+                                                           .setter(Record::setId)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(Integer.class, a -> a.name("sort")
+                                                            .getter(Record::getSort)
+                                                            .setter(Record::setSort)
+                                                            .tags(primarySortKey()))
+                         .build();
 
     private static final List<Record> RECORDS =
         IntStream.range(0, 10)
@@ -108,7 +110,7 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)).join());
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)).join());
     }
 
     @Before
@@ -119,8 +121,8 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     @After
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
-                                                          .tableName(getConcreteTableName("table-name"))
-                                                          .build()).join();
+                                                               .tableName(getConcreteTableName("table-name"))
+                                                               .build()).join();
     }
 
     @Test
@@ -133,6 +135,16 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
 
         assertThat(page.items(), is(RECORDS));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecordsDefaultSettings_viaItems() {
+        insertRecords();
+
+        SdkPublisher<Record> publisher = mappedTable.scan(ScanEnhancedRequest.builder().build()).items();
+        List<Record> results = drainPublisher(publisher, 10);
+
+        assertThat(results, is(RECORDS));
     }
 
     @Test
@@ -158,10 +170,31 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void scanAllRecordsWithFilter_viaItems() {
+        insertRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                                          .expression("sort >= :min_value AND sort <= :max_value")
+                                          .expressionValues(expressionValues)
+                                          .build();
+
+        SdkPublisher<Record> publisher =
+            mappedTable.scan(ScanEnhancedRequest.builder().filterExpression(expression).build()).items();
+
+        List<Record> results = drainPublisher(publisher, 3);
+
+        assertThat(results,
+                   is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
+    }
+
+    @Test
     public void scanLimit() {
         insertRecords();
 
         SdkPublisher<Page<Record>> publisher = mappedTable.scan(r -> r.limit(5));
+        publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
 
         List<Page<Record>> results = drainPublisher(publisher, 3);
 
@@ -178,6 +211,15 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void scanLimit_viaItems() {
+        insertRecords();
+
+        SdkPublisher<Record> publisher = mappedTable.scan(r -> r.limit(5)).items();
+        List<Record> results = drainPublisher(publisher, 10);
+        assertThat(results, is(RECORDS));
+    }
+
+    @Test
     public void scanEmpty() {
         SdkPublisher<Page<Record>> publisher = mappedTable.scan();
         List<Page<Record>> results = drainPublisher(publisher, 1);
@@ -185,6 +227,14 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
 
         assertThat(page.items(), is(empty()));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanEmpty_viaItems() {
+        SdkPublisher<Record> publisher = mappedTable.scan().items();
+        List<Record> results = drainPublisher(publisher, 0);
+
+        assertThat(results, is(empty()));
     }
 
     @Test
@@ -198,6 +248,17 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
 
         assertThat(page.items(), is(RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanExclusiveStartKey_viaItems() {
+        insertRecords();
+        SdkPublisher<Record> publisher =
+            mappedTable.scan(ScanEnhancedRequest.builder().exclusiveStartKey(getKeyMap(7)).build()).items();
+
+        List<Record> results = drainPublisher(publisher, 2);
+
+        assertThat(results, is(RECORDS.subList(8, 10)));
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {

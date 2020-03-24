@@ -22,7 +22,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
@@ -45,12 +43,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -269,7 +269,7 @@ public class ScanOperationTest {
                   .map(attributeMap -> ReadModification.builder().transformedItem(attributeMap).build())
                   .collect(Collectors.toList())
                   .toArray(new ReadModification[]{});
-        when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
             .thenReturn(readModifications[0], Arrays.copyOfRange(readModifications, 1, readModifications.length));
 
         ScanResponse scanResponse = generateFakeScanResults(scanResultMaps);
@@ -283,9 +283,11 @@ public class ScanOperationTest {
 
         InOrder inOrder = Mockito.inOrder(mockDynamoDbEnhancedClientExtension);
         scanResultMaps.forEach(
-            attributeMap -> inOrder.verify(mockDynamoDbEnhancedClientExtension).afterRead(attributeMap,
-                                                                                          PRIMARY_CONTEXT,
-                                                                                          FakeItem.getTableMetadata()));
+            attributeMap -> inOrder.verify(mockDynamoDbEnhancedClientExtension).afterRead(
+                DefaultDynamoDbExtensionContext.builder()
+                                               .tableMetadata(FakeItem.getTableMetadata())
+                                               .operationContext(PRIMARY_CONTEXT)
+                                               .items(attributeMap).build()));
     }
 
     private static ScanResponse generateFakeScanResults(List<Map<String, AttributeValue>> scanItemMapsPage) {

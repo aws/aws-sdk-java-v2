@@ -227,7 +227,8 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
         /**
          * @see #builder()
          */
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Configure whether the provider should fetch credentials asynchronously in the background. If this is true, threads are

@@ -202,6 +202,7 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * Free any resources associated with the strategy. This is invoked when the {@link CachedSupplier#close()} method is
          * invoked.
          */
-        default void close() {}
+        default void close() {
+        }
     }
 }

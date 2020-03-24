@@ -25,7 +25,8 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  */
 @SdkInternalApi
 public final class InterruptMonitor {
-    private InterruptMonitor() {}
+    private InterruptMonitor() {
+    }
 
     /**
      * Check if the thread has been interrupted. If so throw an {@link InterruptedException}.

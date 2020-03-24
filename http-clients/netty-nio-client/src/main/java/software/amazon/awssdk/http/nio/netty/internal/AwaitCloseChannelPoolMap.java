@@ -131,6 +131,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         ChannelPipelineInitializer pipelineInitializer = new ChannelPipelineInitializer(protocol,
                                                                                         sslContext,
+                                                                                        sslProvider,
                                                                                         maxStreams,
                                                                                         initialWindowSize,
                                                                                         healthCheckPingPeriod,

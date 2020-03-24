@@ -160,7 +160,8 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
         private Boolean reuseLastProviderEnabled = true;
         private List<AwsCredentialsProvider> credentialsProviders = new ArrayList<>();
 
-        private BuilderImpl() {}
+        private BuilderImpl() {
+        }
 
         @Override
         public Builder reuseLastProviderEnabled(Boolean reuseLastProviderEnabled) {

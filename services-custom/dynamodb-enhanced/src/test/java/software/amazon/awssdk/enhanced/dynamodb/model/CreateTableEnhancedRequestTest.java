@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Collections;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -42,12 +41,14 @@ public class CreateTableEnhancedRequestTest {
 
     @Test
     public void builder_maximal() {
-        GlobalSecondaryIndex globalSecondaryIndex = GlobalSecondaryIndex.create(
-            "gsi_1",
-            Projection.builder().projectionType(ProjectionType.ALL).build(),
-            getDefaultProvisionedThroughput());
+        EnhancedGlobalSecondaryIndex globalSecondaryIndex =
+                EnhancedGlobalSecondaryIndex.builder()
+                        .indexName("gsi_1")
+                        .projection(p -> p.projectionType(ProjectionType.ALL))
+                        .provisionedThroughput(getDefaultProvisionedThroughput())
+                        .build();
 
-        LocalSecondaryIndex localSecondaryIndex = LocalSecondaryIndex.create(
+        EnhancedLocalSecondaryIndex localSecondaryIndex = EnhancedLocalSecondaryIndex.create(
             "lsi", Projection.builder().projectionType(ProjectionType.ALL).build());
 
         CreateTableEnhancedRequest builtObject = CreateTableEnhancedRequest.builder()

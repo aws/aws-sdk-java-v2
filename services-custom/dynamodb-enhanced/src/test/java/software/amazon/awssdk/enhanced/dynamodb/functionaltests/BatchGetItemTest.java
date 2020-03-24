@@ -16,15 +16,14 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +34,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPage;
+import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -94,14 +94,20 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record1> TABLE_SCHEMA_1 =
         StaticTableSchema.builder(Record1.class)
                          .newItemSupplier(Record1::new)
-                         .attributes(integerNumberAttribute("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()))
+                         .addAttribute(Integer.class, a -> a.name("id_1")
+                                                            .getter(Record1::getId)
+                                                            .setter(Record1::setId)
+                                                            .tags(primaryPartitionKey()))
                          .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
-            StaticTableSchema.builder(Record2.class)
-                             .newItemSupplier(Record2::new)
-                             .attributes(integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))
-                             .build();
+        StaticTableSchema.builder(Record2.class)
+                         .newItemSupplier(Record2::new)
+                         .addAttribute(Integer.class, a -> a.name("id_2")
+                                                            .getter(Record2::getId)
+                                                            .setter(Record2::setId)
+                                                            .tags(primaryPartitionKey()))
+                         .build();
 
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())
@@ -137,15 +143,97 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.putItem(Record1.class, r -> r.item(record)));
-        RECORDS_2.forEach(record -> mappedTable2.putItem(Record2.class, r-> r.item(record)));
+        RECORDS_1.forEach(record -> mappedTable1.putItem(r -> r.item(record)));
+        RECORDS_2.forEach(record -> mappedTable2.putItem(r -> r.item(record)));
     }
 
     @Test
     public void getRecordsFromMultipleTables() {
         insertRecords();
+        SdkIterable<BatchGetResultPage> results = getBatchGetResultPagesForBothTables();
+        assertThat(results.stream().count(), is(1L));
 
-        SdkIterable<BatchGetResultPage> results = enhancedClient.batchGetItem(r -> r.readBatches(
+        results.iterator().forEachRemaining((page) -> {
+            List<Record1> table1Results = page.resultsForTable(mappedTable1);
+            assertThat(table1Results.size(), is(2));
+            assertThat(table1Results.get(0).id, is(0));
+            assertThat(table1Results.get(1).id, is(1));
+            assertThat(page.resultsForTable(mappedTable2).size(), is(2));
+        });
+    }
+
+    @Test
+    public void getRecordsFromMultipleTables_viaFlattenedItems() {
+        insertRecords();
+
+        BatchGetResultPageIterable results = getBatchGetResultPagesForBothTables();
+
+        SdkIterable<Record1> recordsList1 = results.resultsForTable(mappedTable1);
+        assertThat(recordsList1, containsInAnyOrder(RECORDS_1.toArray()));
+
+        SdkIterable<Record2> recordsList2 = results.resultsForTable(mappedTable2);
+        assertThat(recordsList2, containsInAnyOrder(RECORDS_2.toArray()));
+    }
+
+    @Test
+    public void notFoundRecordIgnored() {
+        insertRecords();
+
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest = batchGetItemEnhancedRequestWithNotFoundRecord();
+
+        SdkIterable<BatchGetResultPage> results = enhancedClient.batchGetItem(batchGetItemEnhancedRequest);
+
+        assertThat(results.stream().count(), is(1L));
+
+        results.iterator().forEachRemaining((page) -> {
+            List<Record1> mappedTable1Results = page.resultsForTable(mappedTable1);
+            assertThat(mappedTable1Results.size(), is(1));
+            assertThat(mappedTable1Results.get(0).id, is(0));
+            assertThat(page.resultsForTable(mappedTable2).size(), is(2));
+        });
+    }
+
+    @Test
+    public void notFoundRecordIgnored_viaFlattenedItems() {
+        insertRecords();
+
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest = batchGetItemEnhancedRequestWithNotFoundRecord();
+
+        BatchGetResultPageIterable pageIterable = enhancedClient.batchGetItem(batchGetItemEnhancedRequest);
+
+        assertThat(pageIterable.stream().count(), is(1L));
+
+        List<Record1> recordsList1 = pageIterable.resultsForTable(mappedTable1).stream().collect(Collectors.toList());
+        assertThat(recordsList1, is(RECORDS_1.subList(0, 1)));
+
+        SdkIterable<Record2> recordsList2 = pageIterable.resultsForTable(mappedTable2);
+        assertThat(recordsList2, containsInAnyOrder(RECORDS_2.toArray()));
+    }
+
+    private BatchGetItemEnhancedRequest batchGetItemEnhancedRequestWithNotFoundRecord() {
+        return BatchGetItemEnhancedRequest.builder()
+                                          .readBatches(
+                                              ReadBatch.builder(Record1.class)
+                                                       .mappedTableResource(mappedTable1)
+                                                       .addGetItem(r -> r.key(k -> k.partitionValue(0)))
+                                                       .build(),
+                                              ReadBatch.builder(Record2.class)
+                                                       .mappedTableResource(mappedTable2)
+                                                       .addGetItem(r -> r.key(k -> k.partitionValue(0)))
+                                                       .build(),
+                                              ReadBatch.builder(Record2.class)
+                                                       .mappedTableResource(mappedTable2)
+                                                       .addGetItem(r -> r.key(k -> k.partitionValue(1)))
+                                                       .build(),
+                                              ReadBatch.builder(Record1.class)
+                                                       .mappedTableResource(mappedTable1)
+                                                       .addGetItem(r -> r.key(k -> k.partitionValue(5)))
+                                                       .build())
+                                          .build();
+    }
+
+    private BatchGetResultPageIterable getBatchGetResultPagesForBothTables() {
+        return enhancedClient.batchGetItem(r -> r.readBatches(
             ReadBatch.builder(Record1.class)
                      .mappedTableResource(mappedTable1)
                      .addGetItem(i -> i.key(k -> k.partitionValue(0)))
@@ -162,53 +250,6 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
                      .mappedTableResource(mappedTable1)
                      .addGetItem(i -> i.key(k -> k.partitionValue(1)))
                      .build()));
-
-        assertThat(results.stream().count(), is(1L));
-
-        results.iterator().forEachRemaining((page) -> {
-            List<Record1> table1Results = page.getResultsForTable(mappedTable1);
-            assertThat(table1Results.size(), is(2));
-            assertThat(table1Results.get(0).id, is(0));
-            assertThat(table1Results.get(1).id, is(1));
-            assertThat(page.getResultsForTable(mappedTable2).size(), is(2));
-        });
-    }
-
-    @Test
-    public void notFoundRecordIgnored() {
-        insertRecords();
-
-        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
-            BatchGetItemEnhancedRequest.builder()
-                                       .readBatches(
-                                           ReadBatch.builder(Record1.class)
-                                                    .mappedTableResource(mappedTable1)
-                                                    .addGetItem(r -> r.key(k -> k.partitionValue(0)))
-                                                    .build(),
-                                           ReadBatch.builder(Record2.class)
-                                                    .mappedTableResource(mappedTable2)
-                                                    .addGetItem(r -> r.key(k -> k.partitionValue(0)))
-                                                    .build(),
-                                           ReadBatch.builder(Record2.class)
-                                                    .mappedTableResource(mappedTable2)
-                                                    .addGetItem(r -> r.key(k -> k.partitionValue(1)))
-                                                    .build(),
-                                           ReadBatch.builder(Record1.class)
-                                                    .mappedTableResource(mappedTable1)
-                                                    .addGetItem(r -> r.key(k -> k.partitionValue(5)))
-                                                    .build())
-                                       .build();
-
-        SdkIterable<BatchGetResultPage> results = enhancedClient.batchGetItem(batchGetItemEnhancedRequest);
-
-        assertThat(results.stream().count(), is(1L));
-
-        results.iterator().forEachRemaining((page) -> {
-            List<Record1> mappedTable1Results = page.getResultsForTable(mappedTable1);
-            assertThat(mappedTable1Results.size(), is(1));
-            assertThat(mappedTable1Results.get(0).id, is(0));
-            assertThat(page.getResultsForTable(mappedTable2).size(), is(2));
-        });
     }
 }
 

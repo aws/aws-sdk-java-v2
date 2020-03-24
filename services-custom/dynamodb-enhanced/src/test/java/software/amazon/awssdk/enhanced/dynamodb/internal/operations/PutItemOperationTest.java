@@ -32,17 +32,18 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -168,7 +169,7 @@ public class PutItemOperationTest {
     @Test
     public void generateRequest_withConditionExpression_andExtensionWithSingleCondition() {
         FakeItem baseFakeItem = createUniqueFakeItem();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(CONDITION_EXPRESSION_2).build());
         PutItemOperation<FakeItem> putItemOperation =
             PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
@@ -180,7 +181,7 @@ public class PutItemOperationTest {
                                                                   PRIMARY_CONTEXT,
                                                                   mockDynamoDbEnhancedClientExtension);
 
-        Expression expectedCondition = Expression.coalesce(CONDITION_EXPRESSION, CONDITION_EXPRESSION_2, " AND ");
+        Expression expectedCondition = Expression.join(CONDITION_EXPRESSION, CONDITION_EXPRESSION_2, " AND ");
         assertThat(request.conditionExpression(), is(expectedCondition.expression()));
         assertThat(request.expressionAttributeNames(), is(expectedCondition.expressionNames()));
         assertThat(request.expressionAttributeValues(), is(expectedCondition.expressionValues()));
@@ -212,7 +213,7 @@ public class PutItemOperationTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, true);
         Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
         PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
                                                                                                     .item(baseFakeItem)
@@ -223,7 +224,11 @@ public class PutItemOperationTest {
                                                                   mockDynamoDbEnhancedClientExtension);
 
         assertThat(request.item(), is(fakeMap));
-        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(baseMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(
+            DefaultDynamoDbExtensionContext.builder()
+            .items(baseMap)
+            .operationContext(PRIMARY_CONTEXT)
+            .tableMetadata(FakeItem.getTableMetadata()).build());
     }
 
     @Test
@@ -232,7 +237,7 @@ public class PutItemOperationTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
         PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
                                                                                                     .item(baseFakeItem)
@@ -249,7 +254,7 @@ public class PutItemOperationTest {
     @Test
     public void generateRequest_withExtension_noModifications() {
         FakeItem baseFakeItem = createUniqueFakeItem();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().build());
         PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
                                                                                                     .item(baseFakeItem)

@@ -28,7 +28,8 @@ public final class WebIdentityCredentialsUtils {
     private static final String STS_WEB_IDENTITY_CREDENTIALS_PROVIDER_FACTORY =
         "software.amazon.awssdk.services.sts.internal.StsWebIdentityCredentialsProviderFactory";
 
-    private WebIdentityCredentialsUtils() {}
+    private WebIdentityCredentialsUtils() {
+    }
 
     /**
      * Resolves the StsWebIdentityCredentialsProviderFactory from the Sts module if on the classpath to allow

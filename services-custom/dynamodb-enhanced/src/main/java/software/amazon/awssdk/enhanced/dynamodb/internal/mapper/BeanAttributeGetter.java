@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
 import java.lang.reflect.Method;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 

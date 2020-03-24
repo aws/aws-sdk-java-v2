@@ -22,7 +22,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class ExceptionHandlingUtils {
 
-    private ExceptionHandlingUtils() {}
+    private ExceptionHandlingUtils() {
+    }
 
     /**
      * Runs a task within try-catch block. All exceptions thrown from the execution

@@ -17,17 +17,16 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -120,22 +119,24 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
     private static final StaticTableSchema<Document> DOCUMENT_SCHEMA =
         StaticTableSchema.builder(Document.class)
                          .newItemSupplier(Document::new)
-                         .attributes(
-                             stringAttribute("documentAttribute1",
-                                    Document::getDocumentAttribute1,
-                                    Document::setDocumentAttribute1),
-                             stringAttribute("documentAttribute2",
-                                    Document::getDocumentAttribute2,
-                                    Document::setDocumentAttribute2),
-                             stringAttribute("documentAttribute3",
-                                    Document::getDocumentAttribute3,
-                                    Document::setDocumentAttribute3))
+                         .addAttribute(String.class, a -> a.name("documentAttribute1")
+                                                           .getter(Document::getDocumentAttribute1)
+                                                           .setter(Document::setDocumentAttribute1))
+                         .addAttribute(String.class, a -> a.name("documentAttribute2")
+                                                           .getter(Document::getDocumentAttribute2)
+                                                           .setter(Document::setDocumentAttribute2))
+                         .addAttribute(String.class, a -> a.name("documentAttribute3")
+                                                           .getter(Document::getDocumentAttribute3)
+                                                           .setter(Document::setDocumentAttribute3))
                          .build();
 
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
-                         .attributes(stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(Record::getId)
+                                                           .setter(Record::setId)
+                                                           .tags(primaryPartitionKey()))
                          .flatten(DOCUMENT_SCHEMA, Record::getDocument, Record::setDocument)
                          .build();
 
@@ -168,7 +169,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setId("id-value")
                               .setDocument(document);
 
-        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record updatedRecord = mappedTable.updateItem(r -> r.item(record));
         Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));
@@ -184,7 +185,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setId("id-value")
                               .setDocument(document);
 
-        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record updatedRecord = mappedTable.updateItem(r -> r.item(record));
         Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));
@@ -196,7 +197,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
         Record record = new Record()
                               .setId("id-value");
 
-        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record updatedRecord = mappedTable.updateItem(r -> r.item(record));
         Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));

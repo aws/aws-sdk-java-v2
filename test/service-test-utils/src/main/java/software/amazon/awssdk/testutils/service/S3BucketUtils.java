@@ -24,7 +24,8 @@ public final class S3BucketUtils {
     private static final Random RANDOM = new Random();
     private static final int MAX_BUCKET_NAME_LENGTH = 63;
 
-    private S3BucketUtils() { }
+    private S3BucketUtils() {
+    }
 
     /**
      * Creates a temporary bucket name using the class name of the calling class as a prefix.

@@ -18,6 +18,7 @@ package software.amazon.awssdk.regions.providers;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -26,29 +27,20 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkProtectedApi
 public class LazyAwsRegionProvider implements AwsRegionProvider {
-    private final Supplier<AwsRegionProvider> delegateConstructor;
-    private volatile AwsRegionProvider delegate;
+    private final Lazy<AwsRegionProvider> delegate;
 
     public LazyAwsRegionProvider(Supplier<AwsRegionProvider> delegateConstructor) {
-        this.delegateConstructor = delegateConstructor;
+        this.delegate = new Lazy<>(delegateConstructor);
     }
 
     @Override
     public Region getRegion() {
-        if (delegate == null) {
-            synchronized (this) {
-                if (delegate == null) {
-                    delegate = delegateConstructor.get();
-                }
-            }
-        }
-        return delegate.getRegion();
+        return delegate.getValue().getRegion();
     }
 
     @Override
     public String toString() {
         return ToString.builder("LazyAwsRegionProvider")
-                       .add("delegateConstructor", delegateConstructor)
                        .add("delegate", delegate)
                        .build();
     }

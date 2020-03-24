@@ -15,18 +15,16 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
-
 import java.util.Objects;
-
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 abstract class FakeItemAbstractSubclass extends FakeItemAbstractSubclass2 {
     private static final StaticTableSchema<FakeItemAbstractSubclass> FAKE_ITEM_MAPPER =
         StaticTableSchema.builder(FakeItemAbstractSubclass.class)
-                         .attributes(stringAttribute("subclass_attribute",
-                                            FakeItemAbstractSubclass::getSubclassAttribute,
-                                            FakeItemAbstractSubclass::setSubclassAttribute))
+                         .addAttribute(String.class,
+                                       a -> a.name("subclass_attribute")
+                                             .getter(FakeItemAbstractSubclass::getSubclassAttribute)
+                                             .setter(FakeItemAbstractSubclass::setSubclassAttribute))
                          .flatten(FakeItemComposedSubclass.getTableSchema(),
                                   FakeItemAbstractSubclass::getComposedAttribute,
                                   FakeItemAbstractSubclass::setComposedAttribute)

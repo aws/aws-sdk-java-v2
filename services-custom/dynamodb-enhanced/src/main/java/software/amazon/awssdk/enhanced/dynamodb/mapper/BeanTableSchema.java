@@ -23,33 +23,32 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -101,45 +100,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public final class BeanTableSchema<T> implements TableSchema<T> {
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
 
-    private static final Map<TypeToken<?>, AttributeType<?>> ATTRIBUTE_TYPES_MAP;
-
-    static {
-        Map<TypeToken<?>, AttributeType<?>> map = new HashMap<>();
-
-        map.put(TypeToken.of(String.class), AttributeTypes.stringType());
-        map.put(TypeToken.of(Boolean.class), AttributeTypes.booleanType());
-        map.put(TypeToken.of(boolean.class), AttributeTypes.booleanType());
-        map.put(TypeToken.of(Integer.class), AttributeTypes.integerNumberType());
-        map.put(TypeToken.of(int.class), AttributeTypes.integerNumberType());
-        map.put(TypeToken.of(Long.class), AttributeTypes.longNumberType());
-        map.put(TypeToken.of(long.class), AttributeTypes.longNumberType());
-        map.put(TypeToken.of(Short.class), AttributeTypes.shortNumberType());
-        map.put(TypeToken.of(short.class), AttributeTypes.shortNumberType());
-        map.put(TypeToken.of(Byte.class), AttributeTypes.byteNumberType());
-        map.put(TypeToken.of(byte.class), AttributeTypes.byteNumberType());
-        map.put(TypeToken.of(Double.class), AttributeTypes.doubleNumberType());
-        map.put(TypeToken.of(double.class), AttributeTypes.doubleNumberType());
-        map.put(TypeToken.of(Float.class), AttributeTypes.floatNumberType());
-        map.put(TypeToken.of(float.class), AttributeTypes.floatNumberType());
-        map.put(TypeToken.of(SdkBytes.class), AttributeTypes.binaryType());
-        map.put(TypeToken.setOf(String.class), AttributeTypes.stringSetType());
-        map.put(TypeToken.setOf(Integer.class), AttributeTypes.integerNumberSetType());
-        map.put(TypeToken.setOf(Long.class), AttributeTypes.longNumberSetType());
-        map.put(TypeToken.setOf(Short.class), AttributeTypes.shortNumberSetType());
-        map.put(TypeToken.setOf(Byte.class), AttributeTypes.byteNumberSetType());
-        map.put(TypeToken.setOf(Double.class), AttributeTypes.doubleNumberSetType());
-        map.put(TypeToken.setOf(Float.class), AttributeTypes.floatNumberSetType());
-        map.put(TypeToken.setOf(SdkBytes.class), AttributeTypes.binarySetType());
-
-        ATTRIBUTE_TYPES_MAP = Collections.unmodifiableMap(map);
-    }
-
     private final StaticTableSchema<T> wrappedTableSchema;
-    private final Class<T> beanClass;
 
-    private BeanTableSchema(StaticTableSchema<T> staticTableSchema, Class<T> beanClass) {
+    private BeanTableSchema(StaticTableSchema<T> staticTableSchema) {
         this.wrappedTableSchema = staticTableSchema;
-        this.beanClass = beanClass;
     }
 
     /**
@@ -150,15 +114,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
      * @return An initialized {@link BeanTableSchema}
      */
     public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
-        return new BeanTableSchema<>(createStaticTableSchema(beanClass), beanClass);
-    }
-
-    /**
-     * Returns the bean class this object was created with.
-     * @return The bean class that was supplied to the static constructor of this object.
-     */
-    public Class<T> beanClass() {
-        return this.beanClass;
+        return new BeanTableSchema<>(createStaticTableSchema(beanClass));
     }
 
     /**
@@ -210,6 +166,11 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         return wrappedTableSchema.tableMetadata();
     }
 
+    @Override
+    public EnhancedType<T> itemType() {
+        return wrappedTableSchema.itemType();
+    }
+
     private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass) {
         DynamoDbBean dynamoDbBean = beanClass.getAnnotation(DynamoDbBean.class);
 
@@ -230,7 +191,10 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
                                                                 .newItemSupplier(newObjectSupplier);
 
-        List<Attribute.AttributeSupplier<T>> attributes = new ArrayList<>();
+        Optional<AttributeConverterProvider> attributeConverterProvider = converterProviderAnnotation(dynamoDbBean);
+        attributeConverterProvider.ifPresent(builder::attributeConverterProvider);
+
+        List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
 
         Arrays.stream(beanInfo.getPropertyDescriptors())
               .filter(BeanTableSchema::isMappableProperty)
@@ -242,19 +206,60 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                                       getterForProperty(propertyDescriptor, beanClass),
                                       setterForProperty(propertyDescriptor, beanClass));
                   } else {
-                      Attribute.AttributeSupplier<T> attributeSupplier =
-                          Attribute.create(attributeNameForProperty(propertyDescriptor),
-                                           getterForProperty(propertyDescriptor, beanClass),
-                                           setterForProperty(propertyDescriptor, beanClass),
-                                           attributeTypeForProperty(propertyDescriptor));
+                      StaticAttribute.Builder<T, ?> attributeBuilder =
+                          staticAttributeBuilder(propertyDescriptor, beanClass);
 
-                      addTagsToAttribute(attributeSupplier, propertyDescriptor);
-                      attributes.add(attributeSupplier);
+                      Optional<AttributeConverter> attributeConverter = attributeConverterAnnotation(propertyDescriptor);
+                      attributeConverter.ifPresent(attributeBuilder::attributeConverter);
+
+                      addTagsToAttribute(attributeBuilder, propertyDescriptor);
+                      attributes.add(attributeBuilder.build());
                   }
               });
 
         builder.attributes(attributes);
+
         return builder.build();
+    }
+
+    private static Optional<AttributeConverterProvider> converterProviderAnnotation(DynamoDbBean dynamoDbBean) {
+        Class<?>[] converterClasses = dynamoDbBean.converterProviders();
+        //TODO: temporary solution to pick one AttributeConverterProvider.
+        return converterClasses.length > 0 ?
+               Optional.of((AttributeConverterProvider) newObjectSupplierForClass(converterClasses[0]).get()) :
+               Optional.empty();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> StaticAttribute.Builder<T, ?> staticAttributeBuilder(PropertyDescriptor propertyDescriptor,
+                                                                            Class<T> beanClass) {
+
+        Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
+        EnhancedType<?> propertyTypeToken = null;
+
+        if (propertyType instanceof Class) {
+            Class<?> clazz = (Class<?>) propertyType;
+            if (clazz.getAnnotation(DynamoDbBean.class) != null) {
+                propertyTypeToken = EnhancedType.documentOf((Class<Object>) clazz,
+                                                         (TableSchema<Object>) createStaticTableSchema(clazz));
+            }
+        }
+
+        if (propertyTypeToken == null) {
+            propertyTypeToken = EnhancedType.of(propertyDescriptor.getReadMethod().getGenericReturnType());
+        }
+
+        return StaticAttribute.builder(beanClass, propertyTypeToken)
+                              .name(attributeNameForProperty(propertyDescriptor))
+                              .getter(getterForProperty(propertyDescriptor, beanClass))
+                              .setter(setterForProperty(propertyDescriptor, beanClass));
+    }
+
+    private static Optional<AttributeConverter> attributeConverterAnnotation(PropertyDescriptor propertyDescriptor) {
+        DynamoDbConvertedBy attributeConverterBean = propertyAnnotation(propertyDescriptor, DynamoDbConvertedBy.class);
+        Optional<Class<?>> optionalClass = Optional.ofNullable(attributeConverterBean)
+                                                   .map(DynamoDbConvertedBy::value);
+        return optionalClass.map(clazz -> (AttributeConverter) newObjectSupplierForClass(clazz).get());
     }
 
     /**
@@ -262,7 +267,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
      * If the meta-annotation is found, it attempts to create an annotation tag based on a standard named static method
      * of the class that tag has been annotated with passing in the original property annotation as an argument.
      */
-    private static void addTagsToAttribute(Attribute.AttributeSupplier<?> attributeSupplier,
+    private static void addTagsToAttribute(StaticAttribute.Builder<?, ?> attributeBuilder,
                                            PropertyDescriptor propertyDescriptor) {
 
         propertyAnnotations(propertyDescriptor).forEach(annotation -> {
@@ -280,7 +285,8 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                     throw new RuntimeException(
                         String.format("Could not find a static method named '%s' on class '%s' that returns " +
                                           "an AttributeTag for annotation '%s'", ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME,
-                                      tagClass, annotation.annotationType()), e);               }
+                                      tagClass, annotation.annotationType()), e);
+                }
 
                 if (!Modifier.isStatic(tagMethod.getModifiers())) {
                     throw new RuntimeException(
@@ -289,16 +295,16 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                                       tagClass, annotation.annotationType()));
                 }
 
-                AttributeTag attributeTag;
+                StaticAttributeTag staticAttributeTag;
                 try {
-                    attributeTag = (AttributeTag) tagMethod.invoke(null, annotation);
+                    staticAttributeTag = (StaticAttributeTag) tagMethod.invoke(null, annotation);
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     throw new RuntimeException(
                         String.format("Could not invoke method to create AttributeTag for annotation '%s' on class " +
                                           "'%s'.", annotation.annotationType(), tagClass), e);
                 }
 
-                attributeSupplier.as(attributeTag);
+                attributeBuilder.addTag(staticAttributeTag);
             }
         });
     }
@@ -333,77 +339,6 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         return propertyDescriptor.getName();
     }
 
-    private static <R> AttributeType<R> attributeTypeForProperty(PropertyDescriptor propertyDescriptor) {
-        Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
-        return attributeTypeForProperty(propertyType);
-    }
-
-    private static <R> AttributeType<R> attributeTypeForProperty(Type type) {
-        // Handle list and map types specially as they are parameterized and need recursive handling
-        if (type instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-
-            if (List.class.equals(parameterizedType.getRawType())) {
-                return attributeTypeForList(parameterizedType);
-            }
-
-            if (Map.class.equals(parameterizedType.getRawType())) {
-                return attributeTypeForMap(parameterizedType);
-            }
-        }
-
-        // Look for a standard converter mapped to the specific type
-        AttributeType<R> attributeType = lookupAttributeType(type);
-
-        if (attributeType != null) {
-            return attributeType;
-        }
-
-        // If no converter was found, check to see if the type is a class annotated with @DynamoDbBean and treat it as
-        // a document map if it is
-        if (type instanceof Class) {
-            Class<?> clazz = (Class<?>) type;
-
-            if (clazz.getAnnotation(DynamoDbBean.class) != null) {
-                return attributeTypeForDocument(clazz);
-            }
-        }
-
-        throw new RuntimeException(
-            String.format("No matching converter could be found for type '%s' on bean class.",
-                          type.getTypeName()));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> AttributeType<R> lookupAttributeType(Type type) {
-        return (AttributeType<R>) ATTRIBUTE_TYPES_MAP.get(TypeToken.of(type));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> AttributeType<R> attributeTypeForDocument(Class<?> documentClass) {
-        return (AttributeType<R>) AttributeTypes.documentMapType(createStaticTableSchema(documentClass));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> AttributeType<R> attributeTypeForList(ParameterizedType parameterizedType) {
-        Type parameterType = parameterizedType.getActualTypeArguments()[0];
-        return (AttributeType<R>) AttributeTypes.listType(attributeTypeForProperty(parameterType));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> AttributeType<R> attributeTypeForMap(ParameterizedType parameterizedType) {
-        Type keyType = parameterizedType.getActualTypeArguments()[0];
-        Type valueType = parameterizedType.getActualTypeArguments()[1];
-
-        if (!String.class.equals(keyType)) {
-            throw new IllegalArgumentException(
-                String.format("No matching converter could be found for type '%s' on bean class: Maps must have a key " +
-                                  "type of 'String'.", keyType.getTypeName()));
-        }
-
-        return (AttributeType<R>) AttributeTypes.mapType(attributeTypeForProperty(valueType));
-    }
-
     private static boolean isMappableProperty(PropertyDescriptor propertyDescriptor) {
         return propertyDescriptor.getReadMethod() != null
             && propertyDescriptor.getWriteMethod() != null
@@ -428,3 +363,4 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                      .collect(Collectors.toList());
     }
 }
+

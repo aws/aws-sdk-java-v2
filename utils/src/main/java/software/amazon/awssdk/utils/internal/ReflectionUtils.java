@@ -16,7 +16,6 @@
 package software.amazon.awssdk.utils.internal;
 
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.ImmutableMap;
 

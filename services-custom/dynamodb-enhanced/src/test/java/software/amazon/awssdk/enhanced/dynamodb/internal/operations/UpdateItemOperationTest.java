@@ -39,18 +39,19 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -379,7 +380,7 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, false);
         Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(fakeItem, singletonList("id"));
 
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -390,7 +391,10 @@ public class UpdateItemOperationTest {
                                                                         mockDynamoDbEnhancedClientExtension);
 
         assertThat(request.key(), is(keyMap));
-        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(baseMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(DefaultDynamoDbExtensionContext.builder()
+                                                                                               .tableMetadata(FakeItem.getTableMetadata())
+                                                                                               .operationContext(PRIMARY_CONTEXT)
+                                                                                               .items(baseMap).build());
     }
 
     @Test
@@ -401,7 +405,7 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> fakeMap = new HashMap<>(baseMap);
         fakeMap.put("subclass_attribute", AttributeValue.builder().s("1").build());
 
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
 
 
@@ -445,7 +449,7 @@ public class UpdateItemOperationTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
         UpdateItemOperation<FakeItem> updateItemOperation =
             UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class)
@@ -468,7 +472,7 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> values = singletonMap(SUBCLASS_ATTRIBUTE_VALUE,
                                                           AttributeValue.builder().s("1").build());
         Expression condition1 = Expression.builder().expression("condition1").expressionValues(values).build();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition1).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -492,7 +496,7 @@ public class UpdateItemOperationTest {
         baseFakeItem.setSubclassAttribute("something");
         Map<String, String> names = singletonMap(SUBCLASS_ATTRIBUTE_NAME, "conflict");
         Expression condition1 = Expression.builder().expression("condition1").expressionNames(names).build();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition1).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -517,7 +521,7 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> values = singletonMap(SUBCLASS_ATTRIBUTE_VALUE,
                                                            AttributeValue.builder().s("something").build());
         Expression condition = Expression.builder().expression("condition").expressionValues(values).build();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -539,7 +543,7 @@ public class UpdateItemOperationTest {
         baseFakeItem.setSubclassAttribute("something");
         Map<String, String> names = singletonMap(SUBCLASS_ATTRIBUTE_NAME, "subclass_attribute");
         Expression condition = Expression.builder().expression("condition").expressionNames(names).build();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -558,7 +562,7 @@ public class UpdateItemOperationTest {
     @Test
     public void generateRequest_withExtension_noModifications() {
         FakeItem baseFakeItem = createUniqueFakeItem();
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -585,7 +589,7 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> conditionValues = new HashMap<>();
         conditionValues.put(":condition_value", AttributeValue.builder().s("2").build());
 
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(anyMap(), any(), any()))
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder()
                                          .transformedItem(fakeMap)
                                          .additionalConditionalExpression(Expression.builder()
@@ -625,7 +629,7 @@ public class UpdateItemOperationTest {
                                                                 .ignoreNulls(true)
                                                                 .build());
 
-        when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any())).thenReturn(
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(
             ReadModification.builder().transformedItem(fakeMap).build());
         UpdateItemResponse response = UpdateItemResponse.builder()
                                                         .attributes(baseFakeMap)
@@ -636,7 +640,10 @@ public class UpdateItemOperationTest {
                                                                     mockDynamoDbEnhancedClientExtension);
 
         assertThat(resultItem, is(fakeItem));
-        verify(mockDynamoDbEnhancedClientExtension).afterRead(baseFakeMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
+                                                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                                                             .operationContext(PRIMARY_CONTEXT)
+                                                                                             .items(baseFakeMap).build());
     }
 
     @Test
@@ -650,7 +657,7 @@ public class UpdateItemOperationTest {
                                                                 .ignoreNulls(true)
                                                                 .build());
 
-        when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any())).thenReturn(
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(
             ReadModification.builder().build());
         UpdateItemResponse response = UpdateItemResponse.builder()
                                                         .attributes(baseFakeMap)
@@ -660,12 +667,15 @@ public class UpdateItemOperationTest {
                                                                     PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension);
 
         assertThat(resultItem, is(baseFakeItem));
-        verify(mockDynamoDbEnhancedClientExtension).afterRead(baseFakeMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
+        verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
+                                                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                                                             .operationContext(PRIMARY_CONTEXT)
+                                                                                             .items(baseFakeMap).build());
     }
 
     @Test(expected = IllegalStateException.class)
     public void transformResponse_afterReadThrowsException_throwsIllegalStateException() {
-        when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any())).thenThrow(RuntimeException.class);
+        when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenThrow(RuntimeException.class);
         UpdateItemOperation<FakeItem> updateItemOperation =
             UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(createUniqueFakeItem()).build());
 

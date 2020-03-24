@@ -19,11 +19,11 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DefaultDocument;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsRequest;
@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsResponse;
 
 @SdkInternalApi
 public class TransactGetItemsOperation
-    implements DatabaseOperation<TransactGetItemsRequest, TransactGetItemsResponse, List<TransactGetResultPage>> {
+    implements DatabaseOperation<TransactGetItemsRequest, TransactGetItemsResponse, List<Document>> {
 
     private TransactGetItemsEnhancedRequest request;
 
@@ -63,11 +63,11 @@ public class TransactGetItemsOperation
     }
 
     @Override
-    public List<TransactGetResultPage> transformResponse(TransactGetItemsResponse response,
-                                                         DynamoDbEnhancedClientExtension extension) {
+    public List<Document> transformResponse(TransactGetItemsResponse response,
+                                            DynamoDbEnhancedClientExtension extension) {
         return response.responses()
                        .stream()
-                       .map(r -> r == null ? null : TransactGetResultPage.create(r.item()))
+                       .map(r -> r == null ? null : DefaultDocument.create(r.item()))
                        .collect(Collectors.toList());
     }
 

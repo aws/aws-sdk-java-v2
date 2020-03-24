@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.List;
-
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
@@ -31,7 +30,7 @@ public class LocalDynamoDbAsyncTestBase extends LocalDynamoDbTestBase {
         return dynamoDbAsyncClient;
     }
 
-    protected static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
+    public static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
         BufferingSubscriber<T> subscriber = new BufferingSubscriber<>();
         publisher.subscribe(subscriber);
         subscriber.waitForCompletion(1000L);

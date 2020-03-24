@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,7 +83,7 @@ public class TransactWriteItemsOperationTest {
     public void generateRequest_singleTransaction() {
         TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addPutItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem1))
+                                             .addPutItem(fakeItemMappedTable, fakeItem1)
                                              .build();
 
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);
@@ -101,8 +100,8 @@ public class TransactWriteItemsOperationTest {
     public void generateRequest_multipleTransactions() {
         TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addPutItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem1))
-                                             .addPutItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem2))
+                                             .addPutItem(fakeItemMappedTable, fakeItem1)
+                                             .addPutItem(fakeItemMappedTable, fakeItem2)
                                              .build();
 
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);

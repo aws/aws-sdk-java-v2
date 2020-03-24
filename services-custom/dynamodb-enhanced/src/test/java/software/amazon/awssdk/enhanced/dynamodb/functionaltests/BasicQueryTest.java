@@ -21,12 +21,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.between;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.equalTo;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,16 +34,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -103,10 +102,17 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
-                         .attributes(
-                             stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                             integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()),
-                             integerNumberAttribute("value", Record::getValue, Record::setValue))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(Record::getId)
+                                                           .setter(Record::setId)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(Integer.class, a -> a.name("sort")
+                                                            .getter(Record::getSort)
+                                                            .setter(Record::setSort)
+                                                            .tags(primarySortKey()))
+                         .addAttribute(Integer.class, a -> a.name("value")
+                                                            .getter(Record::getValue)
+                                                            .setter(Record::setValue))
                          .build();
 
     private static final List<Record> RECORDS =
@@ -121,7 +127,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
     }
 
     @Before
@@ -137,11 +143,11 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void queryAllRecordsDefaultSettings() {
+    public void queryAllRecordsDefaultSettings_shortcutForm() {
         insertRecords();
 
         Iterator<Page<Record>> results =
-            mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("id-value")))).iterator();
+            mappedTable.query(keyEqualTo(k -> k.partitionValue("id-value"))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -149,6 +155,16 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
         assertThat(page.items(), is(RECORDS));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_shortcutForm_viaItems() {
+        insertRecords();
+
+        PageIterable<Record> query = mappedTable.query(keyEqualTo(k -> k.partitionValue("id-value")));
+        SdkIterable<Record> results = query.items();
+
+        assertThat(results.stream().collect(Collectors.toList()), is(RECORDS));
     }
 
     @Test
@@ -165,7 +181,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
         Iterator<Page<Record>> results =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
                                                   .filterExpression(expression)
                                                   .build())
                        .iterator();
@@ -184,7 +200,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Key fromKey = Key.builder().partitionValue("id-value").sortValue(3).build();
         Key toKey = Key.builder().partitionValue("id-value").sortValue(5).build();
-        Iterator<Page<Record>> results = mappedTable.query(r -> r.queryConditional(between(fromKey, toKey))).iterator();
+        Iterator<Page<Record>> results = mappedTable.query(r -> r.queryConditional(sortBetween(fromKey, toKey))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -200,7 +216,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Iterator<Page<Record>> results =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
                                                   .limit(5)
                                                   .build())
                        .iterator();
@@ -229,12 +245,20 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryEmpty() {
         Iterator<Page<Record>> results =
-            mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("id-value")))).iterator();
+            mappedTable.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(empty()));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryEmpty_viaItems() {
+        PageIterable<Record> query = mappedTable.query(keyEqualTo(k -> k.partitionValue("id-value")));
+        SdkIterable<Record> results = query.items();
+
+        assertThat(results.stream().collect(Collectors.toList()), is(empty()));
     }
 
     @Test
@@ -245,7 +269,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Iterator<Page<Record>> results =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
                                                   .exclusiveStartKey(exclusiveStartKey)
                                                   .build())
                        .iterator();
@@ -255,5 +279,21 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryExclusiveStartKey_viaItems() {
+        Map<String, AttributeValue> exclusiveStartKey = new HashMap<>();
+        exclusiveStartKey.put("id", stringValue("id-value"));
+        exclusiveStartKey.put("sort", numberValue(7));
+        insertRecords();
+        SdkIterable<Record> results =
+            mappedTable.query(QueryEnhancedRequest.builder()
+                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                  .exclusiveStartKey(exclusiveStartKey)
+                                                  .build())
+                       .items();
+
+        assertThat(results.stream().collect(Collectors.toList()), is(RECORDS.subList(8, 10)));
     }
 }

@@ -1,0 +1,31 @@
+{
+    "version": "2.11.1",
+    "date": "2020-03-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "description": "Adding new error codes: Ec2SubnetInvalidConfiguration and NodeCreationFailure for Nodegroups in EKS"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "Introduces actions for giving a member account administrative Organizations permissions for an AWS service. You can run this action only for AWS services that support this feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "description": "Documentation updates for rds-data"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "description": "Documentation updates for Athena, including QueryExecutionStatus QUEUED and RUNNING states. QUEUED now indicates that the query has been submitted to the service. RUNNING indicates that the query is in execution phase."
+        }
+    ]
+}

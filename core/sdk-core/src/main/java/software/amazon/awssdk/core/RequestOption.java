@@ -22,5 +22,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public final class RequestOption {
-    private RequestOption() {}
+    private RequestOption() {
+    }
 }

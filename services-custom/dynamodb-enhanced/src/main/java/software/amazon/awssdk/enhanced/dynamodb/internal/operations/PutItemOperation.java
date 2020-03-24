@@ -18,13 +18,13 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -70,7 +70,13 @@ public class PutItemOperation<T>
         Map<String, AttributeValue> itemMap = tableSchema.itemToMap(this.request.item(), alwaysIgnoreNulls);
 
         WriteModification transformation =
-            extension != null ? extension.beforeWrite(itemMap, operationContext, tableMetadata) : null;
+            extension != null ? extension.beforeWrite(
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(itemMap)
+                                               .operationContext(operationContext)
+                                               .tableMetadata(tableMetadata)
+                                               .build())
+                : null;
 
         if (transformation != null && transformation.transformedItem() != null) {
             itemMap = transformation.transformedItem();
@@ -149,8 +155,8 @@ public class PutItemOperation<T>
         Expression mergedConditionExpression;
 
         if (transformation != null && transformation.additionalConditionalExpression() != null) {
-            mergedConditionExpression = Expression.coalesce(this.request.conditionExpression(),
-                                                            transformation.additionalConditionalExpression(), " AND ");
+            mergedConditionExpression = Expression.join(this.request.conditionExpression(),
+                                                        transformation.additionalConditionalExpression(), " AND ");
         } else {
             mergedConditionExpression = this.request.conditionExpression();
         }
@@ -158,7 +164,7 @@ public class PutItemOperation<T>
         if (mergedConditionExpression != null) {
             requestBuilder = requestBuilder.conditionExpression(mergedConditionExpression.expression());
 
-            // Avoiding adding empty collections that the low level SDK will propagate to DynamoDB where it causes error.
+            // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.
             if (mergedConditionExpression.expressionValues() != null && !mergedConditionExpression.expressionValues().isEmpty()) {
                 requestBuilder = requestBuilder.expressionAttributeValues(mergedConditionExpression.expressionValues());
 

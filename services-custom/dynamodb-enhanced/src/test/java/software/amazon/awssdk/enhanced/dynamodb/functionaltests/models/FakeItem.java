@@ -15,14 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.version;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
 import java.util.UUID;
-
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -35,8 +32,14 @@ public class FakeItem extends FakeItemAbstractSubclass {
                                   FakeItem::getComposedObject,
                                   FakeItem::setComposedObject)
                          .extend(getSubclassTableSchema())
-                         .attributes(stringAttribute("id", FakeItem::getId, FakeItem::setId).as(primaryPartitionKey()),
-                                     integerNumberAttribute("version", FakeItem::getVersion, FakeItem::setVersion).as(version()))
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeItem::getId)
+                                                           .setter(FakeItem::setId)
+                                                           .addTag(primaryPartitionKey()))
+                         .addAttribute(Integer.class, a -> a.name("version")
+                                                            .getter(FakeItem::getVersion)
+                                                            .setter(FakeItem::setVersion)
+                                                            .addTag(versionAttribute()))
                          .build();
 
     private String id;

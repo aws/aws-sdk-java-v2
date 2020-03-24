@@ -23,13 +23,11 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.ScheduledFuture;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
@@ -43,7 +41,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.ApiCallTimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTask;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import utils.ValidSdkObjects;
 
@@ -68,7 +65,6 @@ public class TimeoutExceptionHandlingStageTest {
     @Before
     public void setup() {
         stage = new TimeoutExceptionHandlingStage<>(HttpClientDependencies.builder()
-                                                                          .capacityManager(new CapacityManager(1))
                                                                           .clientConfiguration(SdkClientConfiguration.builder().build())
                                                                           .build(), requestPipeline);
     }

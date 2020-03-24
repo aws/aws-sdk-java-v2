@@ -23,7 +23,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Fa
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,8 +68,8 @@ public class TransactGetItemsEnhancedRequestTest {
 
         TransactGetItemsEnhancedRequest builtObject =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(k -> k.partitionValue(fakeItem.getId())))
-                                           .addGetItem(fakeItemMappedTable, r -> r.key(k -> k.partitionValue(fakeItem.getId())))
+                                           .addGetItem(fakeItemMappedTable, fakeItem)
+                                           .addGetItem(fakeItemMappedTable, fakeItem)
                                            .build();
 
         assertThat(builtObject.transactGetItems(), is(getTransactGetItems(fakeItem)));

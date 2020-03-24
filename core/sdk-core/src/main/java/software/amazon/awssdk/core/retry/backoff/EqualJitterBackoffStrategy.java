@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.retry.backoff;
 
+import static software.amazon.awssdk.utils.NumericUtils.min;
 import static software.amazon.awssdk.utils.Validate.isNotNegative;
 
 import java.time.Duration;
@@ -44,13 +45,21 @@ public final class EqualJitterBackoffStrategy implements BackoffStrategy,
                                                          ToCopyableBuilder<EqualJitterBackoffStrategy.Builder,
                                                              EqualJitterBackoffStrategy> {
 
+    private static final Duration BASE_DELAY_CEILING = Duration.ofMillis(Integer.MAX_VALUE); // Around 24 days
+    private static final Duration MAX_BACKOFF_CEILING = Duration.ofMillis(Integer.MAX_VALUE); // Around 24 days
+
     private final Duration baseDelay;
     private final Duration maxBackoffTime;
-    private final Random random = new Random();
+    private final Random random;
 
     private EqualJitterBackoffStrategy(BuilderImpl builder) {
-        this.baseDelay = isNotNegative(builder.baseDelay, "baseDelay");
-        this.maxBackoffTime = isNotNegative(builder.maxBackoffTime, "maxBackoffTime");
+        this(builder.baseDelay, builder.maxBackoffTime, new Random());
+    }
+
+    EqualJitterBackoffStrategy(final Duration baseDelay, final Duration maxBackoffTime, final Random random) {
+        this.baseDelay = min(isNotNegative(baseDelay, "baseDelay"), BASE_DELAY_CEILING);
+        this.maxBackoffTime = min(isNotNegative(maxBackoffTime, "maxBackoffTime"), MAX_BACKOFF_CEILING);
+        this.random = random;
     }
 
     @Override

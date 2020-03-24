@@ -17,12 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.List;
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An immutable object that holds a page of queried or scanned results from DynamoDb.
+ * <p>
+ * Contains a reference to the last evaluated key for the current page; see {@link #lastEvaluatedKey()} for more information.
  * @param <T> The modelled type of the object that has been read.
  */
 @SdkPublicApi
@@ -66,7 +67,7 @@ public final class Page<T> {
     }
 
     /**
-     * Returns the 'lastEvaluatedKey' that DynamoDB returned from the last page query or scan. This key can be used
+     * Returns the 'lastEvaluatedKey' that DynamoDb returned from the last page query or scan. This key can be used
      * to continue the query or scan if passed into a request.
      * @return The 'lastEvaluatedKey' from the last query or scan operation or null if the no more pages are available.
      */

@@ -20,15 +20,12 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -119,19 +116,27 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
     private static final TableSchema<Record1> TABLE_SCHEMA_1 =
         StaticTableSchema.builder(Record1.class)
-                   .newItemSupplier(Record1::new)
-                   .attributes(
-                       integerNumberAttribute("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()),
-                       stringAttribute("attribute", Record1::getAttribute, Record1::setAttribute))
-                   .build();
+                         .newItemSupplier(Record1::new)
+                         .addAttribute(Integer.class, a -> a.name("id_1")
+                                                            .getter(Record1::getId)
+                                                            .setter(Record1::setId)
+                                                            .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("attribute")
+                                                           .getter(Record1::getAttribute)
+                                                           .setter(Record1::setAttribute))
+                         .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
         StaticTableSchema.builder(Record2.class)
                    .newItemSupplier(Record2::new)
-                   .attributes(
-                       integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()),
-                       stringAttribute("attribute", Record2::getAttribute, Record2::setAttribute))
-                   .build();
+                         .addAttribute(Integer.class, a -> a.name("id_2")
+                                                            .getter(Record2::getId)
+                                                            .setter(Record2::setId)
+                                                            .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("attribute")
+                                                           .getter(Record2::getAttribute)
+                                                           .setter(Record2::setAttribute))
+                         .build();
 
     private DynamoDbEnhancedAsyncClient enhancedAsyncClient =
         DefaultDynamoDbEnhancedAsyncClient.builder()
@@ -162,11 +167,11 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
     @After
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
-                                                          .tableName(getConcreteTableName("table-name-1"))
-                                                          .build()).join();
+                                                               .tableName(getConcreteTableName("table-name-1"))
+                                                               .build()).join();
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
-                                                          .tableName(getConcreteTableName("table-name-2"))
-                                                          .build()).join();
+                                                               .tableName(getConcreteTableName("table-name-2"))
+                                                               .build()).join();
     }
 
     @Test
@@ -205,7 +210,7 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void singleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
 
         List<WriteBatch> writeBatches =
             singletonList(WriteBatch.builder(Record1.class)
@@ -221,8 +226,8 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void multipleDelete() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
 
         List<WriteBatch> writeBatches =
             asList(WriteBatch.builder(Record1.class)
@@ -244,8 +249,8 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void mixedCommands() {
-        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
 
         enhancedAsyncClient.batchWriteItem(r -> r.writeBatches(
             WriteBatch.builder(Record1.class)

@@ -18,14 +18,14 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.extensions;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTag;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 
 @SdkInternalApi
 public final class VersionRecordAttributeTags {
     private VersionRecordAttributeTags() {
     }
 
-    public static AttributeTag attributeTagFor(DynamoDbVersionAttribute annotation) {
-        return VersionedRecordExtension.AttributeTags.version();
+    public static StaticAttributeTag attributeTagFor(DynamoDbVersionAttribute annotation) {
+        return VersionedRecordExtension.AttributeTags.versionAttribute();
     }
 }

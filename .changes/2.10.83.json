@@ -1,0 +1,36 @@
+{
+    "version": "2.10.83",
+    "date": "2020-03-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Commerce Analytics",
+            "description": "Change the disbursement data set to look past 31 days instead until the beginning of the month."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "description": "Amazon Transcribe's Automatic Content Redaction feature enables you to automatically redact sensitive personally identifiable information (PII) from transcription results. It replaces each instance of an identified PII utterance with a [PII] tag in the transcript."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Documentation updates for EC2"
+        },
+        {
+            "type": "feature",
+            "category": "AWSServerlessApplicationRepository",
+            "description": "AWS Serverless Application Repository now supports sharing applications privately with AWS Organizations."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Reverts a recent change from 2.10.70 where the json protocol type was changed to application/json, this is now back to application/x-amz-json-1.1."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "description": "API update that adds a new parameter, durationExpression, to SetTimerAction, and deprecates seconds"
+        }
+    ]
+}

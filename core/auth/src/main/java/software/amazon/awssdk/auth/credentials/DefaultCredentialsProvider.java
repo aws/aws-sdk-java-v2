@@ -122,7 +122,8 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
         /**
          * Created with {@link #builder()}.
          */
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Controls whether the provider should reuse the last successful credentials provider in the chain. Reusing the last
