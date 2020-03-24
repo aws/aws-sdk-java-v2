@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "description": "Introduces actions for giving a member account administrative Organizations permissions for an AWS service. You can run this action only for AWS services that support this feature."
-}

@@ -1,3 +1,24 @@
+# __2.11.1__ __2020-03-24__
+## __AWS Organizations__
+  - ### Features
+    - Introduces actions for giving a member account administrative Organizations permissions for an AWS service. You can run this action only for AWS services that support this feature.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Documentation updates for rds-data
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Athena__
+  - ### Features
+    - Documentation updates for Athena, including QueryExecutionStatus QUEUED and RUNNING states. QUEUED now indicates that the query has been submitted to the service. RUNNING indicates that the query is in execution phase.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding new error codes: Ec2SubnetInvalidConfiguration and NodeCreationFailure for Nodegroups in EKS
+
 # __2.11.0__ __2020-03-23__
 ## __AWS SDK for Java v2__
   - ### Features
