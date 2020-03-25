@@ -72,7 +72,7 @@ public final class AtomicIntegerAttributeConverter implements AttributeConverter
 
     @Override
     public AttributeValue transformFrom(AtomicInteger input) {
-        return EnhancedAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
     }
 
     @Override

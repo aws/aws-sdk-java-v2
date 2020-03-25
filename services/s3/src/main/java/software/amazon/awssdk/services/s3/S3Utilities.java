@@ -23,13 +23,15 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.internal.EndpointUtils;
+import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
@@ -69,10 +71,10 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @SdkPublicApi
 public final class S3Utilities {
-
     private final Region region;
-
     private final S3Configuration s3Configuration;
+    private final ProfileFile profileFile;
+    private final String profileName;
 
     /**
      * SDK currently validates that region is present while constructing {@link S3Utilities} object.
@@ -81,6 +83,8 @@ public final class S3Utilities {
     private S3Utilities(Builder builder) {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.s3Configuration = builder.s3Configuration;
+        this.profileFile = builder.profileFile;
+        this.profileName = builder.profileName;
     }
 
     /**
@@ -96,6 +100,8 @@ public final class S3Utilities {
         return S3Utilities.builder()
                           .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
                           .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
+                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE))
+                          .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME))
                           .build();
     }
 
@@ -178,7 +184,10 @@ public final class S3Utilities {
      */
     private URI resolveEndpoint(URI endpoint, Region region) {
         return endpoint != null ? endpoint
-                                : EndpointUtils.buildEndpoint("https", "s3", region);
+                                : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
+                                                                                  .withProfileFile(profileFile)
+                                                                                  .withProfileName(profileName)
+                                                                                  .getServiceEndpoint();
     }
 
     /**
@@ -210,6 +219,8 @@ public final class S3Utilities {
         private Region region;
 
         private S3Configuration s3Configuration;
+        private ProfileFile profileFile;
+        private String profileName;
 
         private Builder() {
         }
@@ -237,6 +248,26 @@ public final class S3Utilities {
          */
         public Builder s3Configuration(S3Configuration s3Configuration) {
             this.s3Configuration = s3Configuration;
+            return this;
+        }
+
+        /**
+         * The profile file from the {@link ClientOverrideConfiguration#profileFile()}. This is private and only used when the
+         * utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less confusing
+         * to support the full {@link ClientOverrideConfiguration} object in the future.
+         */
+        private Builder profileFile(ProfileFile profileFile) {
+            this.profileFile = profileFile;
+            return this;
+        }
+
+        /**
+         * The profile name from the {@link ClientOverrideConfiguration#profileName()}. This is private and only used when the
+         * utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less confusing
+         * to support the full {@link ClientOverrideConfiguration} object in the future.
+         */
+        private Builder profileName(String profileName) {
+            this.profileName = profileName;
             return this;
         }
 

@@ -20,10 +20,10 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class EndpointDiscoveryRefreshCache {
 
     private static final Logger log = Logger.loggerFor(EndpointDiscoveryRefreshCache.class);
@@ -49,6 +49,12 @@ public final class EndpointDiscoveryRefreshCache {
      */
     public URI get(String accessKey, EndpointDiscoveryRequest request) {
         String key = accessKey;
+
+        // Support null (anonymous credentials) by mapping to empty-string. The backing cache does not support null.
+        if (key == null) {
+            key = "";
+        }
+
         if (request.cacheKey().isPresent()) {
             key = key + ":" + request.cacheKey().get();
         }
@@ -63,17 +69,29 @@ public final class EndpointDiscoveryRefreshCache {
                                                                                   .endpoint(request.defaultEndpoint())
                                                                                   .expirationTime(Instant.now().plusSeconds(60))
                                                                                   .build();
-                return cache.computeIfAbsent(key, k -> tempEndpoint).endpoint();
+
+                EndpointDiscoveryEndpoint previousValue = cache.putIfAbsent(key, tempEndpoint);
+                if (previousValue != null) {
+                    // Someone else primed the cache. Use that endpoint (which may be temporary).
+                    return previousValue.endpoint();
+                } else {
+                    // We primed the cache with the temporary endpoint. Kick off discovery in the background.
+                    refreshCacheAsync(request, key);
+                }
+                return tempEndpoint.endpoint();
             }
         }
 
         if (endpoint.expirationTime().isBefore(Instant.now())) {
             cache.put(key, endpoint.toBuilder().expirationTime(Instant.now().plusSeconds(60)).build());
-            String finalKey = key;
-            discoverEndpoint(request).thenApply(v -> cache.put(finalKey, v));
+            refreshCacheAsync(request, key);
         }
 
         return endpoint.endpoint();
+    }
+
+    private void refreshCacheAsync(EndpointDiscoveryRequest request, String key) {
+        discoverEndpoint(request).thenApply(v -> cache.put(key, v));
     }
 
     public CompletableFuture<EndpointDiscoveryEndpoint> discoverEndpoint(EndpointDiscoveryRequest request) {

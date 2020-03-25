@@ -64,12 +64,12 @@ public final class StringAttributeConverter implements AttributeConverter<String
 
     @Override
     public AttributeValue transformFrom(String input) {
-        return EnhancedAttributeValue.fromString(input).toAttributeValue();
+        return AttributeValue.builder().s(input).build();
     }
 
     @Override
     public String transformTo(AttributeValue input) {
-        return EnhancedAttributeValue.fromAttributeValue(input).convert(Visitor.INSTANCE);
+        return Visitor.toString(input);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<String> {
@@ -117,24 +117,28 @@ public final class StringAttributeConverter implements AttributeConverter<String
         }
 
         @Override
-        public String convertMap(Map<String, EnhancedAttributeValue> value) {
+        public String convertMap(Map<String, AttributeValue> value) {
             BinaryOperator<Object> throwingMerger = (l, r) -> {
                 // Should not happen: we're converting from map.
                 throw new IllegalStateException();
             };
 
             return value.entrySet().stream()
-                        .collect(Collectors.toMap(i -> i.getKey(), i -> convert(i.getValue()),
+                        .collect(Collectors.toMap(Map.Entry::getKey, i -> toString(i.getValue()),
                                                   throwingMerger, LinkedHashMap::new))
                         .toString();
         }
 
         @Override
-        public String convertListOfAttributeValues(List<EnhancedAttributeValue> value) {
+        public String convertListOfAttributeValues(List<AttributeValue> value) {
             return value.stream()
-                        .map(this::convert)
+                        .map(Visitor::toString)
                         .collect(toList())
                         .toString();
+        }
+
+        public static String toString(AttributeValue attributeValue) {
+            return EnhancedAttributeValue.fromAttributeValue(attributeValue).convert(Visitor.INSTANCE);
         }
     }
 }

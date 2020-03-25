@@ -48,7 +48,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.11.1</version>
+      <version>2.11.2</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -82,12 +82,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.11.1</version>
+  <version>2.11.2</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.11.1</version>
+  <version>2.11.2</version>
 </dependency>
 ```
 
@@ -99,7 +99,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.11.1</version>
+  <version>2.11.2</version>
 </dependency>
 ```
 

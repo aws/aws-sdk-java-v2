@@ -19,11 +19,26 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.in;
+import static org.mockito.Matchers.any;
 import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_CONFIG_FILE;
 
 import java.util.Optional;
+import java.util.StringJoiner;
 import org.junit.After;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class ProfileUseArnRegionProviderTest {
     private ProfileUseArnRegionProvider provider = ProfileUseArnRegionProvider.create();
@@ -69,4 +84,38 @@ public class ProfileUseArnRegionProviderTest {
 
         assertThat(provider.resolveUseArnRegion()).isEqualTo(Optional.of(FALSE));
     }
+
+    @Test
+    public void specifiedInOverrideConfig_shouldUse() {
+        ExecutionInterceptor interceptor = Mockito.spy(AbstractExecutionInterceptor.class);
+
+        String profileFileContent =
+            "[default]\n" +
+            "s3_use_arn_region = true\n";
+
+        ProfileFile profileFile = ProfileFile.builder()
+                                             .type(ProfileFile.Type.CONFIGURATION)
+                                             .content(new StringInputStream(profileFileContent))
+                                             .build();
+
+        S3Client s3 = S3Client.builder()
+                              .region(Region.US_WEST_2)
+                              .credentialsProvider(AnonymousCredentialsProvider.create())
+                              .overrideConfiguration(c -> c.defaultProfileFile(profileFile)
+                                                           .defaultProfileName("default")
+                                                           .addExecutionInterceptor(interceptor)
+                                                           .retryPolicy(r -> r.numRetries(0)))
+                              .build();
+
+        String arn = "arn:aws:s3:us-banana-46:12345567890:accesspoint:foo";
+        assertThatThrownBy(() -> s3.getObject(r -> r.bucket(arn).key("bar"))).isInstanceOf(SdkException.class);
+
+        ArgumentCaptor<Context.BeforeTransmission> context = ArgumentCaptor.forClass(Context.BeforeTransmission.class);
+        Mockito.verify(interceptor).beforeTransmission(context.capture(), any());
+
+        String host = context.getValue().httpRequest().host();
+        assertThat(host).contains("us-banana-46");
+    }
+
+    public static abstract class AbstractExecutionInterceptor implements ExecutionInterceptor {}
 }

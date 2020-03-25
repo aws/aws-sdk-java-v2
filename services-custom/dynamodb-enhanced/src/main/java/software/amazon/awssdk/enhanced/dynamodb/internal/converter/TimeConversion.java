@@ -30,6 +30,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalQuery;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -41,7 +42,7 @@ public final class TimeConversion {
     private TimeConversion() {
     }
 
-    public static EnhancedAttributeValue toIntegerAttributeValue(Instant instant) {
+    public static AttributeValue toIntegerAttributeValue(Instant instant) {
         long instantSeconds = instant.getEpochSecond();
         int nanos = instant.getNano();
 
@@ -60,19 +61,19 @@ public final class TimeConversion {
                     "." + padLeft(9, nanos);
         }
 
-        return EnhancedAttributeValue.fromNumber(trimNumber(value));
+        return AttributeValue.builder().n(trimNumber(value)).build();
     }
 
-    public static EnhancedAttributeValue toStringAttributeValue(Instant instant) {
-        return EnhancedAttributeValue.fromString(DateTimeFormatter.ISO_INSTANT.format(instant));
+    public static AttributeValue toStringAttributeValue(Instant instant) {
+        return AttributeValue.builder().s(DateTimeFormatter.ISO_INSTANT.format(instant)).build();
     }
 
-    public static EnhancedAttributeValue toStringAttributeValue(OffsetDateTime accessor) {
-        return EnhancedAttributeValue.fromString(DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(accessor));
+    public static AttributeValue toStringAttributeValue(OffsetDateTime accessor) {
+        return AttributeValue.builder().s(DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(accessor)).build();
     }
 
-    public static EnhancedAttributeValue toStringAttributeValue(ZonedDateTime accessor) {
-        return EnhancedAttributeValue.fromString(DateTimeFormatter.ISO_ZONED_DATE_TIME.format(accessor));
+    public static AttributeValue toStringAttributeValue(ZonedDateTime accessor) {
+        return AttributeValue.builder().s(DateTimeFormatter.ISO_ZONED_DATE_TIME.format(accessor)).build();
     }
 
     public static Instant instantFromAttributeValue(EnhancedAttributeValue itemAttributeValue) {

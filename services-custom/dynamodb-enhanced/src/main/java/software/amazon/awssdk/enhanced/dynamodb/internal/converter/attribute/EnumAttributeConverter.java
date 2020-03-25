@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A converter between an {@link Enum} and {@link AttributeValue}.
@@ -56,17 +57,17 @@ public class EnumAttributeConverter<T extends Enum<T>> implements AttributeConve
 
     @Override
     public AttributeValue transformFrom(T input) {
-        return EnhancedAttributeValue.fromString(input.toString()).toAttributeValue();
+        return AttributeValue.builder().s(input.toString()).build();
     }
 
     @Override
     public T transformTo(AttributeValue input) {
-        EnhancedAttributeValue converted = EnhancedAttributeValue.fromString(input.s());
-        T returnValue = enumValueMap.get(converted.asString());
+        Validate.isTrue(input.s() != null, "Cannot convert non-string value to enum.");
+        T returnValue = enumValueMap.get(input.s());
 
         if (returnValue == null) {
             throw new IllegalArgumentException(String.format("Unable to convert string value '%s' to enum type '%s'",
-                                                             converted.asString(), enumClass));
+                                                             input.s(), enumClass));
         }
 
         return returnValue;

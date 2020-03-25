@@ -26,7 +26,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public interface UseArnRegionProvider {
 
     /**
-     * @return the optional set of service Ids that have useArnRegion enabled
+     * @return whether use-arn-region is enabled, or empty if it is not configured.
      */
     Optional<Boolean> resolveUseArnRegion();
 }

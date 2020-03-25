@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.OptionalIntStringConverter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -75,9 +76,9 @@ public final class OptionalIntAttributeConverter implements AttributeConverter<O
     @Override
     public AttributeValue transformFrom(OptionalInt input) {
         if (input.isPresent()) {
-            return EnhancedAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toAttributeValue();
+            return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
         } else {
-            return EnhancedAttributeValue.nullValue().toAttributeValue();
+            return AttributeValues.nullAttributeValue();
         }
     }
 

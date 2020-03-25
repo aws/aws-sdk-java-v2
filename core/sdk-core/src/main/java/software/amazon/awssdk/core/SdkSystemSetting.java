@@ -145,7 +145,7 @@ public enum SdkSystemSetting implements SystemSetting {
     /**
      * Whether endpoint discovery should be enabled.
      */
-    AWS_ENDPOINT_DISCOVERY_ENABLED("aws.endpointDiscoveryEnabled", "false"),
+    AWS_ENDPOINT_DISCOVERY_ENABLED("aws.endpointDiscoveryEnabled", null),
 
     /**
      * The S3 regional endpoint setting for the {@code us-east-1} region. Setting the value to {@code regional} causes
