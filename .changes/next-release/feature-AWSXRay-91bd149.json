@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS X-Ray",
+    "description": "GetTraceSummaries - Now provides additional root cause attribute ClientImpacting which indicates whether root cause impacted trace client."
+}
