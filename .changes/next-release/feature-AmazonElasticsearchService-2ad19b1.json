@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elasticsearch Service",
+    "description": "Adding support for customer packages (dictionary files) to Amazon Elasticsearch Service"
+}
