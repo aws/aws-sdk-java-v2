@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Blockchain",
+    "description": "Amazon Managed Blockchain now has support to publish Hyperledger Fabric peer node, chaincode, and certificate authority (CA) logs to Amazon CloudWatch Logs."
+}
