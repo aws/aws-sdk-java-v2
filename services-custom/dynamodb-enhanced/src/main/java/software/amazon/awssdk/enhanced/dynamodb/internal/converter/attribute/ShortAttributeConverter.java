@@ -64,7 +64,7 @@ public final class ShortAttributeConverter implements AttributeConverter<Short>,
 
     @Override
     public AttributeValue transformFrom(Short input) {
-        return EnhancedAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
     }
 
     @Override

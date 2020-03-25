@@ -158,9 +158,8 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
         }
 
         public EnhancedAttributeValue toAttributeValue(T input) {
-            Map<String, EnhancedAttributeValue> result = new LinkedHashMap<>();
-            input.forEach((k, v) -> result.put(keyConverter.toString(k),
-                                               EnhancedAttributeValue.fromAttributeValue(valueConverter.transformFrom(v))));
+            Map<String, AttributeValue> result = new LinkedHashMap<>();
+            input.forEach((k, v) -> result.put(keyConverter.toString(k), valueConverter.transformFrom(v)));
             return EnhancedAttributeValue.fromMap(result);
         }
 
@@ -168,12 +167,11 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
             return EnhancedAttributeValue.fromAttributeValue(input)
                                          .convert(new TypeConvertingVisitor<T>(Map.class, MapAttributeConverter.class) {
                                              @Override
-                                             public T convertMap(Map<String, EnhancedAttributeValue> value) {
+                                             public T convertMap(Map<String, AttributeValue> value) {
                                                  T result = mapConstructor.get();
                                                  value.forEach((k, v) ->
                                                                    result.put(keyConverter.fromString(k),
-                                                                              valueConverter.transformTo(
-                                                                                  v.toAttributeValue())));
+                                                                              valueConverter.transformTo(v)));
                                                  return result;
                                              }
                                          });

@@ -70,7 +70,7 @@ public final class BigIntegerAttributeConverter implements AttributeConverter<Bi
 
     @Override
     public AttributeValue transformFrom(BigInteger input) {
-        return EnhancedAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
     }
 
     @Override

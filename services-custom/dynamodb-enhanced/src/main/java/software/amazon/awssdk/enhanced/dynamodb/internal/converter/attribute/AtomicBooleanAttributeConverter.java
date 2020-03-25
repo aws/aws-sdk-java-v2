@@ -65,7 +65,7 @@ public final class AtomicBooleanAttributeConverter implements AttributeConverter
 
     @Override
     public AttributeValue transformFrom(AtomicBoolean input) {
-        return EnhancedAttributeValue.fromBoolean(input.get()).toAttributeValue();
+        return AttributeValue.builder().bool(input.get()).build();
     }
 
     @Override

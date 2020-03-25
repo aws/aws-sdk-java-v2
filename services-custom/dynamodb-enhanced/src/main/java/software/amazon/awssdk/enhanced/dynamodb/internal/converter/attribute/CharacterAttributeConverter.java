@@ -65,7 +65,7 @@ public final class CharacterAttributeConverter implements AttributeConverter<Cha
 
     @Override
     public AttributeValue transformFrom(Character input) {
-        return EnhancedAttributeValue.fromString(STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().s(STRING_CONVERTER.toString(input)).build();
     }
 
     @Override

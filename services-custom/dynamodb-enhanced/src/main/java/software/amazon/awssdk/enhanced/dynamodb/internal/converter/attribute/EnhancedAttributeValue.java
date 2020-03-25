@@ -15,21 +15,14 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
@@ -65,7 +58,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class EnhancedAttributeValue {
     private final AttributeValueType type;
     private final boolean isNull;
-    private final Map<String, EnhancedAttributeValue> mapValue;
+    private final Map<String, AttributeValue> mapValue;
     private final String stringValue;
     private final String numberValue;
     private final SdkBytes bytesValue;
@@ -73,7 +66,7 @@ public final class EnhancedAttributeValue {
     private final List<String> setOfStringsValue;
     private final List<String> setOfNumbersValue;
     private final List<SdkBytes> setOfBytesValue;
-    private final List<EnhancedAttributeValue> listOfAttributeValuesValue;
+    private final List<AttributeValue> listOfAttributeValuesValue;
 
     private EnhancedAttributeValue(InternalBuilder builder) {
         this.type = builder.type;
@@ -82,22 +75,16 @@ public final class EnhancedAttributeValue {
         this.numberValue = builder.numberValue;
         this.bytesValue = builder.bytesValue;
         this.booleanValue = builder.booleanValue;
-
-        this.mapValue = builder.mapValue == null
-                        ? null
-                        : Collections.unmodifiableMap(new LinkedHashMap<>(builder.mapValue));
+        this.mapValue = builder.mapValue == null ? null
+                                                 : Collections.unmodifiableMap(builder.mapValue);
         this.setOfStringsValue = builder.setOfStringsValue == null
-                                 ? null
-                                 : Collections.unmodifiableList(new ArrayList<>(builder.setOfStringsValue));
+                                 ? null : Collections.unmodifiableList(builder.setOfStringsValue);
         this.setOfNumbersValue = builder.setOfNumbersValue == null
-                                 ? null
-                                 : Collections.unmodifiableList(new ArrayList<>(builder.setOfNumbersValue));
+                                 ? null : Collections.unmodifiableList(builder.setOfNumbersValue);
         this.setOfBytesValue = builder.setOfBytesValue == null
-                               ? null
-                               : Collections.unmodifiableList(new ArrayList<>(builder.setOfBytesValue));
+                               ? null : Collections.unmodifiableList(builder.setOfBytesValue);
         this.listOfAttributeValuesValue = builder.listOfAttributeValuesValue == null
-                                          ? null
-                                          : Collections.unmodifiableList(new ArrayList<>(builder.listOfAttributeValuesValue));
+                                          ? null : Collections.unmodifiableList(builder.listOfAttributeValuesValue);
     }
 
     /**
@@ -122,7 +109,7 @@ public final class EnhancedAttributeValue {
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided map is null or has null keys.
      */
-    public static EnhancedAttributeValue fromMap(Map<String, EnhancedAttributeValue> mapValue) {
+    public static EnhancedAttributeValue fromMap(Map<String, AttributeValue> mapValue) {
         Validate.paramNotNull(mapValue, "mapValue");
         Validate.noNullElements(mapValue.keySet(), "Map must not have null keys.");
         return new InternalBuilder().mapValue(mapValue).build();
@@ -219,7 +206,7 @@ public final class EnhancedAttributeValue {
      * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
      * duplicate values.
      */
-    public static EnhancedAttributeValue fromSetOfStrings(Collection<String> setOfStringsValue) {
+    public static EnhancedAttributeValue fromSetOfStrings(List<String> setOfStringsValue) {
         Validate.paramNotNull(setOfStringsValue, "setOfStringsValue");
         Validate.noNullElements(setOfStringsValue, "Set must not have null values.");
         return new InternalBuilder().setOfStringsValue(setOfStringsValue).build();
@@ -252,7 +239,7 @@ public final class EnhancedAttributeValue {
      * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
      * duplicate values.
      */
-    public static EnhancedAttributeValue fromSetOfNumbers(Collection<String> setOfNumbersValue) {
+    public static EnhancedAttributeValue fromSetOfNumbers(List<String> setOfNumbersValue) {
         Validate.paramNotNull(setOfNumbersValue, "setOfNumbersValue");
         Validate.noNullElements(setOfNumbersValue, "Set must not have null values.");
         return new InternalBuilder().setOfNumbersValue(setOfNumbersValue).build();
@@ -285,7 +272,7 @@ public final class EnhancedAttributeValue {
      * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
      * duplicate values.
      */
-    public static EnhancedAttributeValue fromSetOfBytes(Collection<SdkBytes> setOfBytesValue) {
+    public static EnhancedAttributeValue fromSetOfBytes(List<SdkBytes> setOfBytesValue) {
         Validate.paramNotNull(setOfBytesValue, "setOfBytesValue");
         Validate.noNullElements(setOfBytesValue, "Set must not have null values.");
         return new InternalBuilder().setOfBytesValue(setOfBytesValue).build();
@@ -301,7 +288,7 @@ public final class EnhancedAttributeValue {
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
      * {@link #nullValue()} for null values.
      */
-    public static EnhancedAttributeValue fromListOfAttributeValues(EnhancedAttributeValue... listOfAttributeValuesValue) {
+    public static EnhancedAttributeValue fromListOfAttributeValues(AttributeValue... listOfAttributeValuesValue) {
         Validate.paramNotNull(listOfAttributeValuesValue, "listOfAttributeValuesValue");
         return fromListOfAttributeValues(Arrays.asList(listOfAttributeValuesValue));
     }
@@ -316,56 +303,10 @@ public final class EnhancedAttributeValue {
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
      * {@link #nullValue()} for null values.
      */
-    public static EnhancedAttributeValue fromListOfAttributeValues(List<EnhancedAttributeValue> listOfAttributeValuesValue) {
+    public static EnhancedAttributeValue fromListOfAttributeValues(List<AttributeValue> listOfAttributeValuesValue) {
         Validate.paramNotNull(listOfAttributeValuesValue, "listOfAttributeValuesValue");
         Validate.noNullElements(listOfAttributeValuesValue, "List must not have null values.");
         return new InternalBuilder().listOfAttributeValuesValue(listOfAttributeValuesValue).build();
-    }
-
-    /**
-     * Takes a list of converted {@link EnhancedAttributeValue}s and flattens into a resulting
-     * single {@link EnhancedAttributeValue} set of the corresponding type.
-     */
-    public static EnhancedAttributeValue flatten(List<EnhancedAttributeValue> listOfAttributeValuesValue) {
-        Validate.paramNotNull(listOfAttributeValuesValue, "listOfAttributeValuesValue");
-        Validate.noNullElements(listOfAttributeValuesValue, "List must not have null values.");
-
-        AttributeValueType type = listOfAttributeValuesValue.get(0).type;
-
-        switch (type) {
-            case N:
-                return EnhancedAttributeValue.fromSetOfNumbers(listOfAttributeValuesValue.stream()
-                                                                                         .map(i -> i.numberValue)
-                                                                                         .collect(Collectors.toList()));
-            case S:
-                return EnhancedAttributeValue.fromSetOfStrings(listOfAttributeValuesValue.stream()
-                                                                                         .map(i -> i.stringValue)
-                                                                                         .collect(Collectors.toList()));
-            case B:
-                return EnhancedAttributeValue.fromSetOfBytes(listOfAttributeValuesValue.stream()
-                                                                                       .map(i -> i.bytesValue)
-                                                                                       .collect(Collectors.toList()));
-            default:
-                throw new UnsupportedOperationException();
-        }
-    }
-
-
-    /**
-     * Create an {@link EnhancedAttributeValue} from a generated {@code Map<String, AttributeValue>}.
-     *
-     * <p>
-     * This call will fail with a {@link RuntimeException} if the provided map is null or contains a null key or value. Use
-     * {@link AttributeValue#nul()} for null values.
-     */
-    public static EnhancedAttributeValue fromAttributeValueMap(Map<String, AttributeValue> attributeValues) {
-        Validate.paramNotNull(attributeValues, "attributeValues");
-        Map<String, EnhancedAttributeValue> result = new LinkedHashMap<>();
-        attributeValues.forEach((key, value) -> {
-            Validate.notNull(key, "Generated item must not contain null keys.");
-            result.put(key, fromAttributeValue(value));
-        });
-        return EnhancedAttributeValue.fromMap(result);
     }
 
     /**
@@ -392,23 +333,19 @@ public final class EnhancedAttributeValue {
         if (attributeValue.b() != null) {
             return EnhancedAttributeValue.fromBytes(attributeValue.b());
         }
-        if (attributeValue.m() != null && !(attributeValue.m() instanceof SdkAutoConstructMap)) {
-            Map<String, EnhancedAttributeValue> map = new LinkedHashMap<>();
-            attributeValue.m().forEach((k, v) -> map.put(k, EnhancedAttributeValue.fromAttributeValue(v)));
-            return EnhancedAttributeValue.fromMap(map);
+        if (attributeValue.hasM()) {
+            return EnhancedAttributeValue.fromMap(attributeValue.m());
         }
-        if (attributeValue.l() != null && !(attributeValue.l() instanceof SdkAutoConstructList)) {
-            List<EnhancedAttributeValue> list =
-                    attributeValue.l().stream().map(EnhancedAttributeValue::fromAttributeValue).collect(toList());
-            return EnhancedAttributeValue.fromListOfAttributeValues(list);
+        if (attributeValue.hasL()) {
+            return EnhancedAttributeValue.fromListOfAttributeValues(attributeValue.l());
         }
-        if (attributeValue.bs() != null && !(attributeValue.bs() instanceof SdkAutoConstructList)) {
+        if (attributeValue.hasBs()) {
             return EnhancedAttributeValue.fromSetOfBytes(attributeValue.bs());
         }
-        if (attributeValue.ss() != null && !(attributeValue.ss() instanceof SdkAutoConstructList)) {
+        if (attributeValue.hasSs()) {
             return EnhancedAttributeValue.fromSetOfStrings(attributeValue.ss());
         }
-        if (attributeValue.ns() != null && !(attributeValue.ns() instanceof SdkAutoConstructList)) {
+        if (attributeValue.hasNs()) {
             return EnhancedAttributeValue.fromSetOfNumbers(attributeValue.ns());
         }
 
@@ -547,7 +484,7 @@ public final class EnhancedAttributeValue {
      * <p>
      * This call will fail with a {@link RuntimeException} if {@link #isMap()} is false.
      */
-    public Map<String, EnhancedAttributeValue> asMap() {
+    public Map<String, AttributeValue> asMap() {
         Validate.isTrue(isMap(), "Value is not a map.");
         return mapValue;
     }
@@ -650,7 +587,7 @@ public final class EnhancedAttributeValue {
      * <p>
      * This call will fail with a {@link RuntimeException} if {@link #isListOfAttributeValues()} is false.
      */
-    public List<EnhancedAttributeValue> asListOfAttributeValues() {
+    public List<AttributeValue> asListOfAttributeValues() {
         Validate.isTrue(isListOfAttributeValues(), "Value is not a list of attribute values.");
         return listOfAttributeValuesValue;
     }
@@ -765,10 +702,8 @@ public final class EnhancedAttributeValue {
         }
 
         @Override
-        public AttributeValue convertMap(Map<String, EnhancedAttributeValue> value) {
-            Map<String, AttributeValue> map = new LinkedHashMap<>();
-            value.forEach((k, v) -> map.put(k, v.toAttributeValue()));
-            return AttributeValue.builder().m(map).build();
+        public AttributeValue convertMap(Map<String, AttributeValue> value) {
+            return AttributeValue.builder().m(value).build();
         }
 
         @Override
@@ -807,10 +742,8 @@ public final class EnhancedAttributeValue {
         }
 
         @Override
-        public AttributeValue convertListOfAttributeValues(List<EnhancedAttributeValue> value) {
-            return AttributeValue.builder()
-                                 .l(value.stream().map(EnhancedAttributeValue::toAttributeValue).collect(toList()))
-                                 .build();
+        public AttributeValue convertListOfAttributeValues(List<AttributeValue> value) {
+            return AttributeValue.builder().l(value).build();
         }
     }
 
@@ -835,15 +768,15 @@ public final class EnhancedAttributeValue {
     private static class InternalBuilder {
         private AttributeValueType type;
         private boolean isNull = false;
-        private Map<String, EnhancedAttributeValue> mapValue;
+        private Map<String, AttributeValue> mapValue;
         private String stringValue;
         private String numberValue;
         private SdkBytes bytesValue;
         private Boolean booleanValue;
-        private Collection<String> setOfStringsValue;
-        private Collection<String> setOfNumbersValue;
-        private Collection<SdkBytes> setOfBytesValue;
-        private Collection<EnhancedAttributeValue> listOfAttributeValuesValue;
+        private List<String> setOfStringsValue;
+        private List<String> setOfNumbersValue;
+        private List<SdkBytes> setOfBytesValue;
+        private List<AttributeValue> listOfAttributeValuesValue;
 
         public InternalBuilder isNull() {
             this.type = AttributeValueType.NULL;
@@ -851,7 +784,7 @@ public final class EnhancedAttributeValue {
             return this;
         }
 
-        private InternalBuilder mapValue(Map<String, EnhancedAttributeValue> mapValue) {
+        private InternalBuilder mapValue(Map<String, AttributeValue> mapValue) {
             this.type = AttributeValueType.M;
             this.mapValue = mapValue;
             return this;
@@ -881,25 +814,25 @@ public final class EnhancedAttributeValue {
             return this;
         }
 
-        private InternalBuilder setOfStringsValue(Collection<String> setOfStringsValue) {
+        private InternalBuilder setOfStringsValue(List<String> setOfStringsValue) {
             this.type = AttributeValueType.SS;
             this.setOfStringsValue = setOfStringsValue;
             return this;
         }
 
-        private InternalBuilder setOfNumbersValue(Collection<String> setOfNumbersValue) {
+        private InternalBuilder setOfNumbersValue(List<String> setOfNumbersValue) {
             this.type = AttributeValueType.NS;
             this.setOfNumbersValue = setOfNumbersValue;
             return this;
         }
 
-        private InternalBuilder setOfBytesValue(Collection<SdkBytes> setOfBytesValue) {
+        private InternalBuilder setOfBytesValue(List<SdkBytes> setOfBytesValue) {
             this.type = AttributeValueType.BS;
             this.setOfBytesValue = setOfBytesValue;
             return this;
         }
 
-        private InternalBuilder listOfAttributeValuesValue(Collection<EnhancedAttributeValue> listOfAttributeValuesValue) {
+        private InternalBuilder listOfAttributeValuesValue(List<AttributeValue> listOfAttributeValuesValue) {
             this.type = AttributeValueType.L;
             this.listOfAttributeValuesValue = listOfAttributeValuesValue;
             return this;

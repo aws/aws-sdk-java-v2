@@ -138,11 +138,11 @@ public class StringAttributeConvertersTest {
         assertThat(transformTo(converter, fromBytes(SdkBytes.fromUtf8String("foo")))).isEqualTo("Zm9v");
         assertThat(transformTo(converter, fromBoolean(true))).isEqualTo("true");
         assertThat(transformTo(converter, fromBoolean(false))).isEqualTo("false");
-        assertThat(transformTo(converter, fromMap(ImmutableMap.of("a", fromString("b"),
-                                                                  "c", fromBytes(SdkBytes.fromUtf8String("d"))))))
+        assertThat(transformTo(converter, fromMap(ImmutableMap.of("a", fromString("b").toAttributeValue(),
+                                                                  "c", fromBytes(SdkBytes.fromUtf8String("d")).toAttributeValue()))))
                 .isEqualTo("{a=b, c=ZA==}");
-        assertThat(transformTo(converter, fromListOfAttributeValues(fromString("a"),
-                                                                           fromBytes(SdkBytes.fromUtf8String("d")))))
+        assertThat(transformTo(converter, fromListOfAttributeValues(fromString("a").toAttributeValue(),
+                                                                    fromBytes(SdkBytes.fromUtf8String("d")).toAttributeValue())))
                 .isEqualTo("[a, ZA==]");
         assertThat(transformTo(converter, fromSetOfStrings("a", "b"))).isEqualTo("[a, b]");
         assertThat(transformTo(converter, fromSetOfBytes(SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b"))))

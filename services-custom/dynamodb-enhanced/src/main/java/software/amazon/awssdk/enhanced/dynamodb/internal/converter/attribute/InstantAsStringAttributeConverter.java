@@ -85,7 +85,7 @@ public final class InstantAsStringAttributeConverter implements AttributeConvert
 
     @Override
     public AttributeValue transformFrom(Instant input) {
-        return TimeConversion.toStringAttributeValue(input).toAttributeValue();
+        return TimeConversion.toStringAttributeValue(input);
     }
 
     @Override
