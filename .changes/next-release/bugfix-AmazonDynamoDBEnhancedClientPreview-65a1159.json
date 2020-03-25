@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon DynamoDB Enhanced Client [Preview]",
-    "description": "Performance improvements."
-}

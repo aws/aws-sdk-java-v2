@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "description": "When endpoint discovery is enabled, the endpoint discovery process is now initialized with the first request, instead of 60 seconds after the first request."
-}

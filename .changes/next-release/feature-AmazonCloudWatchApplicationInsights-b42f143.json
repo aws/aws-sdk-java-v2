@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Application Insights",
-    "description": "Amazon CloudWatch Application Insights for .NET and SQL Server now integrates with Amazon CloudWatch Events (AWS CodeDeploy, AWS Health and Amazon EC2 state changes). This feature enables customers to view events related to problems detected by CloudWatch Application Insights, and reduce mean-time-to-resolution (MTTR)."
-}

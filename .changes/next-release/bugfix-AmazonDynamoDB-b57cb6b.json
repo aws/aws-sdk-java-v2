@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon DynamoDB",
-    "description": "Fixed an issue where endpoint discovery configuration specified in the profile file was being ignored."
-}

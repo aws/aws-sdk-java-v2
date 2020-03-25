@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Detective",
-    "description": "The new ACCEPTED_BUT_DISABLED member account status indicates that a member account that accepted the invitation is blocked from contributing data to the behavior graph. The reason is provided in the new DISABLED_REASON property. The new StartMonitoringMember operation enables a blocked member account."
-}
