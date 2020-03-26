@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "description": "This release updates Amazon Augmented AI CreateFlowDefinition API and DescribeFlowDefinition response."
+}
