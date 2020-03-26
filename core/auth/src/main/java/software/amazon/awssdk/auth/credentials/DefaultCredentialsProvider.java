@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.LazyAwsCredentialsProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 
@@ -72,7 +73,10 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
                     SystemPropertyCredentialsProvider.create(),
                     EnvironmentVariableCredentialsProvider.create(),
                     WebIdentityTokenFileCredentialsProvider.create(),
-                    ProfileCredentialsProvider.create(),
+                    ProfileCredentialsProvider.builder()
+                                              .profileFile(builder.profileFile)
+                                              .profileName(builder.profileName)
+                                              .build(),
                     ContainerCredentialsProvider.builder()
                                                 .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                 .build(),
@@ -116,6 +120,8 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
      * Configuration that defines the {@link DefaultCredentialsProvider}'s behavior.
      */
     public static final class Builder {
+        private ProfileFile profileFile;
+        private String profileName;
         private Boolean reuseLastProviderEnabled = true;
         private Boolean asyncCredentialUpdateEnabled = false;
 
@@ -123,6 +129,16 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
          * Created with {@link #builder()}.
          */
         private Builder() {
+        }
+
+        public Builder profileFile(ProfileFile profileFile) {
+            this.profileFile = profileFile;
+            return this;
+        }
+
+        public Builder profileName(String profileName) {
+            this.profileName = profileName;
+            return this;
         }
 
         /**

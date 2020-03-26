@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.proxyAllTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,8 +37,10 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClientBuilder<BuilderT, ClientT>> {
     @Rule
@@ -55,6 +58,20 @@ public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClie
     public void standardRetryModeIsThreeAttempts() {
         stubThrottlingResponse();
         ClientT client = clientBuilder().overrideConfiguration(o -> o.retryPolicy(RetryMode.STANDARD)).build();
+        assertThatThrownBy(() -> callAllTypes(client)).isInstanceOf(SdkException.class);
+        verifyRequestCount(3);
+    }
+
+    @Test
+    public void retryModeCanBeSetByProfileFile() {
+        ProfileFile profileFile = ProfileFile.builder()
+                                             .content(new StringInputStream("[profile foo]\n" +
+                                                                            "retry_mode = standard"))
+                                             .type(ProfileFile.Type.CONFIGURATION)
+                                             .build();
+        stubThrottlingResponse();
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.defaultProfileFile(profileFile)
+                                                                     .defaultProfileName("foo")).build();
         assertThatThrownBy(() -> callAllTypes(client)).isInstanceOf(SdkException.class);
         verifyRequestCount(3);
     }

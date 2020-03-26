@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
-import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -163,7 +162,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
 
         /**
          * Define the name of the profile that should be used by this credentials provider. By default, the value in
-         * {@link SdkSystemSetting#AWS_PROFILE} is used.
+         * {@link ProfileFileSystemSetting#AWS_PROFILE} is used.
          */
         Builder profileName(String profileName);
 

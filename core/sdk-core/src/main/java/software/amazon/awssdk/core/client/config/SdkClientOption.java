@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.profiles.ProfileFile;
 
 /**
  * A set of internal options required by the SDK via {@link SdkClientConfiguration}.
@@ -117,6 +118,16 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * Whether or not endpoint discovery is enabled for this client.
      */
     public static final SdkClientOption<Boolean> ENDPOINT_DISCOVERY_ENABLED = new SdkClientOption<>(Boolean.class);
+
+    /**
+     * The profile file to use for this client.
+     */
+    public static final SdkClientOption<ProfileFile> PROFILE_FILE = new SdkClientOption<>(ProfileFile.class);
+
+    /**
+     * The profile name to use for this client.
+     */
+    public static final SdkClientOption<String> PROFILE_NAME = new SdkClientOption<>(String.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

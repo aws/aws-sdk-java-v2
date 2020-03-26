@@ -26,7 +26,6 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class UseArnRegionProviderChainTest {
     private final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
-    private final UseArnRegionProviderChain chain = UseArnRegionProviderChain.create();
 
     @After
     public void clearSystemProperty() {
@@ -37,7 +36,7 @@ public class UseArnRegionProviderChainTest {
 
     @Test
     public void notSpecified_shouldReturnEmptyOptional() {
-        assertThat(chain.resolveUseArnRegion()).isEqualTo(Optional.empty());
+        assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.empty());
     }
 
     @Test
@@ -46,7 +45,7 @@ public class UseArnRegionProviderChainTest {
         String configFile = getClass().getResource("UseArnRegionSet_true").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
-        assertThat(chain.resolveUseArnRegion()).isEqualTo(Optional.of(Boolean.FALSE));
+        assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.of(Boolean.FALSE));
     }
 
     @Test
@@ -55,7 +54,7 @@ public class UseArnRegionProviderChainTest {
         String configFile = getClass().getResource("UseArnRegionSet_true").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
-        assertThat(chain.resolveUseArnRegion()).isEqualTo(Optional.of(Boolean.TRUE));
+        assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.of(Boolean.TRUE));
     }
 
     @Test
@@ -64,6 +63,6 @@ public class UseArnRegionProviderChainTest {
         String configFile = getClass().getResource("UseArnRegionSet_unsupportedValue").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
-        assertThat(chain.resolveUseArnRegion()).isEqualTo(Optional.empty());
+        assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.empty());
     }
 }
