@@ -85,8 +85,9 @@ class BenchmarkResultProcessor {
                         log.error(() -> "Unable to serialize result data to JSON");
                     }
                     return String.format("Unable to find the baseline for %s. Skipping regression validation. " +
-                        "Results were: %s", benchmarkId, benchmarkResultJson);
-            });
+                            "Results were: %s", benchmarkId, benchmarkResultJson);
+                });
+                continue;
             }
 
             currentData.add(sdkBenchmarkData);
