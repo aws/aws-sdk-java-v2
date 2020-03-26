@@ -20,6 +20,8 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.compare;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,6 +76,14 @@ class BenchmarkResultProcessor {
 
             SdkBenchmarkResult baselineResult = baseline.get(benchmarkId);
             SdkBenchmarkResult sdkBenchmarkData = constructSdkBenchmarkResult(result);
+
+            String dataStr;
+            try {
+                dataStr = new ObjectMapper().writeValueAsString(sdkBenchmarkData);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("This run: " + dataStr);
 
             if (baselineResult == null) {
                 log.warn(() -> "Unable to find the baseline for " + benchmarkId + " Skipping regression validation");
