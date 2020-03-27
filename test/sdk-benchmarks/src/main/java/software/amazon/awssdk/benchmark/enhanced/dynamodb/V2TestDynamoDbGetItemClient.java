@@ -16,39 +16,20 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 
-public final class V2TestDynamoDbClient implements DynamoDbClient {
-    private static final PutItemResponse PUT_ITEM_RESPONSE = PutItemResponse.builder().build();
-    private final Blackhole bh;
+public final class V2TestDynamoDbGetItemClient extends V2TestDynamoDbBaseClient {
     private final GetItemResponse getItemResponse;
 
-    public V2TestDynamoDbClient(Blackhole bh, GetItemResponse getItemResponse) {
-        this.bh = bh;
+    public V2TestDynamoDbGetItemClient(Blackhole bh, GetItemResponse getItemResponse) {
+        super(bh);
         this.getItemResponse = getItemResponse;
     }
 
     @Override
     public GetItemResponse getItem(GetItemRequest getItemRequest) {
+        bh.consume(getItemRequest);
         return getItemResponse;
-    }
-
-    @Override
-    public PutItemResponse putItem(PutItemRequest putItemRequest) {
-        bh.consume(putItemRequest);
-        return PUT_ITEM_RESPONSE;
-    }
-
-    @Override
-    public String serviceName() {
-        return "DynamoDB";
-    }
-
-    @Override
-    public void close() {
     }
 }

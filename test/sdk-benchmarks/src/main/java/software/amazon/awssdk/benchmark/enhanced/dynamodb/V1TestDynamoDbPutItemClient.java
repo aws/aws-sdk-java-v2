@@ -15,36 +15,15 @@
 
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AbstractAmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.PutItemResult;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemResult;
 import org.openjdk.jmh.infra.Blackhole;
 
-public final class V1TestDynamoDbClient extends AbstractAmazonDynamoDB {
-    private static final UpdateItemResult UPDATE_ITEM_RESULT = new UpdateItemResult();
+public class V1TestDynamoDbPutItemClient extends V1TestDynamoDbBaseClient {
     private static final PutItemResult PUT_ITEM_RESULT = new PutItemResult();
 
-    private final Blackhole bh;
-    private final GetItemResult getItemResult;
-
-    public V1TestDynamoDbClient(Blackhole bh, GetItemResult getItemResult) {
-        this.bh = bh;
-        this.getItemResult = getItemResult;
-    }
-
-    @Override
-    public GetItemResult getItem(GetItemRequest request) {
-        return getItemResult;
-    }
-
-    @Override
-    public UpdateItemResult updateItem(UpdateItemRequest request) {
-        bh.consume(request);
-        return UPDATE_ITEM_RESULT;
+    public V1TestDynamoDbPutItemClient(Blackhole bh) {
+        super(bh);
     }
 
     @Override

@@ -36,9 +36,14 @@ import software.amazon.awssdk.benchmark.apicall.protocol.QueryProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.XmlProtocolBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetOverheadBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutOverheadBenchmark;
-import software.amazon.awssdk.benchmark.enhanced.dynamodb.V1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientQueryV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientScanV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientUpdateV1MapperComparisonBenchmark;
 import software.amazon.awssdk.utils.Logger;
 
 
@@ -64,7 +69,12 @@ public class BenchmarkRunner {
     private static final List<String> MAPPER_BENCHMARKS = Arrays.asList(
             EnhancedClientGetOverheadBenchmark.class.getSimpleName(),
             EnhancedClientPutOverheadBenchmark.class.getSimpleName(),
-            V1MapperComparisonBenchmark.class.getSimpleName()
+            EnhancedClientGetV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientPutV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientUpdateV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientDeleteV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientScanV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientQueryV1MapperComparisonBenchmark.class.getSimpleName()
     );
 
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
