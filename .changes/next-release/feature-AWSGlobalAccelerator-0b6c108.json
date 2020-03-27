@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Global Accelerator",
+    "description": "This update adds an event history to the ListByoipCidr API call. This enables you to see the changes that you've made for an IP address range that you bring to AWS Global Accelerator through bring your own IP address (BYOIP)."
+}
