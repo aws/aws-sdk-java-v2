@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog",
+    "description": "Added \"LocalRoleName\" as an acceptable Parameter for Launch type in CreateConstraint and UpdateConstraint APIs"
+}
