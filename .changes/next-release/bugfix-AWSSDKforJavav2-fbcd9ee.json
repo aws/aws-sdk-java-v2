@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "description": "Remove the `LimitExceededException` as a throttling error as it seems many services don't treat it as a throttling error."
-}
