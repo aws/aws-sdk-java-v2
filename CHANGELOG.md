@@ -1,3 +1,23 @@
+# __2.11.4__ __2020-03-27__
+## __AWS Global Accelerator__
+  - ### Features
+    - This update adds an event history to the ListByoipCidr API call. This enables you to see the changes that you've made for an IP address range that you bring to AWS Global Accelerator through bring your own IP address (BYOIP).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Remove the `LimitExceededException` as a throttling error as it seems many services don't treat it as a throttling error.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Added "LocalRoleName" as an acceptable Parameter for Launch type in CreateConstraint and UpdateConstraint APIs
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - The Amazon Kendra Microsoft SharePoint data source now supports include and exclude regular expressions and change log features. Include and exclude regular expressions enable you to provide a list of regular expressions to match the display URL of SharePoint documents to either include or exclude documents respectively. When you enable the changelog feature it enables Amazon Kendra to use the SharePoint change log to determine which documents to update in the index.
+
 # __2.11.3__ __2020-03-26__
 ## __AWS SDK for Java v2__
   - ### Features
