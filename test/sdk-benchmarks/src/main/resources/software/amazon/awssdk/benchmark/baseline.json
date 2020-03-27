@@ -341,5 +341,613 @@
       "n": 771613,
       "sum": 151273.5610880001
     }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientGetOverheadBenchmark.enhanceGet-Throughput-testItem-TINY",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.779"
+    },
+    "statistics": {
+      "mean": 21861.411294887475,
+      "variance": 3163.9728423574056,
+      "standardDeviation": 56.24920303753117,
+      "max": 21931.163358835558,
+      "min": 21783.74564645071,
+      "n": 10,
+      "sum": 218614.11294887474
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientGetOverheadBenchmark.enhanceGet-Throughput-testItem-SMALL",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.798"
+    },
+    "statistics": {
+      "mean": 19194.404041731374,
+      "variance": 1931.7305489412388,
+      "standardDeviation": 43.951456732868806,
+      "max": 19301.311007353008,
+      "min": 19154.59785578245,
+      "n": 10,
+      "sum": 191944.04041731375
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientGetOverheadBenchmark.enhanceGet-Throughput-testItem-HUGE",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.801"
+    },
+    "statistics": {
+      "mean": 5742.760128972843,
+      "variance": 3812.4529097450204,
+      "standardDeviation": 61.7450638492262,
+      "max": 5818.06705484057,
+      "min": 5673.681434809584,
+      "n": 10,
+      "sum": 57427.60128972843
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientGetOverheadBenchmark.enhanceGet-Throughput-testItem-HUGE_FLAT",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.803"
+    },
+    "statistics": {
+      "mean": 9123.68471587034,
+      "variance": 39381.407506045354,
+      "standardDeviation": 198.44749307069958,
+      "max": 9324.8313949261,
+      "min": 8916.525076502701,
+      "n": 10,
+      "sum": 91236.8471587034
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientGetOverheadBenchmark.lowLevelGet-Throughput-testItem-TINY",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.805"
+    },
+    "statistics": {
+      "mean": 23727.653183389055,
+      "variance": 1302.5647136172183,
+      "standardDeviation": 36.091061408847736,
+      "max": 23790.896842117898,
+      "min": 23676.50791476011,
+      "n": 10,
+      "sum": 237276.53183389056
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientGetOverheadBenchmark.lowLevelGet-Throughput-testItem-SMALL",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.807"
+    },
+    "statistics": {
+      "mean": 21204.570979007094,
+      "variance": 1805.7357256611479,
+      "standardDeviation": 42.49394928294083,
+      "max": 21261.432335576043,
+      "min": 21148.45805269659,
+      "n": 10,
+      "sum": 212045.70979007095
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientGetOverheadBenchmark.lowLevelGet-Throughput-testItem-HUGE",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.809"
+    },
+    "statistics": {
+      "mean": 6631.846341687633,
+      "variance": 9642.265611299274,
+      "standardDeviation": 98.19503862873762,
+      "max": 6736.785800028154,
+      "min": 6531.270517561989,
+      "n": 10,
+      "sum": 66318.46341687633
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientGetOverheadBenchmark.lowLevelGet-Throughput-testItem-HUGE_FLAT",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.811"
+    },
+    "statistics": {
+      "mean": 10065.700621509586,
+      "variance": 5477.304848411613,
+      "standardDeviation": 74.00881601817187,
+      "max": 10148.047716366358,
+      "min": 9983.316684342379,
+      "n": 10,
+      "sum": 100657.00621509585
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientPutOverheadBenchmark.enhancedPut-Throughput-testItem-TINY",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.813"
+    },
+    "statistics": {
+      "mean": 23635.986227776833,
+      "variance": 95075.34657500139,
+      "standardDeviation": 308.3429042073149,
+      "max": 23938.47823573249,
+      "min": 23304.441614334046,
+      "n": 10,
+      "sum": 236359.86227776835
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientPutOverheadBenchmark.enhancedPut-Throughput-testItem-SMALL",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.816"
+    },
+    "statistics": {
+      "mean": 20950.69006280451,
+      "variance": 883.8583335563803,
+      "standardDeviation": 29.729755020120503,
+      "max": 20994.25580029217,
+      "min": 20908.858362596562,
+      "n": 10,
+      "sum": 209506.9006280451
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientPutOverheadBenchmark.enhancedPut-Throughput-testItem-HUGE",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.818"
+    },
+    "statistics": {
+      "mean": 6947.0547317414,
+      "variance": 2054.540956290902,
+      "standardDeviation": 45.3270444248343,
+      "max": 6992.094904618327,
+      "min": 6897.3604801922065,
+      "n": 10,
+      "sum": 69470.547317414
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientPutOverheadBenchmark.enhancedPut-Throughput-testItem-HUGE_FLAT",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.819"
+    },
+    "statistics": {
+      "mean": 9651.438384939946,
+      "variance": 21265.37256778877,
+      "standardDeviation": 145.82651531113527,
+      "max": 9810.960459690477,
+      "min": 9505.341211373996,
+      "n": 10,
+      "sum": 96514.38384939946
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientPutOverheadBenchmark.lowLevelPut-Throughput-testItem-TINY",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.821"
+    },
+    "statistics": {
+      "mean": 24474.133695525416,
+      "variance": 2418.272421611502,
+      "standardDeviation": 49.175933357807274,
+      "max": 24560.246261229124,
+      "min": 24391.482959504494,
+      "n": 10,
+      "sum": 244741.33695525417
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientPutOverheadBenchmark.lowLevelPut-Throughput-testItem-SMALL",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.823"
+    },
+    "statistics": {
+      "mean": 21708.256095745754,
+      "variance": 33817.56629349679,
+      "standardDeviation": 183.89553092312164,
+      "max": 21896.648516991783,
+      "min": 21515.476349143923,
+      "n": 10,
+      "sum": 217082.56095745755
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientPutOverheadBenchmark.lowLevelPut-Throughput-testItem-HUGE",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.824"
+    },
+    "statistics": {
+      "mean": 7831.76449879679,
+      "variance": 556.5114846450683,
+      "standardDeviation": 23.590495642208715,
+      "max": 7862.726711793453,
+      "min": 7801.301995363553,
+      "n": 10,
+      "sum": 78317.6449879679
+    }
+  }, {
+    "id": "enhanced.dynamodb.EnhancedClientPutOverheadBenchmark.lowLevelPut-Throughput-testItem-HUGE_FLAT",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.826"
+    },
+    "statistics": {
+      "mean": 10432.187037993292,
+      "variance": 6156.945597980833,
+      "standardDeviation": 78.4662067260858,
+      "max": 10544.74583687034,
+      "min": 10338.349564607815,
+      "n": 10,
+      "sum": 104321.87037993292
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v1Get-Throughput-testItem-TINY",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.83"
+    },
+    "statistics": {
+      "mean": 4216269.465030504,
+      "variance": 7577381680.455024,
+      "standardDeviation": 87048.1572490482,
+      "max": 4304995.187978772,
+      "min": 4127750.465031905,
+      "n": 10,
+      "sum": 42162694.65030504
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v1Get-Throughput-testItem-SMALL",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.831"
+    },
+    "statistics": {
+      "mean": 2548116.917228338,
+      "variance": 39596645.65844414,
+      "standardDeviation": 6292.586563444649,
+      "max": 2553688.8961462937,
+      "min": 2536667.0775304707,
+      "n": 10,
+      "sum": 25481169.172283377
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v1Get-Throughput-testItem-HUGE",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.833"
+    },
+    "statistics": {
+      "mean": 271517.73760595697,
+      "variance": 2372265.138141567,
+      "standardDeviation": 1540.2159388025975,
+      "max": 273137.05391642277,
+      "min": 269843.99771755247,
+      "n": 10,
+      "sum": 2715177.37605957
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v1Get-Throughput-testItem-HUGE_FLAT",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.835"
+    },
+    "statistics": {
+      "mean": 347920.5003151236,
+      "variance": 595046205.154461,
+      "standardDeviation": 24393.56893024186,
+      "max": 371195.38010237005,
+      "min": 324573.14439857507,
+      "n": 10,
+      "sum": 3479205.003151236
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v1Put-Throughput-testItem-TINY",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.836"
+    },
+    "statistics": {
+      "mean": 1768330.9260150697,
+      "variance": 1939469873.1268594,
+      "standardDeviation": 44039.412724590904,
+      "max": 1811149.0295745614,
+      "min": 1724510.13860136,
+      "n": 10,
+      "sum": 17683309.260150697
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v1Put-Throughput-testItem-SMALL",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.838"
+    },
+    "statistics": {
+      "mean": 1164870.7035331992,
+      "variance": 52647682.835541315,
+      "standardDeviation": 7255.8723001126,
+      "max": 1174402.0970783627,
+      "min": 1155823.7219991074,
+      "n": 10,
+      "sum": 11648707.035331992
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v1Put-Throughput-testItem-HUGE",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.839"
+    },
+    "statistics": {
+      "mean": 210052.38869182704,
+      "variance": 1798030.11996659,
+      "standardDeviation": 1340.9064545920382,
+      "max": 211619.30915467444,
+      "min": 208695.9982500961,
+      "n": 10,
+      "sum": 2100523.8869182705
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v1Put-Throughput-testItem-HUGE_FLAT",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.841"
+    },
+    "statistics": {
+      "mean": 114978.94801995096,
+      "variance": 1371813.7644851753,
+      "standardDeviation": 1171.244536587119,
+      "max": 116329.77786560146,
+      "min": 113730.43393826579,
+      "n": 10,
+      "sum": 1149789.4801995095
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v2Get-Throughput-testItem-TINY",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.842"
+    },
+    "statistics": {
+      "mean": 3662576.5648506857,
+      "variance": 7409482642.244276,
+      "standardDeviation": 86078.35176305525,
+      "max": 3748802.8826729953,
+      "min": 3575363.8664258076,
+      "n": 10,
+      "sum": 36625765.64850686
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v2Get-Throughput-testItem-SMALL",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.844"
+    },
+    "statistics": {
+      "mean": 1646303.6313321758,
+      "variance": 1574901387.9625113,
+      "standardDeviation": 39685.027251628686,
+      "max": 1686779.9815694,
+      "min": 1607103.7820484997,
+      "n": 10,
+      "sum": 16463036.313321758
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v2Get-Throughput-testItem-HUGE",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.845"
+    },
+    "statistics": {
+      "mean": 129737.87890043444,
+      "variance": 139476.8830297755,
+      "standardDeviation": 373.466039995306,
+      "max": 130343.97849463933,
+      "min": 129275.2611792706,
+      "n": 10,
+      "sum": 1297378.7890043445
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v2Get-Throughput-testItem-HUGE_FLAT",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.847"
+    },
+    "statistics": {
+      "mean": 276472.2259425583,
+      "variance": 2020459.345500282,
+      "standardDeviation": 1421.4286283525748,
+      "max": 278228.1324706078,
+      "min": 274914.59156783926,
+      "n": 10,
+      "sum": 2764722.2594255833
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v2Put-Throughput-testItem-TINY",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.848"
+    },
+    "statistics": {
+      "mean": 3971820.2835967117,
+      "variance": 17460612994.02266,
+      "standardDeviation": 132138.61280497332,
+      "max": 4108330.055204355,
+      "min": 3840104.0305961887,
+      "n": 10,
+      "sum": 39718202.835967116
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v2Put-Throughput-testItem-SMALL",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.849"
+    },
+    "statistics": {
+      "mean": 1493615.511958485,
+      "variance": 9028125.181795087,
+      "standardDeviation": 3004.6838738534684,
+      "max": 1498786.274708349,
+      "min": 1488510.4353162742,
+      "n": 10,
+      "sum": 14936155.11958485
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v2Put-Throughput-testItem-HUGE",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.851"
+    },
+    "statistics": {
+      "mean": 119057.84161286886,
+      "variance": 175279.77046631582,
+      "standardDeviation": 418.66426939292995,
+      "max": 119543.18118979972,
+      "min": 118539.26235554788,
+      "n": 10,
+      "sum": 1190578.4161286885
+    }
+  }, {
+    "id": "enhanced.dynamodb.V1MapperComparisonBenchmark.v2Put-Throughput-testItem-HUGE_FLAT",
+    "params": {
+      "sdkVersion": "2.11.2-SNAPSHOT",
+      "jdkVersion": "1.8.0_242",
+      "jvmName": "OpenJDK 64-Bit Server VM",
+      "jvmVersion": "25.242-b08",
+      "mode": "Throughput",
+      "date": "2020-03-26T21:54:38.852"
+    },
+    "statistics": {
+      "mean": 146022.84478369894,
+      "variance": 327890156.19659877,
+      "standardDeviation": 18107.737467629653,
+      "max": 163566.06331238395,
+      "min": 128721.90017507998,
+      "n": 10,
+      "sum": 1460228.4478369893
+    }
   }
 ]
