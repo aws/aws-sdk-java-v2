@@ -211,7 +211,7 @@ public interface ExecutionInterceptor {
 
     /**
      * Read the HTTP response as it was returned by the HTTP client, before it is modified by other interceptors.
-     * {@link #beforeTransmission} should be used in most circumstances for reading the HTTP response because it includes
+     * {@link #beforeUnmarshalling} should be used in most circumstances for reading the HTTP response because it includes
      * modifications made by other interceptors.
      *
      * <p>It is possible that the HTTP client could have already modified this response, so debug-level wire logging should be
