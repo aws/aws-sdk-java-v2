@@ -84,7 +84,8 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>${basedir}/src/main/resources/map-service-to-client-prefix</executable>
+                            <executable>python</executable>
+                            <commandlineArgs>${basedir}/src/main/resources/map-service-to-client-prefix</commandlineArgs>
                         </configuration>
                     </execution>
                 </executions>
