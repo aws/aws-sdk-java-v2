@@ -52,6 +52,8 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
     private static final String HTTP_CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-EVENTS";
     private static final String EVENT_STREAM_PAYLOAD = "AWS4-HMAC-SHA256-PAYLOAD";
 
+    private static final int PAYLOAD_TRUNCATE_LENGTH = 32;
+
 
     protected BaseEventStreamAsyncAws4Signer() {
     }
@@ -287,15 +289,26 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
         sb.append("}, payload=");
 
         byte[] payload = m.getPayload();
-
         byte[] payloadToLog;
+
+        // We don't actually need to truncate if the payload length is already within the truncate limit
+        truncatePayload = truncatePayload && payload.length > PAYLOAD_TRUNCATE_LENGTH;
+
         if (truncatePayload) {
             // Would be nice if BinaryUtils.toHex() could take an array index range instead so we don't need to copy
-            payloadToLog = Arrays.copyOf(payload, Math.min(32, payload.length));
+            payloadToLog = Arrays.copyOf(payload, PAYLOAD_TRUNCATE_LENGTH);
         } else {
             payloadToLog = payload;
         }
 
-        return sb.append(BinaryUtils.toHex(payloadToLog)).append("}").toString();
+        sb.append(BinaryUtils.toHex(payloadToLog));
+
+        if (truncatePayload) {
+            sb.append("...");
+        }
+
+        sb.append("}");
+
+        return sb.toString();
     }
 }
