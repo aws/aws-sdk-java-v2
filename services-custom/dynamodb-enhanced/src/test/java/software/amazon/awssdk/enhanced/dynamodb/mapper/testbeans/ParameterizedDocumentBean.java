@@ -21,12 +21,12 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @DynamoDbBean
-public class DocumentBean {
+public class ParameterizedDocumentBean {
     private String id;
     private String attribute1;
-    private AbstractBean abstractBean;
-    private List<AbstractBean> abstractBeanList;
-    private Map<String, AbstractBean> abstractBeanMap;
+    private ParameterizedAbstractBean<String> abstractBean;
+    private List<ParameterizedAbstractBean<String>> abstractBeanList;
+    private Map<String, ParameterizedAbstractBean<String>> abstractBeanMap;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -43,26 +43,26 @@ public class DocumentBean {
         this.attribute1 = attribute1;
     }
 
-    public AbstractBean getAbstractBean() {
+    public ParameterizedAbstractBean<String> getAbstractBean() {
         return abstractBean;
     }
-    public void setAbstractBean(AbstractBean abstractBean) {
+    public void setAbstractBean(ParameterizedAbstractBean<String> abstractBean) {
         this.abstractBean = abstractBean;
     }
 
-    public List<AbstractBean> getAbstractBeanList() {
+    public List<ParameterizedAbstractBean<String>> getAbstractBeanList() {
         return abstractBeanList;
     }
 
-    public void setAbstractBeanList(List<AbstractBean> abstractBeanList) {
+    public void setAbstractBeanList(List<ParameterizedAbstractBean<String>> abstractBeanList) {
         this.abstractBeanList = abstractBeanList;
     }
 
-    public Map<String, AbstractBean> getAbstractBeanMap() {
+    public Map<String, ParameterizedAbstractBean<String>> getAbstractBeanMap() {
         return abstractBeanMap;
     }
 
-    public void setAbstractBeanMap(Map<String, AbstractBean> abstractBeanMap) {
+    public void setAbstractBeanMap(Map<String, ParameterizedAbstractBean<String>> abstractBeanMap) {
         this.abstractBeanMap = abstractBeanMap;
     }
 }

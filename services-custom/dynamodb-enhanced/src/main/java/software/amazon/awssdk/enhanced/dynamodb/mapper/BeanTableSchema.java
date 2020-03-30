@@ -23,6 +23,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -230,29 +231,56 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                Optional.empty();
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> StaticAttribute.Builder<T, ?> staticAttributeBuilder(PropertyDescriptor propertyDescriptor,
                                                                             Class<T> beanClass) {
 
         Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
-        EnhancedType<?> propertyTypeToken = null;
-
-        if (propertyType instanceof Class) {
-            Class<?> clazz = (Class<?>) propertyType;
-            if (clazz.getAnnotation(DynamoDbBean.class) != null) {
-                propertyTypeToken = EnhancedType.documentOf((Class<Object>) clazz,
-                                                         (TableSchema<Object>) createStaticTableSchema(clazz));
-            }
-        }
-
-        if (propertyTypeToken == null) {
-            propertyTypeToken = EnhancedType.of(propertyDescriptor.getReadMethod().getGenericReturnType());
-        }
-
+        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType);
         return StaticAttribute.builder(beanClass, propertyTypeToken)
                               .name(attributeNameForProperty(propertyDescriptor))
                               .getter(getterForProperty(propertyDescriptor, beanClass))
                               .setter(setterForProperty(propertyDescriptor, beanClass));
+    }
+
+    /**
+     * Converts a {@link Type} to an {@link EnhancedType}. Usually {@link EnhancedType#of} is capable of doing this all
+     * by itself, but for the BeanTableSchema we want to detect if a parameterized class is being passed without a
+     * converter that is actually a {@link DynamoDbBean} in which case we want to capture its schema and add it to the
+     * EnhancedType. Unfortunately this means we have to duplicate some of the recursive Type parsing that
+     * EnhancedClient otherwise does all by itself.
+     */
+    @SuppressWarnings("unchecked")
+    private static EnhancedType<?> convertTypeToEnhancedType(Type type) {
+        Class<?> clazz = null;
+
+        if (type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            Type rawType = parameterizedType.getRawType();
+
+            if (List.class.equals(rawType)) {
+                return EnhancedType.listOf(convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0]));
+            }
+
+            if (Map.class.equals(rawType)) {
+                return EnhancedType.mapOf(EnhancedType.of(parameterizedType.getActualTypeArguments()[0]),
+                                          convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[1]));
+            }
+
+            if (rawType instanceof Class) {
+                clazz = (Class<?>) rawType;
+            }
+        } else if (type instanceof Class) {
+            clazz = (Class<?>) type;
+        }
+
+        if (clazz != null) {
+            if (clazz.getAnnotation(DynamoDbBean.class) != null) {
+                return EnhancedType.documentOf((Class<Object>) clazz,
+                                               (TableSchema<Object>) createStaticTableSchema(clazz));
+            }
+        }
+
+        return EnhancedType.of(type);
     }
 
     private static Optional<AttributeConverter> attributeConverterAnnotation(PropertyDescriptor propertyDescriptor) {
