@@ -25,11 +25,13 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConve
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-@DynamoDbBean
-public class AttributeConverterBean {
+@DynamoDbBean(converterProviders = {})
+public class EmptyConverterProvidersInvalidBean {
     private String id;
+    private Integer integerAttribute;
 
     @DynamoDbPartitionKey
+    @DynamoDbConvertedBy(CustomStringAttributeConverter.class)
     public String getId() {
         return this.id;
     }
@@ -37,17 +39,6 @@ public class AttributeConverterBean {
         this.id = id;
     }
 
-    private AttributeItem attributeItem;
-
-    @DynamoDbConvertedBy(CustomAttributeConverter.class)
-    public AttributeItem getAttributeItem() {
-        return attributeItem;
-    }
-    public void setAttributeItem(AttributeItem attributeItem) {
-        this.attributeItem = attributeItem;
-    }
-
-    private Integer integerAttribute;
     public Integer getIntegerAttribute() {
         return integerAttribute;
     }
@@ -59,35 +50,35 @@ public class AttributeConverterBean {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AttributeConverterBean that = (AttributeConverterBean) o;
+        EmptyConverterProvidersInvalidBean that = (EmptyConverterProvidersInvalidBean) o;
         return Objects.equals(id, that.id) &&
-                Objects.equals(integerAttribute, that.integerAttribute) &&
-                Objects.equals(attributeItem, that.attributeItem);
+            Objects.equals(integerAttribute, that.integerAttribute);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, integerAttribute, attributeItem);
+        return Objects.hash(id, integerAttribute);
     }
 
-    public static class CustomAttributeConverter implements AttributeConverter<AttributeItem> {
+    public static class CustomStringAttributeConverter implements AttributeConverter<String> {
+        final static String DEFAULT_SUFFIX = "-custom";
 
-        public CustomAttributeConverter() {
+        public CustomStringAttributeConverter() {
         }
 
         @Override
-        public AttributeValue transformFrom(AttributeItem input) {
-            return EnhancedAttributeValue.fromString(input.getInnerValue()).toAttributeValue();
+        public AttributeValue transformFrom(String input) {
+            return EnhancedAttributeValue.fromString(input + DEFAULT_SUFFIX).toAttributeValue();
         }
 
         @Override
-        public AttributeItem transformTo(AttributeValue input) {
-            return new AttributeItem(input.s());
+        public String transformTo(AttributeValue input) {
+            return input.s();
         }
 
         @Override
-        public EnhancedType<AttributeItem> type() {
-            return EnhancedType.of(AttributeItem.class);
+        public EnhancedType<String> type() {
+            return EnhancedType.of(String.class);
         }
 
         @Override
@@ -96,35 +87,4 @@ public class AttributeConverterBean {
         }
     }
 
-    public static class AttributeItem {
-        private String innerValue;
-
-        public AttributeItem() {
-        }
-
-        AttributeItem(String value) {
-            innerValue = value;
-        }
-
-        public String getInnerValue() {
-            return innerValue;
-        }
-
-        public void setInnerValue(String innerValue) {
-            this.innerValue = innerValue;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            AttributeItem that = (AttributeItem) o;
-            return Objects.equals(innerValue, that.innerValue);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(innerValue);
-        }
-    }
 }

@@ -780,10 +780,16 @@ public class StaticTableSchemaTest {
     }
 
     @Mock
-    private AttributeConverterProvider provider;
+    private AttributeConverterProvider provider1;
 
     @Mock
-    private AttributeConverter<String> attributeConverter;
+    private AttributeConverterProvider provider2;
+
+    @Mock
+    private AttributeConverter<String> attributeConverter1;
+
+    @Mock
+    private AttributeConverter<String> attributeConverter2;
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -1366,8 +1372,8 @@ public class StaticTableSchemaTest {
     }
 
     @Test
-    public void addAttributeConverterProvider() {
-        when(provider.converterFor(EnhancedType.of(String.class))).thenReturn(attributeConverter);
+    public void addSingleAttributeConverterProvider() {
+        when(provider1.converterFor(EnhancedType.of(String.class))).thenReturn(attributeConverter1);
 
         StaticTableSchema<FakeMappedItem> tableSchema =
             StaticTableSchema.builder(FakeMappedItem.class)
@@ -1375,10 +1381,10 @@ public class StaticTableSchemaTest {
                              .addAttribute(String.class, a -> a.name("aString")
                                                                .getter(FakeMappedItem::getAString)
                                                                .setter(FakeMappedItem::setAString))
-                             .attributeConverterProvider(provider)
+                             .attributeConverterProviders(provider1)
                              .build();
 
-        assertThat(tableSchema.attributeConverterProvider(), is(provider));
+        assertThat(tableSchema.attributeConverterProvider(), is(provider1));
     }
 
     @Test
@@ -1386,8 +1392,8 @@ public class StaticTableSchemaTest {
         String originalString = "test-string";
         String expectedString = "test-string-custom";
 
-        when(provider.converterFor(EnhancedType.of(String.class))).thenReturn(attributeConverter);
-        when(attributeConverter.transformFrom(any())).thenReturn(AttributeValue.builder().s(expectedString).build());
+        when(provider1.converterFor(EnhancedType.of(String.class))).thenReturn(attributeConverter1);
+        when(attributeConverter1.transformFrom(any())).thenReturn(AttributeValue.builder().s(expectedString).build());
 
         StaticTableSchema<FakeMappedItem> tableSchema =
             StaticTableSchema.builder(FakeMappedItem.class)
@@ -1395,11 +1401,69 @@ public class StaticTableSchemaTest {
                              .addAttribute(String.class, a -> a.name("aString")
                                                                .getter(FakeMappedItem::getAString)
                                                                .setter(FakeMappedItem::setAString))
-                             .attributeConverterProvider(provider)
+                             .attributeConverterProviders(provider1)
                              .build();
 
+        Map<String, AttributeValue> resultMap =
+                tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false);
+        assertThat(resultMap.get("aString").s(), is(expectedString));
+    }
+
+    @Test
+    public void usesCustomAttributeConverterProviders() {
+        String originalString = "test-string";
+        String expectedString = "test-string-custom";
+
+        when(provider2.converterFor(EnhancedType.of(String.class))).thenReturn(attributeConverter2);
+        when(attributeConverter2.transformFrom(any())).thenReturn(AttributeValue.builder().s(expectedString).build());
+
+        StaticTableSchema<FakeMappedItem> tableSchema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("aString")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString))
+                             .attributeConverterProviders(provider1, provider2)
+                             .build();
+
+        Map<String, AttributeValue> resultMap =
+                tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false);
+        assertThat(resultMap.get("aString").s(), is(expectedString));
+    }
+
+    @Test
+    public void noConverterProvider_throwsException_whenMissingAttributeConverters() {
+        exception.expect(NullPointerException.class);
+
+        StaticTableSchema<FakeMappedItem> tableSchema =
+                StaticTableSchema.builder(FakeMappedItem.class)
+                        .newItemSupplier(FakeMappedItem::new)
+                        .addAttribute(String.class, a -> a.name("aString")
+                                .getter(FakeMappedItem::getAString)
+                                .setter(FakeMappedItem::setAString))
+                        .attributeConverterProviders(Collections.emptyList())
+                        .build();
+    }
+
+    @Test
+    public void noConverterProvider_handlesCorrectly_whenAttributeConvertersAreSupplied() {
+        String originalString = "test-string";
+        String expectedString = "test-string-custom";
+
+        when(attributeConverter1.transformFrom(any())).thenReturn(AttributeValue.builder().s(expectedString).build());
+
+        StaticTableSchema<FakeMappedItem> tableSchema =
+                StaticTableSchema.builder(FakeMappedItem.class)
+                        .newItemSupplier(FakeMappedItem::new)
+                        .addAttribute(String.class, a -> a.name("aString")
+                                .getter(FakeMappedItem::getAString)
+                                .setter(FakeMappedItem::setAString)
+                                .attributeConverter(attributeConverter1))
+                        .attributeConverterProviders(Collections.emptyList())
+                        .build();
+
         Map<String, AttributeValue> resultMap = tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(),
-                                                                      false);
+                false);
         assertThat(resultMap.get("aString").s(), is(expectedString));
     }
 
