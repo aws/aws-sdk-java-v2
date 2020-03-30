@@ -54,6 +54,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttribut
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MapBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedAbstractBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedDocumentBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.PrimitiveTypesBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.RemappedAttributeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SecondaryIndexBean;
@@ -180,11 +182,154 @@ public class BeanTableSchemaTest {
                                                         .m(singletonMap("attribute2", stringValue("two")))
                                                         .build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("abstractBean", expectedDocument));
+    }
+
+    @Test
+    public void documentBean_list_correctlyMapsAttributes() {
+        BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
+        AbstractBean abstractBean1 = new AbstractBean();
+        abstractBean1.setAttribute2("two");
+        AbstractBean abstractBean2 = new AbstractBean();
+        abstractBean2.setAttribute2("three");
+        DocumentBean documentBean = new DocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+        documentBean.setAbstractBeanList(Arrays.asList(abstractBean1, abstractBean2));
+
+        AttributeValue expectedDocument1 = AttributeValue.builder()
+                                                        .m(singletonMap("attribute2", stringValue("two")))
+                                                        .build();
+        AttributeValue expectedDocument2 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("three")))
+                                                         .build();
+        AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractBeanList", expectedList));
+    }
+
+    @Test
+    public void documentBean_map_correctlyMapsAttributes() {
+        BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
+        AbstractBean abstractBean1 = new AbstractBean();
+        abstractBean1.setAttribute2("two");
+        AbstractBean abstractBean2 = new AbstractBean();
+        abstractBean2.setAttribute2("three");
+        DocumentBean documentBean = new DocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+
+        Map<String, AbstractBean> abstractBeanMap = new HashMap<>();
+        abstractBeanMap.put("key1", abstractBean1);
+        abstractBeanMap.put("key2", abstractBean2);
+        documentBean.setAbstractBeanMap(abstractBeanMap);
+
+        AttributeValue expectedDocument1 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("two")))
+                                                         .build();
+        AttributeValue expectedDocument2 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("three")))
+                                                         .build();
+        Map<String, AttributeValue> expectedAttributeValueMap = new HashMap<>();
+        expectedAttributeValueMap.put("key1", expectedDocument1);
+        expectedAttributeValueMap.put("key2", expectedDocument2);
+        AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractBeanMap", expectedMap));
+    }
+
+    @Test
+    public void parameterizedDocumentBean_correctlyMapsAttributes() {
+        BeanTableSchema<ParameterizedDocumentBean> beanTableSchema = BeanTableSchema.create(ParameterizedDocumentBean.class);
+        ParameterizedAbstractBean<String> abstractBean = new ParameterizedAbstractBean<>();
+        abstractBean.setAttribute2("two");
+        ParameterizedDocumentBean documentBean = new ParameterizedDocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+        documentBean.setAbstractBean(abstractBean);
+
+        AttributeValue expectedDocument = AttributeValue.builder()
+                                                        .m(singletonMap("attribute2", stringValue("two")))
+                                                        .build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractBean", expectedDocument));
+    }
+
+    @Test
+    public void parameterizedDocumentBean_list_correctlyMapsAttributes() {
+        BeanTableSchema<ParameterizedDocumentBean> beanTableSchema = BeanTableSchema.create(ParameterizedDocumentBean.class);
+        ParameterizedAbstractBean<String> abstractBean1 = new ParameterizedAbstractBean<>();
+        abstractBean1.setAttribute2("two");
+        ParameterizedAbstractBean<String> abstractBean2 = new ParameterizedAbstractBean<>();
+        abstractBean2.setAttribute2("three");
+        ParameterizedDocumentBean documentBean = new ParameterizedDocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+        documentBean.setAbstractBeanList(Arrays.asList(abstractBean1, abstractBean2));
+
+        AttributeValue expectedDocument1 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("two")))
+                                                         .build();
+        AttributeValue expectedDocument2 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("three")))
+                                                         .build();
+        AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractBeanList", expectedList));
+    }
+
+    @Test
+    public void parameterizedDocumentBean_map_correctlyMapsAttributes() {
+        BeanTableSchema<ParameterizedDocumentBean> beanTableSchema = BeanTableSchema.create(ParameterizedDocumentBean.class);
+        ParameterizedAbstractBean<String> abstractBean1 = new ParameterizedAbstractBean<>();
+        abstractBean1.setAttribute2("two");
+        ParameterizedAbstractBean<String> abstractBean2 = new ParameterizedAbstractBean<>();
+        abstractBean2.setAttribute2("three");
+        ParameterizedDocumentBean documentBean = new ParameterizedDocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+
+        Map<String, ParameterizedAbstractBean<String>> abstractBeanMap = new HashMap<>();
+        abstractBeanMap.put("key1", abstractBean1);
+        abstractBeanMap.put("key2", abstractBean2);
+        documentBean.setAbstractBeanMap(abstractBeanMap);
+
+        AttributeValue expectedDocument1 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("two")))
+                                                         .build();
+        AttributeValue expectedDocument2 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("three")))
+                                                         .build();
+        Map<String, AttributeValue> expectedAttributeValueMap = new HashMap<>();
+        expectedAttributeValueMap.put("key1", expectedDocument1);
+        expectedAttributeValueMap.put("key2", expectedDocument2);
+        AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractBeanMap", expectedMap));
     }
 
     @Test
