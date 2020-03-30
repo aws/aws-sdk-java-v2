@@ -18,17 +18,28 @@ package software.amazon.awssdk.profiles;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Validate the functionality of {@link ProfileFile}.
  */
 public class ProfileFileTest {
+
+    @Rule
+    public TemporaryFolder tempDir = new TemporaryFolder();
+
     @Test
     public void emptyFilesHaveNoProfiles() {
         assertThat(configFileProfiles("")).isEmpty();
@@ -439,6 +450,108 @@ public class ProfileFileTest {
         ProfileFile.defaultProfileFile();
     }
 
+    @Test
+    public void profileFileChangedContentIsInputStream() {
+        ProfileFile profileFile = credentialFile("");
+
+        assertThat(profileFile.profileFileChanged()).isFalse();
+    }
+
+    @Test
+    public void profileFileChangedContentIsFile() throws IOException {
+        File file = tempDir.newFile();
+        ProfileFile profileFile = credentialFile(file.toPath());
+
+        assertThat(profileFile.profileFileChanged()).isFalse();
+
+        file.setLastModified(file.lastModified() + 60_000);
+
+        assertThat(profileFile.profileFileChanged()).isTrue();
+    }
+
+    @Test
+    public void profileFileChangedForAggregator() throws IOException {
+        File willNotChange = tempDir.newFile();
+        File willChange = tempDir.newFile();
+        ProfileFile inputStreamFile = credentialFile("");
+        ProfileFile fileThatWillNotChange = credentialFile(willNotChange.toPath());
+        ProfileFile fileThatWillChange = credentialFile(willChange.toPath());
+
+        ProfileFile profileFile = ProfileFile.aggregator()
+                                             .addFile(inputStreamFile)
+                                             .addFile(fileThatWillNotChange)
+                                             .addFile(fileThatWillChange)
+                                             .build();
+
+        assertThat(profileFile.profileFileChanged()).isFalse();
+
+        willChange.setLastModified(willChange.lastModified() + 60_000);
+
+        assertThat(profileFile.profileFileChanged()).isTrue();
+    }
+
+    @Test
+    public void reloadContentIsInputStream() {
+        ProfileFile profileFile = credentialFile("");
+
+        assertThat(profileFile).isSameAs(profileFile.reloadProfile());
+    }
+
+    @Test
+    public void reloadContentIsFile() throws IOException {
+        File file = tempDir.newFile();
+        Files.write(file.toPath(), Arrays.asList(
+            "[foo]",
+            "a=b"
+        ));
+        ProfileFile profileFile = credentialFile(file.toPath());
+
+        Files.write(file.toPath(), Arrays.asList(
+            "[bar]",
+            "x=y"
+        ));
+        ProfileFile reloadedProfileFile = profileFile.reloadProfile();
+
+        assertThat(profileFile).isNotSameAs(reloadedProfileFile);
+        assertThat(profileFile.profiles())
+            .isEqualTo(profiles(profile("foo", property("a", "b"))));
+        assertThat(reloadedProfileFile.profiles())
+            .isEqualTo(profiles(profile("bar", property("x", "y"))));
+    }
+
+    @Test
+    public void reloadForAggregator() throws IOException {
+        File willNotChange = tempDir.newFile();
+        File willChange = tempDir.newFile();
+        ProfileFile inputStreamFile = credentialFile("[foo]\na=b");
+        Files.write(willNotChange.toPath(), "[bar]\nx=y".getBytes());
+        ProfileFile fileThatWillNotChange = credentialFile(willNotChange.toPath());
+        Files.write(willChange.toPath(), "[baz]\n1=2".getBytes());
+        ProfileFile fileThatWillChange = credentialFile(willChange.toPath());
+
+        ProfileFile profileFile = ProfileFile.aggregator()
+                                             .addFile(inputStreamFile)
+                                             .addFile(fileThatWillNotChange)
+                                             .addFile(fileThatWillChange)
+                                             .build();
+
+        Files.write(willChange.toPath(), Arrays.asList(
+            "[qux]",
+            "z=d"
+        ));
+        ProfileFile reloadedProfileFile = profileFile.reloadProfile();
+
+        assertThat(profileFile).isNotSameAs(reloadedProfileFile);
+        assertThat(profileFile.profiles())
+            .isEqualTo(profiles(profile("foo", property("a", "b")),
+                                profile("bar", property("x", "y")),
+                                profile("baz", property("1", "2"))));
+        assertThat(reloadedProfileFile.profiles())
+            .isEqualTo(profiles(profile("foo", property("a", "b")),
+                                profile("bar", property("x", "y")),
+                                profile("qux", property("z", "d"))));
+    }
+
     private ProfileFile configFile(String configFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(configFile))
@@ -453,6 +566,13 @@ public class ProfileFileTest {
     private ProfileFile credentialFile(String credentialFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(credentialFile))
+                          .type(ProfileFile.Type.CREDENTIALS)
+                          .build();
+    }
+
+    private ProfileFile credentialFile(Path credentialFile) {
+        return ProfileFile.builder()
+                          .content(credentialFile)
                           .type(ProfileFile.Type.CREDENTIALS)
                           .build();
     }

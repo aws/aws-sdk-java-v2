@@ -41,57 +41,43 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 public final class ProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-    private final AwsCredentialsProvider credentialsProvider;
-    private final RuntimeException loadException;
+    private volatile AwsCredentialsProvider credentialsProvider;
+    private volatile RuntimeException loadException;
 
-    private final ProfileFile profileFile;
+    private volatile ProfileFile profileFile;
     private final String profileName;
 
     /**
      * @see #builder()
      */
     private ProfileCredentialsProvider(BuilderImpl builder) {
-        AwsCredentialsProvider credentialsProvider = null;
-        RuntimeException loadException = null;
-        ProfileFile profileFile = null;
-        String profileName = null;
+        this.profileName = builder.profileName != null ? builder.profileName
+                                                       : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+        // Load the profiles file
+        Supplier<ProfileFile> profileFileSupplier = () -> Optional.ofNullable(builder.profileFile)
+                                                                  .orElseGet(builder.defaultProfileFileLoader);
+        load(profileFileSupplier);
+    }
 
+    private void load(Supplier<ProfileFile> profileFileSupplier) {
         try {
-            profileName = builder.profileName != null ? builder.profileName
-                                                      : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
-
-            // Load the profiles file
-            profileFile = Optional.ofNullable(builder.profileFile)
-                                  .orElseGet(builder.defaultProfileFileLoader);
-
+            profileFile = profileFileSupplier.get();
             // Load the profile and credentials provider
-            String finalProfileName = profileName;
-            ProfileFile finalProfileFile = profileFile;
             credentialsProvider =
-                    profileFile.profile(profileName)
-                               .flatMap(p -> new ProfileCredentialsUtils(p, finalProfileFile::profile).credentialsProvider())
-                               .orElseThrow(() -> {
-                                   String errorMessage = String.format("Profile file contained no credentials for " +
-                                                                       "profile '%s': %s", finalProfileName, finalProfileFile);
-                                   return SdkClientException.builder().message(errorMessage).build();
-                               });
+                profileFile.profile(profileName)
+                           .flatMap(p -> new ProfileCredentialsUtils(p, profileFile::profile).credentialsProvider())
+                           .orElseThrow(() -> {
+                               String errorMessage = String.format("Profile file contained no credentials for " +
+                                                                   "profile '%s': %s", profileName, profileFile);
+                               return SdkClientException.builder().message(errorMessage).build();
+                           });
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
             // will only be raised on calls to getCredentials. We don't want to raise an exception here because it may be
             // expected (eg. in the default credential chain).
             loadException = e;
-        }
-
-        if (loadException != null) {
-            this.loadException = loadException;
-            this.credentialsProvider = null;
-            this.profileFile = null;
-            this.profileName = null;
-        } else {
-            this.loadException = null;
-            this.credentialsProvider = credentialsProvider;
-            this.profileFile = profileFile;
-            this.profileName = profileName;
+            profileFile = null;
+            credentialsProvider = null;
         }
     }
 
@@ -124,6 +110,13 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
     public AwsCredentials resolveCredentials() {
         if (loadException != null) {
             throw loadException;
+        }
+        if (profileFile.profileFileChanged()) {
+            synchronized (this) {
+                if (profileFile.profileFileChanged()) {
+                    load(profileFile::reloadProfile);
+                }
+            }
         }
         return credentialsProvider.resolveCredentials();
     }
