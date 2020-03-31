@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "description": "Added support for AWS Firewall Manager for WAFv2 and PermissionPolicy APIs for WAFv2."
+}
