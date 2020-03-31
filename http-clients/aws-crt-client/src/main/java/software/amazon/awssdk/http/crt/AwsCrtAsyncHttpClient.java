@@ -255,7 +255,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 HttpRequest crtRequest = toCrtRequest(uri, asyncRequest, crtToSdkAdapter);
 
                 // Submit the Request on this Connection
-                invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter));
+                invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate());
             });
 
         return requestFuture;
