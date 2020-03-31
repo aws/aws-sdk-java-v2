@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppConfig",
-    "description": "This release adds an event log to deployments. In the case of a deployment rollback, the event log details the rollback reason."
-}

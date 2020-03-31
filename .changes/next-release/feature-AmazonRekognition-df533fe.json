@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Rekognition",
-    "description": "This release adds DeleteProject and DeleteProjectVersion APIs to Amazon Rekognition Custom Labels."
-}

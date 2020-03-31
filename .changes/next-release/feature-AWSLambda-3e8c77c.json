@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "description": "AWS Lambda now supports .NET Core 3.1"
-}

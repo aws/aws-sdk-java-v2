@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "Add two enums for MongoDB connection: Added \"CONNECTION_URL\" to \"ConnectionPropertyKey\" and added \"MONGODB\" to \"ConnectionType\""
-}

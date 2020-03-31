@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Storage Gateway",
-    "description": "Adding audit logging support for SMB File Shares"
-}
