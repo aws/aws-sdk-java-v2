@@ -150,7 +150,7 @@ public final class StaticAttribute<T, R> {
     }
 
 
-    ResolvedStaticAttribute<T> resolve(AttributeConverterProvider attributeConverterProvider) {
+    ResolvedStaticAttribute<T, R> resolve(AttributeConverterProvider attributeConverterProvider) {
         return ResolvedStaticAttribute.create(this,
                                               StaticAttributeType.create(converterFrom(attributeConverterProvider)));
     }

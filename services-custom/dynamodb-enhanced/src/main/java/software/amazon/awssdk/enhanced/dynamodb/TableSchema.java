@@ -115,4 +115,12 @@ public interface TableSchema<T> {
      * @return The {@link EnhancedType} of the modelled item this TableSchema maps to.
      */
     EnhancedType<T> itemType();
+
+    /**
+     * Returns an attribute accessor from the modelled object.
+     *
+     * @param key The attribute name describing which attribute to obtain.
+     * @return A single {@link Attribute} for accessing the requested modelled attribute in the model object.
+     */
+    Attribute<T, ?> attribute(String key);
 }

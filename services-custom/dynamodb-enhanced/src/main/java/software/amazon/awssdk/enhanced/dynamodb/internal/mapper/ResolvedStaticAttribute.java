@@ -22,32 +22,32 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
-public final class ResolvedStaticAttribute<T> {
+public final class ResolvedStaticAttribute<T, R> implements software.amazon.awssdk.enhanced.dynamodb.Attribute<T, R> {
     private final String attributeName;
     private final Function<T, AttributeValue> getAttributeMethod;
     private final BiConsumer<T, AttributeValue> updateItemMethod;
     private final StaticTableMetadata tableMetadata;
-    private final AttributeValueType attributeValueType;
+    private final AttributeType<R> attributeType;
 
     private ResolvedStaticAttribute(String attributeName,
                                     Function<T, AttributeValue> getAttributeMethod,
                                     BiConsumer<T, AttributeValue> updateItemMethod,
                                     StaticTableMetadata tableMetadata,
-                                    AttributeValueType attributeValueType) {
+                                    AttributeType<R> attributeType) {
         this.attributeName = attributeName;
         this.getAttributeMethod = getAttributeMethod;
         this.updateItemMethod = updateItemMethod;
         this.tableMetadata = tableMetadata;
-        this.attributeValueType = attributeValueType;
+        this.attributeType = attributeType;
     }
 
-    public static <T, R> ResolvedStaticAttribute<T> create(StaticAttribute<T, R> staticAttribute,
+    public static <T, R> ResolvedStaticAttribute<T, R> create(StaticAttribute<T, R> staticAttribute,
                                                            AttributeType<R> attributeType) {
         Function<T, AttributeValue> getAttributeValueWithTransform = item -> {
             R value = staticAttribute.getter().apply(item);
@@ -78,21 +78,21 @@ public final class ResolvedStaticAttribute<T> {
                                              getAttributeValueWithTransform,
                                              updateItemWithTransform,
                                              tableMetadataBuilder.build(),
-                                             attributeType.attributeValueType());
+                                             attributeType);
     }
 
     /**
      * Return a transformed copy of this attribute that knows how to get/set from a different type of object given a
      * function that can convert the containing object itself. It does this by modifying the get/set functions of
-     * type T to type R given a transformation function F(T) = R.
+     * type T to type S given a transformation function F(T) = S.
      * @param transform A function that converts the object storing the attribute from the source type to the
      *                  destination type.
      * @param createComponent A consumer to create a new instance of the component object when required. A null value
      *                       will bypass this logic.
-     * @param <R> The type being transformed to.
-     * @return A new Attribute that be contained by an object of type R.
+     * @param <S> The type being transformed to.
+     * @return A new Attribute that be contained by an object of type S.
      */
-    public <R> ResolvedStaticAttribute<R> transform(Function<R, T> transform, Consumer<R> createComponent) {
+    public <S> ResolvedStaticAttribute<S, R> transform(Function<S, T> transform, Consumer<S> createComponent) {
         return new ResolvedStaticAttribute<>(
             attributeName,
             item -> {
@@ -110,21 +110,30 @@ public final class ResolvedStaticAttribute<T> {
                 updateItemMethod.accept(transform.apply(item), value);
             },
             tableMetadata,
-            attributeValueType);
+            attributeType);
     }
 
+    @Override
     public String attributeName() {
         return attributeName;
     }
 
+    @Override
+    public AttributeType<R> attributeType() {
+        return attributeType;
+    }
+
+    @Override
     public Function<T, AttributeValue> attributeGetterMethod() {
         return getAttributeMethod;
     }
 
+    @Override
     public BiConsumer<T, AttributeValue> updateItemMethod() {
         return updateItemMethod;
     }
 
+    @Override
     public StaticTableMetadata tableMetadata() {
         return tableMetadata;
     }
