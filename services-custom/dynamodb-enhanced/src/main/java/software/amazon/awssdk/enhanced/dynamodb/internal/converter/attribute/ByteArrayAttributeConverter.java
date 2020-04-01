@@ -63,7 +63,7 @@ public final class ByteArrayAttributeConverter implements AttributeConverter<byt
 
     @Override
     public AttributeValue transformFrom(byte[] input) {
-        return EnhancedAttributeValue.fromBytes(SdkBytes.fromByteArray(input)).toAttributeValue();
+        return AttributeValue.builder().b(SdkBytes.fromByteArray(input)).build();
     }
 
     @Override

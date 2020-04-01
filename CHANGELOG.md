@@ -1,3 +1,153 @@
+# __2.11.6__ __2020-03-31__
+## __AWS Elemental MediaStore__
+  - ### Features
+    - This release adds support for CloudWatch Metrics. You can now set a policy on your container to dictate which metrics MediaStore sends to CloudWatch.
+
+## __AWS Glue__
+  - ### Features
+    - Add two enums for MongoDB connection: Added "CONNECTION_URL" to "ConnectionPropertyKey" and added "MONGODB" to "ConnectionType"
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now supports .NET Core 3.1
+
+## __AWS OpsWorks CM__
+  - ### Features
+    - Documentation updates for OpsWorks-CM CreateServer values.
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for AWS Organizations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding audit logging support for SMB File Shares
+
+## __AWS WAFV2__
+  - ### Features
+    - Added support for AWS Firewall Manager for WAFv2 and PermissionPolicy APIs for WAFv2.
+
+## __Amazon AppConfig__
+  - ### Features
+    - This release adds an event log to deployments. In the case of a deployment rollback, the event log details the rollback reason.
+
+## __Amazon Detective__
+  - ### Features
+    - Removing the notes that Detective is in preview, in preparation for the Detective GA release.
+
+## __Amazon Elastic Inference__
+  - ### Features
+    - This release includes improvements for the Amazon Elastic Inference service.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release of the Amazon Pinpoint API introduces MMS support for SMS messages.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds DeleteProject and DeleteProjectVersion APIs to Amazon Rekognition Custom Labels.
+
+## __Firewall Management Service__
+  - ### Features
+    - This release contains FMS wafv2 support.
+
+# __2.11.5__ __2020-03-30__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for the creation and management of IAM Access Analyzer analyzers with type organization. An analyzer with type organization continuously monitors all supported resources within the AWS organization and reports findings when they allow access from outside the organization.
+
+# __2.11.4__ __2020-03-27__
+## __AWS Global Accelerator__
+  - ### Features
+    - This update adds an event history to the ListByoipCidr API call. This enables you to see the changes that you've made for an IP address range that you bring to AWS Global Accelerator through bring your own IP address (BYOIP).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Remove the `LimitExceededException` as a throttling error as it seems many services don't treat it as a throttling error.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Added "LocalRoleName" as an acceptable Parameter for Launch type in CreateConstraint and UpdateConstraint APIs
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - The Amazon Kendra Microsoft SharePoint data source now supports include and exclude regular expressions and change log features. Include and exclude regular expressions enable you to provide a list of regular expressions to match the display URL of SharePoint documents to either include or exclude documents respectively. When you enable the changelog feature it enables Amazon Kendra to use the SharePoint change log to determine which documents to update in the index.
+
+# __2.11.3__ __2020-03-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub has now made it easier to opt out of default standards when you enable Security Hub. We added a new Boolean parameter to EnableSecurityHub called EnableDefaultStandards. If that parameter is true, Security Hub's default standards are enabled. A new Boolean parameter for standards, EnabledByDefault, indicates whether a standard is a default standard. Today, the only default standard is CIS AWS Foundations Benchmark v1.2. Additional default standards will be added in the future.To learn more, visit our documentation on the EnableSecurityHub API action.
+
+## __Amazon FSx__
+  - ### Features
+    - This release includes two changes: a new lower-cost, storage type called HDD (Hard Disk Drive), and a new generation of the Single-AZ deployment type called Single AZ 2. The HDD storage type can be selected on Multi AZ 1 and Single AZ 2 deployment types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release updates Amazon Augmented AI CreateFlowDefinition API and DescribeFlowDefinition response.
+
+# __2.11.2__ __2020-03-25__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Customers can now receive Savings Plans recommendations at the member (linked) account level.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added a `defaultProfileFile` and `defaultProfileName` option to the client override configuration. Setting this configuration value is equivalent to setting the environment or system properties for the profile file and profile name. Specifically, it sets the default profile file and profile name used by the client.
+    - Reduced the number of times the profile file configuration is read from disk on client creation from 3-5 to 1.
+    - Updated service endpoint metadata.
+
+## __AWS X-Ray__
+  - ### Features
+    - GetTraceSummaries - Now provides additional root cause attribute ClientImpacting which indicates whether root cause impacted trace client.
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Amazon CloudWatch Application Insights for .NET and SQL Server now integrates with Amazon CloudWatch Events (AWS CodeDeploy, AWS Health and Amazon EC2 state changes). This feature enables customers to view events related to problems detected by CloudWatch Application Insights, and reduce mean-time-to-resolution (MTTR).
+
+## __Amazon Detective__
+  - ### Features
+    - The new ACCEPTED_BUT_DISABLED member account status indicates that a member account that accepted the invitation is blocked from contributing data to the behavior graph. The reason is provided in the new DISABLED_REASON property. The new StartMonitoringMember operation enables a blocked member account.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - When endpoint discovery is enabled, the endpoint discovery process is now initialized with the first request, instead of 60 seconds after the first request.
+
+  - ### Bugfixes
+    - Fixed an issue that could cause a null-pointer-exception when using anonymous credentials with endpoint discovery enabled.
+    - Fixed an issue where endpoint discovery configuration specified in the profile file was being ignored.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Bugfixes
+    - Performance improvements.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adding support for customer packages (dictionary files) to Amazon Elasticsearch Service
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - Amazon Managed Blockchain now has support to publish Hyperledger Fabric peer node, chaincode, and certificate authority (CA) logs to Amazon CloudWatch Logs.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed a bug where explicitly disabling use-arn-region on S3Configuration would have lower priority than the environment variable, system property or profile property.
+
 # __2.11.1__ __2020-03-24__
 ## __AWS Organizations__
   - ### Features

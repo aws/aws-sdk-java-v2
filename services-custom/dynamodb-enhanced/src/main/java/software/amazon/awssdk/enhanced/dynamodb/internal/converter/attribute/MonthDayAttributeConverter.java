@@ -81,7 +81,7 @@ public final class MonthDayAttributeConverter implements AttributeConverter<Mont
         String value = "" +
                        padLeft2(input.getMonthValue()) +
                        padLeft2(input.getDayOfMonth());
-        return EnhancedAttributeValue.fromNumber(value).toAttributeValue();
+        return AttributeValue.builder().n(value).build();
     }
 
     @Override

@@ -24,7 +24,6 @@ import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResp
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -33,6 +32,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInter
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.service.http.MockHttpClient;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Functional tests for various endpoint related behavior in S3.
@@ -341,8 +342,6 @@ public class S3EndpointResolutionTest {
     }
 
     @Test
-    // TODO: Enable this once the endpoints.json file is updated with the regional endpoint
-    @Ignore("Requires endpoints.json update")
     public void regionalSettingEnabled_usesRegionalIadEndpoint() throws UnsupportedEncodingException {
         EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
         environmentVariableHelper.set(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.environmentVariable(), "regional");
@@ -363,6 +362,32 @@ public class S3EndpointResolutionTest {
         } finally {
             environmentVariableHelper.reset();
         }
+    }
+
+    @Test
+    public void regionalSettingEnabledViaProfile_usesRegionalIadEndpoint() throws UnsupportedEncodingException {
+        String profile =
+            "[profile test]\n" +
+            "s3_us_east_1_regional_endpoint = regional";
+
+        ProfileFile profileFile = ProfileFile.builder()
+                                             .content(new StringInputStream(profile))
+                                             .type(ProfileFile.Type.CONFIGURATION)
+                                             .build();
+
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+
+        S3Client s3Client = S3Client.builder()
+                                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                    .httpClient(mockHttpClient)
+                                    .region(Region.US_EAST_1)
+                                    .overrideConfiguration(c -> c.defaultProfileFile(profileFile)
+                                                                 .defaultProfileName("test"))
+                                    .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
+                                    .build();
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.us-east-1.amazonaws.com");
     }
 
     @Test

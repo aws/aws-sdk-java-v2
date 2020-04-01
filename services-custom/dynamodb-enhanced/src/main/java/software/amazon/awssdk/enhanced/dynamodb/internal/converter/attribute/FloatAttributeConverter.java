@@ -72,7 +72,7 @@ public final class FloatAttributeConverter implements AttributeConverter<Float>,
     @Override
     public AttributeValue transformFrom(Float input) {
         ConverterUtils.validateFloat(input);
-        return EnhancedAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
     }
 
     @Override

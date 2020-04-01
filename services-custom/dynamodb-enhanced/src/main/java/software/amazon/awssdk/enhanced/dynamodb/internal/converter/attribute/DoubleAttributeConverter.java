@@ -72,7 +72,7 @@ public final class DoubleAttributeConverter implements AttributeConverter<Double
     @Override
     public AttributeValue transformFrom(Double input) {
         ConverterUtils.validateDouble(input);
-        return EnhancedAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
     }
 
     @Override

@@ -18,11 +18,11 @@ package software.amazon.awssdk.core.endpointdiscovery;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class EndpointDiscoveryRequest
     implements ToCopyableBuilder<EndpointDiscoveryRequest.Builder, EndpointDiscoveryRequest> {
 

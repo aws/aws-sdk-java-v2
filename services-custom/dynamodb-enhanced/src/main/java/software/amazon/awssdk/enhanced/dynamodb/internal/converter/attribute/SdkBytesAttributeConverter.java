@@ -63,7 +63,7 @@ public final class SdkBytesAttributeConverter implements AttributeConverter<SdkB
 
     @Override
     public AttributeValue transformFrom(SdkBytes input) {
-        return EnhancedAttributeValue.fromBytes(input).toAttributeValue();
+        return AttributeValue.builder().b(input).build();
     }
 
     @Override

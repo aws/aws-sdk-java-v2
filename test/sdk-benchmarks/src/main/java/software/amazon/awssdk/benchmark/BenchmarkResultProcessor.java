@@ -20,6 +20,7 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.compare;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,7 +77,16 @@ class BenchmarkResultProcessor {
             SdkBenchmarkResult sdkBenchmarkData = constructSdkBenchmarkResult(result);
 
             if (baselineResult == null) {
-                log.warn(() -> "Unable to find the baseline for " + benchmarkId + " Skipping regression validation");
+                log.warn(() -> {
+                    String benchmarkResultJson = null;
+                    try {
+                        benchmarkResultJson = OBJECT_MAPPER.writeValueAsString(sdkBenchmarkData);
+                    } catch (IOException e) {
+                        log.error(() -> "Unable to serialize result data to JSON");
+                    }
+                    return String.format("Unable to find the baseline for %s. Skipping regression validation. " +
+                            "Results were: %s", benchmarkId, benchmarkResultJson);
+                });
                 continue;
             }
 

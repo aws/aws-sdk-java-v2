@@ -36,6 +36,14 @@ import software.amazon.awssdk.benchmark.apicall.protocol.QueryProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.XmlProtocolBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetOverheadBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutOverheadBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientQueryV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientScanV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientUpdateV1MapperComparisonBenchmark;
 import software.amazon.awssdk.utils.Logger;
 
 
@@ -58,6 +66,17 @@ public class BenchmarkRunner {
         V2OptimizedClientCreationBenchmark.class.getSimpleName(),
         V2DefaultClientCreationBenchmark.class.getSimpleName());
 
+    private static final List<String> MAPPER_BENCHMARKS = Arrays.asList(
+            EnhancedClientGetOverheadBenchmark.class.getSimpleName(),
+            EnhancedClientPutOverheadBenchmark.class.getSimpleName(),
+            EnhancedClientGetV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientPutV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientUpdateV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientDeleteV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientScanV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientQueryV1MapperComparisonBenchmark.class.getSimpleName()
+    );
+
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
 
     private final List<String> benchmarksToRun;
@@ -74,6 +93,7 @@ public class BenchmarkRunner {
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
         benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
         benchmarksToRun.addAll(COLD_START_BENCHMARKS);
+        benchmarksToRun.addAll(MAPPER_BENCHMARKS);
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
 

@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -55,7 +56,7 @@ public class OptionalAttributeConverter<T> implements AttributeConverter<Optiona
     @Override
     public AttributeValue transformFrom(Optional<T> input) {
         if (!input.isPresent()) {
-            return EnhancedAttributeValue.nullValue().toAttributeValue();
+            return AttributeValues.nullAttributeValue();
         }
 
         return delegate.transformFrom(input.get());

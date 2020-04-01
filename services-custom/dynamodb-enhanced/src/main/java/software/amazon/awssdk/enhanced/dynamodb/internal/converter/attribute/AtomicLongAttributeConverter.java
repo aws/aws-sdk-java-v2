@@ -72,7 +72,7 @@ public final class AtomicLongAttributeConverter implements AttributeConverter<At
 
     @Override
     public AttributeValue transformFrom(AtomicLong input) {
-        return EnhancedAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toAttributeValue();
+        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
     }
 
     @Override

@@ -79,7 +79,7 @@ public final class InstantAsIntegerAttributeConverter implements AttributeConver
 
     @Override
     public AttributeValue transformFrom(Instant input) {
-        return TimeConversion.toIntegerAttributeValue(input).toAttributeValue();
+        return TimeConversion.toIntegerAttributeValue(input);
     }
 
     @Override
