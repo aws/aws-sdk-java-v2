@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
+import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
@@ -23,6 +25,8 @@ public class DocumentBean {
     private String id;
     private String attribute1;
     private AbstractBean abstractBean;
+    private List<AbstractBean> abstractBeanList;
+    private Map<String, AbstractBean> abstractBeanMap;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -44,5 +48,21 @@ public class DocumentBean {
     }
     public void setAbstractBean(AbstractBean abstractBean) {
         this.abstractBean = abstractBean;
+    }
+
+    public List<AbstractBean> getAbstractBeanList() {
+        return abstractBeanList;
+    }
+
+    public void setAbstractBeanList(List<AbstractBean> abstractBeanList) {
+        this.abstractBeanList = abstractBeanList;
+    }
+
+    public Map<String, AbstractBean> getAbstractBeanMap() {
+        return abstractBeanMap;
+    }
+
+    public void setAbstractBeanMap(Map<String, AbstractBean> abstractBeanMap) {
+        this.abstractBeanMap = abstractBeanMap;
     }
 }
