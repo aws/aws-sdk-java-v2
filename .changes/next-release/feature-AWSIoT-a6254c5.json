@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "description": "This release introduces Dimensions for AWS IoT Device Defender. Dimensions can be used in Security Profiles to collect and monitor fine-grained metrics."
+}
