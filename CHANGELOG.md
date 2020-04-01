@@ -1,3 +1,16 @@
+# __2.11.7__ __2020-04-01__
+## __AWS IoT__
+  - ### Features
+    - This release introduces Dimensions for AWS IoT Device Defender. Dimensions can be used in Security Profiles to collect and monitor fine-grained metrics.
+
+## __AWS MediaConnect__
+  - ### Features
+    - You can now send content from your virtual private cloud (VPC) to your MediaConnect flow without going over the public internet.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.11.6__ __2020-03-31__
 ## __AWS Elemental MediaStore__
   - ### Features
