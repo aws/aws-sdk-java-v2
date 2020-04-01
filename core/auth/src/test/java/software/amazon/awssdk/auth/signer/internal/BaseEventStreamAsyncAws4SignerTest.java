@@ -62,7 +62,7 @@ public class BaseEventStreamAsyncAws4SignerTest {
         byte[] first32 = Arrays.copyOf(payload, 32);
         String expectedPayloadString = BinaryUtils.toHex(first32);
         assertThat(BaseEventStreamAsyncAws4Signer.toDebugString(m, true))
-                .isEqualTo("Message = {headers={header1={42}, header2={false}, header3={\"Hello world\"}}, payload=" + expectedPayloadString + "}");
+                .isEqualTo("Message = {headers={header1={42}, header2={false}, header3={\"Hello world\"}}, payload=" + expectedPayloadString + "...}");
     }
 
     @Test
@@ -73,6 +73,17 @@ public class BaseEventStreamAsyncAws4SignerTest {
 
         String expectedPayloadString = BinaryUtils.toHex(payload);
         assertThat(BaseEventStreamAsyncAws4Signer.toDebugString(m, false))
+                .isEqualTo("Message = {headers={header1={42}, header2={false}, header3={\"Hello world\"}}, payload=" + expectedPayloadString + "}");
+    }
+
+    @Test
+    public void toDebugString_smallPayload_truncate_doesNotAddEllipsis() {
+        byte[] payload = new byte[8];
+        new Random().nextBytes(payload);
+        Message m = new Message(headers, payload);
+
+        String expectedPayloadString = BinaryUtils.toHex(payload);
+        assertThat(BaseEventStreamAsyncAws4Signer.toDebugString(m, true))
                 .isEqualTo("Message = {headers={header1={42}, header2={false}, header3={\"Hello world\"}}, payload=" + expectedPayloadString + "}");
     }
 }
