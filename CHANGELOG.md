@@ -1,3 +1,11 @@
+# __2.11.7__
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Added support for exposing attribute accessor and converters. 
+
+
+
 # __2.11.6__ __2020-03-31__
 ## __AWS Elemental MediaStore__
   - ### Features

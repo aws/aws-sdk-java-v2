@@ -36,6 +36,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.Attribute;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -169,6 +170,11 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
     @Override
     public EnhancedType<T> itemType() {
         return wrappedTableSchema.itemType();
+    }
+
+    @Override
+    public Attribute<T, ?> attribute(String key) {
+        return wrappedTableSchema.attribute(key);
     }
 
     private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass) {
