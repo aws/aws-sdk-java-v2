@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "description": "Amazon CloudWatch Contributor Insights adds support for tags and tagging on resource creation."
+}
