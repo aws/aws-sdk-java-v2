@@ -33,8 +33,10 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProviderResolver;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ResolvedStaticAttribute;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -69,9 +71,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 @SdkPublicApi
 public final class StaticTableSchema<T> implements TableSchema<T> {
-    private static final AttributeConverterProvider DEFAULT_ATTRIBUTE_CONVERTER =
-        AttributeConverterProvider.defaultProvider();
-
     private final List<ResolvedStaticAttribute<T>> attributeMappers;
     private final Supplier<T> newItemSupplier;
     private final Map<String, ResolvedStaticAttribute<T>> indexedMappers;
@@ -82,9 +81,8 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
     private StaticTableSchema(Builder<T> builder) {
         StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
 
-        this.attributeConverterProvider = builder.attributeConverterProvider != null ?
-                                          builder.attributeConverterProvider :
-                                          DEFAULT_ATTRIBUTE_CONVERTER;
+        this.attributeConverterProvider =
+                ConverterProviderResolver.resolveProviders(builder.attributeConverterProviders);
 
         // Resolve declared attributes and find converters for them
         Stream<ResolvedStaticAttribute<T>> attributesStream = builder.attributes == null ?
@@ -143,7 +141,8 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         private List<StaticAttribute<T, ?>> attributes;
         private Supplier<T> newItemSupplier;
         private List<StaticTableTag> tags;
-        private AttributeConverterProvider attributeConverterProvider;
+        private List<AttributeConverterProvider> attributeConverterProviders =
+            Collections.singletonList(ConverterProviderResolver.defaultConverterProvider());
 
         private Builder(Class<T> itemClass) {
             this.itemClass = itemClass;
@@ -282,17 +281,52 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         }
 
         /**
-         * A higher-precedence {@link AttributeConverterProvider} than the default one provided by the table schema.
-         * The {@link AttributeConverterProvider} must provide {@link AttributeConverter}s for all types used in the schema.
+         * Specifies the {@link AttributeConverterProvider}s to use with the table schema.
+         * The list of attribute converter providers must provide {@link AttributeConverter}s for all types used
+         * in the schema. The attribute converter providers will be loaded in the strict order they are supplied here.
          * <p>
-         * The table schema has a default, internal, AttributeConverterProvider which provides standard converters
-         * for most primitive and common Java types. Use custom AttributeConverterProvider when you have specific
-         * needs for type conversion that the defaults do not cover.
+         * Calling this method will override the default attribute converter provider
+         * {@link DefaultAttributeConverterProvider}, which provides standard converters for most primitive
+         * and common Java types, so that provider must included in the supplied list if it is to be
+         * used. Providing an empty list here will cause no providers to get loaded.
+         * <p>
+         * Adding one custom attribute converter provider and using the default as fallback:
+         * {@code
+         * builder.attributeConverterProviders(customAttributeConverter, AttributeConverterProvider.defaultProvider())
+         * }
+         *
+         * @param attributeConverterProviders a list of attribute converter providers to use with the table schema
          */
-        public Builder<T> attributeConverterProvider(AttributeConverterProvider attributeConverterProvider) {
-            this.attributeConverterProvider = attributeConverterProvider;
+        public Builder<T> attributeConverterProviders(AttributeConverterProvider... attributeConverterProviders) {
+            this.attributeConverterProviders = Arrays.asList(attributeConverterProviders);
             return this;
         }
+
+        /**
+         * Specifies the {@link AttributeConverterProvider}s to use with the table schema.
+         * The list of attribute converter providers must provide {@link AttributeConverter}s for all types used
+         * in the schema. The attribute converter providers will be loaded in the strict order they are supplied here.
+         * <p>
+         * Calling this method will override the default attribute converter provider
+         * {@link DefaultAttributeConverterProvider}, which provides standard converters
+         * for most primitive and common Java types, so that provider must included in the supplied list if it is to be
+         * used. Providing an empty list here will cause no providers to get loaded.
+         * <p>
+         * Adding one custom attribute converter provider and using the default as fallback:
+         * {@code
+         * List<AttributeConverterProvider> providers = new ArrayList<>(
+         *     customAttributeConverter,
+         *     AttributeConverterProvider.defaultProvider());
+         * builder.attributeConverterProviders(providers);
+         * }
+         *
+         * @param attributeConverterProviders a list of attribute converter providers to use with the table schema
+         */
+        public Builder<T> attributeConverterProviders(List<AttributeConverterProvider> attributeConverterProviders) {
+            this.attributeConverterProviders = new ArrayList<>(attributeConverterProviders);
+            return this;
+        }
+
 
         /**
          * Builds a {@link StaticTableSchema} based on the values this builder has been configured with
