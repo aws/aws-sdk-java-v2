@@ -1,0 +1,41 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"restjson",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"JsonProtocolTests",
+    "serviceFullName":"AWS DR Tools JSON Protocol Tests",
+    "serviceId":"Json Protocol Tests",
+    "signatureVersion":"v4",
+    "targetPrefix":"ProtocolTestsJsonRpcService",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "MapDeprecationFailure": {
+      "name": "MapDeprecationFailure",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "MapDeprecationFailureRequest"},
+      "output": {"shape": "String"}
+    }
+  },
+  "shapes":{
+    "MapDeprecationFailureRequest":{
+      "type": "structure",
+      "members": {
+        "CannotDeprecateMap":{"shape": "MapOfStringToString"}
+      }
+    },
+    "MapOfStringToString":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
+    },
+    "String":{"type":"string"}
+  }
+}

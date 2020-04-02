@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ final class RemoveUnusedShapes {
 
     public static Map<String, ShapeModel> removeUnusedShapes(IntermediateModel model) {
 
-        Map<String, ShapeModel> out = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> out = new HashMap<>();
         Map<String, ShapeModel> in = model.getShapes();
 
         for (OperationModel opModel : model.getOperations().values()) {
@@ -114,20 +114,20 @@ final class RemoveUnusedShapes {
     private static List<String> resolveMemberShapes(MemberModel member) {
 
         if (member == null) {
-            return new LinkedList<String>();
+            return new LinkedList<>();
         }
         if (member.getEnumType() != null) {
             return Collections.singletonList(member.getEnumType());
         } else if (member.isList()) {
             return resolveMemberShapes(member.getListModel().getListMemberModel());
         } else if (member.isMap()) {
-            List<String> memberShapes = new LinkedList<String>();
+            List<String> memberShapes = new LinkedList<>();
             memberShapes.addAll(resolveMemberShapes(member.getMapModel().getKeyModel()));
             memberShapes.addAll(resolveMemberShapes(member.getMapModel().getValueModel()));
             return memberShapes;
         } else if (member.isSimple()) {
             // member is scalar, do nothing
-            return new LinkedList<String>();
+            return new LinkedList<>();
         } else {
             // member is a structure.
             return Collections.singletonList(member.getVariable().getSimpleType());

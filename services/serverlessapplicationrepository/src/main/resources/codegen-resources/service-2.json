@@ -388,6 +388,34 @@
       } ],
       "documentation" : "<p>Sets the permission policy for an application. For the list of actions supported for this operation, see\n <a href=\"https://docs.aws.amazon.com/serverlessrepo/latest/devguide/access-control-resource-based.html#application-permissions\">Application \n Permissions</a>\n .</p>"
     },
+    "UnshareApplication" : {
+      "name" : "UnshareApplication",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/applications/{applicationId}/unshare",
+        "responseCode" : 204
+      },
+      "input" : {
+        "shape" : "UnshareApplicationRequest"
+      },
+      "errors" : [ {
+        "shape" : "NotFoundException",
+        "documentation" : "<p>The resource (for example, an access policy statement) specified in the request doesn't exist.</p>"
+      }, {
+        "shape" : "TooManyRequestsException",
+        "documentation" : "<p>The client is sending more than the allowed number of requests per unit of time.</p>"
+      }, {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>One of the parameters in the request is invalid.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>The AWS Serverless Application Repository service encountered an internal error.</p>"
+      }, {
+        "shape" : "ForbiddenException",
+        "documentation" : "<p>The client is not authenticated.</p>"
+      } ],
+      "documentation" : "<p>Unshares an application from an AWS Organization.</p><p>This operation can be called only from the organization's master account.</p>"
+    },
     "UpdateApplication" : {
       "name" : "UpdateApplication",
       "http" : {
@@ -453,6 +481,11 @@
           "locationName" : "homePageUrl",
           "documentation" : "<p>A URL with more information about the application, for example the location of your GitHub repository for the application.</p>"
         },
+        "IsVerifiedAuthor" : {
+          "shape" : "__boolean",
+          "locationName" : "isVerifiedAuthor",
+          "documentation" : "<p>Whether the author of this application has been verified. This means means that AWS has made a good faith review, as a reasonable and prudent service provider, of the information provided by the requester and has confirmed that the requester's identity is as claimed.</p>"
+        },
         "Labels" : {
           "shape" : "__listOf__string",
           "locationName" : "labels",
@@ -477,6 +510,11 @@
           "shape" : "__string",
           "locationName" : "spdxLicenseId",
           "documentation" : "<p>A valid identifier from https://spdx.org/licenses/.</p>"
+        },
+        "VerifiedAuthorUrl" : {
+          "shape" : "__string",
+          "locationName" : "verifiedAuthorUrl",
+          "documentation" : "<p>The URL to the public profile of a verified author. This URL is submitted by the author.</p>"
         },
         "Version" : {
           "shape" : "Version",
@@ -557,6 +595,11 @@
           "shape" : "__listOf__string",
           "locationName" : "actions",
           "documentation" : "<p>For the list of actions supported for this operation, see <a href=\"https://docs.aws.amazon.com/serverlessrepo/latest/devguide/access-control-resource-based.html#application-permissions\">Application \n Permissions</a>.</p>"
+        },
+        "PrincipalOrgIDs" : {
+          "shape" : "__listOf__string",
+          "locationName" : "principalOrgIDs",
+          "documentation" : "<p>An array of PrinciplalOrgIDs, which corresponds to AWS IAM <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html#principal-org-id\">aws:PrincipalOrgID</a> global condition key.</p>"
         },
         "Principals" : {
           "shape" : "__listOf__string",
@@ -899,6 +942,11 @@
           "locationName" : "homePageUrl",
           "documentation" : "<p>A URL with more information about the application, for example the location of your GitHub repository for the application.</p>"
         },
+        "IsVerifiedAuthor" : {
+          "shape" : "__boolean",
+          "locationName" : "isVerifiedAuthor",
+          "documentation" : "<p>Whether the author of this application has been verified. This means means that AWS has made a good faith review, as a reasonable and prudent service provider, of the information provided by the requester and has confirmed that the requester's identity is as claimed.</p>"
+        },
         "Labels" : {
           "shape" : "__listOf__string",
           "locationName" : "labels",
@@ -923,6 +971,11 @@
           "shape" : "__string",
           "locationName" : "spdxLicenseId",
           "documentation" : "<p>A valid identifier from https://spdx.org/licenses/.</p>"
+        },
+        "VerifiedAuthorUrl" : {
+          "shape" : "__string",
+          "locationName" : "verifiedAuthorUrl",
+          "documentation" : "<p>The URL to the public profile of a verified author. This URL is submitted by the author.</p>"
         },
         "Version" : {
           "shape" : "Version",
@@ -1366,6 +1419,11 @@
           "locationName" : "homePageUrl",
           "documentation" : "<p>A URL with more information about the application, for example the location of your GitHub repository for the application.</p>"
         },
+        "IsVerifiedAuthor" : {
+          "shape" : "__boolean",
+          "locationName" : "isVerifiedAuthor",
+          "documentation" : "<p>Whether the author of this application has been verified. This means means that AWS has made a good faith review, as a reasonable and prudent service provider, of the information provided by the requester and has confirmed that the requester's identity is as claimed.</p>"
+        },
         "Labels" : {
           "shape" : "__listOf__string",
           "locationName" : "labels",
@@ -1390,6 +1448,11 @@
           "shape" : "__string",
           "locationName" : "spdxLicenseId",
           "documentation" : "<p>A valid identifier from https://spdx.org/licenses/.</p>"
+        },
+        "VerifiedAuthorUrl" : {
+          "shape" : "__string",
+          "locationName" : "verifiedAuthorUrl",
+          "documentation" : "<p>The URL to the public profile of a verified author. This URL is submitted by the author.</p>"
         },
         "Version" : {
           "shape" : "Version",
@@ -1849,6 +1912,35 @@
         "httpStatusCode" : 429
       }
     },
+    "UnshareApplicationInput" : {
+      "type" : "structure",
+      "members" : {
+        "OrganizationId" : {
+          "shape" : "__string",
+          "locationName" : "organizationId",
+          "documentation" : "<p>The AWS Organization ID to unshare the application from.</p>"
+        }
+      },
+      "required" : [ "OrganizationId" ],
+      "documentation":"<p>Unshare application request.</p>"
+    },
+    "UnshareApplicationRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ApplicationId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "applicationId",
+          "documentation" : "<p>The Amazon Resource Name (ARN) of the application.</p>"
+        },
+        "OrganizationId" : {
+          "shape" : "__string",
+          "locationName" : "organizationId",
+          "documentation" : "<p>The AWS Organization ID to unshare the application from.</p>"
+        }
+      },
+      "required" : [ "ApplicationId", "OrganizationId" ]
+    },
     "UpdateApplicationInput" : {
       "type" : "structure",
       "members" : {
@@ -1955,6 +2047,11 @@
           "locationName" : "homePageUrl",
           "documentation" : "<p>A URL with more information about the application, for example the location of your GitHub repository for the application.</p>"
         },
+        "IsVerifiedAuthor" : {
+          "shape" : "__boolean",
+          "locationName" : "isVerifiedAuthor",
+          "documentation" : "<p>Whether the author of this application has been verified. This means means that AWS has made a good faith review, as a reasonable and prudent service provider, of the information provided by the requester and has confirmed that the requester's identity is as claimed.</p>"
+        },
         "Labels" : {
           "shape" : "__listOf__string",
           "locationName" : "labels",
@@ -1979,6 +2076,11 @@
           "shape" : "__string",
           "locationName" : "spdxLicenseId",
           "documentation" : "<p>A valid identifier from https://spdx.org/licenses/.</p>"
+        },
+        "VerifiedAuthorUrl" : {
+          "shape" : "__string",
+          "locationName" : "verifiedAuthorUrl",
+          "documentation" : "<p>The URL to the public profile of a verified author. This URL is submitted by the author.</p>"
         },
         "Version" : {
           "shape" : "Version",

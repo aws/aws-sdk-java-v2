@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -606,7 +606,6 @@ public final class StringUtils {
         return str.replaceFirst("(?i)" + prefix, replacement);
     }
 
-
     /**
      * Searches a string for the first occurrence of a character specified by a list of characters.
      * @param s The string to search.
@@ -624,5 +623,19 @@ public final class StringUtils {
         }
 
         return lowestIndex == Integer.MAX_VALUE ? null : s.charAt(lowestIndex);
+    }
+
+    /**
+     * Convert a string to boolean safely (as opposed to the less strict {@link Boolean#parseBoolean(String)}). If a customer
+     * specifies a boolean value it should be "true" or "false" (case insensitive) or an exception will be thrown.
+     */
+    public static boolean safeStringToBoolean(String value) {
+        if (value.equalsIgnoreCase("true")) {
+            return true;
+        } else if (value.equalsIgnoreCase("false")) {
+            return false;
+        }
+
+        throw new IllegalArgumentException("Value was defined as '" + value + "', but should be 'false' or 'true'");
     }
 }

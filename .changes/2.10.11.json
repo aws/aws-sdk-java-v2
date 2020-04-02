@@ -1,0 +1,16 @@
+{
+    "version": "2.10.11",
+    "date": "2019-11-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Added the web identity credentials provider to the default credential chain"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Savings Plans",
+            "description": "This is the first release of Savings Plans, a new flexible pricing model that offers low prices on Amazon EC2 and AWS Fargate usage."
+        }
+    ]
+}

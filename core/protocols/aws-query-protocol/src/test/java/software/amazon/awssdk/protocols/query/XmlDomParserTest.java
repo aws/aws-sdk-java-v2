@@ -1,3 +1,18 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
 package software.amazon.awssdk.protocols.query;
 
 
@@ -31,6 +46,22 @@ public class XmlDomParserTest {
             .hasSize(1);
         assertThat(element.getElementsByName("integerMember").get(0).textContent())
             .isEqualTo("42");
+    }
+
+    @Test
+    public void xmlWithAttributes_ParsedCorrectly() {
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                     + "<Struct xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"foo\" xsi:nil=\"bar\">"
+                     + " <stringMember>stringVal</stringMember>"
+                     + "</Struct>";
+        XmlElement element = XmlDomParser.parse(new StringInputStream(xml));
+        assertThat(element.elementName()).isEqualTo("Struct");
+        assertThat(element.children()).hasSize(1);
+        assertThat(element.getElementsByName("stringMember"))
+            .hasSize(1);
+        assertThat(element.attributes()).hasSize(2);
+        assertThat(element.getOptionalAttributeByName("xsi:type").get()).isEqualTo("foo");
+        assertThat(element.getOptionalAttributeByName("xsi:nil").get()).isEqualTo("bar");
     }
 
     @Test

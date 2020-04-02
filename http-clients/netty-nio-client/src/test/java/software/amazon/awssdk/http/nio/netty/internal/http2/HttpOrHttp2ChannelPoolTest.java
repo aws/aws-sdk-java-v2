@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,14 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
+
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -22,6 +30,8 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -30,19 +40,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
-
-import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 
 /**
  * Tests for {@link HttpOrHttp2ChannelPool}.
@@ -80,6 +80,34 @@ public class HttpOrHttp2ChannelPoolTest {
     @Test
     public void protocolConfigNotStarted_closeSucceeds() {
         httpOrHttp2ChannelPool.close();
+    }
+
+    @Test(timeout = 5_000)
+    public void invalidProtocolConfig_shouldFailPromise() throws Exception {
+        HttpOrHttp2ChannelPool invalidChannelPool = new HttpOrHttp2ChannelPool(mockDelegatePool,
+                                                            eventLoopGroup,
+                                                            4,
+                                                            new NettyConfiguration(AttributeMap.builder()
+                                                                                               .put(CONNECTION_ACQUIRE_TIMEOUT, Duration.ofSeconds(1))
+                                                                                               .put(MAX_PENDING_CONNECTION_ACQUIRES, 0)
+                                                                                               .build()));
+
+        Promise<Channel> acquirePromise = eventLoopGroup.next().newPromise();
+        when(mockDelegatePool.acquire()).thenReturn(acquirePromise);
+
+        Thread.sleep(500);
+
+        Channel channel = new MockChannel();
+        eventLoopGroup.register(channel);
+
+        channel.attr(PROTOCOL_FUTURE).set(CompletableFuture.completedFuture(Protocol.HTTP1_1));
+
+        acquirePromise.setSuccess(channel);
+
+        Future<Channel> p = invalidChannelPool.acquire();
+        assertThat(p.await().cause().getMessage()).contains("maxPendingAcquires: 0 (expected: >= 1)");
+        verify(mockDelegatePool).release(channel);
+        assertThat(channel.isOpen()).isFalse();
     }
 
     @Test

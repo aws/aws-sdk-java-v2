@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -641,6 +641,36 @@ public final class Validate {
         }
 
         return isPositive(duration, fieldName);
+    }
+
+    /**
+     * Asserts that the given boxed integer is positive (non-negative and non-zero) or null.
+     *
+     * @param num Boxed integer to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if positive or null.
+     */
+    public static Integer isPositiveOrNull(Integer num, String fieldName) {
+        if (num == null) {
+            return null;
+        }
+
+        return isPositive(num, fieldName);
+    }
+
+    /**
+     * Asserts that the given boxed long is positive (non-negative and non-zero) or null.
+     *
+     * @param num Boxed long to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if positive or null.
+     */
+    public static Long isPositiveOrNull(Long num, String fieldName) {
+        if (num == null) {
+            return null;
+        }
+
+        return isPositive(num, fieldName);
     }
 
     /**

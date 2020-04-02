@@ -1,0 +1,36 @@
+{
+    "version": "2.10.42",
+    "date": "2020-01-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "description": "This release adds support for Certificate Authority (CA) certificate identifier to managed databases in Amazon Lightsail."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "description": "Adds waiters for ImageScanComplete and LifecyclePolicyPreviewComplete"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "description": "Documentation updates for Amazon Lex."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "description": "Documentation updates for GetReservationUtilization for the Cost Explorer API."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix unmarshalling for models with xml attributes. See [#1488](https://github.com/aws/aws-sdk-java-v2/issues/1488)."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO Http Client",
+            "description": "Propagate exception properly when an exception is thrown from protocol initialization."
+        }
+    ]
+}

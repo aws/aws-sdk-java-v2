@@ -1,0 +1,36 @@
+## global variables used by the project
+#parse ("serviceMapping.vm")
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+## customize wafregional and dynamodbstreams because they reside in waf and dynamodb modules respectively.
+#if ($service == 'dynamodbstreams')
+    #set ($moduleName = 'dynamodb')
+    #set ($serviceClientPrefix = 'DynamoDbStreams')
+    #set ($servicePackage = 'dynamodb.streams')
+#elseif ($service == 'wafregional')
+    #set ($moduleName = 'waf')
+    #set ($serviceClientPrefix = 'WafRegional')
+    #set ($servicePackage = 'waf.regional')
+#else
+## map the serviceId to service package and service client class name
+    #set ( $servicePackage = $service)
+    #set ($moduleName = $service)
+    #set ( $serviceClientPrefix = $serviceMapping[$service])
+#end
+#set ( $serviceClientVariable = $serviceClientPrefix.substring(0,1).toLowerCase() + $serviceClientPrefix.substring(1))
+#set( $regionEnum = $region.replace("-", "_").toUpperCase() )
+## map the client module name to the client class name and pacakge name
+#if( $httpClient == 'url-connection-client')
+    #set ($httpClientClassName = 'UrlConnectionHttpClient')
+    #set ($httpClientPackageName = 'urlconnection.' + $httpClientClassName)
+    #set ($serviceClientClassName = $serviceClientPrefix + 'Client')
+#elseif ( $httpClient == 'apache-client')
+    #set ($httpClientClassName = 'ApacheHttpClient')
+    #set ($httpClientPackageName = 'apache.' + $httpClientClassName)
+    #set ($serviceClientClassName = $serviceClientPrefix + 'Client')
+#elseif ( $httpClient == 'netty-nio-client')
+    #set ($httpClientClassName = 'NettyNioAsyncHttpClient')
+    #set ($httpClientPackageName = 'nio.netty.' + $httpClientClassName)
+    #set ($serviceClientClassName = $serviceClientPrefix + 'AsyncClient')
+#end

@@ -1,0 +1,46 @@
+{
+    "version": "2.10.56",
+    "date": "2020-01-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "description": "Adding new error codes for Nodegroups in EKS"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2",
+            "description": "Adds EC2ThrottledException as a recognized throttling exception to be retried"
+        },
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks CM",
+            "description": "AWS OpsWorks for Chef Automate now supports in-place upgrade to Chef Automate 2. Eligible servers can be updated through the management console, CLI and APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "description": "Documentation updates for WorkSpaces"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "This release provides support for tagging Amazon ECS task sets for services using external deployment controllers."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Fix issue where DNS resolution for a host is only made once for the initial request to the host. If the DNS entries change for a hostname, the client will resolve the new address until the client is closed and recreated."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "description": "AWS DataSync now supports FSx for Windows File Server Locations"
+        }
+    ]
+}

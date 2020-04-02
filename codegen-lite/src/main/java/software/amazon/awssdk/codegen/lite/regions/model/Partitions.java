@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ public final class Partitions {
      */
     private List<Partition> partitions;
 
-    public Partitions() {}
+    public Partitions() {
+    }
 
     public Partitions(@JsonProperty(value = "version") String version,
                       @JsonProperty(value = "partitions") List<Partition> partitions) {

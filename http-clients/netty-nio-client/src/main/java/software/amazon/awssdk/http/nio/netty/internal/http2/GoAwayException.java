@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,11 +24,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * Exception thrown when a GOAWAY frame is sent by the service.
  */
 @SdkInternalApi
-class GoAwayException extends IOException {
+public class GoAwayException extends IOException {
     private final String message;
 
     GoAwayException(long errorCode, ByteBuf debugData) {
-        this.message = String.format("GOAWAY received. Error Code = %d, Debug Data = %s",
+        this.message = String.format("GOAWAY received from service, requesting this stream be closed. "
+                                     + "Error Code = %d, Debug Data = %s",
                                      errorCode, debugData.toString(StandardCharsets.UTF_8));
     }
 

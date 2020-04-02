@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ public final class AsyncResponseHandler<T> implements TransformingAsyncResponseH
         public void onNext(ByteBuffer byteBuffer) {
             try {
                 baos.write(BinaryUtils.copyBytesFrom(byteBuffer));
-                this.subscription.request(Long.MAX_VALUE);
+                this.subscription.request(1);
             } catch (IOException e) {
                 // Should never happen
                 streamFuture.completeExceptionally(e);

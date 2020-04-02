@@ -1,0 +1,31 @@
+{
+    "version": "2.11.0",
+    "date": "2020-03-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "description": "Adding new error code IamLimitExceeded for Nodegroups in EKS"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "description": "Documentation updates to reflect that the default timeout for integrations is now 30 seconds for HTTP APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updating dependency version: netty 4.1.42.Final -> 4.1.46.Final (contains the fix for reducing heap usage for netty client)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "description": "Documentation updates for Route 53."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Bump minor version to '2.11.0-SNAPSHOT' because of [#1692](https://github.com/aws/aws-sdk-java-v2/issues/1692)"
+        }
+    ]
+}

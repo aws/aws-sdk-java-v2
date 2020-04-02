@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,9 +31,24 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.internal.presigner.DefaultS3Presigner;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.presigner.model.AbortMultipartUploadPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploadPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
 
 /**
  * Enables signing an S3 {@link SdkRequest} so that it can be executed without requiring any additional authentication on the
@@ -261,6 +276,234 @@ public interface S3Presigner extends SdkPresigner {
         GetObjectPresignRequest.Builder builder = GetObjectPresignRequest.builder();
         request.accept(builder);
         return presignGetObject(builder.build());
+    }
+
+    /**
+     * Presign a {@link PutObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p/>
+     *
+     * <b>Example Usage</b>
+     * <p/>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Create a PutObjectRequest to be pre-signed
+     *     PutObjectRequest putObjectRequest = ...;
+     *
+     *     // Create a PutObjectPresignRequest to specify the signature duration
+     *     PutObjectPresignRequest putObjectPresignRequest =
+     *         PutObjectPresignRequest.builder()
+     *                                .signatureDuration(Duration.ofMinutes(10))
+     *                                .putObjectRequest(request)
+     *                                .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedPutObjectRequest presignedPutObjectRequest =
+     *         presigner.presignPutObject(putObjectPresignRequest);
+     * }
+     * </pre>
+     */
+    PresignedPutObjectRequest presignPutObject(PutObjectPresignRequest request);
+
+    /**
+     * Presign a {@link PutObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p />
+     * This is a shorter method of invoking {@link #presignPutObject(PutObjectPresignRequest)} without needing
+     * to call {@code PutObjectPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignPutObject(PutObjectPresignRequest)
+     */
+    default PresignedPutObjectRequest presignPutObject(Consumer<PutObjectPresignRequest.Builder> request) {
+        PutObjectPresignRequest.Builder builder = PutObjectPresignRequest.builder();
+        request.accept(builder);
+        return presignPutObject(builder.build());
+    }
+
+    /**
+     * Presign a {@link CreateMultipartUploadRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p/>
+     *
+     * <b>Example Usage</b>
+     * <p/>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Create a CreateMultipartUploadRequest to be pre-signed
+     *     CreateMultipartUploadRequest createMultipartUploadRequest = ...;
+     *
+     *     // Create a CreateMultipartUploadPresignRequest to specify the signature duration
+     *     CreateMultipartUploadPresignRequest createMultipartUploadPresignRequest =
+     *         CreateMultipartUploadPresignRequest.builder()
+     *                                            .signatureDuration(Duration.ofMinutes(10))
+     *                                            .createMultipartUploadRequest(request)
+     *                                            .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedCreateMultipartUploadRequest presignedCreateMultipartUploadRequest =
+     *         presigner.presignCreateMultipartUpload(createMultipartUploadPresignRequest);
+     * }
+     * </pre>
+     */
+    PresignedCreateMultipartUploadRequest presignCreateMultipartUpload(CreateMultipartUploadPresignRequest request);
+
+    /**
+     * Presign a {@link CreateMultipartUploadRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p />
+     * This is a shorter method of invoking {@link #presignCreateMultipartUpload(CreateMultipartUploadPresignRequest)} without
+     * needing to call {@code CreateMultipartUploadPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignCreateMultipartUpload(CreateMultipartUploadPresignRequest)
+     */
+    default PresignedCreateMultipartUploadRequest presignCreateMultipartUpload(
+        Consumer<CreateMultipartUploadPresignRequest.Builder> request) {
+        CreateMultipartUploadPresignRequest.Builder builder = CreateMultipartUploadPresignRequest.builder();
+        request.accept(builder);
+        return presignCreateMultipartUpload(builder.build());
+    }
+
+    /**
+     * Presign a {@link UploadPartRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p/>
+     *
+     * <b>Example Usage</b>
+     * <p/>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Create a UploadPartRequest to be pre-signed
+     *     UploadPartRequest uploadPartRequest = ...;
+     *
+     *     // Create a UploadPartPresignRequest to specify the signature duration
+     *     UploadPartPresignRequest uploadPartPresignRequest =
+     *         UploadPartPresignRequest.builder()
+     *                                 .signatureDuration(Duration.ofMinutes(10))
+     *                                 .uploadPartRequest(request)
+     *                                 .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedUploadPartRequest presignedUploadPartRequest =
+     *         presigner.presignUploadPart(uploadPartPresignRequest);
+     * }
+     * </pre>
+     */
+    PresignedUploadPartRequest presignUploadPart(UploadPartPresignRequest request);
+
+    /**
+     * Presign a {@link UploadPartRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p />
+     * This is a shorter method of invoking {@link #presignUploadPart(UploadPartPresignRequest)} without needing
+     * to call {@code UploadPartPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignUploadPart(UploadPartPresignRequest)
+     */
+    default PresignedUploadPartRequest presignUploadPart(Consumer<UploadPartPresignRequest.Builder> request) {
+        UploadPartPresignRequest.Builder builder = UploadPartPresignRequest.builder();
+        request.accept(builder);
+        return presignUploadPart(builder.build());
+    }
+
+    /**
+     * Presign a {@link CompleteMultipartUploadRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p/>
+     *
+     * <b>Example Usage</b>
+     * <p/>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Complete a CompleteMultipartUploadRequest to be pre-signed
+     *     CompleteMultipartUploadRequest completeMultipartUploadRequest = ...;
+     *
+     *     // Create a CompleteMultipartUploadPresignRequest to specify the signature duration
+     *     CompleteMultipartUploadPresignRequest completeMultipartUploadPresignRequest =
+     *         CompleteMultipartUploadPresignRequest.builder()
+     *                                              .signatureDuration(Duration.ofMinutes(10))
+     *                                              .completeMultipartUploadRequest(request)
+     *                                              .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedCompleteMultipartUploadRequest presignedCompleteMultipartUploadRequest =
+     *         presigner.presignCompleteMultipartUpload(completeMultipartUploadPresignRequest);
+     * }
+     * </pre>
+     */
+    PresignedCompleteMultipartUploadRequest presignCompleteMultipartUpload(CompleteMultipartUploadPresignRequest request);
+
+    /**
+     * Presign a {@link CompleteMultipartUploadRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p />
+     * This is a shorter method of invoking {@link #presignCompleteMultipartUpload(CompleteMultipartUploadPresignRequest)} without
+     * needing to call {@code CompleteMultipartUploadPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignCompleteMultipartUpload(CompleteMultipartUploadPresignRequest)
+     */
+    default PresignedCompleteMultipartUploadRequest presignCompleteMultipartUpload(
+        Consumer<CompleteMultipartUploadPresignRequest.Builder> request) {
+        CompleteMultipartUploadPresignRequest.Builder builder = CompleteMultipartUploadPresignRequest.builder();
+        request.accept(builder);
+        return presignCompleteMultipartUpload(builder.build());
+    }
+
+    /**
+     * Presign a {@link AbortMultipartUploadRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p/>
+     *
+     * <b>Example Usage</b>
+     * <p/>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Complete a AbortMultipartUploadRequest to be pre-signed
+     *     AbortMultipartUploadRequest abortMultipartUploadRequest = ...;
+     *
+     *     // Create a AbortMultipartUploadPresignRequest to specify the signature duration
+     *     AbortMultipartUploadPresignRequest abortMultipartUploadPresignRequest =
+     *         AbortMultipartUploadPresignRequest.builder()
+     *                                              .signatureDuration(Duration.ofMinutes(10))
+     *                                              .abortMultipartUploadRequest(request)
+     *                                              .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedAbortMultipartUploadRequest presignedAbortMultipartUploadRequest =
+     *         presigner.presignAbortMultipartUpload(abortMultipartUploadPresignRequest);
+     * }
+     * </pre>
+     */
+    PresignedAbortMultipartUploadRequest presignAbortMultipartUpload(AbortMultipartUploadPresignRequest request);
+
+    /**
+     * Presign a {@link AbortMultipartUploadRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p />
+     * This is a shorter method of invoking {@link #presignAbortMultipartUpload(AbortMultipartUploadPresignRequest)} without
+     * needing to call {@code AbortMultipartUploadPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignAbortMultipartUpload(AbortMultipartUploadPresignRequest)
+     */
+    default PresignedAbortMultipartUploadRequest presignAbortMultipartUpload(
+        Consumer<AbortMultipartUploadPresignRequest.Builder> request) {
+        AbortMultipartUploadPresignRequest.Builder builder = AbortMultipartUploadPresignRequest.builder();
+        request.accept(builder);
+        return presignAbortMultipartUpload(builder.build());
     }
 
     /**

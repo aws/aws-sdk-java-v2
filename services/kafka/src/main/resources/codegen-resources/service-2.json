@@ -483,6 +483,39 @@
       ],
       "documentation": "\n            <p>Returns a list of all the MSK configurations in this Region.</p>\n         "
     },
+    "ListKafkaVersions": {
+      "name": "ListKafkaVersions",
+      "http": {
+        "method": "GET",
+        "requestUri": "/v1/kafka-versions",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "ListKafkaVersionsRequest"
+      },
+      "output": {
+        "shape": "ListKafkaVersionsResponse"
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "\n            <p>The request isn't valid because the input is incorrect. Correct your input and then submit it again.</p>\n         "
+        },
+        {
+          "shape": "UnauthorizedException",
+          "documentation": "\n            <p>The request is not authorized. The provided credentials couldn't be validated.</p>\n         "
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "\n            <p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>\n         "
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "\n            <p>Access forbidden. Check your credentials and then retry your request.</p>\n         "
+        }
+      ],
+      "documentation": "\n            <p>Returns a list of Kafka versions.</p>\n         "
+    },
     "ListNodes": {
       "name": "ListNodes",
       "http": {
@@ -716,6 +749,38 @@
         }
       ],
       "documentation": "\n            <p>Updates the cluster with the configuration that is specified in the request body.</p>\n         "
+    },
+    "UpdateMonitoring" : {
+      "name" : "UpdateMonitoring",
+      "http" : {
+        "method" : "PUT",
+        "requestUri" : "/v1/clusters/{clusterArn}/monitoring",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UpdateMonitoringRequest"
+      },
+      "output" : {
+        "shape" : "UpdateMonitoringResponse",
+        "documentation" : "\n            <p>HTTP Status Code 200: OK.</p>\n         "
+      },
+      "errors" : [ {
+        "shape" : "ServiceUnavailableException",
+        "documentation" : "\n            <p>HTTP Status Code 503: Service Unavailable. Retrying your request in some time might resolve the issue.</p>\n         "
+      }, {
+        "shape" : "BadRequestException",
+        "documentation" : "\n            <p>HTTP Status Code 400: Bad request due to incorrect input. Correct your request and then retry it.</p>\n         "
+      }, {
+        "shape" : "UnauthorizedException",
+        "documentation" : "\n            <p>HTTP Status Code 401: Unauthorized request. The provided credentials couldn't be validated.</p>\n         "
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "\n            <p>HTTP Status Code 500: Unexpected internal server error. Retrying your request might resolve the issue.</p>\n         "
+      }, {
+        "shape" : "ForbiddenException",
+        "documentation" : "\n            <p>HTTP Status Code 403: Access forbidden. Correct your credentials and then retry your request.</p>\n         "
+      } ],
+      "documentation" : "\n            <p>Updates the monitoring settings for the cluster. You can use this operation to specify which Apache Kafka metrics you want Amazon MSK to send to Amazon CloudWatch. You can also specify settings for open monitoring with Prometheus.</p>\n         "
     }
   },
   "shapes": {
@@ -765,6 +830,23 @@
         "VolumeSizeGB",
         "KafkaBrokerNodeId"
       ]
+    },
+    "BrokerLogs": {
+      "type": "structure",
+      "members": {
+        "CloudWatchLogs": {
+          "shape": "CloudWatchLogs",
+          "locationName": "cloudWatchLogs"
+        },
+        "Firehose": {
+          "shape": "Firehose",
+          "locationName": "firehose"
+        },
+        "S3": {
+          "shape": "S3",
+          "locationName": "s3"
+        }
+      }
     },
     "BrokerNodeGroupInfo": {
       "type": "structure",
@@ -878,6 +960,20 @@
         "PLAINTEXT"
       ]
     },
+    "CloudWatchLogs" : {
+      "type" : "structure",
+      "members" : {
+        "Enabled" : {
+          "shape" : "__boolean",
+          "locationName" : "enabled"
+        },
+        "LogGroup" : {
+          "shape" : "__string",
+          "locationName" : "logGroup"
+        }
+      },
+      "required" : [ "Enabled" ]
+    },
     "ClusterInfo": {
       "type": "structure",
       "members": {
@@ -931,6 +1027,15 @@
           "locationName": "enhancedMonitoring",
           "documentation": "\n            <p>Specifies which metrics are gathered for the MSK cluster. This property has three possible values: DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER. For a list of the metrics associated with each of these three levels of monitoring, see <a href=\"https://docs.aws.amazon.com/msk/latest/developerguide/monitoring.html\">Monitoring</a>.</p>\n         "
         },
+        "OpenMonitoring" : {
+          "shape" : "OpenMonitoring",
+          "locationName" : "openMonitoring",
+          "documentation" : "\n            <p>Settings for open monitoring using Prometheus.</p>\n         "
+        },
+        "LoggingInfo": {
+          "shape": "LoggingInfo",
+          "locationName": "loggingInfo"
+         },
         "NumberOfBrokerNodes": {
           "shape": "__integer",
           "locationName": "numberOfBrokerNodes",
@@ -940,6 +1045,10 @@
           "shape": "ClusterState",
           "locationName": "state",
           "documentation": "\n            <p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>\n         "
+        },
+        "StateInfo" : {
+          "shape" : "StateInfo",
+          "locationName" : "stateInfo"
         },
         "Tags": {
           "shape": "__mapOf__string",
@@ -1163,11 +1272,20 @@
           "locationName": "enhancedMonitoring",
           "documentation": "\n            <p>Specifies the level of monitoring for the MSK cluster. The possible values are DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER.</p>\n         "
         },
+        "OpenMonitoring" : {
+          "shape" : "OpenMonitoringInfo",
+          "locationName" : "openMonitoring",
+          "documentation" : "\n            <p>The settings for open monitoring.</p>\n         "
+        },
         "KafkaVersion": {
           "shape": "__stringMin1Max128",
           "locationName": "kafkaVersion",
           "documentation": "\n            <p>The version of Apache Kafka.</p>\n         "
         },
+        "LoggingInfo": {
+          "shape": "LoggingInfo",
+          "locationName": "loggingInfo"
+         },
         "NumberOfBrokerNodes": {
           "shape": "__integerMin1Max15",
           "locationName": "numberOfBrokerNodes",
@@ -1542,6 +1660,20 @@
       },
       "documentation": "\n            <p>Returns information about an error state of the cluster.</p>\n         "
     },
+    "Firehose" : {
+      "type" : "structure",
+      "members" : {
+        "DeliveryStream" : {
+          "shape" : "__string",
+          "locationName" : "deliveryStream"
+        },
+        "Enabled" : {
+          "shape" : "__boolean",
+          "locationName" : "enabled"
+        }
+      },
+      "required" : [ "Enabled" ]
+    },
     "ForbiddenException": {
       "type": "structure",
       "members": {
@@ -1610,6 +1742,26 @@
       "error": {
         "httpStatusCode": 500
       }
+    },
+    "KafkaVersion": {
+      "type": "structure",
+      "members": {
+        "Version": {
+          "shape": "__string",
+          "locationName": "version"
+        },
+        "Status": {
+          "shape": "KafkaVersionStatus",
+          "locationName": "status"
+        }
+      }
+    },
+    "KafkaVersionStatus": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "DEPRECATED"
+      ]
     },
     "ListClusterOperationsRequest": {
       "type": "structure",
@@ -1763,6 +1915,36 @@
         }
       }
     },
+    "ListKafkaVersionsRequest": {
+      "type": "structure",
+      "members": {
+        "MaxResults": {
+          "shape": "MaxResults",
+          "location": "querystring",
+          "locationName": "maxResults",
+          "documentation": "\n            <p>The maximum number of results to return in the response. If there are more results, the response includes a NextToken parameter.</p>"
+        },
+        "NextToken": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "nextToken",
+          "documentation": "\n            <p>The paginated results marker. When the result of the operation is truncated, the call returns NextToken in the response. To get the next batch, provide this token in your next request.</p>"
+        }
+      }
+    },
+    "ListKafkaVersionsResponse": {
+      "type": "structure",
+      "members": {
+        "KafkaVersions": {
+          "shape": "__listOfKafkaVersion",
+          "locationName": "kafkaVersions"
+        },
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken"
+        }
+      }
+    },
     "ListNodesRequest": {
       "type": "structure",
       "members": {
@@ -1833,6 +2015,16 @@
       "min": 1,
       "max": 100
     },
+    "LoggingInfo": {
+      "type": "structure",
+      "members": {
+        "BrokerLogs": {
+          "shape": "BrokerLogs",
+          "locationName": "brokerLogs"
+        }
+      },
+      "required": [ "BrokerLogs" ]
+    },
     "MutableClusterInfo": {
       "type": "structure",
       "members": {
@@ -1850,9 +2042,145 @@
           "shape": "__integer",
           "locationName": "numberOfBrokerNodes",
           "documentation": "\n            <p>The number of broker nodes in the cluster.</p>\n         "
-        }
+        },
+        "EnhancedMonitoring" : {
+          "shape" : "EnhancedMonitoring",
+          "locationName" : "enhancedMonitoring",
+          "documentation" : "\n            <p>Specifies which Apache Kafka metrics Amazon MSK gathers and sends to Amazon CloudWatch for this cluster.</p>\n         "
+        },
+        "OpenMonitoring" : {
+          "shape" : "OpenMonitoring",
+          "locationName" : "openMonitoring",
+          "documentation" : "\n            <p>The settings for open monitoring.</p>\n         "
+        },
+        "LoggingInfo": {
+          "shape": "LoggingInfo",
+          "locationName": "loggingInfo"
+         }
       },
       "documentation": "\n            <p>Information about cluster attributes that can be updated via update APIs.</p>\n         "
+    },
+    "NodeExporter" : {
+      "type" : "structure",
+      "members" : {
+        "EnabledInBroker" : {
+          "shape" : "__boolean",
+          "locationName" : "enabledInBroker",
+          "documentation" : "\n            <p>Indicates whether you want to enable or disable the Node Exporter.</p>\n         "
+        }
+      },
+      "documentation" : "\n            <p>Indicates whether you want to enable or disable the Node Exporter.</p>\n         ",
+      "required" : [ "EnabledInBroker" ]
+    },
+    "NodeExporterInfo" : {
+      "type" : "structure",
+      "members" : {
+        "EnabledInBroker" : {
+          "shape" : "__boolean",
+          "locationName" : "enabledInBroker",
+          "documentation" : "\n            <p>Indicates whether you want to enable or disable the Node Exporter.</p>\n         "
+        }
+      },
+      "documentation" : "\n            <p>Indicates whether you want to enable or disable the Node Exporter.</p>\n         ",
+      "required" : [ "EnabledInBroker" ]
+    },
+    "JmxExporter" : {
+      "type" : "structure",
+      "members" : {
+        "EnabledInBroker" : {
+          "shape" : "__boolean",
+          "locationName" : "enabledInBroker",
+          "documentation" : "\n            <p>Indicates whether you want to enable or disable the JMX Exporter.</p>\n         "
+        }
+      },
+      "documentation" : "\n            <p>Indicates whether you want to enable or disable the JMX Exporter.</p>\n         ",
+      "required" : [ "EnabledInBroker" ]
+    },
+    "JmxExporterInfo" : {
+      "type" : "structure",
+      "members" : {
+        "EnabledInBroker" : {
+          "shape" : "__boolean",
+          "locationName" : "enabledInBroker",
+          "documentation" : "\n            <p>Indicates whether you want to enable or disable the JMX Exporter.</p>\n         "
+        }
+      },
+      "documentation" : "\n            <p>Indicates whether you want to enable or disable the JMX Exporter.</p>\n         ",
+      "required" : [ "EnabledInBroker" ]
+    },
+    "OpenMonitoring" : {
+      "type" : "structure",
+      "members" : {
+        "Prometheus" : {
+          "shape" : "Prometheus",
+          "locationName" : "prometheus",
+          "documentation" : "\n            <p>Prometheus settings.</p>\n         "
+        }
+      },
+      "documentation" : "\n            <p>JMX and Node monitoring for the MSK cluster.</p>\n         ",
+      "required" : [ "Prometheus" ]
+    },
+    "OpenMonitoringInfo" : {
+      "type" : "structure",
+      "members" : {
+        "Prometheus" : {
+          "shape" : "PrometheusInfo",
+          "locationName" : "prometheus",
+          "documentation" : "\n            <p>Prometheus settings.</p>\n         "
+        }
+      },
+      "documentation" : "\n            <p>JMX and Node monitoring for the MSK cluster.</p>\n         ",
+      "required" : [ "Prometheus" ]
+    },
+    "Prometheus" : {
+      "type" : "structure",
+      "members" : {
+        "JmxExporter" : {
+          "shape" : "JmxExporter",
+          "locationName" : "jmxExporter",
+          "documentation" : "\n            <p>Indicates whether you want to enable or disable the JMX Exporter.</p>\n         "
+        },
+        "NodeExporter" : {
+          "shape" : "NodeExporter",
+          "locationName" : "nodeExporter",
+          "documentation" : "\n            <p>Indicates whether you want to enable or disable the Node Exporter.</p>\n         "
+        }
+      },
+      "documentation" : "\n            <p>Prometheus settings.</p>\n         "
+    },
+    "PrometheusInfo" : {
+      "type" : "structure",
+      "members" : {
+        "JmxExporter" : {
+          "shape" : "JmxExporterInfo",
+          "locationName" : "jmxExporter",
+          "documentation" : "\n            <p>Indicates whether you want to enable or disable the JMX Exporter.</p>\n         "
+        },
+        "NodeExporter" : {
+          "shape" : "NodeExporterInfo",
+          "locationName" : "nodeExporter",
+          "documentation" : "\n            <p>Indicates whether you want to enable or disable the Node Exporter.</p>\n         "
+        }
+      },
+      "documentation" : "\n            <p>Prometheus settings.</p>\n         "
+    },
+    "S3" : {
+      "type" : "structure",
+      "members" : {
+        "Bucket" : {
+          "shape" : "__string",
+          "locationName" : "bucket"
+        },
+        "Enabled" : {
+          "shape" : "__boolean",
+          "locationName" : "enabled"
+        },
+        "Prefix" : {
+          "shape" : "__string",
+          "locationName" : "prefix"
+        }
+      },
+      "required" : [ "Enabled" ]
     },
     "NodeInfo": {
       "type": "structure",
@@ -1935,6 +2263,19 @@
       "exception": true,
       "error": {
         "httpStatusCode": 503
+      }
+    },
+    "StateInfo" : {
+      "type" : "structure",
+      "members" : {
+        "Code" : {
+          "shape" : "__string",
+          "locationName" : "code"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message"
+        }
       }
     },
     "StorageInfo": {
@@ -2163,6 +2504,53 @@
         }
       }
     },
+    "UpdateMonitoringRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterArn" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "clusterArn",
+          "documentation" : "\n            <p>The Amazon Resource Name (ARN) that uniquely identifies the cluster.</p>\n         "
+        },
+        "CurrentVersion" : {
+          "shape" : "__string",
+          "locationName" : "currentVersion",
+          "documentation" : "\n            <p>The version of the MSK cluster to update. Cluster versions aren't simple numbers. You can describe an MSK cluster to find its version. When this update operation is successful, it generates a new cluster version.</p>\n         "
+        },
+        "EnhancedMonitoring" : {
+          "shape" : "EnhancedMonitoring",
+          "locationName" : "enhancedMonitoring",
+          "documentation" : "\n            <p>Specifies which Apache Kafka metrics Amazon MSK gathers and sends to Amazon CloudWatch for this cluster.</p>\n         "
+        },
+        "OpenMonitoring" : {
+          "shape" : "OpenMonitoringInfo",
+          "locationName" : "openMonitoring",
+          "documentation" : "\n            <p>The settings for open monitoring.</p>\n         "
+        },
+        "LoggingInfo": {
+          "shape": "LoggingInfo",
+          "locationName": "loggingInfo"
+        }
+      },
+      "documentation" : "Request body for UpdateMonitoring.",
+      "required" : [ "ClusterArn", "CurrentVersion" ]
+    },
+    "UpdateMonitoringResponse" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterArn" : {
+          "shape" : "__string",
+          "locationName" : "clusterArn",
+          "documentation" : "\n            <p>The Amazon Resource Name (ARN) of the cluster.</p>\n         "
+        },
+        "ClusterOperationArn" : {
+          "shape" : "__string",
+          "locationName" : "clusterOperationArn",
+          "documentation" : "\n            <p>The Amazon Resource Name (ARN) of the cluster operation.</p>\n         "
+        }
+      }
+    },
     "ZookeeperNodeInfo": {
       "type": "structure",
       "members": {
@@ -2244,6 +2632,12 @@
       "type": "list",
       "member": {
         "shape": "ConfigurationRevision"
+      }
+    },
+    "__listOfKafkaVersion": {
+      "type": "list",
+      "member": {
+        "shape": "KafkaVersion"
       }
     },
     "__listOfNodeInfo": {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatch;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatchFinally;
 
-import com.typesafe.netty.http.HttpStreamsClientHandler;
-import com.typesafe.netty.http.StreamedHttpResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -60,6 +58,8 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpResponse;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.async.DelegatingSubscription;
 
@@ -382,11 +382,11 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private void notifyIfResponseNotCompleted(ChannelHandlerContext handlerCtx) {
         RequestContext requestCtx = handlerCtx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
-        boolean lastHttpContentReceived = handlerCtx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).get();
+        Boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
+        Boolean lastHttpContentReceived = handlerCtx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).get();
         handlerCtx.channel().attr(KEEP_ALIVE).set(false);
 
-        if (!responseCompleted && !lastHttpContentReceived) {
+        if (!Boolean.TRUE.equals(responseCompleted) && !Boolean.TRUE.equals(lastHttpContentReceived)) {
             IOException err = new IOException("Server failed to send complete response");
             runAndLogError("Fail to execute SdkAsyncHttpResponseHandler#onError", () -> requestCtx.handler().onError(err));
             executeFuture(handlerCtx).completeExceptionally(err);

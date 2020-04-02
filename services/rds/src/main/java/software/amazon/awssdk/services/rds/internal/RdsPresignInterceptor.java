@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -48,11 +48,13 @@ import software.amazon.awssdk.services.rds.model.RdsRequest;
 @SdkInternalApi
 public abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionInterceptor {
 
+    private static final URI CUSTOM_ENDPOINT_LOCALHOST = URI.create("http://localhost");
+
     protected static final AwsQueryProtocolFactory PROTOCOL_FACTORY = AwsQueryProtocolFactory
         .builder()
         // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
         .clientConfiguration(SdkClientConfiguration.builder()
-                                                   .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                                   .option(SdkClientOption.ENDPOINT, CUSTOM_ENDPOINT_LOCALHOST)
                                                    .build())
         .build();
 

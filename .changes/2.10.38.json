@@ -1,0 +1,31 @@
+{
+    "version": "2.10.38",
+    "date": "2019-12-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "description": "Updates Amazon S3 endpoints allowing you to configure your client to opt-in to using S3 with the us-east-1 regional endpoint, instead of global."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "description": "Documentation updates for resourcegroupstaggingapi"
+        },
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks CM",
+            "description": "AWS OpsWorks CM now supports tagging, and tag-based access control, of servers and backups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release introduces the ability to tag Elastic Graphics accelerators. You can use tags to organize and identify your accelerators for cost allocation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "description": "Documentation updates for CloudFront"
+        }
+    ]
+}

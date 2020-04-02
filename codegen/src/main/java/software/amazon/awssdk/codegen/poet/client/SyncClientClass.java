@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -167,8 +167,9 @@ public class SyncClientClass implements ClassSpec {
                                                        .addAnnotation(Override.class)
                                                        .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
                                                        .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
-                                                       .addCode(protocolSpec.responseHandler(model, opModel))
-                                                       .addCode(protocolSpec.errorResponseHandler(opModel));
+                                                       .addCode(protocolSpec.responseHandler(model, opModel));
+
+        protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);
 
         if (opModel.getEndpointDiscovery() != null) {
             method.addStatement("$T cachedEndpoint = null", URI.class);
@@ -234,7 +235,7 @@ public class SyncClientClass implements ClassSpec {
                          .addAnnotation(Override.class)
                          .addStatement("return $T.create($L)",
                                        returnType,
-                                       config.getCreateMethodParams().stream().collect(Collectors.joining(",")))
+                                       String.join(",", config.getCreateMethodParams()))
                          .build();
     }
 

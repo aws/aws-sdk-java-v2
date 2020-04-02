@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,13 +17,15 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.http2.PingTracker;
 
 /**
  * Keys for attributes attached via {@link io.netty.channel.Channel#attr(AttributeKey)}.
@@ -38,16 +40,32 @@ public final class ChannelAttributeKey {
         "aws.http.nio.netty.async.protocolFuture");
 
     /**
-     * Reference to {@link MultiplexedChannelRecord} which stores information about leased streams for a multiplexed connection.
+     * Reference to {@link Http2MultiplexedChannelPool} which stores information about leased streams for a multiplexed
+     * connection.
      */
-    public static final AttributeKey<MultiplexedChannelRecord> CHANNEL_POOL_RECORD = AttributeKey.newInstance(
-        "aws.http.nio.netty.async.channelPoolRecord");
+    public static final AttributeKey<Http2MultiplexedChannelPool> HTTP2_MULTIPLEXED_CHANNEL_POOL = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.http2MultiplexedChannelPool");
+
+    public static final AttributeKey<PingTracker> PING_TRACKER =
+        AttributeKey.newInstance("aws.http.nio.netty.async.h2.pingTracker");
+
+    public static final AttributeKey<Http2Connection> HTTP2_CONNECTION =
+        AttributeKey.newInstance("aws.http.nio.netty.async.http2Connection");
+
+    public static final AttributeKey<Integer> HTTP2_INITIAL_WINDOW_SIZE =
+        AttributeKey.newInstance("aws.http.nio.netty.async.http2InitialWindowSize");
 
     /**
      * Value of the MAX_CONCURRENT_STREAMS from the server's SETTING frame.
      */
     public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = AttributeKey.newInstance(
         "aws.http.nio.netty.async.maxConcurrentStreams");
+
+    /**
+     * {@link AttributeKey} to keep track of whether we should close the connection after this request
+     * has completed.
+     */
+    static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
 
     /**
      * Attribute key for {@link RequestContext}.
@@ -72,12 +90,6 @@ public final class ChannelAttributeKey {
 
     static final AttributeKey<Long> EXECUTION_ID_KEY = AttributeKey.newInstance(
             "aws.http.nio.netty.async.executionId");
-
-    /**
-     * {@link AttributeKey} to keep track of whether we should close the connection after this request
-     * has completed.
-     */
-    static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
 
     /**
      * Whether the channel is still in use

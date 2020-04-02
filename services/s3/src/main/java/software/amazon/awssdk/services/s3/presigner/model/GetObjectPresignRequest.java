@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -129,7 +129,8 @@ public final class GetObjectPresignRequest
     private static final class DefaultBuilder extends PresignRequest.DefaultBuilder<DefaultBuilder> implements Builder {
         private GetObjectRequest getObjectRequest;
 
-        private DefaultBuilder() {}
+        private DefaultBuilder() {
+        }
 
         private DefaultBuilder(GetObjectPresignRequest request) {
             super(request);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class EnableTrailingChecksumInterceptor implements ExecutionInterceptor {
@@ -60,7 +61,11 @@ public final class EnableTrailingChecksumInterceptor implements ExecutionInterce
 
         if (getObjectChecksumEnabledPerResponse(context.request(), httpResponse)) {
             GetObjectResponse getResponse = (GetObjectResponse) response;
-            return getResponse.toBuilder().contentLength(getResponse.contentLength() - S3_MD5_CHECKSUM_LENGTH).build();
+            Long contentLength = getResponse.contentLength();
+            Validate.notNull(contentLength, "Service returned null 'Content-Length'.");
+            return getResponse.toBuilder()
+                              .contentLength(contentLength - S3_MD5_CHECKSUM_LENGTH)
+                              .build();
         }
 
         return response;

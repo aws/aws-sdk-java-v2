@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ public class XmlNamespaceModelTest {
     private static void setUp() throws IOException {
         File serviceModelFile = new File(XmlNamespaceModelTest.class.getResource("xmlnamespace/service-2.json")
                                                                .getFile());
-        File configFile = new File(AwsModelSpecTest.class
-                                       .getResource("customization.config")
+        File configFile = new File(XmlNamespaceModelTest.class
+                                       .getResource("xmlnamespace/customization.config")
                                        .getFile());
 
         intermediateModel = new IntermediateModelBuilder(

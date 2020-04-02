@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -93,34 +93,31 @@ public final class SimpleTypeJsonMarshaller {
         }
     };
 
-    public static final JsonMarshaller<Instant> INSTANT = new JsonMarshaller<Instant>() {
-        @Override
-        public void marshall(Instant val, JsonMarshallerContext context, String paramName, SdkField<Instant> sdkField) {
-            StructuredJsonGenerator jsonGenerator = context.jsonGenerator();
-            if (paramName != null) {
-                jsonGenerator.writeFieldName(paramName);
+    public static final JsonMarshaller<Instant> INSTANT = (val, context, paramName, sdkField) -> {
+        StructuredJsonGenerator jsonGenerator = context.jsonGenerator();
+        if (paramName != null) {
+            jsonGenerator.writeFieldName(paramName);
+        }
+        TimestampFormatTrait trait = sdkField.getTrait(TimestampFormatTrait.class);
+        if (trait != null) {
+            switch (trait.format()) {
+                case UNIX_TIMESTAMP:
+                    jsonGenerator.writeNumber(DateUtils.formatUnixTimestampInstant(val));
+                    break;
+                case RFC_822:
+                    jsonGenerator.writeValue(DateUtils.formatRfc1123Date(val));
+                    break;
+                case ISO_8601:
+                    jsonGenerator.writeValue(DateUtils.formatIso8601Date(val));
+                    break;
+                default:
+                    throw SdkClientException.create("Unrecognized timestamp format - " + trait.format());
             }
-            TimestampFormatTrait trait = sdkField.getTrait(TimestampFormatTrait.class);
-            if (trait != null) {
-                switch (trait.format()) {
-                    case UNIX_TIMESTAMP:
-                        jsonGenerator.writeNumber(DateUtils.formatUnixTimestampInstant(val));
-                        break;
-                    case RFC_822:
-                        jsonGenerator.writeValue(DateUtils.formatRfc1123Date(val));
-                        break;
-                    case ISO_8601:
-                        jsonGenerator.writeValue(DateUtils.formatIso8601Date(val));
-                        break;
-                    default:
-                        throw SdkClientException.create("Unrecognized timestamp format - " + trait.format());
-                }
-            } else {
-                // Important to fallback to the jsonGenerator implementation as that may differ per wire format,
-                // irrespective of protocol. I.E. CBOR would default to unix timestamp as milliseconds while JSON
-                // will default to unix timestamp as seconds with millisecond decimal precision.
-                jsonGenerator.writeValue(val);
-            }
+        } else {
+            // Important to fallback to the jsonGenerator implementation as that may differ per wire format,
+            // irrespective of protocol. I.E. CBOR would default to unix timestamp as milliseconds while JSON
+            // will default to unix timestamp as seconds with millisecond decimal precision.
+            jsonGenerator.writeValue(val);
         }
     };
 

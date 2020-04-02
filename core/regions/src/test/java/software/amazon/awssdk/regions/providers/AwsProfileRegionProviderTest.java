@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;

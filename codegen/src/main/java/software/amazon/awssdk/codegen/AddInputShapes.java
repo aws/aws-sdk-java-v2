@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ final class AddInputShapes extends AddShapes implements IntermediateModelShapePr
 
     private Map<String, ShapeModel> constructInputShapes() {
         // Java input shape models, to be constructed
-        Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> javaShapes = new HashMap<>();
 
         for (Map.Entry<String, Operation> entry : getServiceModel().getOperations().entrySet()) {
 

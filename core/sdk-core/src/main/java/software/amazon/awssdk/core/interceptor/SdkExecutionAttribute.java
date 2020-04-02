@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -45,6 +45,12 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<ClientType> CLIENT_TYPE = new ExecutionAttribute<>("ClientType");
 
     public static final ExecutionAttribute<String> OPERATION_NAME = new ExecutionAttribute<>("OperationName");
+
+    /**
+     * If true indicates that the configured endpoint of the client is a value that was supplied as an override and not
+     * generated from regional metadata.
+     */
+    public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverride");
     
     protected SdkExecutionAttribute() {
     }

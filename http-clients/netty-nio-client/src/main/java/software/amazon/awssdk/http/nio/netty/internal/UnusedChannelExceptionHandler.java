@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.getAttribute;
 
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.TimeoutException;
 import java.io.IOException;
 import java.util.Optional;
@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 @ChannelHandler.Sharable
-public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
+public final class UnusedChannelExceptionHandler extends ChannelInboundHandlerAdapter {
     public static final UnusedChannelExceptionHandler INSTANCE = new UnusedChannelExceptionHandler();
 
     private static final Logger log = Logger.loggerFor(UnusedChannelExceptionHandler.class);

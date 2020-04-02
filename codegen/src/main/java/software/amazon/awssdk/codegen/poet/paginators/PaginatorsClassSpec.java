@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -212,11 +212,9 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
      * return client.listTables(firstRequest.toBuilder().exclusiveStartTableName(response.lastEvaluatedTableName()).build());
      */
     protected String codeToGetNextPageIfOldResponseIsNotNull() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("return %s.%s(%s)", CLIENT_MEMBER,
-                                operationModel.getMethodName(),
-                                constructRequestFromLastPage(PREVIOUS_PAGE_METHOD_ARGUMENT)));
-        return sb.toString();
+        return String.format("return %s.%s(%s)", CLIENT_MEMBER,
+                                  operationModel.getMethodName(),
+                                  constructRequestFromLastPage(PREVIOUS_PAGE_METHOD_ARGUMENT));
     }
 
     /**

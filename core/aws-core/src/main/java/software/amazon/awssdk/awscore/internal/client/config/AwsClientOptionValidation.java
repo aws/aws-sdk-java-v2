@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOptionValidation;
  */
 @SdkInternalApi
 public final class AwsClientOptionValidation extends SdkClientOptionValidation {
-    private AwsClientOptionValidation() {}
+    private AwsClientOptionValidation() {
+    }
 
     public static void validateAsyncClientOptions(SdkClientConfiguration c) {
         validateClientOptions(c);

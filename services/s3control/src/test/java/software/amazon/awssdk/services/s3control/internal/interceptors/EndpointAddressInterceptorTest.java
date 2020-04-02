@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package software.amazon.awssdk.services.s3control.internal.interceptors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Optional;
 import org.junit.Before;
@@ -48,6 +49,19 @@ public class EndpointAddressInterceptorTest {
                                     .method(SdkHttpMethod.POST)
                                     .host(S3ControlClient.serviceMetadata().endpointFor(Region.US_EAST_1).toString())
                                     .build();
+    }
+
+    @Test
+    public void modifyHttpRequest_illegalCharacterInAccountId_throwsException() {
+        SdkHttpRequest modifiedRequest = SdkHttpFullRequest.builder()
+                                                           .appendHeader(X_AMZ_ACCOUNT_ID, "1234/#")
+                                                           .protocol(Protocol.HTTPS.toString())
+                                                           .method(SdkHttpMethod.POST)
+                                                           .host(S3ControlClient.serviceMetadata().endpointFor(Region.US_EAST_1).toString())
+                                                           .build();
+        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
+        assertThatThrownBy(() -> interceptor.modifyHttpRequest(new Context(modifiedRequest), new ExecutionAttributes()))
+            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("account id");
     }
 
     @Test

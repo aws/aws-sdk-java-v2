@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public final class FifoCache<T> {
             throw new IllegalArgumentException("maxSize " + maxSize
                                                + " must be at least 1");
         }
-        map = new BoundedLinkedHashMap<String, T>(maxSize);
+        map = new BoundedLinkedHashMap<>(maxSize);
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         rlock = lock.readLock();
         wlock = lock.writeLock();

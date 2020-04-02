@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@ package software.amazon.awssdk.core.http;
 
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import java.time.Duration;
+
 import org.apache.http.conn.ConnectTimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
+
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
@@ -61,8 +64,7 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
                       .request(request)
                       .originalRequest(NoopTestRequest.builder().build())
                       .executionContext(executionContext(request))
-                      .errorResponseHandler(new NullErrorResponseHandler())
-                      .execute();
+                      .execute(combinedSyncResponseHandler(null, new NullErrorResponseHandler()));
             fail("Client-side socket read timeout is expected!");
 
         } catch (SdkClientException e) {

@@ -1,0 +1,41 @@
+{
+    "version": "2.10.87",
+    "date": "2020-03-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Resource data sync for AWS Systems Manager Inventory now includes destination data sharing. This feature enables you to synchronize inventory data from multiple AWS accounts into a central Amazon S3 bucket. To use this feature, all AWS accounts must be listed in AWS Organizations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "This release adds the ability to update the task placement strategy and constraints for Amazon ECS services."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "description": "Amazon ElastiCache now supports Global Datastore for Redis. Global Datastore for Redis offers fully managed, fast, reliable and secure cross-region replication. Using Global Datastore for Redis, you can create cross-region read replica clusters for ElastiCache for Redis to enable low-latency reads and disaster recovery across regions. You can create, modify and describe a Global Datastore, as well as add or remove regions from your Global Datastore and promote a region as primary in Global Datastore."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "The enhanced DDB client table schema now supports custom AttributeConverterProviders, and StaticAttribute can take individual AttributeConverter to override default attribute converter behavior."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "description": "Amazon S3 now supports Batch Operations job tagging."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "description": "Additional response field \"CompromisedCredentialsDetected\" added to AdminListUserAuthEvents."
+        }
+    ]
+}

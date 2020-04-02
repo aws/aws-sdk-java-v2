@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
+import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.util.Arrays;
@@ -296,7 +297,7 @@ public class StabilityTestRunner {
      *
      * @param testResult the result to process.
      */
-    private static void processResult(TestResult testResult) {
+    private void processResult(TestResult testResult) {
         log.info(() -> "TestResult: " + testResult);
 
         int clientExceptionCount = testResult.clientExceptionCount();
@@ -330,7 +331,25 @@ public class StabilityTestRunner {
         if (testResult.peakThreadCount() > ALLOWED_PEAK_THREAD_COUNT) {
             String errorMessage = String.format("The number of peak thread exceeds the allowed peakThread threshold %s",
                                                 ALLOWED_PEAK_THREAD_COUNT);
+
+
+            threadDump(testResult.testName());
             throw new AssertionError(errorMessage);
         }
+    }
+
+    private void threadDump(String testName) {
+        StringBuilder threadDump = new StringBuilder("\n============").append(testName)
+                                                                      .append(" Thread Dump:=============\n");
+        ThreadInfo[] threadInfoList = threadMXBean.getThreadInfo(threadMXBean.getAllThreadIds(), 100);
+        for (ThreadInfo threadInfo : threadInfoList) {
+            threadDump.append('"');
+            threadDump.append(threadInfo.getThreadName());
+            threadDump.append("\":");
+            threadDump.append(threadInfo.getThreadState());
+            threadDump.append("\n");
+        }
+        threadDump.append("==================================");
+        log.info(threadDump::toString);
     }
 }

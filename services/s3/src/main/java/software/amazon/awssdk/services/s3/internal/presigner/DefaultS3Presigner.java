@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -64,11 +64,31 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.AbortMultipartUploadPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploadPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
+import software.amazon.awssdk.services.s3.transform.AbortMultipartUploadRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.CompleteMultipartUploadRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.CreateMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -83,11 +103,39 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
     private final List<ExecutionInterceptor> clientInterceptors;
     private final GetObjectRequestMarshaller getObjectRequestMarshaller;
+    private final PutObjectRequestMarshaller putObjectRequestMarshaller;
+    private final CreateMultipartUploadRequestMarshaller createMultipartUploadRequestMarshaller;
+    private final UploadPartRequestMarshaller uploadPartRequestMarshaller;
+    private final CompleteMultipartUploadRequestMarshaller completeMultipartUploadRequestMarshaller;
+    private final AbortMultipartUploadRequestMarshaller abortMultipartUploadRequestMarshaller;
 
     private DefaultS3Presigner(Builder b) {
         super(b);
+
         this.clientInterceptors = initializeInterceptors();
-        this.getObjectRequestMarshaller = initializeGetObjectRequestMarshaller();
+
+        // Copied from DefaultS3Client#init
+        AwsS3ProtocolFactory protocolFactory = AwsS3ProtocolFactory.builder()
+                                                                   .clientConfiguration(createClientConfiguration())
+                                                                   .build();
+
+        // Copied from DefaultS3Client#getObject
+        this.getObjectRequestMarshaller = new GetObjectRequestMarshaller(protocolFactory);
+
+        // Copied from DefaultS3Client#putObject
+        this.putObjectRequestMarshaller = new PutObjectRequestMarshaller(protocolFactory);
+
+        // Copied from DefaultS3Client#createMultipartUpload
+        this.createMultipartUploadRequestMarshaller = new CreateMultipartUploadRequestMarshaller(protocolFactory);
+
+        // Copied from DefaultS3Client#uploadPart
+        this.uploadPartRequestMarshaller = new UploadPartRequestMarshaller(protocolFactory);
+
+        // Copied from DefaultS3Client#completeMultipartUpload
+        this.completeMultipartUploadRequestMarshaller = new CompleteMultipartUploadRequestMarshaller(protocolFactory);
+
+        // Copied from DefaultS3Client#abortMultipartUpload
+        this.abortMultipartUploadRequestMarshaller = new AbortMultipartUploadRequestMarshaller(protocolFactory);
     }
 
     public static S3Presigner.Builder builder() {
@@ -105,34 +153,21 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     }
 
     /**
-     * Copied from {@code DefaultS3Client}.
-     */
-    private GetObjectRequestMarshaller initializeGetObjectRequestMarshaller() {
-        // Copied from DefaultS3Client#init
-        AwsS3ProtocolFactory protocolFactory = AwsS3ProtocolFactory.builder()
-                                                                   .clientConfiguration(createClientConfiguration())
-                                                                   .build();
-        // Copied from DefaultS3Client#getObject
-        return new GetObjectRequestMarshaller(protocolFactory);
-    }
-
-    /**
      * Copied from {@link AwsDefaultClientBuilder}.
      */
     private SdkClientConfiguration createClientConfiguration() {
-        return SdkClientConfiguration.builder()
-                                     .option(SdkClientOption.ENDPOINT, resolveEndpoint())
-                                     .build();
-    }
-
-    private URI resolveEndpoint() {
         if (endpointOverride() != null) {
-            return endpointOverride();
+            return SdkClientConfiguration.builder()
+                                         .option(SdkClientOption.ENDPOINT, endpointOverride())
+                                         .option(SdkClientOption.ENDPOINT_OVERRIDDEN, true)
+                                         .build();
+        } else {
+            URI defaultEndpoint = new DefaultServiceEndpointBuilder(SERVICE_NAME, "https").withRegion(region())
+                                                                                          .getServiceEndpoint();
+            return SdkClientConfiguration.builder()
+                                         .option(SdkClientOption.ENDPOINT, defaultEndpoint)
+                                         .build();
         }
-
-        return new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
-            .withRegion(region())
-            .getServiceEndpoint();
     }
 
     @Override
@@ -143,6 +178,61 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                        GetObjectRequest.class,
                        getObjectRequestMarshaller::marshall,
                        "GetObject")
+            .build();
+    }
+
+    @Override
+    public PresignedPutObjectRequest presignPutObject(PutObjectPresignRequest request) {
+        return presign(PresignedPutObjectRequest.builder(),
+                       request,
+                       request.putObjectRequest(),
+                       PutObjectRequest.class,
+                       putObjectRequestMarshaller::marshall,
+                       "PutObject")
+            .build();
+    }
+
+    @Override
+    public PresignedCreateMultipartUploadRequest presignCreateMultipartUpload(CreateMultipartUploadPresignRequest request) {
+        return presign(PresignedCreateMultipartUploadRequest.builder(),
+                       request,
+                       request.createMultipartUploadRequest(),
+                       CreateMultipartUploadRequest.class,
+                       createMultipartUploadRequestMarshaller::marshall,
+                       "CreateMultipartUpload")
+            .build();
+    }
+
+    @Override
+    public PresignedUploadPartRequest presignUploadPart(UploadPartPresignRequest request) {
+        return presign(PresignedUploadPartRequest.builder(),
+                       request,
+                       request.uploadPartRequest(),
+                       UploadPartRequest.class,
+                       uploadPartRequestMarshaller::marshall,
+                       "UploadPart")
+            .build();
+    }
+
+    @Override
+    public PresignedCompleteMultipartUploadRequest presignCompleteMultipartUpload(CompleteMultipartUploadPresignRequest request) {
+        return presign(PresignedCompleteMultipartUploadRequest.builder(),
+                       request,
+                       request.completeMultipartUploadRequest(),
+                       CompleteMultipartUploadRequest.class,
+                       completeMultipartUploadRequestMarshaller::marshall,
+                       "CompleteMultipartUpload")
+            .build();
+    }
+
+    @Override
+    public PresignedAbortMultipartUploadRequest presignAbortMultipartUpload(AbortMultipartUploadPresignRequest request) {
+        return presign(PresignedAbortMultipartUploadRequest.builder(),
+                       request,
+                       request.abortMultipartUploadRequest(),
+                       AbortMultipartUploadRequest.class,
+                       abortMultipartUploadRequestMarshaller::marshall,
+                       "AbortMultipartUpload")
             .build();
     }
 
@@ -374,7 +464,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     public static final class Builder extends DefaultSdkPresigner.Builder<Builder>
         implements S3Presigner.Builder {
 
-        private Builder() {}
+        private Builder() {
+        }
 
         @Override
         public S3Presigner build() {

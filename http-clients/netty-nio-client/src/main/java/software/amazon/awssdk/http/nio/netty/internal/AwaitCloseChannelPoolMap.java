@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
@@ -28,10 +27,9 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -40,6 +38,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
@@ -51,6 +50,7 @@ import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Implementation of {@link SdkChannelPoolMap} that awaits channel pools to be closed upon closing.
@@ -74,31 +74,47 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         }
     };
 
+    // IMPORTANT: If the default bootstrap provider is changed, ensure that the new implementation is compliant with
+    // DNS resolver testing in BootstrapProviderTest, specifically that no caching of hostname lookups is taking place.
+    private static final Function<Builder, BootstrapProvider> DEFAULT_BOOTSTRAP_PROVIDER =
+        b -> new BootstrapProvider(b.sdkEventLoopGroup, b.configuration, b.sdkChannelOptions);
+
     private final Map<URI, Boolean> shouldProxyForHostCache = new ConcurrentHashMap<>();
 
 
-    private final SdkChannelOptions sdkChannelOptions;
-    private final SdkEventLoopGroup sdkEventLoopGroup;
     private final NettyConfiguration configuration;
     private final Protocol protocol;
     private final long maxStreams;
+    private final Duration healthCheckPingPeriod;
+    private final int initialWindowSize;
     private final SslProvider sslProvider;
     private final ProxyConfiguration proxyConfiguration;
+    private final BootstrapProvider bootstrapProvider;
 
-    private AwaitCloseChannelPoolMap(Builder builder) {
-        this.sdkChannelOptions = builder.sdkChannelOptions;
-        this.sdkEventLoopGroup = builder.sdkEventLoopGroup;
+    private AwaitCloseChannelPoolMap(Builder builder, Function<Builder, BootstrapProvider> createBootStrapProvider) {
         this.configuration = builder.configuration;
         this.protocol = builder.protocol;
         this.maxStreams = builder.maxStreams;
+        this.healthCheckPingPeriod = builder.healthCheckPingPeriod;
+        this.initialWindowSize = builder.initialWindowSize;
         this.sslProvider = builder.sslProvider;
         this.proxyConfiguration = builder.proxyConfiguration;
+        this.bootstrapProvider = createBootStrapProvider.apply(builder);
+    }
+
+    private AwaitCloseChannelPoolMap(Builder builder) {
+        this(builder, DEFAULT_BOOTSTRAP_PROVIDER);
     }
 
     @SdkTestInternalApi
-    AwaitCloseChannelPoolMap(Builder builder, Map<URI, Boolean> shouldProxyForHostCache) {
-        this(builder);
-        this.shouldProxyForHostCache.putAll(shouldProxyForHostCache);
+    AwaitCloseChannelPoolMap(Builder builder,
+                             Map<URI, Boolean> shouldProxyForHostCache,
+                             BootstrapProvider bootstrapProvider) {
+        this(builder, bootstrapProvider == null ? DEFAULT_BOOTSTRAP_PROVIDER : b -> bootstrapProvider);
+
+        if (shouldProxyForHostCache != null) {
+            this.shouldProxyForHostCache.putAll(shouldProxyForHostCache);
+        }
     }
 
     public static Builder builder() {
@@ -113,8 +129,15 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
 
-        ChannelPipelineInitializer pipelineInitializer =
-            new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef, configuration, key);
+        ChannelPipelineInitializer pipelineInitializer = new ChannelPipelineInitializer(protocol,
+                                                                                        sslContext,
+                                                                                        sslProvider,
+                                                                                        maxStreams,
+                                                                                        initialWindowSize,
+                                                                                        healthCheckPingPeriod,
+                                                                                        channelPoolRef,
+                                                                                        configuration,
+                                                                                        key);
 
         BetterSimpleChannelPool tcpChannelPool;
         ChannelPool baseChannelPool;
@@ -161,17 +184,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private Bootstrap createBootstrap(URI poolKey) {
         String host = bootstrapHost(poolKey);
         int port = bootstrapPort(poolKey);
-
-        Bootstrap bootstrap =
-                new Bootstrap()
-                        .group(sdkEventLoopGroup.eventLoopGroup())
-                        .channelFactory(sdkEventLoopGroup.channelFactory())
-                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
-                        // TODO run some performance tests with and without this.
-                        .remoteAddress(new InetSocketAddress(host, port));
-        sdkChannelOptions.channelOptions().forEach(bootstrap::option);
-
-        return bootstrap;
+        return bootstrapProvider.createBootstrap(host, port);
     }
 
 
@@ -270,7 +283,20 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     }
 
     private TrustManagerFactory getTrustManager() {
-        return configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null;
+        Validate.isTrue(configuration.tlsTrustManagersProvider() == null || !configuration.trustAllCertificates(),
+                        "A TlsTrustManagerProvider can't be provided if TrustAllCertificates is also set");
+
+        if (configuration.tlsTrustManagersProvider() != null) {
+            return StaticTrustManagerFactory.create(configuration.tlsTrustManagersProvider().trustManagers());
+        }
+
+        if (configuration.trustAllCertificates()) {
+            log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
+                           + "used for testing.");
+            return InsecureTrustManagerFactory.INSTANCE;
+        }
+
+        return null;
     }
 
     private KeyManagerFactory getKeyManager() {
@@ -290,6 +316,8 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         private NettyConfiguration configuration;
         private Protocol protocol;
         private long maxStreams;
+        private int initialWindowSize;
+        private Duration healthCheckPingPeriod;
         private SslProvider sslProvider;
         private ProxyConfiguration proxyConfiguration;
 
@@ -318,6 +346,16 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         public Builder maxStreams(long maxStreams) {
             this.maxStreams = maxStreams;
+            return this;
+        }
+
+        public Builder initialWindowSize(int initialWindowSize) {
+            this.initialWindowSize = initialWindowSize;
+            return this;
+        }
+
+        public Builder healthCheckPingPeriod(Duration healthCheckPingPeriod) {
+            this.healthCheckPingPeriod = healthCheckPingPeriod;
             return this;
         }
 

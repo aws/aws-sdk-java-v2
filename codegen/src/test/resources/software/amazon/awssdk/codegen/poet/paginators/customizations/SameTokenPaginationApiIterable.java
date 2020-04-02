@@ -99,7 +99,8 @@ public class SameTokenPaginationApiIterable implements SdkIterable<SameTokenPagi
             }
             return Collections.emptyIterator();
         };
-        return PaginatedItemsIterable.builder().pagesIterable(this).itemIteratorFunction(getIterator).build();
+        return PaginatedItemsIterable.<SameTokenPaginationApiResponse, SimpleStruct> builder().pagesIterable(this)
+                                                                                              .itemIteratorFunction(getIterator).build();
     }
 
     private class SameTokenPaginationApiResponseFetcher implements SyncPageFetcher<SameTokenPaginationApiResponse> {

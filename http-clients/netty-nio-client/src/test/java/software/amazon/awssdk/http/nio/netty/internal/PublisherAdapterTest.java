@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 
-import com.typesafe.netty.http.DefaultStreamedHttpResponse;
-import com.typesafe.netty.http.StreamedHttpResponse;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.DefaultStreamedHttpResponse;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpResponse;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.channel.ChannelHandlerContext;

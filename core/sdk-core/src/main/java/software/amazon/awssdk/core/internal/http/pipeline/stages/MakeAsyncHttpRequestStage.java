@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,16 +28,14 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkStandardLogger;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -46,7 +44,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -64,17 +61,14 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private static final Logger log = Logger.loggerFor(MakeAsyncHttpRequestStage.class);
 
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
-    private final TransformingAsyncResponseHandler<OutputT> responseHandler;
-    private final TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler;
+    private final TransformingAsyncResponseHandler<Response<OutputT>> responseHandler;
     private final Executor futureCompletionExecutor;
     private final ScheduledExecutorService timeoutExecutor;
     private final Duration apiCallAttemptTimeout;
 
-    public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<OutputT> responseHandler,
-                                     TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler,
+    public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
                                      HttpClientDependencies dependencies) {
         this.responseHandler = responseHandler;
-        this.errorResponseHandler = errorResponseHandler;
         this.futureCompletionExecutor =
             dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
@@ -88,23 +82,58 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         return executeHttpRequest(request, context);
     }
 
+    private static final class WrappedErrorForwardingResponseHandler<T>
+            implements TransformingAsyncResponseHandler<T> {
+
+        private final TransformingAsyncResponseHandler<T> wrappedHandler;
+        private final CompletableFuture<T> responseFuture;
+
+        private WrappedErrorForwardingResponseHandler(TransformingAsyncResponseHandler<T> wrappedHandler,
+                                                      CompletableFuture<T> responseFuture) {
+            this.wrappedHandler = wrappedHandler;
+            this.responseFuture = responseFuture;
+
+        }
+
+        private static <T> WrappedErrorForwardingResponseHandler<T> of(
+                TransformingAsyncResponseHandler<T> wrappedHandler,
+                CompletableFuture<T> responseFuture) {
+
+            return new WrappedErrorForwardingResponseHandler<>(wrappedHandler, responseFuture);
+        }
+
+        @Override
+        public CompletableFuture<T> prepare() {
+            return wrappedHandler.prepare();
+        }
+
+        @Override
+        public void onHeaders(SdkHttpResponse headers) {
+            wrappedHandler.onHeaders(headers);
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> stream) {
+            wrappedHandler.onStream(stream);
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            responseFuture.completeExceptionally(error);
+            wrappedHandler.onError(error);
+        }
+    }
+
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context) {
-
-        CompletableFuture<OutputT> preparedTransformFuture =
-            context.asyncResponseTransformerFuture() != null ? context.asyncResponseTransformerFuture()
-                                                             : responseHandler.prepare();
-
-        CompletableFuture<? extends SdkException> preparedErrorTransformFuture = errorResponseHandler == null ? null :
-                                                                                 errorResponseHandler.prepare();
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
 
-        //FIXME(dongie): We need to be careful to only call responseHandler.prepare() exactly once per execute() call
-        //because it calls prepare() under the hood and we guarantee that we call that once per execution. It would be good
-        //to find a way to prevent multiple calls to prepare() within a single execution to only call prepare() once.
-        ResponseHandler handler = new ResponseHandler(responseFuture, preparedTransformFuture, preparedErrorTransformFuture);
+        // Wrap the response handler in a layer that will notify the newly created responseFuture when the onError event
+        // is triggered
+        TransformingAsyncResponseHandler<Response<OutputT>> wrappedResponseHandler =
+            WrappedErrorForwardingResponseHandler.of(responseHandler, responseFuture);
 
-        CompletableFuture<Response<OutputT>> preparedWrapperTransformFuture = handler.prepare();
+        CompletableFuture<Response<OutputT>> responseHandlerFuture = wrappedResponseHandler.prepare();
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
@@ -115,7 +144,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         AsyncExecuteRequest executeRequest = AsyncExecuteRequest.builder()
                                                                 .request(requestWithContentLength)
                                                                 .requestContentPublisher(requestProvider)
-                                                                .responseHandler(handler)
+                                                                .responseHandler(wrappedResponseHandler)
                                                                 .fullDuplex(isFullDuplex(context.executionAttributes()))
                                                                 .build();
 
@@ -133,7 +162,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         // Offload the completion of the future returned from this stage onto
         // the future completion executor
-        preparedWrapperTransformFuture.whenCompleteAsync((r, t) -> {
+        responseHandlerFuture.whenCompleteAsync((r, t) -> {
             if (t == null) {
                 responseFuture.complete(r);
             } else {
@@ -200,86 +229,5 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         public void subscribe(Subscriber<? super ByteBuffer> s) {
             asyncRequestBody.subscribe(s);
         }
-    }
-
-    /**
-     * Detects whether the response succeeded or failed and delegates to appropriate response handler.
-     */
-    private class ResponseHandler implements TransformingAsyncResponseHandler<Response<OutputT>> {
-        private final CompletableFuture<Response<OutputT>> responseFuture;
-        private final CompletableFuture<OutputT> transformFuture;
-        private final CompletableFuture<? extends SdkException> errorTransformFuture;
-        private CompletableFuture<SdkHttpResponse> headersFuture;
-        private volatile SdkHttpFullResponse response;
-
-        /**
-         * @param responseFuture the response future to be returned from
-         * {@link MakeAsyncHttpRequestStage#executeHttpRequest(SdkHttpFullRequest, RequestExecutionContext)}
-         * @param transformFuture the transformFuture returned from {@link MakeAsyncHttpRequestStage#responseHandler#prepare()}
-         * @param errorTransformFuture the error transform future returned from
-         * {@link MakeAsyncHttpRequestStage#errorResponseHandler#prepare()}
-         */
-        ResponseHandler(CompletableFuture<Response<OutputT>> responseFuture,
-                        CompletableFuture<OutputT> transformFuture,
-                        CompletableFuture<? extends SdkException> errorTransformFuture) {
-            this.responseFuture = responseFuture;
-            this.transformFuture = transformFuture;
-            this.errorTransformFuture = errorTransformFuture;
-        }
-
-        @Override
-        public void onHeaders(SdkHttpResponse response) {
-            headersFuture.complete(response);
-            if (response.isSuccessful()) {
-                SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received successful response: " + response.statusCode());
-                responseHandler.onHeaders(response);
-            } else {
-                SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received error response: " + response.statusCode());
-                errorResponseHandler.onHeaders(response);
-            }
-            this.response = toFullResponse(response);
-        }
-
-        @Override
-        public void onError(Throwable error) {
-            // Note: We don't notify the wrapped handlers' onError here because
-            // we need context about retries; we only want to notify onError if
-            // we know that the request will be retried. Let the
-            // AsyncRetryableStage handle it.
-            responseFuture.completeExceptionally(error);
-            headersFuture.completeExceptionally(error);
-        }
-
-        @Override
-        public void onStream(Publisher<ByteBuffer> publisher) {
-            if (response.isSuccessful()) {
-                responseHandler.onStream(publisher);
-            } else {
-                errorResponseHandler.onStream(publisher);
-            }
-        }
-
-        @Override
-        public CompletableFuture<Response<OutputT>> prepare() {
-            headersFuture = new CompletableFuture<>();
-            return headersFuture.thenCompose(headers -> {
-                if (headers.isSuccessful()) {
-                    return transformFuture.thenApply(r -> Response.fromSuccess(r, response));
-                }
-
-                if (errorTransformFuture != null) {
-                    return errorTransformFuture.thenApply(e -> Response.fromFailure(e, response));
-                }
-                return CompletableFuture.completedFuture(Response.fromFailure(null, response));
-            });
-        }
-    }
-
-    private static SdkHttpFullResponse toFullResponse(SdkHttpResponse response) {
-        SdkHttpFullResponse.Builder builder = SdkHttpFullResponse.builder()
-                                                                 .statusCode(response.statusCode())
-                                                                 .headers(response.headers());
-        response.statusText().ifPresent(builder::statusText);
-        return builder.build();
     }
 }

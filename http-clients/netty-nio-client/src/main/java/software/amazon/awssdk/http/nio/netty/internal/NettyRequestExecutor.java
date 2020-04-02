@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static software.amazon.awssdk.http.Protocol.HTTP1_1;
-import static software.amazon.awssdk.http.Protocol.HTTP2;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
@@ -25,8 +23,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
-import com.typesafe.netty.http.HttpStreamsClientHandler;
-import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -57,7 +53,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -65,19 +60,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2StreamExceptionHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpRequest;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 
 @SdkInternalApi
 public final class NettyRequestExecutor {
     private static final Logger log = LoggerFactory.getLogger(NettyRequestExecutor.class);
-    private static final RequestAdapter REQUEST_ADAPTER = new RequestAdapter();
+    private static final RequestAdapter REQUEST_ADAPTER_HTTP2 = new RequestAdapter(Protocol.HTTP2);
+    private static final RequestAdapter REQUEST_ADAPTER_HTTP1_1 = new RequestAdapter(Protocol.HTTP1_1);
     private static final AtomicLong EXECUTION_COUNTER = new AtomicLong(0L);
     private final long executionId = EXECUTION_COUNTER.incrementAndGet();
     private final RequestContext context;
     private CompletableFuture<Void> executeFuture;
     private Channel channel;
+    private RequestAdapter requestAdapter;
 
     public NettyRequestExecutor(RequestContext context) {
         this.context = context;
@@ -155,17 +156,28 @@ public final class NettyRequestExecutor {
     private boolean tryConfigurePipeline() {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
-        if (HTTP2.equals(protocol)) {
-            pipeline.addLast(new Http2ToHttpInboundAdapter());
-            pipeline.addLast(new HttpToHttp2OutboundAdapter());
-        } else if (!HTTP1_1.equals(protocol)) {
-            String errorMsg = "Unknown protocol: " + protocol;
-            closeAndRelease(channel);
-            handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
-            return false;
+
+        switch (protocol) {
+            case HTTP2:
+                pipeline.addLast(new Http2ToHttpInboundAdapter());
+                pipeline.addLast(new HttpToHttp2OutboundAdapter());
+                pipeline.addLast(Http2StreamExceptionHandler.create());
+                requestAdapter = REQUEST_ADAPTER_HTTP2;
+                break;
+            case HTTP1_1:
+                requestAdapter = REQUEST_ADAPTER_HTTP1_1;
+                break;
+            default:
+                String errorMsg = "Unknown protocol: " + protocol;
+                closeAndRelease(channel);
+                handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
+                return false;
         }
 
         pipeline.addLast(LastHttpContentHandler.create());
+        if (Protocol.HTTP2.equals(protocol)) {
+            pipeline.addLast(FlushOnReadHandler.getInstance());
+        }
         pipeline.addLast(new HttpStreamsClientHandler());
         pipeline.addLast(ResponseHandler.getInstance());
 
@@ -183,7 +195,7 @@ public final class NettyRequestExecutor {
     }
 
     private void makeRequest() {
-        HttpRequest request = REQUEST_ADAPTER.adapt(context.executeRequest().request());
+        HttpRequest request = requestAdapter.adapt(context.executeRequest().request());
         writeRequest(request);
     }
 

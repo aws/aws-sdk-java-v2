@@ -1,0 +1,11 @@
+{
+    "version": "2.10.49",
+    "date": "2020-01-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release adds support for partition placement groups and instance metadata option in Launch Templates"
+        }
+    ]
+}

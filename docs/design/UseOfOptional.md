@@ -1,4 +1,4 @@
-**Design:** Convention, **Status:** [Complete](README.md)
+**Design:** Convention, **Status:** [Accepted](README.md)
 
 ## Use of Optional
 

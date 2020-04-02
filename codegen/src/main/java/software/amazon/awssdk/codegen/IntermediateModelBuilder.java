@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -100,12 +100,11 @@ public class IntermediateModelBuilder {
 
         customization.preprocess(service);
 
-        Map<String, OperationModel> operations = new TreeMap<>();
         Map<String, ShapeModel> shapes = new HashMap<>();
-        Map<String, AuthorizerModel> authorizers = new HashMap<>();
 
-        operations.putAll(new AddOperations(this).constructOperations());
-        authorizers.putAll(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());
+        Map<String, OperationModel> operations = new TreeMap<>(new AddOperations(this).constructOperations());
+        Map<String, AuthorizerModel> authorizers =
+            new HashMap<>(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());
 
         OperationModel endpointOperation = null;
 

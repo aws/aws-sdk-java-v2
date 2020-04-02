@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -143,14 +143,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock errorResponseHandler(OperationModel opModel) {
+    public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
         String protocolFactory = protocolFactoryLiteral(model, opModel);
 
-        return CodeBlock
-            .builder()
-            .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
-                 HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
-            .build();
+        return Optional.of(
+            CodeBlock.builder()
+                     .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
+                          HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
+                     .build());
     }
 
     @Override

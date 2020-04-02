@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,16 +22,20 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.SLOW_REQUEST_HANDLER_TIMEOUT;
-import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.noOpResponseHandler;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.noOpSyncResponseHandler;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.superSlowResponseHandler;
 import static utils.HttpTestUtils.testClientBuilder;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
@@ -67,7 +71,8 @@ public class HttpClientApiCallAttemptTimeoutTest {
         stubFor(get(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-        assertThatThrownBy(() -> requestBuilder().execute(superSlowResponseHandler(API_CALL_TIMEOUT.toMillis())))
+        assertThatThrownBy(() -> requestBuilder().execute(combinedSyncResponseHandler(
+            superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()), null)))
             .isInstanceOf(ApiCallAttemptTimeoutException.class);
     }
 
@@ -82,8 +87,8 @@ public class HttpClientApiCallAttemptTimeoutTest {
                                            .originalRequest(NoopTestRequest.builder().build())
                                            .executionContext(executionContext)
                                            .request(generateRequest())
-                                           .errorResponseHandler(superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()))
-                                           .execute(noOpResponseHandler()))
+                                           .execute(combinedSyncResponseHandler(null,
+                                                                                superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()))))
             .isInstanceOf(ApiCallAttemptTimeoutException.class);
     }
 
@@ -95,7 +100,7 @@ public class HttpClientApiCallAttemptTimeoutTest {
             new SlowExecutionInterceptor().beforeTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
 
         assertThatThrownBy(() -> requestBuilder().executionContext(withInterceptors(interceptor))
-                                                 .execute(noOpResponseHandler()))
+                                                 .execute(noOpSyncResponseHandler()))
             .isInstanceOf(ApiCallAttemptTimeoutException.class);
     }
 
@@ -106,7 +111,7 @@ public class HttpClientApiCallAttemptTimeoutTest {
         ExecutionInterceptor interceptor =
             new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
         assertThatThrownBy(() -> requestBuilder().executionContext(withInterceptors(interceptor))
-                                                 .execute(noOpResponseHandler()))
+                                                 .execute(noOpSyncResponseHandler()))
             .isInstanceOf(ApiCallAttemptTimeoutException.class);
     }
 

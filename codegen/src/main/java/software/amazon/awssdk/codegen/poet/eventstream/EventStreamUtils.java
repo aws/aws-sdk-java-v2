@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -149,9 +149,7 @@ public class EventStreamUtils {
             ShapeModel eventStreamShape = getBaseEventStreamShape(model, eventShape);
             return model.getOperations().values()
                         .stream()
-                        .filter(o -> doesShapeContainsEventStream(o.getInputShape(), eventStreamShape))
-                        .findAny()
-                        .isPresent();
+                        .anyMatch(o -> doesShapeContainsEventStream(o.getInputShape(), eventStreamShape));
         } catch (IllegalStateException e) {
             return false;
         }

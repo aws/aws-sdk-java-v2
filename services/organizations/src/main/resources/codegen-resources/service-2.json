@@ -54,7 +54,9 @@
         {"shape":"PolicyTypeNotEnabledException"},
         {"shape":"ServiceException"},
         {"shape":"TargetNotFoundException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"},
+        {"shape":"PolicyChangesInProgressException"}
       ],
       "documentation":"<p>Attaches a policy to a root, an organizational unit (OU), or an individual account. How the policy affects accounts depends on the type of policy:</p> <ul> <li> <p> <b>Service control policy (SCP)</b> - An SCP specifies what permissions can be delegated to users in affected member accounts. The scope of influence for a policy depends on what you attach the policy to:</p> <ul> <li> <p>If you attach an SCP to a root, it affects all accounts in the organization.</p> </li> <li> <p>If you attach an SCP to an OU, it affects all accounts in that OU and in any child OUs.</p> </li> <li> <p>If you attach the policy directly to an account, it affects only that account.</p> </li> </ul> <p>SCPs are JSON policies that specify the maximum permissions for an organization or organizational unit (OU). You can attach one SCP to a higher level root or OU, and a different SCP to a child OU or to an account. The child policy can further restrict only the permissions that pass through the parent filter and are available to the child. An SCP that is attached to a child can't grant a permission that the parent hasn't already granted. For example, imagine that the parent SCP allows permissions A, B, C, D, and E. The child SCP allows C, D, E, F, and G. The result is that the accounts affected by the child SCP are allowed to use only C, D, and E. They can't use A or B because the child OU filtered them out. They also can't use F and G because the parent OU filtered them out. They can't be granted back by the child SCP; child SCPs can only filter the permissions they receive from the parent SCP.</p> <p>AWS Organizations attaches a default SCP named <code>\"FullAWSAccess</code> to every root, OU, and account. This default SCP allows all services and actions, enabling any new child OU or account to inherit the permissions of the parent root or OU. If you detach the default policy, you must replace it with a policy that specifies the permissions that you want to allow in that OU or account.</p> <p>For more information about how AWS Organizations policies permissions work, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html\">Using Service Control Policies</a> in the <i>AWS Organizations User Guide.</i> </p> </li> </ul> <p>This operation can be called only from the organization's master account.</p>"
     },
@@ -138,7 +140,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"AccessDeniedForDependencyException"}
       ],
-      "documentation":"<p>Creates an AWS organization. The account whose user is calling the <code>CreateOrganization</code> operation automatically becomes the <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/orgs_getting-started_concepts.html#account\">master account</a> of the new organization.</p> <p>This operation must be called using credentials from the account that is to become the new organization's master account. The principal must also have the relevant IAM permissions.</p> <p>By default (or if you set the <code>FeatureSet</code> parameter to <code>ALL</code>), the new organization is created with all features enabled and service control policies automatically enabled in the root. If you instead choose to create the organization supporting only the consolidated billing features by setting the <code>FeatureSet</code> parameter to <code>CONSOLIDATED_BILLING\"</code>, no policy types are enabled by default, and you can't use organization policies.</p>"
+      "documentation":"<p>Creates an AWS organization. The account whose user is calling the <code>CreateOrganization</code> operation automatically becomes the <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/orgs_getting-started_concepts.html#account\">master account</a> of the new organization.</p> <p>This operation must be called using credentials from the account that is to become the new organization's master account. The principal must also have the relevant IAM permissions.</p> <p>By default (or if you set the <code>FeatureSet</code> parameter to <code>ALL</code>), the new organization is created with all features enabled and service control policies automatically enabled in the root. If you instead choose to create the organization supporting only the consolidated billing features by setting the <code>FeatureSet</code> parameter to <code>CONSOLIDATED_BILLING\"</code>, no policy types are enabled by default, and you can't use organization policies</p>"
     },
     "CreateOrganizationalUnit":{
       "name":"CreateOrganizationalUnit",
@@ -179,7 +181,8 @@
         {"shape":"MalformedPolicyDocumentException"},
         {"shape":"PolicyTypeNotAvailableForOrganizationException"},
         {"shape":"ServiceException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"}
       ],
       "documentation":"<p>Creates a policy of a specified type that you can attach to a root, an organizational unit (OU), or an individual AWS account.</p> <p>For more information about policies and their use, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies.html\">Managing Organization Policies</a>.</p> <p>This operation can be called only from the organization's master account.</p>"
     },
@@ -254,9 +257,31 @@
         {"shape":"PolicyInUseException"},
         {"shape":"PolicyNotFoundException"},
         {"shape":"ServiceException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"}
       ],
       "documentation":"<p>Deletes the specified policy from your organization. Before you perform this operation, you must first detach the policy from all organizational units (OUs), roots, and accounts.</p> <p>This operation can be called only from the organization's master account.</p>"
+    },
+    "DeregisterDelegatedAdministrator":{
+      "name":"DeregisterDelegatedAdministrator",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeregisterDelegatedAdministratorRequest"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AccountNotFoundException"},
+        {"shape":"AccountNotRegisteredException"},
+        {"shape":"AWSOrganizationsNotInUseException"},
+        {"shape":"ConcurrentModificationException"},
+        {"shape":"ConstraintViolationException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"UnsupportedAPIEndpointException"}
+      ],
+      "documentation":"<p>Removes the specified member AWS account as a delegated administrator for the specified AWS service.</p> <p>You can run this action only for AWS services that support this feature. For a current list of services that support it, see the column <i>Supports Delegated Administrator</i> in the table at <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrated-services-list.html\">AWS Services that you can use with AWS Organizations</a> in the <i>AWS Organizations User Guide.</i> </p> <p>This operation can be called only from the organization's master account.</p>"
     },
     "DescribeAccount":{
       "name":"DescribeAccount",
@@ -274,7 +299,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Retrieves AWS Organizations-related information about the specified account.</p> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Retrieves AWS Organizations-related information about the specified account.</p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "DescribeCreateAccountStatus":{
       "name":"DescribeCreateAccountStatus",
@@ -293,7 +318,28 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"UnsupportedAPIEndpointException"}
       ],
-      "documentation":"<p>Retrieves the current status of an asynchronous request to create an account.</p> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Retrieves the current status of an asynchronous request to create an account.</p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
+    },
+    "DescribeEffectivePolicy":{
+      "name":"DescribeEffectivePolicy",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeEffectivePolicyRequest"},
+      "output":{"shape":"DescribeEffectivePolicyResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AWSOrganizationsNotInUseException"},
+        {"shape":"ConstraintViolationException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"TargetNotFoundException"},
+        {"shape":"EffectivePolicyNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"UnsupportedAPIEndpointException"}
+      ],
+      "documentation":"<p>Returns the contents of the effective tag policy for the account. The effective tag policy is the aggregation of any tag policies the account inherits, plus any policy directly that is attached to the account. </p> <p>This action returns information on tag policies only.</p> <p>For more information on policy inheritance, see <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies-inheritance.html\">How Policy Inheritance Works</a> in the <i>AWS Organizations User Guide</i>.</p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "DescribeHandshake":{
       "name":"DescribeHandshake",
@@ -345,7 +391,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Retrieves information about an organizational unit (OU).</p> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Retrieves information about an organizational unit (OU).</p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "DescribePolicy":{
       "name":"DescribePolicy",
@@ -361,9 +407,10 @@
         {"shape":"InvalidInputException"},
         {"shape":"PolicyNotFoundException"},
         {"shape":"ServiceException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"}
       ],
-      "documentation":"<p>Retrieves information about a policy.</p> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Retrieves information about a policy.</p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "DetachPolicy":{
       "name":"DetachPolicy",
@@ -382,9 +429,11 @@
         {"shape":"PolicyNotFoundException"},
         {"shape":"ServiceException"},
         {"shape":"TargetNotFoundException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"},
+        {"shape":"PolicyChangesInProgressException"}
       ],
-      "documentation":"<p>Detaches a policy from a target root, organizational unit (OU), or account. If the policy being detached is a service control policy (SCP), the changes to permissions for IAM users and roles in affected accounts are immediate.</p> <p> <b>Note:</b> Every root, OU, and account must have at least one SCP attached. If you want to replace the default <code>FullAWSAccess</code> policy with one that limits the permissions that can be delegated, you must attach the replacement policy before you can remove the default one. This is the authorization strategy of <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_whitelist\">whitelisting</a>. If you instead attach a second SCP and leave the <code>FullAWSAccess</code> SCP still attached, and specify <code>\"Effect\": \"Deny\"</code> in the second SCP to override the <code>\"Effect\": \"Allow\"</code> in the <code>FullAWSAccess</code> policy (or any other attached SCP), you're using the authorization strategy of <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_blacklist\">blacklisting</a> . </p> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Detaches a policy from a target root, organizational unit (OU), or account. If the policy being detached is a service control policy (SCP), the changes to permissions for IAM users and roles in affected accounts are immediate.</p> <p> <b>Note:</b> Every root, OU, and account must have at least one SCP attached. If you want to replace the default <code>FullAWSAccess</code> policy with one that limits the permissions that can be delegated, you must attach the replacement policy before you can remove the default one. This is the authorization strategy of an \"<a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_whitelist\">allow list</a>\". If you instead attach a second SCP and leave the <code>FullAWSAccess</code> SCP still attached, and specify <code>\"Effect\": \"Deny\"</code> in the second SCP to override the <code>\"Effect\": \"Allow\"</code> in the <code>FullAWSAccess</code> policy (or any other attached SCP), you're using the authorization strategy of a \"<a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_blacklist\">deny list</a>\".</p> <p>This operation can be called only from the organization's master account.</p>"
     },
     "DisableAWSServiceAccess":{
       "name":"DisableAWSServiceAccess",
@@ -402,7 +451,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Disables the integration of an AWS service (the service that is specified by <code>ServicePrincipal</code>) with AWS Organizations. When you disable integration, the specified service no longer can create a <a href=\"http://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html\">service-linked role</a> in <i>new</i> accounts in your organization. This means the service can't perform operations on your behalf on any new accounts in your organization. The service can still perform operations in older accounts until the service completes its clean-up from AWS Organizations.</p> <p/> <important> <p>We recommend that you disable integration between AWS Organizations and the specified AWS service by using the console or commands that are provided by the specified service. Doing so ensures that the other service is aware that it can clean up any resources that are required only for the integration. How the service cleans up its resources in the organization's accounts depends on that service. For more information, see the documentation for the other AWS service.</p> </important> <p>After you perform the <code>DisableAWSServiceAccess</code> operation, the specified service can no longer perform operations in your organization's accounts unless the operations are explicitly permitted by the IAM policies that are attached to your roles. </p> <p>For more information about integrating other services with AWS Organizations, including the list of services that work with Organizations, see <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html\">Integrating AWS Organizations with Other AWS Services</a> in the <i>AWS Organizations User Guide.</i> </p> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Disables the integration of an AWS service (the service that is specified by <code>ServicePrincipal</code>) with AWS Organizations. When you disable integration, the specified service no longer can create a <a href=\"http://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html\">service-linked role</a> in <i>new</i> accounts in your organization. This means the service can't perform operations on your behalf on any new accounts in your organization. The service can still perform operations in older accounts until the service completes its clean-up from AWS Organizations.</p> <p/> <important> <p>We recommend that you disable integration between AWS Organizations and the specified AWS service by using the console or commands that are provided by the specified service. Doing so ensures that the other service is aware that it can clean up any resources that are required only for the integration. How the service cleans up its resources in the organization's accounts depends on that service. For more information, see the documentation for the other AWS service.</p> </important> <p>After you perform the <code>DisableAWSServiceAccess</code> operation, the specified service can no longer perform operations in your organization's accounts unless the operations are explicitly permitted by the IAM policies that are attached to your roles.</p> <p>For more information about integrating other services with AWS Organizations, including the list of services that work with Organizations, see <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html\">Integrating AWS Organizations with Other AWS Services</a> in the <i>AWS Organizations User Guide.</i> </p> <p>This operation can be called only from the organization's master account.</p>"
     },
     "DisablePolicyType":{
       "name":"DisablePolicyType",
@@ -421,7 +470,9 @@
         {"shape":"PolicyTypeNotEnabledException"},
         {"shape":"RootNotFoundException"},
         {"shape":"ServiceException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"},
+        {"shape":"PolicyChangesInProgressException"}
       ],
       "documentation":"<p>Disables an organizational control policy type in a root. A policy of a certain type can be attached to entities in a root only if that type is enabled in the root. After you perform this operation, you no longer can attach policies of the specified type to that root or to any organizational unit (OU) or account in that root. You can undo this by using the <a>EnablePolicyType</a> operation.</p> <p>This is an asynchronous request that AWS performs in the background. If you disable a policy for a root, it still appears enabled for the organization if <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html\">all features</a> are enabled for the organization. AWS recommends that you first use <a>ListRoots</a> to see the status of policy types for a specified root, and then use this operation. </p> <p>This operation can be called only from the organization's master account.</p> <p> To view the status of available policy types in the organization, use <a>DescribeOrganization</a>.</p>"
     },
@@ -480,7 +531,9 @@
         {"shape":"RootNotFoundException"},
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"},
-        {"shape":"PolicyTypeNotAvailableForOrganizationException"}
+        {"shape":"PolicyTypeNotAvailableForOrganizationException"},
+        {"shape":"UnsupportedAPIEndpointException"},
+        {"shape":"PolicyChangesInProgressException"}
       ],
       "documentation":"<p>Enables a policy type in a root. After you enable a policy type in a root, you can attach policies of that type to the root, any organizational unit (OU), or account in that root. You can undo this by using the <a>DisablePolicyType</a> operation.</p> <p>This is an asynchronous request that AWS performs in the background. AWS recommends that you first use <a>ListRoots</a> to see the status of policy types for a specified root, and then use this operation. </p> <p>This operation can be called only from the organization's master account.</p> <p>You can enable a policy type in a root only if that policy type is available in the organization. To view the status of available policy types in the organization, use <a>DescribeOrganization</a>.</p>"
     },
@@ -523,7 +576,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Removes a member account from its parent organization. This version of the operation is performed by the account that wants to leave. To remove a member account as a user in the master account, use <a>RemoveAccountFromOrganization</a> instead.</p> <p>This operation can be called only from a member account in the organization.</p> <important> <ul> <li> <p>The master account in an organization with all features enabled can set service control policies (SCPs) that can restrict what administrators of member accounts can do, including preventing them from successfully calling <code>LeaveOrganization</code> and leaving the organization. </p> </li> <li> <p>You can leave an organization as a member account only if the account is configured with the information required to operate as a standalone account. When you create an account in an organization using the AWS Organizations console, API, or CLI commands, the information required of standalone accounts is <i>not</i> automatically collected. For each account that you want to make standalone, you must accept the end user license agreement (EULA), choose a support plan, provide and verify the required contact information, and provide a current payment method. AWS uses the payment method to charge for any billable (not free tier) AWS activity that occurs while the account isn't attached to an organization. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\"> To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>You can leave an organization only after you enable IAM user access to billing in your account. For more information, see <a href=\"http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/grantaccess.html#ControllingAccessWebsite-Activate\">Activating Access to the Billing and Cost Management Console</a> in the <i>AWS Billing and Cost Management User Guide.</i> </p> </li> </ul> </important>"
+      "documentation":"<p>Removes a member account from its parent organization. This version of the operation is performed by the account that wants to leave. To remove a member account as a user in the master account, use <a>RemoveAccountFromOrganization</a> instead.</p> <p>This operation can be called only from a member account in the organization.</p> <important> <ul> <li> <p>The master account in an organization with all features enabled can set service control policies (SCPs) that can restrict what administrators of member accounts can do. This includes preventing them from successfully calling <code>LeaveOrganization</code> and leaving the organization. </p> </li> <li> <p>You can leave an organization as a member account only if the account is configured with the information required to operate as a standalone account. When you create an account in an organization using the AWS Organizations console, API, or CLI commands, the information required of standalone accounts is <i>not</i> automatically collected. For each account that you want to make standalone, you must do the following steps:</p> <ul> <li> <p>Accept the end user license agreement (EULA)</p> </li> <li> <p>Choose a support plan</p> </li> <li> <p>Provide and verify the required contact information</p> </li> <li> <p>Provide a current payment method</p> </li> </ul> <p>AWS uses the payment method to charge for any billable (not free tier) AWS activity that occurs while the account isn't attached to an organization. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\"> To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>You can leave an organization only after you enable IAM user access to billing in your account. For more information, see <a href=\"http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/grantaccess.html#ControllingAccessWebsite-Activate\">Activating Access to the Billing and Cost Management Console</a> in the <i>AWS Billing and Cost Management User Guide.</i> </p> </li> </ul> </important>"
     },
     "ListAWSServiceAccessForOrganization":{
       "name":"ListAWSServiceAccessForOrganization",
@@ -541,7 +594,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Returns a list of the AWS services that you enabled to integrate with your organization. After a service on this list creates the resources that it requires for the integration, it can perform operations on your organization and its accounts.</p> <p>For more information about integrating other services with AWS Organizations, including the list of services that currently work with Organizations, see <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html\">Integrating AWS Organizations with Other AWS Services</a> in the <i>AWS Organizations User Guide.</i> </p> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Returns a list of the AWS services that you enabled to integrate with your organization. After a service on this list creates the resources that it requires for the integration, it can perform operations on your organization and its accounts.</p> <p>For more information about integrating other services with AWS Organizations, including the list of services that currently work with Organizations, see <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html\">Integrating AWS Organizations with Other AWS Services</a> in the <i>AWS Organizations User Guide.</i> </p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListAccounts":{
       "name":"ListAccounts",
@@ -558,7 +611,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists all the accounts in the organization. To request only the accounts in a specified root or organizational unit (OU), use the <a>ListAccountsForParent</a> operation instead.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists all the accounts in the organization. To request only the accounts in a specified root or organizational unit (OU), use the <a>ListAccountsForParent</a> operation instead.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListAccountsForParent":{
       "name":"ListAccountsForParent",
@@ -576,7 +629,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists the accounts in an organization that are contained by the specified target root or organizational unit (OU). If you specify the root, you get a list of all the accounts that aren't in any OU. If you specify an OU, you get a list of all the accounts in only that OU and not in any child OUs. To get a list of all accounts in the organization, use the <a>ListAccounts</a> operation.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists the accounts in an organization that are contained by the specified target root or organizational unit (OU). If you specify the root, you get a list of all the accounts that aren't in any OU. If you specify an OU, you get a list of all the accounts in only that OU and not in any child OUs. To get a list of all accounts in the organization, use the <a>ListAccounts</a> operation.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListChildren":{
       "name":"ListChildren",
@@ -594,7 +647,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists all of the organizational units (OUs) or accounts that are contained in the specified parent OU or root. This operation, along with <a>ListParents</a> enables you to traverse the tree structure that makes up this root.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists all of the organizational units (OUs) or accounts that are contained in the specified parent OU or root. This operation, along with <a>ListParents</a> enables you to traverse the tree structure that makes up this root.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListCreateAccountStatus":{
       "name":"ListCreateAccountStatus",
@@ -612,7 +665,47 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"UnsupportedAPIEndpointException"}
       ],
-      "documentation":"<p>Lists the account creation requests that match the specified status that is currently being tracked for the organization.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists the account creation requests that match the specified status that is currently being tracked for the organization.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
+    },
+    "ListDelegatedAdministrators":{
+      "name":"ListDelegatedAdministrators",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListDelegatedAdministratorsRequest"},
+      "output":{"shape":"ListDelegatedAdministratorsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AWSOrganizationsNotInUseException"},
+        {"shape":"ConstraintViolationException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"UnsupportedAPIEndpointException"}
+      ],
+      "documentation":"<p>Lists the AWS accounts that are designated as delegated administrators in this organization.</p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
+    },
+    "ListDelegatedServicesForAccount":{
+      "name":"ListDelegatedServicesForAccount",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListDelegatedServicesForAccountRequest"},
+      "output":{"shape":"ListDelegatedServicesForAccountResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AccountNotFoundException"},
+        {"shape":"AccountNotRegisteredException"},
+        {"shape":"AWSOrganizationsNotInUseException"},
+        {"shape":"ConstraintViolationException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"UnsupportedAPIEndpointException"}
+      ],
+      "documentation":"<p>List the AWS services for which the specified account is a delegated administrator. </p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListHandshakesForAccount":{
       "name":"ListHandshakesForAccount",
@@ -629,7 +722,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists the current handshakes that are associated with the account of the requesting user.</p> <p>Handshakes that are <code>ACCEPTED</code>, <code>DECLINED</code>, or <code>CANCELED</code> appear in the results of this API for only 30 days after changing to that state. After that, they're deleted and no longer accessible.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called from any account in the organization.</p>"
+      "documentation":"<p>Lists the current handshakes that are associated with the account of the requesting user.</p> <p>Handshakes that are <code>ACCEPTED</code>, <code>DECLINED</code>, or <code>CANCELED</code> appear in the results of this API for only 30 days after changing to that state. After that, they're deleted and no longer accessible.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListHandshakesForOrganization":{
       "name":"ListHandshakesForOrganization",
@@ -647,7 +740,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists the handshakes that are associated with the organization that the requesting user is part of. The <code>ListHandshakesForOrganization</code> operation returns a list of handshake structures. Each structure contains details and status about a handshake.</p> <p>Handshakes that are <code>ACCEPTED</code>, <code>DECLINED</code>, or <code>CANCELED</code> appear in the results of this API for only 30 days after changing to that state. After that, they're deleted and no longer accessible.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists the handshakes that are associated with the organization that the requesting user is part of. The <code>ListHandshakesForOrganization</code> operation returns a list of handshake structures. Each structure contains details and status about a handshake.</p> <p>Handshakes that are <code>ACCEPTED</code>, <code>DECLINED</code>, or <code>CANCELED</code> appear in the results of this API for only 30 days after changing to that state. After that, they're deleted and no longer accessible.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListOrganizationalUnitsForParent":{
       "name":"ListOrganizationalUnitsForParent",
@@ -665,7 +758,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists the organizational units (OUs) in a parent organizational unit or root.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists the organizational units (OUs) in a parent organizational unit or root.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListParents":{
       "name":"ListParents",
@@ -683,7 +776,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists the root or organizational units (OUs) that serve as the immediate parent of the specified child OU or account. This operation, along with <a>ListChildren</a> enables you to traverse the tree structure that makes up this root.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p> <note> <p>In the current release, a child can have only a single parent. </p> </note>"
+      "documentation":"<p>Lists the root or organizational units (OUs) that serve as the immediate parent of the specified child OU or account. This operation, along with <a>ListChildren</a> enables you to traverse the tree structure that makes up this root.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p> <note> <p>In the current release, a child can have only a single parent. </p> </note>"
     },
     "ListPolicies":{
       "name":"ListPolicies",
@@ -698,9 +791,10 @@
         {"shape":"AWSOrganizationsNotInUseException"},
         {"shape":"InvalidInputException"},
         {"shape":"ServiceException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"}
       ],
-      "documentation":"<p>Retrieves the list of all policies in an organization of a specified type.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Retrieves the list of all policies in an organization of a specified type.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListPoliciesForTarget":{
       "name":"ListPoliciesForTarget",
@@ -716,9 +810,10 @@
         {"shape":"InvalidInputException"},
         {"shape":"ServiceException"},
         {"shape":"TargetNotFoundException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"}
       ],
-      "documentation":"<p>Lists the policies that are directly attached to the specified target root, organizational unit (OU), or account. You must specify the policy type that you want included in the returned list.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists the policies that are directly attached to the specified target root, organizational unit (OU), or account. You must specify the policy type that you want included in the returned list.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListRoots":{
       "name":"ListRoots",
@@ -735,7 +830,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists the roots that are defined in the current organization.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p> <note> <p>Policy types can be enabled and disabled in roots. This is distinct from whether they're available in the organization. When you enable all features, you make policy types available for use in that organization. Individual policy types can then be enabled and disabled in a root. To see the availability of a policy type in an organization, use <a>DescribeOrganization</a>.</p> </note>"
+      "documentation":"<p>Lists the roots that are defined in the current organization.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p> <note> <p>Policy types can be enabled and disabled in roots. This is distinct from whether they're available in the organization. When you enable all features, you make policy types available for use in that organization. Individual policy types can then be enabled and disabled in a root. To see the availability of a policy type in an organization, use <a>DescribeOrganization</a>.</p> </note>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -753,7 +848,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Lists tags for the specified resource. </p> <p>Currently, you can list tags on an account in AWS Organizations.</p> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists tags for the specified resource. </p> <p>Currently, you can list tags on an account in AWS Organizations.</p> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "ListTargetsForPolicy":{
       "name":"ListTargetsForPolicy",
@@ -769,9 +864,10 @@
         {"shape":"InvalidInputException"},
         {"shape":"PolicyNotFoundException"},
         {"shape":"ServiceException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"}
       ],
-      "documentation":"<p>Lists all the roots, organizational units (OUs), and accounts that the specified policy is attached to.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account.</p>"
+      "documentation":"<p>Lists all the roots, organizational units (OUs), and accounts that the specified policy is attached to.</p> <note> <p>Always check the <code>NextToken</code> response parameter for a <code>null</code> value when calling a <code>List*</code> operation. These operations can occasionally return an empty set of results even when there are more results available. The <code>NextToken</code> response parameter value is <code>null</code> <i>only</i> when there are no more results to display.</p> </note> <p>This operation can be called only from the organization's master account or by a member account that is a delegated administrator for an AWS service.</p>"
     },
     "MoveAccount":{
       "name":"MoveAccount",
@@ -793,6 +889,27 @@
         {"shape":"ServiceException"}
       ],
       "documentation":"<p>Moves an account from its current source parent root or organizational unit (OU) to the specified destination parent root or OU.</p> <p>This operation can be called only from the organization's master account.</p>"
+    },
+    "RegisterDelegatedAdministrator":{
+      "name":"RegisterDelegatedAdministrator",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RegisterDelegatedAdministratorRequest"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AccountAlreadyRegisteredException"},
+        {"shape":"AccountNotFoundException"},
+        {"shape":"AWSOrganizationsNotInUseException"},
+        {"shape":"ConcurrentModificationException"},
+        {"shape":"ConstraintViolationException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"UnsupportedAPIEndpointException"}
+      ],
+      "documentation":"<p>Enables the specified member account to administer the Organizations features of the specified AWS service. It grants read-only access to AWS Organizations service data. The account still requires IAM permissions to access and administer the AWS service.</p> <p>You can run this action only for AWS services that support this feature. For a current list of services that support it, see the column <i>Supports Delegated Administrator</i> in the table at <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrated-services-list.html\">AWS Services that you can use with AWS Organizations</a> in the <i>AWS Organizations User Guide.</i> </p> <p>This operation can be called only from the organization's master account.</p>"
     },
     "RemoveAccountFromOrganization":{
       "name":"RemoveAccountFromOrganization",
@@ -890,7 +1007,9 @@
         {"shape":"MalformedPolicyDocumentException"},
         {"shape":"PolicyNotFoundException"},
         {"shape":"ServiceException"},
-        {"shape":"TooManyRequestsException"}
+        {"shape":"TooManyRequestsException"},
+        {"shape":"UnsupportedAPIEndpointException"},
+        {"shape":"PolicyChangesInProgressException"}
       ],
       "documentation":"<p>Updates an existing policy with a new name, description, or content. If you don't supply any parameter, that value remains unchanged. You can't change a policy's type.</p> <p>This operation can be called only from the organization's master account.</p>"
     }
@@ -910,7 +1029,7 @@
       "members":{
         "HandshakeId":{
           "shape":"HandshakeId",
-          "documentation":"<p>The unique identifier (ID) of the handshake that you want to accept.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for handshake ID string requires \"h-\" followed by from 8 to 32 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the handshake that you want to accept.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for handshake ID string requires \"h-\" followed by from 8 to 32 lowercase letters or digits.</p>"
         }
       }
     },
@@ -957,7 +1076,7 @@
         },
         "Email":{
           "shape":"Email",
-          "documentation":"<p>The email address associated with the AWS account.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for this parameter is a string of characters that represents a standard Internet email address.</p>"
+          "documentation":"<p>The email address associated with the AWS account.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for this parameter is a string of characters that represents a standard internet email address.</p>"
         },
         "Name":{
           "shape":"AccountName",
@@ -977,6 +1096,14 @@
         }
       },
       "documentation":"<p>Contains information about an AWS account that is a member of an organization.</p>"
+    },
+    "AccountAlreadyRegisteredException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ExceptionMessage"}
+      },
+      "documentation":"<p>The specified account is already a delegated administrator for this AWS service.</p>",
+      "exception":true
     },
     "AccountArn":{
       "type":"string",
@@ -1006,6 +1133,14 @@
         "Message":{"shape":"ExceptionMessage"}
       },
       "documentation":"<p> We can't find an AWS account with the <code>AccountId</code> that you specified, or the account whose credentials you used to make this request isn't a member of an organization.</p>",
+      "exception":true
+    },
+    "AccountNotRegisteredException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ExceptionMessage"}
+      },
+      "documentation":"<p>The specified account is not a delegated administrator for this AWS service. </p>",
       "exception":true
     },
     "AccountOwnerNotVerifiedException":{
@@ -1053,11 +1188,11 @@
       "members":{
         "PolicyId":{
           "shape":"PolicyId",
-          "documentation":"<p>The unique identifier (ID) of the policy that you want to attach to the target. You can get the ID for the policy by calling the <a>ListPolicies</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the policy that you want to attach to the target. You can get the ID for the policy by calling the <a>ListPolicies</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lowercase or uppercase letters, digits, or the underscore character (_).</p>"
         },
         "TargetId":{
           "shape":"PolicyTargetId",
-          "documentation":"<p>The unique identifier (ID) of the root, OU, or account that you want to attach the policy to. You can get the ID by calling the <a>ListRoots</a>, <a>ListOrganizationalUnitsForParent</a>, or <a>ListAccounts</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a target ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p> <b>Account</b> - A string that consists of exactly 12 digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the root, OU, or account that you want to attach the policy to. You can get the ID by calling the <a>ListRoots</a>, <a>ListOrganizationalUnitsForParent</a>, or <a>ListAccounts</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a target ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lowercase letters or digits.</p> </li> <li> <p> <b>Account</b> - A string that consists of exactly 12 digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         }
       }
     },
@@ -1068,7 +1203,7 @@
       "members":{
         "HandshakeId":{
           "shape":"HandshakeId",
-          "documentation":"<p>The unique identifier (ID) of the handshake that you want to cancel. You can get the ID from the <a>ListHandshakesForOrganization</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for handshake ID string requires \"h-\" followed by from 8 to 32 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the handshake that you want to cancel. You can get the ID from the <a>ListHandshakesForOrganization</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for handshake ID string requires \"h-\" followed by from 8 to 32 lowercase letters or digits.</p>"
         }
       }
     },
@@ -1086,7 +1221,7 @@
       "members":{
         "Id":{
           "shape":"ChildId",
-          "documentation":"<p>The unique identifier (ID) of this child entity.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a child ID string requires one of the following:</p> <ul> <li> <p>Account: a string that consists of exactly 12 digits.</p> </li> <li> <p>Organizational unit (OU): a string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that contains the OU) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of this child entity.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a child ID string requires one of the following:</p> <ul> <li> <p>Account: A string that consists of exactly 12 digits.</p> </li> <li> <p>Organizational unit (OU): A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that contains the OU). This string is followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
         },
         "Type":{
           "shape":"ChildType",
@@ -1132,7 +1267,7 @@
         "Message":{"shape":"ExceptionMessage"},
         "Reason":{"shape":"ConstraintViolationExceptionReason"}
       },
-      "documentation":"<p>Performing this operation violates a minimum or maximum value limit. For example, attempting to remove the last service control policy (SCP) from an OU or root, inviting or creating too many accounts to the organization, or attaching too many policies to an account, OU, or root. This exception includes a reason that contains additional information about the violated limit.</p> <p>Some of the reasons in the following list might not be applicable to this specific API or operation:</p> <ul> <li> <p>ACCOUNT_CANNOT_LEAVE_WITHOUT_EULA: You attempted to remove an account from the organization that doesn't yet have enough information to exist as a standalone account. This account requires you to first agree to the AWS Customer Agreement. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\">To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>ACCOUNT_CANNOT_LEAVE_WITHOUT_PHONE_VERIFICATION: You attempted to remove an account from the organization that doesn't yet have enough information to exist as a standalone account. This account requires you to first complete phone verification. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\">To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>ACCOUNT_CREATION_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of accounts that you can create in one day.</p> </li> <li> <p>ACCOUNT_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the limit on the number of accounts in an organization. If you need more accounts, contact <a href=\"https://console.aws.amazon.com/support/home#/\">AWS Support</a> to request an increase in your limit. </p> <p>Or the number of invitations that you tried to send would cause you to exceed the limit of accounts in your organization. Send fewer invitations or contact AWS Support to request an increase in the number of accounts.</p> <note> <p>Deleted and closed accounts still count toward your limit.</p> </note> <important> <p>If you get receive this exception when running a command immediately after creating the organization, wait one hour and try again. If after an hour it continues to fail with this error, contact <a href=\"https://console.aws.amazon.com/support/home#/\">AWS Support</a>.</p> </important> </li> <li> <p>HANDSHAKE_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of handshakes that you can send in one day.</p> </li> <li> <p>MASTER_ACCOUNT_ADDRESS_DOES_NOT_MATCH_MARKETPLACE: To create an account in this organization, you first must migrate the organization's master account to the marketplace that corresponds to the master account's address. For example, accounts with India addresses must be associated with the AISPL marketplace. All accounts in an organization must be associated with the same marketplace.</p> </li> <li> <p>MASTER_ACCOUNT_MISSING_CONTACT_INFO: To complete this operation, you must first provide contact a valid address and phone number for the master account. Then try the operation again.</p> </li> <li> <p>MASTER_ACCOUNT_NOT_GOVCLOUD_ENABLED: To complete this operation, the master account must have an associated account in the AWS GovCloud (US-West) Region. For more information, see <a href=\"http://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-organizations.html\">AWS Organizations</a> in the <i>AWS GovCloud User Guide.</i> </p> </li> <li> <p>MASTER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To create an organization with this master account, you first must associate a valid payment instrument, such as a credit card, with the account. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\">To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to exceed the number of policies of a certain type that can be attached to an entity at one time.</p> </li> <li> <p>MAX_TAG_LIMIT_EXCEEDED: You have exceeded the number of tags allowed on this resource. </p> </li> <li> <p>MEMBER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To complete this operation with this member account, you first must associate a valid payment instrument, such as a credit card, with the account. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\">To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a policy from an entity that would cause the entity to have fewer than the minimum number of policies of a certain type required.</p> </li> <li> <p>OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is too many levels deep.</p> </li> <li> <p>ORGANIZATION_NOT_IN_ALL_FEATURES_MODE: You attempted to perform an operation that requires the organization to be configured to support all features. An organization that supports only consolidated billing features can't perform this operation.</p> </li> <li> <p>OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs that you can have in an organization.</p> </li> <li> <p>POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of policies that you can have in an organization.</p> </li> </ul>",
+      "documentation":"<p>Performing this operation violates a minimum or maximum value limit. For example, attempting to remove the last service control policy (SCP) from an OU or root, inviting or creating too many accounts to the organization, or attaching too many policies to an account, OU, or root. This exception includes a reason that contains additional information about the violated limit.</p> <p>Some of the reasons in the following list might not be applicable to this specific API or operation:</p> <ul> <li> <p>ACCOUNT_CANNOT_LEAVE_WITHOUT_EULA: You attempted to remove an account from the organization that doesn't yet have enough information to exist as a standalone account. This account requires you to first agree to the AWS Customer Agreement. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\">To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>ACCOUNT_CANNOT_LEAVE_WITHOUT_PHONE_VERIFICATION: You attempted to remove an account from the organization that doesn't yet have enough information to exist as a standalone account. This account requires you to first complete phone verification. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\">To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>ACCOUNT_CREATION_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of accounts that you can create in one day.</p> </li> <li> <p>ACCOUNT_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the limit on the number of accounts in an organization. If you need more accounts, contact <a href=\"https://console.aws.amazon.com/support/home#/\">AWS Support</a> to request an increase in your limit. </p> <p>Or the number of invitations that you tried to send would cause you to exceed the limit of accounts in your organization. Send fewer invitations or contact AWS Support to request an increase in the number of accounts.</p> <note> <p>Deleted and closed accounts still count toward your limit.</p> </note> <important> <p>If you get receive this exception when running a command immediately after creating the organization, wait one hour and try again. If after an hour it continues to fail with this error, contact <a href=\"https://console.aws.amazon.com/support/home#/\">AWS Support</a>.</p> </important> </li> <li> <p>CANNOT_REGISTER_MASTER_AS_DELEGATED_ADMINISTRATOR: You can designate only a member account as a delegated administrator.</p> </li> <li> <p>CANNOT_REMOVE_DELEGATED_ADMINISTRATOR_FROM_ORG: To complete this operation, you must first deregister this account as a delegated administrator. </p> </li> <li> <p>DELEGATED_ADMINISTRATOR_EXISTS_FOR_THIS_SERVICE: To complete this operation, you must first deregister all delegated administrators for this service.</p> </li> <li> <p>HANDSHAKE_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of handshakes that you can send in one day.</p> </li> <li> <p>MASTER_ACCOUNT_ADDRESS_DOES_NOT_MATCH_MARKETPLACE: To create an account in this organization, you first must migrate the organization's master account to the marketplace that corresponds to the master account's address. For example, accounts with India addresses must be associated with the AISPL marketplace. All accounts in an organization must be associated with the same marketplace.</p> </li> <li> <p>MASTER_ACCOUNT_MISSING_CONTACT_INFO: To complete this operation, you must first provide contact a valid address and phone number for the master account. Then try the operation again.</p> </li> <li> <p>MASTER_ACCOUNT_NOT_GOVCLOUD_ENABLED: To complete this operation, the master account must have an associated account in the AWS GovCloud (US-West) Region. For more information, see <a href=\"http://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-organizations.html\">AWS Organizations</a> in the <i>AWS GovCloud User Guide.</i> </p> </li> <li> <p>MASTER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To create an organization with this master account, you first must associate a valid payment instrument, such as a credit card, with the account. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\">To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>MAX_DELEGATED_ADMINISTRATORS_FOR_SERVICE_LIMIT_EXCEEDED: You attempted to register more delegated administrators than allowed for the service principal. </p> </li> <li> <p>MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to exceed the number of policies of a certain type that can be attached to an entity at one time.</p> </li> <li> <p>MAX_TAG_LIMIT_EXCEEDED: You have exceeded the number of tags allowed on this resource. </p> </li> <li> <p>MEMBER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To complete this operation with this member account, you first must associate a valid payment instrument, such as a credit card, with the account. Follow the steps at <a href=\"http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info\">To leave an organization when all required account information has not yet been provided</a> in the <i>AWS Organizations User Guide.</i> </p> </li> <li> <p>MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a policy from an entity that would cause the entity to have fewer than the minimum number of policies of a certain type required.</p> </li> <li> <p>OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is too many levels deep.</p> </li> <li> <p>ORGANIZATION_NOT_IN_ALL_FEATURES_MODE: You attempted to perform an operation that requires the organization to be configured to support all features. An organization that supports only consolidated billing features can't perform this operation.</p> </li> <li> <p>OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs that you can have in an organization.</p> </li> <li> <p>POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of policies that you can have in an organization.</p> </li> </ul>",
       "exception":true
     },
     "ConstraintViolationExceptionReason":{
@@ -1143,6 +1278,7 @@
         "OU_NUMBER_LIMIT_EXCEEDED",
         "OU_DEPTH_LIMIT_EXCEEDED",
         "POLICY_NUMBER_LIMIT_EXCEEDED",
+        "POLICY_CONTENT_LIMIT_EXCEEDED",
         "MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED",
         "MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED",
         "ACCOUNT_CANNOT_LEAVE_ORGANIZATION",
@@ -1159,7 +1295,11 @@
         "EMAIL_VERIFICATION_CODE_EXPIRED",
         "WAIT_PERIOD_ACTIVE",
         "MAX_TAG_LIMIT_EXCEEDED",
-        "TAG_POLICY_VIOLATION"
+        "TAG_POLICY_VIOLATION",
+        "MAX_DELEGATED_ADMINISTRATORS_FOR_SERVICE_LIMIT_EXCEEDED",
+        "CANNOT_REGISTER_MASTER_AS_DELEGATED_ADMINISTRATOR",
+        "CANNOT_REMOVE_DELEGATED_ADMINISTRATOR_FROM_ORG",
+        "DELEGATED_ADMINISTRATOR_EXISTS_FOR_THIS_SERVICE"
       ]
     },
     "CreateAccountFailureReason":{
@@ -1170,7 +1310,8 @@
         "INVALID_ADDRESS",
         "INVALID_EMAIL",
         "CONCURRENT_ACCOUNT_MODIFICATION",
-        "INTERNAL_FAILURE"
+        "INTERNAL_FAILURE",
+        "GOVCLOUD_ACCOUNT_ALREADY_EXISTS"
       ]
     },
     "CreateAccountRequest":{
@@ -1190,7 +1331,7 @@
         },
         "RoleName":{
           "shape":"RoleName",
-          "documentation":"<p>(Optional)</p> <p>The name of an IAM role that AWS Organizations automatically preconfigures in the new member account. This role trusts the master account, allowing users in the master account to assume the role, as permitted by the master account administrator. The role has administrator permissions in the new member account.</p> <p>If you don't specify this parameter, the role name defaults to <code>OrganizationAccountAccessRole</code>.</p> <p>For more information about how to use this role to access the member account, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html#orgs_manage_accounts_create-cross-account-role\">Accessing and Administering the Member Accounts in Your Organization</a> in the <i>AWS Organizations User Guide</i>, and steps 2 and 3 in <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html\">Tutorial: Delegate Access Across AWS Accounts Using IAM Roles</a> in the <i>IAM User Guide.</i> </p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> that is used to validate this parameter is a string of characters that can consist of uppercase letters, lowercase letters, digits with no spaces, and any of the following characters: =,.@-</p>"
+          "documentation":"<p>(Optional)</p> <p>The name of an IAM role that AWS Organizations automatically preconfigures in the new member account. This role trusts the master account, allowing users in the master account to assume the role, as permitted by the master account administrator. The role has administrator permissions in the new member account.</p> <p>If you don't specify this parameter, the role name defaults to <code>OrganizationAccountAccessRole</code>.</p> <p>For more information about how to use this role to access the member account, see the following links:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html#orgs_manage_accounts_create-cross-account-role\">Accessing and Administering the Member Accounts in Your Organization</a> in the <i>AWS Organizations User Guide</i> </p> </li> <li> <p>Steps 2 and 3 in <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html\">Tutorial: Delegate Access Across AWS Accounts Using IAM Roles</a> in the <i>IAM User Guide</i> </p> </li> </ul> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> that is used to validate this parameter. The pattern can include uppercase letters, lowercase letters, digits with no spaces, and any of the following characters: =,.@-</p>"
         },
         "IamUserAccessToBilling":{
           "shape":"IAMUserAccessToBilling",
@@ -1228,7 +1369,7 @@
       "members":{
         "Id":{
           "shape":"CreateAccountRequestId",
-          "documentation":"<p>The unique identifier (ID) that references this request. You get this value from the response of the initial <a>CreateAccount</a> request to create the account.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an create account request ID string requires \"car-\" followed by from 8 to 32 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) that references this request. You get this value from the response of the initial <a>CreateAccount</a> request to create the account.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a create account request ID string requires \"car-\" followed by from 8 to 32 lower-case letters or digits.</p>"
         },
         "AccountName":{
           "shape":"AccountName",
@@ -1290,7 +1431,7 @@
         },
         "RoleName":{
           "shape":"RoleName",
-          "documentation":"<p>(Optional)</p> <p>The name of an IAM role that AWS Organizations automatically preconfigures in the new member accounts in both the AWS GovCloud (US) Region and in the commercial Region. This role trusts the master account, allowing users in the master account to assume the role, as permitted by the master account administrator. The role has administrator permissions in the new member account.</p> <p>If you don't specify this parameter, the role name defaults to <code>OrganizationAccountAccessRole</code>.</p> <p>For more information about how to use this role to access the member account, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html#orgs_manage_accounts_create-cross-account-role\">Accessing and Administering the Member Accounts in Your Organization</a> in the <i>AWS Organizations User Guide</i> and steps 2 and 3 in <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html\">Tutorial: Delegate Access Across AWS Accounts Using IAM Roles</a> in the <i>IAM User Guide.</i> </p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> that is used to validate this parameter is a string of characters that can consist of uppercase letters, lowercase letters, digits with no spaces, and any of the following characters: =,.@-</p>"
+          "documentation":"<p>(Optional)</p> <p>The name of an IAM role that AWS Organizations automatically preconfigures in the new member accounts in both the AWS GovCloud (US) Region and in the commercial Region. This role trusts the master account, allowing users in the master account to assume the role, as permitted by the master account administrator. The role has administrator permissions in the new member account.</p> <p>If you don't specify this parameter, the role name defaults to <code>OrganizationAccountAccessRole</code>.</p> <p>For more information about how to use this role to access the member account, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html#orgs_manage_accounts_create-cross-account-role\">Accessing and Administering the Member Accounts in Your Organization</a> in the <i>AWS Organizations User Guide</i> and steps 2 and 3 in <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html\">Tutorial: Delegate Access Across AWS Accounts Using IAM Roles</a> in the <i>IAM User Guide.</i> </p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> that is used to validate this parameter. The pattern can include uppercase letters, lowercase letters, digits with no spaces, and any of the following characters: =,.@-</p>"
         },
         "IamUserAccessToBilling":{
           "shape":"IAMUserAccessToBilling",
@@ -1331,7 +1472,7 @@
       "members":{
         "ParentId":{
           "shape":"ParentId",
-          "documentation":"<p>The unique identifier (ID) of the parent root or OU that you want to create the new OU in.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the parent root or OU that you want to create the new OU in.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lowercase letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         },
         "Name":{
           "shape":"OrganizationalUnitName",
@@ -1390,7 +1531,7 @@
       "members":{
         "HandshakeId":{
           "shape":"HandshakeId",
-          "documentation":"<p>The unique identifier (ID) of the handshake that you want to decline. You can get the ID from the <a>ListHandshakesForAccount</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for handshake ID string requires \"h-\" followed by from 8 to 32 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the handshake that you want to decline. You can get the ID from the <a>ListHandshakesForAccount</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for handshake ID string requires \"h-\" followed by from 8 to 32 lowercase letters or digits.</p>"
         }
       }
     },
@@ -1403,13 +1544,73 @@
         }
       }
     },
+    "DelegatedAdministrator":{
+      "type":"structure",
+      "members":{
+        "Id":{
+          "shape":"AccountId",
+          "documentation":"<p>The unique identifier (ID) of the delegated administrator's account.</p>"
+        },
+        "Arn":{
+          "shape":"AccountArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the delegated administrator's account.</p>"
+        },
+        "Email":{
+          "shape":"Email",
+          "documentation":"<p>The email address that is associated with the delegated administrator's AWS account.</p>"
+        },
+        "Name":{
+          "shape":"AccountName",
+          "documentation":"<p>The friendly name of the delegated administrator's account.</p>"
+        },
+        "Status":{
+          "shape":"AccountStatus",
+          "documentation":"<p>The status of the delegated administrator's account in the organization.</p>"
+        },
+        "JoinedMethod":{
+          "shape":"AccountJoinedMethod",
+          "documentation":"<p>The method by which the delegated administrator's account joined the organization.</p>"
+        },
+        "JoinedTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date when the delegated administrator's account became a part of the organization.</p>"
+        },
+        "DelegationEnabledDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date when the account was made a delegated administrator.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the delegated administrator.</p>"
+    },
+    "DelegatedAdministrators":{
+      "type":"list",
+      "member":{"shape":"DelegatedAdministrator"}
+    },
+    "DelegatedService":{
+      "type":"structure",
+      "members":{
+        "ServicePrincipal":{
+          "shape":"ServicePrincipal",
+          "documentation":"<p>The name of a service that can request an operation for the specified service. This is typically in the form of a URL, such as: <code> <i>servicename</i>.amazonaws.com</code>.</p>"
+        },
+        "DelegationEnabledDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date that the account became a delegated administrator for this service. </p>"
+        }
+      },
+      "documentation":"<p>Contains information about the AWS service for which the account is a delegated administrator.</p>"
+    },
+    "DelegatedServices":{
+      "type":"list",
+      "member":{"shape":"DelegatedService"}
+    },
     "DeleteOrganizationalUnitRequest":{
       "type":"structure",
       "required":["OrganizationalUnitId"],
       "members":{
         "OrganizationalUnitId":{
           "shape":"OrganizationalUnitId",
-          "documentation":"<p>The unique identifier (ID) of the organizational unit that you want to delete. You can get the ID from the <a>ListOrganizationalUnitsForParent</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an organizational unit ID string requires \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that contains the OU) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the organizational unit that you want to delete. You can get the ID from the <a>ListOrganizationalUnitsForParent</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an organizational unit ID string requires \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p>"
         }
       }
     },
@@ -1419,7 +1620,24 @@
       "members":{
         "PolicyId":{
           "shape":"PolicyId",
-          "documentation":"<p>The unique identifier (ID) of the policy that you want to delete. You can get the ID from the <a>ListPolicies</a> or <a>ListPoliciesForTarget</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the policy that you want to delete. You can get the ID from the <a>ListPolicies</a> or <a>ListPoliciesForTarget</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lowercase or uppercase letters, digits, or the underscore character (_).</p>"
+        }
+      }
+    },
+    "DeregisterDelegatedAdministratorRequest":{
+      "type":"structure",
+      "required":[
+        "AccountId",
+        "ServicePrincipal"
+      ],
+      "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID number of the member account in the organization that you want to deregister as a delegated administrator.</p>"
+        },
+        "ServicePrincipal":{
+          "shape":"ServicePrincipal",
+          "documentation":"<p>The service principal name of an AWS service for which the account is a delegated administrator.</p> <p>Delegated administrator privileges are revoked for only the specified AWS service from the member account. If the specified service is the only service for which the member account is a delegated administrator, the operation also revokes Organizations read action permissions.</p>"
         }
       }
     },
@@ -1448,7 +1666,7 @@
       "members":{
         "CreateAccountRequestId":{
           "shape":"CreateAccountRequestId",
-          "documentation":"<p>Specifies the <code>operationId</code> that uniquely identifies the request. You can get the ID from the response to an earlier <a>CreateAccount</a> request, or from the <a>ListCreateAccountStatus</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a create account request ID string requires \"car-\" followed by from 8 to 32 lower-case letters or digits.</p>"
+          "documentation":"<p>Specifies the <code>operationId</code> that uniquely identifies the request. You can get the ID from the response to an earlier <a>CreateAccount</a> request, or from the <a>ListCreateAccountStatus</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a create account request ID string requires \"car-\" followed by from 8 to 32 lowercase letters or digits.</p>"
         }
       }
     },
@@ -1461,13 +1679,36 @@
         }
       }
     },
+    "DescribeEffectivePolicyRequest":{
+      "type":"structure",
+      "required":["PolicyType"],
+      "members":{
+        "PolicyType":{
+          "shape":"EffectivePolicyType",
+          "documentation":"<p>The type of policy that you want information about.</p>"
+        },
+        "TargetId":{
+          "shape":"PolicyTargetId",
+          "documentation":"<p>When you're signed in as the master account, specify the ID of the account that you want details about. Specifying an organization root or OU as the target is not supported. </p>"
+        }
+      }
+    },
+    "DescribeEffectivePolicyResponse":{
+      "type":"structure",
+      "members":{
+        "EffectivePolicy":{
+          "shape":"EffectivePolicy",
+          "documentation":"<p>The contents of the effective policy.</p>"
+        }
+      }
+    },
     "DescribeHandshakeRequest":{
       "type":"structure",
       "required":["HandshakeId"],
       "members":{
         "HandshakeId":{
           "shape":"HandshakeId",
-          "documentation":"<p>The unique identifier (ID) of the handshake that you want information about. You can get the ID from the original call to <a>InviteAccountToOrganization</a>, or from a call to <a>ListHandshakesForAccount</a> or <a>ListHandshakesForOrganization</a>.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for handshake ID string requires \"h-\" followed by from 8 to 32 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the handshake that you want information about. You can get the ID from the original call to <a>InviteAccountToOrganization</a>, or from a call to <a>ListHandshakesForAccount</a> or <a>ListHandshakesForOrganization</a>.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for handshake ID string requires \"h-\" followed by from 8 to 32 lowercase letters or digits.</p>"
         }
       }
     },
@@ -1495,7 +1736,7 @@
       "members":{
         "OrganizationalUnitId":{
           "shape":"OrganizationalUnitId",
-          "documentation":"<p>The unique identifier (ID) of the organizational unit that you want details about. You can get the ID from the <a>ListOrganizationalUnitsForParent</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an organizational unit ID string requires \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that contains the OU) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the organizational unit that you want details about. You can get the ID from the <a>ListOrganizationalUnitsForParent</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an organizational unit ID string requires \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p>"
         }
       }
     },
@@ -1514,7 +1755,7 @@
       "members":{
         "PolicyId":{
           "shape":"PolicyId",
-          "documentation":"<p>The unique identifier (ID) of the policy that you want details about. You can get the ID from the <a>ListPolicies</a> or <a>ListPoliciesForTarget</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the policy that you want details about. You can get the ID from the <a>ListPolicies</a> or <a>ListPoliciesForTarget</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lowercase or uppercase letters, digits, or the underscore character (_).</p>"
         }
       }
     },
@@ -1544,11 +1785,11 @@
       "members":{
         "PolicyId":{
           "shape":"PolicyId",
-          "documentation":"<p>The unique identifier (ID) of the policy you want to detach. You can get the ID from the <a>ListPolicies</a> or <a>ListPoliciesForTarget</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the policy you want to detach. You can get the ID from the <a>ListPolicies</a> or <a>ListPoliciesForTarget</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lowercase or uppercase letters, digits, or the underscore character (_).</p>"
         },
         "TargetId":{
           "shape":"PolicyTargetId",
-          "documentation":"<p>The unique identifier (ID) of the root, OU, or account that you want to detach the policy from. You can get the ID from the <a>ListRoots</a>, <a>ListOrganizationalUnitsForParent</a>, or <a>ListAccounts</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a target ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p> <b>Account</b> - A string that consists of exactly 12 digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the root, OU, or account that you want to detach the policy from. You can get the ID from the <a>ListRoots</a>, <a>ListOrganizationalUnitsForParent</a>, or <a>ListAccounts</a> operations.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a target ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lowercase letters or digits.</p> </li> <li> <p> <b>Account</b> - A string that consists of exactly 12 digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         }
       }
     },
@@ -1571,7 +1812,7 @@
       "members":{
         "RootId":{
           "shape":"RootId",
-          "documentation":"<p>The unique identifier (ID) of the root in which you want to disable a policy type. You can get the ID from the <a>ListRoots</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a root ID string requires \"r-\" followed by from 4 to 32 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the root in which you want to disable a policy type. You can get the ID from the <a>ListRoots</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a root ID string requires \"r-\" followed by from 4 to 32 lowercase letters or digits.</p>"
         },
         "PolicyType":{
           "shape":"PolicyType",
@@ -1628,6 +1869,40 @@
       "documentation":"<p>A policy with the same name already exists.</p>",
       "exception":true
     },
+    "EffectivePolicy":{
+      "type":"structure",
+      "members":{
+        "PolicyContent":{
+          "shape":"PolicyContent",
+          "documentation":"<p>The text content of the policy.</p>"
+        },
+        "LastUpdatedTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time of the last update to this policy.</p>"
+        },
+        "TargetId":{
+          "shape":"PolicyTargetId",
+          "documentation":"<p>The account ID of the policy target. </p>"
+        },
+        "PolicyType":{
+          "shape":"EffectivePolicyType",
+          "documentation":"<p>The policy type.</p>"
+        }
+      },
+      "documentation":"<p>Contains rules to be applied to the affected accounts. The effective policy is the aggregation of any policies the account inherits, plus any policy directly attached to the account.</p>"
+    },
+    "EffectivePolicyNotFoundException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ExceptionMessage"}
+      },
+      "documentation":"<p>If you ran this action on the master account, this policy type is not enabled. If you ran the action on a member account, the account doesn't have an effective policy of this type. Contact the administrator of your organization about attaching a policy of this type to the account. </p>",
+      "exception":true
+    },
+    "EffectivePolicyType":{
+      "type":"string",
+      "enum":["TAG_POLICY"]
+    },
     "Email":{
       "type":"string",
       "max":64,
@@ -1668,7 +1943,7 @@
       "members":{
         "RootId":{
           "shape":"RootId",
-          "documentation":"<p>The unique identifier (ID) of the root in which you want to enable a policy type. You can get the ID from the <a>ListRoots</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a root ID string requires \"r-\" followed by from 4 to 32 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the root in which you want to enable a policy type. You can get the ID from the <a>ListRoots</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a root ID string requires \"r-\" followed by from 4 to 32 lowercase letters or digits.</p>"
         },
         "PolicyType":{
           "shape":"PolicyType",
@@ -1697,7 +1972,7 @@
           "documentation":"<p>The date that the service principal was enabled for integration with AWS Organizations.</p>"
         }
       },
-      "documentation":"<p>A structure that contains details of a service principal that is enabled to integrate with AWS Organizations.</p>"
+      "documentation":"<p>A structure that contains details of a service principal that represents an AWS service that is enabled to integrate with AWS Organizations.</p>"
     },
     "EnabledServicePrincipals":{
       "type":"list",
@@ -1941,6 +2216,7 @@
         "INVALID_SYNTAX_ORGANIZATION_ARN",
         "INVALID_SYNTAX_POLICY_ID",
         "INVALID_ENUM",
+        "INVALID_ENUM_POLICY_TYPE",
         "INVALID_LIST_MEMBER",
         "MAX_LENGTH_EXCEEDED",
         "MAX_VALUE_EXCEEDED",
@@ -1956,7 +2232,8 @@
         "INVALID_FULL_NAME_TARGET",
         "UNRECOGNIZED_SERVICE_PRINCIPAL",
         "INVALID_ROLE_NAME",
-        "INVALID_SYSTEM_TAGS_PARAMETER"
+        "INVALID_SYSTEM_TAGS_PARAMETER",
+        "TARGET_NOT_SUPPORTED"
       ]
     },
     "InviteAccountToOrganizationRequest":{
@@ -1987,11 +2264,11 @@
       "members":{
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2004,7 +2281,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2018,11 +2295,11 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2035,7 +2312,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2044,11 +2321,11 @@
       "members":{
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2061,7 +2338,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2074,7 +2351,7 @@
       "members":{
         "ParentId":{
           "shape":"ParentId",
-          "documentation":"<p>The unique identifier (ID) for the parent root or OU whose children you want to list.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) for the parent root or OU whose children you want to list.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lowercase letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         },
         "ChildType":{
           "shape":"ChildType",
@@ -2082,11 +2359,11 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2099,7 +2376,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2112,11 +2389,11 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2129,7 +2406,68 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+        }
+      }
+    },
+    "ListDelegatedAdministratorsRequest":{
+      "type":"structure",
+      "members":{
+        "ServicePrincipal":{
+          "shape":"ServicePrincipal",
+          "documentation":"<p>Specifies a service principal name. If specified, then the operation lists the delegated administrators only for the specified service.</p> <p>If you don't specify a service principal, the operation lists all delegated administrators for all services in your organization.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+        }
+      }
+    },
+    "ListDelegatedAdministratorsResponse":{
+      "type":"structure",
+      "members":{
+        "DelegatedAdministrators":{
+          "shape":"DelegatedAdministrators",
+          "documentation":"<p>The list of delegated administrators in your organization.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+        }
+      }
+    },
+    "ListDelegatedServicesForAccountRequest":{
+      "type":"structure",
+      "required":["AccountId"],
+      "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID number of a delegated administrator account in the organization.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+        }
+      }
+    },
+    "ListDelegatedServicesForAccountResponse":{
+      "type":"structure",
+      "members":{
+        "DelegatedServices":{
+          "shape":"DelegatedServices",
+          "documentation":"<p>The services for which the account is a delegated administrator.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2142,11 +2480,11 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2159,7 +2497,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2172,11 +2510,11 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2189,7 +2527,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2199,15 +2537,15 @@
       "members":{
         "ParentId":{
           "shape":"ParentId",
-          "documentation":"<p>The unique identifier (ID) of the root or OU whose child OUs you want to list.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the root or OU whose child OUs you want to list.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lowercase letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2220,7 +2558,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2230,15 +2568,15 @@
       "members":{
         "ChildId":{
           "shape":"ChildId",
-          "documentation":"<p>The unique identifier (ID) of the OU or account whose parent containers you want to list. Don't specify a root.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a child ID string requires one of the following:</p> <ul> <li> <p> <b>Account</b> - A string that consists of exactly 12 digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that contains the OU) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the OU or account whose parent containers you want to list. Don't specify a root.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a child ID string requires one of the following:</p> <ul> <li> <p> <b>Account</b> - A string that consists of exactly 12 digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2251,7 +2589,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2264,7 +2602,7 @@
       "members":{
         "TargetId":{
           "shape":"PolicyTargetId",
-          "documentation":"<p>The unique identifier (ID) of the root, organizational unit, or account whose policies you want to list.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a target ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p> <b>Account</b> - A string that consists of exactly 12 digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the root, organizational unit, or account whose policies you want to list.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a target ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lowercase letters or digits.</p> </li> <li> <p> <b>Account</b> - A string that consists of exactly 12 digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         },
         "Filter":{
           "shape":"PolicyType",
@@ -2272,11 +2610,11 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2289,7 +2627,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2303,11 +2641,11 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2320,7 +2658,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2329,11 +2667,11 @@
       "members":{
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2346,7 +2684,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2360,7 +2698,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         }
       }
     },
@@ -2373,7 +2711,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2383,15 +2721,15 @@
       "members":{
         "PolicyId":{
           "shape":"PolicyId",
-          "documentation":"<p>The unique identifier (ID) of the policy whose attachments you want to know.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the policy whose attachments you want to know.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lowercase or uppercase letters, digits, or the underscore character (_).</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>Use this parameter if you receive a <code>NextToken</code> response in a previous request that indicates that there is more output available. Set it to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
+          "documentation":"<p>The parameter for receiving additional results if you receive a <code>NextToken</code> response in a previous request. A <code>NextToken</code> response indicates that more output is available. Set this parameter to the value of the previous call's <code>NextToken</code> response to indicate where the output should continue from.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>(Optional) Use this to limit the number of results you want included per page in the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
+          "documentation":"<p>The total number of results that you want included on each page of the response. If you do not include this parameter, it defaults to a value that is specific to the operation. If additional items exist beyond the maximum you specify, the <code>NextToken</code> response element is present and has a value (is not null). Include that value as the <code>NextToken</code> request parameter in the next call to the operation to get the next part of the results. Note that Organizations might return fewer results than the maximum even when there are more results available. You should check <code>NextToken</code> after every operation to ensure that you receive all of the results.</p>"
         }
       }
     },
@@ -2404,7 +2742,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If present, this value indicates that there is more output available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
+          "documentation":"<p>If present, indicates that more output is available than is included in the current response. Use this value in the <code>NextToken</code> request parameter in a subsequent call to the operation to get the next part of the output. You should repeat this until the <code>NextToken</code> response element comes back as <code>null</code>.</p>"
         }
       }
     },
@@ -2444,11 +2782,11 @@
         },
         "SourceParentId":{
           "shape":"ParentId",
-          "documentation":"<p>The unique identifier (ID) of the root or organizational unit that you want to move the account from.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the root or organizational unit that you want to move the account from.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lowercase letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         },
         "DestinationParentId":{
           "shape":"ParentId",
-          "documentation":"<p>The unique identifier (ID) of the root or organizational unit that you want to move the account to.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the root or organizational unit that you want to move the account to.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p> <b>Root</b> - A string that begins with \"r-\" followed by from 4 to 32 lowercase letters or digits.</p> </li> <li> <p> <b>Organizational unit (OU)</b> - A string that begins with \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p> </li> </ul>"
         }
       }
     },
@@ -2515,7 +2853,7 @@
       "members":{
         "Id":{
           "shape":"OrganizationalUnitId",
-          "documentation":"<p>The unique identifier (ID) associated with this OU.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an organizational unit ID string requires \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that contains the OU) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) associated with this OU.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an organizational unit ID string requires \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that contains the OU). This string is followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p>"
         },
         "Arn":{
           "shape":"OrganizationalUnitArn",
@@ -2566,7 +2904,7 @@
       "members":{
         "Id":{
           "shape":"ParentId",
-          "documentation":"<p>The unique identifier (ID) of the parent entity.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p>Root: a string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p>Organizational unit (OU): a string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the parent entity.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a parent ID string requires one of the following:</p> <ul> <li> <p>Root: A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p>Organizational unit (OU): A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
         },
         "Type":{
           "shape":"ParentType",
@@ -2619,6 +2957,14 @@
     "PolicyArn":{
       "type":"string",
       "pattern":"^(arn:aws:organizations::\\d{12}:policy\\/o-[a-z0-9]{10,32}\\/[0-9a-z_]+\\/p-[0-9a-z]{10,32})|(arn:aws:organizations::aws:policy\\/[0-9a-z_]+\\/p-[0-9a-zA-Z_]{10,128})"
+    },
+    "PolicyChangesInProgressException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ExceptionMessage"}
+      },
+      "documentation":"<p>Changes to the effective policy are in progress, and its contents can't be returned. Try the operation again later. </p>",
+      "exception":true
     },
     "PolicyContent":{
       "type":"string",
@@ -2701,7 +3047,7 @@
       "members":{
         "TargetId":{
           "shape":"PolicyTargetId",
-          "documentation":"<p>The unique identifier (ID) of the policy target.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a target ID string requires one of the following:</p> <ul> <li> <p>Root: a string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p>Account: a string that consists of exactly 12 digits.</p> </li> <li> <p>Organizational unit (OU): a string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
+          "documentation":"<p>The unique identifier (ID) of the policy target.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a target ID string requires one of the following:</p> <ul> <li> <p>Root: A string that begins with \"r-\" followed by from 4 to 32 lower-case letters or digits.</p> </li> <li> <p>Account: A string that consists of exactly 12 digits.</p> </li> <li> <p>Organizational unit (OU): A string that begins with \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that the OU is in). This string is followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p> </li> </ul>"
         },
         "Arn":{
           "shape":"GenericArn",
@@ -2724,7 +3070,10 @@
     },
     "PolicyType":{
       "type":"string",
-      "enum":["SERVICE_CONTROL_POLICY"]
+      "enum":[
+        "SERVICE_CONTROL_POLICY",
+        "TAG_POLICY"
+      ]
     },
     "PolicyTypeAlreadyEnabledException":{
       "type":"structure",
@@ -2775,6 +3124,23 @@
     "PolicyTypes":{
       "type":"list",
       "member":{"shape":"PolicyTypeSummary"}
+    },
+    "RegisterDelegatedAdministratorRequest":{
+      "type":"structure",
+      "required":[
+        "AccountId",
+        "ServicePrincipal"
+      ],
+      "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID number of the member account in the organization to register as a delegated administrator.</p>"
+        },
+        "ServicePrincipal":{
+          "shape":"ServicePrincipal",
+          "documentation":"<p>The service principal of the AWS service for which you want to make the member account a delegated administrator.</p>"
+        }
+      }
     },
     "RemoveAccountFromOrganizationRequest":{
       "type":"structure",
@@ -2980,7 +3346,7 @@
       "members":{
         "OrganizationalUnitId":{
           "shape":"OrganizationalUnitId",
-          "documentation":"<p>The unique identifier (ID) of the OU that you want to rename. You can get the ID from the <a>ListOrganizationalUnitsForParent</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an organizational unit ID string requires \"ou-\" followed by from 4 to 32 lower-case letters or digits (the ID of the root that contains the OU) followed by a second \"-\" dash and from 8 to 32 additional lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the OU that you want to rename. You can get the ID from the <a>ListOrganizationalUnitsForParent</a> operation.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for an organizational unit ID string requires \"ou-\" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second \"-\" dash and from 8 to 32 additional lowercase letters or digits.</p>"
         },
         "Name":{
           "shape":"OrganizationalUnitName",
@@ -3003,7 +3369,7 @@
       "members":{
         "PolicyId":{
           "shape":"PolicyId",
-          "documentation":"<p>The unique identifier (ID) of the policy that you want to update.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lower-case letters or digits.</p>"
+          "documentation":"<p>The unique identifier (ID) of the policy that you want to update.</p> <p>The <a href=\"http://wikipedia.org/wiki/regex\">regex pattern</a> for a policy ID string requires \"p-\" followed by from 8 to 128 lowercase or uppercase letters, digits, or the underscore character (_).</p>"
         },
         "Name":{
           "shape":"PolicyName",

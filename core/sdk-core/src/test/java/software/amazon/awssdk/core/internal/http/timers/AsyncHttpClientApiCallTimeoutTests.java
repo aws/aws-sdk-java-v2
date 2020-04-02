@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,19 +22,23 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.SLOW_REQUEST_HANDLER_TIMEOUT;
+import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.combinedAsyncResponseHandler;
 import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.noOpResponseHandler;
 import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.superSlowResponseHandler;
 import static utils.HttpTestUtils.testAsyncClientBuilder;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -42,10 +46,10 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
-import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
+import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -77,8 +81,8 @@ public class AsyncHttpClientApiCallTimeoutTests {
                                              .originalRequest(NoopTestRequest.builder().build())
                                              .executionContext(executionContext)
                                              .request(generateRequest())
-                                             .errorResponseHandler(superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()))
-                                             .execute(noOpResponseHandler());
+                                             .execute(combinedAsyncResponseHandler(noOpResponseHandler(),
+                                                                                   superSlowResponseHandler(API_CALL_TIMEOUT.toMillis())));
 
         assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallTimeoutException.class);
     }
@@ -105,12 +109,13 @@ public class AsyncHttpClientApiCallTimeoutTests {
                                                             .interceptorContext(incerceptorContext)
                                                             .build();
 
-        CompletableFuture future = httpClient.requestExecutionBuilder()
-                                             .originalRequest(NoopTestRequest.builder().build())
-                                             .request(request)
-                                             .errorResponseHandler(noOpResponseHandler(SdkServiceException.builder().build()))
-                                             .executionContext(executionContext)
-                                             .execute(noOpResponseHandler());
+        CompletableFuture future =
+            httpClient.requestExecutionBuilder()
+                      .originalRequest(NoopTestRequest.builder().build())
+                      .request(request)
+                      .executionContext(executionContext)
+                      .execute(combinedAsyncResponseHandler(noOpResponseHandler(),
+                                                            noOpResponseHandler(SdkServiceException.builder().build())));
 
         assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallTimeoutException.class);
     }

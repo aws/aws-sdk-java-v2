@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -93,8 +93,8 @@ public class QueryParamsAssertion extends MarshallingAssertion {
      * Group the list of {@link NameValuePair} by parameter name.
      */
     private Map<String, List<String>> toQueryParamMap(List<NameValuePair> queryParams) {
-        return queryParams.stream().collect(Collectors.groupingBy(p -> p.getName(), Collectors
-                .mapping(p -> p.getValue(), Collectors.toList())));
+        return queryParams.stream().collect(Collectors.groupingBy(NameValuePair::getName, Collectors
+                .mapping(NameValuePair::getValue, Collectors.toList())));
     }
 
     private List<NameValuePair> parseNameValuePairsFromQuery(LoggedRequest actual) {
@@ -106,22 +106,18 @@ public class QueryParamsAssertion extends MarshallingAssertion {
     }
 
     private void assertContains(Map<String, List<String>> actualParams) {
-        contains.entrySet().forEach(e -> {
-            assertThat(actualParams.get(e.getKey()), containsInAnyOrder(e.getValue().toArray()));
-        });
+        contains.entrySet().forEach(e -> assertThat(actualParams.get(e.getKey()), containsInAnyOrder(e.getValue().toArray())));
     }
 
     private void assertDoesNotContain(Map<String, List<String>> actualParams) {
-        doesNotContain.forEach(key -> {
-            assertThat(actualParams, not(hasKey(key)));
-        });
+        doesNotContain.forEach(key -> assertThat(actualParams, not(hasKey(key))));
     }
 
     private void assertContainsOnly(Map<String, List<String>> actualParams) {
         assertThat(actualParams.keySet(), equalTo(containsOnly.keySet()));
-        containsOnly.entrySet().forEach(e -> {
-            assertThat(actualParams.get(e.getKey()), containsInAnyOrder(e.getValue().toArray()));
-        });
+        containsOnly.entrySet().forEach(e -> assertThat(
+            actualParams.get(e.getKey()), containsInAnyOrder(e.getValue().toArray())
+        ));
     }
 
 }

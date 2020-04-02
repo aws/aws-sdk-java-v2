@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.services.s3control.internal.interceptors;
 
-import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -32,6 +33,8 @@ import software.amazon.awssdk.services.s3control.S3ControlConfiguration;
  */
 @SdkInternalApi
 public class EndpointAddressInterceptor implements ExecutionInterceptor {
+    private static final Pattern HOSTNAME_COMPLIANT_PATTERN = Pattern.compile("[A-Za-z0-9\\-]+");
+    private static final int HOSTNAME_MAX_LENGTH = 63;
 
     private static final String ENDPOINT_PREFIX = "s3-control";
 
@@ -47,7 +50,6 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
         }
 
         String accountId = request.headers().get(X_AMZ_ACCOUNT_ID).get(0);
-        URI endpoint = request.getUri();
 
         S3ControlConfiguration config = (S3ControlConfiguration) executionAttributes.getAttribute(
             AwsSignerExecutionAttribute.SERVICE_CONFIG);
@@ -78,6 +80,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
             host = host.replace(ENDPOINT_PREFIX, String.format("%s-%s", ENDPOINT_PREFIX, "fips"));
 
         }
+        validateComponentIsHostnameCompliant(accountId, "account id");
         return String.format("%s.%s", accountId, host);
     }
 
@@ -87,5 +90,27 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
 
     private boolean isFipsEnabled(S3ControlConfiguration configuration) {
         return configuration != null && configuration.fipsModeEnabled();
+    }
+
+    private static void validateComponentIsHostnameCompliant(String component, String componentName) {
+        if (component.isEmpty()) {
+            throw new IllegalArgumentException(
+                String.format("An argument has been passed that is not valid: the required '%s' "
+                              + "component is missing.", componentName));
+        }
+
+        if (component.length() > HOSTNAME_MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                String.format("An argument has been passed that is not valid: the '%s' "
+                              + "component exceeds the maximum length of %d characters.", componentName,
+                              HOSTNAME_MAX_LENGTH));
+        }
+
+        Matcher m = HOSTNAME_COMPLIANT_PATTERN.matcher(component);
+        if (!m.matches()) {
+            throw new IllegalArgumentException(
+                String.format("An argument has been passed that is not valid: the '%s' "
+                              + "component must only contain alphanumeric characters and dashes.", componentName));
+        }
     }
 }

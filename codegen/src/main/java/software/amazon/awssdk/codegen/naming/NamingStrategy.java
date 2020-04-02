@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -146,4 +146,13 @@ public interface NamingStrategy {
      * @return Name of field for {@link SdkField} pojo.
      */
     String getSdkFieldFieldName(MemberModel memberModel);
+
+    /**
+     * Names a method that would check for existence of the member in the response.
+     *
+     * @param memberName The member name to get the method name for.
+     * @param parentShape The shape containing the member.
+     * @return Name of an existence check method.
+     */
+    String getExistenceCheckMethodName(String memberName, Shape parentShape);
 }

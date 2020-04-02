@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -149,5 +149,14 @@
         <Class name="software.amazon.awssdk.internal.http.AbstractFileStoreTlsKeyManagersProvider"/>
         <Method name="createKeyStore"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <!-- If we're not sure about the RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT, skip the warning. -->
+    <Match>
+        <Package name="~software.amazon.awssdk.http.nio.netty.*"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+        <Not>
+            <Confidence value="1"/>
+        </Not>
     </Match>
 </FindBugsFilter>

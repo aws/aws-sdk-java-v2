@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.util.List;
 import software.amazon.MyServiceHttpConfig;
+import software.amazon.MyServiceRetryPolicy;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -33,8 +34,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner()).option(
-            SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+        return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                  .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build()));
     }
 
     @Override
@@ -43,7 +45,13 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
+        ServiceConfiguration.Builder c = ((ServiceConfiguration) config.option(SdkClientOption.SERVICE_CONFIGURATION))
+            .toBuilder();
+        c.profileFile(c.profileFile() != null ? c.profileFile() : config.option(SdkClientOption.PROFILE_FILE)).profileName(
+            c.profileName() != null ? c.profileName() : config.option(SdkClientOption.PROFILE_NAME));
+        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+                     .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
+                     .option(SdkClientOption.SERVICE_CONFIGURATION, c.build()).build();
     }
 
     private Signer defaultSigner() {
@@ -70,4 +78,3 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return result;
     }
 }
-

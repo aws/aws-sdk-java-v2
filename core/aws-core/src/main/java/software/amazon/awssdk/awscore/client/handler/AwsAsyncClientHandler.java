@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 /**
  * Async client handler for AWS SDK clients.
@@ -60,8 +61,8 @@ public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implement
 
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
-        ClientExecutionParams<InputT, OutputT> executionParams) {
-        return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration);
+        ClientExecutionParams<InputT, OutputT> executionParams, ExecutionAttributes executionAttributes) {
+        return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration, executionAttributes);
     }
 
 }

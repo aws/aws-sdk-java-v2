@@ -59,6 +59,7 @@
       "output":{"shape":"CommitTransactionResponse"},
       "errors":[
         {"shape":"BadRequestException"},
+        {"shape":"StatementTimeoutException"},
         {"shape":"InternalServerErrorException"},
         {"shape":"ForbiddenException"},
         {"shape":"ServiceUnavailableError"},
@@ -101,7 +102,7 @@
         {"shape":"ForbiddenException"},
         {"shape":"ServiceUnavailableError"}
       ],
-      "documentation":"<p>Runs a SQL statement against a database.</p> <important> <p>If a call isn't part of a transaction because it doesn't include the <code>transactionID</code> parameter, changes that result from the call are committed automatically.</p> </important> <p>The response size limit is 1 MB or 1,000 records. If the call returns more than 1 MB of response data or over 1,000 records, the call is terminated.</p>"
+      "documentation":"<p>Runs a SQL statement against a database.</p> <important> <p>If a call isn't part of a transaction because it doesn't include the <code>transactionID</code> parameter, changes that result from the call are committed automatically.</p> </important> <p>The response size limit is 1 MB. If the call returns more than 1 MB of response data, the call is terminated.</p>"
     },
     "RollbackTransaction":{
       "name":"RollbackTransaction",
@@ -114,6 +115,7 @@
       "output":{"shape":"RollbackTransactionResponse"},
       "errors":[
         {"shape":"BadRequestException"},
+        {"shape":"StatementTimeoutException"},
         {"shape":"InternalServerErrorException"},
         {"shape":"ForbiddenException"},
         {"shape":"ServiceUnavailableError"},
@@ -192,7 +194,7 @@
         },
         "parameterSets":{
           "shape":"SqlParameterSets",
-          "documentation":"<p>The parameter set for the batch operation.</p>"
+          "documentation":"<p>The parameter set for the batch operation.</p> <p>The SQL statement is executed as many times as the number of parameter sets provided. To execute a SQL statement with no parameters, use one of the following options:</p> <ul> <li> <p>Specify one or more empty parameter sets.</p> </li> <li> <p>Use the <code>ExecuteStatement</code> operation instead of the <code>BatchExecuteStatement</code> operation.</p> </li> </ul> <note> <p>Array parameters are not supported.</p> </note>"
         },
         "resourceArn":{
           "shape":"Arn",
@@ -466,7 +468,7 @@
         },
         "parameters":{
           "shape":"SqlParametersList",
-          "documentation":"<p>The parameters for the SQL statement.</p>"
+          "documentation":"<p>The parameters for the SQL statement.</p> <note> <p>Array parameters are not supported.</p> </note>"
         },
         "resourceArn":{
           "shape":"Arn",
@@ -717,6 +719,10 @@
           "shape":"ParameterName",
           "documentation":"<p>The name of the parameter.</p>"
         },
+        "typeHint":{
+          "shape":"TypeHint",
+          "documentation":"<p>A hint that specifies the correct object type for data type mapping.</p> <p> <b>Values:</b> </p> <ul> <li> <p> <code>DECIMAL</code> - The corresponding <code>String</code> parameter value is sent as an object of <code>DECIMAL</code> type to the database.</p> </li> <li> <p> <code>TIMESTAMP</code> - The corresponding <code>String</code> parameter value is sent as an object of <code>TIMESTAMP</code> type to the database. The accepted format is <code>YYYY-MM-DD HH:MM:SS[.FFF]</code>.</p> </li> <li> <p> <code>TIME</code> - The corresponding <code>String</code> parameter value is sent as an object of <code>TIME</code> type to the database. The accepted format is <code>HH:MM:SS[.FFF]</code>.</p> </li> <li> <p> <code>DATE</code> - The corresponding <code>String</code> parameter value is sent as an object of <code>DATE</code> type to the database. The accepted format is <code>YYYY-MM-DD</code>.</p> </li> </ul>"
+        },
         "value":{
           "shape":"Field",
           "documentation":"<p>The value of the parameter.</p>"
@@ -798,6 +804,15 @@
       "type":"string",
       "max":128,
       "min":0
+    },
+    "TypeHint":{
+      "type":"string",
+      "enum":[
+        "DATE",
+        "DECIMAL",
+        "TIME",
+        "TIMESTAMP"
+      ]
     },
     "UpdateResult":{
       "type":"structure",

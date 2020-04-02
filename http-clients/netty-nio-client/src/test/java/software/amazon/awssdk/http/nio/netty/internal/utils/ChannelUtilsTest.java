@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_POOL_RECORD;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
 
 import io.netty.channel.Channel;
@@ -37,7 +37,7 @@ public class ChannelUtilsTest {
             channel = new MockChannel();
             channel.attr(MAX_CONCURRENT_STREAMS).set(1L);
             assertThat(ChannelUtils.getAttribute(channel, MAX_CONCURRENT_STREAMS).get()).isEqualTo(1L);
-            assertThat(ChannelUtils.getAttribute(channel, CHANNEL_POOL_RECORD)).isNotPresent();
+            assertThat(ChannelUtils.getAttribute(channel, HTTP2_MULTIPLEXED_CHANNEL_POOL)).isNotPresent();
         } finally {
             Optional.ofNullable(channel).ifPresent(Channel::close);
         }

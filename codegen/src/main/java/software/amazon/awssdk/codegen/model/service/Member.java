@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ public class Member {
     private boolean sensitive;
 
     private boolean xmlAttribute;
+
+    private String deprecatedName;
 
     public String getShape() {
         return shape;
@@ -211,5 +213,13 @@ public class Member {
 
     public void setXmlAttribute(boolean xmlAttribute) {
         this.xmlAttribute = xmlAttribute;
+    }
+
+    public void setDeprecatedName(String deprecatedName) {
+        this.deprecatedName = deprecatedName;
+    }
+
+    public String getDeprecatedName() {
+        return deprecatedName;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -200,11 +200,11 @@ class ModelBuilderSpecs {
 
     private List<MethodSpec> accessors() {
         List<MethodSpec> accessors = new ArrayList<>();
-        shapeModel.getNonStreamingMembers().stream()
+        shapeModel.getNonStreamingMembers()
                   .forEach(m -> {
                       accessors.add(accessorsFactory.beanStyleGetter(m));
                       accessors.addAll(accessorsFactory.fluentSetters(m, builderInterfaceName()));
-                      accessors.add(accessorsFactory.beanStyleSetter(m));
+                      accessors.addAll(accessorsFactory.beanStyleSetters(m));
                       accessors.addAll(accessorsFactory.convenienceSetters(m, builderInterfaceName()));
                   });
 

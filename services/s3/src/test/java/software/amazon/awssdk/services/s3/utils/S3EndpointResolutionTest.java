@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,26 +17,31 @@ package software.amazon.awssdk.services.s3.utils;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListBucketsResponse;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInterceptor;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.service.http.MockHttpClient;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Functional tests for various endpoint related behavior in S3.
@@ -107,6 +112,53 @@ public class S3EndpointResolutionTest {
         assertThat(mockHttpClient.getLastRequest().getUri())
                 .as("Uses custom endpoint")
                 .isEqualTo(URI.create(customEndpoint + "/"));
+    }
+
+    @Test
+    public void accessPointArn_correctlyRewritesEndpoint() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint.ap-south-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+    }
+
+    @Test
+    public void accessPointArn_customEndpoint_throwsIllegalArgumentException() throws Exception {
+        URI customEndpoint = URI.create("https://foobar.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("endpoint override");
+    }
+
+    @Test
+    public void accessPointArn_differentRegion_useArnRegionFalse_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().build();
+        String accessPointArn = "arn:aws:s3:us-west-2:12345678910:accesspoint:foobar";
+
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("region");
+    }
+
+    @Test
+    public void accessPointArn_differentRegion_useArnRegionTrue() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint.us-west-2.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
+        String accessPointArn = "arn:aws:s3:us-west-2:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
     }
 
     /**
@@ -287,6 +339,95 @@ public class S3EndpointResolutionTest {
                                    .pathStyleAccessEnabled(true)
                                    .accelerateModeEnabled(true)
                                    .build());
+    }
+
+    @Test
+    public void regionalSettingEnabled_usesRegionalIadEndpoint() throws UnsupportedEncodingException {
+        EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
+        environmentVariableHelper.set(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.environmentVariable(), "regional");
+
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+
+        S3Client s3Client = S3Client.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                .httpClient(mockHttpClient)
+                .region(Region.US_EAST_1)
+                .serviceConfiguration(S3Configuration.builder()
+                        .pathStyleAccessEnabled(true)
+                        .build())
+                .build();
+        try {
+            s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+            assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.us-east-1.amazonaws.com");
+        } finally {
+            environmentVariableHelper.reset();
+        }
+    }
+
+    @Test
+    public void regionalSettingEnabledViaProfile_usesRegionalIadEndpoint() throws UnsupportedEncodingException {
+        String profile =
+            "[profile test]\n" +
+            "s3_us_east_1_regional_endpoint = regional";
+
+        ProfileFile profileFile = ProfileFile.builder()
+                                             .content(new StringInputStream(profile))
+                                             .type(ProfileFile.Type.CONFIGURATION)
+                                             .build();
+
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+
+        S3Client s3Client = S3Client.builder()
+                                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                    .httpClient(mockHttpClient)
+                                    .region(Region.US_EAST_1)
+                                    .overrideConfiguration(c -> c.defaultProfileFile(profileFile)
+                                                                 .defaultProfileName("test"))
+                                    .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
+                                    .build();
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.us-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void regionalSettingDisabled_usesGlobalEndpoint() throws UnsupportedEncodingException {
+        EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
+        environmentVariableHelper.set(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.environmentVariable(), "nonregional");
+
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+
+        S3Client s3Client = S3Client.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                .httpClient(mockHttpClient)
+                .region(Region.US_EAST_1)
+                .serviceConfiguration(S3Configuration.builder()
+                        .pathStyleAccessEnabled(true)
+                        .build())
+                .build();
+        try {
+            s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+            assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.amazonaws.com");
+        } finally {
+            environmentVariableHelper.reset();
+        }
+    }
+
+    @Test
+    public void regionalSettingUnset_usesGlobalEndpoint() throws UnsupportedEncodingException {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+
+        S3Client s3Client = S3Client.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                .httpClient(mockHttpClient)
+                .region(Region.US_EAST_1)
+                .serviceConfiguration(S3Configuration.builder()
+                        .pathStyleAccessEnabled(true)
+                        .build())
+                .build();
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.amazonaws.com");
     }
 
     /**

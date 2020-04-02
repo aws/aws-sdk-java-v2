@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package software.amazon.awssdk.services.s3;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.ContainsPattern;
@@ -33,6 +35,7 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.model.GetBucketAclResponse;
 import software.amazon.awssdk.services.s3.model.Grant;
 import software.amazon.awssdk.services.s3.model.Permission;
 import software.amazon.awssdk.services.s3.model.PutBucketAclRequest;
@@ -69,6 +72,16 @@ public class AclTest {
 
         s3Client.putBucketAcl(request());
         verify(anyRequestedFor(anyUrl()).withRequestBody(new ContainsPattern(MOCK_ACL_RESPONSE)));
+    }
+
+    @Test
+    public void getBucketAcl_shouldUnmarshallCorrectly() {
+        stubFor(get(anyUrl())
+                    .willReturn(aResponse().withBody(MOCK_ACL_RESPONSE).withStatus(200)));
+
+        GetBucketAclResponse bucketAcl = s3Client.getBucketAcl(b -> b.bucket("test"));
+        assertThat(bucketAcl.owner()).isEqualTo(request().accessControlPolicy().owner());
+        assertThat(bucketAcl.grants()).isEqualTo(request().accessControlPolicy().grants());
     }
 
     private PutBucketAclRequest request() {

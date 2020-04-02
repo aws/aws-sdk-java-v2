@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 package software.amazon.awssdk.services.s3;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import java.io.File;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -30,9 +28,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
 import software.amazon.awssdk.services.s3.model.GetBucketAclResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectAclResponse;
-import software.amazon.awssdk.services.s3.model.Grant;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.Type;
 
 public class AclIntegrationTest extends S3IntegrationTestBase {
 
@@ -55,10 +51,12 @@ public class AclIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void putObjectAcl() {
+    public void putGetObjectAcl() {
         GetObjectAclResponse objectAcl = s3.getObjectAcl(b -> b.bucket(BUCKET).key(KEY));
+        GetObjectAclResponse objectAclAsyncResponse = s3Async.getObjectAcl(b -> b.bucket(BUCKET).key(KEY)).join();
+        assertThat(objectAcl.equalsBySdkFields(objectAclAsyncResponse)).isTrue();
         Consumer<AccessControlPolicy.Builder> aclBuilder = a -> a.owner(objectAcl.owner())
-                                                                 .grants(addGranteeType(objectAcl.grants()));
+                                                                 .grants(objectAcl.grants());
 
 
         assertNotNull(s3.putObjectAcl(b -> b.bucket(BUCKET)
@@ -71,24 +69,16 @@ public class AclIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void putBucketAcl() {
+    public void putGetBucketAcl() {
         GetBucketAclResponse bucketAcl = s3.getBucketAcl(b -> b.bucket(BUCKET));
+        GetBucketAclResponse bucketAclAsyncResponse = s3Async.getBucketAcl(b -> b.bucket(BUCKET)).join();
+        assertThat(bucketAcl.equalsBySdkFields(bucketAclAsyncResponse)).isTrue();
         Consumer<AccessControlPolicy.Builder> aclBuilder = a -> a.owner(bucketAcl.owner())
-                                                                 .grants(addGranteeType(bucketAcl.grants()));
+                                                                 .grants(bucketAcl.grants());
         assertNotNull(s3.putBucketAcl(b -> b.bucket(BUCKET)
                                             .accessControlPolicy(aclBuilder)));
         assertNotNull(s3Async.putBucketAcl(b -> b.bucket(BUCKET)
                                                  .accessControlPolicy(aclBuilder)).join());
 
     }
-
-    //TODO: remove this once we fix the unmarshalling issue for Grant#type
-    private List<Grant> addGranteeType(List<Grant> grants) {
-        return grants.stream().map(g -> g.toBuilder().grantee(g.grantee()
-                                                               .toBuilder()
-                                                               .type(Type.CANONICAL_USER)
-                                                               .build()).build())
-                     .collect(Collectors.toList());
-    }
-
 }
