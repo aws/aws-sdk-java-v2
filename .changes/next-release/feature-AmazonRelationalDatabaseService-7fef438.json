@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "Documentation updates for RDS: creating read replicas is now supported for SQL Server DB instances"
+}
