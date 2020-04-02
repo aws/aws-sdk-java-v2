@@ -159,7 +159,6 @@ index. Here's an example of how to do this:
    PageIterable<Customer> customersWithName = 
        customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    ```
-
 ### Non-blocking asynchronous operations
 If your application requires non-blocking asynchronous calls to
 DynamoDb, then you can use the asynchronous implementation of the
@@ -195,8 +194,7 @@ key differences:
    // Perform other work and let the processor handle the results asynchronously
    ```
 
-
-### Using extensions
+## Using extensions
 The mapper supports plugin extensions to provide enhanced functionality
 beyond the simple primitive mapped operations. Extensions have two hooks, beforeWrite() and
 afterRead(); the former can modify a write operation before it happens,
@@ -221,7 +219,7 @@ DynamoDbEnhancedClient enhancedClient =
                           .build();
 ```
 
-#### VersionedRecordExtension
+### VersionedRecordExtension
 
 This extension is loaded by default and will increment and track a record version number as
 records are written to the database. A condition will be added to every
@@ -248,14 +246,143 @@ Or using a StaticTableSchema:
                                        .tags(versionAttribute())                         
 ```
 
-## Advanced StaticTableSchema scenarios
+## Advanced table schema features
+### Explicitly include/exclude attributes in DDB mapping
+#### Excluding attributes
+Ignore attributes that should not participate in mapping to DDB
+Mark the attribute with the @DynamoDbIgnore annotation:
+```java
+private String internalKey;
+
+@DynamoDbIgnore
+public String getInternalKey() { return this.internalKey; }
+public void setInternalKey(String internalKey) { return this.internalKey = internalKey;}
+```
+#### Including attributes
+Change the name used to store an attribute in DBB by explicitly marking it with the
+ @DynamoDbAttribute annotation and supplying a different name:
+```java
+private String internalKey;
+
+@DynamoDbAttribute("renamedInternalKey")
+public String getInternalKey() { return this.internalKey; }
+public void setInternalKey(String internalKey) { return this.internalKey = internalKey;}
+```
+
+### Control attribute conversion
+By default, the table schema provides converters for all primitive and many common Java types
+through a default implementation of the AttributeConverterProvider interface. This behavior
+can be changed both at the attribute converter provider level as well as for a single attribute.
+
+#### Provide custom attribute converter providers
+You can provide a single AttributeConverterProvider or a chain of ordered AttributeConverterProviders
+through the @DynamoDbBean 'converterProviders' annotation. Any custom AttributeConverterProvider must extend the AttributeConverterProvider 
+interface. 
+
+Note that if you supply your own chain of attribute converter providers, you will override
+the default converter provider (DefaultAttributeConverterProvider) and must therefore include it in the chain if you wish to
+use its attribute converters. It's also possible to annotate the bean with an empty array `{}`, thus
+disabling the usage of any attribute converter providers including the default, in which case
+all attributes must have their own attribute converters (see below).
+
+Single converter provider:
+```java
+@DynamoDbBean(converterProviders = ConverterProvider1.class)
+public class Customer {
+
+}
+```
+
+Chain of converter providers ending with the default (least priority):
+```java
+@DynamoDbBean(converterProviders = {
+   ConverterProvider1.class, 
+   ConverterProvider2.class,
+   DefaultAttributeConverterProvider.class})
+public class Customer {
+
+}
+```
+
+In the same way, adding a chain of attribute converter providers directly to a StaticTableSchema:
+```java
+private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
+  StaticTableSchema.builder(Customer.class)
+    .newItemSupplier(Customer::new)
+    .addAttribute(String.class, a -> a.name("name")
+                                     a.getter(Customer::getName)
+                                     a.setter(Customer::setName))
+    .attributeConverterProviders(converterProvider1, converterProvider2)
+    .build();
+```
+
+#### Override the mapping of a single attribute
+Supply an AttributeConverter when creating the attribute to directly override any
+converters provided by the table schema AttributeConverterProviders. Note that you will 
+only add a custom converter for that attribute; other attributes, even of the same
+type, will not use that converter unless explicitly specified for those other attributes. 
+
+Example:
+```java
+@DynamoDbBean
+public class Customer {
+    private String name;
+
+    @DynamoDbConvertedBy(CustomAttributeConverter.class)
+    public String getName() { return this.name; }
+    public void setName(String name) { this.name = name;}
+}
+```
+For StaticTableSchema:
+```java
+private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
+  StaticTableSchema.builder(Customer.class)
+    .newItemSupplier(Customer::new)
+    .addAttribute(String.class, a -> a.name("name")
+                                     a.getter(Customer::getName)
+                                     a.setter(Customer::setName)
+                                     a.attributeConverter(customAttributeConverter))
+    .build();
+```
+
 ### Flat map attributes from another class
 If the attributes for your table record are spread across several
 different Java objects, either through inheritance or composition, the
 static TableSchema implementation gives you a method of flat mapping
 those attributes and rolling them up into a single schema.
 
-To accomplish this using inheritance:-
+#### Using inheritance
+To accomplish flat map using inheritance, the only requirement is that
+both classes are annotated as a DynamoDb bean:
+
+```java
+@DynamoDbBean
+public class Customer extends GenericRecord {
+    private String name;
+    private GenericRecord record;
+
+    public String getName() { return this.name; }
+    public void setName(String name) { this.name = name;}
+
+    public String getRecord() { return this.record; }
+    public void setRecord(String record) { this.record = record;}
+}
+
+@DynamoDbBean
+public abstract class GenericRecord {
+    private String id;
+    private String createdDate;
+
+    public String getId() { return this.id; }
+    public void setId(String id) { this.id = id;}
+
+    public String getCreatedDate() { return this.createdDate; }
+    public void setCreatedDate(String createdDate) { this.createdDate = createdDate;}
+}
+
+```
+
+For StaticTableSchema, use the 'extend' feature to achieve the same effect:
 ```java
 @Data
 public class Customer extends GenericRecord {
@@ -270,53 +397,96 @@ public abstract class GenericRecord {
 
 private static final StaticTableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
   StaticTableSchema.builder(GenericRecord.class)
-    .attributes(
-          // The partition key will be inherited by the top level mapper
-      stringAttribute("id", GenericRecord::getId, GenericRecord::setId).as(primaryPartitionKey()),
-      stringAttribute("created_date", GenericRecord::getCreatedDate, GenericRecord::setCreatedDate))
-    .build();
+       // The partition key will be inherited by the top level mapper
+      .addAttribute(String.class, a -> a.name("id")
+                                        .getter(GenericRecord::getId)
+                                        .setter(GenericRecord::setId)
+                                        .tags(primaryPartitionKey()))
+      .addAttribute(String.class, a -> a.name("created_date")
+                                        .getter(GenericRecord::getCreatedDate)
+                                        .setter(GenericRecord::setCreatedDate))
+     .build();
     
 private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
   StaticTableSchema.builder(Customer.class)
     .newItemSupplier(Customer::new)
-    .attributes(
-      stringAttribute("name", Customer::getName, Customer::setName))
+    .addAttribute(String.class, a -> a.name("name")
+                                      .getter(Customer::getName)
+                                      .setter(Customer::setName))
     .extend(GENERIC_RECORD_SCHEMA)     // All the attributes of the GenericRecord schema are added to Customer
     .build();
 ```
+#### Using composition
 
-Using composition:
+Using composition, the @DynamoDbFlatten annotation flat maps the composite class:
+```java
+@DynamoDbBean
+public class Customer {
+    private String name;
+    private GenericRecord record;
+
+    public String getName() { return this.name; }
+    public void setName(String name) { this.name = name;}
+
+    @DynamoDbFlatten(dynamoDbBeanClass = GenericRecord.class)
+    public String getRecord() { return this.record; }
+    public void setRecord(String record) { this.record = record;}
+}
+
+@DynamoDbBean
+public class GenericRecord {
+    private String id;
+    private String createdDate;
+
+    public String getId() { return this.id; }
+    public void setId(String id) { this.id = id;}
+
+    public String getCreatedDate() { return this.createdDate; }
+    public void setCreatedDate(String createdDate) { this.createdDate = createdDate;}
+}
+```
+You can flatten as many different eligible classes as you like using the flatten annotation.
+The only constraints are that attributes must not have the same name when they are being rolled
+together, and there must never be more than one partition key, sort key or table name.
+
+Flat map composite classes using StaticTableSchema:
+
 ```java
 @Data
 public class Customer{
   private String name;
   private GenericRecord recordMetadata;
+  //getters and setters for all attributes
 }
 
 @Data
 public class GenericRecord {
   private String id;
   private String createdDate;
+  //getters and setters for all attributes
 }
 
 private static final StaticTableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
   StaticTableSchema.builder(GenericRecord.class)
-    .newItemSupplier(GenericRecord::new)
-    .attributes(
-      stringAttribute("id", GenericRecord::getId, GenericRecord::setId).as(primaryPartitionKey()),
-      stringAttribute("created_date", GenericRecord::getCreatedDate, GenericRecord::setCreatedDate))
-    .build();
+      .addAttribute(String.class, a -> a.name("id")
+                                        .getter(GenericRecord::getId)
+                                        .setter(GenericRecord::setId)
+                                        .tags(primaryPartitionKey()))
+      .addAttribute(String.class, a -> a.name("created_date")
+                                        .getter(GenericRecord::getCreatedDate)
+                                        .setter(GenericRecord::setCreatedDate))
+     .build();
     
 private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
   StaticTableSchema.builder(Customer.class)
     .newItemSupplier(Customer::new)
-    .attributes(stringAttribute("name", Customer::getName, Customer::setName))
+    .addAttribute(String.class, a -> a.name("name")
+                                      .getter(Customer::getName)
+                                      .setter(Customer::setName))
     // Because we are flattening a component object, we supply a getter and setter so the
     // mapper knows how to access it
-    .flatten(CUSTOMER_TABLE_SCHEMA, Customer::getRecordMetadata, Customer::setRecordMetadata)
+    .flatten(GENERIC_RECORD_SCHEMA, Customer::getRecordMetadata, Customer::setRecordMetadata)
     .build(); 
 ```
-You can flatten as many different eligible classes as you like using the
-builder pattern. The only constraints are that attributes must not have
-the same name when they are being rolled together, and there must never
-be more than one partition key, sort key or table name.
+Just as for annotations, you can flatten as many different eligible classes as you like using the
+builder pattern. 

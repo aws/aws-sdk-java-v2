@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 @Measurement(iterations = 5)
 @Fork(2)
 @State(Scope.Benchmark)
-public class V1MapperComparisonBenchmark {
+public class EnhancedClientGetV1MapperComparisonBenchmark {
     private static final V2ItemFactory V2_ITEM_FACTORY = new V2ItemFactory();
     private static final V1ItemFactory V1_ITEM_FACTORY = new V1ItemFactory();
 
@@ -55,22 +55,12 @@ public class V1MapperComparisonBenchmark {
         return s.v1DdbMapper.load(s.testItem.v1Key);
     }
 
-    @Benchmark
-    public void v2Put(TestState s) {
-        s.v2Table.putItem(s.testItem.v2Bean);
-    }
-
-    @Benchmark
-    public void v1Put(TestState s) {
-        s.v1DdbMapper.save(s.testItem.v1Bean);
-    }
-
     private static DynamoDbClient getV2Client(Blackhole bh, GetItemResponse getItemResponse) {
-        return new V2TestDynamoDbClient(bh, getItemResponse);
+        return new V2TestDynamoDbGetItemClient(bh, getItemResponse);
     }
 
     private static AmazonDynamoDB getV1Client(Blackhole bh, GetItemResult getItemResult) {
-        return new V1TestDynamoDbClient(bh, getItemResult);
+        return new V1TestDynamoDbGetItemClient(bh, getItemResult);
     }
 
     @State(Scope.Benchmark)
@@ -80,7 +70,7 @@ public class V1MapperComparisonBenchmark {
 
         private final Key key = Key.builder().partitionValue("key").build();
 
-        private DynamoDbTable v2Table;
+        private DynamoDbTable<?> v2Table;
         private DynamoDBMapper v1DdbMapper;
 
 
@@ -99,68 +89,54 @@ public class V1MapperComparisonBenchmark {
             TINY(
                     V2ItemFactory.TINY_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.tiny()).build(),
-                    V2_ITEM_FACTORY.tinyBean(),
 
                     new V1ItemFactory.V1TinyBean("hashKey"),
-                    new GetItemResult().withItem(V1_ITEM_FACTORY.tiny()),
-                    V1_ITEM_FACTORY.v1TinyBean()
+                    new GetItemResult().withItem(V1_ITEM_FACTORY.tiny())
             ),
 
             SMALL(
                     V2ItemFactory.SMALL_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.small()).build(),
-                    V2_ITEM_FACTORY.smallBean(),
 
                     new V1ItemFactory.V1SmallBean("hashKey"),
-                    new GetItemResult().withItem(V1_ITEM_FACTORY.small()),
-                    V1_ITEM_FACTORY.v1SmallBean()
+                    new GetItemResult().withItem(V1_ITEM_FACTORY.small())
             ),
 
             HUGE(
                     V2ItemFactory.HUGE_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.huge()).build(),
-                    V2_ITEM_FACTORY.hugeBean(),
 
                     new V1ItemFactory.V1HugeBean("hashKey"),
-                    new GetItemResult().withItem(V1_ITEM_FACTORY.huge()),
-                    V1_ITEM_FACTORY.v1hugeBean()
+                    new GetItemResult().withItem(V1_ITEM_FACTORY.huge())
             ),
 
             HUGE_FLAT(
                     V2ItemFactory.HUGE_BEAN_FLAT_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.hugeFlat()).build(),
-                    V2_ITEM_FACTORY.hugeBeanFlat(),
 
                     new V1ItemFactory.V1HugeBeanFlat("hashKey"),
-                    new GetItemResult().withItem(V1_ITEM_FACTORY.hugeFlat()),
-                    V1_ITEM_FACTORY.v1HugeBeanFlat()
+                    new GetItemResult().withItem(V1_ITEM_FACTORY.hugeFlat())
             ),
             ;
 
             // V2
-            private TableSchema schema;
+            private TableSchema<?> schema;
             private GetItemResponse v2Response;
-            private Object v2Bean;
 
             // V1
             private Object v1Key;
             private GetItemResult v1Response;
-            private Object v1Bean;
 
             TestItem(TableSchema<?> schema,
                              GetItemResponse v2Response,
-                             Object v2Bean,
 
                              Object v1Key,
-                             GetItemResult v1Response,
-                             Object v1Bean) {
+                             GetItemResult v1Response) {
                 this.schema = schema;
                 this.v2Response = v2Response;
-                this.v2Bean = v2Bean;
 
                 this.v1Key = v1Key;
                 this.v1Response = v1Response;
-                this.v1Bean = v1Bean;
             }
         }
     }

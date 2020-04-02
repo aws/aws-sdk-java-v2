@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.internal;
+package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +22,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverterProvider;
@@ -76,11 +73,15 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
+ * This class is the default attribute converter provider in the DDB Enhanced library. When instantiated
+ * using the constructor {@link #DefaultAttributeConverterProvider()} or the {@link #create()} method, it's loaded
+ * with the currently supported attribute converters in the library.
  * <p>
- * Given an input, this will identify a converter that can convert the specific Java type and invoke it. If a converter cannot
- * be found, it will invoke a "parent" converter, which would be expected to be able to convert the value (or throw an exception).
+ * Given an input, the method {@link #converterFor(EnhancedType)} will identify a converter that can convert the
+ * specific Java type and invoke it. If a converter cannot be found, it will invoke a "parent" converter,
+ * which would be expected to be able to convert the value (or throw an exception).
  */
-@SdkInternalApi
+@SdkPublicApi
 @ThreadSafe
 @Immutable
 public final class DefaultAttributeConverterProvider implements AttributeConverterProvider {
@@ -101,6 +102,21 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
             }
         }
     }
+
+    /**
+     * Returns an attribute converter provider with all default converters set.
+     */
+    public DefaultAttributeConverterProvider() {
+        this(getDefaultBuilder());
+    }
+
+    /**
+     * Returns an attribute converter provider with all default converters set.
+     */
+    public static DefaultAttributeConverterProvider create() {
+        return getDefaultBuilder().build();
+    }
+
 
     /**
      * Equivalent to {@code builder(EnhancedType.of(Object.class))}.
@@ -179,7 +195,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
         return (AttributeConverter<T>) SetAttributeConverter.setConverter(innerConverter);
     }
 
-    public static DefaultAttributeConverterProvider create() {
+    private static Builder getDefaultBuilder() {
         return DefaultAttributeConverterProvider.builder()
                                                 .addConverter(AtomicBooleanAttributeConverter.create())
                                                 .addConverter(AtomicIntegerAttributeConverter.create())
@@ -217,8 +233,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
                                                 .addConverter(UuidAttributeConverter.create())
                                                 .addConverter(ZonedDateTimeAsStringAttributeConverter.create())
                                                 .addConverter(ZoneIdAttributeConverter.create())
-                                                .addConverter(ZoneOffsetAttributeConverter.create())
-                                                .build();
+                                                .addConverter(ZoneOffsetAttributeConverter.create());
     }
 
     /**
