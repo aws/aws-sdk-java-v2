@@ -77,7 +77,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final TlsContext tlsContext;
     private final int windowSize;
     private final int maxConnectionsPerEndpoint;
-
+    private final boolean manualWindowManagement;
 
     public AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
         int maxConns = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
@@ -111,6 +111,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         this.tlsContext = own(new TlsContext(this.tlsContextOptions));
         this.windowSize = builder.windowSize;
         this.maxConnectionsPerEndpoint = maxConns;
+        this.manualWindowManagement = builder.manualWindowManagement;
     }
 
     /**
@@ -151,7 +152,8 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withTlsContext(tlsContext)
                 .withUri(uri)
                 .withWindowSize(windowSize)
-                .withMaxConnections(maxConnectionsPerEndpoint);
+                .withMaxConnections(maxConnectionsPerEndpoint)
+                .withManualWindowManagement(manualWindowManagement);
 
         return HttpClientConnectionManager.create(options);
     }
@@ -294,6 +296,13 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder verifyPeer(boolean verifyPeer);
 
         /**
+         * If set to true, then the TCP read back pressure mechanism will be enabled.
+         * @param manualWindowManagement true if the TCP back pressure mechanism should be enabled.
+         * @return The builder of the method chaining.
+         */
+        Builder manualWindowManagement(boolean manualWindowManagement);
+
+        /**
          * The AWS CRT WindowSize to use for this HttpClient. This represents the number of unread bytes that can be
          * buffered in the ResponseBodyPublisher before we stop reading from the underlying TCP socket and wait for
          * the Subscriber to read more data.
@@ -327,6 +336,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
         private int windowSize = DEFAULT_STREAM_WINDOW_SIZE;
         private boolean verifyPeer = true;
+        private boolean manualWindowManagement;
         private EventLoopGroup eventLoopGroup;
         private HostResolver hostResolver;
 
@@ -358,6 +368,12 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder verifyPeer(boolean verifyPeer) {
             this.verifyPeer = verifyPeer;
+            return this;
+        }
+
+        @Override
+        public Builder manualWindowManagement(boolean manualWindowManagement) {
+            this.manualWindowManagement = manualWindowManagement;
             return this;
         }
 
