@@ -37,6 +37,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvide
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProviderResolver;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.AttributeType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ResolvedStaticAttribute;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -71,9 +72,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 @SdkPublicApi
 public final class StaticTableSchema<T> implements TableSchema<T> {
-    private final List<ResolvedStaticAttribute<T>> attributeMappers;
+    private final List<ResolvedStaticAttribute<T, ?>> attributeMappers;
     private final Supplier<T> newItemSupplier;
-    private final Map<String, ResolvedStaticAttribute<T>> indexedMappers;
+    private final Map<String, ResolvedStaticAttribute<T,?>> indexedMappers;
     private final StaticTableMetadata tableMetadata;
     private final EnhancedType<T> itemType;
     private final AttributeConverterProvider attributeConverterProvider;
@@ -85,12 +86,12 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
                 ConverterProviderResolver.resolveProviders(builder.attributeConverterProviders);
 
         // Resolve declared attributes and find converters for them
-        Stream<ResolvedStaticAttribute<T>> attributesStream = builder.attributes == null ?
+        Stream<ResolvedStaticAttribute<T, ?>> attributesStream = builder.attributes == null ?
             Stream.empty() : builder.attributes.stream().map(a -> a.resolve(this.attributeConverterProvider));
 
         // Merge resolved declared attributes and additional attributes that were added by extend or flatten
-        List<ResolvedStaticAttribute<T>> mutableAttributeMappers = new ArrayList<>();
-        Map<String, ResolvedStaticAttribute<T>>  mutableIndexedMappers = new HashMap<>();
+        List<ResolvedStaticAttribute<T, ?>> mutableAttributeMappers = new ArrayList<>();
+        Map<String, ResolvedStaticAttribute<T, ?>>  mutableIndexedMappers = new HashMap<>();
         Stream.concat(attributesStream, builder.additionalAttributes.stream()).forEach(
             resolvedAttribute -> {
                 String attributeName = resolvedAttribute.attributeName();
@@ -136,7 +137,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
      */
     public static final class Builder<T> {
         private final Class<T> itemClass;
-        private final List<ResolvedStaticAttribute<T>> additionalAttributes = new ArrayList<>();
+        private final List<ResolvedStaticAttribute<T, ?>> additionalAttributes = new ArrayList<>();
 
         private List<StaticAttribute<T, ?>> attributes;
         private Supplier<T> newItemSupplier;
@@ -243,7 +244,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
          * the super-class into the {@link StaticTableSchema} of the sub-class.
          */
         public Builder<T> extend(StaticTableSchema<? super T> superTableSchema) {
-            Stream<ResolvedStaticAttribute<T>> attributeStream =
+            Stream<ResolvedStaticAttribute<T, ?>> attributeStream =
                 upcastingTransformForAttributes(superTableSchema.attributeMappers);
             attributeStream.forEach(this.additionalAttributes::add);
             return this;
@@ -335,8 +336,8 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
             return new StaticTableSchema<>(this);
         }
 
-        private static <T extends R, R> Stream<ResolvedStaticAttribute<T>> upcastingTransformForAttributes(
-            Collection<ResolvedStaticAttribute<R>> superAttributes) {
+        private static <T extends R, R> Stream<ResolvedStaticAttribute<T, ?>> upcastingTransformForAttributes(
+            Collection<ResolvedStaticAttribute<R, ?>> superAttributes) {
             return superAttributes.stream().map(attribute -> attribute.transform(x -> x, null));
         }
     }
@@ -355,7 +356,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
             String key = entry.getKey();
             AttributeValue value = entry.getValue();
             if (!isNullAttributeValue(value)) {
-                ResolvedStaticAttribute<T> attributeMapper = indexedMappers.get(key);
+                ResolvedStaticAttribute<T, ?> attributeMapper = indexedMappers.get(key);
 
                 if (attributeMapper != null) {
                     if (item == null) {
@@ -403,15 +404,14 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
 
     @Override
     public AttributeValue attributeValue(T item, String key) {
-        ResolvedStaticAttribute<T> attributeMapper = indexedMappers.get(key);
+        AttributeValue attributeValue = findAttribute(key).attributeGetterMethod().apply(item);
+        return isNullAttributeValue(attributeValue) ? null : attributeValue;
+    }
 
-        if (attributeMapper == null) {
-            throw new IllegalArgumentException(String.format("TableSchema does not know how to retrieve requested "
-                                                             + "attribute '%s' from mapped object.", key));
-        }
-
-        AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
-
+    @Override
+    public AttributeValue convertAttributeValue(Object value, String key) {
+        AttributeType<Object> attributeType = (AttributeType<Object>) findAttribute(key).attributeType();
+        AttributeValue attributeValue = attributeType.objectToAttributeValue(value);
         return isNullAttributeValue(attributeValue) ? null : attributeValue;
     }
 
@@ -436,5 +436,16 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         }
 
         return newItemSupplier.get();
+    }
+
+    private ResolvedStaticAttribute<T, ?> findAttribute(String key) {
+        ResolvedStaticAttribute<T, ?> attributeMapper = indexedMappers.get(key);
+
+        if (attributeMapper == null) {
+            throw new IllegalArgumentException(String.format("TableSchema does not know how to retrieve requested "
+                    + "attribute '%s' from mapped object.", key));
+        }
+
+        return attributeMapper;
     }
 }

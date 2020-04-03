@@ -161,6 +161,16 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
 
     /**
      * {@inheritDoc}
+     * @param value The value to be converted.
+     * @param key The attribute name describing which attribute's converter to use.
+     */
+    @Override
+    public AttributeValue convertAttributeValue(Object value, String key) {
+        return wrappedTableSchema.convertAttributeValue(value, key);
+    }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
     public TableMetadata tableMetadata() {
