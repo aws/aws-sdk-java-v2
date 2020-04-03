@@ -1,0 +1,26 @@
+{
+    "version": "2.11.9",
+    "date": "2020-04-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "description": "Added support for limiting simulation unit usage, giving more predictable control over simulation cost"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "description": "Amazon Personalize: Add new response field \"score\" to each item returned by GetRecommendations and GetPersonalizedRanking (HRNN-based recipes only)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3",
+            "description": "Allow DefaultS3Presigner.Builder to take a custom S3Configuration"
+        }
+    ]
+}

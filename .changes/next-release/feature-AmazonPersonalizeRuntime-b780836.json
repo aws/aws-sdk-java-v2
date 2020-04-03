@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize Runtime",
-    "description": "Amazon Personalize: Add new response field \"score\" to each item returned by GetRecommendations and GetPersonalizedRanking (HRNN-based recipes only)"
-}

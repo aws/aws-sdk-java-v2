@@ -1,3 +1,20 @@
+# __2.11.9__ __2020-04-03__
+## __AWS RoboMaker__
+  - ### Features
+    - Added support for limiting simulation unit usage, giving more predictable control over simulation cost
+
+## __AWS S3__
+  - ### Features
+    - Allow DefaultS3Presigner.Builder to take a custom S3Configuration
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Amazon Personalize: Add new response field "score" to each item returned by GetRecommendations and GetPersonalizedRanking (HRNN-based recipes only)
+
 # __2.11.8__ __2020-04-02__
 ## __AWS Elemental MediaLive__
   - ### Features
