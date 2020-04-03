@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS RoboMaker",
+    "description": "Added support for limiting simulation unit usage, giving more predictable control over simulation cost"
+}
