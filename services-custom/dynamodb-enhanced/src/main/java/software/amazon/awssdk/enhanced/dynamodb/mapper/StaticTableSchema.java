@@ -74,7 +74,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public final class StaticTableSchema<T> implements TableSchema<T> {
     private final List<ResolvedStaticAttribute<T, ?>> attributeMappers;
     private final Supplier<T> newItemSupplier;
-    private final Map<String, ResolvedStaticAttribute<T,?>> indexedMappers;
+    private final Map<String, ResolvedStaticAttribute<T, ?>> indexedMappers;
     private final StaticTableMetadata tableMetadata;
     private final EnhancedType<T> itemType;
     private final AttributeConverterProvider attributeConverterProvider;
