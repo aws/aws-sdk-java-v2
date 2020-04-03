@@ -98,9 +98,13 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3Presigner {
     private static final AwsS3V4Signer DEFAULT_SIGNER = AwsS3V4Signer.create();
+    private static final S3Configuration DEFAULT_S3_CONFIGURATION = S3Configuration.builder()
+            .checksumValidationEnabled(false)
+            .build();
     private static final String SERVICE_NAME = "s3";
     private static final String SIGNING_NAME = "s3";
 
+    private final S3Configuration serviceConfiguration;
     private final List<ExecutionInterceptor> clientInterceptors;
     private final GetObjectRequestMarshaller getObjectRequestMarshaller;
     private final PutObjectRequestMarshaller putObjectRequestMarshaller;
@@ -111,6 +115,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
     private DefaultS3Presigner(Builder b) {
         super(b);
+
+        this.serviceConfiguration = b.serviceConfiguration != null ? b.serviceConfiguration : DEFAULT_S3_CONFIGURATION;
 
         this.clientInterceptors = initializeInterceptors();
 
@@ -236,6 +242,10 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .build();
     }
 
+    protected S3Configuration serviceConfiguration() {
+        return serviceConfiguration;
+    }
+
     /**
      * Generate a {@link PresignedRequest} from a {@link PresignedRequest} and {@link SdkRequest}.
      */
@@ -289,9 +299,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, ClientType.SYNC)
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
-            .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, S3Configuration.builder()
-                                                                                     .checksumValidationEnabled(false)
-                                                                                     .build())
+            .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
             .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration);
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
@@ -464,7 +472,22 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     public static final class Builder extends DefaultSdkPresigner.Builder<Builder>
         implements S3Presigner.Builder {
 
+        private S3Configuration serviceConfiguration;
+
         private Builder() {
+        }
+
+        /**
+         * Allows providing a custom S3 serviceConfiguration by providing a {@link S3Configuration} object;
+         *
+         * Note: chunkedEncodingEnabled and checksumValidationEnabled do not apply to presigned requests.
+         *
+         * @param serviceConfiguration {@link S3Configuration}
+         * @return this Builder
+         */
+        public Builder serviceConfiguration(S3Configuration serviceConfiguration) {
+            this.serviceConfiguration = serviceConfiguration;
+            return this;
         }
 
         @Override
