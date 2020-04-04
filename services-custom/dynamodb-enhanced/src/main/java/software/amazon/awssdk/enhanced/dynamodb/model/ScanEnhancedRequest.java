@@ -15,7 +15,12 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -35,12 +40,16 @@ public final class ScanEnhancedRequest {
     private final Integer limit;
     private final Boolean consistentRead;
     private final Expression filterExpression;
+    private final List<String> attributesToProject;
 
     private ScanEnhancedRequest(Builder builder) {
         this.exclusiveStartKey = builder.exclusiveStartKey;
         this.limit = builder.limit;
         this.consistentRead = builder.consistentRead;
         this.filterExpression = builder.filterExpression;
+        this.attributesToProject = builder.attributesToProject != null
+                ? Collections.unmodifiableList(builder.attributesToProject)
+                : null;
     }
 
     /**
@@ -57,7 +66,8 @@ public final class ScanEnhancedRequest {
         return builder().exclusiveStartKey(exclusiveStartKey)
                         .limit(limit)
                         .consistentRead(consistentRead)
-                        .filterExpression(filterExpression);
+                        .filterExpression(filterExpression)
+                        .attributesToProject(attributesToProject);
     }
 
     /**
@@ -88,6 +98,13 @@ public final class ScanEnhancedRequest {
         return filterExpression;
     }
 
+    /**
+     * Returns the list of projected attributes on this request object, or null if no projection is specified.
+     */
+    public List<String> attributesToProject() {
+        return attributesToProject;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -109,6 +126,12 @@ public final class ScanEnhancedRequest {
         if (consistentRead != null ? ! consistentRead.equals(scan.consistentRead) : scan.consistentRead != null) {
             return false;
         }
+        if (attributesToProject != null
+                ? ! attributesToProject.equals(scan.attributesToProject)
+                : scan.attributesToProject != null
+        ) {
+            return false;
+        }
         return filterExpression != null ? filterExpression.equals(scan.filterExpression) : scan.filterExpression == null;
     }
 
@@ -118,6 +141,7 @@ public final class ScanEnhancedRequest {
         result = 31 * result + (limit != null ? limit.hashCode() : 0);
         result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
+        result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
         return result;
     }
 
@@ -129,6 +153,7 @@ public final class ScanEnhancedRequest {
         private Integer limit;
         private Boolean consistentRead;
         private Expression filterExpression;
+        private List<String> attributesToProject;
 
         private Builder() {
         }
@@ -189,6 +214,73 @@ public final class ScanEnhancedRequest {
          */
         public Builder filterExpression(Expression filterExpression) {
             this.filterExpression = filterExpression;
+            return this;
+        }
+
+        /**
+         * <p>
+         * Sets a collection of the attribute names to be retrieved from the database. These attributes can include
+         * scalars, sets, or elements of a JSON document.
+         * </p>
+         * <p>
+         * If no attribute names are specified, then all attributes will be returned. If any of the requested attributes
+         * are not found, they will not appear in the result.
+         * </p>
+         * <p>
+         * For more information, see <a href=
+         * "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html"
+         * >Accessing Item Attributes</a> in the <i>Amazon DynamoDB Developer Guide</i>.
+         * </p>
+         * @param attributesToProject
+         *        A collection of the attributes names to be retrieved from the database.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder attributesToProject(Collection<String> attributesToProject) {
+            this.attributesToProject = attributesToProject != null ? new ArrayList<>(attributesToProject) : null;
+            return this;
+        }
+
+        /**
+         * <p>
+         * Sets one or more attribute names to be retrieved from the database. These attributes can include
+         * scalars, sets, or elements of a JSON document.
+         * </p>
+         * <p>
+         * If no attribute names are specified, then all attributes will be returned. If any of the requested attributes
+         * are not found, they will not appear in the result.
+         * </p>
+         * <p>
+         * For more information, see <a href=
+         * "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html"
+         * >Accessing Item Attributes</a> in the <i>Amazon DynamoDB Developer Guide</i>.
+         * </p>
+         * @param attributesToProject
+         *        One or more  attributes names to be retrieved from the database.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder attributesToProject(String... attributesToProject) {
+            return attributesToProject(Arrays.asList(attributesToProject));
+        }
+
+        /**
+         * <p>
+         * Adds a single attribute name to be retrieved from the database. This attribute can include
+         * scalars, sets, or elements of a JSON document.
+         * </p>
+         * <p>
+         * For more information, see <a href=
+         * "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html"
+         * >Accessing Item Attributes</a> in the <i>Amazon DynamoDB Developer Guide</i>.
+         * </p>
+         * @param attributeToProject
+         *        An additional single attribute name to be retrieved from the database.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder addAttributeToProject(String attributeToProject) {
+            if (attributesToProject == null) {
+                attributesToProject = new ArrayList<>();
+            }
+            attributesToProject.add(attributeToProject);
             return this;
         }
 

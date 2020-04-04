@@ -1,3 +1,9 @@
+# __2.11.10__
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - The enhanced DDB query and scan request now supports projections. 
+
 # __2.11.9__ __2020-04-03__
 ## __AWS RoboMaker__
   - ### Features
