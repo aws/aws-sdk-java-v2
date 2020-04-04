@@ -273,6 +273,23 @@ public class QueryOperationTest {
     }
 
     @Test
+    public void generateRequest_projectionExpression() {
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k.partitionValue(keyItem.getId())))
+                                                      .attributesToProject("id")
+                                                      .addAttributeToProject("version")
+                                                      .build());
+        QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
+                                                                PRIMARY_CONTEXT,
+                                                                null);
+
+        assertThat(queryRequest.projectionExpression(), is("#AMZN_MAPPED_id,#AMZN_MAPPED_version"));
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_id"), is ("id"));
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_version"), is ("version"));
+    }
+
+    @Test
     public void generateRequest_hashKeyOnly_withExclusiveStartKey() {
         FakeItem exclusiveStartKey = createUniqueFakeItem();
         QueryOperation<FakeItem> queryToTest =
