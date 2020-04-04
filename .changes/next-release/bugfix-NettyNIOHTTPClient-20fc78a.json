@@ -1,0 +1,5 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "type": "bugfix", 
+    "description": "Mark a connection as unreusable if there was a 5xx server error so that a new request will establish a new connection."
+}

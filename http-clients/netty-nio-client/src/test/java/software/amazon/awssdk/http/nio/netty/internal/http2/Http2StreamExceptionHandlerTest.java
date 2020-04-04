@@ -85,7 +85,7 @@ public class Http2StreamExceptionHandlerTest {
         when(streamChannel.parent()).thenReturn(embeddedParentChannel);
         handler.exceptionCaught(context, ReadTimeoutException.INSTANCE);
 
-        assertThat(verifyExceptionHandler.exceptionCaught).isExactlyInstanceOf(Http2StreamExceptionHandler.Http2StreamIoException.class);
+        assertThat(verifyExceptionHandler.exceptionCaught).isExactlyInstanceOf(Http2ConnectionTerminatingException.class);
         verify(context).fireExceptionCaught(ReadTimeoutException.INSTANCE);
     }
 
@@ -95,7 +95,7 @@ public class Http2StreamExceptionHandlerTest {
         when(streamChannel.parent()).thenReturn(embeddedParentChannel);
         handler.exceptionCaught(context, ioException);
 
-        assertThat(verifyExceptionHandler.exceptionCaught).isExactlyInstanceOf(Http2StreamExceptionHandler.Http2StreamIoException.class);
+        assertThat(verifyExceptionHandler.exceptionCaught).isExactlyInstanceOf(Http2ConnectionTerminatingException.class);
         verify(context).fireExceptionCaught(ioException);
     }
 
