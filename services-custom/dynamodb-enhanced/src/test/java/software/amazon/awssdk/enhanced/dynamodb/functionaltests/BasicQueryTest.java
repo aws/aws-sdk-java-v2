@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
@@ -158,6 +159,28 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
+    public void queryAllRecordsDefaultSettings_withProjection() {
+        insertRecords();
+
+        Iterator<Page<Record>> results =
+                mappedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                        .attributesToProject("value")
+                ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items().size(), is(RECORDS.size()));
+
+        Record firstRecord = page.items().get(0);
+        assertThat(firstRecord.id, is(nullValue()));
+        assertThat(firstRecord.sort, is(nullValue()));
+        assertThat(firstRecord.value, is(0));
+    }
+
+    @Test
     public void queryAllRecordsDefaultSettings_shortcutForm_viaItems() {
         insertRecords();
 
@@ -193,6 +216,39 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(page.items(),
                    is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryAllRecordsWithFilterAndProjection() {
+        insertRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#value >= :min_value AND #value <= :max_value")
+                .expressionValues(expressionValues)
+                .expressionNames(Collections.singletonMap("#value", "value"))
+                .build();
+
+        Iterator<Page<Record>> results =
+                mappedTable.query(QueryEnhancedRequest.builder()
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                        .filterExpression(expression)
+                        .attributesToProject("value")
+                        .build())
+                        .iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items(), hasSize(3));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
+
+        Record record = page.items().get(0);
+        assertThat(record.id, nullValue());
+        assertThat(record.sort, nullValue());
+        assertThat(record.value, is(3));
     }
 
     @Test
