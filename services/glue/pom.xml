@@ -20,7 +20,7 @@
     <parent>
         <artifactId>services</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.11.7-PREVIEW</version>
+        <version>0.2.0-PREVIEW</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>glue</artifactId>
