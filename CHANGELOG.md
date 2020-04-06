@@ -1,8 +1,23 @@
-# __2.11.10__
-
-## __Amazon DynamoDB Enhanced Client [Preview]__
+# __2.11.10__ __2020-04-06__
+## __AWS Elastic Beanstalk__
   - ### Features
-    - The enhanced DDB query and scan request now supports projections. 
+    - This release adds a new action, ListPlatformBranches, and updates two actions, ListPlatformVersions and DescribePlatformVersion, to support the concept of Elastic Beanstalk platform branches.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - Amazon Chime proxy phone sessions let you provide two users with a shared phone number to communicate via voice or text for up to 12 hours without revealing personal phone numbers. When users call or message the provided phone number, they are connected to the other party and their private phone numbers are replaced with the shared number in Caller ID.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for batch transcription jobs within Amazon Transcribe Medical.
 
 # __2.11.9__ __2020-04-03__
 ## __AWS RoboMaker__

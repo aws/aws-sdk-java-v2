@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "description": "This release adds support for batch transcription jobs within Amazon Transcribe Medical."
-}

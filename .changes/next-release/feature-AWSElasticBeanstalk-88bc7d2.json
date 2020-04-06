@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elastic Beanstalk",
-    "description": "This release adds a new action, ListPlatformBranches, and updates two actions, ListPlatformVersions and DescribePlatformVersion, to support the concept of Elastic Beanstalk platform branches."
-}
