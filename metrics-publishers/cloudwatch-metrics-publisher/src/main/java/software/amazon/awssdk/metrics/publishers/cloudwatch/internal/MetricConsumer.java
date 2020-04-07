@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -109,7 +109,8 @@ public class MetricConsumer implements Callable<List<CompletableFuture<PutMetric
         private BlockingQueue<MetricDatum> queue;
         private String namespace;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Sets the async CloudWatch client to interact with CloudWatch service.

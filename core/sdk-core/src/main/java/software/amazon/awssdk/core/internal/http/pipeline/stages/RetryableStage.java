@@ -28,16 +28,11 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
-import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
-import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
-import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry, clock-skew and request throttling functionality.

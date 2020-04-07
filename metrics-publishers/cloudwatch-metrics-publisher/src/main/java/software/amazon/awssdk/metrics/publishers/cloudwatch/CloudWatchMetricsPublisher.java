@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -186,7 +186,8 @@ public final class CloudWatchMetricsPublisher implements MetricPublisher {
         private String namespace = DEFAULT_NAMESPACE;
         private int metricQueueSize = QUEUE_SIZE;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * @param client async client to use for uploads metrics to Amazon CloudWatch
