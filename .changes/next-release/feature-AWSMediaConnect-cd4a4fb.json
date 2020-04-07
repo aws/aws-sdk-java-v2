@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS MediaConnect",
+    "description": "You can now send content from your MediaConnect flow to your virtual private cloud (VPC) without going over the public internet."
+}
