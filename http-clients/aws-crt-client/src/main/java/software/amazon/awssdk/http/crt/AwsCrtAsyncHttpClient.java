@@ -296,7 +296,8 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder verifyPeer(boolean verifyPeer);
 
         /**
-         * If set to true, then the TCP read back pressure mechanism will be enabled.
+         * If set to true, then the TCP read back pressure mechanism will be enabled, and the user
+         * is responsible for calling incrementWindow on the stream object.
          * @param manualWindowManagement true if the TCP back pressure mechanism should be enabled.
          * @return The builder of the method chaining.
          */
