@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,7 +28,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public final class ExecutorUtils {
-    private ExecutorUtils() {}
+    private ExecutorUtils() {
+    }
 
     /**
      * Create a bounded-queue executor with one thread for performing background tasks. The thread in the service is marked as a

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.services.s3.internal.usearnregion;
 
-import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_CONFIG_FILE;
-import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_PROFILE;
-
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -33,19 +32,29 @@ public final class ProfileUseArnRegionProvider implements UseArnRegionProvider {
      */
     private static final String AWS_USE_ARN_REGION = "s3_use_arn_region";
 
-    private ProfileUseArnRegionProvider() {
+    private final Supplier<ProfileFile> profileFile;
+    private final String profileName;
+
+    private ProfileUseArnRegionProvider(Supplier<ProfileFile> profileFile, String profileName) {
+        this.profileFile = profileFile;
+        this.profileName = profileName;
     }
 
     public static ProfileUseArnRegionProvider create() {
-        return new ProfileUseArnRegionProvider();
+        return new ProfileUseArnRegionProvider(ProfileFile::defaultProfileFile,
+                                               ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
+    }
+
+    public static ProfileUseArnRegionProvider create(ProfileFile profileFile, String profileName) {
+        return new ProfileUseArnRegionProvider(() -> profileFile, profileName);
     }
 
     @Override
     public Optional<Boolean> resolveUseArnRegion() {
-        return AWS_CONFIG_FILE.getStringValue()
-                              .flatMap(s -> ProfileFile.defaultProfileFile().profile(AWS_PROFILE.getStringValueOrThrow()))
-                              .map(p -> p.properties().get(AWS_USE_ARN_REGION))
-                              .map(StringUtils::safeStringToBoolean);
+        return profileFile.get()
+                          .profile(profileName)
+                          .map(p -> p.properties().get(AWS_USE_ARN_REGION))
+                          .map(StringUtils::safeStringToBoolean);
     }
 }
 

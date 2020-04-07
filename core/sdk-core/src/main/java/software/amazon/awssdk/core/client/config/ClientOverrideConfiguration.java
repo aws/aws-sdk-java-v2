@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,10 +26,13 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
 import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
@@ -54,6 +57,8 @@ public final class ClientOverrideConfiguration
     private final Duration apiCallTimeout;
     private final MetricConfigurationProvider metricConfigurationProvider;
     private final MetricPublisherConfiguration metricPublisherConfiguration;
+    private final ProfileFile defaultProfileFile;
+    private final String defaultProfileName;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -67,6 +72,8 @@ public final class ClientOverrideConfiguration
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.metricConfigurationProvider = builder.metricConfigurationProvider();
         this.metricPublisherConfiguration = builder.metricPublisherConfiguration();
+        this.defaultProfileFile = builder.defaultProfileFile();
+        this.defaultProfileName = builder.defaultProfileName();
     }
 
     @Override
@@ -76,7 +83,9 @@ public final class ClientOverrideConfiguration
                                                               .retryPolicy(retryPolicy)
                                                               .apiCallTimeout(apiCallTimeout)
                                                               .apiCallAttemptTimeout(apiCallAttemptTimeout)
-                                                              .executionInterceptors(executionInterceptors);
+                                                              .executionInterceptors(executionInterceptors)
+                                                              .defaultProfileFile(defaultProfileFile)
+                                                              .defaultProfileName(defaultProfileName);
     }
 
     /**
@@ -177,6 +186,24 @@ public final class ClientOverrideConfiguration
         return Optional.ofNullable(apiCallAttemptTimeout);
     }
 
+    /**
+     * The profile file that should be used by default for all profile-based configuration in the SDK client.
+     *
+     * @see Builder#defaultProfileFile(ProfileFile)
+     */
+    public Optional<ProfileFile> defaultProfileFile() {
+        return Optional.ofNullable(defaultProfileFile);
+    }
+
+    /**
+     * The profile name that should be used by default for all profile-based configuration in the SDK client.
+     *
+     * @see Builder#defaultProfileName(String)
+     */
+    public Optional<String> defaultProfileName() {
+        return Optional.ofNullable(defaultProfileName);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ClientOverrideConfiguration")
@@ -186,6 +213,8 @@ public final class ClientOverrideConfiguration
                        .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
                        .add("executionInterceptors", executionInterceptors)
                        .add("advancedOptions", advancedOptions)
+                       .add("profileFile", defaultProfileFile)
+                       .add("profileName", defaultProfileName)
                        .build();
     }
 
@@ -198,6 +227,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Add a single header to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given header set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
@@ -213,6 +244,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Add a single header with multiple values to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given header set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
@@ -225,6 +258,8 @@ public final class ClientOverrideConfiguration
 
         /**
          * Configure headers to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given headers set on the request by default by the SDK.
          *
          * <p>
          * This overrides any values currently configured in the builder.
@@ -242,8 +277,6 @@ public final class ClientOverrideConfiguration
          * @see ClientOverrideConfiguration#retryPolicy()
          */
         Builder retryPolicy(RetryPolicy retryPolicy);
-
-        RetryPolicy retryPolicy();
 
         /**
          * Configure the retry policy the should be used when handling failure cases.
@@ -276,6 +309,17 @@ public final class ClientOverrideConfiguration
          * @return the configuration for metric publishers
          */
         MetricPublisherConfiguration metricPublisherConfiguration();
+
+        /**
+         * Configure the retry mode used to determine the retry policy that is used when handling failure cases. This is
+         * shorthand for {@code retryPolicy(RetryPolicy.forRetryMode(retryMode))}, and overrides any configured retry policy on
+         * this builder.
+         */
+        default Builder retryPolicy(RetryMode retryMode) {
+            return retryPolicy(RetryPolicy.forRetryMode(retryMode));
+        }
+
+        RetryPolicy retryPolicy();
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
@@ -370,6 +414,45 @@ public final class ClientOverrideConfiguration
         Builder apiCallAttemptTimeout(Duration apiCallAttemptTimeout);
 
         Duration apiCallAttemptTimeout();
+
+        /**
+         * Configure the profile file that should be used by default for all profile-based configuration in the SDK client.
+         *
+         * <p>This is equivalent to setting the {@link ProfileFileSystemSetting#AWS_CONFIG_FILE} and
+         * {@link ProfileFileSystemSetting#AWS_SHARED_CREDENTIALS_FILE} environment variables or system properties.
+         *
+         * <p>Like the system settings, this value is only used when determining default values. For example, directly configuring
+         * the retry policy, credentials provider or region will mean that the configured values will be used instead of those
+         * from the profile file.
+         *
+         * <p>Like the {@code --profile} setting in the CLI, profile-based configuration loaded from this profile file has lower
+         * priority than more specific environment variables, like the {@code AWS_REGION} environment variable.
+         *
+         * <p>If this is not set, the {@link ProfileFile#defaultProfileFile()} is used.
+         *
+         * @see #defaultProfileName(String)
+         */
+        Builder defaultProfileFile(ProfileFile defaultProfileFile);
+
+        ProfileFile defaultProfileFile();
+
+        /**
+         * Configure the profile name that should be used by default for all profile-based configuration in the SDK client.
+         *
+         * <p>This is equivalent to setting the {@link ProfileFileSystemSetting#AWS_PROFILE} environment variable or system
+         * property.
+         *
+         * <p>Like the system setting, this value is only used when determining default values. For example, directly configuring
+         * the retry policy, credentials provider or region will mean that the configured values will be used instead of those
+         * from this profile.
+         *
+         * <p>If this is not set, the {@link ProfileFileSystemSetting#AWS_PROFILE} (or {@code "default"}) is used.
+         *
+         * @see #defaultProfileFile(ProfileFile)
+         */
+        Builder defaultProfileName(String defaultProfileName);
+
+        String defaultProfileName();
     }
 
     /**
@@ -384,6 +467,8 @@ public final class ClientOverrideConfiguration
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
+        private ProfileFile defaultProfileFile;
+        private String defaultProfileName;
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -531,6 +616,28 @@ public final class ClientOverrideConfiguration
         @Override
         public Duration apiCallAttemptTimeout() {
             return apiCallAttemptTimeout;
+        }
+
+        @Override
+        public ProfileFile defaultProfileFile() {
+            return this.defaultProfileFile;
+        }
+
+        @Override
+        public Builder defaultProfileFile(ProfileFile defaultProfileFile) {
+            this.defaultProfileFile = defaultProfileFile;
+            return this;
+        }
+
+        @Override
+        public String defaultProfileName() {
+            return this.defaultProfileName;
+        }
+
+        @Override
+        public Builder defaultProfileName(String defaultProfileName) {
+            this.defaultProfileName = defaultProfileName;
+            return this;
         }
 
         @Override

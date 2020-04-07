@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,7 +28,8 @@ public final class WebIdentityCredentialsUtils {
     private static final String STS_WEB_IDENTITY_CREDENTIALS_PROVIDER_FACTORY =
         "software.amazon.awssdk.services.sts.internal.StsWebIdentityCredentialsProviderFactory";
 
-    private WebIdentityCredentialsUtils() {}
+    private WebIdentityCredentialsUtils() {
+    }
 
     /**
      * Resolves the StsWebIdentityCredentialsProviderFactory from the Sts module if on the classpath to allow

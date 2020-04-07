@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FR
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_CONFIGURATION_PROVIDER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHER_CONFIGURATION;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
@@ -61,6 +63,7 @@ import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClien
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.metrics.MetricsExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -69,6 +72,8 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.provider.DefaultMetricConfigurationProviderChain;
 import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -194,9 +199,14 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Apply global default configuration
      */
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
+        // Don't load the default profile file if the customer already gave us one.
+        ProfileFile configuredProfileFile = configuration.option(PROFILE_FILE);
+        ProfileFile profileFile = configuredProfileFile != null ? configuredProfileFile : ProfileFile.defaultProfileFile();
+
         return configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                          .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
-                                         .option(RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
+                                         .option(PROFILE_FILE, profileFile)
+                                         .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
                                          .option(USER_AGENT_PREFIX, UserAgentUtils.getUserAgent())
                                          .option(USER_AGENT_SUFFIX, "")
                                          .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
@@ -261,7 +271,21 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return config.toBuilder()
                      .option(SCHEDULED_EXECUTOR_SERVICE, resolveScheduledExecutorService())
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
+                     .option(RETRY_POLICY, resolveRetryPolicy(config))
                      .build();
+    }
+
+    private RetryPolicy resolveRetryPolicy(SdkClientConfiguration config) {
+        RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
+        if (policy != null) {
+            return policy;
+        }
+
+        RetryMode retryMode = RetryMode.resolver()
+                                       .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                       .resolve();
+        return RetryPolicy.forRetryMode(retryMode);
     }
 
     /**
@@ -381,6 +405,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientConfiguration.option(METRIC_CONFIGURATION_PROVIDER, overrideConfig.metricConfigurationProvider().orElse(null));
         clientConfiguration.option(METRIC_PUBLISHER_CONFIGURATION, overrideConfig.metricPublisherConfiguration().orElse(null));
 
+        clientConfiguration.option(PROFILE_FILE, overrideConfig.defaultProfileFile().orElse(null));
+        clientConfiguration.option(PROFILE_NAME, overrideConfig.defaultProfileName().orElse(null));
         return thisBuilder();
     }
 

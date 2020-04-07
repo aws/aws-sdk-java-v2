@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,15 +18,6 @@ package software.amazon.awssdk.http.apache;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -78,6 +69,7 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.SystemPropertyTlsKeyManagersProvider;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.http.TlsTrustManagersProvider;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
@@ -200,7 +192,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     private boolean useIdleConnectionReaper(AttributeMap standardOptions) {
-        return Boolean.TRUE.equals(standardOptions.get(REAP_IDLE_CONNECTIONS));
+        return Boolean.TRUE.equals(standardOptions.get(SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS));
     }
 
     private boolean isAuthenticatedProxy(ProxyConfiguration proxyConfiguration) {
@@ -280,9 +272,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
     private ApacheHttpRequestConfig createRequestConfig(DefaultBuilder builder,
                                                         AttributeMap resolvedOptions) {
         return ApacheHttpRequestConfig.builder()
-                                      .socketTimeout(resolvedOptions.get(READ_TIMEOUT))
-                                      .connectionTimeout(resolvedOptions.get(CONNECTION_TIMEOUT))
-                                      .connectionAcquireTimeout(resolvedOptions.get(CONNECTION_ACQUIRE_TIMEOUT))
+                                      .socketTimeout(resolvedOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT))
+                                      .connectionTimeout(resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT))
+                                      .connectionAcquireTimeout(
+                                          resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT))
                                       .proxyConfiguration(builder.proxyConfiguration)
                                       .localAddress(Optional.ofNullable(builder.localAddress).orElse(null))
                                       .expectContinueEnabled(Optional.ofNullable(builder.expectContinueEnabled)
@@ -388,6 +381,12 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * {@link TlsKeyManagersProvider} to override it.
          */
         Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider);
+
+        /**
+         * Configure the {@link TlsTrustManagersProvider} that will provide the {@link javax.net.ssl.TrustManager}s to use
+         * when constructing the SSL context.
+         */
+        Builder tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -403,7 +402,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder socketTimeout(Duration socketTimeout) {
-            standardOptions.put(READ_TIMEOUT, socketTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.READ_TIMEOUT, socketTimeout);
             return this;
         }
 
@@ -413,7 +412,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder connectionTimeout(Duration connectionTimeout) {
-            standardOptions.put(CONNECTION_TIMEOUT, connectionTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, connectionTimeout);
             return this;
         }
 
@@ -429,7 +428,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         @Override
         public Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
             Validate.isPositive(connectionAcquisitionTimeout, "connectionAcquisitionTimeout");
-            standardOptions.put(CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
             return this;
         }
 
@@ -439,7 +438,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder maxConnections(Integer maxConnections) {
-            standardOptions.put(MAX_CONNECTIONS, maxConnections);
+            standardOptions.put(SdkHttpConfigurationOption.MAX_CONNECTIONS, maxConnections);
             return this;
         }
 
@@ -479,7 +478,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder connectionTimeToLive(Duration connectionTimeToLive) {
-            standardOptions.put(CONNECTION_TIME_TO_LIVE, connectionTimeToLive);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE, connectionTimeToLive);
             return this;
         }
 
@@ -489,7 +488,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder connectionMaxIdleTime(Duration maxIdleConnectionTimeout) {
-            standardOptions.put(CONNECTION_MAX_IDLE_TIMEOUT, maxIdleConnectionTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT, maxIdleConnectionTimeout);
             return this;
         }
 
@@ -499,7 +498,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder useIdleConnectionReaper(Boolean useIdleConnectionReaper) {
-            standardOptions.put(REAP_IDLE_CONNECTIONS, useIdleConnectionReaper);
+            standardOptions.put(SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS, useIdleConnectionReaper);
             return this;
         }
 
@@ -523,9 +522,13 @@ public final class ApacheHttpClient implements SdkHttpClient {
             return this;
         }
 
+        public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
+            credentialsProvider(credentialsProvider);
+        }
+
         @Override
         public Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
-            standardOptions.put(TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
+            standardOptions.put(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
             return this;
         }
 
@@ -533,13 +536,20 @@ public final class ApacheHttpClient implements SdkHttpClient {
             tlsKeyManagersProvider(tlsKeyManagersProvider);
         }
 
-        public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
-            credentialsProvider(credentialsProvider);
+        @Override
+        public Builder tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
+            standardOptions.put(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER, tlsTrustManagersProvider);
+            return this;
+        }
+
+        public void setTlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
+            tlsTrustManagersProvider(tlsTrustManagersProvider);
         }
 
         @Override
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
-            AttributeMap resolvedOptions = standardOptions.build().merge(serviceDefaults).merge(GLOBAL_HTTP_DEFAULTS);
+            AttributeMap resolvedOptions = standardOptions.build().merge(serviceDefaults).merge(
+                SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS);
             return new ApacheHttpClient(this, resolvedOptions);
         }
     }
@@ -580,14 +590,22 @@ public final class ApacheHttpClient implements SdkHttpClient {
         }
 
         private SSLContext getSslContext(AttributeMap standardOptions) {
+            Validate.isTrue(standardOptions.get(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER) == null ||
+                            !standardOptions.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES),
+                            "A TlsTrustManagerProvider can't be provided if TrustAllCertificates is also set");
+
             TrustManager[] trustManagers = null;
+            if (standardOptions.get(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER) != null) {
+                trustManagers = standardOptions.get(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER).trustManagers();
+            }
+
             if (standardOptions.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)) {
                 log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
                                + "used for testing.");
                 trustManagers = trustAllTrustManager();
             }
 
-            TlsKeyManagersProvider provider = standardOptions.get(TLS_KEY_MANAGERS_PROVIDER);
+            TlsKeyManagersProvider provider = standardOptions.get(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER);
             KeyManager[] keyManagers = provider.keyManagers();
 
             try {

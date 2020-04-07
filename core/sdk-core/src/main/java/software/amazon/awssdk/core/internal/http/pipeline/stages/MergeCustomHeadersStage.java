@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Merge customer supplied headers into the marshalled request.
@@ -52,7 +53,13 @@ public class MergeCustomHeadersStage implements MutableRequestToRequestPipeline 
     private final Map<String, List<String>> mergeHeaders(Map<String, List<String>>... headers) {
         Map<String, List<String>> result = new LinkedHashMap<>();
         for (Map<String, List<String>> header : headers) {
-            header.forEach((k, v) -> result.computeIfAbsent(k, ignored -> new ArrayList<>()).addAll(v));
+            header.forEach((headerName, headerValues) -> {
+                List<String> resultHeaderValues = result.computeIfAbsent(headerName, ignored -> new ArrayList<>());
+                if (SdkHttpUtils.isSingleHeader(headerName)) {
+                    resultHeaderValues.clear();
+                }
+                resultHeaderValues.addAll(headerValues);
+            });
         }
         return result;
     }

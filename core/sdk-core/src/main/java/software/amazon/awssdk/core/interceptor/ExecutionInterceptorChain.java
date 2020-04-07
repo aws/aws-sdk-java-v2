@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -134,10 +136,15 @@ public class ExecutionInterceptorChain {
     public InterceptorContext modifyAsyncHttpResponse(InterceptorContext context,
                                                       ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
+
         for (int i = interceptors.size() - 1; i >= 0; i--) {
+            ExecutionInterceptor interceptor = interceptors.get(i);
+
+            Publisher<ByteBuffer> newResponsePublisher =
+                interceptor.modifyAsyncHttpResponseContent(result, executionAttributes).orElse(null);
+
             result = result.toBuilder()
-                           .responsePublisher(interceptors.get(i).modifyAsyncHttpResponseContent(result, executionAttributes)
-                                                          .orElse(null))
+                           .responsePublisher(newResponsePublisher)
                            .build();
         }
 

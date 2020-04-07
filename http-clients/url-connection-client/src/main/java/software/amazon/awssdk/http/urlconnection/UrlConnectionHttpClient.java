@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@ package software.amazon.awssdk.http.urlconnection;
 
 import static software.amazon.awssdk.http.HttpStatusFamily.CLIENT_ERROR;
 import static software.amazon.awssdk.http.HttpStatusFamily.SERVER_ERROR;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
@@ -28,7 +26,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
@@ -36,6 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
@@ -49,8 +47,12 @@ import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.http.TlsTrustManagersProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An implementation of {@link SdkHttpClient} that uses {@link HttpURLConnection} to communicate with the service. This is the
@@ -64,16 +66,20 @@ import software.amazon.awssdk.utils.IoUtils;
 @SdkPublicApi
 public final class UrlConnectionHttpClient implements SdkHttpClient {
 
+    private static final Logger log = Logger.loggerFor(UrlConnectionHttpClient.class);
     private static final String CLIENT_NAME = "UrlConnection";
 
     private final AttributeMap options;
     private final UrlConnectionFactory connectionFactory;
+    private final SSLContext sslContext;
 
     private UrlConnectionHttpClient(AttributeMap options, UrlConnectionFactory connectionFactory) {
         this.options = options;
         if (connectionFactory != null) {
+            this.sslContext = null;
             this.connectionFactory = connectionFactory;
         } else {
+            this.sslContext = getSslContext(options);
             this.connectionFactory = this::createDefaultConnection;
         }
 
@@ -137,34 +143,51 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     private HttpURLConnection createDefaultConnection(URI uri) {
+        HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection());
 
-        if (options.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)) {
-            trustAllCertificates();
+        if (connection instanceof HttpsURLConnection) {
+            HttpsURLConnection httpsConnection = (HttpsURLConnection) connection;
+
+            if (options.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)) {
+                httpsConnection.setHostnameVerifier(NoOpHostNameVerifier.INSTANCE);
+            }
+
+            httpsConnection.setSSLSocketFactory(sslContext.getSocketFactory());
         }
 
-        HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection());
-        connection.setConnectTimeout(saturatedCast(options.get(CONNECTION_TIMEOUT).toMillis()));
-        connection.setReadTimeout(saturatedCast(options.get(READ_TIMEOUT).toMillis()));
+        connection.setConnectTimeout(saturatedCast(options.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()));
+        connection.setReadTimeout(saturatedCast(options.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
+
         return connection;
     }
 
-    /**
-     * Should only be used in testing
-     */
-    private static void trustAllCertificates() {
-        HttpsURLConnection.setDefaultHostnameVerifier(NoOpHostNameVerifier.INSTANCE);
+    private SSLContext getSslContext(AttributeMap options) {
+        Validate.isTrue(options.get(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER) == null ||
+                        !options.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES),
+                        "A TlsTrustManagerProvider can't be provided if TrustAllCertificates is also set");
 
-        TrustManager[] trustManagers = new TrustManager[]{TrustAllManager.INSTANCE};
+        TrustManager[] trustManagers = null;
+        if (options.get(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER) != null) {
+            trustManagers = options.get(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER).trustManagers();
+        }
+
+        if (options.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)) {
+            log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
+                           + "used for testing.");
+            trustManagers = new TrustManager[] { TrustAllManager.INSTANCE };
+        }
+
+        TlsKeyManagersProvider provider = this.options.get(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER);
+        KeyManager[] keyManagers = provider.keyManagers();
+
         SSLContext context;
-
         try {
             context = SSLContext.getInstance("TLS");
-            context.init(null, trustManagers, null);
+            context.init(keyManagers, trustManagers, null);
+            return context;
         } catch (NoSuchAlgorithmException | KeyManagementException ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
-
-        HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
     }
 
     private static class RequestCallable implements ExecutableHttpRequest {
@@ -237,6 +260,18 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
          * means infinity, and is not recommended.
          */
         Builder connectionTimeout(Duration connectionTimeout);
+
+        /**
+         * Configure the {@link TlsKeyManagersProvider} that will provide the {@link javax.net.ssl.KeyManager}s to use
+         * when constructing the SSL context.
+         */
+        Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider);
+
+        /**
+         * Configure the {@link TlsTrustManagersProvider} that will provide the {@link javax.net.ssl.TrustManager}s to use
+         * when constructing the SSL context.
+         */
+        Builder tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -253,7 +288,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
          */
         @Override
         public Builder socketTimeout(Duration socketTimeout) {
-            standardOptions.put(READ_TIMEOUT, socketTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.READ_TIMEOUT, socketTimeout);
             return this;
         }
 
@@ -269,12 +304,32 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
          */
         @Override
         public Builder connectionTimeout(Duration connectionTimeout) {
-            standardOptions.put(CONNECTION_TIMEOUT, connectionTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, connectionTimeout);
             return this;
         }
 
         public void setConnectionTimeout(Duration connectionTimeout) {
             connectionTimeout(connectionTimeout);
+        }
+
+        @Override
+        public Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
+            standardOptions.put(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
+            return this;
+        }
+
+        public void setTlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
+            tlsKeyManagersProvider(tlsKeyManagersProvider);
+        }
+
+        @Override
+        public Builder tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
+            standardOptions.put(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER, tlsTrustManagersProvider);
+            return this;
+        }
+
+        public void setTlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
+            tlsTrustManagersProvider(tlsTrustManagersProvider);
         }
 
         /**
@@ -311,13 +366,13 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         private static final TrustAllManager INSTANCE = new TrustAllManager();
 
         @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-            // no op
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
+            log.debug(() -> "Accepting a client certificate: " + x509Certificates[0].getSubjectDN());
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-            // no op
+        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
+            log.debug(() -> "Accepting a client certificate: " + x509Certificates[0].getSubjectDN());
         }
 
         @Override

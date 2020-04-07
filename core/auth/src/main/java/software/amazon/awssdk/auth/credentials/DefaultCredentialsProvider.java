@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.LazyAwsCredentialsProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 
@@ -72,7 +73,10 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
                     SystemPropertyCredentialsProvider.create(),
                     EnvironmentVariableCredentialsProvider.create(),
                     WebIdentityTokenFileCredentialsProvider.create(),
-                    ProfileCredentialsProvider.create(),
+                    ProfileCredentialsProvider.builder()
+                                              .profileFile(builder.profileFile)
+                                              .profileName(builder.profileName)
+                                              .build(),
                     ContainerCredentialsProvider.builder()
                                                 .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                 .build(),
@@ -116,13 +120,26 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
      * Configuration that defines the {@link DefaultCredentialsProvider}'s behavior.
      */
     public static final class Builder {
+        private ProfileFile profileFile;
+        private String profileName;
         private Boolean reuseLastProviderEnabled = true;
         private Boolean asyncCredentialUpdateEnabled = false;
 
         /**
          * Created with {@link #builder()}.
          */
-        private Builder() {}
+        private Builder() {
+        }
+
+        public Builder profileFile(ProfileFile profileFile) {
+            this.profileFile = profileFile;
+            return this;
+        }
+
+        public Builder profileName(String profileName) {
+            this.profileName = profileName;
+            return this;
+        }
 
         /**
          * Controls whether the provider should reuse the last successful credentials provider in the chain. Reusing the last

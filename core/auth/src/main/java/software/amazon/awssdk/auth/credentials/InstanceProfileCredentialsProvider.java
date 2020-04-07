@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;

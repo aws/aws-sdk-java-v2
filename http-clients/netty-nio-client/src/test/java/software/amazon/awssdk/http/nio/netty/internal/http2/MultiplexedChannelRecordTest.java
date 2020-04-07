@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -26,14 +29,17 @@ import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Promise;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
+import software.amazon.awssdk.http.nio.netty.internal.UnusedChannelExceptionHandler;
 
 public class MultiplexedChannelRecordTest {
     private EventLoopGroup loopGroup;
@@ -175,6 +181,68 @@ public class MultiplexedChannelRecordTest {
         MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 0, Duration.ofSeconds(10));
 
         assertThat(record.acquireStream(null)).isFalse();
+    }
+
+    @Test
+    public void acquireClaimedConnection_channelClosed_shouldThrowIOException() {
+        loopGroup.register(channel).awaitUninterruptibly();
+        Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
+
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 1, Duration.ofSeconds(10));
+
+        record.closeChildChannels();
+
+        record.acquireClaimedStream(channelPromise);
+
+        assertThatThrownBy(() -> channelPromise.get()).hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    public void closeChildChannels_shouldDeliverException() throws ExecutionException, InterruptedException {
+        EmbeddedChannel channel = newHttp2Channel();
+        loopGroup.register(channel).awaitUninterruptibly();
+        Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
+        channelPromise.setSuccess(channel);
+
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 2, Duration.ofSeconds(10));
+
+        Promise<Channel> streamPromise = channel.eventLoop().newPromise();
+        record.acquireStream(streamPromise);
+
+        channel.runPendingTasks();
+        Channel childChannel = streamPromise.get();
+        VerifyExceptionHandler verifyExceptionHandler = new VerifyExceptionHandler();
+        childChannel.pipeline().addFirst(verifyExceptionHandler);
+
+        IOException ioException = new IOException("foobar");
+        record.closeChildChannels(ioException);
+
+        assertThat(childChannel.pipeline().get(UnusedChannelExceptionHandler.class)).isNotNull();
+
+        assertThat(verifyExceptionHandler.exceptionCaught).hasStackTraceContaining("foobar")
+                                                          .hasRootCauseInstanceOf(IOException.class);
+
+        // should be closed by UnusedChannelExceptionHandler
+        assertThat(childChannel.isOpen()).isFalse();
+    }
+
+    @Test
+    public void closeToNewStreams_AcquireStreamShouldReturnFalse() {
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 2, Duration.ofSeconds(10));
+        Promise<Channel> streamPromise = channel.eventLoop().newPromise();
+        assertThat(record.acquireStream(streamPromise)).isTrue();
+
+        record.closeToNewStreams();
+        assertThat(record.acquireStream(streamPromise)).isFalse();
+    }
+
+    private static final class VerifyExceptionHandler extends ChannelInboundHandlerAdapter {
+        private Throwable exceptionCaught;
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+            exceptionCaught = cause;
+            ctx.fireExceptionCaught(cause);
+        }
     }
 
     private EmbeddedChannel newHttp2Channel() {

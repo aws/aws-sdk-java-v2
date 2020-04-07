@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;

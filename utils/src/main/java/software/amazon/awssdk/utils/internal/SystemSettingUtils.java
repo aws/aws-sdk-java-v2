@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ import software.amazon.awssdk.utils.SystemSetting;
 public final class SystemSettingUtils {
     private static final Logger LOG = LoggerFactory.getLogger(SystemSettingUtils.class);
 
-    private SystemSettingUtils() {}
+    private SystemSettingUtils() {
+    }
 
     /**
      * Resolve the value of this system setting, loading it from the System by checking:

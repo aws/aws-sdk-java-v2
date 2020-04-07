@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -100,6 +100,17 @@ public class AwsRetryPolicyTest {
     @Test
     public void doesNotRetryOnNonRetryableErrorCode() {
         assertFalse(shouldRetry(applyErrorCode("ValidationError")));
+    }
+
+    @Test
+    public void retriesOnEC2ThrottledException() {
+        AwsServiceException ex = AwsServiceException.builder()
+                                                    .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                    .errorCode("EC2ThrottledException")
+                                                                                    .build())
+                                                    .build();
+
+        assertTrue(shouldRetry(b -> b.exception(ex)));
     }
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {

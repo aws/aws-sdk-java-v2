@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.endpointdiscovery.providers;
 
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -24,18 +25,26 @@ import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public class ProfileEndpointDiscoveryProvider implements EndpointDiscoveryProvider {
+    private final Supplier<ProfileFile> profileFile;
+    private final String profileName;
 
-    private final String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
-
-    private ProfileEndpointDiscoveryProvider() {}
+    private ProfileEndpointDiscoveryProvider(Supplier<ProfileFile> profileFile, String profileName) {
+        this.profileFile = profileFile;
+        this.profileName = profileName;
+    }
 
     public static ProfileEndpointDiscoveryProvider create() {
-        return new ProfileEndpointDiscoveryProvider();
+        return new ProfileEndpointDiscoveryProvider(ProfileFile::defaultProfileFile,
+                                                    ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
+    }
+
+    public static ProfileEndpointDiscoveryProvider create(Supplier<ProfileFile> profileFile, String profileName) {
+        return new ProfileEndpointDiscoveryProvider(profileFile, profileName);
     }
 
     @Override
     public boolean resolveEndpointDiscovery() {
-        return ProfileFile.defaultProfileFile()
+        return profileFile.get()
                           .profile(profileName)
                           .map(p -> p.properties().get(ProfileProperty.ENDPOINT_DISCOVERY_ENABLED))
                           .map(Boolean::parseBoolean)

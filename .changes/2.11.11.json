@@ -1,0 +1,21 @@
+{
+    "version": "2.11.11",
+    "date": "2020-04-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "description": "Documentation updates for Amazon API Gateway."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "description": "API updates for CodeGuruReviewer"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "description": "You can now send content from your MediaConnect flow to your virtual private cloud (VPC) without going over the public internet."
+        }
+    ]
+}

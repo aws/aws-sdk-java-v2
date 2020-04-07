@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "feature", 
-    "description": "Add support for Tagging builder in `CreateMultipartUploadRequest`. See [#1440](https://github.com/aws/aws-sdk-java-v2/issues/1440)"
-}

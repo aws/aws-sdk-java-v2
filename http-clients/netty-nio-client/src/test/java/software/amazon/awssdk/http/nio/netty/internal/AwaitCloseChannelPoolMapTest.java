@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,11 +23,6 @@ import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.netty.channel.Channel;
-import io.netty.channel.pool.ChannelPool;
-import io.netty.handler.ssl.SslProvider;
-import io.netty.util.concurrent.Future;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,10 +30,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import io.netty.channel.Channel;
+import io.netty.channel.pool.ChannelPool;
+import io.netty.handler.ssl.SslProvider;
+import io.netty.util.concurrent.Future;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
@@ -95,6 +99,63 @@ public class AwaitCloseChannelPoolMapTest {
     }
 
     @Test
+    public void get_callsInjectedBootstrapProviderCorrectly() {
+        BootstrapProvider bootstrapProvider = Mockito.spy(
+            new BootstrapProvider(SdkEventLoopGroup.builder().build(),
+                                  new NettyConfiguration(GLOBAL_HTTP_DEFAULTS),
+                                  new SdkChannelOptions()));
+
+        URI targetUri = URI.create("https://some-awesome-service-1234.amazonaws.com:8080");
+
+        AwaitCloseChannelPoolMap.Builder builder =
+            AwaitCloseChannelPoolMap.builder()
+                                    .sdkChannelOptions(new SdkChannelOptions())
+                                    .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                    .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
+                                    .protocol(Protocol.HTTP1_1)
+                                    .maxStreams(100)
+                                    .sslProvider(SslProvider.OPENSSL);
+
+        channelPoolMap = new AwaitCloseChannelPoolMap(builder, null, bootstrapProvider);
+        channelPoolMap.get(targetUri);
+
+        verify(bootstrapProvider).createBootstrap("some-awesome-service-1234.amazonaws.com", 8080);
+    }
+
+    @Test
+    public void get_usingProxy_callsInjectedBootstrapProviderCorrectly() {
+        BootstrapProvider bootstrapProvider = Mockito.spy(
+            new BootstrapProvider(SdkEventLoopGroup.builder().build(),
+                                  new NettyConfiguration(GLOBAL_HTTP_DEFAULTS),
+                                  new SdkChannelOptions()));
+
+        URI targetUri = URI.create("https://some-awesome-service-1234.amazonaws.com:8080");
+        Map<URI, Boolean> shouldProxyCache =  new HashMap<>();
+        shouldProxyCache.put(targetUri, true);
+
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .host("localhost")
+                              .port(mockProxy.port())
+                              .build();
+
+        AwaitCloseChannelPoolMap.Builder builder =
+            AwaitCloseChannelPoolMap.builder()
+                                    .proxyConfiguration(proxyConfiguration)
+                                    .sdkChannelOptions(new SdkChannelOptions())
+                                    .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                    .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
+                                    .protocol(Protocol.HTTP1_1)
+                                    .maxStreams(100)
+                                    .sslProvider(SslProvider.OPENSSL);
+
+        channelPoolMap = new AwaitCloseChannelPoolMap(builder, shouldProxyCache, bootstrapProvider);
+        channelPoolMap.get(targetUri);
+
+        verify(bootstrapProvider).createBootstrap("localhost", mockProxy.port());
+    }
+
+    @Test
     public void usingProxy_usesCachedValueWhenPresent() {
         URI targetUri = URI.create("https://some-awesome-service-1234.amazonaws.com");
 
@@ -117,7 +178,7 @@ public class AwaitCloseChannelPoolMapTest {
                 .maxStreams(100)
                 .sslProvider(SslProvider.OPENSSL);
 
-        channelPoolMap = new AwaitCloseChannelPoolMap(builder, shouldProxyCache);
+        channelPoolMap = new AwaitCloseChannelPoolMap(builder, shouldProxyCache, null);
 
         // The target host does not exist so acquiring a channel should fail unless we're configured to connect to
         // the mock proxy host for this URI.
