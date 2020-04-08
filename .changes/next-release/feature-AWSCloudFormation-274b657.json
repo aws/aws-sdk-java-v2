@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "description": "The OrganizationalUnitIds parameter on StackSet and the OrganizationalUnitId parameter on StackInstance, StackInstanceSummary, and StackSetOperationResultSummary are now reserved for internal use. No data is returned for this parameter."
+}
