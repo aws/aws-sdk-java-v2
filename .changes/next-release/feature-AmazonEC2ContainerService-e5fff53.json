@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "description": "This release provides native support for specifying Amazon EFS file systems as volumes in your Amazon ECS task definitions."
+}
