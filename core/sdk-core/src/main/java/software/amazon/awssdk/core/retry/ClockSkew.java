@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -39,7 +39,8 @@ public final class ClockSkew {
      */
     private static final Duration CLOCK_SKEW_ADJUST_THRESHOLD = Duration.ofMinutes(4);
 
-    private ClockSkew() {}
+    private ClockSkew() {
+    }
 
     /**
      * Determine whether the request-level client time was sufficiently skewed from the server time as to possibly cause a

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
  * A set of {@link Collector} implementations, similar to {@link Collectors}, but for poet types.
  */
 public final class PoetCollectors {
-    private PoetCollectors() {}
+    private PoetCollectors() {
+    }
 
     /**
      * Join a stream of code blocks into one code block.

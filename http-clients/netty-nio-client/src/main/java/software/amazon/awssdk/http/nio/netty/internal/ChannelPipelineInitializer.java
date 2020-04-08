@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,12 +15,17 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_CONNECTION;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_INITIAL_WINDOW_SIZE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.HTTP2_CONNECTION_PING_TIMEOUT_SECONDS;
+import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
@@ -34,7 +39,9 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslProvider;
 import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLEngine;
@@ -52,23 +59,29 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHa
 public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private final Protocol protocol;
     private final SslContext sslCtx;
+    private final SslProvider sslProvider;
     private final long clientMaxStreams;
     private final int clientInitialWindowSize;
+    private final Duration healthCheckPingPeriod;
     private final AtomicReference<ChannelPool> channelPoolRef;
     private final NettyConfiguration configuration;
     private final URI poolKey;
 
     public ChannelPipelineInitializer(Protocol protocol,
                                       SslContext sslCtx,
+                                      SslProvider sslProvider,
                                       long clientMaxStreams,
                                       int clientInitialWindowSize,
+                                      Duration healthCheckPingPeriod,
                                       AtomicReference<ChannelPool> channelPoolRef,
                                       NettyConfiguration configuration,
                                       URI poolKey) {
         this.protocol = protocol;
         this.sslCtx = sslCtx;
+        this.sslProvider = sslProvider;
         this.clientMaxStreams = clientMaxStreams;
         this.clientInitialWindowSize = clientInitialWindowSize;
+        this.healthCheckPingPeriod = healthCheckPingPeriod;
         this.channelPoolRef = channelPoolRef;
         this.configuration = configuration;
         this.poolKey = poolKey;
@@ -87,6 +100,12 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
 
             pipeline.addLast(sslHandler);
             pipeline.addLast(SslCloseCompletionEventHandler.getInstance());
+
+            // Use unpooled allocator to avoid increased heap memory usage from Netty 4.1.43.
+            // See https://github.com/netty/netty/issues/9768
+            if (sslProvider == SslProvider.JDK) {
+                ch.config().setOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
+            }
         }
 
         if (protocol == Protocol.HTTP2) {
@@ -104,7 +123,14 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         }
 
         pipeline.addLast(FutureCancelHandler.getInstance());
-        pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
+
+        // Only add it for h1 channel because it does not apply to
+        // h2 connection channel. It will be attached
+        // to stream channels when they are created.
+        if (protocol == Protocol.HTTP1_1) {
+            pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
+        }
+
         pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
     }
 
@@ -139,9 +165,16 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         codec.connection().addListener(new Http2GoAwayEventListener(ch));
 
         pipeline.addLast(codec);
+        ch.attr(HTTP2_CONNECTION).set(codec.connection());
+
+        ch.attr(HTTP2_INITIAL_WINDOW_SIZE).set(clientInitialWindowSize);
         pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
         pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
-        pipeline.addLast(new Http2PingHandler(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1_000));
+        if (healthCheckPingPeriod == null) {
+            pipeline.addLast(new Http2PingHandler(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1_000));
+        } else if (healthCheckPingPeriod.toMillis() > 0) {
+            pipeline.addLast(new Http2PingHandler(saturatedCast(healthCheckPingPeriod.toMillis())));
+        }
     }
 
     private void configureHttp11(Channel ch, ChannelPipeline pipeline) {
@@ -154,7 +187,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         protected void initChannel(Channel ch) {
         }
     }
-
 }
 
 

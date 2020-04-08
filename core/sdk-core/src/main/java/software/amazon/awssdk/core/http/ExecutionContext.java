@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -37,10 +36,10 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
     private final ExecutionAttributes executionAttributes;
 
     private ExecutionContext(final Builder builder) {
-        this.signer = Validate.paramNotNull(builder.signer, "signer");
-        this.interceptorContext = Validate.paramNotNull(builder.interceptorContext, "interceptorContext");
-        this.interceptorChain = Validate.paramNotNull(builder.interceptorChain, "interceptorChain");
-        this.executionAttributes = Validate.paramNotNull(builder.executionAttributes, "executionAttributes");
+        this.signer = builder.signer;
+        this.interceptorContext = builder.interceptorContext;
+        this.interceptorChain = builder.interceptorChain;
+        this.executionAttributes = builder.executionAttributes;
     }
 
     public static ExecutionContext.Builder builder() {

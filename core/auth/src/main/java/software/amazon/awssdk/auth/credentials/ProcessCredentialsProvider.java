@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -227,7 +227,8 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
         /**
          * @see #builder()
          */
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Configure whether the provider should fetch credentials asynchronously in the background. If this is true, threads are

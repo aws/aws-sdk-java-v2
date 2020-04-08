@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package software.amazon.awssdk.awscore.client.builder;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -23,20 +25,24 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.internal.EndpointUtils;
+import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.regions.providers.LazyAwsRegionProvider;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -61,8 +67,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     extends SdkDefaultClientBuilder<BuilderT, ClientT>
     implements AwsClientBuilder<BuilderT, ClientT> {
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
-    private static final AwsRegionProvider DEFAULT_REGION_PROVIDER =
-            new LazyAwsRegionProvider(DefaultAwsRegionProviderChain::new);
 
     protected AwsDefaultClientBuilder() {
         super();
@@ -108,13 +112,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     @Override
     protected final SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
         SdkClientConfiguration config = mergeServiceDefaults(configuration);
-        return config.merge(c -> c.option(AwsClientOption.AWS_REGION, resolveRegion(config))
-                                  .option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
-                                  .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
-                                  .option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.defaultRetryPolicy())
+
+        return config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
                                   .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
                                   .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
-                                  .option(SdkClientOption.SERVICE_NAME, serviceName()));
+                                  .option(SdkClientOption.SERVICE_NAME, serviceName())
+                                  .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));
     }
 
     /**
@@ -126,11 +129,19 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     @Override
     protected final SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
-        SdkClientConfiguration config = configuration.toBuilder()
-                                                     .option(SdkClientOption.ENDPOINT, resolveEndpoint(configuration))
-                                                     .option(AwsClientOption.SIGNING_REGION, resolveSigningRegion(configuration))
-                                                     .build();
-        return finalizeServiceConfiguration(config);
+        configuration = finalizeServiceConfiguration(configuration);
+
+        configuration = configuration.toBuilder()
+                                     .option(AwsClientOption.AWS_REGION, resolveRegion(configuration))
+                                     .build();
+
+        return configuration.toBuilder()
+                            .option(AwsClientOption.CREDENTIALS_PROVIDER, resolveCredentials(configuration))
+                            .option(SdkClientOption.ENDPOINT, resolveEndpoint(configuration))
+                            .option(SdkClientOption.EXECUTION_INTERCEPTORS, addAwsInterceptors(configuration))
+                            .option(AwsClientOption.SIGNING_REGION, resolveSigningRegion(configuration))
+                            .option(SdkClientOption.RETRY_POLICY, resolveAwsRetryPolicy(configuration))
+                            .build();
     }
 
     /**
@@ -153,9 +164,15 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      */
     private URI resolveEndpoint(SdkClientConfiguration config) {
         return Optional.ofNullable(config.option(SdkClientOption.ENDPOINT))
-                       .orElseGet(() -> EndpointUtils.buildEndpoint(DEFAULT_ENDPOINT_PROTOCOL,
-                                                                    serviceEndpointPrefix(),
-                                                                    config.option(AwsClientOption.AWS_REGION)));
+                       .orElseGet(() -> endpointFromConfig(config));
+    }
+
+    private URI endpointFromConfig(SdkClientConfiguration config) {
+        return new DefaultServiceEndpointBuilder(serviceEndpointPrefix(), DEFAULT_ENDPOINT_PROTOCOL)
+            .withRegion(config.option(AwsClientOption.AWS_REGION))
+            .withProfileFile(config.option(SdkClientOption.PROFILE_FILE))
+            .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
+            .getServiceEndpoint();
     }
 
     /**
@@ -175,7 +192,44 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         if (defaultRegionDetectionEnabled != null && !defaultRegionDetectionEnabled) {
             throw new IllegalStateException("No region was configured, and use-region-provider-chain was disabled.");
         }
-        return DEFAULT_REGION_PROVIDER.getRegion();
+
+        ProfileFile profileFile = config.option(SdkClientOption.PROFILE_FILE);
+        String profileName = config.option(SdkClientOption.PROFILE_NAME);
+        return DefaultAwsRegionProviderChain.builder()
+                                            .profileFile(() -> profileFile)
+                                            .profileName(profileName)
+                                            .build()
+                                            .getRegion();
+    }
+
+    /**
+     * Resolve the credentials that should be used based on the customer's configuration.
+     */
+    private AwsCredentialsProvider resolveCredentials(SdkClientConfiguration config) {
+        return config.option(AwsClientOption.CREDENTIALS_PROVIDER) != null
+               ? config.option(AwsClientOption.CREDENTIALS_PROVIDER)
+               : DefaultCredentialsProvider.builder()
+                                           .profileFile(config.option(SdkClientOption.PROFILE_FILE))
+                                           .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                           .build();
+    }
+
+    private RetryPolicy resolveAwsRetryPolicy(SdkClientConfiguration config) {
+        RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
+
+        if (policy != null) {
+            if (policy.additionalRetryConditionsAllowed()) {
+                return AwsRetryPolicy.addRetryConditions(policy);
+            } else {
+                return policy;
+            }
+        }
+
+        RetryMode retryMode = RetryMode.resolver()
+                                       .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                       .resolve();
+        return AwsRetryPolicy.forRetryMode(retryMode);
     }
 
     @Override
@@ -196,5 +250,15 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     public final void setCredentialsProvider(AwsCredentialsProvider credentialsProvider) {
         credentialsProvider(credentialsProvider);
+    }
+
+    private List<ExecutionInterceptor> addAwsInterceptors(SdkClientConfiguration config) {
+        List<ExecutionInterceptor> interceptors = awsInterceptors();
+        interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+        return interceptors;
+    }
+
+    private List<ExecutionInterceptor> awsInterceptors() {
+        return Collections.singletonList(new HelpfulUnknownHostExceptionInterceptor());
     }
 }

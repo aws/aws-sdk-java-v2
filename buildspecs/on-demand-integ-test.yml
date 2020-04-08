@@ -7,7 +7,7 @@ phases:
 
   build:
     commands:
-      - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -pl !:dynamodbmapper-v1 -Dfailsafe.rerunFailingTestsCount=1 --fail-at-end
+      - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -Dfailsafe.rerunFailingTestsCount=1 --fail-at-end
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
       - |

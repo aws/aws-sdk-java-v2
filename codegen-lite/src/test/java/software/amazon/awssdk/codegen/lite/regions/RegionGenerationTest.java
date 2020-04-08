@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
 
 public class RegionGenerationTest {
 
-    private static final String ENDPOINTS = "/software/amazon/awssdk/codegen/lite/endpoints.json";
+    private static final String ENDPOINTS = "/software/amazon/awssdk/codegen/lite/test-endpoints.json";
     private static final String SERVICE_METADATA_BASE = "software.amazon.awssdk.regions.servicemetadata";
     private static final String REGION_METADATA_BASE = "software.amazon.awssdk.regions.regionmetadata";
     private static final String PARTITION_METADATA_BASE = "software.amazon.awssdk.regions.partitionmetadata";

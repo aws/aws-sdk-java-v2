@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -109,7 +109,12 @@ public class RegionGenerator implements PoetClass {
 
         addGlobalRegions(builder);
 
-        regionsArray.add(regionsCodeBlock + ", ").add("AWS_GLOBAL, ").add("AWS_CN_GLOBAL, ").add("AWS_US_GOV_GLOBAL");
+        regionsArray.add(regionsCodeBlock + ", ")
+                    .add("AWS_GLOBAL, ")
+                    .add("AWS_CN_GLOBAL, ")
+                    .add("AWS_US_GOV_GLOBAL, ")
+                    .add("AWS_ISO_GLOBAL, ")
+                    .add("AWS_ISO_B_GLOBAL");
         regionsArray.add("))");
 
         TypeName listOfRegions = ParameterizedTypeName.get(ClassName.get(List.class), className());
@@ -130,6 +135,14 @@ public class RegionGenerator implements PoetClass {
                .addField(FieldSpec.builder(className(), "AWS_US_GOV_GLOBAL")
                                   .addModifiers(PUBLIC, STATIC, FINAL)
                                   .initializer("$T.of($S, true)", className(), "aws-us-gov-global")
+                                  .build())
+               .addField(FieldSpec.builder(className(), "AWS_ISO_GLOBAL")
+                                  .addModifiers(PUBLIC, STATIC, FINAL)
+                                  .initializer("$T.of($S, true)", className(), "aws-iso-global")
+                                  .build())
+               .addField(FieldSpec.builder(className(), "AWS_ISO_B_GLOBAL")
+                                  .addModifiers(PUBLIC, STATIC, FINAL)
+                                  .initializer("$T.of($S, true)", className(), "aws-iso-b-global")
                                   .build());
     }
 

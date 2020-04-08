@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -57,17 +57,19 @@ public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
 
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
-        return ApacheHttpClient.builder().build();
-    }
+        ApacheHttpClient.Builder builder = ApacheHttpClient.builder();
 
-    @Test
-    public void noSslException_WhenCertCheckingDisabled() throws Exception {
-        SdkHttpClient client = ApacheHttpClient.builder()
-                                               .buildWithDefaults(AttributeMap.builder()
-                                                                              .put(TRUST_ALL_CERTIFICATES, Boolean.TRUE)
-                                                                              .build());
+        AttributeMap.Builder attributeMap = AttributeMap.builder();
 
-        testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
+        if (options.tlsTrustManagersProvider() != null) {
+            builder.tlsTrustManagersProvider(options.tlsTrustManagersProvider());
+        }
+
+        if (options.trustAll()) {
+            attributeMap.put(TRUST_ALL_CERTIFICATES, options.trustAll());
+        }
+
+        return builder.buildWithDefaults(attributeMap.build());
     }
 
     @Test

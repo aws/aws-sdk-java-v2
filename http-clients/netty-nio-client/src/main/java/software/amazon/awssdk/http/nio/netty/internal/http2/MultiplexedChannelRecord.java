@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.ScheduledFuture;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.UnusedChannelExceptionHandler;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -61,6 +63,7 @@ public class MultiplexedChannelRecord {
     // Only write in the connection.eventLoop()
     private volatile RecordState state = RecordState.OPEN;
 
+    private volatile int lastStreamId;
 
     MultiplexedChannelRecord(Channel connection, long maxConcurrencyPerConnection, Duration allowedIdleConnectionTime) {
         this.connection = connection;
@@ -78,11 +81,19 @@ public class MultiplexedChannelRecord {
         return false;
     }
 
-    private void acquireClaimedStream(Promise<Channel> promise) {
+    void acquireClaimedStream(Promise<Channel> promise) {
         doInEventLoop(connection.eventLoop(), () -> {
             if (state != RecordState.OPEN) {
-                String message = "Connection received GOAWAY or was closed while acquiring new stream.";
-                promise.setFailure(new IllegalStateException(message));
+                String message;
+                // GOAWAY
+                if (state == RecordState.CLOSED_TO_NEW) {
+                    message = String.format("Connection %s received GOAWAY with Last Stream ID %d. Unable to open new "
+                                            + "streams on this connection.", connection, lastStreamId);
+                } else {
+                    message = String.format("Connection %s was closed while acquiring new stream.", connection);
+                }
+                log.warn(() -> message);
+                promise.setFailure(new IOException(message));
                 return;
             }
 
@@ -96,6 +107,7 @@ public class MultiplexedChannelRecord {
                 }
 
                 Http2StreamChannel channel = future.getNow();
+                channel.pipeline().addLast(UnusedChannelExceptionHandler.getInstance());
                 childChannels.put(channel.id(), channel);
                 promise.setSuccess(channel);
 
@@ -145,6 +157,8 @@ public class MultiplexedChannelRecord {
      */
     void handleGoAway(int lastStreamId, GoAwayException exception) {
         doInEventLoop(connection.eventLoop(), () -> {
+            this.lastStreamId = lastStreamId;
+
             if (state == RecordState.CLOSED) {
                 return;
             }
@@ -162,6 +176,17 @@ public class MultiplexedChannelRecord {
     }
 
     /**
+     * Prevent new streams from being acquired from the existing connection.
+     */
+    void closeToNewStreams() {
+        doInEventLoop(connection.eventLoop(), () -> {
+            if (state == RecordState.OPEN) {
+                state = RecordState.CLOSED_TO_NEW;
+            }
+        });
+    }
+
+    /**
      * Close all registered child channels, and prohibit new streams from being created on this connection.
      */
     void closeChildChannels() {
@@ -172,7 +197,16 @@ public class MultiplexedChannelRecord {
      * Delivers the exception to all registered child channels, and prohibits new streams being created on this connection.
      */
     void closeChildChannels(Throwable t) {
-        closeAndExecuteOnChildChannels(ch -> ch.pipeline().fireExceptionCaught(t));
+        closeAndExecuteOnChildChannels(ch -> ch.pipeline().fireExceptionCaught(decorateConnectionException(t)));
+    }
+
+    private Throwable decorateConnectionException(Throwable t) {
+        String message = "An error occurred on the connection: " + t.getMessage();
+        if (t instanceof IOException) {
+            return new IOException(message, t);
+        }
+
+        return new Throwable(message, t);
     }
 
     private void closeAndExecuteOnChildChannels(Consumer<Channel> childChannelConsumer) {
@@ -190,7 +224,7 @@ public class MultiplexedChannelRecord {
         });
     }
 
-    public void closeAndReleaseChild(Channel childChannel) {
+    void closeAndReleaseChild(Channel childChannel) {
         childChannel.close();
         doInEventLoop(connection.eventLoop(), () -> {
             childChannels.remove(childChannel.id());
@@ -237,9 +271,10 @@ public class MultiplexedChannelRecord {
         return connection;
     }
 
-    public boolean claimStream() {
+    private boolean claimStream() {
         lastReserveAttemptTimeMillis = System.currentTimeMillis();
         for (int attempt = 0; attempt < 5; ++attempt) {
+
             if (state != RecordState.OPEN) {
                 return false;
             }

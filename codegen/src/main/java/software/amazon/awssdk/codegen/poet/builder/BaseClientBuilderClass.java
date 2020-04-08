@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,14 +18,16 @@ package software.amazon.awssdk.codegen.poet.builder;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
-import static javax.lang.model.element.Modifier.STATIC;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -40,12 +42,12 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
-import software.amazon.awssdk.core.endpointdiscovery.providers.EndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -77,11 +79,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
         if (model.getEndpointOperation().isPresent()) {
-            builder.addField(FieldSpec.builder(EndpointDiscoveryProviderChain.class, "CHAIN")
-                                      .addModifiers(PRIVATE, STATIC, FINAL)
-                                      .initializer("new $T()", DefaultEndpointDiscoveryProviderChain.class)
-                                      .build());
-
             builder.addField(FieldSpec.builder(boolean.class, "endpointDiscoveryEnabled")
                                       .addModifiers(PROTECTED)
                                       .initializer("false")
@@ -154,10 +151,12 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                         + ".CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)",
                                                         SdkClientOption.class, crc32FromCompressedDataEnabled);
 
-        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
-            builder.addCode(".option($T.RETRY_POLICY, $T.defaultPolicy())", SdkClientOption.class,
-                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
+        String clientConfigClassName = model.getCustomizationConfig().getServiceSpecificClientConfigClass();
+        if (StringUtils.isNotBlank(clientConfigClassName)) {
+            builder.addCode(".option($T.SERVICE_CONFIGURATION, $T.builder().build())",
+                            SdkClientOption.class, ClassName.bestGuess(clientConfigClassName));
         }
+
         builder.addCode(");");
         return builder.build();
     }
@@ -170,27 +169,64 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addAnnotation(Override.class)
                          .addModifiers(PROTECTED, FINAL)
                          .returns(SdkClientConfiguration.class)
-                         .addParameter(SdkClientConfiguration.class, "config")
-                         .addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
-                         .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",
-                                  List.class, ExecutionInterceptor.class, requestHandlerPath)
-                         .addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
-                                  CollectionUtils.class, SdkClientOption.class);
+                         .addParameter(SdkClientConfiguration.class, "config");
+
+        // Initialize configuration values
+
+        builder.addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
+               .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",
+                        List.class, ExecutionInterceptor.class, requestHandlerPath)
+               .addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
+                        CollectionUtils.class, SdkClientOption.class);
+
+        if (model.getMetadata().isQueryProtocol()) {
+            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
+            builder.addStatement("$T protocolInterceptors = $T.singletonList(new $T())",
+                                 listType,
+                                 Collections.class,
+                                 QueryParametersToBodyInterceptor.class);
+            builder.addStatement("interceptors = $T.mergeLists(interceptors, protocolInterceptors)",
+                                 CollectionUtils.class);
+        }
 
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
-                   .addStatement("endpointDiscoveryEnabled = CHAIN.resolveEndpointDiscovery()")
+                   .addStatement("$1T chain = new $1T(config)", DefaultEndpointDiscoveryProviderChain.class)
+                   .addStatement("endpointDiscoveryEnabled = chain.resolveEndpointDiscovery()")
                    .endControlFlow();
-
-            builder.addCode("return config.toBuilder()\n" +
-                                  "       .option($1T.EXECUTION_INTERCEPTORS, interceptors)\n" +
-                                  "       .option($1T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n" +
-                                  "       .build();", SdkClientOption.class);
-        } else {
-            builder.addCode("return config.toBuilder()\n" +
-                                  "       .option($T.EXECUTION_INTERCEPTORS, interceptors)\n" +
-                                  "       .build();", SdkClientOption.class);
         }
+
+        String clientConfigClassName = model.getCustomizationConfig().getServiceSpecificClientConfigClass();
+        if (StringUtils.isNotBlank(clientConfigClassName)) {
+            ClassName clientConfigClass = ClassName.bestGuess(clientConfigClassName);
+            builder.addCode("$1T.Builder c = (($1T) config.option($2T.SERVICE_CONFIGURATION)).toBuilder();" +
+                            "c.profileFile(c.profileFile() != null ? c.profileFile() : config.option($2T.PROFILE_FILE))" +
+                            " .profileName(c.profileName() != null ? c.profileName() : config.option($2T.PROFILE_NAME));",
+                            clientConfigClass, SdkClientOption.class);
+        }
+
+        // Update configuration
+
+        builder.addCode("return config.toBuilder()\n");
+
+        if (model.getEndpointOperation().isPresent()) {
+            builder.addCode(".option($T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n",
+                            SdkClientOption.class);
+        }
+
+        builder.addCode(".option($1T.EXECUTION_INTERCEPTORS, interceptors)", SdkClientOption.class);
+
+        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
+            builder.addCode(".option($1T.RETRY_POLICY, $2T.resolveRetryPolicy(config))",
+                            SdkClientOption.class,
+                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
+        }
+
+        if (StringUtils.isNotBlank(clientConfigClassName)) {
+            builder.addCode(".option($T.SERVICE_CONFIGURATION, c.build())", SdkClientOption.class);
+        }
+
+        builder.addCode(".build();");
 
         return builder.build();
     }

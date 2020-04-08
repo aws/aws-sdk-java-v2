@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
 import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
+import software.amazon.awssdk.profiles.ProfileFile;
 
 /**
  * A set of internal options required by the SDK via {@link SdkClientConfiguration}.
@@ -131,6 +132,16 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkAdvancedClientOption<MetricPublisherConfiguration> METRIC_PUBLISHER_CONFIGURATION =
         new SdkAdvancedClientOption<>(MetricPublisherConfiguration.class);
+
+    /**
+     * The profile file to use for this client.
+     */
+    public static final SdkClientOption<ProfileFile> PROFILE_FILE = new SdkClientOption<>(ProfileFile.class);
+
+    /**
+     * The profile name to use for this client.
+     */
+    public static final SdkClientOption<String> PROFILE_NAME = new SdkClientOption<>(String.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

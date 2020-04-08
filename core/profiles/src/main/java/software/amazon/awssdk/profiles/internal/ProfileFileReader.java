@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -44,7 +44,8 @@ public final class ProfileFileReader {
 
     private static final Pattern VALID_IDENTIFIER = Pattern.compile("^[A-Za-z0-9_\\-/.%@]*$");
 
-    private ProfileFileReader() {}
+    private ProfileFileReader() {
+    }
 
     /**
      * Parses the input and returns a mutable map from profile name to a map of properties. This will not close the provided

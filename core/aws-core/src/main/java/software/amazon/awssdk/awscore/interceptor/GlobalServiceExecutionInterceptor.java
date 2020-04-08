@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,41 +15,22 @@
 
 package software.amazon.awssdk.awscore.interceptor;
 
-import java.net.UnknownHostException;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 
 /**
- * An interceptor that can be used for global services that will tell the customer when they're using a global service that
- * doesn't support non-global regions.
+ * A more specific version of {@link HelpfulUnknownHostExceptionInterceptor} that was used for older IAM clients. This can be
+ * removed if we ever drop backwards-compatibility with older IAM client versions, because newer IAM client versions do not
+ * depend on this interceptor.
  */
 @SdkProtectedApi
-public final class GlobalServiceExecutionInterceptor implements ExecutionInterceptor {
+public class GlobalServiceExecutionInterceptor implements ExecutionInterceptor {
+    private static final HelpfulUnknownHostExceptionInterceptor DELEGATE = new HelpfulUnknownHostExceptionInterceptor();
+
     @Override
-    public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
-        if (hasCause(context.exception(), UnknownHostException.class) &&
-            !executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION).isGlobalRegion()) {
-            throw SdkClientException.builder()
-                                    .message("This is a global service. Consider setting AWS_GLOBAL or another global " +
-                                         "region when creating your client.")
-                                    .cause(context.exception())
-                                    .build();
-        }
-    }
-
-    private boolean hasCause(Throwable thrown, Class<? extends Throwable> cause) {
-        if (thrown == null) {
-            return false;
-        }
-
-        if (cause.isAssignableFrom(thrown.getClass())) {
-            return true;
-        }
-
-        return hasCause(thrown.getCause(), cause);
+    public Throwable modifyException(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
+        return DELEGATE.modifyException(context, executionAttributes);
     }
 }
