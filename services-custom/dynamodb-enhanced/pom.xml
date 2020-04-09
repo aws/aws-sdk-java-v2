@@ -24,7 +24,7 @@
         <version>2.11.15-SNAPSHOT</version>
     </parent>
     <artifactId>dynamodb-enhanced</artifactId>
-    <version>${awsjavasdk.version}-PREVIEW</version>
+    <version>${awsjavasdk.version}</version>
     <name>AWS Java SDK :: DynamoDB :: Enhanced Client</name>
     <url>https://aws.amazon.com/sdkforjava</url>
 
