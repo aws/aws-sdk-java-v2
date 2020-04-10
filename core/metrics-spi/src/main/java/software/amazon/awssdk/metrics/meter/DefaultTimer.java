@@ -51,7 +51,7 @@ public final class DefaultTimer implements Timer {
             throw new IllegalArgumentException("Duration cannot be negative");
         }
 
-        this.endTime.plusNanos(TimeUnit.NANOSECONDS.convert(duration, timeUnit));
+        this.endTime = this.endTime.plusNanos(TimeUnit.NANOSECONDS.convert(duration, timeUnit));
     }
 
     @Override
