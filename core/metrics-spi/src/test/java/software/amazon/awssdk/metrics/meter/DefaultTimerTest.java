@@ -16,12 +16,14 @@
 package software.amazon.awssdk.metrics.meter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,12 +46,13 @@ public class DefaultTimerTest {
 
     @Before
     public void setupCase() {
+        when(mockClock.instant()).thenReturn(Instant.ofEpochMilli(0), Instant.ofEpochMilli(DURATION_MILLIS),
+                                             Instant.ofEpochMilli(0), Instant.ofEpochMilli(DURATION_MILLIS));
+
         timer = DefaultTimer.builder()
                             .clock(mockClock)
                             .addCategory(MetricCategory.DEFAULT)
                             .build();
-
-        when(mockClock.instant()).thenReturn(Instant.ofEpochMilli(0), Instant.ofEpochMilli(DURATION_MILLIS));
     }
 
     @Test
@@ -71,6 +74,14 @@ public class DefaultTimerTest {
         assertThat(callResult).isEqualTo(CALLABLE_RESULT);
 
         assertThat(timer.totalTime()).isEqualTo(Duration.ofMillis(DURATION_MILLIS));
+    }
+
+    @Test
+    public void testEndTimeModifiedInRecord() {
+        Duration duration = Duration.ofNanos(100L);
+        Instant originEndTime = timer.endTime();
+        timer.record(duration.getNano(), TimeUnit.NANOSECONDS);
+        assertEquals(timer.endTime(), originEndTime.plusNanos(100L));
     }
 
     private static class MyCallable implements Callable<Integer> {
