@@ -28,8 +28,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.ImmutableMap;
 
-@DynamoDbBean(converterProviders = ConverterBean.CustomAttributeConverterProvider.class)
-public class ConverterBean {
+@DynamoDbBean(converterProviders = SingleConverterProvidersBean.CustomAttributeConverterProvider.class)
+public class SingleConverterProvidersBean {
     private String id;
     private Integer integerAttribute;
 
@@ -52,7 +52,7 @@ public class ConverterBean {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ConverterBean that = (ConverterBean) o;
+        SingleConverterProvidersBean that = (SingleConverterProvidersBean) o;
         return Objects.equals(id, that.id) &&
             Objects.equals(integerAttribute, that.integerAttribute);
     }

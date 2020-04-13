@@ -30,6 +30,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Fa
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -185,6 +186,30 @@ public class ScanOperationTest {
                                                  .tableName(TABLE_NAME)
                                                  .consistentRead(true)
                                                  .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_projectionExpression() {
+        ScanOperation<FakeItem> operation = ScanOperation.create(
+                ScanEnhancedRequest.builder()
+                        .attributesToProject("id")
+                        .addAttributeToProject("version")
+                        .build()
+        );
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
+                PRIMARY_CONTEXT,
+                null);
+
+        Map<String, String> expectedExpressionAttributeNames = new HashMap<>();
+        expectedExpressionAttributeNames.put("#AMZN_MAPPED_id", "id");
+        expectedExpressionAttributeNames.put("#AMZN_MAPPED_version", "version");
+
+        ScanRequest expectedRequest = ScanRequest.builder()
+                .tableName(TABLE_NAME)
+                .projectionExpression("#AMZN_MAPPED_id,#AMZN_MAPPED_version")
+                .expressionAttributeNames(expectedExpressionAttributeNames)
+                .build();
         assertThat(request, is(expectedRequest));
     }
 

@@ -1,0 +1,46 @@
+{
+    "version": "2.11.12",
+    "date": "2020-04-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Config",
+            "description": "Adding ThrottlingException"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Profiler",
+            "description": "CodeGuruProfiler adds support for resource based authorization to submit profile data."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "description": "The OrganizationalUnitIds parameter on StackSet and the OrganizationalUnitId parameter on StackInstance, StackInstanceSummary, and StackSetOperationResultSummary are now reserved for internal use. No data is returned for this parameter."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release provides the ability to include tags in EC2 event notifications."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "This release provides native support for specifying Amazon EFS file systems as volumes in your Amazon ECS task definitions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "description": "feature: Chime: This release introduces the ability to tag Amazon Chime SDK meeting resources. You can use tags to organize and identify your resources for cost allocation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "AWS Elemental MediaConvert SDK adds support for queue hopping. Jobs can now hop from their original queue to a specified alternate queue, based on the maximum wait time that you specify in the job settings."
+        }
+    ]
+}

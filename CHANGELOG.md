@@ -1,3 +1,112 @@
+# __2.11.12__ __2020-04-08__
+## __AWS CloudFormation__
+  - ### Features
+    - The OrganizationalUnitIds parameter on StackSet and the OrganizationalUnitId parameter on StackInstance, StackInstanceSummary, and StackSetOperationResultSummary are now reserved for internal use. No data is returned for this parameter.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK adds support for queue hopping. Jobs can now hop from their original queue to a specified alternate queue, based on the maximum wait time that you specify in the job settings.
+
+## __AWS Migration Hub Config__
+  - ### Features
+    - Adding ThrottlingException
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - feature: Chime: This release introduces the ability to tag Amazon Chime SDK meeting resources. You can use tags to organize and identify your resources for cost allocation.
+
+## __Amazon CodeGuru Profiler__
+  - ### Features
+    - CodeGuruProfiler adds support for resource based authorization to submit profile data.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release provides native support for specifying Amazon EFS file systems as volumes in your Amazon ECS task definitions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release provides the ability to include tags in EC2 event notifications.
+
+# __2.11.11__ __2020-04-07__
+## __AWS MediaConnect__
+  - ### Features
+    - You can now send content from your MediaConnect flow to your virtual private cloud (VPC) without going over the public internet.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - API updates for CodeGuruReviewer
+
+# __2.11.10__ __2020-04-06__
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - This release adds a new action, ListPlatformBranches, and updates two actions, ListPlatformVersions and DescribePlatformVersion, to support the concept of Elastic Beanstalk platform branches.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - Amazon Chime proxy phone sessions let you provide two users with a shared phone number to communicate via voice or text for up to 12 hours without revealing personal phone numbers. When users call or message the provided phone number, they are connected to the other party and their private phone numbers are replaced with the shared number in Caller ID.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for batch transcription jobs within Amazon Transcribe Medical.
+
+# __2.11.9__ __2020-04-03__
+## __AWS RoboMaker__
+  - ### Features
+    - Added support for limiting simulation unit usage, giving more predictable control over simulation cost
+
+## __AWS S3__
+  - ### Features
+    - Allow DefaultS3Presigner.Builder to take a custom S3Configuration
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Amazon Personalize: Add new response field "score" to each item returned by GetRecommendations and GetPersonalizedRanking (HRNN-based recipes only)
+
+# __2.11.8__ __2020-04-02__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports Automatic Input Failover. This feature provides resiliency upstream of the channel, before ingest starts.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Amazon CloudWatch Contributor Insights adds support for tags and tagging on resource creation.
+
+## __Amazon GameLift__
+  - ### Features
+    - Public preview of GameLift FleetIQ as a standalone feature. GameLift FleetIQ makes it possible to use low-cost Spot instances by limiting the chance of interruptions affecting game sessions. FleetIQ is a feature of the managed GameLift service, and can now be used with game hosting in EC2 Auto Scaling groups that you manage in your own account.
+
+## __Amazon Redshift__
+  - ### Features
+    - Documentation updates for redshift
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for RDS: creating read replicas is now supported for SQL Server DB instances
+
 # __2.11.7__ __2020-04-01__
 ## __AWS IoT__
   - ### Features

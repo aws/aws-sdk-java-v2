@@ -20,8 +20,8 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
-@DynamoDbBean(converterProviders = ConverterNoConstructorBean.CustomAttributeConverterProvider.class)
-public class ConverterNoConstructorBean extends AbstractBean {
+@DynamoDbBean(converterProviders = NoConstructorConverterProvidersBean.CustomAttributeConverterProvider.class)
+public class NoConstructorConverterProvidersBean extends AbstractBean {
 
     public static class CustomAttributeConverterProvider implements AttributeConverterProvider {
 
