@@ -19,7 +19,6 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.CONCURREN
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.awaitCountdownLatchUninterruptibly;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.countDownUponCompletion;
 
-import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -36,7 +35,6 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.profile.StackProfiler;
-import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -44,9 +42,11 @@ import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmar
 import software.amazon.awssdk.benchmark.utils.MockServer;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Using aws-crt-client to test against local mock https server.
@@ -73,11 +73,14 @@ public class AwsCrtClientBenchmark implements SdkHttpClientBenchmark {
         eventLoopGroup = new EventLoopGroup(numThreads);
         hostResolver = new HostResolver(eventLoopGroup);
 
+        AttributeMap trustAllCerts = AttributeMap.builder()
+                .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, Boolean.TRUE)
+                .build();
+
         sdkHttpClient = AwsCrtAsyncHttpClient.builder()
-                .verifyPeer(false)
                 .eventLoopGroup(this.eventLoopGroup)
                 .hostResolver(this.hostResolver)
-                .build();
+                .buildWithDefaults(trustAllCerts);
 
         client = ProtocolRestJsonAsyncClient.builder()
                 .endpointOverride(mockServer.getHttpsUri())

@@ -59,7 +59,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * <p>This can be created via {@link #builder()}</p>
  */
 @SdkPublicApi
-public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
+public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpClient.class);
     private static final String HOST_HEADER = "Host";
     private static final String CONTENT_LENGTH = "Content-Length";
@@ -81,7 +81,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final int maxConnectionsPerEndpoint;
     private final boolean manualWindowManagement;
 
-    public AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
+    private AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
         int maxConns = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
 
         Validate.isPositive(maxConns, "maxConns");
@@ -108,7 +108,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          */
         this.tlsContextOptions = own(TlsContextOptions.createDefaultClient() // NOSONAR
                 .withCipherPreference(builder.cipherPreference)
-                .withVerifyPeer(builder.verifyPeer));
+                .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)));
 
         this.tlsContext = own(new TlsContext(this.tlsContextOptions));
         this.windowSize = builder.windowSize;
@@ -267,7 +267,10 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public void close() {
-        isClosed.set(true);
+        if (!isClosed.compareAndSet(false, true)) {
+            return;
+        }
+
         for (HttpClientConnectionManager connPool : connectionPools.values()) {
             IoUtils.closeQuietly(connPool, log.logger());
         }
@@ -289,13 +292,6 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * @return The builder of the method chaining.
          */
         Builder tlsCipherPreference(TlsCipherPreference tlsCipherPreference);
-
-        /**
-         * Whether or not to Verify the Peer's TLS Certificate Chain.
-         * @param verifyPeer true if the Certificate Chain should be validated, false if validation should be skipped.
-         * @return The builder of the method chaining.
-         */
-        Builder verifyPeer(boolean verifyPeer);
 
         /**
          * If set to true, then the TCP read back pressure mechanism will be enabled, and the user
@@ -338,7 +334,6 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
         private int windowSize = DEFAULT_STREAM_WINDOW_SIZE;
-        private boolean verifyPeer = true;
         private boolean manualWindowManagement;
         private EventLoopGroup eventLoopGroup;
         private HostResolver hostResolver;
@@ -365,12 +360,6 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             Validate.isTrue(TlsContextOptions.isCipherPreferenceSupported(tlsCipherPreference),
                             "TlsCipherPreference not supported on current Platform");
             this.cipherPreference = tlsCipherPreference;
-            return this;
-        }
-
-        @Override
-        public Builder verifyPeer(boolean verifyPeer) {
-            this.verifyPeer = verifyPeer;
             return this;
         }
 
