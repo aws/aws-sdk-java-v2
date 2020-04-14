@@ -1,5 +1,0 @@
-{
-    "category": "AWS Common Runtime Client", 
-    "type": "bugfix", 
-    "description": "Upgrade to the latest version (0.3.35) of the AWS Common Runtime."
-}

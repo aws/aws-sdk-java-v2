@@ -182,7 +182,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private List<HttpHeader> createHttpHeaderList(URI uri, AsyncExecuteRequest asyncRequest) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
-        List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.headers().size() + 2);
+        // worst case we may add 3 more headers here
+        List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.headers().size() + 3);
 
         // Set Host Header if needed
         if (isNullOrEmpty(sdkRequest.headers().get(HOST_HEADER))) {
@@ -222,6 +223,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         String method = sdkRequest.method().name();
         String encodedPath = sdkRequest.encodedPath();
+        if (encodedPath == null || encodedPath.length() == 0) {
+            encodedPath = "/";
+        }
+
         String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(sdkRequest.rawQueryParameters())
                 .map(value -> "?" + value)
                 .orElse("");
@@ -309,7 +314,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * @param windowSize The AWS Common Runtime WindowSize
          * @return The builder of the method chaining.
          */
-        Builder windowSize(int windowSize);
+        Builder crtWindowSize(int windowSize);
 
         /**
          * The AWS CRT EventLoopGroup to use for this Client.
@@ -370,7 +375,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder windowSize(int windowSize) {
+        public Builder crtWindowSize(int windowSize) {
             Validate.isPositive(windowSize, "windowSize");
             this.windowSize = windowSize;
             return this;
