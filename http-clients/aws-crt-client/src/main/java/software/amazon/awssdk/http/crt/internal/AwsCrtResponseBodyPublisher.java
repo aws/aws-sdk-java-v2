@@ -235,7 +235,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
 
         int totalAmountTransferred = 0;
 
-        while (outstandingRequests.get() > 0 && queuedBuffers.size() > 0) {
+        while (outstandingRequests.get() > 0 && !queuedBuffers.isEmpty()) {
             byte[] buffer = queuedBuffers.poll();
             outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
             int amount = buffer.length;
@@ -255,7 +255,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         }
 
         // Check if Complete, consider no subscriber as a completion.
-        if (queueComplete.get() && queuedBuffers.size() == 0) {
+        if (queueComplete.get() && queuedBuffers.isEmpty()) {
             completeSubscriptionExactlyOnce();
         }
     }

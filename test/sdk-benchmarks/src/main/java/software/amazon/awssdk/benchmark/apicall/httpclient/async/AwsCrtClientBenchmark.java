@@ -123,6 +123,6 @@ public class AwsCrtClientBenchmark implements SdkHttpClientBenchmark {
                 .include(AwsCrtClientBenchmark.class.getSimpleName())
                 .addProfiler(StackProfiler.class)
                 .build();
-        Collection<RunResult> run = new Runner(opt).run();
+        new Runner(opt).run();
     }
 }

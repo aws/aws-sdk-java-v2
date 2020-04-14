@@ -109,7 +109,7 @@ public class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
             throw new RuntimeException(error.get());
         }
 
-        while (out.remaining() > 0 && queuedBuffers.size() > 0) {
+        while (out.remaining() > 0 && !queuedBuffers.isEmpty()) {
             ByteBuffer nextBuffer = queuedBuffers.peek();
             int amtTransferred = transferData(nextBuffer, out);
             queuedByteCount.addAndGet(-amtTransferred);
@@ -119,7 +119,7 @@ public class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
             }
         }
 
-        boolean endOfStream = isComplete.get() && (queuedBuffers.size() == 0);
+        boolean endOfStream = isComplete.get() && queuedBuffers.isEmpty();
 
         if (!endOfStream) {
             requestDataIfNecessary();

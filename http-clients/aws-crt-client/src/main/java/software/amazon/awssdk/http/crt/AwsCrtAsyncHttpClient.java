@@ -66,6 +66,8 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final String CONNECTION = "Connection";
     private static final String KEEP_ALIVE = "keep-alive";
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
+    private static final String NULL_REQUEST_ERROR_MESSAGE = "SdkHttpRequest must not be null";
+    private static final String NULL_URI_ERROR_MESSAGE = "URI must not be null";
     private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB
 
     private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
@@ -128,7 +130,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private static URI toUri(SdkHttpRequest sdkRequest) {
-        Validate.notNull(sdkRequest, "SdkHttpRequest must not be null");
+        Validate.notNull(sdkRequest, NULL_REQUEST_ERROR_MESSAGE);
         return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(), sdkRequest.port(),
                 null, null, null));
     }
@@ -143,7 +145,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private HttpClientConnectionManager createConnectionPool(URI uri) {
-        Validate.notNull(uri, "URI must not be null");
+        Validate.notNull(uri, NULL_URI_ERROR_MESSAGE);
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
         HttpClientConnectionManagerOptions options = new HttpClientConnectionManagerOptions()
@@ -159,7 +161,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
-        Validate.notNull(uri, "URI must not be null");
+        Validate.notNull(uri, NULL_URI_ERROR_MESSAGE);
         HttpClientConnectionManager connPool = connectionPools.get(uri);
 
         if (connPool == null) {
@@ -215,8 +217,8 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private HttpRequest toCrtRequest(URI uri, AsyncExecuteRequest asyncRequest, AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
-        Validate.notNull(uri, "URI must not be null");
-        Validate.notNull(sdkRequest, "SdkHttpRequest must not be null");
+        Validate.notNull(uri, NULL_URI_ERROR_MESSAGE);
+        Validate.notNull(sdkRequest, NULL_REQUEST_ERROR_MESSAGE);
 
         String method = sdkRequest.method().name();
         String encodedPath = sdkRequest.encodedPath();
@@ -235,7 +237,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
         }
         Validate.notNull(asyncRequest, "AsyncExecuteRequest must not be null");
-        Validate.notNull(asyncRequest.request(), "SdkHttpRequest must not be null");
+        Validate.notNull(asyncRequest.request(), NULL_REQUEST_ERROR_MESSAGE);
         Validate.notNull(asyncRequest.requestContentPublisher(), "RequestContentPublisher must not be null");
         Validate.notNull(asyncRequest.responseHandler(), "ResponseHandler must not be null");
 
@@ -270,7 +272,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             IoUtils.closeQuietly(connPool, log.logger());
         }
 
-        while (ownedSubResources.size() > 0) {
+        while (!ownedSubResources.isEmpty()) {
             CrtResource r = ownedSubResources.pop();
             IoUtils.closeQuietly(r, log.logger());
         }

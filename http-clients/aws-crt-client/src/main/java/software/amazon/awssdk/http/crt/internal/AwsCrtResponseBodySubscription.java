@@ -24,7 +24,6 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public class AwsCrtResponseBodySubscription implements Subscription {
-    private static final Logger log = Logger.loggerFor(AwsCrtResponseBodySubscription.class);
     private final AwsCrtResponseBodyPublisher publisher;
 
     public AwsCrtResponseBodySubscription(AwsCrtResponseBodyPublisher publisher) {
