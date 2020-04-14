@@ -128,7 +128,7 @@ public class RetryableStageHelper {
     public void logBackingOff(Duration backoffDelay) {
         SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected. Will retry in " +
                                                      backoffDelay.toMillis() + "ms. Request attempt number " +
-                                                     attemptNumber);
+                                                     attemptNumber, lastException);
     }
 
     /**
