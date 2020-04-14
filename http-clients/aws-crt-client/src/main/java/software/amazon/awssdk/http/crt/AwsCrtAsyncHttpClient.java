@@ -255,6 +255,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             .whenComplete((crtConn, throwable) -> {
                 // If we didn't get a connection for some reason, fail the request
                 if (throwable != null) {
+                    asyncRequest.responseHandler().onError(throwable);
                     requestFuture.completeExceptionally(throwable);
                     return;
                 }
