@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils.padLeft;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils.padLeft2;
-
 import java.time.DateTimeException;
 import java.time.LocalTime;
 import software.amazon.awssdk.annotations.Immutable;
@@ -26,7 +23,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -34,10 +30,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A converter between {@link LocalTime} and {@link AttributeValue}.
  *
  * <p>
- * This stores and reads values in DynamoDB as a number, so that they can be sorted numerically as part of a sort key.
+ * This stores and reads values in DynamoDB as a String.
  *
  * <p>
- * LocalTimes are stored in the format "HHIISS[.NNNNNNNNN]", where:
+ * LocalTimes are stored in the official {@link LocalTime} format "HH:II:SS[.NNNNNNNNN]", where:
  * <ol>
  *     <li>H is a 2-character, zero-prefixed hour between 00 and 23</li>
  *     <li>I is a 2-character, zero-prefixed minute between 00 and 59</li>
@@ -45,12 +41,16 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *     <li>N is a 9-character, zero-prefixed nanosecond between 000,000,000 and 999,999,999.
  *     The . and N may be excluded if N is 0.</li>
  * </ol>
+ * See {@link LocalTime} for more details on the serialization format.
  *
  * <p>
+ * This serialization is lexicographically orderable.
+ * <p>
+ *
  * Examples:
  * <ul>
- *     <li>{@code LocalTime.of(5, 30, 0)} is stored as {@code ItemAttributeValueMapper.fromNumber("053000")}</li>
- *     <li>{@code LocalDateTime.of(5, 30, 0, 1)} is stored as {@code ItemAttributeValueMapper.fromNumber("053000.000000001")}</li>
+ *     <li>{@code LocalTime.of(5, 30, 0)} is stored as an AttributeValue with the String "05:30"}</li>
+ *     <li>{@code LocalTime.of(5, 30, 0, 1)} is stored as an AttributeValue with the String "05:30:00.000000001"}</li>
  * </ul>
  *
  * <p>
@@ -76,23 +76,18 @@ public final class LocalTimeAttributeConverter implements AttributeConverter<Loc
 
     @Override
     public AttributeValueType attributeValueType() {
-        return AttributeValueType.N;
+        return AttributeValueType.S;
     }
 
     @Override
     public AttributeValue transformFrom(LocalTime input) {
-        String value = "" +
-                       padLeft2(input.getHour()) +
-                       padLeft2(input.getMinute()) +
-                       padLeft2(input.getSecond()) +
-                       (input.getNano() == 0 ? "" : "." + padLeft(9, input.getNano()));
-        return AttributeValue.builder().n(value).build();
+        return AttributeValue.builder().s(input.toString()).build();
     }
 
     @Override
     public LocalTime transformTo(AttributeValue input) {
-        if (input.n() != null) {
-            return EnhancedAttributeValue.fromNumber(input.n()).convert(VISITOR);
+        if (input.s() != null) {
+            return EnhancedAttributeValue.fromString(input.s()).convert(VISITOR);
         }
 
         return EnhancedAttributeValue.fromAttributeValue(input).convert(VISITOR);
@@ -100,19 +95,13 @@ public final class LocalTimeAttributeConverter implements AttributeConverter<Loc
 
     private static final class Visitor extends TypeConvertingVisitor<LocalTime> {
         private Visitor() {
-            super(LocalTime.class, InstantAsIntegerAttributeConverter.class);
+            super(LocalTime.class, InstantAsStringAttributeConverter.class);
         }
 
         @Override
-        public LocalTime convertNumber(String value) {
-            String[] splitOnDecimal = ConverterUtils.splitNumberOnDecimal(value);
-            String[] chunkedTime = ConverterUtils.chunk(splitOnDecimal[0], 2, 2, 2);
-
+        public LocalTime convertString(String value) {
             try {
-                return LocalTime.of(Integer.parseInt(chunkedTime[0]),
-                                    Integer.parseInt(chunkedTime[1]),
-                                    Integer.parseInt(chunkedTime[2]),
-                                    Integer.parseInt(splitOnDecimal[1]));
+                return LocalTime.parse(value);
             } catch (DateTimeException e) {
                 throw new IllegalArgumentException(e);
             }

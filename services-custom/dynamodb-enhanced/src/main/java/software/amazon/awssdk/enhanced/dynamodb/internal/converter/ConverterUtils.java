@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.DoubleAttributeConverter;
@@ -49,10 +52,6 @@ public class ConverterUtils {
         Validate.isTrue(Float.isFinite(input), "Infinite numbers are not supported by the default converters.");
     }
 
-    public static String padLeft2(int valueToPad) {
-        return valueToPad > 10 ? Integer.toString(valueToPad) : "0" + valueToPad;
-    }
-
     public static String padLeft(int paddingAmount, int valueToPad) {
         String value = Integer.toString(valueToPad);
         int padding = paddingAmount - value.length();
@@ -62,60 +61,6 @@ public class ConverterUtils {
         }
         result.append(value);
         return result.toString();
-    }
-
-    public static String padRight(int paddingAmount, String valueToPad) {
-        StringBuilder result = new StringBuilder(paddingAmount);
-        result.append(valueToPad);
-        for (int i = result.length(); i < paddingAmount; i++) {
-            result.append('0');
-        }
-        return result.toString();
-    }
-
-    public static String trimNumber(String number) {
-        int startInclusive = findTrimInclusiveStart(number, '0', 0);
-
-        if (startInclusive >= number.length()) {
-            return "0";
-        }
-
-        if (!number.contains(".")) {
-            return number.substring(startInclusive);
-        }
-
-        int endExclusive = findTrimExclusiveEnd(number, '0', number.length());
-        endExclusive = findTrimExclusiveEnd(number, '.', endExclusive);
-
-        if (startInclusive >= endExclusive) {
-            return "0";
-        }
-
-        String result = number.substring(startInclusive, endExclusive);
-        if (result.startsWith(".")) {
-            return "0" + result;
-        }
-        return result;
-    }
-
-    private static int findTrimInclusiveStart(String string, char characterToTrim, int startingIndex) {
-        int startInclusive = startingIndex;
-
-        while (startInclusive < string.length() && string.charAt(startInclusive) == characterToTrim) {
-            ++startInclusive;
-        }
-
-        return startInclusive;
-    }
-
-    private static int findTrimExclusiveEnd(String string, char characterToTrim, int startingIndex) {
-        int endExclusive = startingIndex;
-
-        while (endExclusive > 0 && string.charAt(endExclusive - 1) == characterToTrim) {
-            --endExclusive;
-        }
-
-        return endExclusive;
     }
 
     public static String[] splitNumberOnDecimal(String valueToSplit) {
@@ -128,55 +73,8 @@ public class ConverterUtils {
         }
     }
 
-    public static String[] chunk(String valueToChunk, int... splitSizes) {
-        String[] result = new String[splitSizes.length + 1];
-        int splitStartInclusive = chunkLeft(valueToChunk, result, splitSizes);
-
-        Validate.isTrue(splitStartInclusive == valueToChunk.length(), "Value size does not match expected chunking scheme.");
-
-        return result;
+    public static LocalDateTime convertFromLocalDate(LocalDate localDate) {
+        return LocalDateTime.of(localDate, LocalTime.MIDNIGHT);
     }
 
-    public static String[] chunkWithRightOverflow(String valueToChunk, int... splitSizesFromLeft) {
-        String[] result = new String[splitSizesFromLeft.length + 1];
-        int splitStartInclusive = chunkLeft(valueToChunk, result, splitSizesFromLeft);
-
-        result[splitSizesFromLeft.length] = valueToChunk.substring(splitStartInclusive);
-
-        return result;
-    }
-
-    public static String[] chunkWithLeftOverflow(String valueToChunk, int... splitSizesFromRight) {
-        try {
-            String[] result = new String[splitSizesFromRight.length + 1];
-            int splitEndExclusive = valueToChunk.length();
-
-            for (int i = splitSizesFromRight.length - 1; i >= 0; i--) {
-                int splitStartInclusive = splitEndExclusive - splitSizesFromRight[i];
-                result[i + 1] = valueToChunk.substring(splitStartInclusive, splitEndExclusive);
-                splitEndExclusive = splitStartInclusive;
-            }
-
-            result[0] = valueToChunk.substring(0, splitEndExclusive);
-
-            return result;
-        } catch (StringIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Invalid format for value.", e);
-        }
-    }
-
-    private static int chunkLeft(String valueToChunk, String[] result, int[] splitSizes) {
-        try {
-            int splitStartInclusive = 0;
-
-            for (int i = 0; i < splitSizes.length; i++) {
-                int splitEndExclusive = splitStartInclusive + splitSizes[i];
-                result[i] = valueToChunk.substring(splitStartInclusive, splitEndExclusive);
-                splitStartInclusive = splitEndExclusive;
-            }
-            return splitStartInclusive;
-        } catch (StringIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Invalid format for value.", e);
-        }
-    }
 }
