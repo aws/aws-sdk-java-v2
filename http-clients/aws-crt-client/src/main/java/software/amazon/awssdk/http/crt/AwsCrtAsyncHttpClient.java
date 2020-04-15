@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import org.graalvm.compiler.core.common.SuppressFBWarnings;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
@@ -72,7 +72,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
-    private final AtomicBoolean isClosed = new AtomicBoolean(false);
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
     private final TlsContextOptions tlsContextOptions;
@@ -80,6 +79,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final int windowSize;
     private final int maxConnectionsPerEndpoint;
     private final boolean manualWindowManagement;
+    private boolean isClosed = false;
 
     private AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
         int maxConns = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
@@ -160,24 +160,37 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return HttpClientConnectionManager.create(options);
     }
 
+    /*
+     * Callers of this function MUST account for the addRef() on the pool before returning.
+     * Every execution path consuming the return value must guarantee an associated close().
+     * Currently this function is only used by execute(), which guarantees a matching close
+     * via the try-with-resources block.
+     *
+     * This guarantees that a returned pool will not get closed (by closing the http client) during
+     * the time it takes to submit a request to the pool.  Acquisition requests submitted to the pool will
+     * be properly failed if the http client is closed before the acquisition completes.
+     *
+     * This additional complexity means we only have to keep a lock for the scope of this function, as opposed to
+     * the scope of calling execute().  This function will almost always just be a hash lookup and the return of an
+     * existing pool.  If we add all of execute() to the scope, we include, at minimum a JNI call to the native
+     * pool implementation.
+     */
     private HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
         Validate.notNull(uri, NULL_URI_ERROR_MESSAGE);
-        HttpClientConnectionManager connPool = connectionPools.get(uri);
-
-        if (connPool == null) {
-            HttpClientConnectionManager newConnPool = createConnectionPool(uri);
-            HttpClientConnectionManager alreadyExistingConnPool = connectionPools.putIfAbsent(uri, newConnPool);
-
-            if (alreadyExistingConnPool == null) {
-                connPool = newConnPool;
-            } else {
-                // Multiple threads trying to open connections to the same URI at once, close the newer one
-                newConnPool.close();
-                connPool = alreadyExistingConnPool;
+        synchronized (this) {
+            if (isClosed) {
+                throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
             }
-        }
 
-        return connPool;
+            HttpClientConnectionManager connPool = connectionPools.get(uri);
+            if (connPool == null) {
+                connPool = createConnectionPool(uri);
+                connectionPools.put(uri, connPool);
+            }
+
+            connPool.addRef();
+            return connPool;
+        }
     }
 
     private List<HttpHeader> createHttpHeaderList(URI uri, AsyncExecuteRequest asyncRequest) {
@@ -236,54 +249,61 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtToSdkAdapter);
     }
 
+    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
+            justification = "try-with-resources is showing up as a false positive")
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest asyncRequest) {
-        if (isClosed.get()) {
-            throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
-        }
+
         Validate.notNull(asyncRequest, "AsyncExecuteRequest must not be null");
         Validate.notNull(asyncRequest.request(), NULL_REQUEST_ERROR_MESSAGE);
         Validate.notNull(asyncRequest.requestContentPublisher(), "RequestContentPublisher must not be null");
         Validate.notNull(asyncRequest.responseHandler(), "ResponseHandler must not be null");
 
         URI uri = toUri(asyncRequest.request());
-        HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(uri);
-        CompletableFuture<Void> requestFuture = new CompletableFuture<>();
 
-        // When a Connection is ready from the Connection Pool, schedule the Request on the connection
-        crtConnPool.acquireConnection()
-            .whenComplete((crtConn, throwable) -> {
-                // If we didn't get a connection for some reason, fail the request
-                if (throwable != null) {
-                    asyncRequest.responseHandler().onError(throwable);
-                    requestFuture.completeExceptionally(throwable);
-                    return;
-                }
+        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(uri)) {
+            CompletableFuture<Void> requestFuture = new CompletableFuture<>();
 
-                AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
-                        new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, windowSize);
-                HttpRequest crtRequest = toCrtRequest(uri, asyncRequest, crtToSdkAdapter);
+            // When a Connection is ready from the Connection Pool, schedule the Request on the connection
+            crtConnPool.acquireConnection()
+                    .whenComplete((crtConn, throwable) -> {
+                        // If we didn't get a connection for some reason, fail the request
+                        if (throwable != null) {
+                            asyncRequest.responseHandler().onError(throwable);
+                            requestFuture.completeExceptionally(throwable);
+                            return;
+                        }
 
-                // Submit the Request on this Connection
-                invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate());
-            });
+                        AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
+                                new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, windowSize);
+                        HttpRequest crtRequest = toCrtRequest(uri, asyncRequest, crtToSdkAdapter);
 
-        return requestFuture;
+                        // Submit the Request on this Connection
+                        invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate());
+                    });
+
+            return requestFuture;
+        }
     }
 
     @Override
     public void close() {
-        if (!isClosed.compareAndSet(false, true)) {
-            return;
-        }
+        synchronized (this) {
 
-        for (HttpClientConnectionManager connPool : connectionPools.values()) {
-            IoUtils.closeQuietly(connPool, log.logger());
-        }
+            if (isClosed) {
+                return;
+            }
 
-        while (!ownedSubResources.isEmpty()) {
-            CrtResource r = ownedSubResources.pop();
-            IoUtils.closeQuietly(r, log.logger());
+            for (HttpClientConnectionManager connPool : connectionPools.values()) {
+                IoUtils.closeQuietly(connPool, log.logger());
+            }
+
+            while (!ownedSubResources.isEmpty()) {
+                CrtResource r = ownedSubResources.pop();
+                IoUtils.closeQuietly(r, log.logger());
+            }
+
+            isClosed = true;
         }
     }
 
