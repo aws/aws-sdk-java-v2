@@ -43,7 +43,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Dou
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.DurationAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnumAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.FloatAttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.InstantAsIntegerAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.InstantAsStringAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.IntegerAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ListAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalDateAttributeConverter;
@@ -211,7 +211,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
                                                 .addConverter(DoubleAttributeConverter.create())
                                                 .addConverter(DurationAttributeConverter.create())
                                                 .addConverter(FloatAttributeConverter.create())
-                                                .addConverter(InstantAsIntegerAttributeConverter.create())
+                                                .addConverter(InstantAsStringAttributeConverter.create())
                                                 .addConverter(IntegerAttributeConverter.create())
                                                 .addConverter(LocalDateAttributeConverter.create())
                                                 .addConverter(LocalDateTimeAttributeConverter.create())
