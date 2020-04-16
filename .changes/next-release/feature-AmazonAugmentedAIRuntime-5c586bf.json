@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Augmented AI Runtime",
-    "description": "This release updates Amazon Augmented AI ListHumanLoops and StartHumanLoop APIs."
-}
