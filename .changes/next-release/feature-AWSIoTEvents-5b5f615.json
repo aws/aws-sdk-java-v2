@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Events",
+    "description": "API update that allows users to customize event action payloads, and adds support for Amazon DynamoDB actions."
+}
