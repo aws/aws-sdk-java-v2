@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "description": "Added a new BatchUpdateFindings action, which allows customers to update selected information about their findings. Security Hub customers use BatchUpdateFindings to track their investigation into a finding. BatchUpdateFindings is intended to replace the UpdateFindings action, which is deprecated."
+}
