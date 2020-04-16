@@ -91,7 +91,7 @@ public interface SdkHttpResponse extends ToCopyableBuilder<SdkHttpResponse.Build
         Builder statusCode(int statusCode);
 
         /**
-         * The query parameters, exactly as they were configured with {@link #headers(Map)},
+         * The HTTP headers, exactly as they were configured with {@link #headers(Map)},
          * {@link #putHeader(String, String)} and {@link #putHeader(String, List)}.
          */
         Map<String, List<String>> headers();
