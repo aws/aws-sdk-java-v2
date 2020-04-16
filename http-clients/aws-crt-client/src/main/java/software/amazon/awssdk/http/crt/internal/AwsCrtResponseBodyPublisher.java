@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongUnaryOperator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpStream;
@@ -86,11 +87,21 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
 
         if (!wasFirstSubscriber) {
             log.error(() -> "Only one subscriber allowed");
-            subscriber.onError(new IllegalStateException("Only one subscriber allowed"));
-            return;
-        }
 
-        subscriber.onSubscribe(new AwsCrtResponseBodySubscription(this));
+            // onSubscribe must be called first before onError gets called, so give it a do-nothing Subscription
+            subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long n) {
+                }
+
+                @Override
+                public void cancel() {
+                }
+            });
+            subscriber.onError(new IllegalStateException("Only one subscriber allowed"));
+        } else {
+            subscriber.onSubscribe(new AwsCrtResponseBodySubscription(this));
+        }
     }
 
     /**

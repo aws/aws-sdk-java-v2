@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import org.graalvm.compiler.core.common.SuppressFBWarnings;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
@@ -249,8 +248,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtToSdkAdapter);
     }
 
-    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
-            justification = "try-with-resources is showing up as a false positive")
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest asyncRequest) {
 
