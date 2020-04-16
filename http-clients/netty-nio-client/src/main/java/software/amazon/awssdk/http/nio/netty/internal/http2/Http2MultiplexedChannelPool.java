@@ -426,7 +426,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            if (cause instanceof Http2StreamExceptionHandler.Http2StreamIoException) {
+            if (cause instanceof Http2ConnectionTerminatingException) {
                 closeConnectionToNewRequests(ctx, cause);
             } else {
                 closeAndReleaseParent(ctx, cause);
