@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "This release adds support for querying GetUserDefinedFunctions API without databaseName."
+}
