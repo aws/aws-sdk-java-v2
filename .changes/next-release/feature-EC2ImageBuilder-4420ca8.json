@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "description": "This release includes support for additional OS Versions within EC2 Image Builder."
+}
