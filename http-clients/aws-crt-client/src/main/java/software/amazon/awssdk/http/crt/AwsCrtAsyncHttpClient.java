@@ -31,6 +31,7 @@ import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
@@ -75,7 +76,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final SocketOptions socketOptions;
     private final TlsContextOptions tlsContextOptions;
     private final TlsContext tlsContext;
-    private final int windowSize;
+    private final HttpProxyOptions proxyOptions;
+    private final int initialWindowSize;
     private final int maxConnectionsPerEndpoint;
     private final boolean manualWindowManagement;
     private boolean isClosed = false;
@@ -85,46 +87,63 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         Validate.isPositive(maxConns, "maxConns");
         Validate.notNull(builder.cipherPreference, "cipherPreference");
-        Validate.isPositive(builder.windowSize, "windowSize");
+        Validate.isPositive(builder.initialWindowSize, "initialWindowSize");
         Validate.notNull(builder.eventLoopGroup, "eventLoopGroup");
         Validate.notNull(builder.hostResolver, "hostResolver");
 
-        /**
-         * Must call own() in same order that CrtResources are created in, so that they will be closed in reverse order.
-         *
-         * Do NOT use Dependency Injection for Native CrtResources. It's possible to crash the JVM Process if Native
-         * Resources are closed in the wrong order (Eg closing the Bootstrap/Threadpool when there are still open
-         * connections). By creating and owning our own Native CrtResources we can guarantee that things are shutdown
-         * in the correct order.
-         */
+        try (ClientBootstrap bootstrap = new ClientBootstrap(builder.eventLoopGroup, builder.hostResolver);
+             SocketOptions socketOptions = new SocketOptions();
+             TlsContextOptions tlsContextOptions = TlsContextOptions.createDefaultClient() // NOSONAR
+                     .withCipherPreference(builder.cipherPreference)
+                     .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
+             TlsContext tlsContext = new TlsContext(tlsContextOptions)) {
 
-        this.bootstrap = own(new ClientBootstrap(builder.eventLoopGroup, builder.hostResolver));
-        this.socketOptions = own(new SocketOptions());
+            this.bootstrap = own(bootstrap);
+            this.socketOptions = own(socketOptions);
+            this.tlsContextOptions = own(tlsContextOptions);
+            this.tlsContext = own(tlsContext);
 
-        /**
-         * Sonar raises a false-positive that the TlsContextOptions created here will not be closed.  Using a "NOSONAR"
-         * comment so that Sonar will ignore that false-positive.
-         */
-        this.tlsContextOptions = own(TlsContextOptions.createDefaultClient() // NOSONAR
-                .withCipherPreference(builder.cipherPreference)
-                .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)));
+            this.initialWindowSize = builder.initialWindowSize;
+            this.maxConnectionsPerEndpoint = maxConns;
+            this.manualWindowManagement = builder.manualWindowManagement;
 
-        this.tlsContext = own(new TlsContext(this.tlsContextOptions));
-        this.windowSize = builder.windowSize;
-        this.maxConnectionsPerEndpoint = maxConns;
-        this.manualWindowManagement = builder.manualWindowManagement;
+            ProxyConfiguration builderProxyConfig = builder.proxyConfiguration;
+            if (builderProxyConfig != null) {
+                HttpProxyOptions proxyOptions = new HttpProxyOptions();
+
+                proxyOptions.setHost(builderProxyConfig.host());
+                proxyOptions.setPort(builderProxyConfig.port());
+                if (builderProxyConfig.scheme() != null && builderProxyConfig.scheme().equalsIgnoreCase("https")) {
+                    proxyOptions.setTlsContext(tlsContext);
+                }
+
+                if (builderProxyConfig.username() != null && builderProxyConfig.password() != null) {
+                    proxyOptions.setAuthorizationUsername(builderProxyConfig.username());
+                    proxyOptions.setAuthorizationPassword(builderProxyConfig.password());
+                    proxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
+                } else {
+                    proxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);
+                }
+
+                this.proxyOptions = proxyOptions;
+            } else {
+                this.proxyOptions = null;
+            }
+        }
     }
 
     /**
      * Marks a Native CrtResource as owned by the current Java Object.
-     * This will guarantee that any owned CrtResources are closed in reverse order when this Java Object is closed.
      *
      * @param subresource The Resource to own.
      * @param <T> The CrtResource Type
      * @return The CrtResource passed in
      */
     private <T extends CrtResource> T own(T subresource) {
-        ownedSubResources.push(subresource);
+        if (subresource != null) {
+            subresource.addRef();
+            ownedSubResources.push(subresource);
+        }
         return subresource;
     }
 
@@ -152,9 +171,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withSocketOptions(socketOptions)
                 .withTlsContext(tlsContext)
                 .withUri(uri)
-                .withWindowSize(windowSize)
+                .withWindowSize(initialWindowSize)
                 .withMaxConnections(maxConnectionsPerEndpoint)
-                .withManualWindowManagement(manualWindowManagement);
+                .withManualWindowManagement(manualWindowManagement)
+                .withProxyOptions(proxyOptions);
 
         return HttpClientConnectionManager.create(options);
     }
@@ -272,7 +292,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                         }
 
                         AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
-                                new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, windowSize);
+                                new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, initialWindowSize);
                         HttpRequest crtRequest = toCrtRequest(uri, asyncRequest, crtToSdkAdapter);
 
                         // Submit the Request on this Connection
@@ -329,10 +349,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * buffered in the ResponseBodyPublisher before we stop reading from the underlying TCP socket and wait for
          * the Subscriber to read more data.
          *
-         * @param windowSize The AWS Common Runtime WindowSize
+         * @param initialWindowSize The AWS Common Runtime WindowSize
          * @return The builder of the method chaining.
          */
-        Builder crtWindowSize(int windowSize);
+        Builder initialWindowSize(int initialWindowSize);
 
         /**
          * The AWS CRT EventLoopGroup to use for this Client.
@@ -347,6 +367,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * @return The builder of the method chaining.
          */
         Builder hostResolver(HostResolver hostResolver);
+
+        /**
+         * Sets the http proxy configuration to use for this client.
+         * @param proxyConfiguration The http proxy configuration to use
+         * @return The builder of the method chaining.
+         */
+        Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
     }
 
     /**
@@ -356,10 +383,11 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
-        private int windowSize = DEFAULT_STREAM_WINDOW_SIZE;
+        private int initialWindowSize = DEFAULT_STREAM_WINDOW_SIZE;
         private boolean manualWindowManagement;
         private EventLoopGroup eventLoopGroup;
         private HostResolver hostResolver;
+        private ProxyConfiguration proxyConfiguration;
 
         private DefaultBuilder() {
         }
@@ -393,9 +421,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder crtWindowSize(int windowSize) {
-            Validate.isPositive(windowSize, "windowSize");
-            this.windowSize = windowSize;
+        public Builder initialWindowSize(int initialWindowSize) {
+            Validate.isPositive(initialWindowSize, "initialWindowSize");
+            this.initialWindowSize = initialWindowSize;
             return this;
         }
 
@@ -408,6 +436,12 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder hostResolver(HostResolver hostResolver) {
             this.hostResolver = hostResolver;
+            return this;
+        }
+
+        @Override
+        public Builder proxyConfiguration(ProxyConfiguration proxyConfiguration) {
+            this.proxyConfiguration = proxyConfiguration;
             return this;
         }
     }
