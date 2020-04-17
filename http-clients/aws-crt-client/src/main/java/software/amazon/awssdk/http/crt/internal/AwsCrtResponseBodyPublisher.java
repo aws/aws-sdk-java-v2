@@ -92,10 +92,12 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             subscriber.onSubscribe(new Subscription() {
                 @Override
                 public void request(long n) {
+                    // This is a dummy implementation to allow the onError call
                 }
 
                 @Override
                 public void cancel() {
+                    // This is a dummy implementation to allow the onError call
                 }
             });
             subscriber.onError(new IllegalStateException("Only one subscriber allowed"));
@@ -196,7 +198,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         }
 
         // Subscriber may have cancelled their subscription, in which case this may be null.
-        Optional<Subscriber> subscriber = Optional.ofNullable(subscriberRef.getAndSet(null));
+        Optional<Subscriber<? super ByteBuffer>> subscriber = Optional.ofNullable(subscriberRef.getAndSet(null));
 
         Throwable throwable = error.get();
 

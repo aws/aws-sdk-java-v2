@@ -107,12 +107,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return false;
         }
 
-        if (!Objects.equals(this.password, that.password)) {
-            return false;
-        }
-
-        return true;
-
+        return Objects.equals(this.password, that.password);
     }
 
     @Override

@@ -91,17 +91,17 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.notNull(builder.eventLoopGroup, "eventLoopGroup");
         Validate.notNull(builder.hostResolver, "hostResolver");
 
-        try (ClientBootstrap bootstrap = new ClientBootstrap(builder.eventLoopGroup, builder.hostResolver);
-             SocketOptions socketOptions = new SocketOptions();
-             TlsContextOptions tlsContextOptions = TlsContextOptions.createDefaultClient() // NOSONAR
+        try (ClientBootstrap clientBootstrap = new ClientBootstrap(builder.eventLoopGroup, builder.hostResolver);
+             SocketOptions clientSocketOptions = new SocketOptions();
+             TlsContextOptions clientTlsContextOptions = TlsContextOptions.createDefaultClient() // NOSONAR
                      .withCipherPreference(builder.cipherPreference)
                      .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
-             TlsContext tlsContext = new TlsContext(tlsContextOptions)) {
+             TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions)) {
 
-            this.bootstrap = own(bootstrap);
-            this.socketOptions = own(socketOptions);
-            this.tlsContextOptions = own(tlsContextOptions);
-            this.tlsContext = own(tlsContext);
+            this.bootstrap = own(clientBootstrap);
+            this.socketOptions = own(clientSocketOptions);
+            this.tlsContextOptions = own(clientTlsContextOptions);
+            this.tlsContext = own(clientTlsContext);
 
             this.initialWindowSize = builder.initialWindowSize;
             this.maxConnectionsPerEndpoint = maxConns;
@@ -109,23 +109,23 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
             ProxyConfiguration builderProxyConfig = builder.proxyConfiguration;
             if (builderProxyConfig != null) {
-                HttpProxyOptions proxyOptions = new HttpProxyOptions();
+                HttpProxyOptions clientProxyOptions = new HttpProxyOptions();
 
-                proxyOptions.setHost(builderProxyConfig.host());
-                proxyOptions.setPort(builderProxyConfig.port());
+                clientProxyOptions.setHost(builderProxyConfig.host());
+                clientProxyOptions.setPort(builderProxyConfig.port());
                 if (builderProxyConfig.scheme() != null && builderProxyConfig.scheme().equalsIgnoreCase("https")) {
-                    proxyOptions.setTlsContext(tlsContext);
+                    clientProxyOptions.setTlsContext(tlsContext);
                 }
 
                 if (builderProxyConfig.username() != null && builderProxyConfig.password() != null) {
-                    proxyOptions.setAuthorizationUsername(builderProxyConfig.username());
-                    proxyOptions.setAuthorizationPassword(builderProxyConfig.password());
-                    proxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
+                    clientProxyOptions.setAuthorizationUsername(builderProxyConfig.username());
+                    clientProxyOptions.setAuthorizationPassword(builderProxyConfig.password());
+                    clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
                 } else {
-                    proxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);
+                    clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);
                 }
 
-                this.proxyOptions = proxyOptions;
+                this.proxyOptions = clientProxyOptions;
             } else {
                 this.proxyOptions = null;
             }
@@ -201,12 +201,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
             }
 
-            HttpClientConnectionManager connPool = connectionPools.get(uri);
-            if (connPool == null) {
-                connPool = createConnectionPool(uri);
-                connectionPools.put(uri, connPool);
-            }
-
+            HttpClientConnectionManager connPool = connectionPools.computeIfAbsent(uri, k -> createConnectionPool(k));
             connPool.addRef();
             return connPool;
         }
