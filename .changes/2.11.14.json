@@ -1,0 +1,21 @@
+{
+    "version": "2.11.14",
+    "date": "2020-04-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks CM",
+            "description": "Documentation updates for opsworkscm"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "description": "Added support for a new rule engine execution mode. Customers will be able to configure their detector versions to evaluate all rules and return outcomes from all 'matched' rules in the GetPrediction API response. Added support for deleting Detectors (DeleteDetector) and Rule Versions (DeleteRuleVersion)."
+        }
+    ]
+}
