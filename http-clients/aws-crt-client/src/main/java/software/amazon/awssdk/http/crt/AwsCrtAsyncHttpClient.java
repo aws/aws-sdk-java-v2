@@ -74,7 +74,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
-    private final TlsContextOptions tlsContextOptions;
     private final TlsContext tlsContext;
     private final HttpProxyOptions proxyOptions;
     private final int initialWindowSize;
@@ -100,7 +99,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
             this.bootstrap = own(clientBootstrap);
             this.socketOptions = own(clientSocketOptions);
-            this.tlsContextOptions = own(clientTlsContextOptions);
             this.tlsContext = own(clientTlsContext);
 
             this.initialWindowSize = builder.initialWindowSize;
