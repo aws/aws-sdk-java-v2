@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.services.sns.model.CreatePlatformApplicationRequest;
 import software.amazon.awssdk.services.sns.model.CreatePlatformApplicationResponse;
@@ -59,6 +60,8 @@ public class MobilePushIntegrationTest extends IntegrationTestBase {
      * Tests for mobile push API
      *
      */
+    // TODO: remove ignore once the issue is fixed.
+    @Ignore
     @Test
     public void testMobilePushOperations() throws InterruptedException {
 
