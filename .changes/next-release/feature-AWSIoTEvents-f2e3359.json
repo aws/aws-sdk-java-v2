@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Events",
+    "description": "API update that allows users to add AWS Iot SiteWise actions while creating Detector Model in AWS Iot Events"
+}
