@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TimeConversion;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -40,28 +40,31 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Examples:
  * <ul>
  *     <li>{@code OffsetDateTime.MIN} is stored as
- *     {@code ItemAttributeValueMapper.fromString("-999999999-01-01T00:00:00+18:00")}</li>
+ *     an AttributeValue with the String "-999999999-01-01T00:00+18:00"}</li>
  *     <li>{@code OffsetDateTime.MAX} is stored as
- *     {@code ItemAttributeValueMapper.fromString("+999999999-12-31T23:59:59.999999999-18:00")}</li>
+ *     an AttributeValue with the String "+999999999-12-31T23:59:59.999999999-18:00"}</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).plusSeconds(1)} is stored as
- *     {@code ItemAttributeValueMapper.fromString("1970-01-01T00:00:01Z")}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:01Z"}</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).minusSeconds(1)} is stored as
- *     {@code ItemAttributeValueMapper.fromString("1969-12-31T23:59:59Z")}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59Z"}</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).plusMillis(1)} is stored as
- *     {@code ItemAttributeValueMapper.fromString("1970-01-01T00:00:00.001Z")}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:00.001Z"}</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).minusMillis(1)} is stored as
- *     {@code ItemAttributeValueMapper.fromString("1969-12-31T23:59:59.999Z")}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59.999Z"}</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).plusNanos(1)} is stored as
- *     {@code ItemAttributeValueMapper.fromString("1970-01-01T00:00:00.000000001Z")}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:00.000000001Z"}</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).minusNanos(1)} is stored as
- *     {@code ItemAttributeValueMapper.fromString("1969-12-31T23:59:59.999999999Z")}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59.999999999Z"}</li>
  * </ul>
+ * See {@link OffsetDateTime} for more details on the serialization format.
+ * <p>
+ * This converter can read any values written by itself or {@link InstantAsStringAttributeConverter},
+ * and values without a time zone named written by{@link ZonedDateTimeAsStringAttributeConverter}.
+ * Values written by {@code Instant} converters are treated as if they are in the UTC time zone
+ * (and an offset of 0 seconds will be returned).
  *
  * <p>
- * This converter can read any values written by itself, {@link InstantAsIntegerAttributeConverter},
- * {@link InstantAsStringAttributeConverter}, or {@link ZonedDateTimeAsStringAttributeConverter}. Values written by
- * {@code Instant} converters are treated as if they are in the UTC time zone (and an offset of 0 seconds will be returned).
- *
+ * This serialization is lexicographically orderable when the year is not negative.
  * <p>
  * This can be created via {@link #create()}.
  */
@@ -69,6 +72,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @ThreadSafe
 @Immutable
 public final class OffsetDateTimeAsStringAttributeConverter implements AttributeConverter<OffsetDateTime> {
+    private static final Visitor VISITOR = new Visitor();
+
     public static OffsetDateTimeAsStringAttributeConverter create() {
         return new OffsetDateTimeAsStringAttributeConverter();
     }
@@ -85,11 +90,31 @@ public final class OffsetDateTimeAsStringAttributeConverter implements Attribute
 
     @Override
     public AttributeValue transformFrom(OffsetDateTime input) {
-        return TimeConversion.toStringAttributeValue(input);
+        return AttributeValue.builder().s(input.toString()).build();
     }
 
     @Override
     public OffsetDateTime transformTo(AttributeValue input) {
-        return TimeConversion.offsetDateTimeFromAttributeValue(EnhancedAttributeValue.fromAttributeValue(input));
+        try {
+            if (input.s() != null) {
+                return EnhancedAttributeValue.fromString(input.s()).convert(VISITOR);
+            }
+
+            return EnhancedAttributeValue.fromAttributeValue(input).convert(VISITOR);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(e);
+        }
+
+    }
+
+    private static final class Visitor extends TypeConvertingVisitor<OffsetDateTime> {
+        private Visitor() {
+            super(OffsetDateTime.class, InstantAsStringAttributeConverter.class);
+        }
+
+        @Override
+        public OffsetDateTime convertString(String value) {
+            return OffsetDateTime.parse(value);
+        }
     }
 }
