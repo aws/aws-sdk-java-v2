@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "description": "The Amazon DynamoDB Enhanced Client is now generally available and provides a natural and intuitive interface for developers to integrate their applications with Amazon DynamoDB by means of an adaptive API that will map inputs and results to and from Java objects modeled by the application, rather than requiring the developers to implement that transformation themselves."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonApiGatewayV2",
-    "description": "You can now export an OpenAPI 3.0 compliant API definition file for Amazon API Gateway HTTP APIs using the Export API."
-}

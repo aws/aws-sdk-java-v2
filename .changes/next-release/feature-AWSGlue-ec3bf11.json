@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "Added a new ConnectionType \"KAFKA\" and a ConnectionProperty \"KAFKA_BOOTSTRAP_SERVERS\" to support Kafka connection."
-}
