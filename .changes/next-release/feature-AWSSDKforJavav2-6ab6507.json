@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Bump minor version to '2.13.0-SNAPSHOT' because of upgrade of Jackson version."
+}
