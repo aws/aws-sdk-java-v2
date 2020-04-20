@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "description": "Cost Categories API is now General Available with new dimensions and operations support. You can map costs by account name, service, and charge type dimensions as well as use contains, starts with, and ends with operations. Cost Categories can also be used in RI and SP coverage reports."
+}
