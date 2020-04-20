@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Synthetics",
+    "description": "Introducing CloudWatch Synthetics. This is the first public release of CloudWatch Synthetics."
+}
