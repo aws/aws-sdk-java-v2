@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "description": "AWS GuardDuty now supports using AWS Organizations delegated administrators to create and manage GuardDuty master and member accounts. The feature also allows GuardDuty to be automatically enabled on associated organization accounts."
+}
