@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Route 53 Domains",
-    "description": "You can now programmatically transfer domains between AWS accounts without having to contact AWS Support"
-}

@@ -1,0 +1,41 @@
+{
+    "version": "2.13.0",
+    "date": "2020-04-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "description": "Cost Explorer Rightsizing Recommendations integrates with Compute Optimizer and begins offering across instance family rightsizing recommendations, adding to existing support for within instance family rightsizing recommendations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updating dependency version: Jackson 2.10.0 -> 2.10.3, Jackson-annotations 2.9.0 -> 2.10.0."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Domains",
+            "description": "You can now programmatically transfer domains between AWS accounts without having to contact AWS Support"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "description": "AWS GuardDuty now supports using AWS Organizations delegated administrators to create and manage GuardDuty master and member accounts. The feature also allows GuardDuty to be automatically enabled on associated organization accounts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Bump minor version to '2.13.0-SNAPSHOT' because of upgrade of Jackson version."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic MapReduce",
+            "description": "Amazon EMR adds support for configuring a managed scaling policy for an Amazon EMR cluster. This enables automatic resizing of a cluster to optimize for job execution speed and reduced cluster cost."
+        }
+    ]
+}

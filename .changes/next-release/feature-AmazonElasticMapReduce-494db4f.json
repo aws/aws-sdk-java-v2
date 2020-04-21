@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic MapReduce",
-    "description": "Amazon EMR adds support for configuring a managed scaling policy for an Amazon EMR cluster. This enables automatic resizing of a cluster to optimize for job execution speed and reduced cluster cost."
-}

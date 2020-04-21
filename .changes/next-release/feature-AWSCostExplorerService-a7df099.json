@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Cost Explorer Service",
-    "description": "Cost Explorer Rightsizing Recommendations integrates with Compute Optimizer and begins offering across instance family rightsizing recommendations, adding to existing support for within instance family rightsizing recommendations."
-}
