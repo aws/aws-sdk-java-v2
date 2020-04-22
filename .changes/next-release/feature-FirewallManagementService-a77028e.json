@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Firewall Management Service",
-    "description": "This release is to support AWS Firewall Manager policy with Organizational Unit scope."
-}
