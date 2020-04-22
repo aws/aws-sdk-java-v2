@@ -1,0 +1,36 @@
+{
+    "version": "2.13.1",
+    "date": "2020-04-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "description": "Add support for code review and recommendation feedback APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "description": "This release is to support AWS Firewall Manager policy with Organizational Unit scope."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "description": "This change adds a new field 'OptionalDeployment' to ServiceSoftwareOptions to indicate whether a service software update is optional or mandatory. If True, it indicates that the update is optional, and the service software is not automatically updated. If False, the service software is automatically updated after AutomatedUpdateDate."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Streaming Service",
+            "description": "Adding ServiceUnavailableException as one of the expected exceptions"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "description": "Amazon Redshift support for usage limits"
+        }
+    ]
+}
