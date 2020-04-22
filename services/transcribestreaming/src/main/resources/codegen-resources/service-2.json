@@ -24,7 +24,8 @@
         {"shape":"BadRequestException"},
         {"shape":"LimitExceededException"},
         {"shape":"InternalFailureException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Starts a bidirectional HTTP2 stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application.</p> <p>The following are encoded as HTTP2 headers:</p> <ul> <li> <p>x-amzn-transcribe-language-code</p> </li> <li> <p>x-amzn-transcribe-media-encoding</p> </li> <li> <p>x-amzn-transcribe-sample-rate</p> </li> <li> <p>x-amzn-transcribe-session-id</p> </li> </ul>"
     }
@@ -195,6 +196,15 @@
       "type":"list",
       "member":{"shape":"Result"}
     },
+    "ServiceUnavailableException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>Service is currently unavailable. Try your request later.</p>",
+      "error":{"httpStatusCode":503},
+      "exception":true
+    },
     "SessionId":{
       "type":"string",
       "pattern":"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
@@ -335,6 +345,10 @@
         "ConflictException":{
           "shape":"ConflictException",
           "documentation":"<p>A new stream started with the same session ID. The current stream has been terminated.</p>"
+        },
+        "ServiceUnavailableException":{
+          "shape":"ServiceUnavailableException",
+          "documentation":"<p>Service is currently unavailable. Try your request later.</p>"
         }
       },
       "documentation":"<p>Represents the transcription result stream from Amazon Transcribe to your application.</p>",
