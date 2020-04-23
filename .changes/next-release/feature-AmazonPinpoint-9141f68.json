@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint",
+    "description": "This release of the Amazon Pinpoint API enhances support for sending campaigns through custom channels to locations such as AWS Lambda functions or web applications. Campaigns can now use CustomDeliveryConfiguration and CampaignCustomMessage to configure custom channel settings for a campaign."
+}
