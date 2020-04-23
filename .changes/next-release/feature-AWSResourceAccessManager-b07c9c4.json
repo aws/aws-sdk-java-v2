@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Resource Access Manager",
+    "description": "AWS Resource Access Manager (RAM) provides a new ListResourceTypes action. This action lets you list the resource types that can be shared using AWS RAM."
+}
