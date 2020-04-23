@@ -299,14 +299,20 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getBeanStyleGetterMethodName(String memberName, Shape parentShape, Shape c2jShape) {
-        String fluentGetterMethodName = getFluentGetterMethodName(memberName, parentShape, c2jShape);
+        String fluentGetterMethodName;
+        if (Utils.isOrContainsEnumShape(c2jShape, serviceModel.getShapes())) {
+            // Use the enum (modeled) name for bean-style getters
+            fluentGetterMethodName = getFluentEnumGetterMethodName(memberName, parentShape, c2jShape);
+        } else {
+            fluentGetterMethodName = getFluentGetterMethodName(memberName, parentShape, c2jShape);
+        }
         return String.format("get%s", Utils.capitalize(fluentGetterMethodName));
     }
 
     @Override
     public String getBeanStyleSetterMethodName(String memberName, Shape parentShape, Shape c2jShape) {
-        String fluentSetterMethodName = getFluentSetterMethodName(memberName, parentShape, c2jShape);
-        return String.format("set%s", Utils.capitalize(fluentSetterMethodName));
+        String beanStyleGetter = getBeanStyleGetterMethodName(memberName, parentShape, c2jShape);
+        return String.format("set%s", beanStyleGetter.substring("get".length()));
     }
 
     @Override
