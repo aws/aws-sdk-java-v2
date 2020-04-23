@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaPackage VOD",
-    "description": "Adds tagging support for PackagingGroups, PackagingConfigurations, and Assets"
-}
