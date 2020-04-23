@@ -2033,7 +2033,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             this.simpleList = ListOfStringsCopier.copy(simpleList);
         }
 
-        public final Collection<String> getListOfEnumsAsStrings() {
+        public final Collection<String> getListOfEnums() {
             return listOfEnums;
         }
 
@@ -2063,7 +2063,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setListOfEnumsWithStrings(Collection<String> listOfEnums) {
+        public final void setListOfEnums(Collection<String> listOfEnums) {
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
         }
 
@@ -2118,7 +2118,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             this.listOfStructs = ListOfSimpleStructsCopier.copyFromBuilder(listOfStructs);
         }
 
-        public final Collection<? extends Map<String, String>> getListOfMapOfEnumToStringAsStrings() {
+        public final Collection<? extends Map<String, String>> getListOfMapOfEnumToString() {
             return listOfMapOfEnumToString;
         }
 
@@ -2135,7 +2135,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setListOfMapOfEnumToStringWithStrings(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
+        public final void setListOfMapOfEnumToString(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
         }
 
@@ -2182,7 +2182,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copyFromBuilder(mapOfStringToSimpleStruct);
         }
 
-        public final Map<String, String> getMapOfEnumToEnumAsStrings() {
+        public final Map<String, String> getMapOfEnumToEnum() {
             return mapOfEnumToEnum;
         }
 
@@ -2198,11 +2198,11 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setMapOfEnumToEnumWithStrings(Map<String, String> mapOfEnumToEnum) {
+        public final void setMapOfEnumToEnum(Map<String, String> mapOfEnumToEnum) {
             this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
         }
 
-        public final Map<String, String> getMapOfEnumToStringAsStrings() {
+        public final Map<String, String> getMapOfEnumToString() {
             return mapOfEnumToString;
         }
 
@@ -2218,11 +2218,11 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setMapOfEnumToStringWithStrings(Map<String, String> mapOfEnumToString) {
+        public final void setMapOfEnumToString(Map<String, String> mapOfEnumToString) {
             this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
         }
 
-        public final Map<String, String> getMapOfStringToEnumAsStrings() {
+        public final Map<String, String> getMapOfStringToEnum() {
             return mapOfStringToEnum;
         }
 
@@ -2238,11 +2238,11 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setMapOfStringToEnumWithStrings(Map<String, String> mapOfStringToEnum) {
+        public final void setMapOfStringToEnum(Map<String, String> mapOfStringToEnum) {
             this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
         }
 
-        public final Map<String, SimpleStruct.Builder> getMapOfEnumToSimpleStructAsStrings() {
+        public final Map<String, SimpleStruct.Builder> getMapOfEnumToSimpleStruct() {
             return mapOfEnumToSimpleStruct != null ? CollectionUtils.mapValues(mapOfEnumToSimpleStruct, SimpleStruct::toBuilder)
                                                    : null;
         }
@@ -2259,11 +2259,11 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setMapOfEnumToSimpleStructWithStrings(Map<String, SimpleStruct.BuilderImpl> mapOfEnumToSimpleStruct) {
+        public final void setMapOfEnumToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfEnumToSimpleStruct) {
             this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyFromBuilder(mapOfEnumToSimpleStruct);
         }
 
-        public final Map<String, ? extends Collection<String>> getMapOfEnumToListOfEnumsAsStrings() {
+        public final Map<String, ? extends Collection<String>> getMapOfEnumToListOfEnums() {
             return mapOfEnumToListOfEnums;
         }
 
@@ -2279,11 +2279,11 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setMapOfEnumToListOfEnumsWithStrings(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
+        public final void setMapOfEnumToListOfEnums(Map<String, ? extends Collection<String>> mapOfEnumToListOfEnums) {
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
         }
 
-        public final Map<String, Map<String, String>> getMapOfEnumToMapOfStringToEnumAsStrings() {
+        public final Map<String, Map<String, String>> getMapOfEnumToMapOfStringToEnum() {
             return mapOfEnumToMapOfStringToEnum;
         }
 
@@ -2299,7 +2299,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setMapOfEnumToMapOfStringToEnumWithStrings(Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+        public final void setMapOfEnumToMapOfStringToEnum(Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
         }
 
@@ -2441,7 +2441,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                                                                                          : null;
         }
 
-        public final String getEnumTypeAsString() {
+        public final String getEnumType() {
             return enumType;
         }
 
