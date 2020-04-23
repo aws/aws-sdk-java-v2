@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Application Auto Scaling",
+    "description": "This release supports Auto Scaling in Amazon Keyspaces for Apache Cassandra."
+}
