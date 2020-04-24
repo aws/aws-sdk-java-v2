@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Data Lifecycle Manager",
+    "description": "Enable 1hour frequency in the schedule creation for Data LifeCycle Manager."
+}
