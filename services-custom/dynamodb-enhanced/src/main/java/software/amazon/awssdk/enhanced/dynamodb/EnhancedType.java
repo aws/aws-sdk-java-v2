@@ -508,7 +508,7 @@ public class EnhancedType<T> {
         StringBuilder result = new StringBuilder();
         result.append(rawClass.getTypeName());
 
-        if (!rawClassParameters.isEmpty()) {
+        if (null != rawClassParameters && !rawClassParameters.isEmpty()) {
             result.append("<");
             result.append(rawClassParameters.stream().map(EnhancedType::innerToString).collect(Collectors.joining(", ")));
             result.append(">");
