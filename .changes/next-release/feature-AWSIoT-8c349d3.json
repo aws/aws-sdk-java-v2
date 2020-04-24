@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "description": "This release adds a new exception type to the AWS IoT SetV2LoggingLevel API."
+}
