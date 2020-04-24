@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Inference",
-    "description": "This feature allows customers to describe the accelerator types and offerings on any region where Elastic Inference is available."
-}

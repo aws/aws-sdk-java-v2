@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "description": "Fixed bean-style setter names on serializable builders to match bean-style getter names."
-}

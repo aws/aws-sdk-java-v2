@@ -1,3 +1,23 @@
+# __2.13.3__ __2020-04-24__
+## __AWS IoT__
+  - ### Features
+    - This release adds a new exception type to the AWS IoT SetV2LoggingLevel API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed bean-style setter names on serializable builders to match bean-style getter names.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Enable 1hour frequency in the schedule creation for Data LifeCycle Manager.
+
+## __Amazon Elastic Inference__
+  - ### Features
+    - This feature allows customers to describe the accelerator types and offerings on any region where Elastic Inference is available.
+
 # __2.13.2__ __2020-04-23__
 ## __AWS Elemental MediaPackage VOD__
   - ### Features
