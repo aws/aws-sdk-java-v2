@@ -15,14 +15,17 @@
 
 package software.amazon.awssdk.http;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -39,6 +42,107 @@ public class SdkHttpRequestResponseTest {
         assertThat(validRequest().contentStreamProvider()).isNotPresent();
         assertThat(validResponse().content()).isNotPresent();
         assertThat(validResponse().statusText()).isNotPresent();
+    }
+
+    @Test
+    public void mapsAreNotCopiedWhenRoundTrippedToBuilderWithoutModification() {
+        SdkHttpFullRequest request = validRequestWithMaps();
+        SdkHttpFullRequest request2 = request.toBuilder().build();
+        assertThat(request2.headers()).isSameAs(request.headers());
+        assertThat(request2.rawQueryParameters()).isSameAs(request.rawQueryParameters());
+
+        SdkHttpResponse response = validResponseWithMaps();
+        SdkHttpResponse response2 = response.toBuilder().build();
+        assertThat(response2.headers()).isSameAs(response.headers());
+    }
+
+    @Test
+    public void requestHeaderMapsAreCopiedWhenModified() {
+        assertRequestHeaderMapsAreCopied(b -> b.putHeader("foo", "bar"));
+        assertRequestHeaderMapsAreCopied(b -> b.putHeader("foo", singletonList("bar")));
+        assertRequestHeaderMapsAreCopied(b -> b.appendHeader("foo", "bar"));
+        assertRequestHeaderMapsAreCopied(b -> b.headers(emptyMap()));
+        assertRequestHeaderMapsAreCopied(b -> b.clearHeaders());
+        assertRequestHeaderMapsAreCopied(b -> b.removeHeader("Accept"));
+    }
+
+    @Test
+    public void requestQueryStringMapsAreCopiedWhenModified() {
+        assertRequestQueryStringMapsAreCopied(b -> b.putRawQueryParameter("foo", "bar"));
+        assertRequestQueryStringMapsAreCopied(b -> b.putRawQueryParameter("foo", singletonList("bar")));
+        assertRequestQueryStringMapsAreCopied(b -> b.appendRawQueryParameter("foo", "bar"));
+        assertRequestQueryStringMapsAreCopied(b -> b.rawQueryParameters(emptyMap()));
+        assertRequestQueryStringMapsAreCopied(b -> b.clearQueryParameters());
+        assertRequestQueryStringMapsAreCopied(b -> b.removeQueryParameter("Accept"));
+    }
+
+    @Test
+    public void responseHeaderMapsAreCopiedWhenModified() {
+        assertResponseHeaderMapsAreCopied(b -> b.putHeader("foo", "bar"));
+        assertResponseHeaderMapsAreCopied(b -> b.putHeader("foo", singletonList("bar")));
+        assertResponseHeaderMapsAreCopied(b -> b.appendHeader("foo", "bar"));
+        assertResponseHeaderMapsAreCopied(b -> b.headers(emptyMap()));
+        assertResponseHeaderMapsAreCopied(b -> b.clearHeaders());
+        assertResponseHeaderMapsAreCopied(b -> b.removeHeader("Accept"));
+    }
+
+    private void assertRequestHeaderMapsAreCopied(Consumer<SdkHttpRequest.Builder> mutation) {
+        SdkHttpFullRequest request = validRequestWithMaps();
+        Map<String, List<String>> originalQuery = new LinkedHashMap<>(request.headers());
+        SdkHttpFullRequest.Builder builder = request.toBuilder();
+
+        assertThat(request.headers()).isEqualTo(builder.headers());
+
+        builder.applyMutation(mutation);
+        SdkHttpFullRequest request2 = builder.build();
+
+        assertThat(request.headers()).isEqualTo(originalQuery);
+        assertThat(request.headers()).isNotEqualTo(request2.headers());
+    }
+
+    private void assertRequestQueryStringMapsAreCopied(Consumer<SdkHttpRequest.Builder> mutation) {
+        SdkHttpFullRequest request = validRequestWithMaps();
+        Map<String, List<String>> originalQuery = new LinkedHashMap<>(request.rawQueryParameters());
+        SdkHttpFullRequest.Builder builder = request.toBuilder();
+
+        assertThat(request.rawQueryParameters()).isEqualTo(builder.rawQueryParameters());
+
+        builder.applyMutation(mutation);
+        SdkHttpFullRequest request2 = builder.build();
+
+        assertThat(request.rawQueryParameters()).isEqualTo(originalQuery);
+        assertThat(request.rawQueryParameters()).isNotEqualTo(request2.rawQueryParameters());
+    }
+
+    private void assertResponseHeaderMapsAreCopied(Consumer<SdkHttpResponse.Builder> mutation) {
+        SdkHttpResponse response = validResponseWithMaps();
+        Map<String, List<String>> originalQuery = new LinkedHashMap<>(response.headers());
+        SdkHttpResponse.Builder builder = response.toBuilder();
+
+        assertThat(response.headers()).isEqualTo(builder.headers());
+
+        builder.applyMutation(mutation);
+        SdkHttpResponse response2 = builder.build();
+
+        assertThat(response.headers()).isEqualTo(originalQuery);
+        assertThat(response.headers()).isNotEqualTo(response2.headers());
+    }
+
+    @Test
+    public void headersAreUnmodifiable() {
+        assertThatThrownBy(() -> validRequest().headers().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> validResponse().headers().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> validRequest().toBuilder().headers().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> validResponse().toBuilder().headers().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> validRequest().toBuilder().build().headers().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> validResponse().toBuilder().build().headers().clear()).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    public void queryStringsAreUnmodifiable() {
+        assertThatThrownBy(() -> validRequest().rawQueryParameters().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> validRequest().toBuilder().rawQueryParameters().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> validRequest().toBuilder().build().rawQueryParameters().clear()).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -332,7 +436,7 @@ public class SdkHttpRequestResponseTest {
     }
 
     private void assertMapIsInitiallyEmpty(Supplier<BuilderProxy> builderFactory) {
-        assertThat(builderFactory.get().setMap(Collections.emptyMap()).getMap()).isEmpty();
+        assertThat(builderFactory.get().setMap(emptyMap()).getMap()).isEmpty();
     }
 
     private void setValue_SetsSingleValueCorrectly(Supplier<BuilderProxy> builderFactory) {
@@ -411,12 +515,32 @@ public class SdkHttpRequestResponseTest {
             });
     }
 
+    private SdkHttpFullRequest validRequestWithMaps() {
+        return validRequestWithMapsBuilder().build();
+    }
+
+    private SdkHttpFullRequest.Builder validRequestWithMapsBuilder() {
+        return validRequestBuilder().putHeader("Accept", "*/*")
+                                    .putRawQueryParameter("Accept", "*/*");
+    }
+
     private SdkHttpFullRequest validRequest() {
         return validRequestBuilder().build();
     }
 
     private SdkHttpFullRequest.Builder validRequestBuilder() {
-        return SdkHttpFullRequest.builder().protocol("http").host("localhost").method(SdkHttpMethod.GET);
+        return SdkHttpFullRequest.builder()
+                                 .protocol("http")
+                                 .host("localhost")
+                                 .method(SdkHttpMethod.GET);
+    }
+
+    private SdkHttpResponse validResponseWithMaps() {
+        return validResponseWithMapsBuilder().build();
+    }
+
+    private SdkHttpResponse.Builder validResponseWithMapsBuilder() {
+        return validResponseBuilder().putHeader("Accept", "*/*");
     }
 
     private SdkHttpFullResponse validResponse() {
