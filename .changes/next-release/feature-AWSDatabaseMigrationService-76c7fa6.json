@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "description": "Adding minimum replication engine version for describe-endpoint-types api."
+}
