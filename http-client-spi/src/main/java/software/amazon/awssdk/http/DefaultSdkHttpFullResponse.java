@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http;
 
+import static software.amazon.awssdk.utils.CollectionUtils.deepCopyMap;
 import static software.amazon.awssdk.utils.CollectionUtils.deepUnmodifiableMap;
 
 import java.io.Serializable;
@@ -47,7 +48,9 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
     private DefaultSdkHttpFullResponse(Builder builder) {
         this.statusCode = Validate.isNotNegative(builder.statusCode, "Status code must not be negative.");
         this.statusText = builder.statusText;
-        this.headers = deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+        this.headers = builder.headersAreFromToBuilder
+                       ? builder.headers
+                       : deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
         this.content = builder.content;
     }
 
@@ -83,16 +86,21 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         private String statusText;
         private int statusCode;
         private AbortableInputStream content;
-        private Map<String, List<String>> headers = new LinkedHashMap<>();
+
+        private boolean headersAreFromToBuilder;
+        private Map<String, List<String>> headers;
 
         Builder() {
+            headersAreFromToBuilder = false;
+            headers = new LinkedHashMap<>();
         }
 
         private Builder(DefaultSdkHttpFullResponse defaultSdkHttpFullResponse) {
-            this.statusText = defaultSdkHttpFullResponse.statusText;
-            this.statusCode = defaultSdkHttpFullResponse.statusCode;
-            this.content = defaultSdkHttpFullResponse.content;
-            this.headers = CollectionUtils.deepCopyMap(defaultSdkHttpFullResponse.headers);
+            statusText = defaultSdkHttpFullResponse.statusText;
+            statusCode = defaultSdkHttpFullResponse.statusCode;
+            content = defaultSdkHttpFullResponse.content;
+            headersAreFromToBuilder = true;
+            headers = defaultSdkHttpFullResponse.headers;
         }
 
         @Override
@@ -132,6 +140,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         public Builder putHeader(String headerName, List<String> headerValues) {
             Validate.paramNotNull(headerName, "headerName");
             Validate.paramNotNull(headerValues, "headerValues");
+            copyHeadersIfNeeded();
             this.headers.put(headerName, new ArrayList<>(headerValues));
             return this;
         }
@@ -140,6 +149,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         public SdkHttpFullResponse.Builder appendHeader(String headerName, String headerValue) {
             Validate.paramNotNull(headerName, "headerName");
             Validate.paramNotNull(headerValue, "headerValue");
+            copyHeadersIfNeeded();
             this.headers.computeIfAbsent(headerName, k -> new ArrayList<>()).add(headerValue);
             return this;
         }
@@ -148,24 +158,34 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         public Builder headers(Map<String, List<String>> headers) {
             Validate.paramNotNull(headers, "headers");
             this.headers = CollectionUtils.deepCopyMap(headers);
+            headersAreFromToBuilder = false;
             return this;
         }
 
         @Override
         public Builder removeHeader(String headerName) {
+            copyHeadersIfNeeded();
             this.headers.remove(headerName);
             return this;
         }
 
         @Override
         public Builder clearHeaders() {
-            this.headers.clear();
+            this.headers = new LinkedHashMap<>();
+            headersAreFromToBuilder = false;
             return this;
         }
 
         @Override
         public Map<String, List<String>> headers() {
-            return deepUnmodifiableMap(this.headers);
+            return CollectionUtils.unmodifiableMapOfLists(this.headers);
+        }
+
+        private void copyHeadersIfNeeded() {
+            if (headersAreFromToBuilder) {
+                headersAreFromToBuilder = false;
+                this.headers = deepCopyMap(headers);
+            }
         }
 
         /**
