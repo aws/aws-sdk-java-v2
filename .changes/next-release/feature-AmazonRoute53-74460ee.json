@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53",
+    "description": "Amazon Route 53 now supports the Africa (Cape Town) Region (af-south-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region."
+}
