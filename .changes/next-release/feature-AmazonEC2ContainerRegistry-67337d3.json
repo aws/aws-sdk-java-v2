@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Registry",
+    "description": "This release adds support for multi-architecture images also known as a manifest list"
+}
