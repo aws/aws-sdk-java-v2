@@ -436,7 +436,7 @@ public final class ClientOverrideConfiguration
 
         @Override
         public Map<String, List<String>> headers() {
-            return CollectionUtils.deepUnmodifiableMap(headers);
+            return CollectionUtils.unmodifiableMapOfLists(headers);
         }
 
         @Override

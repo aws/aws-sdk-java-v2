@@ -1,0 +1,5 @@
+{
+    "category": "Amazon DynamoDB Enhacned", 
+    "type": "bugfix", 
+    "description": "Fix NPE on EnhancedType, created with documentOf, when calling innerToString"
+}

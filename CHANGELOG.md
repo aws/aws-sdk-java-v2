@@ -1,3 +1,159 @@
+# __2.13.4__ __2020-04-27__
+## __AWS Data Exchange__
+  - ### Features
+    - This release introduces AWS Data Exchange support for configurable encryption parameters when exporting data sets to Amazon S3.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Adding minimum replication engine version for describe-endpoint-types api.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+    - Various performance improvements.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for inclusion of S3 Access Point policies in IAM Access Analyzer evaluation of S3 bucket access. IAM Access Analyzer now reports findings for buckets shared through access points and identifies the access point that permits access.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Change to the input, ResourceSpec, changing EnvironmentArn to SageMakerImageArn. This affects the following preview APIs: CreateDomain, DescribeDomain, UpdateDomain, CreateUserProfile, DescribeUserProfile, UpdateUserProfile, CreateApp and DescribeApp.
+
+# __2.13.3__ __2020-04-24__
+## __AWS IoT__
+  - ### Features
+    - This release adds a new exception type to the AWS IoT SetV2LoggingLevel API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed bean-style setter names on serializable builders to match bean-style getter names.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Enable 1hour frequency in the schedule creation for Data LifeCycle Manager.
+
+## __Amazon Elastic Inference__
+  - ### Features
+    - This feature allows customers to describe the accelerator types and offerings on any region where Elastic Inference is available.
+
+# __2.13.2__ __2020-04-23__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - Adds tagging support for PackagingGroups, PackagingConfigurations, and Assets
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - AWS Resource Access Manager (RAM) provides a new ListResourceTypes action. This action lets you list the resource types that can be shared using AWS RAM.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Added AutomaticTapeCreation APIs
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds support for transfers over FTPS and FTP in and out of Amazon S3, which makes it easy to migrate File Transfer Protocol over SSL (FTPS) and FTP workloads to AWS, in addition to the existing support for Secure File Transfer Protocol (SFTP).
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - You can now deliver streaming data to an Amazon Elasticsearch Service domain in an Amazon VPC. You can now compress streaming data delivered to S3 using Hadoop-Snappy in addition to Gzip, Zip and Snappy formats.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release of the Amazon Pinpoint API enhances support for sending campaigns through custom channels to locations such as AWS Lambda functions or web applications. Campaigns can now use CustomDeliveryConfiguration and CampaignCustomMessage to configure custom channel settings for a campaign.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for AWS Local Zones, including a new optional parameter AvailabilityZoneGroup for the DescribeOrderableDBInstanceOptions operation.
+
+## __Application Auto Scaling__
+  - ### Features
+    - This release supports Auto Scaling in Amazon Keyspaces for Apache Cassandra.
+
+# __2.13.1__ __2020-04-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Add support for code review and recommendation feedback APIs.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This change adds a new field 'OptionalDeployment' to ServiceSoftwareOptions to indicate whether a service software update is optional or mandatory. If True, it indicates that the update is optional, and the service software is not automatically updated. If False, the service software is automatically updated after AutomatedUpdateDate.
+
+## __Amazon Redshift__
+  - ### Features
+    - Amazon Redshift support for usage limits
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Adding ServiceUnavailableException as one of the expected exceptions
+
+## __Firewall Management Service__
+  - ### Features
+    - This release is to support AWS Firewall Manager policy with Organizational Unit scope.
+
+# __2.13.0__ __2020-04-21__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Cost Explorer Rightsizing Recommendations integrates with Compute Optimizer and begins offering across instance family rightsizing recommendations, adding to existing support for within instance family rightsizing recommendations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump minor version to '2.13.0-SNAPSHOT' because of upgrade of Jackson version.
+    - Updated service endpoint metadata.
+    - Updating dependency version: Jackson 2.10.0 -> 2.10.3, Jackson-annotations 2.9.0 -> 2.10.0.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Amazon EMR adds support for configuring a managed scaling policy for an Amazon EMR cluster. This enables automatic resizing of a cluster to optimize for job execution speed and reduced cluster cost.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - AWS GuardDuty now supports using AWS Organizations delegated administrators to create and manage GuardDuty master and member accounts. The feature also allows GuardDuty to be automatically enabled on associated organization accounts.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - You can now programmatically transfer domains between AWS accounts without having to contact AWS Support
+
+# __2.12.0__ __2020-04-20__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Cost Categories API is now General Available with new dimensions and operations support. You can map costs by account name, service, and charge type dimensions as well as use contains, starts with, and ends with operations. Cost Categories can also be used in RI and SP coverage reports.
+
+## __AWS Glue__
+  - ### Features
+    - Added a new ConnectionType "KAFKA" and a ConnectionProperty "KAFKA_BOOTSTRAP_SERVERS" to support Kafka connection.
+
+## __AWS IoT Events__
+  - ### Features
+    - API update that allows users to add AWS Iot SiteWise actions while creating Detector Model in AWS Iot Events
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - The Amazon DynamoDB Enhanced Client is now generally available and provides a natural and intuitive interface for developers to integrate their applications with Amazon DynamoDB by means of an adaptive API that will map inputs and results to and from Java objects modeled by the application, rather than requiring the developers to implement that transformation themselves.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - You can now export an OpenAPI 3.0 compliant API definition file for Amazon API Gateway HTTP APIs using the Export API.
+
+## __Synthetics__
+  - ### Features
+    - Introducing CloudWatch Synthetics. This is the first public release of CloudWatch Synthetics.
+
 # __2.11.14__ __2020-04-17__
 ## __AWS OpsWorks CM__
   - ### Features

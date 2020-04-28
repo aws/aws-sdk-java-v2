@@ -2,10 +2,6 @@
 
 Mid-level DynamoDB mapper/abstraction for Java using the v2 AWS SDK.
 
-Warning: This package is provided for preview and comment purposes only.
-It is not asserted to be stable or correct, and is subject to frequent
-breaking changes.
-
 ## Getting Started
 All the examples below use a fictional Customer class. This class is
 completely made up and not part of this library. Any search or key
