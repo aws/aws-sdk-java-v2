@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Video Streams Archived Media",
+    "description": "Add support for the GetClip API for retrieving media from a video stream in the MP4 format."
+}
