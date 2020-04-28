@@ -14,9 +14,18 @@ jobs:
       with:
         # Setting messages to an empty string will cause the automation to skip
         # that category
-        ancient-issue-message: This is a very old issue that is probably not getting as much attention as it deserves. We encourage you to check if this is still an issue in the latest release and if you find that this is still a problem, please feel free to provide a comment or open a new issue.
-        stale-issue-message: It looks like this issue hasn’t been active in longer than a week. In the absence of more information, we will be closing this issue soon. If you find that this is still a problem, please add a comment to prevent automatic closure, or if the issue is already closed please feel free to reopen it.
-        stale-pr-message: It looks like this PR hasn’t been active in longer than a week. In the absence of more information, we will be closing this PR soon. Please add a comment to prevent automatic closure, or if the PR is already closed please feel free to open a new one.
+        ancient-issue-message: This is a very old issue that is probably not getting as much
+          attention as it deserves. We encourage you to check if this is still an issue in
+          the latest release and if you find that this is still a problem, please feel free
+          to provide a comment or open a new issue.
+        stale-issue-message: It looks like this issue hasn’t been active in longer than a week.
+          In the absence of more information, we will be closing this issue soon. If you find
+          that this is still a problem, please add a comment to prevent automatic closure, or
+          if the issue is already closed please feel free to reopen it.
+        stale-pr-message: It looks like this PR hasn’t been active in longer than a week. In
+          the absence of more information, we will be closing this PR soon. Please add a
+          comment to prevent automatic closure, or if the PR is already closed please feel
+          free to open a new one.
 
         # These labels are required
         stale-issue-label: closing-soon
