@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "SSM State Manager support for adding list association filter for Resource Group and manual mode of managing compliance for an association."
+}
