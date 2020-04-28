@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Video Streams",
-    "description": "Add \"GET_CLIP\" to the list of supported API names for the GetDataEndpoint API."
-}
