@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Service",
+    "description": "With this release, you can now use Amazon Transcribe to create medical custom vocabularies and use them in both medical real-time streaming and medical batch transcription jobs."
+}
