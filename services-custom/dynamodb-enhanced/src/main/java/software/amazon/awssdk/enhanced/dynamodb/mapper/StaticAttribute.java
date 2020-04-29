@@ -146,7 +146,8 @@ public final class StaticAttribute<T, R> {
         return new Builder<T, R>(this.type).name(this.name)
                                            .getter(this.getter)
                                            .setter(this.setter)
-                                           .tags(this.tags);
+                                           .tags(this.tags)
+                                           .attributeConverter(this.attributeConverter);
     }
 
 
