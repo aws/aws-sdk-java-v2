@@ -26,8 +26,8 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableWriteOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
@@ -260,7 +260,7 @@ public final class TransactWriteItemsEnhancedRequest {
         private <T> TransactWriteItem generateTransactWriteItem(MappedTableResource<T> mappedTableResource,
                                                                 TransactableWriteOperation<T> generator) {
             return generator.generateTransactWriteItem(mappedTableResource.tableSchema(),
-                                                       OperationContext.create(mappedTableResource.tableName()),
+                                                       DefaultOperationContext.create(mappedTableResource.tableName()),
                                                        mappedTableResource.mapperExtension());
         }
     }

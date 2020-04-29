@@ -20,7 +20,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,7 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -83,7 +82,7 @@ public class DefaultDocumentTest {
         assertThat(defaultDocument.getItem(mappedTable), is(fakeItem2));
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
                                                                                              .tableMetadata(FakeItem.getTableMetadata())
-                                                                                             .operationContext(OperationContext.create(mappedTable.tableName()))
+                                                                                             .operationContext(DefaultOperationContext.create(mappedTable.tableName()))
                                                                                              .items(fakeItemMap).build()
         );
     }
