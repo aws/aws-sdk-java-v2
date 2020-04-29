@@ -20,10 +20,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
@@ -35,24 +33,13 @@ import software.amazon.awssdk.utils.Logger;
 
 public abstract class S3BaseStabilityTest extends AwsTestBase {
     private static final Logger log = Logger.loggerFor(S3BaseStabilityTest.class);
-    protected static final int CONCURRENCY = 100;
-    protected static final int TOTAL_RUNS = 50;
+    protected static final int CONCURRENCY = 2;
+    protected static final int TOTAL_RUNS = 1;
     protected static final String LARGE_KEY_NAME = "2GB";
 
-    protected static S3AsyncClient s3NettyClient;
     protected static S3Client s3ApacheClient;
 
     static {
-        s3NettyClient = S3AsyncClient.builder()
-                                     .httpClientBuilder(NettyNioAsyncHttpClient.builder()
-                                                                               .maxConcurrency(CONCURRENCY))
-                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                     .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
-                                                                  // Retry at test level
-                                                                  .retryPolicy(RetryPolicy.none()))
-                                     .build();
-
-
         s3ApacheClient = S3Client.builder()
                                  .httpClientBuilder(ApacheHttpClient.builder()
                                                                     .maxConnections(CONCURRENCY))
@@ -65,19 +52,19 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
         return "key_" + i;
     }
 
-    protected static void deleteBucketAndAllContents(String bucketName) {
+    protected static void deleteBucketAndAllContents(S3AsyncClient client, String bucketName) {
         try {
             List<CompletableFuture<?>> futures = new ArrayList<>();
 
-            s3NettyClient.listObjectsV2Paginator(b -> b.bucket(bucketName))
-                         .subscribe(r -> r.contents().forEach(s -> futures.add(s3NettyClient.deleteObject(o -> o.bucket(bucketName).key(s.key())))))
+            client.listObjectsV2Paginator(b -> b.bucket(bucketName))
+                         .subscribe(r -> r.contents().forEach(s -> futures.add(client.deleteObject(o -> o.bucket(bucketName).key(s.key())))))
                          .join();
 
             CompletableFuture<?>[] futureArray = futures.toArray(new CompletableFuture<?>[0]);
 
             CompletableFuture.allOf(futureArray).join();
 
-            s3NettyClient.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build()).join();
+            client.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build()).join();
         } catch (Exception e) {
             log.error(() -> "Failed to delete bucket: " +bucketName);
         }
@@ -101,7 +88,4 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
         }
     }
 
-    public abstract void putObject_getObject_highConcurrency();
-
-    public abstract void largeObject_put_get_usingFile();
 }

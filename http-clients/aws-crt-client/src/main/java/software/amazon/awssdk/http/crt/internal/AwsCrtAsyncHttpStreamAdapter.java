@@ -22,6 +22,7 @@ import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
@@ -80,11 +81,13 @@ public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, 
 
     @Override
     public void onResponseHeadersDone(HttpStream stream, int headerType) {
-        initRespBodyPublisherIfNeeded(stream);
+        if (headerType == HttpHeaderBlock.MAIN.getValue()) {
+            initRespBodyPublisherIfNeeded(stream);
 
-        respBuilder.statusCode(stream.getResponseStatusCode());
-        sdkRequest.responseHandler().onHeaders(respBuilder.build());
-        sdkRequest.responseHandler().onStream(respBodyPublisher);
+            respBuilder.statusCode(stream.getResponseStatusCode());
+            sdkRequest.responseHandler().onHeaders(respBuilder.build());
+            sdkRequest.responseHandler().onStream(respBodyPublisher);
+        }
     }
 
     @Override
