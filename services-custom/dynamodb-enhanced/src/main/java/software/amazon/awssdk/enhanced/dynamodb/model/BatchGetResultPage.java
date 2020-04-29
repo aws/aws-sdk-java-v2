@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
 
@@ -69,7 +69,7 @@ public final class BatchGetResultPage {
         return results.stream()
                       .map(itemMap -> readAndTransformSingleItem(itemMap,
                                                                  mappedTable.tableSchema(),
-                                                                 OperationContext.create(mappedTable.tableName()),
+                                                                 DefaultOperationContext.create(mappedTable.tableName()),
                                                                  dynamoDbEnhancedClientExtension))
                       .collect(Collectors.toList());
     }

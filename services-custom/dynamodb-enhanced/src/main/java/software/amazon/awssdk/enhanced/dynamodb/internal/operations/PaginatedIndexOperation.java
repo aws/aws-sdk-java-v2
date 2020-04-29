@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
@@ -58,7 +59,7 @@ public interface PaginatedIndexOperation<ItemT, RequestT, ResponseT>
                                                         String indexName,
                                                         DynamoDbEnhancedClientExtension extension,
                                                         DynamoDbClient dynamoDbClient) {
-        OperationContext context = OperationContext.create(tableName, indexName);
+        OperationContext context = DefaultOperationContext.create(tableName, indexName);
         return execute(tableSchema, context, extension, dynamoDbClient);
     }
 
@@ -81,7 +82,7 @@ public interface PaginatedIndexOperation<ItemT, RequestT, ResponseT>
                                                                    String indexName,
                                                                    DynamoDbEnhancedClientExtension extension,
                                                                    DynamoDbAsyncClient dynamoDbAsyncClient) {
-        OperationContext context = OperationContext.create(tableName, indexName);
+        OperationContext context = DefaultOperationContext.create(tableName, indexName);
         return executeAsync(tableSchema, context, extension, dynamoDbAsyncClient);
     }
 }

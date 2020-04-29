@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -64,7 +65,7 @@ public class CommonOperationTest {
 
     @Test
     public void execute_defaultImplementation_behavesCorrectlyAndReturnsCorrectResult() {
-        OperationContext operationContext = OperationContext.create(FAKE_TABLE_NAME, FAKE_INDEX_NAME);
+        OperationContext operationContext = DefaultOperationContext.create(FAKE_TABLE_NAME, FAKE_INDEX_NAME);
         String result = spyCommonOperation.execute(FakeItem.getTableSchema(),
                                                    operationContext,
                                                    mockDynamoDbEnhancedClientExtension,

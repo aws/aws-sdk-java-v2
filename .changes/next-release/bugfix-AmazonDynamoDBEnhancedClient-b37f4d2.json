@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "description": "Made OperationContext a public interface and moved it into public namespace as it was already exposed through another public interface. This will only impact extensions that have been written to reference the old internal-only class that should now switch to the approved stable public interface."
+}

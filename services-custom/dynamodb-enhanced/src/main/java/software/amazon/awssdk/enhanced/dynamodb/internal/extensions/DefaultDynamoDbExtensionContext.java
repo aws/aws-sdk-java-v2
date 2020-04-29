@@ -19,19 +19,20 @@ import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * An SDK-internal implementation of {@link DynamoDbExtensionContext.BeforeWrite} and {@link DynamoDbExtensionContext.AfterRead}.
+ * An SDK-internal implementation of {@link DynamoDbExtensionContext.BeforeWrite} and
+ * {@link DynamoDbExtensionContext.AfterRead}.
  */
 @SdkInternalApi
 public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionContext.BeforeWrite,
                                                               DynamoDbExtensionContext.AfterRead {
-    private Map<String, AttributeValue> items;
-    private OperationContext operationContext;
-    private TableMetadata tableMetadata;
+    private final Map<String, AttributeValue> items;
+    private final OperationContext operationContext;
+    private final TableMetadata tableMetadata;
 
     private DefaultDynamoDbExtensionContext(Builder builder) {
         this.items = builder.items;
