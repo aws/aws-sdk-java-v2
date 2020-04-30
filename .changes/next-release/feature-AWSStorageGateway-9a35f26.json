@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "description": "Adding support for S3_INTELLIGENT_TIERING as a storage class option"
+}
