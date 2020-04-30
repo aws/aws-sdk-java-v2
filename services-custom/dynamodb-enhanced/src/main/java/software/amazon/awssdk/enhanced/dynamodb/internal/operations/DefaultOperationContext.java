@@ -16,30 +16,33 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 
 @SdkInternalApi
-public class OperationContext {
+public class DefaultOperationContext implements OperationContext {
     private final String tableName;
     private final String indexName;
 
-    private OperationContext(String tableName, String indexName) {
+    private DefaultOperationContext(String tableName, String indexName) {
         this.tableName = tableName;
         this.indexName = indexName;
     }
 
-    public static OperationContext create(String tableName, String indexName) {
-        return new OperationContext(tableName, indexName);
+    public static DefaultOperationContext create(String tableName, String indexName) {
+        return new DefaultOperationContext(tableName, indexName);
     }
 
-    public static OperationContext create(String tableName) {
-        return new OperationContext(tableName, TableMetadata.primaryIndexName());
+    public static DefaultOperationContext create(String tableName) {
+        return new DefaultOperationContext(tableName, TableMetadata.primaryIndexName());
     }
 
+    @Override
     public String tableName() {
         return tableName;
     }
 
+    @Override
     public String indexName() {
         return indexName;
     }
@@ -53,7 +56,7 @@ public class OperationContext {
             return false;
         }
 
-        OperationContext that = (OperationContext) o;
+        DefaultOperationContext that = (DefaultOperationContext) o;
 
         if (tableName != null ? ! tableName.equals(that.tableName) : that.tableName != null) {
             return false;

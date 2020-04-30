@@ -1,0 +1,46 @@
+{
+    "version": "2.13.7",
+    "date": "2020-04-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "AWS Elemental MediaConvert SDK has added support for including AFD signaling in MXF wrapper."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "description": "Adding support for S3_INTELLIGENT_TIERING as a storage class option"
+        },
+        {
+            "type": "feature",
+            "category": "Schemas",
+            "description": "Add support for resource policies for Amazon EventBridge Schema Registry, which is now generally available."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "description": "Doc only update to correct APIs and related descriptions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "description": "AWS IoT Core released Fleet Provisioning for scalable onboarding of IoT devices to the cloud. This release includes support for customer's Lambda functions to validate devices during onboarding. Fleet Provisioning also allows devices to send Certificate Signing Requests (CSR) to AWS IoT Core for signing and getting a unique certificate. Lastly, AWS IoT Core added a feature to register the same certificate for multiple accounts in the same region without needing to register the certificate authority (CA)."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "description": "Made OperationContext a public interface and moved it into public namespace as it was already exposed through another public interface. This will only impact extensions that have been written to reference the old internal-only class that should now switch to the approved stable public interface."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "description": "Documentation updates for Lambda"
+        }
+    ]
+}

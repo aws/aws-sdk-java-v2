@@ -27,7 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
@@ -78,7 +78,7 @@ public final class BatchWriteResult {
                             .map(PutRequest::item)
                             .map(item -> readAndTransformSingleItem(item,
                                                                     mappedTable.tableSchema(),
-                                                                    OperationContext.create(mappedTable.tableName()),
+                                                                    DefaultOperationContext.create(mappedTable.tableName()),
                                                                     mappedTable.mapperExtension()))
                             .collect(Collectors.toList());
     }

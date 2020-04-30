@@ -1,3 +1,36 @@
+# __2.13.7__ __2020-04-30__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for including AFD signaling in MXF wrapper.
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT Core released Fleet Provisioning for scalable onboarding of IoT devices to the cloud. This release includes support for customer's Lambda functions to validate devices during onboarding. Fleet Provisioning also allows devices to send Certificate Signing Requests (CSR) to AWS IoT Core for signing and getting a unique certificate. Lastly, AWS IoT Core added a feature to register the same certificate for multiple accounts in the same region without needing to register the certificate authority (CA).
+
+## __AWS IoT Events__
+  - ### Features
+    - Doc only update to correct APIs and related descriptions
+
+## __AWS Lambda__
+  - ### Features
+    - Documentation updates for Lambda
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for S3_INTELLIGENT_TIERING as a storage class option
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Made OperationContext a public interface and moved it into public namespace as it was already exposed through another public interface. This will only impact extensions that have been written to reference the old internal-only class that should now switch to the approved stable public interface.
+
+## __Schemas__
+  - ### Features
+    - Add support for resource policies for Amazon EventBridge Schema Registry, which is now generally available.
+
 # __2.13.6__ __2020-04-29__
 ## __AWS Cloud Map__
   - ### Features
