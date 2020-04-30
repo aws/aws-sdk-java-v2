@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Schemas",
-    "description": "Add support for resource policies for Amazon EventBridge Schema Registry, which is now generally available."
-}
