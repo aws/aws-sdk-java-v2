@@ -38,16 +38,6 @@ import software.amazon.awssdk.metrics.registry.MetricRegistry;
  */
 @SdkPublicApi
 public interface MetricPublisher extends AutoCloseable {
-
-    /**
-     * Registers the metric information supplied in MetricsRegistry. The reported metrics can be transformed and
-     * stored in a format the publisher uses to publish the metrics.
-     *
-     * This method is called at the end of each request execution to report all the metrics collected
-     * for that request (including retry attempt metrics)
-     */
-    void registerMetrics(MetricRegistry metricsRegistry);
-
     /**
      * Publish all metrics stored in the publisher. If all available metrics cannot be published in a single call,
      * multiple calls will be made to publish the metrics.
@@ -64,5 +54,5 @@ public interface MetricPublisher extends AutoCloseable {
      * Implementations can also call publish method for every reported metric. But this can be expensive and
      * is not recommended.
      */
-    CompletableFuture<Void> publish();
+    CompletableFuture<Void> publish(MetricEvents metricEvents);
 }

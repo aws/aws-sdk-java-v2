@@ -1,33 +1,50 @@
+# SDK Metrics System
 ## Concepts
 ### Metric
-* A representation of data collected
-* Metric can be one of the following types: Counter, Gauge, Timer
-* Metric can be associated to a category. Some of the metric categories are Default, HttpClient, Streaming etc
+* A measure of some aspect of the SDK. Examples include request latency, number
+  of pooled connections and retries executed.
 
-### MetricRegistry
+* A metric is associated to a category. Some of the metric categories are
+  `Default`, `HttpClient` and `Streaming`. This enables customers to enable
+  metrics only for categories they are interested in.
 
-* A MetricRegistry represent an interface to store the collected metric data. It can hold different types of Metrics
-  described above
-* MetricRegistry is generic and not tied to specific category (ApiCall, HttpClient etc) of metrics.
-* Each API call has it own instance of a MetricRegistry. All metrics collected in the ApiCall lifecycle are stored in
-  that instance.
-* A MetricRegistry can store other instances of same type. This can be used to store metrics for each Attempt in an Api
-  Call.
+Refer to the [Metrics List](./MetricsList.md) document for a complete list of
+standard metrics collected by the SDK.
+
+### Metric Events
+
+* `MetricEvents` is a typesafe collection of raw data from which metrics are
+  drawn. Depending on the metric, the data can be used directly or derived
+  from the collected data points.
+
+* `MetricEvents` objects allow for nesting. This enables events to be
+  collected in the context of other metric events. For example, for single
+  API call, there may be multiple request attempts if there are retries. Each
+  attempt's associated metric events can be stored in their own
+  `MetricEvents`.
+
+* Every unique event added to `MetricEvents` may only be added once. When a
+metric event is added, it cannot be modified, e.g. by overwriting the stored
+event data with a new one. Once an event has been recorded, it should not be
+possible to change it.
+
 * [Interface prototype](prototype/MetricRegistry.java)
 
 ### MetricPublisher
 
-* A MetricPublisher represent an interface to publish the collected metrics to a external source.
-* SDK provides implementations to publish metrics to services like [Amazon
-  CloudWatch](https://aws.amazon.com/cloudwatch/), [Client Side
-  Monitoring](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/sdk-metrics.html) (also known as AWS SDK
-  Metrics for Enterprise Support)
-* Customers can implement the interface and register the custom implementation to publish metrics to a platform not
-  supported in the SDK.
-* MetricPublishers can have different behaviors in terms of list of metrics to publish, publishing frequency,
+* A `MetricPublisher` publishes collected metrics to a system(s) outside of the
+  SDK. It takes a `MetricEvents` object, potentially transforms the data into
+  richer metrics, and also into a format the receiver expects.
+* By default, the SDK will provide implementations to publish metrics to [Amazon
+  CloudWatch](https://aws.amazon.com/cloudwatch/) and [Client Side
+  Monitoring](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/sdk-metrics.html)
+  (also known as AWS SDK Metrics for Enterprise Support).
+* Metrics publishers are pluggable within the SDK, allowing customers to
+  provide their own custom implementations.
+* Metric publishers can have different behaviors in terms of list of metrics to
+  publish, publishing frequency,
   configuration needed to publish etc.
-* Metrics can be explicitly published to the platform by calling publish() method. This can be useful in scenarios when
-  the application fails and customer wants to flush metrics before exiting the application.
+
 * [Interface prototype](prototype/MetricPublisher.java)
 
 ### Reporting
