@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "description": "Bugfix for handling special characters ':' and '#' in attribute names"
+}
