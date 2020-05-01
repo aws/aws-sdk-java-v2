@@ -1,0 +1,21 @@
+{
+    "version": "2.13.8",
+    "date": "2020-05-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "description": "Change the TagKeys argument for UntagResource to a URL parameter to address an issue with the Java and .NET SDKs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Added TimeoutSeconds as part of ListCommands API response."
+        }
+    ]
+}

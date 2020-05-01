@@ -1,3 +1,16 @@
+# __2.13.8__ __2020-05-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Change the TagKeys argument for UntagResource to a URL parameter to address an issue with the Java and .NET SDKs.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added TimeoutSeconds as part of ListCommands API response.
+
 # __2.13.7__ __2020-04-30__
 ## __AWS Elemental MediaConvert__
   - ### Features
