@@ -25,25 +25,49 @@ import software.amazon.awssdk.metrics.meter.Metric;
 import software.amazon.awssdk.metrics.meter.Timer;
 
 /**
- * Object used to store metric events collected by the SDK.
+ * An immutable object used to store metric events collected by the SDK.
  */
 @SdkPublicApi
 public interface MetricEvents {
     /**
-     * Add the given metric with associated data.
-     * @throws IllegalStateException If the given event is already present.
-     * @throws IllegalArgumentException If {@code eventData} is {@code null}.
-     */
-    <T> void putMetricEvent(MetricEvent<T> event, T eventData);
-
-    /**
      * Return the metric data associated with the given event. Returns {@code
      * null} if no event is found.
      */
-    <T> T getMetric(MetricEvent<T> event);
+    <T> T getMetricEventData(MetricEvent<T> event);
+
 
     /**
-     * Return the contained metric events.
+     * Return an iterator of the contained metric events and their data.
      */
-    Map<MetricEvent<?>, ?> getMetricEvents();
+    Iterator<MetricEventRecord<?>> getMetricEventsIterator();
+
+
+   /**
+    * A container associating an event with its data.
+    */
+   interface MetricEventRecord<T> {
+        MetricEvent<T> getEvent();
+        T getData();
+    }
+
+    /**
+     * Builder for a {@code MetricEvents}.
+     * <p>
+     * Implementations are not guaranteed to be threadsafe so external
+     * synchronzation must be used if being shared by multiple threads.
+     */
+    interface Builder {
+        /**
+         * Add the given metric with associated data.
+         *
+         * @throws IllegalArgumentException If the given event is already
+         * present, and or {@code eventData} is {@code null}.
+         */
+        <T> void putMetricEvent(MetricEvent<T> event, T eventData);
+
+        /**
+         * Build this {@code MetricEvents} object.
+         */
+        MetricEvents build();
+    }
 }
