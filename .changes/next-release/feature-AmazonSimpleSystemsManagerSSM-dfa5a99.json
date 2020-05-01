@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "Added TimeoutSeconds as part of ListCommands API response."
+}
