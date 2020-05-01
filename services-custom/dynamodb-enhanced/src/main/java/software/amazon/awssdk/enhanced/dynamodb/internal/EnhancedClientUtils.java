@@ -50,7 +50,11 @@ public final class EnhancedClientUtils {
         char[] chars = key.toCharArray();
 
         for (int i = 0; i < chars.length; ++i) {
-            if (chars[i] == '*' || chars[i] == '.' || chars[i] == '-') {
+            if (chars[i] == '*'
+                || chars[i] == '.'
+                || chars[i] == '-'
+                || chars[i] == '#'
+                || chars[i] == ':') {
                 chars[i] = '_';
                 somethingChanged = true;
             }
