@@ -37,18 +37,19 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtension;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ChainExtensionTest {
     private static final String TABLE_NAME = "concrete-table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+        DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
     private static final Map<String, AttributeValue> ATTRIBUTE_VALUES_1 =
         Collections.unmodifiableMap(Collections.singletonMap("key1", AttributeValue.builder().s("1").build()));
