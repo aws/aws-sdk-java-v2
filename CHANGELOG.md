@@ -1,3 +1,24 @@
+# __2.13.9__ __2020-05-04__
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 Batch Operations now supports Object Lock.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Bugfix for handling special characters ':' and '#' in attribute names
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - With this release, you can include enriched metadata in Amazon Virtual Private Cloud (Amazon VPC) flow logs published to Amazon CloudWatch Logs or Amazon Simple Storage Service (S3). Prior to this, custom format VPC flow logs enriched with additional metadata could be published only to S3. With this launch, we are also adding additional metadata fields that provide insights about the location such as AWS Region, AWS Availability Zone, AWS Local Zone, AWS Wavelength Zone, or AWS Outpost where the network interface where flow logs are captured exists.
+
 # __2.13.8__ __2020-05-01__
 ## __AWS SDK for Java v2__
   - ### Features

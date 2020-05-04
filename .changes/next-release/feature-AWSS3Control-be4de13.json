@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "description": "Amazon S3 Batch Operations now supports Object Lock."
-}
