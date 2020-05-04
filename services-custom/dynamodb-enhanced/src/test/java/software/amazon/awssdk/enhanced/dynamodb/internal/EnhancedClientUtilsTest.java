@@ -57,4 +57,11 @@ public class EnhancedClientUtilsTest {
         assertThat(key.partitionKeyValue()).isEqualTo(PARTITION_VALUE);
         assertThat(key.sortKeyValue()).isEqualTo(Optional.of(SORT_VALUE));
     }
+
+    @Test
+    public void cleanAttributeName_cleansSpecialCharacters() {
+        String result = EnhancedClientUtils.cleanAttributeName("a*b.c-d:e#f");
+        
+        assertThat(result).isEqualTo("a_b_c_d_e_f");
+    }
 }

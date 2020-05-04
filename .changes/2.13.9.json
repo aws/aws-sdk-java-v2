@@ -1,0 +1,31 @@
+{
+    "version": "2.13.9",
+    "date": "2020-05-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "description": "Amazon S3 Batch Operations now supports Object Lock."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "With this release, you can include enriched metadata in Amazon Virtual Private Cloud (Amazon VPC) flow logs published to Amazon CloudWatch Logs or Amazon Simple Storage Service (S3). Prior to this, custom format VPC flow logs enriched with additional metadata could be published only to S3. With this launch, we are also adding additional metadata fields that provide insights about the location such as AWS Region, AWS Availability Zone, AWS Local Zone, AWS Wavelength Zone, or AWS Outpost where the network interface where flow logs are captured exists."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "description": "Bugfix for handling special characters ':' and '#' in attribute names"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "description": "Documentation updates for Amazon API Gateway"
+        }
+    ]
+}
