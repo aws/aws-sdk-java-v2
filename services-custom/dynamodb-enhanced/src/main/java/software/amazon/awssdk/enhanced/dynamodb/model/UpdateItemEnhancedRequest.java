@@ -136,7 +136,7 @@ public final class UpdateItemEnhancedRequest<T> {
 
         /**
          * Defines a logical expression on an item's attribute values which, if evaluating to true,
-         * will allow the delete operation to succeed. If evaluating to false, the operation will not succeed.
+         * will allow the update operation to succeed. If evaluating to false, the operation will not succeed.
          * <p>
          * See {@link Expression} for condition syntax and examples.
          *
