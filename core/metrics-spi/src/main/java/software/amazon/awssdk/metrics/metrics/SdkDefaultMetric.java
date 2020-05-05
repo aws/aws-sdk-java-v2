@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
-import software.amazon.awssdk.metrics.meter.Metric;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -32,7 +31,7 @@ import software.amazon.awssdk.utils.ToString;
  */
 // TODO List is not complete
 @SdkPublicApi
-public enum SdkDefaultMetric implements Metric {
+public enum SdkDefaultMetric {
 
     /**
      * Service ID of the AWS service that the API request is made against
