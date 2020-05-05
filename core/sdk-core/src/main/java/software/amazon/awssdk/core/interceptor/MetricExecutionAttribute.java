@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.interceptor;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
 import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 
 /**
  * Contains attributes related to the metrics feature. This information is used to determine the metrics behavior.
@@ -29,18 +29,18 @@ import software.amazon.awssdk.metrics.registry.MetricRegistry;
 public final class MetricExecutionAttribute {
 
     /**
-     * The key to store the {@link MetricRegistry} for the ApiCall execution
+     * The key to store the {@link MetricEvents} for the ApiCall execution
      *
-     * @see MetricRegistry
+     * @see MetricEvents
      */
-    public static final ExecutionAttribute<MetricRegistry> METRIC_REGISTRY = new ExecutionAttribute<>("MetricRegistry");
+    public static final ExecutionAttribute<MetricEvents> METRIC_REGISTRY = new ExecutionAttribute<>("MetricRegistry");
 
     /**
-     * The key to store the {@link MetricRegistry} for an ApiCall Attempt
+     * The key to store the {@link MetricEvents} for an ApiCall Attempt
      *
-     * @see MetricRegistry
+     * @see MetricEvents
      */
-    public static final ExecutionAttribute<MetricRegistry> ATTEMPT_METRIC_REGISTRY =
+    public static final ExecutionAttribute<MetricEvents> ATTEMPT_METRIC_REGISTRY =
         new ExecutionAttribute<>("AttemptMetricRegistry");
 
     /**

@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.Retryable
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry, clock-skew and request throttling functionality.
@@ -63,7 +63,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
         RetryableStageHelper retryableStageHelper = new RetryableStageHelper(request, context, dependencies);
 
         while (true) {
-            MetricRegistry attemptRegistry = MetricUtils.newRegistry(context.executionAttributes());
+            MetricEvents attemptRegistry = MetricUtils.newRegistry(context.executionAttributes());
             Timer apiCallAttemptTimer = MetricUtils.timer(attemptRegistry, SdkDefaultMetric.API_CALL_ATTEMPT_LATENCY);
             apiCallAttemptTimer.start();
 

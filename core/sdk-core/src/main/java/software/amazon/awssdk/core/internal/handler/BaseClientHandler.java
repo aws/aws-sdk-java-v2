@@ -41,10 +41,10 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
-import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
-import software.amazon.awssdk.metrics.registry.MetricCategoryAwareRegistry;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
-import software.amazon.awssdk.metrics.registry.NoOpMetricRegistry;
+import software.amazon.awssdk.metrics.registry.DefaultMetricEvents;
+import software.amazon.awssdk.metrics.registry.MetricCategoryAwareEvents;
+import software.amazon.awssdk.metrics.MetricEvents;
+import software.amazon.awssdk.metrics.registry.NoOpMetricEvents;
 import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
@@ -296,32 +296,32 @@ public abstract class BaseClientHandler {
      * Register some constant metrics regarding the client and the API
      */
     protected void initializeMetrics(ExecutionContext executionContext) {
-        MetricRegistry metricRegistry;
+        MetricEvents metricEvents;
         MetricConfigurationProvider metricProvider = executionContext.executionAttributes()
                                                                      .getAttribute(MetricExecutionAttribute
                                                                                        .METRIC_CONFIGURATION_PROVIDER);
 
         if (metricProvider != null && metricProvider.enabled()) {
-            metricRegistry = MetricCategoryAwareRegistry.builder()
-                                                        .metricRegistry(DefaultMetricRegistry.create())
+            metricEvents = MetricCategoryAwareEvents.builder()
+                                                        .metricRegistry(DefaultMetricEvents.create())
                                                         .categories(metricProvider.metricCategories())
                                                         .build();
         } else {
-            metricRegistry = NoOpMetricRegistry.getInstance();
+            metricEvents = NoOpMetricEvents.getInstance();
         }
 
-        executionContext.executionAttributes().putAttribute(METRIC_REGISTRY, metricRegistry);
+        executionContext.executionAttributes().putAttribute(METRIC_REGISTRY, metricEvents);
 
         MetricUtils.registerConstantGauge(executionContext.executionAttributes()
                                                           .getAttribute(SdkExecutionAttribute.SERVICE_NAME),
-                                          metricRegistry,
+                metricEvents,
                                           SdkDefaultMetric.SERVICE);
 
         MetricUtils.registerConstantGauge(executionContext.executionAttributes()
                                                           .getAttribute(SdkExecutionAttribute.OPERATION_NAME),
-                                          metricRegistry,
+                metricEvents,
                                           SdkDefaultMetric.OPERATION);
 
-        MetricUtils.timer(metricRegistry, SdkDefaultMetric.API_CALL).start();
+        MetricUtils.timer(metricEvents, SdkDefaultMetric.API_CALL).start();
     }
 }

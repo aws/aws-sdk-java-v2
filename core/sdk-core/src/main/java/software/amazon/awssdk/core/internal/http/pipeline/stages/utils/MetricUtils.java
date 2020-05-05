@@ -29,11 +29,11 @@ import software.amazon.awssdk.metrics.meter.NoOpTimer;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
 import software.amazon.awssdk.metrics.registry.MetricBuilderParams;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
-import software.amazon.awssdk.metrics.registry.NoOpMetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
+import software.amazon.awssdk.metrics.registry.NoOpMetricEvents;
 
 /**
- * Helper class to register metrics in the {@link MetricRegistry} instances.
+ * Helper class to register metrics in the {@link MetricEvents} instances.
  */
 @SdkInternalApi
 public final class MetricUtils {
@@ -46,20 +46,20 @@ public final class MetricUtils {
      * If there is already a metric registered with {@link SdkDefaultMetric#name()}, the existing {@link Timer} instance is
      * returned.
      */
-    public static Timer timer(MetricRegistry metricRegistry, SdkDefaultMetric metric) {
-        if (metricRegistry instanceof NoOpMetricRegistry) {
+    public static Timer timer(MetricEvents metricEvents, SdkDefaultMetric metric) {
+        if (metricEvents instanceof NoOpMetricEvents) {
             return NoOpTimer.instance();
         }
 
-        return metricRegistry.timer(metric.name(), metricBuilderParams(metric));
+        return metricEvents.timer(metric.name(), metricBuilderParams(metric));
     }
 
-    public static Timer startTimer(MetricRegistry metricRegistry, SdkDefaultMetric metric) {
-        if (metricRegistry instanceof NoOpMetricRegistry) {
+    public static Timer startTimer(MetricEvents metricEvents, SdkDefaultMetric metric) {
+        if (metricEvents instanceof NoOpMetricEvents) {
             return NoOpTimer.instance();
         }
 
-        Timer timer = metricRegistry.timer(metric.name(), metricBuilderParams(metric));
+        Timer timer = metricEvents.timer(metric.name(), metricBuilderParams(metric));
         timer.start();
 
         return timer;
@@ -70,36 +70,36 @@ public final class MetricUtils {
      * If there is already a metric registered with {@link SdkDefaultMetric#name()}, the existing {@link Counter} instance is
      * returned.
      */
-    public static Counter counter(MetricRegistry metricRegistry, SdkDefaultMetric metric) {
-        if (metricRegistry instanceof NoOpMetricRegistry) {
+    public static Counter counter(MetricEvents metricEvents, SdkDefaultMetric metric) {
+        if (metricEvents instanceof NoOpMetricEvents) {
             return NoOpCounter.instance();
         }
 
-        return metricRegistry.counter(metric.name(), metricBuilderParams(metric));
+        return metricEvents.counter(metric.name(), metricBuilderParams(metric));
     }
 
     /**
      * Register a {@link ConstantGauge} in the #metricRegistry. Throws an error if there is already a metric registered with
      * same {@link SdkDefaultMetric#name()}.
      */
-    public static <T> Gauge<T> registerConstantGauge(T value, MetricRegistry metricRegistry, SdkDefaultMetric metric) {
-        if (metricRegistry instanceof NoOpMetricRegistry) {
+    public static <T> Gauge<T> registerConstantGauge(T value, MetricEvents metricEvents, SdkDefaultMetric metric) {
+        if (metricEvents instanceof NoOpMetricEvents) {
             return NoOpGauge.instance();
         }
 
-        return (ConstantGauge<T>) metricRegistry.register(metric.name(), ConstantGauge.builder()
+        return (ConstantGauge<T>) metricEvents.register(metric.name(), ConstantGauge.builder()
                                                                                           .value(value)
                                                                                           .categories(metric.categories())
                                                                                           .build());
     }
 
-    public static MetricRegistry newRegistry(ExecutionAttributes executionAttributes) {
-        MetricRegistry apiCallMR = executionAttributes.getAttribute(METRIC_REGISTRY);
+    public static MetricEvents newRegistry(ExecutionAttributes executionAttributes) {
+        MetricEvents apiCallMR = executionAttributes.getAttribute(METRIC_REGISTRY);
         MetricUtils.counter(apiCallMR, SdkDefaultMetric.API_CALL_ATTEMPT_COUNT)
                    .increment();
 
         // From now on, downstream calls should use this attempt metric registry to record metrics
-        MetricRegistry attemptMR = apiCallMR.registerApiCallAttemptMetrics();
+        MetricEvents attemptMR = apiCallMR.registerApiCallAttemptMetrics();
         executionAttributes.putAttribute(ATTEMPT_METRIC_REGISTRY, attemptMR);
         return attemptMR;
     }

@@ -34,8 +34,8 @@ import software.amazon.awssdk.metrics.meter.Counter;
 import software.amazon.awssdk.metrics.meter.Gauge;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
-import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.registry.DefaultMetricEvents;
+import software.amazon.awssdk.metrics.MetricEvents;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
@@ -74,7 +74,7 @@ public class MetricTransformerTest {
         String counterName = "counter";
         String gaugeName = "gauge";
 
-        MetricRegistry registry = DefaultMetricRegistry.create();
+        MetricEvents registry = DefaultMetricEvents.create();
         addRequiredDimensions(registry);
         registry.register(timer1, timer);
         registry.register(timer2, timer);
@@ -109,10 +109,10 @@ public class MetricTransformerTest {
 
     @Test
     public void transform_DoesNot_Convert_AttemptMetrics() {
-        MetricRegistry registry = DefaultMetricRegistry.create();
+        MetricEvents registry = DefaultMetricEvents.create();
         addRequiredDimensions(registry);
 
-        MetricRegistry attemptMR = registry.registerApiCallAttemptMetrics();
+        MetricEvents attemptMR = registry.registerApiCallAttemptMetrics();
         attemptMR.register("counter", counter);
 
         List<MetricDatum> datums = transformer.transform(registry).stream()
@@ -123,7 +123,7 @@ public class MetricTransformerTest {
         assertThat(datums).isEmpty();
     }
 
-    private void addRequiredDimensions(MetricRegistry registry) {
+    private void addRequiredDimensions(MetricEvents registry) {
         MetricUtils.registerConstantGauge(SERVICE, registry, SdkDefaultMetric.SERVICE);
         MetricUtils.registerConstantGauge(OPERATION, registry, SdkDefaultMetric.OPERATION);
     }

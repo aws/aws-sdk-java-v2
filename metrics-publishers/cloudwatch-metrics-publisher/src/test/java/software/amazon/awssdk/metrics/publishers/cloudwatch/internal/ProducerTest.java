@@ -25,9 +25,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
+import software.amazon.awssdk.metrics.registry.DefaultMetricEvents;
 import software.amazon.awssdk.metrics.registry.MetricBuilderParams;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -35,7 +35,7 @@ public class ProducerTest {
     private static final int CAPACITY = 3;
 
     @Mock
-    private MetricRegistry metricRegistry;
+    private MetricEvents metricEvents;
 
     private BlockingQueue<MetricDatum> queue;
     private MetricProducer producer;
@@ -47,22 +47,22 @@ public class ProducerTest {
                                  .queue(queue)
                                  .build();
 
-        metricRegistry = DefaultMetricRegistry.create();
+        metricEvents = DefaultMetricEvents.create();
     }
 
     @Test
     public void addMetrics_withinQueueCapacity() {
         MetricBuilderParams params = MetricBuilderParams.builder().build();
-        IntStream.range(0, CAPACITY - 1).forEach(i -> metricRegistry.counter("m" + i, params).increment());
-        producer.addMetrics(metricRegistry);
+        IntStream.range(0, CAPACITY - 1).forEach(i -> metricEvents.counter("m" + i, params).increment());
+        producer.addMetrics(metricEvents);
         assertThat(queue.size()).isEqualTo(CAPACITY - 1);
     }
 
     @Test
     public void addMetrics_onlyAddMetrics_upToQueueCapacity() {
         MetricBuilderParams params = MetricBuilderParams.builder().build();
-        IntStream.range(0, CAPACITY + 1).forEach(i -> metricRegistry.counter("m" + i, params).increment());
-        producer.addMetrics(metricRegistry);
+        IntStream.range(0, CAPACITY + 1).forEach(i -> metricEvents.counter("m" + i, params).increment());
+        producer.addMetrics(metricEvents);
         assertThat(queue.size()).isEqualTo(CAPACITY);
     }
 }

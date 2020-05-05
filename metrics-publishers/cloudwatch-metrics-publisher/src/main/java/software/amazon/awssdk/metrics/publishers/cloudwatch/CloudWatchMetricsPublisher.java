@@ -31,7 +31,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.metrics.publisher.MetricPublisher;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.MetricConsumer;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.MetricProducer;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
@@ -93,7 +93,7 @@ public final class CloudWatchMetricsPublisher implements MetricPublisher {
      * @param metricsRegistry registry containing the collected metrics
      */
     @Override
-    public void registerMetrics(MetricRegistry metricsRegistry) {
+    public void registerMetrics(MetricEvents metricsRegistry) {
         try {
             if (publishStarted.compareAndSet(false, true)) {
                 consumerExecutorService.scheduleAtFixedRate(this::publish,

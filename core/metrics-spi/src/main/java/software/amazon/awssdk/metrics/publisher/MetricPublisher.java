@@ -17,7 +17,7 @@ package software.amazon.awssdk.metrics.publisher;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -46,7 +46,7 @@ public interface MetricPublisher extends SdkAutoCloseable {
      * for that request (including retry attempt metrics)
      * </p>
      */
-    void registerMetrics(MetricRegistry metricsRegistry);
+    void registerMetrics(MetricEvents metricsRegistry);
 
     /**
      * Publish all metrics stored in the publisher. If all available metrics cannot be published in a single call,

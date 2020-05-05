@@ -25,13 +25,13 @@ import software.amazon.awssdk.metrics.meter.Gauge;
 import software.amazon.awssdk.metrics.meter.Metric;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 
 /**
- * Helper class to transform the {@link MetricRegistry} instances into a list
+ * Helper class to transform the {@link MetricEvents} instances into a list
  * of CloudWatch {@link MetricDatum} objects.
  */
 @SdkInternalApi
@@ -46,15 +46,15 @@ public final class MetricTransformer {
     }
 
     /**
-     * Convert the metrics returned by {@link MetricRegistry#metrics()} into list of {@link MetricDatum}s.
+     * Convert the metrics returned by {@link MetricEvents#metrics()} into list of {@link MetricDatum}s.
      */
-    public List<MetricDatum> transform(MetricRegistry metricRegistry) {
+    public List<MetricDatum> transform(MetricEvents metricEvents) {
         List<MetricDatum> results = new ArrayList<>();
 
-        Optional<String> service = getValueFromGauge(metricRegistry, SdkDefaultMetric.SERVICE);
-        Optional<String> operation = getValueFromGauge(metricRegistry, SdkDefaultMetric.OPERATION);
+        Optional<String> service = getValueFromGauge(metricEvents, SdkDefaultMetric.SERVICE);
+        Optional<String> operation = getValueFromGauge(metricEvents, SdkDefaultMetric.OPERATION);
 
-        for (Map.Entry<String, Metric> entry : metricRegistry.metrics().entrySet()) {
+        for (Map.Entry<String, Metric> entry : metricEvents.metrics().entrySet()) {
             Metric metric = entry.getValue();
             MetricDatum.Builder builder = MetricDatum.builder()
                                                      .metricName(entry.getKey())
@@ -78,7 +78,7 @@ public final class MetricTransformer {
         return results;
     }
 
-    private Optional<String> getValueFromGauge(MetricRegistry registry, SdkDefaultMetric sdkMetric) {
+    private Optional<String> getValueFromGauge(MetricEvents registry, SdkDefaultMetric sdkMetric) {
         return registry.metric(sdkMetric.name())
                        .filter(metric -> metric instanceof Gauge)
                        .map(metric -> (String) ((Gauge) metric).value());

@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricsPublisher;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Helper class to convert metrics in {@link MetricRegistry} instances into {@link MetricDatum}s and
+ * Helper class to convert metrics in {@link MetricEvents} instances into {@link MetricDatum}s and
  * add them to the queue used by {@link CloudWatchMetricsPublisher}.
  */
 @SdkInternalApi
@@ -42,15 +42,15 @@ public final class MetricProducer {
 
     /**
      * Add the metrics (both top-level and perAttempt metrics) to the {@link #queue}.
-     * @param metricRegistry
+     * @param metricEvents
      */
-    public void addMetrics(MetricRegistry metricRegistry) {
+    public void addMetrics(MetricEvents metricEvents) {
         try {
             List<MetricDatum> results = new ArrayList<>();
 
-            results.addAll(metricTransformer.transform(metricRegistry));
+            results.addAll(metricTransformer.transform(metricEvents));
 
-            for (MetricRegistry mr : metricRegistry.apiCallAttemptMetrics()) {
+            for (MetricEvents mr : metricEvents.apiCallAttemptMetrics()) {
                 results.addAll(metricTransformer.transform(mr));
             }
 

@@ -32,8 +32,8 @@ import software.amazon.awssdk.metrics.meter.Counter;
 import software.amazon.awssdk.metrics.meter.DefaultGauge;
 import software.amazon.awssdk.metrics.meter.Gauge;
 import software.amazon.awssdk.metrics.meter.LongCounter;
-import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.registry.DefaultMetricEvents;
+import software.amazon.awssdk.metrics.MetricEvents;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
@@ -87,11 +87,11 @@ public class CloudWatchPublisherTest extends AwsTestBase {
         });
     }
 
-    private MetricRegistry createRegistry() {
-        MetricRegistry registry = DefaultMetricRegistry.create();
+    private MetricEvents createRegistry() {
+        MetricEvents registry = DefaultMetricEvents.create();
         IntStream.range(0, 5).forEach(i -> registry.register("counter" + i, counter()));
 
-        MetricRegistry attemptMr = registry.registerApiCallAttemptMetrics();
+        MetricEvents attemptMr = registry.registerApiCallAttemptMetrics();
         IntStream.range(0, 5).forEach(i -> attemptMr.register("gauge" + i, gauge()));
 
         return registry;

@@ -36,7 +36,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.Retryable
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
@@ -97,7 +97,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                 return;
             }
 
-            MetricRegistry attemptRegistry = MetricUtils.newRegistry(context.executionAttributes());
+            MetricEvents attemptRegistry = MetricUtils.newRegistry(context.executionAttributes());
             Timer apiCallAttemptTimer = MetricUtils.timer(attemptRegistry, SdkDefaultMetric.API_CALL_ATTEMPT_LATENCY);
             apiCallAttemptTimer.start();
 

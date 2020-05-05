@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
 import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
-import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.MetricEvents;
 
 /**
  * Execution Interceptor to report metrics to the registered publishers after finishing the Api Call
@@ -45,7 +45,7 @@ public final class MetricsExecutionInterceptor implements ExecutionInterceptor {
 
     // Handle logic to report event after finishing the request execution
     private void afterFinalApiCall(ExecutionAttributes executionAttributes) {
-        MetricRegistry registry = executionAttributes.getAttribute(METRIC_REGISTRY);
+        MetricEvents registry = executionAttributes.getAttribute(METRIC_REGISTRY);
 
         MetricConfigurationProvider configurationProvider = executionAttributes.getAttribute(METRIC_CONFIGURATION_PROVIDER);
         MetricPublisherConfiguration publisherConfiguration = executionAttributes.getAttribute(METRIC_PUBLISHER_CONFIGURATION);
