@@ -1,0 +1,5 @@
+{
+    "category": "Amazon DynamoDB", 
+    "type": "bugfix", 
+    "description": "Tweaked the javadocs for Get/Update, since it was previously wrongfully copied over from Delete and mentions the \"delete operation\"."
+}
