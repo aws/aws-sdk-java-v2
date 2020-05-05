@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDJ for Java v2", 
-    "type": "feature", 
-    "description": "Updating dependency version: Jackson 2.10.3 -> 2.10.4, and combine dependency Jackson-annotations with Jackson."
-}
