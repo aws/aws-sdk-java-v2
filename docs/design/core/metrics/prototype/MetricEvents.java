@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics.registry;
+package software.amazon.awssdk.metrics;
 
 import java.util.List;
 import java.util.Map;
@@ -28,27 +28,18 @@ import software.amazon.awssdk.metrics.meter.Timer;
  * An immutable object used to store metric events collected by the SDK.
  */
 @SdkPublicApi
-public interface MetricEvents {
+public interface MetricEvents extends Iterable<MetricEventRecord<?>> {
     /**
      * Return the metric data associated with the given event. Returns {@code
      * null} if no event is found.
      */
     <T> T getMetricEventData(MetricEvent<T> event);
 
-
     /**
      * Return an iterator of the contained metric events and their data.
      */
-    Iterator<MetricEventRecord<?>> getMetricEventsIterator();
-
-
-   /**
-    * A container associating an event with its data.
-    */
-   interface MetricEventRecord<T> {
-        MetricEvent<T> getEvent();
-        T getData();
-    }
+    @Override
+    Iterator<MetricEventRecord<?>> iterator();
 
     /**
      * Builder for a {@code MetricEvents}.

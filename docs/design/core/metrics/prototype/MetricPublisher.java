@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics.publisher;
+package software.amazon.awssdk.metrics;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -65,19 +65,14 @@ public interface MetricPublisher extends AutoCloseable {
      * avoid blocking the calling thread.
      * <p>
      * With the exception of a {@code null} {@code metricEvents}, all
-     * invocations of this method must return normally. The only legal way to
-     * report an error is by completing the returned future exceptionally. This
-     * is to ensure that callers of the publisher can safely assume that even
-     * in situations where an error happens during publishing that it will not
-     * interrupt the calling thread.
-     * <p>
-     * The future is completed when the metrics calculated or otherwise derived
-     * from the given {@code metricEvents} have been published.
+     * invocations of this method must return normally. This is to ensure that
+     * callers of the publisher can safely assume that even in situations where
+     * an error happens during publishing that it will not interrupt the calling
+     * thread.
      *
-     * @return A future representing the publishing of the given metric events.
      * @throws IllegalArgumentException If {@code metricEvents} is {@code null}.
      */
-    CompletableFuture<Void> consume(MetricEvents metricEvents);
+    void consume(MetricEvents metricEvents);
 
     /**
      * Close this publisher, allowing it to free any resources it holds and
