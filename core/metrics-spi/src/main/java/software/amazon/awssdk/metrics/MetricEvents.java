@@ -53,7 +53,7 @@ public interface MetricEvents extends Iterable<MetricEventRecord<?>> {
          * @throws IllegalArgumentException If the given event is already
          * present, and or {@code eventData} is {@code null}.
          */
-        <T> void putMetricEvent(MetricEvent<T> event, T eventData);
+        <T> Builder putMetricEvent(MetricEvent<T> event, T eventData);
 
         /**
          * Build this {@code MetricEvents} object.

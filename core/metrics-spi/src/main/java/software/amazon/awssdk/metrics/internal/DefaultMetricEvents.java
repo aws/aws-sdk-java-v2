@@ -52,10 +52,11 @@ public final class DefaultMetricEvents implements MetricEvents {
         private Map<MetricEvent<?>, MetricEventRecord<?>> events = new LinkedHashMap<>();
 
         @Override
-        public <T> void putMetricEvent(MetricEvent<T> event, T eventData) {
+        public <T> Builder putMetricEvent(MetricEvent<T> event, T eventData) {
             Validate.notNull(event, "event must not be null");
-            Validate.notNull(eventData, "eventData not be null");
+            Validate.notNull(eventData, "eventData must not be null");
             events.put(event, new DefaultMetricEventRecord<>(event, eventData));
+            return this;
         }
 
         @Override

@@ -15,25 +15,23 @@
 
 package software.amazon.awssdk.metrics.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
+import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricEvent;
 import software.amazon.awssdk.metrics.MetricEventRecord;
 
-public class DefaultMetricEventRecord<T> implements MetricEventRecord<T> {
-    private final MetricEvent<T> event;
-    private final T data;
+/**
+ * Tests for {@link DefaultMetricEventRecord}.
+ */
+public class DefaultMetricEventRecordTest {
+    @Test
+    public void testGetters() {
+        MetricEvent<Integer> event = MetricEvent.of("foo", Integer.class, MetricCategory.DEFAULT);
 
-    public DefaultMetricEventRecord(MetricEvent<T> event, T data) {
-        this.event = event;
-        this.data = data;
-    }
+        MetricEventRecord<Integer> record = new DefaultMetricEventRecord<>(event, 2);
 
-    @Override
-    public MetricEvent<T> getEvent() {
-        return event;
-    }
-
-    @Override
-    public T getData() {
-        return data;
+        assertThat(record.getEvent()).isEqualTo(event);
+        assertThat(record.getData()).isEqualTo(2);
     }
 }
