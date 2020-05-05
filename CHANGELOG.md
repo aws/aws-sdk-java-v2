@@ -1,3 +1,24 @@
+# __2.13.10__ __2020-05-05__
+## __AWS SDJ for Java v2__
+  - ### Features
+    - Updating dependency version: Jackson 2.10.3 -> 2.10.4, and combine dependency Jackson-annotations with Jackson.
+
+## __AWS Support__
+  - ### Features
+    - Documentation updates for support
+
+## __Amazon DynamoDB__
+  - ### Bugfixes
+    - Tweaked the javadocs for Get/Update, since it was previously wrongfully copied over from Delete and mentions the "delete operation".
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - With this release, you can call ModifySubnetAttribute with two new parameters: MapCustomerOwnedIpOnLaunch and CustomerOwnedIpv4Pool, to map a customerOwnedIpv4Pool to a subnet. You will also see these two new fields in the DescribeSubnets response. If your subnet has a customerOwnedIpv4Pool mapped, your network interface will get an auto assigned customerOwnedIpv4 address when placed onto an instance.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager Parameter Store launches new data type to support aliases in EC2 APIs
+
 # __2.13.9__ __2020-05-04__
 ## __AWS S3 Control__
   - ### Features
