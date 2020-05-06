@@ -80,7 +80,6 @@ public abstract class S3AsyncStabilityTest extends S3BaseStabilityTest {
     }
 
     protected void putObject() {
-        LOGGER.info(() -> "Starting to test putObject");
         byte[] bytes = RandomStringUtils.randomAlphanumeric(10_000).getBytes();
 
         IntFunction<CompletableFuture<?>> future = i -> {
@@ -97,7 +96,7 @@ public abstract class S3AsyncStabilityTest extends S3BaseStabilityTest {
                            .delaysBetweenEachRun(Duration.ofMillis(100))
                            .run();
     }
-
+    
     protected AtomicInteger futuresCreated = new AtomicInteger(0);
     protected AtomicInteger futuresCompleted = new AtomicInteger(0);
 
@@ -114,15 +113,14 @@ public abstract class S3AsyncStabilityTest extends S3BaseStabilityTest {
                 int completeCount = futuresCompleted.incrementAndGet();
                 LOGGER.info(() -> String.format("Completed %d futures", completeCount));
             });
-            //return getFuture;
         };
 
         StabilityTestRunner.newRunner()
-                           .testName("S3AsyncStabilityTest.getObject")
-                           .futureFactory(future)
-                           .requestCountPerRun(CONCURRENCY)
-                           .totalRuns(TOTAL_RUNS)
-                           .delaysBetweenEachRun(Duration.ofMillis(100))
-                           .run();
+                .testName("S3AsyncStabilityTest.getObject")
+                .futureFactory(future)
+                .requestCountPerRun(CONCURRENCY)
+                .totalRuns(TOTAL_RUNS)
+                .delaysBetweenEachRun(Duration.ofMillis(100))
+                .run();
     }
 }

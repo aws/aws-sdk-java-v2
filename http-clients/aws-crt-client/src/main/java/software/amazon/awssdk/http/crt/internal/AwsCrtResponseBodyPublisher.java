@@ -149,7 +149,6 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
          * Since we buffer, in the case where the subscriber came in after the publication has already begun,
          * go ahead and flush what we have.
          */
-        log.info(() -> String.format("request %d more body buffers, outstanding %d", n, outstandingReqs));
         publishToSubscribers();
 
         log.trace(() -> "Subscriber Requested more Buffers. Outstanding Requests: " + outstandingReqs);
@@ -166,7 +165,6 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
          * subscriberRef must set to null due to ReactiveStream Spec stating references to Subscribers must be deleted
          * when onCancel() is called.
          */
-        log.info(() -> "Cancelling subscriber");
         subscriberRef.set(null);
     }
 
@@ -195,15 +193,12 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
     protected void completeSubscriptionExactlyOnce() {
         boolean alreadyComplete = isSubscriptionComplete.getAndSet(true);
 
-        log.info(() -> "Response Body Publisher complete exactly once.");
         if (alreadyComplete) {
-            log.info(() -> "Response Body Publisher already complete?!");
             return;
         }
 
         // Subscriber may have cancelled their subscription, in which case this may be null.
         Optional<Subscriber<? super ByteBuffer>> subscriber = Optional.ofNullable(subscriberRef.getAndSet(null));
-        log.info(() -> subscriber.isPresent() ? "ResponseBodyPublisher Subscriber present" : "ResponseBodyPublisher Subscriber not present");
 
         Throwable throwable = error.get();
 
@@ -216,7 +211,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             subscriber.ifPresent(s -> s.onError(throwable));
             responseComplete.completeExceptionally(throwable);
         } else {
-            log.info(() -> "ResponseBodyPublisher Completed Successfully");
+            log.debug(() -> "ResponseBodyPublisher Completed Successfully");
             subscriber.ifPresent(s -> s.onComplete());
             responseComplete.complete(null);
         }
@@ -231,47 +226,46 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * calling queuedBuffers.poll(), but then have the 2nd thread call subscriber.onNext(buffer) first, resulting in the
      * subscriber seeing out-of-order data. To avoid this race condition, this method must be synchronized.
      */
-    protected synchronized void publishToSubscribers() {
-        log.info(()->"publishToSubscribers");
+    protected void publishToSubscribers() {
+        synchronized(this) {
+            if (error.get() != null) {
+                completeSubscriptionExactlyOnce();
+                return;
+            }
 
-        if (error.get() != null) {
-            completeSubscriptionExactlyOnce();
-            return;
-        }
+            if (isSubscriptionComplete.get() || isCancelled.get()) {
+                log.debug(() -> "Subscription already completed or cancelled, can't publish updates to Subscribers.");
+                return;
+            }
 
-        if (isSubscriptionComplete.get() || isCancelled.get()) {
-            log.warn(() -> "Subscription already completed or cancelled, can't publish updates to Subscribers.");
-            return;
-        }
+            if (mutualRecursionDepth.get() > 0) {
+                /**
+                 * If our depth is > 0, then we already made a call to publishToSubscribers() further up the stack that
+                 * will continue publishing to subscribers, and this call should return without completing work to avoid
+                 * infinite recursive loop between: "subscription.request() -> subscriber.onNext() -> subscription.request()"
+                 */
+                return;
+            }
 
-        if (mutualRecursionDepth.get() > 0) {
-            /**
-             * If our depth is > 0, then we already made a call to publishToSubscribers() further up the stack that
-             * will continue publishing to subscribers, and this call should return without completing work to avoid
-             * infinite recursive loop between: "subscription.request() -> subscriber.onNext() -> subscription.request()"
-             */
-            return;
-        }
+            int totalAmountTransferred = 0;
 
-        int totalAmountTransferred = 0;
+            while (outstandingRequests.get() > 0 && !queuedBuffers.isEmpty()) {
+                byte[] buffer = queuedBuffers.poll();
+                outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
+                int amount = buffer.length;
+                publishWithoutMutualRecursion(subscriberRef.get(), ByteBuffer.wrap(buffer));
+                totalAmountTransferred += amount;
+            }
 
-        while (outstandingRequests.get() > 0 && !queuedBuffers.isEmpty()) {
-            byte[] buffer = queuedBuffers.poll();
-            outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
-            int amount = buffer.length;
-            log.info(()->String.format("publishWithoutMutualRecursion %d bytes", amount));
-            publishWithoutMutualRecursion(subscriberRef.get(), ByteBuffer.wrap(buffer));
-            totalAmountTransferred += amount;
-        }
+            if (totalAmountTransferred > 0) {
+                queuedBytes.addAndGet(-totalAmountTransferred);
 
-        if (totalAmountTransferred > 0) {
-            queuedBytes.addAndGet(-totalAmountTransferred);
-
-            // We may have released the Native HttpConnection and HttpStream if they completed before the Subscriber
-            // has finished reading the data.
-            if (!areNativeResourcesReleased.get()) {
-                // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
-                stream.incrementWindow(totalAmountTransferred);
+                // We may have released the Native HttpConnection and HttpStream if they completed before the Subscriber
+                // has finished reading the data.
+                if (!areNativeResourcesReleased.get()) {
+                    // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
+                    stream.incrementWindow(totalAmountTransferred);
+                }
             }
         }
 
@@ -296,7 +290,6 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
              */
             int depth = mutualRecursionDepth.getAndIncrement();
             if (depth == 0) {
-                log.info(()->"subscriber.onNext");
                 subscriber.onNext(buffer);
             }
         } finally {
