@@ -65,14 +65,10 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      */
     public AwsCrtResponseBodyPublisher(HttpClientConnection connection, HttpStream stream,
                                        CompletableFuture<Void> responseComplete, int windowSize) {
-        Validate.notNull(connection, "HttpConnection must not be null");
-        Validate.notNull(stream, "Stream must not be null");
-        Validate.notNull(responseComplete, "Stream must not be null");
-        Validate.isPositive(windowSize, "windowSize must be > 0");
-        this.connection = connection;
-        this.stream = stream;
-        this.responseComplete = responseComplete;
-        this.windowSize = windowSize;
+        this.connection = Validate.notNull(connection, "HttpConnection must not be null");;
+        this.stream = Validate.notNull(stream, "Stream must not be null");;
+        this.responseComplete = Validate.notNull(responseComplete, "ResponseComplete future must not be null");;
+        this.windowSize = Validate.isPositive(windowSize, "windowSize must be > 0");;
     }
 
     /**
