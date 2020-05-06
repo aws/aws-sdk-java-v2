@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
-import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
@@ -104,8 +103,21 @@ public final class IntermediateModel {
         return shapes;
     }
 
-    public ShapeModel getShapeByC2jName(String c2jName) {
-        return Utils.findShapeModelByC2jName(this, c2jName);
+    /**
+     * Looks up a shape by name and verifies that the expected C2J name matches
+     * @param shapeName the name of the shape in the intermediate model
+     * @param shapeC2jName C2J's name for the shape
+     * @return the ShapeModel
+     * @throws IllegalArgumentException if no matching shape is found
+     */
+    public ShapeModel getShapeByNameAndC2jName(String shapeName, String shapeC2jName) {
+        for (ShapeModel sm : getShapes().values()) {
+            if (shapeName.equals(sm.getShapeName()) && shapeC2jName.equals(sm.getC2jName())) {
+                return sm;
+            }
+        }
+        throw new IllegalArgumentException("C2J shape " + shapeC2jName + " with shape name " + shapeName + " does not exist in "
+                                           + "the intermediate model.");
     }
 
     public CustomizationConfig getCustomizationConfig() {
