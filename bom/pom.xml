@@ -420,6 +420,11 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
+                <artifactId>dynamodb-enhanced</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>ec2</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
