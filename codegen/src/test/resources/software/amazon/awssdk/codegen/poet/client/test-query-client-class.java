@@ -182,7 +182,7 @@ final class DefaultQueryClient implements QueryClient {
      * @param streamingOutputOperationRequest
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
+     *        StreamingOutputOperationResponse and an InputStream to the response content are provided as parameters to
      *        the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
