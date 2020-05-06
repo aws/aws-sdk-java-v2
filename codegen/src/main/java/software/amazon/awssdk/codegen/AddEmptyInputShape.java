@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen;
 
-import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Utils.createInputShapeMarshaller;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
@@ -62,7 +61,7 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
 
             Input input = operation.getInput();
             if (input == null) {
-                String inputShape = operationName + REQUEST_CLASS_SUFFIX;
+                String inputShape = namingStrategy.getRequestClassName(operationName);
                 OperationModel operationModel = javaOperationMap.get(operationName);
 
                 operationModel.setInput(new VariableModel(unCapitalize(inputShape), inputShape));

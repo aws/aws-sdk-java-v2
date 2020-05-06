@@ -50,6 +50,8 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     private static Logger log = Logger.loggerFor(DefaultNamingStrategy.class);
 
+    private static final String COLLISION_DISAMBIGUATION_PREFIX = "Default";
+
     private static final Set<String> RESERVED_KEYWORDS;
 
     private static final Set<String> RESERVED_EXCEPTION_METHOD_NAMES;
@@ -191,23 +193,39 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getExceptionName(String errorShapeName) {
+        String baseName;
         if (errorShapeName.endsWith(FAULT_CLASS_SUFFIX)) {
-            return pascalCase(errorShapeName.substring(0, errorShapeName.length() - FAULT_CLASS_SUFFIX.length())) +
+            baseName = pascalCase(errorShapeName.substring(0, errorShapeName.length() - FAULT_CLASS_SUFFIX.length())) +
                               EXCEPTION_CLASS_SUFFIX;
         } else if (errorShapeName.endsWith(EXCEPTION_CLASS_SUFFIX)) {
-            return pascalCase(errorShapeName);
+            baseName = pascalCase(errorShapeName);
+        } else {
+            baseName = pascalCase(errorShapeName) + EXCEPTION_CLASS_SUFFIX;
         }
-        return pascalCase(errorShapeName) + EXCEPTION_CLASS_SUFFIX;
+        if (baseName.equals(getServiceName() + EXCEPTION_CLASS_SUFFIX)) {
+            return COLLISION_DISAMBIGUATION_PREFIX + baseName;
+        }
+        return baseName;
     }
 
     @Override
     public String getRequestClassName(String operationName) {
-        return pascalCase(operationName) + REQUEST_CLASS_SUFFIX;
+        String baseName = pascalCase(operationName) + REQUEST_CLASS_SUFFIX;
+        if (!operationName.equals(getServiceName())) {
+            return baseName;
+        }
+
+        return COLLISION_DISAMBIGUATION_PREFIX + baseName;
     }
 
     @Override
     public String getResponseClassName(String operationName) {
-        return pascalCase(operationName) + RESPONSE_CLASS_SUFFIX;
+        String baseName = pascalCase(operationName) + RESPONSE_CLASS_SUFFIX;
+        if (!operationName.equals(getServiceName())) {
+            return baseName;
+        }
+
+        return COLLISION_DISAMBIGUATION_PREFIX + baseName;
     }
 
     @Override
