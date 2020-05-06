@@ -1,3 +1,16 @@
+# __2.13.11__ __2020-05-06__
+## __AWS CodeStar connections__
+  - ### Features
+    - Added support for tagging resources in AWS CodeStar Connections
+
+## __AWS Comprehend Medical__
+  - ### Features
+    - New Batch Ontology APIs for ICD-10 and RxNorm will provide batch capability of linking the information extracted by Comprehend Medical to medical ontologies. The new ontology linking APIs make it easy to detect medications and medical conditions in unstructured clinical text and link them to RxNorm and ICD-10-CM codes respectively. This new feature can help you reduce the cost, time and effort of processing large amounts of unstructured medical text with high accuracy.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.13.10__ __2020-05-05__
 ## __AWS SDJ for Java v2__
   - ### Features
