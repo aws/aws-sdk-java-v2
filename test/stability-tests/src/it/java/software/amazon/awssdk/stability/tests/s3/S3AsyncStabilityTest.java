@@ -96,7 +96,7 @@ public abstract class S3AsyncStabilityTest extends S3BaseStabilityTest {
                            .delaysBetweenEachRun(Duration.ofMillis(100))
                            .run();
     }
-    
+
     protected AtomicInteger futuresCreated = new AtomicInteger(0);
     protected AtomicInteger futuresCompleted = new AtomicInteger(0);
 
@@ -108,10 +108,14 @@ public abstract class S3AsyncStabilityTest extends S3BaseStabilityTest {
 
             String keyName = computeKeyName(i);
             Path path = RandomTempFile.randomUncreatedFile().toPath();
-            CompletableFuture<?> getFuture = getTestClient().getObject(b -> b.bucket(getTestBucketName()).key(keyName), AsyncResponseTransformer.toFile(path));
+            //CompletableFuture<?> getFuture = getTestClient().getObject(b -> b.bucket(getTestBucketName()).key(keyName), AsyncResponseTransformer.toFile(path));
+            CompletableFuture<?> getFuture = getTestClient().getObject(b -> b.bucket(getTestBucketName()).key(keyName), AsyncResponseTransformer.toBytes());
+
+            //AwsCrtResponseBodyPublisher.registerFuture(createCount, getFuture);
             return getFuture.whenComplete((res, throwable) -> {
                 int completeCount = futuresCompleted.incrementAndGet();
                 LOGGER.info(() -> String.format("Completed %d futures", completeCount));
+               // AwsCrtResponseBodyPublisher.unregisterFuture(createCount);
             });
         };
 

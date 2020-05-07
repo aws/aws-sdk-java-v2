@@ -187,6 +187,8 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         releaseNativeResources();
     }
 
+    static AtomicInteger completionCount = new AtomicInteger(0);
+
     /**
      * Completes the Subscription by calling either the .onError() or .onComplete() callbacks exactly once.
      */
@@ -196,6 +198,9 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         if (alreadyComplete) {
             return;
         }
+
+        int completions = completionCount.incrementAndGet();
+        log.info(()->String.format("Completed %d publishers", completions));
 
         // Subscriber may have cancelled their subscription, in which case this may be null.
         Optional<Subscriber<? super ByteBuffer>> subscriber = Optional.ofNullable(subscriberRef.getAndSet(null));
@@ -208,11 +213,19 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         // Complete the Futures
         if (throwable != null) {
             log.error(() -> "Error before ResponseBodyPublisher could complete: " + throwable.getMessage());
-            subscriber.ifPresent(s -> s.onError(throwable));
+            try {
+                subscriber.ifPresent(s -> s.onError(throwable));
+            } catch (Exception e) {
+                ;
+            }
             responseComplete.completeExceptionally(throwable);
         } else {
             log.debug(() -> "ResponseBodyPublisher Completed Successfully");
-            subscriber.ifPresent(s -> s.onComplete());
+            try {
+                subscriber.ifPresent(s -> s.onComplete());
+            } catch (Exception e) {
+                ;
+            }
             responseComplete.complete(null);
         }
     }
@@ -227,50 +240,52 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * subscriber seeing out-of-order data. To avoid this race condition, this method must be synchronized.
      */
     protected void publishToSubscribers() {
+        boolean shouldComplete = false;
         synchronized(this) {
-            if (error.get() != null) {
-                completeSubscriptionExactlyOnce();
-                return;
-            }
-
-            if (isSubscriptionComplete.get() || isCancelled.get()) {
-                log.debug(() -> "Subscription already completed or cancelled, can't publish updates to Subscribers.");
-                return;
-            }
-
-            if (mutualRecursionDepth.get() > 0) {
-                /**
-                 * If our depth is > 0, then we already made a call to publishToSubscribers() further up the stack that
-                 * will continue publishing to subscribers, and this call should return without completing work to avoid
-                 * infinite recursive loop between: "subscription.request() -> subscriber.onNext() -> subscription.request()"
-                 */
-                return;
-            }
-
-            int totalAmountTransferred = 0;
-
-            while (outstandingRequests.get() > 0 && !queuedBuffers.isEmpty()) {
-                byte[] buffer = queuedBuffers.poll();
-                outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
-                int amount = buffer.length;
-                publishWithoutMutualRecursion(subscriberRef.get(), ByteBuffer.wrap(buffer));
-                totalAmountTransferred += amount;
-            }
-
-            if (totalAmountTransferred > 0) {
-                queuedBytes.addAndGet(-totalAmountTransferred);
-
-                // We may have released the Native HttpConnection and HttpStream if they completed before the Subscriber
-                // has finished reading the data.
-                if (!areNativeResourcesReleased.get()) {
-                    // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
-                    stream.incrementWindow(totalAmountTransferred);
+            if (error.get() == null) {
+                if (isSubscriptionComplete.get() || isCancelled.get()) {
+                    log.debug(() -> "Subscription already completed or cancelled, can't publish updates to Subscribers.");
+                    return;
                 }
+
+                if (mutualRecursionDepth.get() > 0) {
+                    /**
+                     * If our depth is > 0, then we already made a call to publishToSubscribers() further up the stack that
+                     * will continue publishing to subscribers, and this call should return without completing work to avoid
+                     * infinite recursive loop between: "subscription.request() -> subscriber.onNext() -> subscription.request()"
+                     */
+                    return;
+                }
+
+                int totalAmountTransferred = 0;
+
+                while (outstandingRequests.get() > 0 && !queuedBuffers.isEmpty()) {
+                    byte[] buffer = queuedBuffers.poll();
+                    outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
+                    int amount = buffer.length;
+                    publishWithoutMutualRecursion(subscriberRef.get(), ByteBuffer.wrap(buffer));
+                    totalAmountTransferred += amount;
+                }
+
+                if (totalAmountTransferred > 0) {
+                    queuedBytes.addAndGet(-totalAmountTransferred);
+
+                    // We may have released the Native HttpConnection and HttpStream if they completed before the Subscriber
+                    // has finished reading the data.
+                    if (!areNativeResourcesReleased.get()) {
+                        // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
+                        stream.incrementWindow(totalAmountTransferred);
+                    }
+                }
+
+                shouldComplete = queueComplete.get() && queuedBuffers.isEmpty();
+            } else {
+                shouldComplete = true;
             }
         }
 
         // Check if Complete, consider no subscriber as a completion.
-        if (queueComplete.get() && queuedBuffers.isEmpty()) {
+        if (shouldComplete) {
             completeSubscriptionExactlyOnce();
         }
     }
