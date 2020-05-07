@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -306,7 +307,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                         HttpRequest crtRequest = toCrtRequest(uri, asyncRequest, crtToSdkAdapter);
 
                         // Submit the Request on this Connection
-                        invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate());
+                        invokeSafely(() -> {
+                            try {
+                                crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate();
+                            } catch (IllegalStateException | CrtRuntimeException e) {
+                                throw new IOException("Exception throw while submitting request to CRT http connection", e);
+                            }
+                        });
                     });
 
             return requestFuture;

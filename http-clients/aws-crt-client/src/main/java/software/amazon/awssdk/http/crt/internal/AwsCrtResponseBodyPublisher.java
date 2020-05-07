@@ -294,4 +294,30 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         }
     }
 
+    static class AwsCrtResponseBodySubscription implements Subscription {
+        private final AwsCrtResponseBodyPublisher publisher;
+
+        AwsCrtResponseBodySubscription(AwsCrtResponseBodyPublisher publisher) {
+            this.publisher = publisher;
+        }
+
+        @Override
+        public void request(long n) {
+            if (n <= 0) {
+                // Reactive Stream Spec requires us to call onError() callback instead of throwing Exception here.
+                publisher.setError(new IllegalArgumentException("Request is for <= 0 elements: " + n));
+                publisher.publishToSubscribers();
+                return;
+            }
+
+            publisher.request(n);
+            publisher.publishToSubscribers();
+        }
+
+        @Override
+        public void cancel() {
+            publisher.setCancelled();
+        }
+    }
+
 }

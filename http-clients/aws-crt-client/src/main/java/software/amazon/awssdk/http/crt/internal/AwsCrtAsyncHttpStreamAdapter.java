@@ -87,7 +87,12 @@ public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, 
         respBodyPublisher.queueBuffer(bodyBytesIn);
         respBodyPublisher.publishToSubscribers();
 
-        return 0;
+        /*
+         * Possible future optimization would be to attempt to compute this properly.  Would likely require a
+         * reevaluation of how the publisher is synchronized as well as manual, asynchronous window
+         * updates when the subscriber asks for more data.
+         */
+        return bodyBytesIn.length;
     }
 
     @Override
