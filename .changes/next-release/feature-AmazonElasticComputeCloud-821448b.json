@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "Amazon EC2 now adds warnings to identify issues when creating a launch template or launch template version."
+}
