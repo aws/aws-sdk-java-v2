@@ -24,8 +24,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableReadOperation;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 
@@ -137,7 +137,7 @@ public final class TransactGetItemsEnhancedRequest {
         private <T> TransactGetItem generateTransactWriteItem(MappedTableResource<T> mappedTableResource,
                                                               TransactableReadOperation<T> generator) {
             return generator.generateTransactGetItem(mappedTableResource.tableSchema(),
-                                                     OperationContext.create(mappedTableResource.tableName()),
+                                                     DefaultOperationContext.create(mappedTableResource.tableName()),
                                                      mappedTableResource.mapperExtension());
         }
     }

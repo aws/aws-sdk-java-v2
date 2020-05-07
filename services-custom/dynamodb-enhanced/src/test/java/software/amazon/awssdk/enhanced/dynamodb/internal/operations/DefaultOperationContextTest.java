@@ -22,10 +22,10 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 
-public class OperationContextTest {
+public class DefaultOperationContextTest {
     @Test
     public void createWithTableNameAndIndexName() {
-        OperationContext context = OperationContext.create("table_name", "index_name");
+        DefaultOperationContext context = DefaultOperationContext.create("table_name", "index_name");
 
         assertThat(context.tableName(), is("table_name"));
         assertThat(context.indexName(), is("index_name"));
@@ -33,7 +33,7 @@ public class OperationContextTest {
 
     @Test
     public void createWithTableName() {
-        OperationContext context = OperationContext.create("table_name");
+        DefaultOperationContext context = DefaultOperationContext.create("table_name");
 
         assertThat(context.tableName(), is("table_name"));
         assertThat(context.indexName(), Matchers.is(TableMetadata.primaryIndexName()));

@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -42,6 +41,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
@@ -61,9 +61,9 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 public class DeleteItemOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+        DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
-        OperationContext.create(TABLE_NAME, "gsi_1");
+        DefaultOperationContext.create(TABLE_NAME, "gsi_1");
     private static final Expression CONDITION_EXPRESSION;
 
     static {
@@ -270,7 +270,7 @@ public class DeleteItemOperationTest {
             spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
                                                                     .key(k -> k.partitionValue(fakeItem.getId()))
                                                                     .build()));
-        OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
                                                                .tableName(TABLE_NAME)
@@ -300,7 +300,7 @@ public class DeleteItemOperationTest {
             spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
                                                                     .key(k -> k.partitionValue(fakeItem.getId()))
                                                                     .build()));
-        OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         String conditionExpression = "condition-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));

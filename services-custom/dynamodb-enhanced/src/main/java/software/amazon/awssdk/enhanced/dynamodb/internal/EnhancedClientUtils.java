@@ -25,10 +25,10 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -50,7 +50,11 @@ public final class EnhancedClientUtils {
         char[] chars = key.toCharArray();
 
         for (int i = 0; i < chars.length; ++i) {
-            if (chars[i] == '*' || chars[i] == '.' || chars[i] == '-') {
+            if (chars[i] == '*'
+                || chars[i] == '.'
+                || chars[i] == '-'
+                || chars[i] == '#'
+                || chars[i] == ':') {
                 chars[i] = '_';
                 somethingChanged = true;
             }

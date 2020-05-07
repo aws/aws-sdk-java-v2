@@ -45,6 +45,8 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
 public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
+    private static final String ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS = "a*t:t.r-i#bute3";
+
     private static class Record {
         private String id;
         private String sort;
@@ -181,7 +183,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                            .getter(Record::getAttribute2)
                                                            .setter(Record::setAttribute2)
                                                            .tags(secondaryPartitionKey("gsi_1")))
-                         .addAttribute(String.class, a -> a.name("attribute3")
+                         .addAttribute(String.class, a -> a.name(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                            .getter(Record::getAttribute3)
                                                            .setter(Record::setAttribute3)
                                                            .tags(secondarySortKey("gsi_1")))
@@ -350,7 +352,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
                                                    .putExpressionName("#key", "attribute")
-                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionName("#key1", ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                    .putExpressionValue(":value", stringValue("wrong"))
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
@@ -378,7 +380,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
                                                    .putExpressionName("#key", "attribute")
-                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionName("#key1", ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                    .putExpressionValue(":value", stringValue("wrong"))
                                                    .putExpressionValue(":value1", stringValue("wrong"))
                                                    .build();
@@ -409,7 +411,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
                                                    .putExpressionName("#key", "attribute")
-                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionName("#key1", ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                    .putExpressionValue(":value", stringValue("wrong"))
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
@@ -435,7 +437,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
                                                    .putExpressionName("#key", "attribute")
-                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionName("#key1", ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                    .putExpressionValue(":value", stringValue("wrong"))
                                                    .putExpressionValue(":value1", stringValue("wrong"))
                                                    .build();
@@ -598,7 +600,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
                                                    .putExpressionName("#key", "attribute")
-                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionName("#key1", ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                    .putExpressionValue(":value", stringValue("wrong"))
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
@@ -627,7 +629,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
                                                    .putExpressionName("#key", "attribute")
-                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionName("#key1", ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                    .putExpressionValue(":value", stringValue("wrong"))
                                                    .putExpressionValue(":value1", stringValue("wrong"))
                                                    .build();
