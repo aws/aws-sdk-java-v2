@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppConfig",
-    "description": "The description of the AWS AppConfig GetConfiguration API action was amended to include important information about calling ClientConfigurationVersion when you configure clients to call GetConfiguration."
-}

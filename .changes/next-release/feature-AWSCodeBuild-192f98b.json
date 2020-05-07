@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "description": "Add COMMIT_MESSAGE enum for webhook filter types"
-}
