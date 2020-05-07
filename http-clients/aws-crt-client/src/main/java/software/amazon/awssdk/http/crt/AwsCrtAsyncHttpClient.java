@@ -201,7 +201,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
             }
 
-            HttpClientConnectionManager connPool = connectionPools.computeIfAbsent(uri, k -> createConnectionPool(k));
+            HttpClientConnectionManager connPool = connectionPools.computeIfAbsent(uri, this::createConnectionPool);
             connPool.addRef();
             return connPool;
         }
@@ -297,7 +297,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                                 log.error(() -> String.format("Exception while handling error: %s", e.toString()));
                             }
                             requestFuture.completeExceptionally(new IOException(
-                                    String.format("Crt exception while acquiring connection"), throwable));
+                                    "Crt exception while acquiring connection", throwable));
                             return;
                         }
 
