@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Logs",
+    "description": "Amazon CloudWatch Logs now offers the ability to interact with Logs Insights queries via the new PutQueryDefinition, DescribeQueryDefinitions, and DeleteQueryDefinition APIs."
+}
