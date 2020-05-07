@@ -223,7 +223,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * subscriber seeing out-of-order data. To avoid this race condition, this method must be synchronized.
      */
     protected void publishToSubscribers() {
-        boolean shouldComplete = false;
+        boolean shouldComplete = true;
         synchronized (this) {
             if (error.get() == null) {
                 if (isSubscriptionComplete.get() || isCancelled.get()) {
@@ -257,13 +257,12 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
                     // has finished reading the data.
                     if (!areNativeResourcesReleased.get()) {
                         // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
+                        // This is why it is correct to return 0 from AwsCrtAsyncHttpStreamAdapter::onResponseBody
                         stream.incrementWindow(totalAmountTransferred);
                     }
                 }
 
                 shouldComplete = queueComplete.get() && queuedBuffers.isEmpty();
-            } else {
-                shouldComplete = true;
             }
         }
 

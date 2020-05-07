@@ -88,11 +88,12 @@ public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, 
         respBodyPublisher.publishToSubscribers();
 
         /*
-         * Possible future optimization would be to attempt to compute this properly.  Would likely require a
-         * reevaluation of how the publisher is synchronized as well as manual, asynchronous window
-         * updates when the subscriber asks for more data.
+         * Intentionally zero. We manually manage the crt stream's window within the body publisher by updating with
+         * the exact amount we were able to push to the subcriber.
+         *
+         * See the call to stream.incrementWindow() in AwsCrtResponseBodyPublisher.
          */
-        return bodyBytesIn.length;
+        return 0;
     }
 
     @Override
