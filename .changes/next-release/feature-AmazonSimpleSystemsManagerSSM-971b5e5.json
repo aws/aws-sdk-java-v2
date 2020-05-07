@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "This Patch Manager release supports creating patch baselines for Oracle Linux and Debian"
+}
