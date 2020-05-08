@@ -46,9 +46,11 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
  * </ul>
  *
  * Example using attribute converter providers with one custom provider and the default provider:
+ * <pre>
  * {@code
  * (converterProviders = {CustomAttributeConverter.class, DefaultAttributeConverterProvider.class});
  * }
+ * </pre>
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

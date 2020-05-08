@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * get and set those attributes. This is the most direct, and thus fastest, implementation of {@link TableSchema}.
  * <p>
  * Example using a fictional 'Customer' data item class:-
- * {@code
+ * <pre>{@code
  * static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
  *      StaticTableSchema.builder(Customer.class)
  *        .newItemSupplier(Customer::new)
@@ -67,7 +67,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *                                           .tags(secondarySortKey("customers_by_date"),
  *                                                 secondarySortKey("customers_by_name")))
  *        .build();
- * }
+ * }</pre>
  */
 @SdkPublicApi
 public final class StaticTableSchema<T> implements TableSchema<T> {
