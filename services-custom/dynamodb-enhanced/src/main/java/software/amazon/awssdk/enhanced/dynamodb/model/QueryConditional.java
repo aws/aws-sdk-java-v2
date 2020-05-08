@@ -31,11 +31,11 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.conditional.SingleKeyIt
  * any specific table or schema and can be re-used in different contexts.
  * <p>
  * Example:
- * <pr>
+ * <pre>
  * {@code
  * QueryConditional sortValueGreaterThanFour = QueryConditional.sortGreaterThan(k -> k.partitionValue(10).sortValue(4));
  * }
- * </pr>
+ * </pre>
  */
 @SdkPublicApi
 public interface QueryConditional {

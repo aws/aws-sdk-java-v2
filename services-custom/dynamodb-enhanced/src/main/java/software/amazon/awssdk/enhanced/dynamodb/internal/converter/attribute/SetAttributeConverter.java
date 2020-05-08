@@ -50,27 +50,33 @@ import software.amazon.awssdk.utils.Validate;
  * <p>
  * A builder is exposed to allow defining how the collection and element types are created and converted:
  * <code>
- * AttributeConverter<List<Integer>> listConverter =
+ * {@literal AttributeConverter<List<Integer>> listConverter =
  * CollectionAttributeConverter.builder(EnhancedType.listOf(Integer.class))
  * .collectionConstructor(ArrayList::new)
  * .elementConverter(IntegerAttributeConverter.create())
- * .build()
+ * .build()}
  * </code>
  *
  * <p>
  * For frequently-used types, static methods are exposed to reduce the amount of boilerplate involved in creation:
  * <code>
- * AttributeConverter<List<Integer>> listConverter =
- * CollectionAttributeConverter.listConverter(IntegerAttributeConverter.create());
+ * {@literal AttributeConverter<List<Integer>> listConverter =
+ * CollectionAttributeConverter.listConverter(IntegerAttributeConverter.create());}
+ * </code>
  * <p>
- * AttributeConverter<Collection<Integer>> collectionConverer =
- * CollectionAttributeConverter.collectionConverter(IntegerAttributeConverter.create());
+ * <code>
+ * {@literal AttributeConverter<Collection<Integer>> collectionConverer =
+ * CollectionAttributeConverter.collectionConverter(IntegerAttributeConverter.create());}
+ * </code>
  * <p>
- * AttributeConverter<Set<Integer>> setConverter =
- * CollectionAttributeConverter.setConverter(IntegerAttributeConverter.create());
+ * <code>
+ * {@literal AttributeConverter<Set<Integer>> setConverter =
+ * CollectionAttributeConverter.setConverter(IntegerAttributeConverter.create());}
+ * </code>
  * <p>
- * AttributeConverter<SortedSet<Integer>> sortedSetConverter =
- * CollectionAttributeConverter.sortedSetConverter(IntegerAttributeConverter.create());
+ * <code>
+ * {@literal AttributeConverter<SortedSet<Integer>> sortedSetConverter =
+ * CollectionAttributeConverter.sortedSetConverter(IntegerAttributeConverter.create());}
  * </code>
  *
  * @see MapAttributeConverter

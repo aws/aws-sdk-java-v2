@@ -37,16 +37,16 @@ import software.amazon.awssdk.utils.Validate;
  * <p>
  * The recommended way to use this class is by calling {@link StaticTableSchema.Builder#addAttribute(Class, Consumer)}.
  * Example:
- * {@code
+ * <pre>{@code
  * StaticTableSchema.builder()
  *                  .addAttribute(String.class,
  *                                a -> a.name("customer_name").getter(Customer::getName).setter(Customer::setName))
  *                  // ...
  *                  .build();
- * }
+ * }</pre>
  * <p>
  * It's also possible to construct this class on its own using the static builder. Example:
- * {@code
+ * <pre>{@code
  * StaticAttribute<Customer, ?> customerNameAttribute =
  *     StaticAttribute.builder(Customer.class, String.class)
  *                    .name("customer_name")
@@ -54,6 +54,7 @@ import software.amazon.awssdk.utils.Validate;
  *                    .setter(Customer::setName)
  *                    .build();
  * }
+ * </pre>
  * @param <T> the class of the item this attribute maps into.
  * @param <R> the class that the value of this attribute converts to.
  */

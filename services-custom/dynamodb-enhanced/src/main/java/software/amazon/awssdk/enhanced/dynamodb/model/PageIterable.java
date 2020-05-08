@@ -45,7 +45,7 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
  * PageIterable<MyItem> results = table.scan();
  * results.items().stream().forEach(item -> System.out.println(item));
  * }
- *
+ * </pre>
  * @param <T> The modelled type of the object in a page.
  */
 @SdkPublicApi
