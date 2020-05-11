@@ -143,12 +143,12 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                         performWrite(byteBuffer);
                     } else {
                         synchronized (FileSubscriber.this) {
+                            writeInProgress = false;
                             if (closeOnLastWrite) {
                                 close();
                             } else {
                                 subscription.request(1);
                             }
-                            writeInProgress = false;
                         }
                     }
                 }
