@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "M6g instances are our next-generation general purpose instances powered by AWS Graviton2 processors"
+}
