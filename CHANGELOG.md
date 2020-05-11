@@ -1,3 +1,20 @@
+# __2.13.14__ __2020-05-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra is now generally available. As part of general availability, we are launching CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Developer edition CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Ability to scale your Amazon Kendra index with capacity units CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for new connectors CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for new tagging API's CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for Deleting data source CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Metrics for data source sync operations CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Metrics for query & storage utilization
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Add Bitbucket integration APIs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - M6g instances are our next-generation general purpose instances powered by AWS Graviton2 processors
+
 # __2.13.13__ __2020-05-08__
 ## __AWS Resource Groups Tagging API__
   - ### Features
