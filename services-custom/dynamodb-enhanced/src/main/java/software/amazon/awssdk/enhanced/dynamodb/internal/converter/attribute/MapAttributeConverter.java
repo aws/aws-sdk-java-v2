@@ -47,25 +47,28 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *
  * <p>
  * A builder is exposed to allow defining how the map, key and value types are created and converted:
+ * <p>
  * <code>
- * AttributeConverter<Map<MonthDay, String>> mapConverter =
+ * {@literal AttributeConverter<Map<MonthDay, String>> mapConverter =
  * MapAttributeConverter.builder(EnhancedType.mapOf(Integer.class, String.class))
  * .mapConstructor(HashMap::new)
  * .keyConverter(MonthDayStringConverter.create())
  * .valueConverter(StringAttributeConverter.create())
- * .build();
+ * .build();}
  * </code>
  *
  * <p>
  * For frequently-used types, static methods are exposed to reduce the amount of boilerplate involved in creation:
  * <code>
- * AttributeConverter<Map<MonthDay, String>> mapConverter =
+ * {@literal AttributeConverter<Map<MonthDay, String>> mapConverter =
  * MapAttributeConverter.mapConverter(MonthDayStringConverter.create(),
- * StringAttributeConverter.create());
+ * StringAttributeConverter.create());}
+ * </code>
  * <p>
- * AttributeConverter<SortedMap<MonthDay, String>> sortedMapConverter =
+ * <code>
+ * {@literal AttributeConverter<SortedMap<MonthDay, String>> sortedMapConverter =
  * MapAttributeConverter.sortedMapConverter(MonthDayStringConverter.create(),
- * StringAttributeConverter.create());
+ * StringAttributeConverter.create());}
  * </code>
  *
  * @see MapAttributeConverter

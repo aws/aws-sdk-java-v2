@@ -356,6 +356,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *                                                                         .build());
      * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
      * }
+     * </pre>
      * <p>
      * 2) Subscribing to items across all pages
      * <pre>

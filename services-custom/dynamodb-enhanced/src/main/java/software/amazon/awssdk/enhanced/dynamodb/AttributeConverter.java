@@ -64,7 +64,8 @@ public interface AttributeConverter<T> {
      * InstantAsStringAttributeConverter converter = InstantAsStringAttributeConverter.create();
      * assertEquals(converter.transformTo(EnhancedAttributeValue.fromString("1970-01-01T00:00:00Z").toAttributeValue()),
      *              Instant.EPOCH);
-     * <pre>
+     * }
+     * </pre>
      */
     T transformTo(AttributeValue input);
 
