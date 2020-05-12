@@ -1,3 +1,80 @@
+# __2.13.15__ __2020-05-12__
+## __AWS IoT SiteWise__
+  - ### Features
+    - Documentation updates for iot-bifrost
+
+## __Amazon WorkMail__
+  - ### Features
+    - Minor API fixes and updates to the documentation.
+
+# __2.13.14__ __2020-05-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra is now generally available. As part of general availability, we are launching CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Developer edition CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Ability to scale your Amazon Kendra index with capacity units CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for new connectors CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for new tagging API's CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for Deleting data source CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Metrics for data source sync operations CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Metrics for query & storage utilization
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Add Bitbucket integration APIs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - M6g instances are our next-generation general purpose instances powered by AWS Graviton2 processors
+
+# __2.13.13__ __2020-05-08__
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Documentation updates for resourcegroupstaggingapi
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - A helpful error message is now raised when an obviously-invalid region name is given to the SDK, instead of the previous NullPointerException. Fixes [#1642](https://github.com/aws/aws-sdk-java-v2/issues/1642).
+    - Updated service endpoint metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Documentation updates for GuardDuty
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds a new parameter (EnableInterContainerTrafficEncryption) to CreateProcessingJob API to allow for enabling inter-container traffic encryption on processing jobs.
+
+# __2.13.12__ __2020-05-07__
+## __AWS CodeBuild__
+  - ### Features
+    - Add COMMIT_MESSAGE enum for webhook filter types
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon AppConfig__
+  - ### Features
+    - The description of the AWS AppConfig GetConfiguration API action was amended to include important information about calling ClientConfigurationVersion when you configure clients to call GetConfiguration.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Amazon CloudWatch Logs now offers the ability to interact with Logs Insights queries via the new PutQueryDefinition, DescribeQueryDefinitions, and DeleteQueryDefinition APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 now adds warnings to identify issues when creating a launch template or launch template version.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for the following options in instance public ports: Specify source IP addresses, specify ICMP protocol like PING, and enable/disable the Lightsail browser-based SSH and RDP clients' access to your instance.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the EU (Milan) Region (eu-south-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This Patch Manager release supports creating patch baselines for Oracle Linux and Debian
+
 # __2.13.11__ __2020-05-06__
 ## __AWS CodeStar connections__
   - ### Features

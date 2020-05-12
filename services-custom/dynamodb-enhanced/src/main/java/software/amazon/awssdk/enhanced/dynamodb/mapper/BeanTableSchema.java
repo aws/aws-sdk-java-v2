@@ -57,29 +57,30 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 /**
  * Implementation of {@link TableSchema} that builds a table schema based on properties and annotations of a bean
  * class. Example:
- * {@code
- * @literal @DynamoDbBean
+ * <pre>
+ * <code>
+ * {@literal @}DynamoDbBean
  * public class CustomerAccount {
  *     private String unencryptedBillingKey;
  *
- *     @literal @DynamoDbPartitionKey
- *     @literal @DynamoDbSecondarySortKey(indexName = "accounts_by_customer")
+ *     {@literal @}DynamoDbPartitionKey
+ *     {@literal @}DynamoDbSecondarySortKey(indexName = "accounts_by_customer")
  *     public String accountId;
  *
- *     @literal @DynamoDbSortKey
- *     @literal @DynamoDbSecondaryPartitionKey(indexName = "accounts_by_customer")
+ *     {@literal @}DynamoDbSortKey
+ *     {@literal @}DynamoDbSecondaryPartitionKey(indexName = "accounts_by_customer")
  *     public String customerId;
  *
- *     @literal @DynamoDbAttribute("account_status")
+ *     {@literal @}DynamoDbAttribute("account_status")
  *     public CustomerAccountStatus status;
  *
- *     @literal @DynamoDbFlatten(dynamoDbBeanClass = Customer.class)
+ *     {@literal @}DynamoDbFlatten(dynamoDbBeanClass = Customer.class)
  *     public Customer customer;
  *
  *     public Instant createdOn;
  *
  *     // All public fields must be opted out to not participate in mapping
- *     @literal @DynamoDbIgnore
+ *     {@literal @}DynamoDbIgnore
  *     public String internalKey;
  *
  *     public enum CustomerAccountStatus {
@@ -87,14 +88,15 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *         CLOSED
  *     }
  * }
- *
- * @literal @DynamoDbBean
+ * </code>
+ * {@literal @}DynamoDbBean
  * public class Customer {
  *     public String name;
  *
- *     public List<String> address;
+ *     {@literal public List<String> address;}
  * }
  * }
+ * </pre>
  * @param <T> The type of object that this {@link TableSchema} maps to.
  */
 @SdkPublicApi

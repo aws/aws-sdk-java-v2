@@ -1,0 +1,16 @@
+{
+    "version": "2.13.15",
+    "date": "2020-05-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "description": "Minor API fixes and updates to the documentation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "description": "Documentation updates for iot-bifrost"
+        }
+    ]
+}
