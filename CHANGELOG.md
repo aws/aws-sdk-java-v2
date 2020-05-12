@@ -1,3 +1,12 @@
+# __2.13.15__ __2020-05-12__
+## __AWS IoT SiteWise__
+  - ### Features
+    - Documentation updates for iot-bifrost
+
+## __Amazon WorkMail__
+  - ### Features
+    - Minor API fixes and updates to the documentation.
+
 # __2.13.14__ __2020-05-11__
 ## __AWS SDK for Java v2__
   - ### Features
