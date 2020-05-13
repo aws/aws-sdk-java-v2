@@ -186,7 +186,9 @@ public class IntermediateModelBuilder {
 
             if (operation.getOutput() != null) {
                 String outputShapeName = operation.getOutput().getShape();
-                entry.getValue().setOutputShape(model.getShapeByC2jName(outputShapeName));
+                ShapeModel outputShape =
+                    model.getShapeByNameAndC2jName(entry.getValue().getReturnType().getReturnType(), outputShapeName);
+                entry.getValue().setOutputShape(outputShape);
             }
         }
     }
