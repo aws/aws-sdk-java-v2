@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon RDS",
+    "description": "Add SourceRegion to CopyDBClusterSnapshot and CreateDBCluster operations. As with CopyDBSnapshot and CreateDBInstanceReadReplica, specifying this field will automatically populate the PresignedURL field with a valid value."
+}
