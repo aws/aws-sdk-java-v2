@@ -18,6 +18,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -99,12 +100,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                     operationMetadata);
 
+            MetricCollector metricCollector = MetricCollector.create("ApiCall");
+
             CompletableFuture<DescribeEndpointsResponse> executeFuture = clientHandler
                     .execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
                             .withOperationName("DescribeEndpoints")
                             .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(describeEndpointsRequest));
+                            .withInput(describeEndpointsRequest)
+                            .withMetricCollector(metricCollector));
             return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);

@@ -37,6 +37,8 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.SimpleMetricPublisher;
+import software.amazon.awssdk.metrics.publisher.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
@@ -141,6 +143,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .option(SdkClientOption.EXECUTION_INTERCEPTORS, addAwsInterceptors(configuration))
                             .option(AwsClientOption.SIGNING_REGION, resolveSigningRegion(configuration))
                             .option(SdkClientOption.RETRY_POLICY, resolveAwsRetryPolicy(configuration))
+                            .option(SdkClientOption.METRIC_PUBLISHER, resolveMetricPublisher(configuration))
                             .build();
     }
 
@@ -230,6 +233,16 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                        .resolve();
         return AwsRetryPolicy.forRetryMode(retryMode);
+    }
+
+    private MetricPublisher resolveMetricPublisher(SdkClientConfiguration config) {
+        MetricPublisher metricPublisher = config.option(SdkClientOption.METRIC_PUBLISHER);
+
+        if (metricPublisher == null) {
+            metricPublisher = SimpleMetricPublisher.create();
+        }
+
+        return metricPublisher;
     }
 
     @Override

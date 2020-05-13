@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Encapsulates parameters needed for a particular API call. Captures input and output pojo types.
@@ -47,6 +48,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private String hostPrefixExpression;
     private String operationName;
     private URI discoveredEndpoint;
+    private MetricCollector metricCollector;
 
     public Marshaller<InputT> getMarshaller() {
         return marshaller;
@@ -164,6 +166,15 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     public ClientExecutionParams<InputT, OutputT> discoveredEndpoint(URI discoveredEndpoint) {
         this.discoveredEndpoint = discoveredEndpoint;
+        return this;
+    }
+
+    public MetricCollector getMetricCollector() {
+        return metricCollector;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withMetricCollector(MetricCollector metricCollector) {
+        this.metricCollector = metricCollector;
         return this;
     }
 }

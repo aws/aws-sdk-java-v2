@@ -47,8 +47,7 @@ public final class ApiCallAttemptTimeoutTrackingStage<OutputT> implements Reques
     private final ScheduledExecutorService timeoutExecutor;
 
     public ApiCallAttemptTimeoutTrackingStage(HttpClientDependencies dependencies,
-                                              RequestPipeline<SdkHttpFullRequest,
-                                              Response<OutputT>> wrapped) {
+                                              RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped) {
         this.wrapped = wrapped;
         this.timeoutExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
         this.apiCallAttemptTimeout = dependencies.clientConfiguration().option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT);
@@ -70,6 +69,7 @@ public final class ApiCallAttemptTimeoutTrackingStage<OutputT> implements Reques
             Response<OutputT> response;
             try {
                 context.apiCallAttemptTimeoutTracker(timeoutTracker);
+
                 response = wrapped.execute(request, context);
             } finally {
                 // Cancel the timeout tracker, guaranteeing that if it hasn't already executed and set this thread's

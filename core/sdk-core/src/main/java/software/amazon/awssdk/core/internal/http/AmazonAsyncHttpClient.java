@@ -43,6 +43,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
@@ -112,6 +113,8 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
          */
         RequestExecutionBuilder originalRequest(SdkRequest originalRequest);
 
+        RequestExecutionBuilder metricCollector(MetricCollector metricCollector);
+
         /**
          * Executes the request with the given configuration.
          *
@@ -152,6 +155,11 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         @Override
         public RequestExecutionBuilder originalRequest(SdkRequest originalRequest) {
             this.originalRequest = originalRequest;
+            return this;
+        }
+
+        @Override
+        public RequestExecutionBuilder metricCollector(MetricCollector metricCollector) {
             return this;
         }
 

@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptRttTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
@@ -177,6 +178,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .then(AfterTransmissionExecutionInterceptorsStage::new)
                                          .then(BeforeUnmarshallingExecutionInterceptorsStage::new)
                                          .then(() -> new HandleResponseStage<>(responseHandler))
+                                         .wrappedWith(ApiCallAttemptRttTrackingStage::new)
                                          .wrappedWith(ApiCallAttemptTimeoutTrackingStage::new)
                                          .wrappedWith(TimeoutExceptionHandlingStage::new)
                                          .wrappedWith(RetryableStage::new)::build)

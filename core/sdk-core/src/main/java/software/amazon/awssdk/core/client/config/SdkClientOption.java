@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.publisher.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 
 /**
@@ -128,6 +129,8 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * The profile name to use for this client.
      */
     public static final SdkClientOption<String> PROFILE_NAME = new SdkClientOption<>(String.class);
+
+    public static final SdkClientOption<MetricPublisher> METRIC_PUBLISHER = new SdkClientOption<>(MetricPublisher.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

@@ -99,6 +99,7 @@ public final class AwsClientHandlerUtils {
                                                                      .build())
                                .executionAttributes(executionAttributes)
                                .signer(computeSigner(originalRequest, clientConfig))
+                               .metricCollector(executionParams.getMetricCollector())
                                .build();
     }
 

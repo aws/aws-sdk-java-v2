@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
@@ -27,6 +28,9 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.DefaultMetrics;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.util.MetricUtil;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -63,6 +67,12 @@ public class MakeHttpRequestStage
 
         context.apiCallTimeoutTracker().abortable(requestCallable);
         context.apiCallAttemptTimeoutTracker().abortable(requestCallable);
-        return requestCallable.call();
+
+        final Pair<HttpExecuteResponse, Duration> measuredRequestCall = MetricUtil.measureDuration(requestCallable);
+
+        context.apiCallAttemptMetricCollector()
+                .reportMetric(DefaultMetrics.REQUEST_EXECUTION_TIME, measuredRequestCall.right());
+
+        return measuredRequestCall.left();
     }
 }
