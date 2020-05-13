@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.handler;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
@@ -34,6 +35,9 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.DefaultMetrics;
+import software.amazon.awssdk.metrics.util.MetricUtil;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
@@ -65,7 +69,15 @@ public abstract class BaseClientHandler {
         SdkClientConfiguration clientConfiguration) {
 
         runBeforeMarshallingInterceptors(executionContext);
-        SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
+
+        Pair<SdkHttpFullRequest, Duration> measuredMarshall = MetricUtil.measureDuration(() ->
+                executionParams.getMarshaller().marshall(inputT));
+
+        executionParams.getMetricCollector()
+                .reportMetric(DefaultMetrics.REQUEST_MARSHALLING_TIME, measuredMarshall.right());
+
+        SdkHttpFullRequest request = measuredMarshall.left();
+
         request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams);
 
         addHttpRequest(executionContext, request);
@@ -184,6 +196,7 @@ public abstract class BaseClientHandler {
                                                                      .build())
                                .executionAttributes(executionAttributes)
                                .signer(clientConfiguration.option(SdkAdvancedClientOption.SIGNER))
+                               .metricCollector(params.getMetricCollector())
                                .build();
     }
 

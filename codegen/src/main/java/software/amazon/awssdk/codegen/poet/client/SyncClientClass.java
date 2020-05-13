@@ -52,6 +52,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
@@ -186,7 +187,18 @@ public class SyncClientClass implements ClassSpec {
             method.endControlFlow();
         }
 
-        method.addCode(protocolSpec.executionHandler(opModel));
+        String metricCollectorName = "apiCallMetricCollector";
+
+        method.addStatement("$1T $2N = $1T.create($3S)",
+                            MetricCollector.class, metricCollectorName, "ApiCall");
+
+        method.beginControlFlow("try")
+              .addCode(protocolSpec.executionHandler(opModel))
+              .endControlFlow()
+              .beginControlFlow("finally")
+              .addStatement("clientConfiguration.option($T.$L).publish($N.collect())",
+                            SdkClientOption.class, "METRIC_PUBLISHER", metricCollectorName)
+              .endControlFlow();
 
         methods.add(method.build());
 

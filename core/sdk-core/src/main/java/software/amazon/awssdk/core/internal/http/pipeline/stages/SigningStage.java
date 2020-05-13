@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -27,6 +28,9 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeli
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.DefaultMetrics;
+import software.amazon.awssdk.metrics.util.MetricUtil;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Sign the marshalled request (if applicable).
@@ -60,7 +64,12 @@ public class SigningStage implements RequestToRequestPipeline {
         if (shouldSign(signer)) {
             adjustForClockSkew(context.executionAttributes());
 
-            SdkHttpFullRequest signedRequest = signer.sign(request, context.executionAttributes());
+            final Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtil.measureDuration(() ->
+                    signer.sign(request, context.executionAttributes()));
+
+            SdkHttpFullRequest signedRequest = measuredSign.left();
+
+            context.apiCallMetricCollector().reportMetric(DefaultMetrics.REQUEST_SIGNING_TIME, measuredSign.right());
 
             if (signer instanceof AsyncRequestBodySigner) {
                 //Transform request body provider with signing operator
