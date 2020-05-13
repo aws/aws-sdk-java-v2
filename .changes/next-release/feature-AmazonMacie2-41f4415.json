@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Macie 2",
-    "description": "This release introduces a new major version of the Amazon Macie API. You can use this version of the API to develop tools and applications that interact with the new Amazon Macie."
-}
