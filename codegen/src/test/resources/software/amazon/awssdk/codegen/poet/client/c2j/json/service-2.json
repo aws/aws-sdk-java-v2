@@ -404,7 +404,7 @@
         "EventOne": {
           "shape": "EventOne"
         },
-        "EventTwo": {
+        "event-two": {
           "shape": "EventTwo"
         }
       },
