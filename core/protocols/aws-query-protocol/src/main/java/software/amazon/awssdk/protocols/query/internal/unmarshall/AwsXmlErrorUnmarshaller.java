@@ -40,6 +40,7 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
 @SdkInternalApi
 public final class AwsXmlErrorUnmarshaller {
     private static final String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
+    private static final String X_AMZ_ID_2_HEADER = "x-amz-id-2";
 
     private final List<ExceptionMetadata> exceptions;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
@@ -90,6 +91,7 @@ public final class AwsXmlErrorUnmarshaller {
                            .build();
 
         builder.requestId(getRequestId(response, documentRoot))
+               .extendedRequestId(getExtendedRequestId(response))
                .statusCode(response.statusCode())
                .clockSkew(getClockSkew(executionAttributes))
                .awsErrorDetails(awsErrorDetails);
@@ -174,6 +176,16 @@ public final class AwsXmlErrorUnmarshaller {
         return requestId != null ?
                requestId.textContent() :
                response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null);
+    }
+
+    /**
+     * Extracts the extended request ID from the response headers.
+     *
+     * @param response The HTTP response object.
+     * @return Extended Request ID string or null if not present.
+     */
+    private String getExtendedRequestId(SdkHttpFullResponse response) {
+        return response.firstMatchingHeader(X_AMZ_ID_2_HEADER).orElse(null);
     }
 
     /**

@@ -8,7 +8,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 
 /**
- * Base interface for all event types of the EventStreamOperation API.
+ * Base interface for all event types in EventStream.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
@@ -26,7 +26,7 @@ public interface EventStream extends SdkPojo {
         public void accept(EventStreamOperationResponseHandler.Visitor visitor) {
             visitor.visitDefault(this);
         }
-    };;
+    };
 
     /**
      * Calls the appropriate visit method depending on the subtype of {@link EventStream}.

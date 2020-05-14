@@ -1,3 +1,26 @@
+# __2.13.17__ __2020-05-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Expose the `extendedRequestId` from `SdkServiceException`, so it can be provided to support to investigate issues.
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix generation for operations that share an output shape.
+    - Fix unmarshalling of events when structure member name and shape name mismatch.
+    - Support event streams that are shared between two operations.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 now supports adding AWS resource tags for associations between VPCs and local gateways, at creation time.
+
+## __Amazon RDS__
+  - ### Features
+    - Add SourceRegion to CopyDBClusterSnapshot and CreateDBCluster operations. As with CopyDBSnapshot and CreateDBInstanceReadReplica, specifying this field will automatically populate the PresignedURL field with a valid value.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds a new parameter (SupportedOsVersions) to the Components API. This parameter lists the OS versions supported by a component.
+
 # __2.13.16__ __2020-05-13__
 ## __AWS SDK for Java v2__
   - ### Bugfixes

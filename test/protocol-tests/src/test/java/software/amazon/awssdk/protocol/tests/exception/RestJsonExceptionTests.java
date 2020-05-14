@@ -158,6 +158,29 @@ public class RestJsonExceptionTests {
             assertThat(awsErrorDetails.serviceName()).isEqualTo("ProtocolRestJson");
             assertThat(awsErrorDetails.sdkHttpResponse()).isNotNull();
             assertThat(e.requestId()).isEqualTo("1234");
+            assertThat(e.extendedRequestId()).isNull();
+            assertThat(e.statusCode()).isEqualTo(404);
+        }
+    }
+
+    @Test
+    public void modeledException_HasExceptionMetadataIncludingExtendedRequestIdSet() {
+        stubFor(post(urlEqualTo(ALL_TYPES_PATH)).willReturn(
+            aResponse()
+                .withStatus(404)
+                .withHeader("x-amzn-RequestId", "1234")
+                .withHeader("x-amz-id-2", "5678")
+                .withBody("{\"__type\": \"EmptyModeledException\", \"Message\": \"This is the service message\"}")));
+        try {
+            client.allTypes();
+        } catch (EmptyModeledException e) {
+            AwsErrorDetails awsErrorDetails = e.awsErrorDetails();
+            assertThat(awsErrorDetails.errorCode()).isEqualTo("EmptyModeledException");
+            assertThat(awsErrorDetails.errorMessage()).isEqualTo("This is the service message");
+            assertThat(awsErrorDetails.serviceName()).isEqualTo("ProtocolRestJson");
+            assertThat(awsErrorDetails.sdkHttpResponse()).isNotNull();
+            assertThat(e.requestId()).isEqualTo("1234");
+            assertThat(e.extendedRequestId()).isEqualTo("5678");
             assertThat(e.statusCode()).isEqualTo(404);
         }
     }

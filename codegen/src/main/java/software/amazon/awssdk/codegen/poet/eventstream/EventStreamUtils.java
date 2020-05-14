@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.codegen.poet.eventstream;
 
+import java.util.Collection;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -116,16 +118,21 @@ public class EventStreamUtils {
     }
 
     /**
-     * Returns the first operation that contains the given event stream shape. The event stream can be in operation
+     * Returns the all operations that contain the given event stream shape. The event stream can be in operation
      * request or response shape.
      */
-    public static OperationModel findOperationWithEventStream(IntermediateModel model, ShapeModel eventStreamShape) {
-        return model.getOperations().values()
+    public static Collection<OperationModel> findOperationsWithEventStream(IntermediateModel model, ShapeModel eventStreamShape) {
+        Collection<OperationModel> operations = model.getOperations().values()
                     .stream()
                     .filter(op -> operationContainsEventStream(op, eventStreamShape))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(String.format(
-                        "%s is an event shape but has no corresponding operation in the model", eventStreamShape.getC2jName())));
+                    .collect(Collectors.toList());
+
+        if (operations.isEmpty()) {
+            throw new IllegalStateException(String.format(
+                "%s is an event shape but has no corresponding operation in the model", eventStreamShape.getC2jName()));
+        }
+
+        return operations;
     }
 
     /**
