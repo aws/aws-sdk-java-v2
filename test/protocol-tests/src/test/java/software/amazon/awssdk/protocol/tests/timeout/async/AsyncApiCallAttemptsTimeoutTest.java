@@ -19,12 +19,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,9 +58,6 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
     private static final String STREAMING_OUTPUT_PATH = "/2016-03-11/streamingOutputOperation";
     private ProtocolRestJsonAsyncClient client;
     private ProtocolRestJsonAsyncClient clientWithRetry;
-    private static final int API_CALL_ATTEMPT_TIMEOUT = 800;
-    private static final int DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = 100;
-    private static final int DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = 1000;
 
     @Before
     public void setup() {
@@ -92,8 +91,13 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
             .streamingOutputOperation(
                 StreamingOutputOperationRequest.builder().build(), new SlowResponseTransformer<>());
 
+        Instant startTime = Instant.now();
+
         assertThatThrownBy(future::join)
             .hasCauseInstanceOf(ApiCallAttemptTimeoutException.class);
+
+        Duration latency = Duration.between(startTime, Instant.now());
+        assertThat((int) latency.toMillis()).isBetween(API_CALL_ATTEMPT_TIMEOUT, DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
     }
 
     @Override
@@ -142,7 +146,7 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
             return delegate.prepare()
                            .thenApply(r -> {
                                try {
-                                   Thread.sleep(1_000);
+                                   Thread.sleep(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
                                } catch (InterruptedException e) {
                                    e.printStackTrace();
                                }

@@ -27,9 +27,9 @@ import org.junit.Test;
 
 public abstract class BaseApiCallAttemptTimeoutTest extends BaseTimeoutTest {
 
-    protected static final int API_CALL_ATTEMPT_TIMEOUT = 800;
+    protected static final int API_CALL_ATTEMPT_TIMEOUT = 1_000;
     protected static final int DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = 100;
-    protected static final int DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = 1000;
+    protected static final int DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = 10_000;
 
     @Test
     public void nonstreamingOperation200_finishedWithinTime_shouldSucceed() throws Exception {

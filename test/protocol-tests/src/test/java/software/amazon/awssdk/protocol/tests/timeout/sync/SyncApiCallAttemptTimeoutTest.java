@@ -45,7 +45,6 @@ public class SyncApiCallAttemptTimeoutTest extends BaseApiCallAttemptTimeoutTest
 
     private ProtocolRestJsonClient client;
     private ProtocolRestJsonClient clientWithRetry;
-    private static final int API_CALL_ATTEMPT_TIMEOUT = 800;
 
     @Before
     public void setup() {
