@@ -231,6 +231,7 @@ public class QueryExceptionTests {
             assertThat(awsErrorDetails.serviceName()).isEqualTo("ProtocolQuery");
             assertThat(awsErrorDetails.sdkHttpResponse()).isNotNull();
             assertThat(e.requestId()).isEqualTo("1234");
+            assertThat(e.extendedRequestId()).isNull();
             assertThat(e.statusCode()).isEqualTo(404);
         }
     }
@@ -252,6 +253,7 @@ public class QueryExceptionTests {
             client.allTypes();
         } catch (EmptyModeledException e) {
             assertThat(e.requestId()).isEqualTo("1234");
+            assertThat(e.extendedRequestId()).isNull();
         }
     }
 
@@ -265,6 +267,22 @@ public class QueryExceptionTests {
             client.allTypes();
         } catch (ProtocolQueryException e) {
             assertThat(e.requestId()).isEqualTo("1234");
+            assertThat(e.extendedRequestId()).isNull();
+        }
+    }
+
+    @Test
+    public void requestIdAndExtendedRequestIdInHeader_IsSetOnException() {
+        stubFor(post(urlEqualTo(PATH)).willReturn(
+            aResponse()
+                .withStatus(404)
+                .withHeader("x-amzn-RequestId", "1234")
+                .withHeader("x-amz-id-2", "5678")));
+        try {
+            client.allTypes();
+        } catch (ProtocolQueryException e) {
+            assertThat(e.requestId()).isEqualTo("1234");
+            assertThat(e.extendedRequestId()).isEqualTo("5678");
         }
     }
 

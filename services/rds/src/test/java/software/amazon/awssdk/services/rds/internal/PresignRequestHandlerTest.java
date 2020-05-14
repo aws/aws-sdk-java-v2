@@ -40,8 +40,6 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.rds.internal.CopyDbSnapshotPresignInterceptor;
-import software.amazon.awssdk.services.rds.internal.RdsPresignInterceptor;
 import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
@@ -163,7 +161,8 @@ public class PresignRequestHandlerTest {
     }
 
     private ExecutionAttributes executionAttributes() {
-        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS);
+        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
+                                        .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION);
     }
 
     private CopyDbSnapshotRequest makeTestRequest() {
