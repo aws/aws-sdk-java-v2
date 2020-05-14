@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "Support event streams that are shared between two operations."
-}

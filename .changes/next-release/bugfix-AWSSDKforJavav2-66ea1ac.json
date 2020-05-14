@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "Fix generation for operations that share an output shape."
-}

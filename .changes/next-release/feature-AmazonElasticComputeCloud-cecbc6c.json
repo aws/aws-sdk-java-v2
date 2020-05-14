@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "Amazon EC2 now supports adding AWS resource tags for associations between VPCs and local gateways, at creation time."
-}
