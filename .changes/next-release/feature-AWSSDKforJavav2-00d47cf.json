@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Expose the `extendedRequestId` from `SdkServiceException`, so it can be provided to support to investigate issues."
-}

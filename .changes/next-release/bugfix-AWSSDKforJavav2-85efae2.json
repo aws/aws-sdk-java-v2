@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2",
-    "type": "bugfix",
-    "description": "Fix unmarshalling of events when structure member name and shape name mismatch."
-}
