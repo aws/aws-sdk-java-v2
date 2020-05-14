@@ -1,0 +1,5 @@
+{
+  "category": "AWS SDK for Java v2",
+  "type": "bugfix",
+  "description": "Fix generation for services that contain operations with the same name as the service."
+}

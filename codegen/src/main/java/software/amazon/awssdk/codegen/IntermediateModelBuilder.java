@@ -168,8 +168,7 @@ public class IntermediateModelBuilder {
         for (Map.Entry<String, ShapeModel> entry : model.getShapes().entrySet()) {
             if (entry.getValue().getMembers() != null) {
                 for (MemberModel member : entry.getValue().getMembers()) {
-                    member.setShape(
-                        Utils.findShapeModelByC2jNameIfExists(model, member.getC2jShape()));
+                    member.setShape(Utils.findMemberShapeModelByC2jNameIfExists(model, member.getC2jShape()));
                 }
             }
         }
@@ -186,7 +185,9 @@ public class IntermediateModelBuilder {
 
             if (operation.getOutput() != null) {
                 String outputShapeName = operation.getOutput().getShape();
-                entry.getValue().setOutputShape(model.getShapeByC2jName(outputShapeName));
+                ShapeModel outputShape =
+                    model.getShapeByNameAndC2jName(entry.getValue().getReturnType().getReturnType(), outputShapeName);
+                entry.getValue().setOutputShape(outputShape);
             }
         }
     }

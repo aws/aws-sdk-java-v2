@@ -1,0 +1,49 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "shared-output-service",
+    "globalEndpoint": "shared-output-service.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Shared Output Service",
+    "serviceFullName": "Shared output service",
+    "serviceId":"SharedOutputService",
+    "signatureVersion": "v4",
+    "uid": "shared-output-service-2010-05-08",
+    "xmlNamespace": "https://shared-output-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "Ping": {
+      "name": "ping",
+      "http": {
+        "method": "POST",
+        "requestUri": "/ping"
+      },
+      "errors": [],
+      "output": {
+        "shape" : "PingOutput"
+      },
+      "documentation": "<p>ping</p>"
+    },
+    "SecurePing": {
+      "name": "sping",
+      "http": {
+        "method": "POST",
+        "requestUri": "/sping"
+      },
+      "errors": [],
+      "output": {
+        "shape" : "PingOutput"
+      },
+      "documentation": "<p>secure ping</p>"
+    }
+  },
+  "shapes": {
+    "PingOutput": {
+      "type": "structure",
+      "required": [],
+      "members": {}
+    }
+  },
+  "documentation": "A ping service that shared outputs"
+}

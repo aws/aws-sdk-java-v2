@@ -1,3 +1,39 @@
+# __2.13.17__ __2020-05-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Expose the `extendedRequestId` from `SdkServiceException`, so it can be provided to support to investigate issues.
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix generation for operations that share an output shape.
+    - Fix unmarshalling of events when structure member name and shape name mismatch.
+    - Support event streams that are shared between two operations.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 now supports adding AWS resource tags for associations between VPCs and local gateways, at creation time.
+
+## __Amazon RDS__
+  - ### Features
+    - Add SourceRegion to CopyDBClusterSnapshot and CreateDBCluster operations. As with CopyDBSnapshot and CreateDBInstanceReadReplica, specifying this field will automatically populate the PresignedURL field with a valid value.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds a new parameter (SupportedOsVersions) to the Components API. This parameter lists the OS versions supported by a component.
+
+# __2.13.16__ __2020-05-13__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a race condition in `FileAsyncResponseTransformer` where the future fails to complete when onComplete event is dispatched on the same thread that executed request
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache now supports auto-update of ElastiCache clusters after the "recommended apply by date" of service update has passed. ElastiCache will use your maintenance window to schedule the auto-update of applicable clusters. For more information, see https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/Self-Service-Updates.html and https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Self-Service-Updates.html
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release introduces a new major version of the Amazon Macie API. You can use this version of the API to develop tools and applications that interact with the new Amazon Macie.
+
 # __2.13.15__ __2020-05-12__
 ## __AWS IoT SiteWise__
   - ### Features

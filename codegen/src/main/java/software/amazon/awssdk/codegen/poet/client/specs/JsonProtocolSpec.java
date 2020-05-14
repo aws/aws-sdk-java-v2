@@ -417,9 +417,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  protocolFactory,
                  JsonOperationMetadata.class,
                  ClassName.get(EventStreamTaggedUnionPojoSupplier.class));
-        EventStreamUtils.getEvents(eventStream)
+        EventStreamUtils.getEventMembers(eventStream)
                         .forEach(m -> builder.add(".putSdkPojoSupplier(\"$L\", $T::builder)\n",
-                                                  m.getC2jName(), poetExtensions.getModelClass(m.getC2jName())));
+                                                  m.getC2jName(), poetExtensions.getModelClass(m.getShape().getC2jName())));
         builder.add(".defaultSdkPojoSupplier(() -> $T.UNKNOWN)\n"
                     + ".build());\n", eventStreamBaseClass);
     }

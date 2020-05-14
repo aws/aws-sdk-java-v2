@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen;
 
-import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
-
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -58,7 +56,7 @@ public class AddEmptyOutputShape implements IntermediateModelShapeProcessor {
 
             Output output = operation.getOutput();
             if (output == null) {
-                String outputShape = operationName + RESPONSE_CLASS_SUFFIX;
+                String outputShape = namingStrategy.getResponseClassName(operationName);
                 OperationModel operationModel = currentOperations.get(operationName);
 
                 operationModel.setReturnType(new ReturnTypeModel(outputShape));
