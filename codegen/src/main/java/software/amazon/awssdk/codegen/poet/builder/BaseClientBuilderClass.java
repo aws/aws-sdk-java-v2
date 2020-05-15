@@ -53,6 +53,9 @@ import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class BaseClientBuilderClass implements ClassSpec {
+    // This only applies to services that support endpoint discovery
+    private static final String ENDPOINT_DISCOVERY_ENABLED_BY_DEFAULT = "true";
+
     private final IntermediateModel model;
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
@@ -81,7 +84,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         if (model.getEndpointOperation().isPresent()) {
             builder.addField(FieldSpec.builder(boolean.class, "endpointDiscoveryEnabled")
                                       .addModifiers(PROTECTED)
-                                      .initializer("false")
+                                      .initializer(ENDPOINT_DISCOVERY_ENABLED_BY_DEFAULT)
                                       .build());
         }
 

@@ -54,10 +54,22 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
 
         if (model.getEndpointOperation().isPresent()) {
-            builder.addMethod(enableEndpointDiscovery());
+            builder.addMethod(endpointDiscoveryEnabled())
+                   .addMethod(enableEndpointDiscovery());
         }
 
         return builder.addMethod(buildClientMethod()).build();
+    }
+
+    private MethodSpec endpointDiscoveryEnabled() {
+        return MethodSpec.methodBuilder("endpointDiscoveryEnabled")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(builderClassName)
+                         .addParameter(boolean.class, "endpointDiscoveryEnabled")
+                         .addStatement("this.endpointDiscoveryEnabled = endpointDiscoveryEnabled")
+                         .addStatement("return this")
+                         .build();
     }
 
     private MethodSpec enableEndpointDiscovery() {

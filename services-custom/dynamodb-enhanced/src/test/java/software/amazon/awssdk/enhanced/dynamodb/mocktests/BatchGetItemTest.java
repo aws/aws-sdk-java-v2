@@ -56,6 +56,7 @@ public class BatchGetItemTest {
                           .region(Region.US_WEST_2)
                           .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
                           .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                          .endpointDiscoveryEnabled(false)
                           .build();
         enhancedClient = DynamoDbEnhancedClient.builder()
                                                .dynamoDbClient(dynamoDbClient)

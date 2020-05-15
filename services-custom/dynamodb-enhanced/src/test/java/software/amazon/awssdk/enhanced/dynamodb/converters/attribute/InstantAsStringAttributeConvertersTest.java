@@ -27,7 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Ins
 
 public class InstantAsStringAttributeConvertersTest {
 
-    private static InstantAsStringAttributeConverter converter = InstantAsStringAttributeConverter.create();
+    private static final InstantAsStringAttributeConverter CONVERTER = InstantAsStringAttributeConverter.create();
 
     @Test
     public void InstantAsStringAttributeConverterMinTest() {
@@ -57,62 +57,62 @@ public class InstantAsStringAttributeConvertersTest {
 
     @Test
     public void InstantAsStringAttributeConverterExceedLowerBoundTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("-1000000001-12-31T23:59:59.999999999Z")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("-1000000001-12-31T23:59:59.999999999Z")
                                                                        .toAttributeValue()));
     }
 
     @Test
     public void InstantAsStringAttributeConverterInvalidFormatTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("X")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("X")
                                                                        .toAttributeValue()));
     }
 
     @Test
     public void InstantAsStringAttributeConverterExceedHigherBoundTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("+1000000001-01-01T00:00:00Z")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("+1000000001-01-01T00:00:00Z")
                                                                        .toAttributeValue()));
     }
 
     @Test
     public void InstantAsStringAttributeConverterNotAcceptLocalDateTimeTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("1988-05-21T00:12:00.000000001")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("1988-05-21T00:12:00.000000001")
                                                                        .toAttributeValue()));
     }
 
     @Test
     public void InstantAsStringAttributeConverterNotAcceptOffsetTimeTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("1988-05-21T00:12:00+01:00")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("1988-05-21T00:12:00+01:00")
                                                                        .toAttributeValue()));
     }
 
     @Test
     public void InstantAsStringAttributeConverterNotAcceptZonedTimeTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("1988-05-21T00:12:00+01:00[Europe/Paris]")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("1988-05-21T00:12:00+01:00[Europe/Paris]")
                                                                        .toAttributeValue()));
     }
 
     @Test
     public void InstantAsStringAttributeConverterNotAcceptLocalDateTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("1988-05-21")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("1988-05-21")
                                                                        .toAttributeValue()));
     }
 
     @Test
     public void InstantAsStringAttributeConverterNotAcceptLocalTimeTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("00:12:00.000000001")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("00:12:00.000000001")
                                                                        .toAttributeValue()));
     }
 
     @Test
     public void InstantAsStringAttributeConverterNotAcceptMonthDayTest() {
-        assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("05-21")
+        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("05-21")
                                                                        .toAttributeValue()));
     }
 
     private void verifyTransform(Instant objectToTransform, String attributeValueString) {
-        assertThat(transformFrom(converter, objectToTransform))
+        assertThat(transformFrom(CONVERTER, objectToTransform))
             .isEqualTo(EnhancedAttributeValue.fromString(attributeValueString).toAttributeValue());
-        assertThat(transformTo(converter, EnhancedAttributeValue.fromString(attributeValueString).toAttributeValue()))
+        assertThat(transformTo(CONVERTER, EnhancedAttributeValue.fromString(attributeValueString).toAttributeValue()))
             .isEqualTo(objectToTransform);
     }
 
