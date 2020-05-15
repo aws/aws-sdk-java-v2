@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.Input;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
@@ -287,6 +288,28 @@ public final class Utils {
             }
         }
         return null;
+    }
+
+    /**
+     * Search for a shape model by its C2J name, excluding request and response shapes, which are not candidates to be members
+     * of another shape.
+     *
+     * @return ShapeModel or null if the shape doesn't exist (if it's primitive or container type for example)
+     */
+    public static ShapeModel findMemberShapeModelByC2jNameIfExists(IntermediateModel intermediateModel, String shapeC2jName) {
+        ShapeModel candidate = null;
+        for (ShapeModel shape : intermediateModel.getShapes().values()) {
+            if (shape.getShapeType() != ShapeType.Request
+                    && shape.getShapeType() != ShapeType.Response
+                    && shape.getC2jName().equals(shapeC2jName)) {
+                if (candidate != null) {
+                    throw new IllegalStateException("Conflicting candidates for member model with C2J name " + shapeC2jName + ": "
+                                                    + candidate + " and " + shape);
+                }
+                candidate = shape;
+            }
+        }
+        return candidate;
     }
 
     public static List<ShapeModel> findShapesByC2jName(IntermediateModel intermediateModel, String shapeC2jName) {

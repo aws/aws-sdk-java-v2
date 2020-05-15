@@ -32,6 +32,16 @@
       "output": {
         "shape": "PeopleOutput"
       }
+    },
+    "GetRandomPerson" : {
+      "name" : "GetRandomPerson",
+      "http": {
+        "method": "GET",
+        "requestUri": "/randomPerson"
+      },
+      "output": {
+        "shape": "Person"
+      }
     }
   },
   "shapes": {

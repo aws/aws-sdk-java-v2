@@ -1,0 +1,41 @@
+{
+    "version": "2.13.18",
+    "date": "2020-05-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Allow event structures to be used as operation outputs outside of streaming contexts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "Starting today, you can stop the execution of Glue workflows that are running. AWS Glue workflows are directed acyclic graphs (DAGs) of Glue triggers, crawlers and jobs. Using a workflow, you can design a complex multi-job extract, transform, and load (ETL) activity that AWS Glue can execute and track as single entity."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "description": "This release adds support for specifying an image manifest media type when pushing a manifest to Amazon ECR."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "description": "API updates for STS"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "description": "This release adds support for the following features: 1. DescribeType and ListTypeVersions APIs now output a field IsDefaultVersion, indicating if a version is the default version for its type; 2. Add StackRollbackComplete waiter feature to wait until stack status is UPDATE_ROLLBACK_COMPLETE; 3. Add paginators in DescribeAccountLimits, ListChangeSets, ListStackInstances, ListStackSetOperationResults, ListStackSetOperations, ListStackSets APIs."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix generation for services that contain operations with the same name as the service."
+        }
+    ]
+}

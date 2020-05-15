@@ -153,32 +153,9 @@ public class AwsServiceModel implements ClassSpec {
             }
 
             if (this.shapeModel.isEvent()) {
-                ShapeModel eventStream = EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel);
-                ClassName eventStreamClassName = poetExtensions.getModelClassFromShape(eventStream);
-                Collection<OperationModel> opModels = EventStreamUtils.findOperationsWithEventStream(intermediateModel,
-                                                                                       eventStream);
-
-                Collection<OperationModel> outputOperations = findOutputEventStreamOperations(opModels, eventStream);
-
-                if (!outputOperations.isEmpty()) {
-                    ClassName modelClass = poetExtensions.getModelClass(shapeModel.getShapeName());
-                    specBuilder.addSuperinterface(eventStreamClassName);
-                    for (OperationModel opModel : outputOperations) {
-                        ClassName responseHandlerClass = poetExtensions.eventStreamResponseHandlerType(opModel);
-                        specBuilder.addMethod(acceptMethodSpec(modelClass, responseHandlerClass)
-                                                  .addAnnotation(Override.class)
-                                                  .addCode(CodeBlock.builder()
-                                                                    .addStatement("visitor.visit(this)")
-                                                                    .build())
-                                                  .build());
-                    }
-
-                } else if (hasInputStreamOperations(opModels, eventStream)) {
-                    specBuilder.addSuperinterface(eventStreamClassName);
-                } else {
-                    throw new IllegalArgumentException(shapeModel.getC2jName() + " event shape is not a member in any "
-                                                       + "request or response event shape");
-                }
+                EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel).ifPresent(
+                    eventStream -> addEventSupport(specBuilder, eventStream)
+                );
             }
 
             if (this.shapeModel.getDocumentation() != null) {
@@ -186,6 +163,33 @@ public class AwsServiceModel implements ClassSpec {
             }
 
             return specBuilder.build();
+        }
+    }
+
+    private void addEventSupport(TypeSpec.Builder specBuilder, ShapeModel eventStream) {
+        ClassName eventStreamClassName = poetExtensions.getModelClassFromShape(eventStream);
+        Collection<OperationModel> opModels = EventStreamUtils.findOperationsWithEventStream(intermediateModel,
+                                                                                             eventStream);
+
+        Collection<OperationModel> outputOperations = findOutputEventStreamOperations(opModels, eventStream);
+
+        if (!outputOperations.isEmpty()) {
+            ClassName modelClass = poetExtensions.getModelClass(shapeModel.getShapeName());
+            specBuilder.addSuperinterface(eventStreamClassName);
+            for (OperationModel opModel : outputOperations) {
+                ClassName responseHandlerClass = poetExtensions.eventStreamResponseHandlerType(opModel);
+                specBuilder.addMethod(acceptMethodSpec(modelClass, responseHandlerClass)
+                                          .addAnnotation(Override.class)
+                                          .addCode(CodeBlock.builder()
+                                                            .addStatement("visitor.visit(this)")
+                                                            .build())
+                                          .build());
+            }
+        } else if (hasInputStreamOperations(opModels, eventStream)) {
+            specBuilder.addSuperinterface(eventStreamClassName);
+        } else {
+            throw new IllegalArgumentException(shapeModel.getC2jName() + " event shape is not a member in any "
+                                               + "request or response event shape");
         }
     }
 

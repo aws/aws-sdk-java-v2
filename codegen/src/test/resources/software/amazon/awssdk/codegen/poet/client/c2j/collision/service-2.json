@@ -1,0 +1,52 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "collision-service",
+    "globalEndpoint": "collision-service.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Collision Service",
+    "serviceFullName": "A really bizarrely modelled service",
+    "serviceId":"CollisionService",
+    "signatureVersion": "v4",
+    "uid": "collision-service-2010-05-08",
+    "xmlNamespace": "https://collision-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "Collision": {
+      "name": "Collision",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "Collision"
+      },
+      "errors": [
+        {
+          "shape": "CollisionFault"
+        }
+      ],
+      "documentation": "<p>A very strange operation></p>"
+    }
+  },
+  "shapes": {
+    "Collision": {
+      "type": "structure",
+      "required": [],
+      "members": {}
+    },
+    "CollisionFault" : {
+      "type": "structure",
+      "members": {},
+      "documentation": "<p>A fault</p>",
+      "error": {
+        "code": "Collision",
+        "httpStatusCode": 400,
+        "senderFault": true
+      },
+      "exception": true
+    }
+  },
+  "documentation": "Why would anyone do this?"
+}
