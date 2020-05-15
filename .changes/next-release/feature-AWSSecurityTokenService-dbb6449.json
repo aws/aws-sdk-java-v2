@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Security Token Service",
+    "description": "API updates for STS"
+}
