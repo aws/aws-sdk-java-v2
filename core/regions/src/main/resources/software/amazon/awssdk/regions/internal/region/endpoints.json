@@ -4776,9 +4776,6 @@
         },
         "isRegionalized" : false
       },
-        "isRegionalized" : false,
-        "partitionEndpoint" : "aws-global"
-      },
       "sms" : {
         "endpoints" : {
           "af-south-1" : { },
