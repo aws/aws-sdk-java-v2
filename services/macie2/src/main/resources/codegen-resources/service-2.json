@@ -7,7 +7,7 @@
     "serviceId": "Macie2",
     "protocol": "rest-json",
     "jsonVersion": "1.1",
-    "uid": "macie2-2020-01-01T00:00:00Z",
+    "uid": "macie2-2020-01-01",
     "signatureVersion": "v4"
   },
   "operations": {
@@ -5366,7 +5366,7 @@
           "documentation": "<p>Reserved for future use.</p>"
         }
       },
-      "documentation":  "<p>The total number of objects that are in the bucket, grouped by server-side encryption type. This includes a grouping that reports the total number of objects that aren't encrypted.</p>"
+      "documentation": "<p>The total number of objects that are in the bucket, grouped by server-side encryption type. This includes a grouping that reports the total number of objects that aren't encrypted.</p>"
     },
     "OrderBy": {
       "type": "string",
