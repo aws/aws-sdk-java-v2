@@ -17,6 +17,8 @@ package software.amazon.awssdk.codegen;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import org.junit.Test;
@@ -57,6 +59,34 @@ public class IntermediateModelBuilderTest {
 
         assertEquals("PingResponse", testModel.getOperation("Ping").getOutputShape().getShapeName());
         assertEquals("SecurePingResponse", testModel.getOperation("SecurePing").getOutputShape().getShapeName());
+    }
+
+    @Test
+    public void defaultEndpointDiscovery_true() {
+        final File modelFile = new File(IntermediateModelBuilderTest.class
+                                            .getResource("poet/client/c2j/endpointdiscovery/service-2.json").getFile());
+        IntermediateModel testModel = new IntermediateModelBuilder(
+            C2jModels.builder()
+                     .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, modelFile))
+                     .customizationConfig(CustomizationConfig.create())
+                     .build())
+            .build();
+
+        assertTrue(testModel.getEndpointOperation().get().isEndpointCacheRequired());
+    }
+
+    @Test
+    public void defaultEndpointDiscovery_false() {
+        final File modelFile = new File(IntermediateModelBuilderTest.class
+                                            .getResource("poet/client/c2j/endpointdiscoveryoptional/service-2.json").getFile());
+        IntermediateModel testModel = new IntermediateModelBuilder(
+            C2jModels.builder()
+                     .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, modelFile))
+                     .customizationConfig(CustomizationConfig.create())
+                     .build())
+            .build();
+
+        assertFalse(testModel.getEndpointOperation().get().isEndpointCacheRequired());
     }
 
 }

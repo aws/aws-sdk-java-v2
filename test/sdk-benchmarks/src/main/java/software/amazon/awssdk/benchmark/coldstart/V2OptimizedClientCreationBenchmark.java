@@ -66,6 +66,7 @@ public class V2OptimizedClientCreationBenchmark implements SdkClientCreationBenc
                                             AwsBasicCredentials.create("test", "test")))
                                         .httpClient(ApacheHttpClient.builder().build())
                                         .overrideConfiguration(ClientOverrideConfiguration.builder().build())
+                                        .endpointDiscoveryEnabled(false)
                                         .build();
 
         blackhole.consume(client);

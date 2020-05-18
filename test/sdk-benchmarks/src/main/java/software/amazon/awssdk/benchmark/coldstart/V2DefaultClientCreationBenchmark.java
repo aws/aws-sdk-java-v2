@@ -57,6 +57,7 @@ public class V2DefaultClientCreationBenchmark implements SdkClientCreationBenchm
     @Benchmark
     public void createClient(Blackhole blackhole) throws Exception {
         client = DynamoDbClient.builder()
+                               .endpointDiscoveryEnabled(false)
                                .httpClient(ApacheHttpClient.builder().build()).build();
         blackhole.consume(client);
     }

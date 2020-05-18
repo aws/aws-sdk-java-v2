@@ -106,13 +106,25 @@ public class IntermediateModelBuilder {
         Map<String, AuthorizerModel> authorizers =
             new HashMap<>(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());
 
+        // Iterate through every operation and build an 'endpointOperation' if at least one operation that supports
+        // endpoint discovery is found. If -any operations that require- endpoint discovery are found, then the flag
+        // 'endpointCacheRequired' will be set on the 'endpointOperation'. This 'endpointOperation' summary is then
+        // passed directly into the constructor of the intermediate model and is referred to by the codegen.
         OperationModel endpointOperation = null;
+        boolean endpointCacheRequired = false;
 
         for (OperationModel o : operations.values()) {
             if (o.isEndpointOperation()) {
                 endpointOperation = o;
-                break;
             }
+
+            if (o.getEndpointDiscovery() != null && o.getEndpointDiscovery().isRequired()) {
+                endpointCacheRequired = true;
+            }
+        }
+
+        if (endpointOperation != null) {
+            endpointOperation.setEndpointCacheRequired(endpointCacheRequired);
         }
 
         for (IntermediateModelShapeProcessor processor : shapeProcessors) {
