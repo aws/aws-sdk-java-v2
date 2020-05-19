@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Health APIs and Notifications",
+    "description": "Feature: Health: AWS Health added a new field to differentiate Public events from Account-Specific events in the API request and response. Visit https://docs.aws.amazon.com/health/latest/APIReference/API_Event.html to learn more."
+}
