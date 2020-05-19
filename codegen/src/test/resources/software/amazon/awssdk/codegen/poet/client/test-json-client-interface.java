@@ -354,6 +354,10 @@ public interface JsonClient extends SdkClient {
      * }
      * </pre>
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
      * operation.</b>
@@ -425,6 +429,10 @@ public interface JsonClient extends SdkClient {
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -498,6 +506,10 @@ public interface JsonClient extends SdkClient {
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -630,6 +642,10 @@ public interface JsonClient extends SdkClient {
      * }
      * </pre>
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
      * operation.</b>
@@ -702,6 +718,10 @@ public interface JsonClient extends SdkClient {
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
