@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "description": "You can now receive Voice Connector call events through SNS or SQS."
+}
