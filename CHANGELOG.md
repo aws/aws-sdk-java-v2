@@ -1,3 +1,25 @@
+# __2.13.20__ __2020-05-19__
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Feature: Health: AWS Health added a new field to differentiate Public events from Account-Specific events in the API request and response. Visit https://docs.aws.amazon.com/health/latest/APIReference/API_Event.html to learn more.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Endpoint discovery is now enabled by default for future services that will require it. A new method 'endpointDiscoveryEnabled' has been added to client builders that support endpoint discovery allowing a true or false value to be set. 'enableEndpointDiscovery' has been deprecated on the client builders as it is now superseded by 'endpointDiscoveryEnabled'.
+    - Updated service endpoint metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - You can now receive Voice Connector call events through SNS or SQS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Federated Authentication via SAML-2.0 in AWS ClientVPN.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Documentation updates for Amazon Transcribe.
+
 # __2.13.19__ __2020-05-18__
 ## __AWS SDK for Java v2__
   - ### Features

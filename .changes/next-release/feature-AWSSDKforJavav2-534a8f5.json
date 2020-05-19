@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "description": "Endpoint discovery is now enabled by default for future services that will require it. A new method 'endpointDiscoveryEnabled' has been added to client builders that support endpoint discovery allowing a true or false value to be set. 'enableEndpointDiscovery' has been deprecated on the client builders as it is now superseded by 'endpointDiscoveryEnabled'."
-}
