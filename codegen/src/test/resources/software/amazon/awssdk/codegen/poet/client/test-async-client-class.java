@@ -22,6 +22,7 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupp
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -259,7 +260,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             HttpResponseHandler<? extends EventStream> eventResponseHandler = protocolFactory.createResponseHandler(
                     JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
                     EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
-                            .putSdkPojoSupplier("event-two", EventTwo::builder).defaultSdkPojoSupplier(() -> EventStream.UNKNOWN)
+                            .putSdkPojoSupplier("event-two", EventTwo::builder)
+                            .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN))
                             .build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
@@ -397,7 +399,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             HttpResponseHandler<? extends EventStream> eventResponseHandler = protocolFactory.createResponseHandler(
                 JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
                 EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
-                                                  .putSdkPojoSupplier("event-two", EventTwo::builder).defaultSdkPojoSupplier(() -> EventStream.UNKNOWN)
+                                                  .putSdkPojoSupplier("event-two", EventTwo::builder)
+                                                  .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN))
                                                   .build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
