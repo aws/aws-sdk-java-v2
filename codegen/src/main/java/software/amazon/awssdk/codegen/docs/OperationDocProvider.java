@@ -25,6 +25,7 @@ import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -58,7 +59,7 @@ abstract class OperationDocProvider {
         this.model = model;
         this.opModel = opModel;
         this.config = config;
-        this.paginationDocs = new PaginationDocs(model, opModel);
+        this.paginationDocs = new PaginationDocs(model, opModel, getPaginatorDefinition());
     }
 
     /**
@@ -178,6 +179,10 @@ abstract class OperationDocProvider {
         } else {
             docBuilder.param(opModel.getInput().getVariableName(), parameterDocs);
         }
+    }
+
+    private PaginatorDefinition getPaginatorDefinition() {
+        return model.getPaginators().get(opModel.getOperationName());
     }
 
     /**

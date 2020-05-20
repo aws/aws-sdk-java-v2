@@ -552,6 +552,10 @@ public interface JsonAsyncClient extends SdkClient {
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
      * operation.</b>
@@ -622,6 +626,10 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -695,6 +703,10 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -833,6 +845,10 @@ public interface JsonAsyncClient extends SdkClient {
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
      * operation.</b>
@@ -905,6 +921,10 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
