@@ -1,3 +1,157 @@
+# __2.13.21__ __2020-05-20__
+## __AWS App Mesh__
+  - ### Features
+    - List APIs for all resources now contain additional information: when a resource was created, last updated, and its current version number.
+
+## __AWS Backup__
+  - ### Features
+    - This release allows customers to enable or disable AWS Backup support for an AWS resource type. This release also includes new APIs, update-region-settings and describe-region-settings, which can be used to opt in to a specific resource type. For all current AWS Backup customers, the default settings enable support for EBS, EC2, StorageGateway, EFS, DDB and RDS resource types.
+
+## __AWS CodeDeploy__
+  - ### Features
+    - Amazon ECS customers using application and network load balancers can use CodeDeploy BlueGreen hook to invoke a CloudFormation stack update. With this update you can view CloudFormation deployment and target details via existing APIs and use your stack Id to list or delete all deployments associated with the stack.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports the ability to ingest the content that is streaming from an AWS Elemental Link device: https://aws.amazon.com/medialive/features/link/. This release also adds support for SMPTE-2038 and input state waiters.
+
+## __AWS SecurityHub__
+  - ### Features
+    - For findings related to controls, the finding information now includes the reason behind the current status of the control. A new field for the findings original severity allows finding providers to use the severity values from the system they use to assign severity.
+
+## __Amazon Chime__
+  - ### Features
+    - Amazon Chime enterprise account administrators can now set custom retention policies on chat data in the Amazon Chime application.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for vocabulary filtering in streaming with which you can filter unwanted words from the real-time transcription results. Visit https://docs.aws.amazon.com/transcribe/latest/dg/how-it-works.html to learn more.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Documentation updates for Application Auto Scaling
+
+# __2.13.20__ __2020-05-19__
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Feature: Health: AWS Health added a new field to differentiate Public events from Account-Specific events in the API request and response. Visit https://docs.aws.amazon.com/health/latest/APIReference/API_Event.html to learn more.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Endpoint discovery is now enabled by default for future services that will require it. A new method 'endpointDiscoveryEnabled' has been added to client builders that support endpoint discovery allowing a true or false value to be set. 'enableEndpointDiscovery' has been deprecated on the client builders as it is now superseded by 'endpointDiscoveryEnabled'.
+    - Updated service endpoint metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - You can now receive Voice Connector call events through SNS or SQS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Federated Authentication via SAML-2.0 in AWS ClientVPN.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Documentation updates for Amazon Transcribe.
+
+# __2.13.19__ __2020-05-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - Amazon Chime now supports redacting chat messages.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for dynamodb
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for specifying environment files to add environment variables to your containers.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release changes the RunInstances CLI and SDK's so that if you do not specify a client token, a randomly generated token is used for the request to ensure idempotency.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Documentation updates for Amazon Macie
+
+## __Amazon QLDB__
+  - ### Features
+    - Amazon QLDB now supports Amazon Kinesis data streams. You can now emit QLDB journal data, via the new QLDB Streams feature, directly to Amazon Kinesis supporting event processing and analytics among related use cases.
+
+# __2.13.18__ __2020-05-15__
+## __AWS CloudFormation__
+  - ### Features
+    - This release adds support for the following features: 1. DescribeType and ListTypeVersions APIs now output a field IsDefaultVersion, indicating if a version is the default version for its type; 2. Add StackRollbackComplete waiter feature to wait until stack status is UPDATE_ROLLBACK_COMPLETE; 3. Add paginators in DescribeAccountLimits, ListChangeSets, ListStackInstances, ListStackSetOperationResults, ListStackSetOperations, ListStackSets APIs.
+
+## __AWS Glue__
+  - ### Features
+    - Starting today, you can stop the execution of Glue workflows that are running. AWS Glue workflows are directed acyclic graphs (DAGs) of Glue triggers, crawlers and jobs. Using a workflow, you can design a complex multi-job extract, transform, and load (ETL) activity that AWS Glue can execute and track as single entity.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Allow event structures to be used as operation outputs outside of streaming contexts.
+    - Fix generation for services that contain operations with the same name as the service.
+
+## __AWS Security Token Service__
+  - ### Features
+    - API updates for STS
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds support for specifying an image manifest media type when pushing a manifest to Amazon ECR.
+
+# __2.13.17__ __2020-05-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Expose the `extendedRequestId` from `SdkServiceException`, so it can be provided to support to investigate issues.
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix generation for operations that share an output shape.
+    - Fix unmarshalling of events when structure member name and shape name mismatch.
+    - Support event streams that are shared between two operations.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 now supports adding AWS resource tags for associations between VPCs and local gateways, at creation time.
+
+## __Amazon RDS__
+  - ### Features
+    - Add SourceRegion to CopyDBClusterSnapshot and CreateDBCluster operations. As with CopyDBSnapshot and CreateDBInstanceReadReplica, specifying this field will automatically populate the PresignedURL field with a valid value.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds a new parameter (SupportedOsVersions) to the Components API. This parameter lists the OS versions supported by a component.
+
+# __2.13.16__ __2020-05-13__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a race condition in `FileAsyncResponseTransformer` where the future fails to complete when onComplete event is dispatched on the same thread that executed request
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache now supports auto-update of ElastiCache clusters after the "recommended apply by date" of service update has passed. ElastiCache will use your maintenance window to schedule the auto-update of applicable clusters. For more information, see https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/Self-Service-Updates.html and https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Self-Service-Updates.html
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release introduces a new major version of the Amazon Macie API. You can use this version of the API to develop tools and applications that interact with the new Amazon Macie.
+
+# __2.13.15__ __2020-05-12__
+## __AWS IoT SiteWise__
+  - ### Features
+    - Documentation updates for iot-bifrost
+
+## __Amazon WorkMail__
+  - ### Features
+    - Minor API fixes and updates to the documentation.
+
 # __2.13.14__ __2020-05-11__
 ## __AWS SDK for Java v2__
   - ### Features

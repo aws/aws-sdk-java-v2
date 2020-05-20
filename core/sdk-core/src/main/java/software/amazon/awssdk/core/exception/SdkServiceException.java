@@ -41,11 +41,13 @@ import software.amazon.awssdk.http.HttpStatusCode;
 public class SdkServiceException extends SdkException implements SdkPojo {
 
     private final String requestId;
+    private final String extendedRequestId;
     private final int statusCode;
 
     protected SdkServiceException(Builder b) {
         super(b);
         this.requestId = b.requestId();
+        this.extendedRequestId = b.extendedRequestId();
         this.statusCode = b.statusCode();
     }
 
@@ -55,6 +57,14 @@ public class SdkServiceException extends SdkException implements SdkPojo {
      */
     public String requestId() {
         return requestId;
+    }
+
+    /**
+     * The extendedRequestId that was returned by the called service.
+     * @return String ctontaining the extendedRequestId
+     */
+    public String extendedRequestId() {
+        return extendedRequestId;
     }
 
     /**
@@ -128,6 +138,21 @@ public class SdkServiceException extends SdkException implements SdkPojo {
         String requestId();
 
         /**
+         * Specifies the extendedRequestId returned by the called service.
+         *
+         * @param extendedRequestId A string that identifies the request made to a service.
+         * @return This object for method chaining.
+         */
+        Builder extendedRequestId(String extendedRequestId);
+
+        /**
+         * The extendedRequestId returned by the called service.
+         *
+         * @return String containing the extendedRequestId
+         */
+        String extendedRequestId();
+
+        /**
          * Specifies the status code returned by the service.
          *
          * @param statusCode an int containing the status code returned by the service.
@@ -153,6 +178,7 @@ public class SdkServiceException extends SdkException implements SdkPojo {
     protected static class BuilderImpl extends SdkException.BuilderImpl implements Builder {
 
         protected String requestId;
+        protected String extendedRequestId;
         protected int statusCode;
 
         protected BuilderImpl() {
@@ -161,6 +187,7 @@ public class SdkServiceException extends SdkException implements SdkPojo {
         protected BuilderImpl(SdkServiceException ex) {
             super(ex);
             this.requestId = ex.requestId();
+            this.extendedRequestId = ex.extendedRequestId();
             this.statusCode = ex.statusCode();
         }
 
@@ -183,6 +210,12 @@ public class SdkServiceException extends SdkException implements SdkPojo {
         }
 
         @Override
+        public Builder extendedRequestId(String extendedRequestId) {
+            this.extendedRequestId = extendedRequestId;
+            return this;
+        }
+
+        @Override
         public String requestId() {
             return requestId;
         }
@@ -193,6 +226,19 @@ public class SdkServiceException extends SdkException implements SdkPojo {
 
         public void setRequestId(String requestId) {
             this.requestId = requestId;
+        }
+
+        @Override
+        public String extendedRequestId() {
+            return extendedRequestId;
+        }
+
+        public String getExtendedRequestId() {
+            return extendedRequestId;
+        }
+
+        public void setExtendedRequestId(String extendedRequestId) {
+            this.extendedRequestId = extendedRequestId;
         }
 
         @Override

@@ -907,7 +907,7 @@ public interface JsonClient extends SdkClient {
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
+     *        StreamingInputOutputOperationResponse and an InputStream to the response content are provided as parameters
      *        to the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
@@ -954,7 +954,7 @@ public interface JsonClient extends SdkClient {
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
+     *        StreamingInputOutputOperationResponse and an InputStream to the response content are provided as parameters
      *        to the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
@@ -1061,7 +1061,7 @@ public interface JsonClient extends SdkClient {
      * @param streamingOutputOperationRequest
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
+     *        StreamingOutputOperationResponse and an InputStream to the response content are provided as parameters
      *        to the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
@@ -1096,7 +1096,7 @@ public interface JsonClient extends SdkClient {
      *        request.
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
+     *        StreamingOutputOperationResponse and an InputStream to the response content are provided as parameters
      *        to the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The

@@ -50,7 +50,11 @@ public class BaseClientBuilderInterface implements ClassSpec {
                         .addJavadoc(getJavadoc());
 
         if (model.getEndpointOperation().isPresent()) {
-            builder.addMethod(enableEndpointDiscovery());
+            if (model.getCustomizationConfig().isEnableEndpointDiscoveryMethodRequired()) {
+                builder.addMethod(enableEndpointDiscovery());
+            }
+
+            builder.addMethod(endpointDiscovery());
         }
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
@@ -72,6 +76,16 @@ public class BaseClientBuilderInterface implements ClassSpec {
         return MethodSpec.methodBuilder("enableEndpointDiscovery")
                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                          .returns(TypeVariableName.get("B"))
+                         .addAnnotation(Deprecated.class)
+                         .addJavadoc("@deprecated Use {@link #endpointDiscoveryEnabled($T)} instead.", boolean.class)
+                         .build();
+    }
+
+    private MethodSpec endpointDiscovery() {
+        return MethodSpec.methodBuilder("endpointDiscoveryEnabled")
+                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(boolean.class, "endpointDiscovery")
                          .build();
     }
 

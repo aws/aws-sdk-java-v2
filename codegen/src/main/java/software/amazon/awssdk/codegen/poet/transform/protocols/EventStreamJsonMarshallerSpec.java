@@ -84,7 +84,9 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
     }
 
     private String getMemberNameFromEventStream() {
-        ShapeModel eventStream = EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel);
+        ShapeModel eventStream = EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel)
+            .orElseThrow(() -> new IllegalStateException("Could not find associated event stream spec for "
+                                                         + shapeModel.getC2jName()));
         return eventStream.getMembers().stream()
                           .filter(memberModel -> memberModel.getShape().equals(shapeModel))
                           .findAny()
