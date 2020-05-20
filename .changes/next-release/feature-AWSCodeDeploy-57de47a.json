@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeDeploy",
-    "description": "Amazon ECS customers using application and network load balancers can use CodeDeploy BlueGreen hook to invoke a CloudFormation stack update. With this update you can view CloudFormation deployment and target details via existing APIs and use your stack Id to list or delete all deployments associated with the stack."
-}
