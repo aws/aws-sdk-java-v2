@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS App Mesh",
+    "description": "List APIs for all resources now contain additional information: when a resource was created, last updated, and its current version number."
+}
