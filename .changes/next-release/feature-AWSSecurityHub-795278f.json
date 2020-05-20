@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "description": "For findings related to controls, the finding information now includes the reason behind the current status of the control. A new field for the findings original severity allows finding providers to use the severity values from the system they use to assign severity."
+}
