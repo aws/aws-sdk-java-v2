@@ -50,6 +50,8 @@ public class OperationModel extends DocumentationModel {
 
     private boolean endpointOperation;
 
+    private boolean endpointCacheRequired;
+
     private EndpointDiscovery endpointDiscovery;
 
     @JsonIgnore
@@ -205,6 +207,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setEndpointOperation(boolean endpointOperation) {
         this.endpointOperation = endpointOperation;
+    }
+
+    public boolean isEndpointCacheRequired() {
+        return endpointCacheRequired;
+    }
+
+    public void setEndpointCacheRequired(boolean endpointCacheRequired) {
+        this.endpointCacheRequired = endpointCacheRequired;
     }
 
     public boolean isPaginated() {

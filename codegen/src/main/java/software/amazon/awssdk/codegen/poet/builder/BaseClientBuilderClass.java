@@ -35,6 +35,7 @@ import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -78,10 +79,12 @@ public class BaseClientBuilderClass implements ClassSpec {
                                      ClassName.get(basePackage, model.getMetadata().getSyncBuilder()),
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
+        // Only services that require endpoint discovery for at least one of their operations get a default value of
+        // 'true'
         if (model.getEndpointOperation().isPresent()) {
             builder.addField(FieldSpec.builder(boolean.class, "endpointDiscoveryEnabled")
                                       .addModifiers(PROTECTED)
-                                      .initializer("false")
+                                      .initializer(resolveDefaultEndpointDiscovery() ? "true" : "false")
                                       .build());
         }
 
@@ -100,6 +103,12 @@ public class BaseClientBuilderClass implements ClassSpec {
         addServiceHttpConfigIfNeeded(builder, model);
 
         return builder.build();
+    }
+
+    private boolean resolveDefaultEndpointDiscovery() {
+        return model.getEndpointOperation()
+                    .map(OperationModel::isEndpointCacheRequired)
+                    .orElse(false);
     }
 
     private MethodSpec signingNameMethod() {

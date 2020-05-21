@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
@@ -420,8 +421,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
         EventStreamUtils.getEventMembers(eventStream)
                         .forEach(m -> builder.add(".putSdkPojoSupplier(\"$L\", $T::builder)\n",
                                                   m.getC2jName(), poetExtensions.getModelClass(m.getShape().getC2jName())));
-        builder.add(".defaultSdkPojoSupplier(() -> $T.UNKNOWN)\n"
-                    + ".build());\n", eventStreamBaseClass);
+        builder.add(".defaultSdkPojoSupplier(() -> new $T($T.UNKNOWN))\n"
+                    + ".build());\n", SdkPojoBuilder.class, eventStreamBaseClass);
     }
 
     private String protocolFactoryLiteral(IntermediateModel model, OperationModel opModel) {
