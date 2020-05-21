@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "description": "CodeBuild adds support for tagging with report groups"
+}
