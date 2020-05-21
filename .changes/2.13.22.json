@@ -1,0 +1,36 @@
+{
+    "version": "2.13.22",
+    "date": "2020-05-21",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed an issue where a service returning an unknown response event type would cause a failure."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Synthetics",
+            "description": "AWS CloudWatch Synthetics now supports configuration of allocated memory for a canary."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "description": "CodeBuild adds support for tagging with report groups"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "From this release onwards ProvisionByoipCidr publicly supports IPv6. Updated ProvisionByoipCidr API to support tags for public IPv4 and IPv6 pools. Added NetworkBorderGroup to the DescribePublicIpv4Pools response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "description": "Deprecates unusable input members bound to Content-MD5 header. Updates example and documentation."
+        }
+    ]
+}

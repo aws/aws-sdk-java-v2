@@ -1,3 +1,27 @@
+# __2.13.22__ __2020-05-21__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild adds support for tagging with report groups
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where a service returning an unknown response event type would cause a failure.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - From this release onwards ProvisionByoipCidr publicly supports IPv6. Updated ProvisionByoipCidr API to support tags for public IPv4 and IPv6 pools. Added NetworkBorderGroup to the DescribePublicIpv4Pools response.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Deprecates unusable input members bound to Content-MD5 header. Updates example and documentation.
+
+## __Synthetics__
+  - ### Features
+    - AWS CloudWatch Synthetics now supports configuration of allocated memory for a canary.
+
 # __2.13.21__ __2020-05-20__
 ## __AWS App Mesh__
   - ### Features
