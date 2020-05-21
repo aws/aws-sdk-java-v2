@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Synthetics",
+    "description": "AWS CloudWatch Synthetics now supports configuration of allocated memory for a canary."
+}
