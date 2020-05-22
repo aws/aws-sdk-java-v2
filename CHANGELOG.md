@@ -1,3 +1,16 @@
+# __2.13.23__ __2020-05-22__
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release adds support for the standard deviation auto-computed aggregate and improved support for portal logo images in SiteWise.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling
+
 # __2.13.22__ __2020-05-21__
 ## __AWS CodeBuild__
   - ### Features
