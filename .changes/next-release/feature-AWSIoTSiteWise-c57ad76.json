@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "description": "This release adds support for the standard deviation auto-computed aggregate and improved support for portal logo images in SiteWise."
-}
