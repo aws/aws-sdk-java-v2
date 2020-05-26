@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "description": "Add DataSetArns to QuickSight DescribeDashboard API response."
-}

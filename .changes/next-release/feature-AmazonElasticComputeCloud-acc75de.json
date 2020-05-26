@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "ebsOptimizedInfo, efaSupported and supportedVirtualizationTypes added to DescribeInstanceTypes API"
-}
