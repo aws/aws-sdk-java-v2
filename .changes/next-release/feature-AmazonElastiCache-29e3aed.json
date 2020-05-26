@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon ElastiCache",
+    "description": "Amazon ElastiCache now allows you to use resource based policies to manage access to operations performed on ElastiCache resources. Also, Amazon ElastiCache now exposes ARN (Amazon Resource Names) for ElastiCache resources such as Cache Clusters and Parameter Groups. ARNs can be used to apply IAM policies to ElastiCache resources."
+}
