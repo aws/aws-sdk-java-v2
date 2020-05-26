@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Data Lifecycle Manager",
+    "description": "Allowing cron expression in the DLM policy creation schedule."
+}
