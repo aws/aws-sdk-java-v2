@@ -1,3 +1,20 @@
+# __2.13.25__ __2020-05-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Documentation updates for GuardDuty
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Check the `x-amz-content-range` header for `GetObject` responses when the `Content-Range` header is not returned by the service. Fixes [#1209](https://github.com/aws/aws-sdk-java-v2/issues/1209).
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release added support for HTTP/2 ALPN preference lists for Network Load Balancers
+
 # __2.13.24__ __2020-05-26__
 ## __AWS SDK for Java v2__
   - ### Features
