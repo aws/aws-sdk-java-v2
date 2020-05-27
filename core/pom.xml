@@ -41,6 +41,7 @@
         <module>profiles</module>
         <module>regions</module>
         <module>protocols</module>
+        <module>metrics-spi</module>
     </modules>
 
     <dependencyManagement>
