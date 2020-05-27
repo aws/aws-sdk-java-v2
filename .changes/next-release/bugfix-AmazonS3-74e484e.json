@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "description": "Check the `x-amz-content-range` header for `GetObject` responses when the `Content-Range` header is not returned by the service. Fixes [#1209](https://github.com/aws/aws-sdk-java-v2/issues/1209)."
-}
