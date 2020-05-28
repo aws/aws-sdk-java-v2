@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Managed Streaming for Kafka",
+    "description": "New APIs for upgrading the Apache Kafka version of a cluster and to find out compatible upgrade paths"
+}
