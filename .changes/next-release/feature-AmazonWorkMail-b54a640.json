@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkMail",
+    "description": "This release adds support for Amazon WorkMail organization-level retention policies."
+}
