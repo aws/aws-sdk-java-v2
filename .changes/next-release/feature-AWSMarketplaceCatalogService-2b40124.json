@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Marketplace Catalog Service",
-    "description": "AWS Marketplace Catalog now supports accessing initial change payloads with DescribeChangeSet operation."
-}
