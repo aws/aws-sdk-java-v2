@@ -1,0 +1,11 @@
+{
+    "version": "2.9.11",
+    "date": "2019-10-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "description": "This release provides support for describe and modify CA certificates."
+        }
+    ]
+}

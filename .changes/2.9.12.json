@@ -1,0 +1,11 @@
+{
+    "version": "2.9.12",
+    "date": "2019-10-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "description": "This release adds support for the automatic snapshots add-on for instances and block storage disks."
+        }
+    ]
+}

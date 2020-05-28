@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package software.amazon.awssdk.utils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.StringUtils.replacePrefixIgnoreCase;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -124,5 +124,31 @@ public class StringUtilsTest {
         assertEquals("lloWorld" ,replacePrefixIgnoreCase("helloWorld", "he", ""));
         assertEquals("lloWORld" ,replacePrefixIgnoreCase("helloWORld", "He", ""));
         assertEquals("llOwOrld" ,replacePrefixIgnoreCase("HEllOwOrld", "he", ""));
+    }
+
+    @Test
+    public void findFirstOccurrence() {
+        assertEquals((Character) ':', StringUtils.findFirstOccurrence("abc:def/ghi:jkl/mno", ':', '/'));
+        assertEquals((Character) ':', StringUtils.findFirstOccurrence("abc:def/ghi:jkl/mno", '/', ':'));
+    }
+
+    @Test
+    public void findFirstOccurrence_NoMatch() {
+        assertNull(StringUtils.findFirstOccurrence("abc", ':'));
+    }
+
+    @Test
+    public void safeStringTooBoolean_mixedSpaceTrue_shouldReturnTrue() {
+        assertTrue(StringUtils.safeStringToBoolean("TrUe"));
+    }
+
+    @Test
+    public void safeStringTooBoolean_mixedSpaceFalse_shouldReturnFalse() {
+        assertFalse(StringUtils.safeStringToBoolean("fAlSE"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void safeStringTooBoolean_invalidValue_shouldThrowException() {
+        assertFalse(StringUtils.safeStringToBoolean("foobar"));
     }
 }

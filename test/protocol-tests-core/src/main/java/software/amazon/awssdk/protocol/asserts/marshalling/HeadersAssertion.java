@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -51,13 +51,13 @@ public class HeadersAssertion extends MarshallingAssertion {
     }
 
     private void assertHeadersContains(HttpHeaders actual) {
-        contains.entrySet().stream().forEach(e -> {
+        contains.entrySet().forEach(e -> {
             assertEquals(e.getValue(), actual.getHeader(e.getKey()).firstValue());
         });
     }
 
     private void assertDoesNotContainHeaders(HttpHeaders actual) {
-        doesNotContain.stream().forEach(headerName -> {
+        doesNotContain.forEach(headerName -> {
             assertFalse(String.format("Header '%s' was expected to be absent", headerName),
                         actual.getHeader(headerName).isPresent());
         });

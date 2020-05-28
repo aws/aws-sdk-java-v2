@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -86,10 +86,8 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
         Set<String> seenServices = new HashSet<>();
 
         partitions.getPartitions()
-                  .stream()
                   .forEach(p -> p.getServices()
                                  .keySet()
-                                 .stream()
                                  .forEach(s -> {
                                      if (!seenServices.contains(s)) {
                                          builder.add(".put($S, new $T())", s, serviceMetadataClass(s));
@@ -101,6 +99,10 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
     }
 
     private ClassName serviceMetadataClass(String service) {
+        if ("s3".equals(service)) {
+            // This class contains extra logic for detecting the regional endpoint flag
+            return ClassName.get(basePackage, "EnhancedS3ServiceMetadata");
+        }
         String sanitizedServiceName = service.replace(".", "-");
         return ClassName.get(basePackage, Stream.of(sanitizedServiceName.split("-"))
                                                 .map(Utils::capitalize)

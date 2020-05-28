@@ -1,0 +1,11 @@
+{
+    "version": "2.7.24",
+    "date": "2019-08-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release adds a new API called SendDiagnosticInterrupt, which allows you to send diagnostic interrupts to your EC2 instance."
+        }
+    ]
+}

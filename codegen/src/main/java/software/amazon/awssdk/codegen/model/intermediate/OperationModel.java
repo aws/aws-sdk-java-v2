@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ public class OperationModel extends DocumentationModel {
     private boolean isPaginated;
 
     private boolean endpointOperation;
+
+    private boolean endpointCacheRequired;
 
     private EndpointDiscovery endpointDiscovery;
 
@@ -205,6 +207,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setEndpointOperation(boolean endpointOperation) {
         this.endpointOperation = endpointOperation;
+    }
+
+    public boolean isEndpointCacheRequired() {
+        return endpointCacheRequired;
+    }
+
+    public void setEndpointCacheRequired(boolean endpointCacheRequired) {
+        this.endpointCacheRequired = endpointCacheRequired;
     }
 
     public boolean isPaginated() {

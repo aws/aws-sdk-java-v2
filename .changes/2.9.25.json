@@ -1,0 +1,21 @@
+{
+    "version": "2.9.25",
+    "date": "2019-10-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks CM",
+            "description": "AWS OpsWorks for Chef Automate (OWCA) now allows customers to use a custom domain and respective certificate, for their AWS OpsWorks For Chef Automate servers. Customers can now provide a CustomDomain, CustomCertificate and CustomPrivateKey in CreateServer API to configure their Chef Automate servers with a custom domain and certificate."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Better handle `GOAWAY` messages from the remote endpoint."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "description": "Add support for new serial evaluation method for events in a detector model."
+        }
+    ]
+}

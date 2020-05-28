@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -84,7 +84,9 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
     }
 
     private String getMemberNameFromEventStream() {
-        ShapeModel eventStream = EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel);
+        ShapeModel eventStream = EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel)
+            .orElseThrow(() -> new IllegalStateException("Could not find associated event stream spec for "
+                                                         + shapeModel.getC2jName()));
         return eventStream.getMembers().stream()
                           .filter(memberModel -> memberModel.getShape().equals(shapeModel))
                           .findAny()

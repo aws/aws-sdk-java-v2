@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -173,6 +173,10 @@ public abstract class RequestOverrideConfiguration {
 
         /**
          * Add a single header to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given header set on the request by default by the SDK, as well as header
+         * overrides set at the client level using
+         * {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
@@ -188,6 +192,10 @@ public abstract class RequestOverrideConfiguration {
 
         /**
          * Add a single header with multiple values to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given header set on the request by default by the SDK, as well as header
+         * overrides set at the client level using
+         * {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
@@ -200,6 +208,10 @@ public abstract class RequestOverrideConfiguration {
 
         /**
          * Add additional headers to be set on the HTTP request.
+         * <p>
+         * This overrides any values for the given headers set on the request by default by the SDK, as well as header
+         * overrides set at the client level using
+         * {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
          *
          * <p>
          * This completely overrides any values currently configured in the builder.
@@ -336,7 +348,7 @@ public abstract class RequestOverrideConfiguration {
     }
 
     protected abstract static class BuilderImpl<B extends Builder> implements Builder<B> {
-        private Map<String, List<String>> headers = new HashMap<>();
+        private Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         private Map<String, List<String>> rawQueryParameters = new HashMap<>();
         private List<ApiName> apiNames = new ArrayList<>();
         private Duration apiCallTimeout;
@@ -354,7 +366,7 @@ public abstract class RequestOverrideConfiguration {
 
         @Override
         public Map<String, List<String>> headers() {
-            return CollectionUtils.deepUnmodifiableMap(headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+            return CollectionUtils.unmodifiableMapOfLists(headers);
         }
 
         @Override
@@ -374,7 +386,7 @@ public abstract class RequestOverrideConfiguration {
 
         @Override
         public Map<String, List<String>> rawQueryParameters() {
-            return CollectionUtils.deepUnmodifiableMap(rawQueryParameters);
+            return CollectionUtils.unmodifiableMapOfLists(rawQueryParameters);
         }
 
         @Override

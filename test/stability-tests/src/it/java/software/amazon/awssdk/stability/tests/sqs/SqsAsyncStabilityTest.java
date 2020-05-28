@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ public class SqsAsyncStabilityTest extends SqsBaseStabilityTest {
         if (queueUrl != null) {
             sqsAsyncClient.deleteQueue(b -> b.queueUrl(queueUrl));
         }
+        sqsAsyncClient.close();
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)

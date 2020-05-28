@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -35,10 +35,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
+import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 
 /**
  * Utility class for retrieving Amazon EC2 instance metadata.<br>
@@ -67,16 +71,24 @@ public final class EC2MetadataUtils {
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */
     private static final String REGION = "region";
     private static final String INSTANCE_IDENTITY_DOCUMENT = "instance-identity/document";
+    private static final String INSTANCE_IDENTITY_SIGNATURE = "instance-identity/signature";
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
     private static final String EC2_USERDATA_ROOT = "/latest/user-data/";
     private static final String EC2_DYNAMICDATA_ROOT = "/latest/dynamic/";
+
+    private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
+
     private static final int DEFAULT_QUERY_RETRIES = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
     private static Map<String, String> cache = new ConcurrentHashMap<>();
 
-    private EC2MetadataUtils() {}
+    private static final InstanceProviderTokenEndpointProvider TOKEN_ENDPOINT_PROVIDER =
+            new InstanceProviderTokenEndpointProvider();
+
+    private EC2MetadataUtils() {
+    }
 
     static {
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -256,6 +268,13 @@ public final class EC2MetadataUtils {
     }
 
     /**
+     * Get the signature of the instance.
+     */
+    public static String getInstanceSignature() {
+        return fetchData(EC2_DYNAMICDATA_ROOT + INSTANCE_IDENTITY_SIGNATURE);
+    }
+
+    /**
      * Returns the current region of this running EC2 instance; or null if
      * it is unable to do so. The method avoids interpreting other parts of the
      * instance info JSON document to minimize potential failure.
@@ -371,6 +390,11 @@ public final class EC2MetadataUtils {
         return getItems(path, tries, false);
     }
 
+    @SdkTestInternalApi
+    static void clearCache() {
+        cache.clear();
+    }
+
     private static List<String> getItems(String path, int tries, boolean slurp) {
         if (tries == 0) {
             throw SdkClientException.builder().message("Unable to contact EC2 metadata service.").build();
@@ -381,9 +405,12 @@ public final class EC2MetadataUtils {
         }
 
         List<String> items;
+
+        String token = getToken();
+
         try {
             String hostAddress = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
-            String response = HttpResourcesUtils.instance().readResource(new URI(hostAddress + path));
+            String response = doReadResource(new URI(hostAddress + path), token);
             if (slurp) {
                 items = Collections.singletonList(response);
             } else {
@@ -406,6 +433,31 @@ public final class EC2MetadataUtils {
         }
     }
 
+    private static String doReadResource(URI resource, String token) throws IOException {
+        return HttpResourcesUtils.instance().readResource(new DefaultEndpointProvider(resource, token), "GET");
+    }
+
+    public static String getToken() {
+        try {
+            return HttpResourcesUtils.instance().readResource(TOKEN_ENDPOINT_PROVIDER, "PUT");
+        } catch (Exception e) {
+
+            boolean is400ServiceException = e instanceof SdkServiceException
+                    && ((SdkServiceException) e).statusCode() == 400;
+
+            // metadata resolution must not continue to the token-less flow for a 400
+            if (is400ServiceException) {
+                throw SdkClientException.builder()
+                        .message("Unable to fetch metadata token")
+                        .cause(e)
+                        .build();
+            }
+
+            return null;
+        }
+    }
+
+
     private static String fetchData(String path) {
         return fetchData(path, false);
     }
@@ -420,6 +472,8 @@ public final class EC2MetadataUtils {
                 cache.put(path, getData(path));
             }
             return cache.get(path);
+        } catch (SdkClientException e) {
+            throw e;
         } catch (RuntimeException e) {
             return null;
         }
@@ -484,6 +538,7 @@ public final class EC2MetadataUtils {
         private final String availabilityZone;
         private final String privateIp;
         private final String[] devpayProductCodes;
+        private final String[] marketplaceProductCodes;
 
         @JsonCreator
         public InstanceInfo(
@@ -500,7 +555,8 @@ public final class EC2MetadataUtils {
                 @JsonProperty(value = "version", required = true) String version,
                 @JsonProperty(value = "availabilityZone", required = true) String availabilityZone,
                 @JsonProperty(value = "privateIp", required = true) String privateIp,
-                @JsonProperty(value = "devpayProductCodes", required = false) String[] devpayProductCodes) {
+                @JsonProperty(value = "devpayProductCodes", required = false) String[] devpayProductCodes,
+                @JsonProperty(value = "marketplaceProductCodes", required = false) String[] marketplaceProductCodes) {
             this.pendingTime = pendingTime;
             this.instanceType = instanceType;
             this.imageId = imageId;
@@ -517,6 +573,8 @@ public final class EC2MetadataUtils {
             this.privateIp = privateIp;
             this.devpayProductCodes = devpayProductCodes == null
                                       ? null : devpayProductCodes.clone();
+            this.marketplaceProductCodes = marketplaceProductCodes == null
+                                           ? null : marketplaceProductCodes.clone();
         }
 
         public String getPendingTime() {
@@ -573,6 +631,10 @@ public final class EC2MetadataUtils {
 
         public String[] getDevpayProductCodes() {
             return devpayProductCodes == null ? null : devpayProductCodes.clone();
+        }
+
+        public String[] getMarketplaceProductCodes() {
+            return marketplaceProductCodes == null ? null : marketplaceProductCodes.clone();
         }
     }
 
@@ -740,6 +802,35 @@ public final class EC2MetadataUtils {
             } else {
                 return Collections.emptyList();
             }
+        }
+    }
+
+    private static final class DefaultEndpointProvider implements ResourcesEndpointProvider {
+        private final URI endpoint;
+        private final String metadataToken;
+
+        private DefaultEndpointProvider(URI endpoint, String metadataToken) {
+            this.endpoint = endpoint;
+            this.metadataToken = metadataToken;
+        }
+
+        @Override
+        public URI endpoint() {
+            return endpoint;
+        }
+
+        @Override
+        public Map<String, String> headers() {
+            Map<String, String> requestHeaders = new HashMap<>();
+            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("Accept", "*/*");
+            requestHeaders.put("Connection", "keep-alive");
+
+            if (metadataToken != null) {
+                requestHeaders.put(EC2_METADATA_TOKEN_HEADER, metadataToken);
+            }
+
+            return requestHeaders;
         }
     }
 }

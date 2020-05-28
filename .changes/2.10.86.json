@@ -1,0 +1,11 @@
+{
+    "version": "2.10.86",
+    "date": "2020-03-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "description": "This release adds S3 as a configuration source provider."
+        }
+    ]
+}

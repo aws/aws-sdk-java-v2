@@ -1,0 +1,36 @@
+{
+    "version": "2.10.12",
+    "date": "2019-11-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "AWS Systems Manager Session Manager target length increased to 400."
+        },
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "description": "Switch from setting the absolute URI in HTTP requests with no `Host` header to setting the absolute request path and query paramters and a `Host` header."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO OIDC",
+            "description": "This is an initial release of AWS Single Sign-On OAuth device code authorization service."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3",
+            "description": "Added support for presignPutObject in S3Presigner."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On",
+            "description": "This is an initial release of AWS Single Sign-On (SSO) end-user access. This release adds support for accessing AWS accounts assigned in AWS SSO using short term credentials."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "description": "This release adds new languages (ar, hi, ko, ja, zh, zh-TW) for Amazon Comprehend's DetectSentiment, DetectEntities, DetectKeyPhrases, BatchDetectSentiment, BatchDetectEntities and BatchDetectKeyPhrases APIs"
+        }
+    ]
+}

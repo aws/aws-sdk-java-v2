@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,8 +16,15 @@
 package software.amazon.awssdk.protocols.xml;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler;
+import software.amazon.awssdk.protocols.xml.internal.unmarshall.DecorateErrorFromResponseBodyUnmarshaller;
 
 /**
  * Factory to generate the various protocol handlers and generators to be used for communicating with
@@ -25,7 +32,6 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
  */
 @SdkProtectedApi
 public final class AwsS3ProtocolFactory extends AwsXmlProtocolFactory {
-
     private AwsS3ProtocolFactory(Builder builder) {
         super(builder);
     }
@@ -56,5 +62,22 @@ public final class AwsS3ProtocolFactory extends AwsXmlProtocolFactory {
         public AwsS3ProtocolFactory build() {
             return new AwsS3ProtocolFactory(this);
         }
+    }
+
+    @Override
+    public <T extends AwsResponse> HttpResponseHandler<Response<T>> createCombinedResponseHandler(
+        Supplier<SdkPojo> pojoSupplier, XmlOperationMetadata staxOperationMetadata) {
+
+        return createErrorCouldBeInBodyResponseHandler(pojoSupplier, staxOperationMetadata);
+    }
+
+    private <T extends AwsResponse> HttpResponseHandler<Response<T>> createErrorCouldBeInBodyResponseHandler(
+        Supplier<SdkPojo> pojoSupplier, XmlOperationMetadata staxOperationMetadata) {
+
+        return new AwsXmlPredicatedResponseHandler<>(r -> pojoSupplier.get(),
+                                                     createResponseTransformer(pojoSupplier),
+                                                     createErrorTransformer(),
+                                                     DecorateErrorFromResponseBodyUnmarshaller.of(this::getErrorRoot),
+                                                     staxOperationMetadata.isHasStreamingSuccessResponse());
     }
 }

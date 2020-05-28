@@ -1,0 +1,11 @@
+{
+    "version": "2.7.23",
+    "date": "2019-08-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "description": "Adds a configuration option for AppSync GraphQL APIs"
+        }
+    ]
+}

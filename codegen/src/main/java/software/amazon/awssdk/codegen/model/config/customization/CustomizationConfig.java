@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -158,6 +158,12 @@ public class CustomizationConfig {
      * Config to generate a utilities() in the low-level client
      */
     private UtilitiesMethod utilitiesMethod;
+
+    /**
+     * Force generation of deprecated client builder method 'enableEndpointDiscovery'. Only services that already had
+     * this method when it was deprecated require this flag to be set.
+     */
+    private boolean enableEndpointDiscoveryMethodRequired = false;
 
     private CustomizationConfig() {
     }
@@ -405,5 +411,13 @@ public class CustomizationConfig {
 
     public void setUtilitiesMethod(UtilitiesMethod utilitiesMethod) {
         this.utilitiesMethod = utilitiesMethod;
+    }
+
+    public boolean isEnableEndpointDiscoveryMethodRequired() {
+        return enableEndpointDiscoveryMethodRequired;
+    }
+
+    public void setEnableEndpointDiscoveryMethodRequired(boolean enableEndpointDiscoveryMethodRequired) {
+        this.enableEndpointDiscoveryMethodRequired = enableEndpointDiscoveryMethodRequired;
     }
 }

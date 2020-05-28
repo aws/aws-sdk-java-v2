@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ public final class S3BucketUtils {
     private static final Random RANDOM = new Random();
     private static final int MAX_BUCKET_NAME_LENGTH = 63;
 
-    private S3BucketUtils() { }
+    private S3BucketUtils() {
+    }
 
     /**
      * Creates a temporary bucket name using the class name of the calling class as a prefix.

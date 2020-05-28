@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -604,5 +604,153 @@ public final class StringUtils {
      */
     public static String replacePrefixIgnoreCase(String str, String prefix, String replacement) {
         return str.replaceFirst("(?i)" + prefix, replacement);
+    }
+
+
+    public static String replaceEach(final String text, final String[] searchList, final String[] replacementList) {
+        // mchyzer Performance note: This creates very few new objects (one major goal)
+        // let me know if there are performance requests, we can create a harness to measure
+
+        int searchLength = searchList.length;
+        int replacementLength = replacementList.length;
+
+        if (isEmpty(text) || (searchLength == 0 && replacementLength == 0)) {
+            return text;
+        }
+
+        // make sure lengths are ok, these need to be equal
+        if (searchLength != replacementLength) {
+            throw new IllegalArgumentException("Search and Replace array lengths don't match: "
+                                               + searchLength
+                                               + " vs "
+                                               + replacementLength);
+        }
+
+        // keep track of which still have matches
+        boolean[] noMoreMatchesForReplIndex = new boolean[searchLength];
+
+        // index on index that the match was found
+        int textIndex = -1;
+        int replaceIndex = -1;
+        int tempIndex = -1;
+
+        // index of replace array that will replace the search string found
+        // NOTE: logic duplicated below START
+        for (int i = 0; i < searchLength; i++) {
+            if (noMoreMatchesForReplIndex[i] || isEmpty(searchList[i]) || replacementList[i] == null) {
+                continue;
+            }
+            tempIndex = text.indexOf(searchList[i]);
+
+            // see if we need to keep searching for this
+            if (tempIndex == -1) {
+                noMoreMatchesForReplIndex[i] = true;
+            } else {
+                if (textIndex == -1 || tempIndex < textIndex) {
+                    textIndex = tempIndex;
+                    replaceIndex = i;
+                }
+            }
+        }
+        // NOTE: logic mostly below END
+
+        // no search strings found, we are done
+        if (textIndex == -1) {
+            return text;
+        }
+
+        int start = 0;
+
+        // get a good guess on the size of the result buffer so it doesn't have to double if it goes over a bit
+        int increase = 0;
+
+        // count the replacement text elements that are larger than their corresponding text being replaced
+        for (int i = 0; i < searchList.length; i++) {
+            if (searchList[i] == null || replacementList[i] == null) {
+                continue;
+            }
+            int greater = replacementList[i].length() - searchList[i].length();
+            if (greater > 0) {
+                increase += 3 * greater; // assume 3 matches
+            }
+        }
+        // have upper-bound at 20% increase, then let Java take over
+        increase = Math.min(increase, text.length() / 5);
+
+        StringBuilder buf = new StringBuilder(text.length() + increase);
+
+        while (textIndex != -1) {
+
+            for (int i = start; i < textIndex; i++) {
+                buf.append(text.charAt(i));
+            }
+            buf.append(replacementList[replaceIndex]);
+
+            start = textIndex + searchList[replaceIndex].length();
+
+            textIndex = -1;
+            replaceIndex = -1;
+            tempIndex = -1;
+            // find the next earliest match
+            // NOTE: logic mostly duplicated above START
+            for (int i = 0; i < searchLength; i++) {
+                if (noMoreMatchesForReplIndex[i] || searchList[i] == null ||
+                    searchList[i].isEmpty() || replacementList[i] == null) {
+                    continue;
+                }
+                tempIndex = text.indexOf(searchList[i], start);
+
+                // see if we need to keep searching for this
+                if (tempIndex == -1) {
+                    noMoreMatchesForReplIndex[i] = true;
+                } else {
+                    if (textIndex == -1 || tempIndex < textIndex) {
+                        textIndex = tempIndex;
+                        replaceIndex = i;
+                    }
+                }
+            }
+            // NOTE: logic duplicated above END
+
+        }
+
+        int textLength = text.length();
+        for (int i = start; i < textLength; i++) {
+            buf.append(text.charAt(i));
+        }
+        return buf.toString();
+    }
+
+    /**
+     * Searches a string for the first occurrence of a character specified by a list of characters.
+     * @param s The string to search.
+     * @param charsToMatch A list of characters to search the string for.
+     * @return The character that was first matched in the string or null if none of the characters were found.
+     */
+    public static Character findFirstOccurrence(String s, char ...charsToMatch) {
+        int lowestIndex = Integer.MAX_VALUE;
+
+        for (char toMatch : charsToMatch) {
+            int currentIndex = s.indexOf(toMatch);
+            if (currentIndex != -1 && currentIndex < lowestIndex) {
+                lowestIndex = currentIndex;
+            }
+        }
+
+        return lowestIndex == Integer.MAX_VALUE ? null : s.charAt(lowestIndex);
+    }
+
+    /**
+     * Convert a string to boolean safely (as opposed to the less strict {@link Boolean#parseBoolean(String)}). If a customer
+     * specifies a boolean value it should be "true" or "false" (case insensitive) or an exception will be thrown.
+     */
+    public static boolean safeStringToBoolean(String value) {
+        if (value.equalsIgnoreCase("true")) {
+            return true;
+        } else if (value.equalsIgnoreCase("false")) {
+            return false;
+        }
+
+        throw new IllegalArgumentException("Value was defined as '" + value + "', but should be 'false' or 'true'");
     }
 }

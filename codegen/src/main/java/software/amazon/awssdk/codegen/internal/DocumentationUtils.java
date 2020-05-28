@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -35,6 +35,11 @@ public final class DocumentationUtils {
     private static final String DEFAULT_GETTER = "Returns the value of the %s property for this object.";
 
     private static final String DEFAULT_GETTER_PARAM = "The value of the %s property for this object.";
+
+    private static final String DEFAULT_EXISTENCE_CHECK = "Returns true if the %s property was specified by the sender "
+                                                          + "(it may be empty), or false if the sender did not specify "
+                                                          + "the value (it will be empty). For responses returned by the SDK, "
+                                                          + "the sender is the AWS service.";
 
     private static final String DEFAULT_FLUENT_RETURN =
             "Returns a reference to this object so that method calls can be chained together.";
@@ -163,5 +168,9 @@ public final class DocumentationUtils {
 
     public static String defaultFluentReturn() {
         return DEFAULT_FLUENT_RETURN;
+    }
+
+    public static String defaultExistenceCheck() {
+        return DEFAULT_EXISTENCE_CHECK;
     }
 }

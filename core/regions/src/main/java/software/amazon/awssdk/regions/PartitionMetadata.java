@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -70,5 +70,16 @@ public interface PartitionMetadata {
      */
     static PartitionMetadata of(String partition) {
         return MetadataLoader.partitionMetadata(partition);
+    }
+
+    /**
+     * Retrieves the partition metadata for a given region.
+     *
+     * @param region The region to get the partition metadata for.
+     *
+     * @return {@link PartitionMetadata} for the given region.
+     */
+    static PartitionMetadata of(Region region) {
+        return MetadataLoader.partitionMetadata(region);
     }
 }

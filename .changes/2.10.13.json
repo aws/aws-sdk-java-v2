@@ -1,0 +1,16 @@
+{
+    "version": "2.10.13",
+    "date": "2019-11-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "description": "This release contains ticket fixes for Amazon ECR."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity",
+            "description": "This release adds support for disabling classic flow."
+        }
+    ]
+}

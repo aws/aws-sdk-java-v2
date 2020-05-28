@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -183,8 +183,10 @@ public class KinesisStabilityTest extends AwsTestBase {
                                                        .startingPosition(s -> s.type(ShardIteratorType.TRIM_HORIZON)),
                                                  responseHandler)
                                .thenAccept(b -> {
-                                   // Only verify data if all events have been received.
-                                   if (responseHandler.allEventsReceived) {
+                                   // Only verify data if all events have been received and the received data is not empty.
+                                   // It is possible the received data is empty because there is no record at the position
+                                   // event with TRIM_HORIZON.
+                                   if (responseHandler.allEventsReceived && !responseHandler.receivedData.isEmpty()) {
                                        assertThat(producedData).as(responseHandler.id + " has not received all events"
                                                                    + ".").containsSequence(responseHandler.receivedData);
                                    }
@@ -218,7 +220,7 @@ public class KinesisStabilityTest extends AwsTestBase {
         , SubscribeToShardEventStream> implements SubscribeToShardResponseHandler {
         private final List<SdkBytes> receivedData = new ArrayList<>();
         private final String id;
-        private boolean allEventsReceived = false;
+        private volatile boolean allEventsReceived = false;
 
         TestSubscribeToShardResponseHandler(int consumerIndex, int shardIndex) {
             id = "consumer_" + consumerIndex + "_shard_" + shardIndex;

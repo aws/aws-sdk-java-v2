@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
-import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
@@ -54,10 +54,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
-import java.net.Socket;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,6 +69,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
+import javax.net.ssl.TrustManagerFactory;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -82,6 +81,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.http.HttpTestUtils;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -114,6 +114,32 @@ public class NettyNioAsyncHttpClientWireMockTest {
     @AfterClass
     public static void tearDown() throws Exception {
         client.close();
+    }
+
+    @Test
+    public void defaultConnectionIdleTimeout() {
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder().build()) {
+            assertThat(client.configuration().idleTimeoutMillis()).isEqualTo(5000);
+        }
+    }
+
+    @Test
+    public void overrideConnectionIdleTimeout_shouldHonor() {
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionMaxIdleTime(Duration.ofMillis(1000))
+                                                                                               .build()) {
+            assertThat(client.configuration().idleTimeoutMillis()).isEqualTo(1000);
+        }
+    }
+
+    @Test
+    public void invalidMaxPendingConnectionAcquireConfig_shouldPropagateException() {
+        try (SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConcurrency(1)
+                                                                 .maxPendingConnectionAcquires(0)
+                                                                 .build()) {
+            assertThatThrownBy(() -> makeSimpleRequest(customClient)).hasMessageContaining("java.lang.IllegalArgumentException: maxPendingAcquires: 0 (expected: >= 1)");
+        }
     }
 
     @Test
@@ -352,6 +378,30 @@ public class NettyNioAsyncHttpClientWireMockTest {
         eventLoopGroup.eventLoopGroup().shutdownGracefully().awaitUninterruptibly();
     }
 
+    @Test
+    public void builderUsesProvidedTrustManagersProvider() throws Exception {
+        WireMockServer selfSignedServer = HttpTestUtils.createSelfSignedServer();
+
+        TrustManagerFactory managerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        managerFactory.init(HttpTestUtils.getSelfSignedKeyStore());
+
+        try (SdkAsyncHttpClient netty = NettyNioAsyncHttpClient.builder()
+                                                               .tlsTrustManagersProvider(managerFactory::getTrustManagers)
+                                                               .build()) {
+            selfSignedServer.start();
+            URI uri = URI.create("https://localhost:" + selfSignedServer.httpsPort());
+
+            SdkHttpRequest request = createRequest(uri);
+            RecordingResponseHandler recorder = new RecordingResponseHandler();
+            client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
+
+            recorder.completeFuture.get(5, TimeUnit.SECONDS);
+        } finally {
+            selfSignedServer.stop();
+        }
+    }
+
+
     /**
      * Make a simple async request and wait for it to fiish.
      *
@@ -441,7 +491,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         // HTTP servers will stop processing the request as soon as it reads
         // bytes equal to 'Content-Length' so we need to inspect the raw
         // traffic to ensure that there wasn't anything after that.
-        assertThat(wiremockTrafficListener.requests.toString()).endsWith(content);
+        assertThat(wiremockTrafficListener.requests().toString()).endsWith(content);
     }
 
     @Test
@@ -653,34 +703,5 @@ public class NettyNioAsyncHttpClientWireMockTest {
         return AttributeMap.builder()
                            .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
                            .build();
-    }
-
-    private static class RecordingNetworkTrafficListener implements WiremockNetworkTrafficListener {
-        private final StringBuilder requests = new StringBuilder();
-
-
-        @Override
-        public void opened(Socket socket) {
-
-        }
-
-        @Override
-        public void incoming(Socket socket, ByteBuffer byteBuffer) {
-            requests.append(StandardCharsets.UTF_8.decode(byteBuffer));
-        }
-
-        @Override
-        public void outgoing(Socket socket, ByteBuffer byteBuffer) {
-
-        }
-
-        @Override
-        public void closed(Socket socket) {
-
-        }
-
-        public void reset() {
-            requests.setLength(0);
-        }
     }
 }

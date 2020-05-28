@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -74,6 +74,9 @@ public final class JsonResponseHandler<T extends SdkPojo> implements HttpRespons
                                                         response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
                                                                 .orElse("not available"));
 
+        SdkStandardLogger.REQUEST_ID_LOGGER.debug(() -> X_AMZ_ID_2_HEADER + " : " +
+                                                        response.firstMatchingHeader(X_AMZ_ID_2_HEADER)
+                                                                .orElse("not available"));
 
         try {
             T result = unmarshaller.unmarshall(pojoSupplier.apply(response), response);

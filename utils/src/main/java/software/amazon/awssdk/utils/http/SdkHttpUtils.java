@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,9 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.UnaryOperator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -44,19 +43,26 @@ public final class SdkHttpUtils {
     private static final String DEFAULT_ENCODING = "UTF-8";
 
     /**
-     * Regex which matches any of the sequences that we need to fix up after
-     * URLEncoder.encode().
+     * Characters that we need to fix up after URLEncoder.encode().
      */
-    private static final Pattern ENCODED_CHARACTERS_PATTERN =
-            Pattern.compile(Pattern.quote("+") +
-                            "|" +
-                            Pattern.quote("*") +
-                            "|" +
-                            Pattern.quote("%7E") +
-                            "|" +
-                            Pattern.quote("%2F"));
+    private static final String[] ENCODED_CHARACTERS_WITH_SLASHES = new String[] {"+", "*", "%7E", "%2F"};
+    private static final String[] ENCODED_CHARACTERS_WITH_SLASHES_REPLACEMENTS = new String[] {"%20", "%2A", "~", "/"};
 
-    private SdkHttpUtils() {}
+    private static final String[] ENCODED_CHARACTERS_WITHOUT_SLASHES = new String[] {"+", "*", "%7E"};
+    private static final String[] ENCODED_CHARACTERS_WITHOUT_SLASHES_REPLACEMENTS = new String[] {"%20", "%2A", "~"};
+
+    // List of headers that may appear only once in a request; i.e. is not a list of values.
+    // Taken from https://github.com/apache/httpcomponents-client/blob/81c1bc4dc3ca5a3134c5c60e8beff08be2fd8792/httpclient5-cache/src/test/java/org/apache/hc/client5/http/impl/cache/HttpTestUtils.java#L69-L85 with modifications:
+    // removed: accept-ranges, if-match, if-none-match, vary since it looks like they're defined as lists
+    private static final Set<String> SINGLE_HEADERS = Stream.of("age", "authorization",
+            "content-length", "content-location", "content-md5", "content-range", "content-type",
+            "date", "etag", "expires", "from", "host", "if-modified-since", "if-range",
+            "if-unmodified-since", "last-modified", "location", "max-forwards",
+            "proxy-authorization", "range", "referer", "retry-after", "server", "user-agent")
+            .collect(Collectors.toSet());
+
+    private SdkHttpUtils() {
+    }
 
     /**
      * Encode a string according to RFC 3986: encoding for URI paths, query strings, etc.
@@ -151,27 +157,13 @@ public final class SdkHttpUtils {
 
         String encoded = invokeSafely(() -> URLEncoder.encode(value, DEFAULT_ENCODING));
 
-        Matcher matcher = ENCODED_CHARACTERS_PATTERN.matcher(encoded);
-        StringBuffer buffer = new StringBuffer(encoded.length());
-
-        while (matcher.find()) {
-            String replacement = matcher.group(0);
-
-            if ("+".equals(replacement)) {
-                replacement = "%20";
-            } else if ("*".equals(replacement)) {
-                replacement = "%2A";
-            } else if ("%7E".equals(replacement)) {
-                replacement = "~";
-            } else if (ignoreSlashes && "%2F".equals(replacement)) {
-                replacement = "/";
-            }
-
-            matcher.appendReplacement(buffer, replacement);
+        if (!ignoreSlashes) {
+            return StringUtils.replaceEach(encoded,
+                                           ENCODED_CHARACTERS_WITHOUT_SLASHES,
+                                           ENCODED_CHARACTERS_WITHOUT_SLASHES_REPLACEMENTS);
         }
 
-        matcher.appendTail(buffer);
-        return buffer.toString();
+        return StringUtils.replaceEach(encoded, ENCODED_CHARACTERS_WITH_SLASHES, ENCODED_CHARACTERS_WITH_SLASHES_REPLACEMENTS);
     }
 
     /**
@@ -296,5 +288,9 @@ public final class SdkHttpUtils {
      */
     public static Optional<String> firstMatchingHeader(Map<String, List<String>> headers, String header) {
         return allMatchingHeaders(headers, header).findFirst();
+    }
+
+    public static boolean isSingleHeader(String h) {
+        return SINGLE_HEADERS.contains(StringUtils.lowerCase(h));
     }
 }

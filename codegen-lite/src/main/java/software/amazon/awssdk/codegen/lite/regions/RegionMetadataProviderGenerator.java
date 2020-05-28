@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -83,7 +83,6 @@ public class RegionMetadataProviderGenerator implements PoetClass {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<Region, RegionMetadata>builder()", ImmutableMap.class);
 
         partitions.getPartitions()
-                  .stream()
                   .forEach(p -> p.getRegions()
                                  .keySet()
                                  .forEach(r -> builder.add(".put(Region.$L, new $T())", regionClass(r), regionMetadataClass(r))));

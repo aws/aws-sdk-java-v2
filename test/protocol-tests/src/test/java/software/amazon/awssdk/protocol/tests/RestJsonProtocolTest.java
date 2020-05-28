@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.junit.Test;
 import software.amazon.awssdk.protocol.ProtocolTestSuiteLoader;
 import software.amazon.awssdk.protocol.runners.ProtocolTestRunner;
 
-public class RestJsonProtocolTest {
+public class RestJsonProtocolTest extends ProtocolTestBase {
 
     private static final ProtocolTestSuiteLoader testSuiteLoader = new ProtocolTestSuiteLoader();
     private static ProtocolTestRunner testRunner;

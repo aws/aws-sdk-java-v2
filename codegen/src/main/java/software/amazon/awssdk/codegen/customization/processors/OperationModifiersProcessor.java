@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
 
     private final Map<String, OperationModifier> operationModifiers;
 
-    private final Set<String> createdWrapperShapes = new HashSet<String>();
+    private final Set<String> createdWrapperShapes = new HashSet<>();
 
     OperationModifiersProcessor(Map<String, OperationModifier> operationModifiers) {
         this.operationModifiers = operationModifiers;
@@ -69,7 +69,6 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
                         serviceModel, operationName, modifier);
                 // Keep track of all the wrappers we created
                 createdWrapperShapes.add(createdWrapperShape);
-                continue;
             }
         }
 

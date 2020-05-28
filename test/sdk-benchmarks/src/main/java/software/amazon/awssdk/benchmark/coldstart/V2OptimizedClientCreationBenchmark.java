@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ public class V2OptimizedClientCreationBenchmark implements SdkClientCreationBenc
                                             AwsBasicCredentials.create("test", "test")))
                                         .httpClient(ApacheHttpClient.builder().build())
                                         .overrideConfiguration(ClientOverrideConfiguration.builder().build())
+                                        .endpointDiscoveryEnabled(false)
                                         .build();
 
         blackhole.consume(client);

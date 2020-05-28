@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
-import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
@@ -105,8 +103,21 @@ public final class IntermediateModel {
         return shapes;
     }
 
-    public ShapeModel getShapeByC2jName(String c2jName) {
-        return Utils.findShapeModelByC2jName(this, c2jName);
+    /**
+     * Looks up a shape by name and verifies that the expected C2J name matches
+     * @param shapeName the name of the shape in the intermediate model
+     * @param shapeC2jName C2J's name for the shape
+     * @return the ShapeModel
+     * @throws IllegalArgumentException if no matching shape is found
+     */
+    public ShapeModel getShapeByNameAndC2jName(String shapeName, String shapeC2jName) {
+        for (ShapeModel sm : getShapes().values()) {
+            if (shapeName.equals(sm.getShapeName()) && shapeC2jName.equals(sm.getC2jName())) {
+                return sm;
+            }
+        }
+        throw new IllegalArgumentException("C2J shape " + shapeC2jName + " with shape name " + shapeName + " does not exist in "
+                                           + "the intermediate model.");
     }
 
     public CustomizationConfig getCustomizationConfig() {
@@ -166,15 +177,8 @@ public final class IntermediateModel {
     private String loadDefaultFileHeader() throws IOException {
         try (InputStream inputStream = getClass()
             .getResourceAsStream("/software/amazon/awssdk/codegen/DefaultFileHeader.txt")) {
-            return IoUtils.toUtf8String(inputStream)
-                          .replaceFirst("%COPYRIGHT_DATE_RANGE%", getCopyrightDateRange());
+            return IoUtils.toUtf8String(inputStream);
         }
-    }
-
-    private String getCopyrightDateRange() {
-        int currentYear = ZonedDateTime.now().getYear();
-        int copyrightStartYear = currentYear - 5;
-        return String.format("%d-%d", copyrightStartYear, currentYear);
     }
 
     public String getSdkBaseResponseFqcn() {
@@ -212,15 +216,11 @@ public final class IntermediateModel {
 
     public boolean containsRequestSigners() {
         return getShapes().values().stream()
-                          .filter(ShapeModel::isRequestSignerAware)
-                          .findAny()
-                          .isPresent();
+                          .anyMatch(ShapeModel::isRequestSignerAware);
     }
 
     public boolean containsRequestEventStreams() {
         return getOperations().values().stream()
-                              .filter(opModel -> opModel.hasEventStreamInput())
-                              .findAny()
-                              .isPresent();
+                              .anyMatch(OperationModel::hasEventStreamInput);
     }
 }

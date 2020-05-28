@@ -84,6 +84,24 @@
       ],
       "documentation":"<p>Stop the service update. For more information on service updates and stopping them, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/stopping-self-service-updates.html\">Stopping Service Updates</a>.</p>"
     },
+    "CompleteMigration":{
+      "name":"CompleteMigration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CompleteMigrationMessage"},
+      "output":{
+        "shape":"CompleteMigrationResponse",
+        "resultWrapper":"CompleteMigrationResult"
+      },
+      "errors":[
+        {"shape":"ReplicationGroupNotFoundFault"},
+        {"shape":"InvalidReplicationGroupStateFault"},
+        {"shape":"ReplicationGroupNotUnderMigrationFault"}
+      ],
+      "documentation":"<p>Complete the migration of data.</p>"
+    },
     "CopySnapshot":{
       "name":"CopySnapshot",
       "http":{
@@ -192,6 +210,26 @@
       ],
       "documentation":"<p>Creates a new cache subnet group.</p> <p>Use this parameter only when you are creating a cluster in an Amazon Virtual Private Cloud (Amazon VPC).</p>"
     },
+    "CreateGlobalReplicationGroup":{
+      "name":"CreateGlobalReplicationGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateGlobalReplicationGroupMessage"},
+      "output":{
+        "shape":"CreateGlobalReplicationGroupResult",
+        "resultWrapper":"CreateGlobalReplicationGroupResult"
+      },
+      "errors":[
+        {"shape":"ReplicationGroupNotFoundFault"},
+        {"shape":"InvalidReplicationGroupStateFault"},
+        {"shape":"GlobalReplicationGroupAlreadyExistsFault"},
+        {"shape":"ServiceLinkedRoleNotFoundFault"},
+        {"shape":"InvalidParameterValueException"}
+      ],
+      "documentation":"<p>Global Datastore for Redis offers fully managed, fast, reliable and secure cross-region replication. Using Global Datastore for Redis, you can create cross-region read replica clusters for ElastiCache for Redis to enable low-latency reads and disaster recovery across regions. For more information, see <a href=\"/AmazonElastiCache/latest/red-ug/Redis-Global-Clusters.html\">Replication Across Regions Using Global Datastore</a>. </p> <ul> <li> <p>The <b>GlobalReplicationGroupIdSuffix</b> is the name of the Global Datastore.</p> </li> <li> <p>The <b>PrimaryReplicationGroupId</b> represents the name of the primary cluster that accepts writes and will replicate updates to the secondary cluster.</p> </li> </ul>"
+    },
     "CreateReplicationGroup":{
       "name":"CreateReplicationGroup",
       "http":{
@@ -217,10 +255,12 @@
         {"shape":"InvalidVPCNetworkStateFault"},
         {"shape":"TagQuotaPerResourceExceeded"},
         {"shape":"NodeGroupsPerReplicationGroupQuotaExceededFault"},
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
-      "documentation":"<p>Creates a Redis (cluster mode disabled) or a Redis (cluster mode enabled) replication group.</p> <p>A Redis (cluster mode disabled) replication group is a collection of clusters, where one of the clusters is a read/write primary and the others are read-only replicas. Writes to the primary are asynchronously propagated to the replicas.</p> <p>A Redis (cluster mode enabled) replication group is a collection of 1 to 90 node groups (shards). Each node group (shard) has one read/write primary node and up to 5 read-only replica nodes. Writes to the primary are asynchronously propagated to the replicas. Redis (cluster mode enabled) replication groups partition the data across node groups (shards).</p> <p>When a Redis (cluster mode disabled) replication group has been successfully created, you can add one or more read replicas to it, up to a total of 5 read replicas. You cannot alter a Redis (cluster mode enabled) replication group after it has been created. However, if you need to increase or decrease the number of node groups (console: shards), you can avail yourself of ElastiCache for Redis' enhanced backup and restore. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-restoring.html\">Restoring From a Backup with Cluster Resizing</a> in the <i>ElastiCache User Guide</i>.</p> <note> <p>This operation is valid for Redis only.</p> </note>"
+      "documentation":"<p>Creates a Redis (cluster mode disabled) or a Redis (cluster mode enabled) replication group.</p> <p>This API can be used to create a standalone regional replication group or a secondary replication group associated with a Global Datastore.</p> <p>A Redis (cluster mode disabled) replication group is a collection of clusters, where one of the clusters is a read/write primary and the others are read-only replicas. Writes to the primary are asynchronously propagated to the replicas.</p> <p>A Redis (cluster mode enabled) replication group is a collection of 1 to 90 node groups (shards). Each node group (shard) has one read/write primary node and up to 5 read-only replica nodes. Writes to the primary are asynchronously propagated to the replicas. Redis (cluster mode enabled) replication groups partition the data across node groups (shards).</p> <p>When a Redis (cluster mode disabled) replication group has been successfully created, you can add one or more read replicas to it, up to a total of 5 read replicas. You cannot alter a Redis (cluster mode enabled) replication group after it has been created. However, if you need to increase or decrease the number of node groups (console: shards), you can avail yourself of ElastiCache for Redis' enhanced backup and restore. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-restoring.html\">Restoring From a Backup with Cluster Resizing</a> in the <i>ElastiCache User Guide</i>.</p> <note> <p>This operation is valid for Redis only.</p> </note>"
     },
     "CreateSnapshot":{
       "name":"CreateSnapshot",
@@ -245,6 +285,25 @@
         {"shape":"InvalidParameterValueException"}
       ],
       "documentation":"<p>Creates a copy of an entire cluster or replication group at a specific moment in time.</p> <note> <p>This operation is valid for Redis only.</p> </note>"
+    },
+    "DecreaseNodeGroupsInGlobalReplicationGroup":{
+      "name":"DecreaseNodeGroupsInGlobalReplicationGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DecreaseNodeGroupsInGlobalReplicationGroupMessage"},
+      "output":{
+        "shape":"DecreaseNodeGroupsInGlobalReplicationGroupResult",
+        "resultWrapper":"DecreaseNodeGroupsInGlobalReplicationGroupResult"
+      },
+      "errors":[
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InvalidParameterCombinationException"}
+      ],
+      "documentation":"<p>Decreases the number of node groups in a Global Datastore</p>"
     },
     "DecreaseReplicaCount":{
       "name":"DecreaseReplicaCount",
@@ -271,7 +330,7 @@
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
-      "documentation":"<p>Dynamically decreases the number of replics in a Redis (cluster mode disabled) replication group or the number of replica nodes in one or more node groups (shards) of a Redis (cluster mode enabled) replication group. This operation is performed with no cluster down time.</p>"
+      "documentation":"<p>Dynamically decreases the number of replicas in a Redis (cluster mode disabled) replication group or the number of replica nodes in one or more node groups (shards) of a Redis (cluster mode enabled) replication group. This operation is performed with no cluster down time.</p>"
     },
     "DeleteCacheCluster":{
       "name":"DeleteCacheCluster",
@@ -337,6 +396,24 @@
         {"shape":"CacheSubnetGroupNotFoundFault"}
       ],
       "documentation":"<p>Deletes a cache subnet group.</p> <note> <p>You cannot delete a cache subnet group if it is associated with any clusters.</p> </note>"
+    },
+    "DeleteGlobalReplicationGroup":{
+      "name":"DeleteGlobalReplicationGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteGlobalReplicationGroupMessage"},
+      "output":{
+        "shape":"DeleteGlobalReplicationGroupResult",
+        "resultWrapper":"DeleteGlobalReplicationGroupResult"
+      },
+      "errors":[
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"},
+        {"shape":"InvalidParameterValueException"}
+      ],
+      "documentation":"<p>Deleting a Global Datastore is a two-step process: </p> <ul> <li> <p>First, you must <a>DisassociateGlobalReplicationGroup</a> to remove the secondary clusters in the Global Datastore.</p> </li> <li> <p>Once the Global Datastore contains only the primary cluster, you can use DeleteGlobalReplicationGroup API to delete the Global Datastore while retainining the primary cluster using Retain…= true.</p> </li> </ul> <p>Since the Global Datastore has only a primary cluster, you can delete the Global Datastore while retaining the primary by setting <code>RetainPrimaryCluster=true</code>.</p> <p>When you receive a successful response from this operation, Amazon ElastiCache immediately begins deleting the selected resources; you cannot cancel or revert this operation.</p>"
     },
     "DeleteReplicationGroup":{
       "name":"DeleteReplicationGroup",
@@ -514,6 +591,24 @@
       ],
       "documentation":"<p>Returns events related to clusters, cache security groups, and cache parameter groups. You can obtain events specific to a particular cluster, cache security group, or cache parameter group by providing the name as a parameter.</p> <p>By default, only the events occurring within the last hour are returned; however, you can retrieve up to 14 days' worth of events if necessary.</p>"
     },
+    "DescribeGlobalReplicationGroups":{
+      "name":"DescribeGlobalReplicationGroups",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeGlobalReplicationGroupsMessage"},
+      "output":{
+        "shape":"DescribeGlobalReplicationGroupsResult",
+        "resultWrapper":"DescribeGlobalReplicationGroupsResult"
+      },
+      "errors":[
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InvalidParameterCombinationException"}
+      ],
+      "documentation":"<p>Returns information about a particular global replication group. If no identifier is specified, returns information about all Global Datastores. </p>"
+    },
     "DescribeReplicationGroups":{
       "name":"DescribeReplicationGroups",
       "http":{
@@ -622,6 +717,62 @@
       ],
       "documentation":"<p>Returns details of the update actions </p>"
     },
+    "DisassociateGlobalReplicationGroup":{
+      "name":"DisassociateGlobalReplicationGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisassociateGlobalReplicationGroupMessage"},
+      "output":{
+        "shape":"DisassociateGlobalReplicationGroupResult",
+        "resultWrapper":"DisassociateGlobalReplicationGroupResult"
+      },
+      "errors":[
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InvalidParameterCombinationException"}
+      ],
+      "documentation":"<p>Remove a secondary cluster from the Global Datastore using the Global Datastore name. The secondary cluster will no longer receive updates from the primary cluster, but will remain as a standalone cluster in that AWS region.</p>"
+    },
+    "FailoverGlobalReplicationGroup":{
+      "name":"FailoverGlobalReplicationGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"FailoverGlobalReplicationGroupMessage"},
+      "output":{
+        "shape":"FailoverGlobalReplicationGroupResult",
+        "resultWrapper":"FailoverGlobalReplicationGroupResult"
+      },
+      "errors":[
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InvalidParameterCombinationException"}
+      ],
+      "documentation":"<p>Used to failover the primary region to a selected secondary region. The selected secondary region will be come primary, and all other clusters will become secondary.</p>"
+    },
+    "IncreaseNodeGroupsInGlobalReplicationGroup":{
+      "name":"IncreaseNodeGroupsInGlobalReplicationGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"IncreaseNodeGroupsInGlobalReplicationGroupMessage"},
+      "output":{
+        "shape":"IncreaseNodeGroupsInGlobalReplicationGroupResult",
+        "resultWrapper":"IncreaseNodeGroupsInGlobalReplicationGroupResult"
+      },
+      "errors":[
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"},
+        {"shape":"InvalidParameterValueException"}
+      ],
+      "documentation":"<p>Increase the number of node groups in the Global Datastore</p>"
+    },
     "IncreaseReplicaCount":{
       "name":"IncreaseReplicaCount",
       "http":{
@@ -643,6 +794,7 @@
         {"shape":"NodeGroupsPerReplicationGroupQuotaExceededFault"},
         {"shape":"NodeQuotaForCustomerExceededFault"},
         {"shape":"NoOperationFault"},
+        {"shape":"InvalidKMSKeyFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
@@ -665,7 +817,7 @@
         {"shape":"InvalidParameterCombinationException"},
         {"shape":"InvalidParameterValueException"}
       ],
-      "documentation":"<p>Lists all available node types that you can scale your Redis cluster's or replication group's current node type up to.</p> <p>When you use the <code>ModifyCacheCluster</code> or <code>ModifyReplicationGroup</code> operations to scale up your cluster or replication group, the value of the <code>CacheNodeType</code> parameter must be one of the node types returned by this operation.</p>"
+      "documentation":"<p>Lists all available node types that you can scale your Redis cluster's or replication group's current node type.</p> <p>When you use the <code>ModifyCacheCluster</code> or <code>ModifyReplicationGroup</code> operations to scale your cluster or replication group, the value of the <code>CacheNodeType</code> parameter must be one of the node types returned by this operation.</p>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -726,7 +878,8 @@
         {"shape":"CacheParameterGroupNotFoundFault"},
         {"shape":"InvalidCacheParameterGroupStateFault"},
         {"shape":"InvalidParameterValueException"},
-        {"shape":"InvalidParameterCombinationException"}
+        {"shape":"InvalidParameterCombinationException"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"}
       ],
       "documentation":"<p>Modifies the parameters of a cache parameter group. You can modify up to 20 parameters in a single request by submitting a list parameter name and value pairs.</p>"
     },
@@ -748,6 +901,24 @@
         {"shape":"InvalidSubnet"}
       ],
       "documentation":"<p>Modifies an existing cache subnet group.</p>"
+    },
+    "ModifyGlobalReplicationGroup":{
+      "name":"ModifyGlobalReplicationGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyGlobalReplicationGroupMessage"},
+      "output":{
+        "shape":"ModifyGlobalReplicationGroupResult",
+        "resultWrapper":"ModifyGlobalReplicationGroupResult"
+      },
+      "errors":[
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"},
+        {"shape":"InvalidParameterValueException"}
+      ],
+      "documentation":"<p>Modifies the settings for a Global Datastore.</p>"
     },
     "ModifyReplicationGroup":{
       "name":"ModifyReplicationGroup",
@@ -772,10 +943,11 @@
         {"shape":"CacheSecurityGroupNotFoundFault"},
         {"shape":"CacheParameterGroupNotFoundFault"},
         {"shape":"InvalidVPCNetworkStateFault"},
+        {"shape":"InvalidKMSKeyFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
-      "documentation":"<p>Modifies the settings for a replication group.</p> <p>For Redis (cluster mode enabled) clusters, this operation cannot be used to change a cluster's node type or engine version. For more information, see:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/scaling-redis-cluster-mode-enabled.html\">Scaling for Amazon ElastiCache for Redis (cluster mode enabled)</a> in the ElastiCache User Guide</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ModifyReplicationGroupShardConfiguration.html\">ModifyReplicationGroupShardConfiguration</a> in the ElastiCache API Reference</p> </li> </ul> <note> <p>This operation is valid for Redis only.</p> </note>"
+      "documentation":"<p>Modifies the settings for a replication group.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/scaling-redis-cluster-mode-enabled.html\">Scaling for Amazon ElastiCache for Redis (cluster mode enabled)</a> in the ElastiCache User Guide</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ModifyReplicationGroupShardConfiguration.html\">ModifyReplicationGroupShardConfiguration</a> in the ElastiCache API Reference</p> </li> </ul> <note> <p>This operation is valid for Redis only.</p> </note>"
     },
     "ModifyReplicationGroupShardConfiguration":{
       "name":"ModifyReplicationGroupShardConfiguration",
@@ -796,6 +968,7 @@
         {"shape":"InsufficientCacheClusterCapacityFault"},
         {"shape":"NodeGroupsPerReplicationGroupQuotaExceededFault"},
         {"shape":"NodeQuotaForCustomerExceededFault"},
+        {"shape":"InvalidKMSKeyFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
@@ -820,6 +993,24 @@
         {"shape":"InvalidParameterCombinationException"}
       ],
       "documentation":"<p>Allows you to purchase a reserved cache node offering.</p>"
+    },
+    "RebalanceSlotsInGlobalReplicationGroup":{
+      "name":"RebalanceSlotsInGlobalReplicationGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RebalanceSlotsInGlobalReplicationGroupMessage"},
+      "output":{
+        "shape":"RebalanceSlotsInGlobalReplicationGroupResult",
+        "resultWrapper":"RebalanceSlotsInGlobalReplicationGroupResult"
+      },
+      "errors":[
+        {"shape":"GlobalReplicationGroupNotFoundFault"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"},
+        {"shape":"InvalidParameterValueException"}
+      ],
+      "documentation":"<p>Redistribute slots to ensure uniform distribution across existing shards in the cluster.</p>"
     },
     "RebootCacheCluster":{
       "name":"RebootCacheCluster",
@@ -872,7 +1063,8 @@
         {"shape":"InvalidCacheParameterGroupStateFault"},
         {"shape":"CacheParameterGroupNotFoundFault"},
         {"shape":"InvalidParameterValueException"},
-        {"shape":"InvalidParameterCombinationException"}
+        {"shape":"InvalidParameterCombinationException"},
+        {"shape":"InvalidGlobalReplicationGroupStateFault"}
       ],
       "documentation":"<p>Modifies the parameters of a cache parameter group to the engine or system default value. You can reset specific parameters by submitting a list of parameter names. To reset the entire cache parameter group, specify the <code>ResetAllParameters</code> and <code>CacheParameterGroupName</code> parameters.</p>"
     },
@@ -896,6 +1088,25 @@
       ],
       "documentation":"<p>Revokes ingress from a cache security group. Use this operation to disallow access from an Amazon EC2 security group that had been previously authorized.</p>"
     },
+    "StartMigration":{
+      "name":"StartMigration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartMigrationMessage"},
+      "output":{
+        "shape":"StartMigrationResponse",
+        "resultWrapper":"StartMigrationResult"
+      },
+      "errors":[
+        {"shape":"ReplicationGroupNotFoundFault"},
+        {"shape":"InvalidReplicationGroupStateFault"},
+        {"shape":"ReplicationGroupAlreadyUnderMigrationFault"},
+        {"shape":"InvalidParameterValueException"}
+      ],
+      "documentation":"<p>Start the migration of data.</p>"
+    },
     "TestFailover":{
       "name":"TestFailover",
       "http":{
@@ -914,6 +1125,7 @@
         {"shape":"NodeGroupNotFoundFault"},
         {"shape":"ReplicationGroupNotFoundFault"},
         {"shape":"TestFailoverNotAvailableFault"},
+        {"shape":"InvalidKMSKeyFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
@@ -970,9 +1182,27 @@
         "ScaleUpModifications":{
           "shape":"NodeTypeList",
           "documentation":"<p>A string list, each element of which specifies a cache node type which you can use to scale your cluster or replication group.</p> <p>When scaling up a Redis cluster or replication group using <code>ModifyCacheCluster</code> or <code>ModifyReplicationGroup</code>, use a value from this list for the <code>CacheNodeType</code> parameter.</p>"
+        },
+        "ScaleDownModifications":{
+          "shape":"NodeTypeList",
+          "documentation":"<p>A string list, each element of which specifies a cache node type which you can use to scale your cluster or replication group. When scaling down a Redis cluster or replication group using ModifyCacheCluster or ModifyReplicationGroup, use a value from this list for the CacheNodeType parameter. </p>"
         }
       },
       "documentation":"<p>Represents the allowed node types you can use to modify your cluster or replication group.</p>"
+    },
+    "AuthTokenUpdateStatus":{
+      "type":"string",
+      "enum":[
+        "SETTING",
+        "ROTATING"
+      ]
+    },
+    "AuthTokenUpdateStrategyType":{
+      "type":"string",
+      "enum":[
+        "SET",
+        "ROTATE"
+      ]
     },
     "AuthorizationAlreadyExistsFault":{
       "type":"structure",
@@ -1057,14 +1287,15 @@
     "AwsQueryErrorMessage":{"type":"string"},
     "BatchApplyUpdateActionMessage":{
       "type":"structure",
-      "required":[
-        "ReplicationGroupIds",
-        "ServiceUpdateName"
-      ],
+      "required":["ServiceUpdateName"],
       "members":{
         "ReplicationGroupIds":{
           "shape":"ReplicationGroupIdList",
           "documentation":"<p>The replication group IDs</p>"
+        },
+        "CacheClusterIds":{
+          "shape":"CacheClusterIdList",
+          "documentation":"<p>The cache cluster IDs</p>"
         },
         "ServiceUpdateName":{
           "shape":"String",
@@ -1074,14 +1305,15 @@
     },
     "BatchStopUpdateActionMessage":{
       "type":"structure",
-      "required":[
-        "ReplicationGroupIds",
-        "ServiceUpdateName"
-      ],
+      "required":["ServiceUpdateName"],
       "members":{
         "ReplicationGroupIds":{
           "shape":"ReplicationGroupIdList",
           "documentation":"<p>The replication group IDs</p>"
+        },
+        "CacheClusterIds":{
+          "shape":"CacheClusterIdList",
+          "documentation":"<p>The cache cluster IDs</p>"
         },
         "ServiceUpdateName":{
           "shape":"String",
@@ -1108,7 +1340,7 @@
         },
         "CacheNodeType":{
           "shape":"String",
-          "documentation":"<p>The name of the compute and memory capacity node type for the cluster.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+          "documentation":"<p>The name of the compute and memory capacity node type for the cluster.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
         },
         "Engine":{
           "shape":"String",
@@ -1183,6 +1415,10 @@
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables using an <code>AuthToken</code> (password) when issuing Redis commands.</p> <p>Default: <code>false</code> </p>"
         },
+        "AuthTokenLastModifiedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date the auth token was last modified</p>"
+        },
         "TransitEncryptionEnabled":{
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
@@ -1190,6 +1426,10 @@
         "AtRestEncryptionEnabled":{
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables encryption at-rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the cluster is created. To enable at-rest encryption on a cluster you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
+        },
+        "ARN":{
+          "shape":"String",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the cache cluster.</p>"
         }
       },
       "documentation":"<p>Contains all of the attributes of a specific cluster.</p>",
@@ -1206,6 +1446,11 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "CacheClusterIdList":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "max":20
     },
     "CacheClusterList":{
       "type":"list",
@@ -1296,7 +1541,7 @@
         },
         "CacheNodeStatus":{
           "shape":"String",
-          "documentation":"<p>The current state of this cache node.</p>"
+          "documentation":"<p>The current state of this cache node, one of the following values: <code>available</code>, <code>creating</code>, <code>rebooting</code>, or <code>deleting</code>.</p>"
         },
         "CacheNodeCreateTime":{
           "shape":"TStamp",
@@ -1319,7 +1564,7 @@
           "documentation":"<p>The Availability Zone where this node was created and now resides.</p>"
         }
       },
-      "documentation":"<p>Represents an individual cache node within a cluster. Each cache node runs its own instance of the cluster's protocol-compliant caching software - either Memcached or Redis.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+      "documentation":"<p>Represents an individual cache node within a cluster. Each cache node runs its own instance of the cluster's protocol-compliant caching software - either Memcached or Redis.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
     },
     "CacheNodeIdsList":{
       "type":"list",
@@ -1405,6 +1650,51 @@
         "locationName":"CacheNodeTypeSpecificValue"
       }
     },
+    "CacheNodeUpdateStatus":{
+      "type":"structure",
+      "members":{
+        "CacheNodeId":{
+          "shape":"String",
+          "documentation":"<p>The node ID of the cache cluster</p>"
+        },
+        "NodeUpdateStatus":{
+          "shape":"NodeUpdateStatus",
+          "documentation":"<p>The update status of the node</p>"
+        },
+        "NodeDeletionDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The deletion date of the node</p>"
+        },
+        "NodeUpdateStartDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The start date of the update for a node</p>"
+        },
+        "NodeUpdateEndDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The end date of the update for a node</p>"
+        },
+        "NodeUpdateInitiatedBy":{
+          "shape":"NodeUpdateInitiatedBy",
+          "documentation":"<p>Reflects whether the update was initiated by the customer or automatically applied</p>"
+        },
+        "NodeUpdateInitiatedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date when the update is triggered</p>"
+        },
+        "NodeUpdateStatusModifiedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date when the NodeUpdateStatus was last modified&gt;</p>"
+        }
+      },
+      "documentation":"<p>The status of the service update on the cache node</p>"
+    },
+    "CacheNodeUpdateStatusList":{
+      "type":"list",
+      "member":{
+        "shape":"CacheNodeUpdateStatus",
+        "locationName":"CacheNodeUpdateStatus"
+      }
+    },
     "CacheParameterGroup":{
       "type":"structure",
       "members":{
@@ -1419,6 +1709,14 @@
         "Description":{
           "shape":"String",
           "documentation":"<p>The description for this cache parameter group.</p>"
+        },
+        "IsGlobal":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the parameter group is associated with a Global Datastore</p>"
+        },
+        "ARN":{
+          "shape":"String",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the cache parameter group.</p>"
         }
       },
       "documentation":"<p>Represents the output of a <code>CreateCacheParameterGroup</code> operation.</p>",
@@ -1545,6 +1843,10 @@
         "EC2SecurityGroups":{
           "shape":"EC2SecurityGroupList",
           "documentation":"<p>A list of Amazon EC2 security groups that are associated with this cache security group.</p>"
+        },
+        "ARN":{
+          "shape":"String",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the cache security group.</p>"
         }
       },
       "documentation":"<p>Represents the output of one of the following operations:</p> <ul> <li> <p> <code>AuthorizeCacheSecurityGroupIngress</code> </p> </li> <li> <p> <code>CreateCacheSecurityGroup</code> </p> </li> <li> <p> <code>RevokeCacheSecurityGroupIngress</code> </p> </li> </ul>",
@@ -1653,6 +1955,10 @@
         "Subnets":{
           "shape":"SubnetList",
           "documentation":"<p>A list of subnets associated with the cache subnet group.</p>"
+        },
+        "ARN":{
+          "shape":"String",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the cache subnet group.</p>"
         }
       },
       "documentation":"<p>Represents the output of one of the following operations:</p> <ul> <li> <p> <code>CreateCacheSubnetGroup</code> </p> </li> <li> <p> <code>ModifyCacheSubnetGroup</code> </p> </li> </ul>",
@@ -1765,6 +2071,26 @@
       },
       "exception":true
     },
+    "CompleteMigrationMessage":{
+      "type":"structure",
+      "required":["ReplicationGroupId"],
+      "members":{
+        "ReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the replication group to which data is being migrated.</p>"
+        },
+        "Force":{
+          "shape":"Boolean",
+          "documentation":"<p>Forces the migration to stop without ensuring that data is in sync. It is recommended to use this option only to abort the migration and not recommended when application wants to continue migration to ElastiCache.</p>"
+        }
+      }
+    },
+    "CompleteMigrationResponse":{
+      "type":"structure",
+      "members":{
+        "ReplicationGroup":{"shape":"ReplicationGroup"}
+      }
+    },
     "ConfigureShard":{
       "type":"structure",
       "required":[
@@ -1805,6 +2131,10 @@
         "TargetBucket":{
           "shape":"String",
           "documentation":"<p>The Amazon S3 bucket to which the snapshot is exported. This parameter is used only when exporting a snapshot for external access.</p> <p>When using this parameter to export a snapshot, be sure Amazon ElastiCache has the needed permissions to this S3 bucket. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-grant-access\">Step 2: Grant ElastiCache Access to Your Amazon S3 Bucket</a> in the <i>Amazon ElastiCache User Guide</i>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Snapshots.Exporting.html\">Exporting a Snapshot</a> in the <i>Amazon ElastiCache User Guide</i>.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the target snapshot.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>CopySnapshotMessage</code> operation.</p>"
@@ -1821,7 +2151,7 @@
       "members":{
         "CacheClusterId":{
           "shape":"String",
-          "documentation":"<p>The node group (shard) identifier. This parameter is stored as a lowercase string.</p> <p> <b>Constraints:</b> </p> <ul> <li> <p>A name must contain from 1 to 20 alphanumeric characters or hyphens.</p> </li> <li> <p>The first character must be a letter.</p> </li> <li> <p>A name cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
+          "documentation":"<p>The node group (shard) identifier. This parameter is stored as a lowercase string.</p> <p> <b>Constraints:</b> </p> <ul> <li> <p>A name must contain from 1 to 50 alphanumeric characters or hyphens.</p> </li> <li> <p>The first character must be a letter.</p> </li> <li> <p>A name cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
         },
         "ReplicationGroupId":{
           "shape":"String",
@@ -1845,7 +2175,7 @@
         },
         "CacheNodeType":{
           "shape":"String",
-          "documentation":"<p>The compute and memory capacity of the nodes in the node group (shard).</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+          "documentation":"<p>The compute and memory capacity of the nodes in the node group (shard).</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
         },
         "Engine":{
           "shape":"String",
@@ -1909,7 +2239,7 @@
         },
         "AuthToken":{
           "shape":"String",
-          "documentation":"<p> <b>Reserved parameter.</b> The password used to access a password protected server.</p> <p>Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters.</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length.</p> </li> <li> <p>Cannot contain any of the following characters: '/', '\"', or '@'. </p> </li> </ul> <p>For more information, see <a href=\"http://redis.io/commands/AUTH\">AUTH password</a> at http://redis.io/commands/AUTH.</p>"
+          "documentation":"<p> <b>Reserved parameter.</b> The password used to access a password protected server.</p> <p>Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters.</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length.</p> </li> <li> <p>The only permitted printable special characters are !, &amp;, #, $, ^, &lt;, &gt;, and -. Other printable special characters cannot be used in the AUTH token.</p> </li> </ul> <p>For more information, see <a href=\"http://redis.io/commands/AUTH\">AUTH password</a> at http://redis.io/commands/AUTH.</p>"
         }
       },
       "documentation":"<p>Represents the input of a CreateCacheCluster operation.</p>"
@@ -2002,6 +2332,33 @@
         "CacheSubnetGroup":{"shape":"CacheSubnetGroup"}
       }
     },
+    "CreateGlobalReplicationGroupMessage":{
+      "type":"structure",
+      "required":[
+        "GlobalReplicationGroupIdSuffix",
+        "PrimaryReplicationGroupId"
+      ],
+      "members":{
+        "GlobalReplicationGroupIdSuffix":{
+          "shape":"String",
+          "documentation":"<p>The suffix name of a Global Datastore. The suffix guarantees uniqueness of the Global Datastore name across multiple regions.</p>"
+        },
+        "GlobalReplicationGroupDescription":{
+          "shape":"String",
+          "documentation":"<p>Provides details of the Global Datastore</p>"
+        },
+        "PrimaryReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the primary cluster that accepts writes and will replicate updates to the secondary cluster.</p>"
+        }
+      }
+    },
+    "CreateGlobalReplicationGroupResult":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroup":{"shape":"GlobalReplicationGroup"}
+      }
+    },
     "CreateReplicationGroupMessage":{
       "type":"structure",
       "required":[
@@ -2011,11 +2368,15 @@
       "members":{
         "ReplicationGroupId":{
           "shape":"String",
-          "documentation":"<p>The replication group identifier. This parameter is stored as a lowercase string.</p> <p>Constraints:</p> <ul> <li> <p>A name must contain from 1 to 20 alphanumeric characters or hyphens.</p> </li> <li> <p>The first character must be a letter.</p> </li> <li> <p>A name cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
+          "documentation":"<p>The replication group identifier. This parameter is stored as a lowercase string.</p> <p>Constraints:</p> <ul> <li> <p>A name must contain from 1 to 40 alphanumeric characters or hyphens.</p> </li> <li> <p>The first character must be a letter.</p> </li> <li> <p>A name cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
         },
         "ReplicationGroupDescription":{
           "shape":"String",
           "documentation":"<p>A user-created description for the replication group.</p>"
+        },
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
         },
         "PrimaryClusterId":{
           "shape":"String",
@@ -2027,7 +2388,7 @@
         },
         "NumCacheClusters":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The number of clusters this replication group initially has.</p> <p>This parameter is not used if there is more than one node group (shard). You should use <code>ReplicasPerNodeGroup</code> instead.</p> <p>If <code>AutomaticFailoverEnabled</code> is <code>true</code>, the value of this parameter must be at least 2. If <code>AutomaticFailoverEnabled</code> is <code>false</code> you can omit this parameter (it will default to 1), or you can explicitly set it to a value between 2 and 6.</p> <p>The maximum permitted value for <code>NumCacheClusters</code> is 6 (1 primary plus 5 replicas).</p>"
+          "documentation":"<p>The number of nodes in the cluster.</p> <p>This parameter is not used if there is more than one node group (shard). You should use <code>ReplicasPerNodeGroup</code> instead.</p> <p>If <code>AutomaticFailoverEnabled</code> is <code>true</code>, the value of this parameter must be at least 2. If <code>AutomaticFailoverEnabled</code> is <code>false</code> you can omit this parameter (it will default to 1), or you can explicitly set it to a value between 2 and 6.</p> <p>The maximum permitted value for <code>NumCacheClusters</code> is 6 (1 primary plus 5 replicas).</p>"
         },
         "PreferredCacheClusterAZs":{
           "shape":"AvailabilityZonesList",
@@ -2043,11 +2404,11 @@
         },
         "NodeGroupConfiguration":{
           "shape":"NodeGroupConfigurationList",
-          "documentation":"<p>A list of node group (shard) configuration options. Each node group (shard) configuration has the following members: <code>PrimaryAvailabilityZone</code>, <code>ReplicaAvailabilityZones</code>, <code>ReplicaCount</code>, and <code>Slots</code>.</p> <p>If you're creating a Redis (cluster mode disabled) or a Redis (cluster mode enabled) replication group, you can use this parameter to individually configure each node group (shard), or you can omit this parameter. However, when seeding a Redis (cluster mode enabled) cluster from a S3 rdb file, you must configure each node group (shard) using this parameter because you must specify the slots for each node group.</p>"
+          "documentation":"<p>A list of node group (shard) configuration options. Each node group (shard) configuration has the following members: <code>PrimaryAvailabilityZone</code>, <code>ReplicaAvailabilityZones</code>, <code>ReplicaCount</code>, and <code>Slots</code>.</p> <p>If you're creating a Redis (cluster mode disabled) or a Redis (cluster mode enabled) replication group, you can use this parameter to individually configure each node group (shard), or you can omit this parameter. However, it is required when seeding a Redis (cluster mode enabled) cluster from a S3 rdb file. You must configure each node group (shard) using this parameter because you must specify the slots for each node group.</p>"
         },
         "CacheNodeType":{
           "shape":"String",
-          "documentation":"<p>The compute and memory capacity of the nodes in the node group (shard).</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+          "documentation":"<p>The compute and memory capacity of the nodes in the node group (shard).</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
         },
         "Engine":{
           "shape":"String",
@@ -2111,15 +2472,19 @@
         },
         "AuthToken":{
           "shape":"String",
-          "documentation":"<p> <b>Reserved parameter.</b> The password used to access a password protected server.</p> <p> <code>AuthToken</code> can be specified only on replication groups where <code>TransitEncryptionEnabled</code> is <code>true</code>.</p> <important> <p>For HIPAA compliance, you must specify <code>TransitEncryptionEnabled</code> as <code>true</code>, an <code>AuthToken</code>, and a <code>CacheSubnetGroup</code>.</p> </important> <p>Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters.</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length.</p> </li> <li> <p>Cannot contain any of the following characters: '/', '\"', or '@'. </p> </li> </ul> <p>For more information, see <a href=\"http://redis.io/commands/AUTH\">AUTH password</a> at http://redis.io/commands/AUTH.</p>"
+          "documentation":"<p> <b>Reserved parameter.</b> The password used to access a password protected server.</p> <p> <code>AuthToken</code> can be specified only on replication groups where <code>TransitEncryptionEnabled</code> is <code>true</code>.</p> <important> <p>For HIPAA compliance, you must specify <code>TransitEncryptionEnabled</code> as <code>true</code>, an <code>AuthToken</code>, and a <code>CacheSubnetGroup</code>.</p> </important> <p>Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters.</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length.</p> </li> <li> <p>The only permitted printable special characters are !, &amp;, #, $, ^, &lt;, &gt;, and -. Other printable special characters cannot be used in the AUTH token.</p> </li> </ul> <p>For more information, see <a href=\"http://redis.io/commands/AUTH\">AUTH password</a> at http://redis.io/commands/AUTH.</p>"
         },
         "TransitEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p>This parameter is valid only if the <code>Engine</code> parameter is <code>redis</code>, the <code>EngineVersion</code> parameter is <code>3.2.6</code> or <code>4.x</code>, and the cluster is being created in an Amazon VPC.</p> <p>If you enable in-transit encryption, you must also specify a value for <code>CacheSubnetGroup</code>.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p> <important> <p>For HIPAA compliance, you must specify <code>TransitEncryptionEnabled</code> as <code>true</code>, an <code>AuthToken</code>, and a <code>CacheSubnetGroup</code>.</p> </important>"
+          "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p>This parameter is valid only if the <code>Engine</code> parameter is <code>redis</code>, the <code>EngineVersion</code> parameter is <code>3.2.6</code>, <code>4.x</code> or later, and the cluster is being created in an Amazon VPC.</p> <p>If you enable in-transit encryption, you must also specify a value for <code>CacheSubnetGroup</code>.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p> <important> <p>For HIPAA compliance, you must specify <code>TransitEncryptionEnabled</code> as <code>true</code>, an <code>AuthToken</code>, and a <code>CacheSubnetGroup</code>.</p> </important>"
         },
         "AtRestEncryptionEnabled":{
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables encryption at rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the replication group is created. To enable encryption at rest on a replication group you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create the replication group. </p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the disk in the cluster.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>CreateReplicationGroup</code> operation.</p>"
@@ -2145,6 +2510,10 @@
         "SnapshotName":{
           "shape":"String",
           "documentation":"<p>A name for the snapshot being created.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the snapshot.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>CreateSnapshot</code> operation.</p>"
@@ -2153,6 +2522,60 @@
       "type":"structure",
       "members":{
         "Snapshot":{"shape":"Snapshot"}
+      }
+    },
+    "CustomerNodeEndpoint":{
+      "type":"structure",
+      "members":{
+        "Address":{
+          "shape":"String",
+          "documentation":"<p>The address of the node endpoint</p>"
+        },
+        "Port":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The port of the node endpoint</p>"
+        }
+      },
+      "documentation":"<p>The endpoint from which data should be migrated.</p>"
+    },
+    "CustomerNodeEndpointList":{
+      "type":"list",
+      "member":{"shape":"CustomerNodeEndpoint"}
+    },
+    "DecreaseNodeGroupsInGlobalReplicationGroupMessage":{
+      "type":"structure",
+      "required":[
+        "GlobalReplicationGroupId",
+        "NodeGroupCount",
+        "ApplyImmediately"
+      ],
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "NodeGroupCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of node groups (shards) that results from the modification of the shard configuration</p>"
+        },
+        "GlobalNodeGroupsToRemove":{
+          "shape":"GlobalNodeGroupIdList",
+          "documentation":"<p>If the value of NodeGroupCount is less than the current number of node groups (shards), then either NodeGroupsToRemove or NodeGroupsToRetain is required. NodeGroupsToRemove is a list of NodeGroupIds to remove from the cluster. ElastiCache for Redis will attempt to remove all node groups listed by NodeGroupsToRemove from the cluster. </p>"
+        },
+        "GlobalNodeGroupsToRetain":{
+          "shape":"GlobalNodeGroupIdList",
+          "documentation":"<p>If the value of NodeGroupCount is less than the current number of node groups (shards), then either NodeGroupsToRemove or NodeGroupsToRetain is required. NodeGroupsToRemove is a list of NodeGroupIds to remove from the cluster. ElastiCache for Redis will attempt to remove all node groups listed by NodeGroupsToRemove from the cluster. </p>"
+        },
+        "ApplyImmediately":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates that the shard reconfiguration process begins immediately. At present, the only permitted value for this parameter is true. </p>"
+        }
+      }
+    },
+    "DecreaseNodeGroupsInGlobalReplicationGroupResult":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroup":{"shape":"GlobalReplicationGroup"}
       }
     },
     "DecreaseReplicaCountMessage":{
@@ -2243,6 +2666,29 @@
         }
       },
       "documentation":"<p>Represents the input of a <code>DeleteCacheSubnetGroup</code> operation.</p>"
+    },
+    "DeleteGlobalReplicationGroupMessage":{
+      "type":"structure",
+      "required":[
+        "GlobalReplicationGroupId",
+        "RetainPrimaryReplicationGroup"
+      ],
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "RetainPrimaryReplicationGroup":{
+          "shape":"Boolean",
+          "documentation":"<p>The primary replication group is retained as a standalone replication group. </p>"
+        }
+      }
+    },
+    "DeleteGlobalReplicationGroupResult":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroup":{"shape":"GlobalReplicationGroup"}
+      }
     },
     "DeleteReplicationGroupMessage":{
       "type":"structure",
@@ -2478,6 +2924,40 @@
       },
       "documentation":"<p>Represents the input of a <code>DescribeEvents</code> operation.</p>"
     },
+    "DescribeGlobalReplicationGroupsMessage":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "MaxRecords":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The maximum number of records to include in the response. If more records exist than the specified MaxRecords value, a marker is included in the response so that the remaining results can be retrieved. </p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>An optional marker returned from a prior request. Use this marker for pagination of results from this operation. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>. </p>"
+        },
+        "ShowMemberInfo":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Returns the list of members that comprise the Global Datastore.</p>"
+        }
+      }
+    },
+    "DescribeGlobalReplicationGroupsResult":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>An optional marker returned from a prior request. Use this marker for pagination of results from this operation. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by MaxRecords. &gt;</p>"
+        },
+        "GlobalReplicationGroups":{
+          "shape":"GlobalReplicationGroupList",
+          "documentation":"<p>Indicates the slot configuration and global identifier for each slice group.</p>"
+        }
+      }
+    },
     "DescribeReplicationGroupsMessage":{
       "type":"structure",
       "members":{
@@ -2509,7 +2989,7 @@
         },
         "CacheNodeType":{
           "shape":"String",
-          "documentation":"<p>The cache node type filter value. Use this parameter to show only those reservations matching the specified cache node type.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+          "documentation":"<p>The cache node type filter value. Use this parameter to show only those reservations matching the specified cache node type.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
         },
         "Duration":{
           "shape":"String",
@@ -2543,7 +3023,7 @@
         },
         "CacheNodeType":{
           "shape":"String",
-          "documentation":"<p>The cache node type filter value. Use this parameter to show only the available offerings matching the specified cache node type.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+          "documentation":"<p>The cache node type filter value. Use this parameter to show only the available offerings matching the specified cache node type.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
         },
         "Duration":{
           "shape":"String",
@@ -2648,6 +3128,14 @@
           "shape":"ReplicationGroupIdList",
           "documentation":"<p>The replication group IDs</p>"
         },
+        "CacheClusterIds":{
+          "shape":"CacheClusterIdList",
+          "documentation":"<p>The cache cluster IDs</p>"
+        },
+        "Engine":{
+          "shape":"String",
+          "documentation":"<p>The Elasticache engine to which the update applies. Either Redis or Memcached </p>"
+        },
         "ServiceUpdateStatus":{
           "shape":"ServiceUpdateStatusList",
           "documentation":"<p>The status of the service update</p>"
@@ -2672,6 +3160,34 @@
           "shape":"String",
           "documentation":"<p>An optional marker returned from a prior request. Use this marker for pagination of results from this operation. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>.</p>"
         }
+      }
+    },
+    "DisassociateGlobalReplicationGroupMessage":{
+      "type":"structure",
+      "required":[
+        "GlobalReplicationGroupId",
+        "ReplicationGroupId",
+        "ReplicationGroupRegion"
+      ],
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "ReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the secondary cluster you wish to remove from the Global Datastore</p>"
+        },
+        "ReplicationGroupRegion":{
+          "shape":"String",
+          "documentation":"<p>The AWS region of secondary cluster you wish to remove from the Global Datastore</p>"
+        }
+      }
+    },
+    "DisassociateGlobalReplicationGroupResult":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroup":{"shape":"GlobalReplicationGroup"}
       }
     },
     "Double":{"type":"double"},
@@ -2780,6 +3296,232 @@
       },
       "documentation":"<p>Represents the output of a <code>DescribeEvents</code> operation.</p>"
     },
+    "FailoverGlobalReplicationGroupMessage":{
+      "type":"structure",
+      "required":[
+        "GlobalReplicationGroupId",
+        "PrimaryRegion",
+        "PrimaryReplicationGroupId"
+      ],
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "PrimaryRegion":{
+          "shape":"String",
+          "documentation":"<p>The AWS region of the primary cluster of the Global Datastore</p>"
+        },
+        "PrimaryReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the primary replication group</p>"
+        }
+      }
+    },
+    "FailoverGlobalReplicationGroupResult":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroup":{"shape":"GlobalReplicationGroup"}
+      }
+    },
+    "GlobalNodeGroup":{
+      "type":"structure",
+      "members":{
+        "GlobalNodeGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the global node group</p>"
+        },
+        "Slots":{
+          "shape":"String",
+          "documentation":"<p>The keyspace for this node group</p>"
+        }
+      },
+      "documentation":"<p>Indicates the slot configuration and global identifier for a slice group.</p>"
+    },
+    "GlobalNodeGroupIdList":{
+      "type":"list",
+      "member":{
+        "shape":"String",
+        "locationName":"GlobalNodeGroupId"
+      }
+    },
+    "GlobalNodeGroupList":{
+      "type":"list",
+      "member":{
+        "shape":"GlobalNodeGroup",
+        "locationName":"GlobalNodeGroup"
+      }
+    },
+    "GlobalReplicationGroup":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "GlobalReplicationGroupDescription":{
+          "shape":"String",
+          "documentation":"<p>The optional description of the Global Datastore</p>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The status of the Global Datastore</p>"
+        },
+        "CacheNodeType":{
+          "shape":"String",
+          "documentation":"<p>The cache node type of the Global Datastore</p>"
+        },
+        "Engine":{
+          "shape":"String",
+          "documentation":"<p>The Elasticache engine. For Redis only.</p>"
+        },
+        "EngineVersion":{
+          "shape":"String",
+          "documentation":"<p>The Elasticache Redis engine version. For preview, it is Redis version 5.0.5 only.</p>"
+        },
+        "Members":{
+          "shape":"GlobalReplicationGroupMemberList",
+          "documentation":"<p>The replication groups that comprise the Global Datastore.</p>"
+        },
+        "ClusterEnabled":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A flag that indicates whether the Global Datastore is cluster enabled.</p>"
+        },
+        "GlobalNodeGroups":{
+          "shape":"GlobalNodeGroupList",
+          "documentation":"<p>Indicates the slot configuration and global identifier for each slice group.</p>"
+        },
+        "AuthTokenEnabled":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A flag that enables using an <code>AuthToken</code> (password) when issuing Redis commands.</p> <p>Default: <code>false</code> </p>"
+        },
+        "TransitEncryptionEnabled":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A flag that enables in-transit encryption when set to true. You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to true when you create a cluster. </p>"
+        },
+        "AtRestEncryptionEnabled":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A flag that enables encryption at rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the replication group is created. To enable encryption at rest on a replication group you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create the replication group. </p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p>"
+        },
+        "ARN":{
+          "shape":"String",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the global replication group.</p>"
+        }
+      },
+      "documentation":"<p>Consists of a primary cluster that accepts writes and an associated secondary cluster that resides in a different AWS region. The secondary cluster accepts only reads. The primary cluster automatically replicates updates to the secondary cluster.</p> <ul> <li> <p>The <b>GlobalReplicationGroupIdSuffix</b> represents the name of the Global Datastore, which is what you use to associate a secondary cluster.</p> </li> </ul>",
+      "wrapper":true
+    },
+    "GlobalReplicationGroupAlreadyExistsFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The Global Datastore name already exists.</p>",
+      "error":{
+        "code":"GlobalReplicationGroupAlreadyExistsFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "GlobalReplicationGroupInfo":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "GlobalReplicationGroupMemberRole":{
+          "shape":"String",
+          "documentation":"<p>The role of the replication group in a Global Datastore. Can be primary or secondary.</p>"
+        }
+      },
+      "documentation":"<p>The name of the Global Datastore and role of this replication group in the Global Datastore.</p>"
+    },
+    "GlobalReplicationGroupList":{
+      "type":"list",
+      "member":{
+        "shape":"GlobalReplicationGroup",
+        "locationName":"GlobalReplicationGroup"
+      }
+    },
+    "GlobalReplicationGroupMember":{
+      "type":"structure",
+      "members":{
+        "ReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The replication group id of the Global Datastore member.</p>"
+        },
+        "ReplicationGroupRegion":{
+          "shape":"String",
+          "documentation":"<p>The AWS region of the Global Datastore member.</p>"
+        },
+        "Role":{
+          "shape":"String",
+          "documentation":"<p>Indicates the role of the replication group, primary or secondary.</p>"
+        },
+        "AutomaticFailover":{
+          "shape":"AutomaticFailoverStatus",
+          "documentation":"<p>Indicates whether automatic failover is enabled for the replication group.</p>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The status of the membership of the replication group.</p>"
+        }
+      },
+      "documentation":"<p>A member of a Global Datastore. It contains the Replication Group Id, the AWS region and the role of the replication group. </p>",
+      "wrapper":true
+    },
+    "GlobalReplicationGroupMemberList":{
+      "type":"list",
+      "member":{
+        "shape":"GlobalReplicationGroupMember",
+        "locationName":"GlobalReplicationGroupMember"
+      }
+    },
+    "GlobalReplicationGroupNotFoundFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The Global Datastore does not exist</p>",
+      "error":{
+        "code":"GlobalReplicationGroupNotFoundFault",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "IncreaseNodeGroupsInGlobalReplicationGroupMessage":{
+      "type":"structure",
+      "required":[
+        "GlobalReplicationGroupId",
+        "NodeGroupCount",
+        "ApplyImmediately"
+      ],
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "NodeGroupCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of node groups you wish to add</p>"
+        },
+        "RegionalConfigurations":{
+          "shape":"RegionalConfigurationList",
+          "documentation":"<p>Describes the replication group IDs, the AWS regions where they are stored and the shard configuration for each that comprise the Global Datastore</p>"
+        },
+        "ApplyImmediately":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates that the process begins immediately. At present, the only permitted value for this parameter is true.</p>"
+        }
+      }
+    },
+    "IncreaseNodeGroupsInGlobalReplicationGroupResult":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroup":{"shape":"GlobalReplicationGroup"}
+      }
+    },
     "IncreaseReplicaCountMessage":{
       "type":"structure",
       "required":[
@@ -2868,6 +3610,30 @@
       "documentation":"<p>The current state of the cache security group does not allow deletion.</p>",
       "error":{
         "code":"InvalidCacheSecurityGroupState",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "InvalidGlobalReplicationGroupStateFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The Global Datastore is not available or in primary-only state.</p>",
+      "error":{
+        "code":"InvalidGlobalReplicationGroupState",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "InvalidKMSKeyFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The KMS key supplied is not valid.</p>",
+      "error":{
+        "code":"InvalidKMSKeyFault",
         "httpStatusCode":400,
         "senderFault":true
       },
@@ -3002,7 +3768,7 @@
         },
         "AZMode":{
           "shape":"AZMode",
-          "documentation":"<p>Specifies whether the new nodes in this Memcached cluster are all created in a single Availability Zone or created across multiple Availability Zones.</p> <p>Valid values: <code>single-az</code> | <code>cross-az</code>.</p> <p>This option is only supported for Memcached clusters.</p> <note> <p>You cannot specify <code>single-az</code> if the Memcached cluster already has cache nodes in different Availability Zones. If <code>cross-az</code> is specified, existing Memcached nodes remain in their current Availability Zone.</p> <p>Only newly created nodes are located in different Availability Zones. For instructions on how to move existing Memcached nodes to different Availability Zones, see the <b>Availability Zone Considerations</b> section of <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/CacheNodes.SupportedTypes.html\">Cache Node Considerations for Memcached</a>.</p> </note>"
+          "documentation":"<p>Specifies whether the new nodes in this Memcached cluster are all created in a single Availability Zone or created across multiple Availability Zones.</p> <p>Valid values: <code>single-az</code> | <code>cross-az</code>.</p> <p>This option is only supported for Memcached clusters.</p> <note> <p>You cannot specify <code>single-az</code> if the Memcached cluster already has cache nodes in different Availability Zones. If <code>cross-az</code> is specified, existing Memcached nodes remain in their current Availability Zone.</p> <p>Only newly created nodes are located in different Availability Zones. </p> </note>"
         },
         "NewAvailabilityZones":{
           "shape":"PreferredAvailabilityZoneList",
@@ -3055,6 +3821,14 @@
         "CacheNodeType":{
           "shape":"String",
           "documentation":"<p>A valid cache node type that you want to scale this cluster up to.</p>"
+        },
+        "AuthToken":{
+          "shape":"String",
+          "documentation":"<p>Reserved parameter. The password used to access a password protected server. This parameter must be specified with the <code>auth-token-update</code> parameter. Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length</p> </li> <li> <p>Cannot contain any of the following characters: '/', '\"', or '@', '%'</p> </li> </ul> <p> For more information, see AUTH password at <a href=\"http://redis.io/commands/AUTH\">AUTH</a>.</p>"
+        },
+        "AuthTokenUpdateStrategy":{
+          "shape":"AuthTokenUpdateStrategyType",
+          "documentation":"<p>Specifies the strategy to use to update the AUTH token. This parameter must be specified with the <code>auth-token</code> parameter. Possible values:</p> <ul> <li> <p>Rotate</p> </li> <li> <p>Set</p> </li> </ul> <p> For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/auth.html\">Authenticating Users with Redis AUTH</a> </p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>ModifyCacheCluster</code> operation.</p>"
@@ -3108,6 +3882,45 @@
         "CacheSubnetGroup":{"shape":"CacheSubnetGroup"}
       }
     },
+    "ModifyGlobalReplicationGroupMessage":{
+      "type":"structure",
+      "required":[
+        "GlobalReplicationGroupId",
+        "ApplyImmediately"
+      ],
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "ApplyImmediately":{
+          "shape":"Boolean",
+          "documentation":"<p>This parameter causes the modifications in this request and any pending modifications to be applied, asynchronously and as soon as possible. Modifications to Global Replication Groups cannot be requested to be applied in PreferredMaintenceWindow. </p>"
+        },
+        "CacheNodeType":{
+          "shape":"String",
+          "documentation":"<p>A valid cache node type that you want to scale this Global Datastore to.</p>"
+        },
+        "EngineVersion":{
+          "shape":"String",
+          "documentation":"<p>The upgraded version of the cache engine to be run on the clusters in the Global Datastore. </p>"
+        },
+        "GlobalReplicationGroupDescription":{
+          "shape":"String",
+          "documentation":"<p>A description of the Global Datastore</p>"
+        },
+        "AutomaticFailoverEnabled":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Determines whether a read replica is automatically promoted to read/write primary if the existing primary encounters a failure. </p>"
+        }
+      }
+    },
+    "ModifyGlobalReplicationGroupResult":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroup":{"shape":"GlobalReplicationGroup"}
+      }
+    },
     "ModifyReplicationGroupMessage":{
       "type":"structure",
       "required":["ReplicationGroupId"],
@@ -3131,6 +3944,11 @@
         "AutomaticFailoverEnabled":{
           "shape":"BooleanOptional",
           "documentation":"<p>Determines whether a read replica is automatically promoted to read/write primary if the existing primary encounters a failure.</p> <p>Valid values: <code>true</code> | <code>false</code> </p> <p>Amazon ElastiCache for Redis does not support Multi-AZ with automatic failover on:</p> <ul> <li> <p>Redis versions earlier than 2.8.6.</p> </li> <li> <p>Redis (cluster mode disabled): T1 node types.</p> </li> <li> <p>Redis (cluster mode enabled): T1 node types.</p> </li> </ul>"
+        },
+        "NodeGroupId":{
+          "shape":"String",
+          "documentation":"<p>Deprecated. This parameter is not used.</p>",
+          "deprecated":true
         },
         "CacheSecurityGroupNames":{
           "shape":"CacheSecurityGroupNameList",
@@ -3180,10 +3998,13 @@
           "shape":"String",
           "documentation":"<p>A valid cache node type that you want to scale this replication group to.</p>"
         },
-        "NodeGroupId":{
+        "AuthToken":{
           "shape":"String",
-          "documentation":"<p>Deprecated. This parameter is not used.</p>",
-          "deprecated":true
+          "documentation":"<p>Reserved parameter. The password used to access a password protected server. This parameter must be specified with the <code>auth-token-update-strategy </code> parameter. Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length</p> </li> <li> <p>Cannot contain any of the following characters: '/', '\"', or '@', '%'</p> </li> </ul> <p> For more information, see AUTH password at <a href=\"http://redis.io/commands/AUTH\">AUTH</a>.</p>"
+        },
+        "AuthTokenUpdateStrategy":{
+          "shape":"AuthTokenUpdateStrategyType",
+          "documentation":"<p>Specifies the strategy to use to update the AUTH token. This parameter must be specified with the <code>auth-token</code> parameter. Possible values:</p> <ul> <li> <p>Rotate</p> </li> <li> <p>Set</p> </li> </ul> <p> For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/auth.html\">Authenticating Users with Redis AUTH</a> </p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>ModifyReplicationGroups</code> operation.</p>"
@@ -3655,6 +4476,10 @@
         "CacheNodeType":{
           "shape":"String",
           "documentation":"<p>The cache node type that this cluster or replication group is scaled to.</p>"
+        },
+        "AuthTokenStatus":{
+          "shape":"AuthTokenUpdateStatus",
+          "documentation":"<p>The auth token status</p>"
         }
       },
       "documentation":"<p>A group of settings that are applied to the cluster in the future, or that are currently being applied.</p>"
@@ -3672,6 +4497,10 @@
         "ReplicationGroupId":{
           "shape":"String",
           "documentation":"<p>The ID of the replication group</p>"
+        },
+        "CacheClusterId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the cache cluster</p>"
         },
         "ServiceUpdateName":{
           "shape":"String",
@@ -3714,6 +4543,29 @@
       "type":"structure",
       "members":{
         "ReservedCacheNode":{"shape":"ReservedCacheNode"}
+      }
+    },
+    "RebalanceSlotsInGlobalReplicationGroupMessage":{
+      "type":"structure",
+      "required":[
+        "GlobalReplicationGroupId",
+        "ApplyImmediately"
+      ],
+      "members":{
+        "GlobalReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the Global Datastore</p>"
+        },
+        "ApplyImmediately":{
+          "shape":"Boolean",
+          "documentation":"<p>If <code>True</code>, redistribution is applied immediately.</p>"
+        }
+      }
+    },
+    "RebalanceSlotsInGlobalReplicationGroupResult":{
+      "type":"structure",
+      "members":{
+        "GlobalReplicationGroup":{"shape":"GlobalReplicationGroup"}
       }
     },
     "RebootCacheClusterMessage":{
@@ -3762,6 +4614,36 @@
         "locationName":"RecurringCharge"
       }
     },
+    "RegionalConfiguration":{
+      "type":"structure",
+      "required":[
+        "ReplicationGroupId",
+        "ReplicationGroupRegion",
+        "ReshardingConfiguration"
+      ],
+      "members":{
+        "ReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The name of the secondary cluster</p>"
+        },
+        "ReplicationGroupRegion":{
+          "shape":"String",
+          "documentation":"<p>The AWS region where the cluster is stored</p>"
+        },
+        "ReshardingConfiguration":{
+          "shape":"ReshardingConfigurationList",
+          "documentation":"<p>A list of <code>PreferredAvailabilityZones</code> objects that specifies the configuration of a node group in the resharded cluster. </p>"
+        }
+      },
+      "documentation":"<p>A list of the replication groups </p>"
+    },
+    "RegionalConfigurationList":{
+      "type":"list",
+      "member":{
+        "shape":"RegionalConfiguration",
+        "locationName":"RegionalConfiguration"
+      }
+    },
     "RemoveReplicasList":{
       "type":"list",
       "member":{"shape":"String"}
@@ -3801,6 +4683,10 @@
         "Description":{
           "shape":"String",
           "documentation":"<p>The user supplied description of the replication group.</p>"
+        },
+        "GlobalReplicationGroupInfo":{
+          "shape":"GlobalReplicationGroupInfo",
+          "documentation":"<p>The name of the Global Datastore and role of this replication group in the Global Datastore.</p>"
         },
         "Status":{
           "shape":"String",
@@ -3850,6 +4736,10 @@
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables using an <code>AuthToken</code> (password) when issuing Redis commands.</p> <p>Default: <code>false</code> </p>"
         },
+        "AuthTokenLastModifiedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date the auth token was last modified</p>"
+        },
         "TransitEncryptionEnabled":{
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
@@ -3857,6 +4747,14 @@
         "AtRestEncryptionEnabled":{
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables encryption at-rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the cluster is created. To enable encryption at-rest on a cluster you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the disk in the cluster.</p>"
+        },
+        "ARN":{
+          "shape":"String",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the replication group.</p>"
         }
       },
       "documentation":"<p>Contains all of the attributes of a specific Redis replication group.</p>",
@@ -3869,6 +4767,18 @@
       "documentation":"<p>The specified replication group already exists.</p>",
       "error":{
         "code":"ReplicationGroupAlreadyExists",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "ReplicationGroupAlreadyUnderMigrationFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The targeted replication group is not available. </p>",
+      "error":{
+        "code":"ReplicationGroupAlreadyUnderMigrationFault",
         "httpStatusCode":400,
         "senderFault":true
       },
@@ -3912,6 +4822,18 @@
       },
       "exception":true
     },
+    "ReplicationGroupNotUnderMigrationFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The designated replication group is not available for data migration.</p>",
+      "error":{
+        "code":"ReplicationGroupNotUnderMigrationFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "ReplicationGroupPendingModifiedValues":{
       "type":"structure",
       "members":{
@@ -3926,6 +4848,10 @@
         "Resharding":{
           "shape":"ReshardingStatus",
           "documentation":"<p>The status of an online resharding operation.</p>"
+        },
+        "AuthTokenStatus":{
+          "shape":"AuthTokenUpdateStatus",
+          "documentation":"<p>The auth token status</p>"
         }
       },
       "documentation":"<p>The settings to be applied to the Redis replication group, either immediately or during the next maintenance window.</p>"
@@ -3943,7 +4869,7 @@
         },
         "CacheNodeType":{
           "shape":"String",
-          "documentation":"<p>The cache node type for the reserved cache nodes.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+          "documentation":"<p>The cache node type for the reserved cache nodes.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
         },
         "StartTime":{
           "shape":"TStamp",
@@ -4055,7 +4981,7 @@
         },
         "CacheNodeType":{
           "shape":"String",
-          "documentation":"<p>The cache node type for the reserved cache node.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+          "documentation":"<p>The cache node type for the reserved cache node.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
         },
         "Duration":{
           "shape":"Integer",
@@ -4271,11 +5197,11 @@
         },
         "Engine":{
           "shape":"String",
-          "documentation":"<p>The Redis engine to which the service update applies</p>"
+          "documentation":"<p>The Elasticache engine to which the update applies. Either Redis or Memcached</p>"
         },
         "EngineVersion":{
           "shape":"String",
-          "documentation":"<p>The Redis engine version to which the service update applies</p>"
+          "documentation":"<p>The Elasticache engine version to which the update applies. Either Redis or Memcached engine version</p>"
         },
         "AutoUpdateAfterRecommendedApplyByDate":{
           "shape":"BooleanOptional",
@@ -4393,7 +5319,7 @@
         },
         "CacheNodeType":{
           "shape":"String",
-          "documentation":"<p>The name of the compute and memory capacity node type for the source cluster.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
+          "documentation":"<p>The name of the compute and memory capacity node type for the source cluster.</p> <p>The following node types are supported by ElastiCache. Generally speaking, the current generation types provide more memory and computational power at lower cost when compared to their equivalent previous generation counterparts.</p> <ul> <li> <p>General purpose:</p> <ul> <li> <p>Current generation: </p> <p> <b>M5 node types:</b> <code>cache.m5.large</code>, <code>cache.m5.xlarge</code>, <code>cache.m5.2xlarge</code>, <code>cache.m5.4xlarge</code>, <code>cache.m5.12xlarge</code>, <code>cache.m5.24xlarge</code> </p> <p> <b>M4 node types:</b> <code>cache.m4.large</code>, <code>cache.m4.xlarge</code>, <code>cache.m4.2xlarge</code>, <code>cache.m4.4xlarge</code>, <code>cache.m4.10xlarge</code> </p> <p> <b>T3 node types:</b> <code>cache.t3.micro</code>, <code>cache.t3.small</code>, <code>cache.t3.medium</code> </p> <p> <b>T2 node types:</b> <code>cache.t2.micro</code>, <code>cache.t2.small</code>, <code>cache.t2.medium</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>T1 node types:</b> <code>cache.t1.micro</code> </p> <p> <b>M1 node types:</b> <code>cache.m1.small</code>, <code>cache.m1.medium</code>, <code>cache.m1.large</code>, <code>cache.m1.xlarge</code> </p> <p> <b>M3 node types:</b> <code>cache.m3.medium</code>, <code>cache.m3.large</code>, <code>cache.m3.xlarge</code>, <code>cache.m3.2xlarge</code> </p> </li> </ul> </li> <li> <p>Compute optimized:</p> <ul> <li> <p>Previous generation: (not recommended)</p> <p> <b>C1 node types:</b> <code>cache.c1.xlarge</code> </p> </li> </ul> </li> <li> <p>Memory optimized:</p> <ul> <li> <p>Current generation: </p> <p> <b>R5 node types:</b> <code>cache.r5.large</code>, <code>cache.r5.xlarge</code>, <code>cache.r5.2xlarge</code>, <code>cache.r5.4xlarge</code>, <code>cache.r5.12xlarge</code>, <code>cache.r5.24xlarge</code> </p> <p> <b>R4 node types:</b> <code>cache.r4.large</code>, <code>cache.r4.xlarge</code>, <code>cache.r4.2xlarge</code>, <code>cache.r4.4xlarge</code>, <code>cache.r4.8xlarge</code>, <code>cache.r4.16xlarge</code> </p> </li> <li> <p>Previous generation: (not recommended)</p> <p> <b>M2 node types:</b> <code>cache.m2.xlarge</code>, <code>cache.m2.2xlarge</code>, <code>cache.m2.4xlarge</code> </p> <p> <b>R3 node types:</b> <code>cache.r3.large</code>, <code>cache.r3.xlarge</code>, <code>cache.r3.2xlarge</code>, <code>cache.r3.4xlarge</code>, <code>cache.r3.8xlarge</code> </p> </li> </ul> </li> </ul> <p> <b>Additional node type info</b> </p> <ul> <li> <p>All current generation instance types are created in Amazon VPC by default.</p> </li> <li> <p>Redis append-only files (AOF) are not supported for T1 or T2 instances.</p> </li> <li> <p>Redis Multi-AZ with automatic failover is not supported on T1 instances.</p> </li> <li> <p>Redis configuration variables <code>appendonly</code> and <code>appendfsync</code> are not supported on Redis version 2.8.22 and later.</p> </li> </ul>"
         },
         "Engine":{
           "shape":"String",
@@ -4462,6 +5388,14 @@
         "NodeSnapshots":{
           "shape":"NodeSnapshotList",
           "documentation":"<p>A list of the cache nodes in the source cluster.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the snapshot.</p>"
+        },
+        "ARN":{
+          "shape":"String",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the snapshot.</p>"
         }
       },
       "documentation":"<p>Represents a copy of an entire Redis cluster as of the time when the snapshot was taken.</p>",
@@ -4538,6 +5472,29 @@
         "cache-subnet-group",
         "replication-group"
       ]
+    },
+    "StartMigrationMessage":{
+      "type":"structure",
+      "required":[
+        "ReplicationGroupId",
+        "CustomerNodeEndpointList"
+      ],
+      "members":{
+        "ReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the replication group to which data should be migrated.</p>"
+        },
+        "CustomerNodeEndpointList":{
+          "shape":"CustomerNodeEndpointList",
+          "documentation":"<p>List of endpoints from which data should be migrated. For Redis (cluster mode disabled), list should have only one element.</p>"
+        }
+      }
+    },
+    "StartMigrationResponse":{
+      "type":"structure",
+      "members":{
+        "ReplicationGroup":{"shape":"ReplicationGroup"}
+      }
     },
     "String":{"type":"string"},
     "Subnet":{
@@ -4692,6 +5649,10 @@
           "shape":"String",
           "documentation":"<p>The replication group ID</p>"
         },
+        "CacheClusterId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the cache cluster</p>"
+        },
         "ServiceUpdateName":{
           "shape":"String",
           "documentation":"<p>The unique ID of the service update</p>"
@@ -4720,6 +5681,10 @@
         "ReplicationGroupId":{
           "shape":"String",
           "documentation":"<p>The ID of the replication group</p>"
+        },
+        "CacheClusterId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the cache cluster</p>"
         },
         "ServiceUpdateName":{
           "shape":"String",
@@ -4769,9 +5734,17 @@
           "shape":"NodeGroupUpdateStatusList",
           "documentation":"<p>The status of the service update on the node group</p>"
         },
+        "CacheNodeUpdateStatus":{
+          "shape":"CacheNodeUpdateStatusList",
+          "documentation":"<p>The status of the service update on the cache node</p>"
+        },
         "EstimatedUpdateTime":{
           "shape":"String",
           "documentation":"<p>The estimated length of time for the update to complete</p>"
+        },
+        "Engine":{
+          "shape":"String",
+          "documentation":"<p>The Elasticache engine to which the update applies. Either Redis or Memcached</p>"
         }
       },
       "documentation":"<p>The status of the service update for a specific replication group</p>"
@@ -4804,13 +5777,16 @@
         "in-progress",
         "stopping",
         "stopped",
-        "complete"
+        "complete",
+        "scheduling",
+        "scheduled",
+        "not-applicable"
       ]
     },
     "UpdateActionStatusList":{
       "type":"list",
       "member":{"shape":"UpdateActionStatus"},
-      "max":6
+      "max":9
     },
     "UpdateActionsMessage":{
       "type":"structure",

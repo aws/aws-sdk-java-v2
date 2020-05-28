@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 package software.amazon.awssdk.core.internal.http.timers;
 
 import static org.junit.Assert.assertEquals;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -99,8 +101,8 @@ public class ClientExecutionAndRequestTimerTestUtils {
                 .request(request)
                 .originalRequest(NoopTestRequest.builder().build())
                   .executionContext(executionContext(request))
-                .errorResponseHandler(new NullErrorResponseHandler())
-                .execute(new ErrorDuringUnmarshallingResponseHandler());
+                .execute(combinedSyncResponseHandler(new ErrorDuringUnmarshallingResponseHandler(),
+                                                     new NullErrorResponseHandler()));
     }
 
     public static ExecutionContext executionContext(SdkHttpFullRequest request) {

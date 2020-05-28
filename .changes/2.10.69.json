@@ -1,0 +1,21 @@
+{
+    "version": "2.10.69",
+    "date": "2020-02-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Savings Plans",
+            "description": "Added support for AWS Lambda in Compute Savings Plans"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "description": "As of this release of the Amazon Pinpoint API, the Title property is optional for the CampaignEmailMessage object."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "description": "This release adds exponential growth type support for deployment strategies."
+        }
+    ]
+}

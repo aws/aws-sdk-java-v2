@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,18 +31,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.ApiCallTimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.http.timers.NoOpTimeoutTracker;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -66,7 +65,6 @@ public class ApiCallAttemptTimeoutTrackingStageTest {
                                                                                    SdkClientConfiguration.builder()
                                                                                                          .option(SCHEDULED_EXECUTOR_SERVICE, timeoutExecutor)
                                                                                                          .build())
-                                                                               .capacityManager(mock(CapacityManager.class))
                                                                                .build(), wrapped);
     }
 

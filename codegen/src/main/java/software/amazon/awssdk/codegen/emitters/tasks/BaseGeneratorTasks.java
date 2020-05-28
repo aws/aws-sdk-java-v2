@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public abstract class BaseGeneratorTasks implements Iterable<GeneratorTask> {
             if (hasTasks()) {
                 return createTasks().iterator();
             } else {
-                return Collections.<GeneratorTask>emptyList().iterator();
+                return Collections.emptyIterator();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

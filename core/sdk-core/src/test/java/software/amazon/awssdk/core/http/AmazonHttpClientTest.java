@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,10 +20,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
+
 import org.apache.log4j.BasicConfigurator;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -84,7 +87,7 @@ public class AmazonHttpClientTest {
                     .request(ValidSdkObjects.sdkHttpFullRequest().build())
                     .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(context)
-                    .execute();
+                    .execute(combinedSyncResponseHandler(null, null));
             Assert.fail("No exception when request repeatedly fails!");
 
         } catch (SdkClientException e) {
@@ -110,7 +113,7 @@ public class AmazonHttpClientTest {
                     .request(ValidSdkObjects.sdkHttpFullRequest().build())
                     .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(context)
-                    .execute(mockHandler);
+                    .execute(combinedSyncResponseHandler(mockHandler, null));
             Assert.fail("No exception when request repeatedly fails!");
 
         } catch (SdkClientException e) {
@@ -141,7 +144,7 @@ public class AmazonHttpClientTest {
               .request(ValidSdkObjects.sdkHttpFullRequest().build())
               .originalRequest(NoopTestRequest.builder().build())
               .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
-              .execute(handler);
+              .execute(combinedSyncResponseHandler(handler, null));
 
         ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
         verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
@@ -168,7 +171,7 @@ public class AmazonHttpClientTest {
               .request(ValidSdkObjects.sdkHttpFullRequest().build())
               .originalRequest(NoopTestRequest.builder().build())
               .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
-              .execute(handler);
+              .execute(combinedSyncResponseHandler(handler, null));
 
         ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
         verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());

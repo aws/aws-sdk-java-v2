@@ -56,6 +56,20 @@
       ],
       "documentation":"<p>Creates an endpoint for an Amazon EFS file system.</p>"
     },
+    "CreateLocationFsxWindows":{
+      "name":"CreateLocationFsxWindows",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateLocationFsxWindowsRequest"},
+      "output":{"shape":"CreateLocationFsxWindowsResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Creates an endpoint for an Amazon FSx for Windows file system.</p>"
+    },
     "CreateLocationNfs":{
       "name":"CreateLocationNfs",
       "http":{
@@ -68,7 +82,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Creates an endpoint for a Network File System (NFS) file system.</p>"
+      "documentation":"<p>Defines a file system on a Network File System (NFS) server that can be read from or written to</p>"
     },
     "CreateLocationS3":{
       "name":"CreateLocationS3",
@@ -82,7 +96,21 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Creates an endpoint for an Amazon S3 bucket.</p> <p>For AWS DataSync to access a destination S3 bucket, it needs an AWS Identity and Access Management (IAM) role that has the required permissions. You can set up the required permissions by creating an IAM policy that grants the required permissions and attaching the policy to the role. An example of such a policy is shown in the examples section.</p> <p>For more information, see Configuring Amazon S3 Location Settings in the <i>AWS DataSync User Guide.</i> </p>"
+      "documentation":"<p>Creates an endpoint for an Amazon S3 bucket.</p> <p>For AWS DataSync to access a destination S3 bucket, it needs an AWS Identity and Access Management (IAM) role that has the required permissions. You can set up the required permissions by creating an IAM policy that grants the required permissions and attaching the policy to the role. An example of such a policy is shown in the examples section.</p> <p>For more information, see https://docs.aws.amazon.com/datasync/latest/userguide/working-with-locations.html#create-s3-location in the <i>AWS DataSync User Guide.</i> </p>"
+    },
+    "CreateLocationSmb":{
+      "name":"CreateLocationSmb",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateLocationSmbRequest"},
+      "output":{"shape":"CreateLocationSmbResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Defines a file system on an Server Message Block (SMB) server that can be read from or written to.</p>"
     },
     "CreateTask":{
       "name":"CreateTask",
@@ -168,6 +196,20 @@
       ],
       "documentation":"<p>Returns metadata, such as the path information about an Amazon EFS location.</p>"
     },
+    "DescribeLocationFsxWindows":{
+      "name":"DescribeLocationFsxWindows",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeLocationFsxWindowsRequest"},
+      "output":{"shape":"DescribeLocationFsxWindowsResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Returns metadata, such as the path information about an Amazon FSx for Windows location.</p>"
+    },
     "DescribeLocationNfs":{
       "name":"DescribeLocationNfs",
       "http":{
@@ -195,6 +237,20 @@
         {"shape":"InternalException"}
       ],
       "documentation":"<p>Returns metadata, such as bucket name, about an Amazon S3 bucket location.</p>"
+    },
+    "DescribeLocationSmb":{
+      "name":"DescribeLocationSmb",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeLocationSmbRequest"},
+      "output":{"shape":"DescribeLocationSmbResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Returns metadata, such as the path and user information about a SMB location.</p>"
     },
     "DescribeTask":{
       "name":"DescribeTask",
@@ -460,7 +516,7 @@
         },
         "SubnetArns":{
           "shape":"PLSubnetArnList",
-          "documentation":"<p>The Amazon Resource Names (ARNs) of the subnets in which DataSync will create Elastic Network Interfaces (ENIs) for each data transfer task. The agent that runs a task must be private. When you start a task that is associated with an agent created in a VPC, or one that has access to an IP address in a VPC, then the task is also private. In this case, DataSync creates four ENIs for each task in your subnet. For a data transfer to work, the agent must be able to route to all these four ENIs.</p>"
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the subnets in which DataSync will create elastic network interfaces for each data transfer task. The agent that runs a task must be private. When you start a task that is associated with an agent created in a VPC, or one that has access to an IP address in a VPC, then the task is also private. In this case, DataSync creates four network interfaces for each task in your subnet. For a data transfer to work, the agent must be able to route to all these four network interfaces.</p>"
         },
         "SecurityGroupArns":{
           "shape":"PLSecurityGroupArnList",
@@ -487,8 +543,8 @@
       ],
       "members":{
         "Subdirectory":{
-          "shape":"Subdirectory",
-          "documentation":"<p>A subdirectory in the location’s path. This subdirectory in the EFS file system is used to read data from the EFS source location or write data to the EFS destination. By default, AWS DataSync uses the root directory.</p>"
+          "shape":"EfsSubdirectory",
+          "documentation":"<p>A subdirectory in the location’s path. This subdirectory in the EFS file system is used to read data from the EFS source location or write data to the EFS destination. By default, AWS DataSync uses the root directory.</p> <note> <p> <code>Subdirectory</code> must be specified with forward slashes. For example <code>/path/to/folder</code>.</p> </note>"
         },
         "EfsFilesystemArn":{
           "shape":"EfsFilesystemArn",
@@ -515,6 +571,54 @@
       },
       "documentation":"<p>CreateLocationEfs</p>"
     },
+    "CreateLocationFsxWindowsRequest":{
+      "type":"structure",
+      "required":[
+        "FsxFilesystemArn",
+        "SecurityGroupArns",
+        "User",
+        "Password"
+      ],
+      "members":{
+        "Subdirectory":{
+          "shape":"FsxWindowsSubdirectory",
+          "documentation":"<p>A subdirectory in the location’s path. This subdirectory in the Amazon FSx for Windows file system is used to read data from the Amazon FSx for Windows source location or write data to the FSx for Windows destination.</p>"
+        },
+        "FsxFilesystemArn":{
+          "shape":"FsxFilesystemArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the FSx for Windows file system.</p>"
+        },
+        "SecurityGroupArns":{
+          "shape":"Ec2SecurityGroupArnList",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the security groups that are to use to configure the FSx for Windows file system.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The key-value pair that represents a tag that you want to add to the resource. The value can be an empty string. This value helps you manage, filter, and search for your resources. We recommend that you create a name tag for your location.</p>"
+        },
+        "User":{
+          "shape":"SmbUser",
+          "documentation":"<p>The user who has the permissions to access files and folders in the FSx for Windows file system.</p>"
+        },
+        "Domain":{
+          "shape":"SmbDomain",
+          "documentation":"<p>The name of the Windows domain that the FSx for Windows server belongs to.</p>"
+        },
+        "Password":{
+          "shape":"SmbPassword",
+          "documentation":"<p>The password of the user who has the permissions to access files and folders in the FSx for Windows file system.</p>"
+        }
+      }
+    },
+    "CreateLocationFsxWindowsResponse":{
+      "type":"structure",
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the FSx for Windows file system location that is created.</p>"
+        }
+      }
+    },
     "CreateLocationNfsRequest":{
       "type":"structure",
       "required":[
@@ -524,7 +628,7 @@
       ],
       "members":{
         "Subdirectory":{
-          "shape":"NonEmptySubdirectory",
+          "shape":"NfsSubdirectory",
           "documentation":"<p>The subdirectory in the NFS file system that is used to read data from the NFS source location or write data to the NFS destination. The NFS path should be a path that's exported by the NFS server, or a subdirectory of that path. The path should be such that it can be mounted by other NFS clients in your network. </p> <p>To see all the paths exported by your NFS server. run \"<code>showmount -e nfs-server-name</code>\" from an NFS client that has access to your server. You can specify any directory that appears in the results, and any subdirectory of that directory. Ensure that the NFS export is accessible without Kerberos authentication. </p> <p>To transfer all the data in the folder you specified, DataSync needs to have permissions to read all the data. To ensure this, either configure the NFS export with <code>no_root_squash,</code> or ensure that the permissions for all of the files that you want DataSync allow read access for all users. Doing either enables the agent to read the files. For the agent to access directories, you must additionally enable all execute access.</p> <p>For information about NFS export configuration, see 18.7. The /etc/exports Configuration File in the Red Hat Enterprise Linux documentation.</p>"
         },
         "ServerHostname":{
@@ -564,12 +668,16 @@
       ],
       "members":{
         "Subdirectory":{
-          "shape":"Subdirectory",
+          "shape":"S3Subdirectory",
           "documentation":"<p>A subdirectory in the Amazon S3 bucket. This subdirectory in Amazon S3 is used to read data from the S3 source location or write data to the S3 destination.</p>"
         },
         "S3BucketArn":{
           "shape":"S3BucketArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon S3 bucket.</p>"
+        },
+        "S3StorageClass":{
+          "shape":"S3StorageClass",
+          "documentation":"<p>The Amazon S3 storage class that you want to store your files in when this location is used as a task destination. For more information about S3 storage classes, see <a href=\"https://aws.amazon.com/s3/storage-classes/\">Amazon S3 Storage Classes</a> in the <i>Amazon Simple Storage Service Developer Guide</i>. Some storage classes have behaviors that can affect your S3 storage cost. For detailed information, see <a>using-storage-classes</a>.</p>"
         },
         "S3Config":{"shape":"S3Config"},
         "Tags":{
@@ -588,6 +696,61 @@
         }
       },
       "documentation":"<p>CreateLocationS3Response</p>"
+    },
+    "CreateLocationSmbRequest":{
+      "type":"structure",
+      "required":[
+        "Subdirectory",
+        "ServerHostname",
+        "User",
+        "Password",
+        "AgentArns"
+      ],
+      "members":{
+        "Subdirectory":{
+          "shape":"SmbSubdirectory",
+          "documentation":"<p>The subdirectory in the SMB file system that is used to read data from the SMB source location or write data to the SMB destination. The SMB path should be a path that's exported by the SMB server, or a subdirectory of that path. The path should be such that it can be mounted by other SMB clients in your network.</p> <note> <p> <code>Subdirectory</code> must be specified with forward slashes. For example <code>/path/to/folder</code>.</p> </note> <p>To transfer all the data in the folder you specified, DataSync needs to have permissions to mount the SMB share, as well as to access all the data in that share. To ensure this, either ensure that the user/password specified belongs to the user who can mount the share, and who has the appropriate permissions for all of the files and directories that you want DataSync to access, or use credentials of a member of the Backup Operators group to mount the share. Doing either enables the agent to access the data. For the agent to access directories, you must additionally enable all execute access.</p>"
+        },
+        "ServerHostname":{
+          "shape":"ServerHostname",
+          "documentation":"<p>The name of the SMB server. This value is the IP address or Domain Name Service (DNS) name of the SMB server. An agent that is installed on-premises uses this hostname to mount the SMB server in a network.</p> <note> <p>This name must either be DNS-compliant or must be an IP version 4 (IPv4) address.</p> </note>"
+        },
+        "User":{
+          "shape":"SmbUser",
+          "documentation":"<p>The user who can mount the share, has the permissions to access files and folders in the SMB share.</p>"
+        },
+        "Domain":{
+          "shape":"SmbDomain",
+          "documentation":"<p>The name of the Windows domain that the SMB server belongs to.</p>"
+        },
+        "Password":{
+          "shape":"SmbPassword",
+          "documentation":"<p>The password of the user who can mount the share, has the permissions to access files and folders in the SMB share.</p>"
+        },
+        "AgentArns":{
+          "shape":"AgentArnList",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of agents to use for a Simple Message Block (SMB) location. </p>"
+        },
+        "MountOptions":{
+          "shape":"SmbMountOptions",
+          "documentation":"<p>The mount options used by DataSync to access the SMB server.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The key-value pair that represents the tag that you want to add to the location. The value can be an empty string. We recommend using tags to name your resources.</p>"
+        }
+      },
+      "documentation":"<p>CreateLocationSmbRequest</p>"
+    },
+    "CreateLocationSmbResponse":{
+      "type":"structure",
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the source SMB file system location that is created.</p>"
+        }
+      },
+      "documentation":"<p>CreateLocationSmbResponse</p>"
     },
     "CreateTaskRequest":{
       "type":"structure",
@@ -619,6 +782,10 @@
         "Excludes":{
           "shape":"FilterList",
           "documentation":"<p>A list of filter rules that determines which files to exclude from a task. The list should contain a single filter string that consists of the patterns to exclude. The patterns are delimited by \"|\" (that is, a pipe), for example, <code>\"/folder1|/folder2\"</code> </p> <p> </p>"
+        },
+        "Schedule":{
+          "shape":"TaskSchedule",
+          "documentation":"<p>Specifies a schedule used to periodically transfer files from a source to a destination location. The schedule should be specified in UTC time. For more information, see <a>task-scheduling</a>.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -760,6 +927,45 @@
       },
       "documentation":"<p>DescribeLocationEfsResponse</p>"
     },
+    "DescribeLocationFsxWindowsRequest":{
+      "type":"structure",
+      "required":["LocationArn"],
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the FSx for Windows location to describe.</p>"
+        }
+      }
+    },
+    "DescribeLocationFsxWindowsResponse":{
+      "type":"structure",
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>The Amazon resource Name (ARN) of the FSx for Windows location that was described.</p>"
+        },
+        "LocationUri":{
+          "shape":"LocationUri",
+          "documentation":"<p>The URL of the FSx for Windows location that was described.</p>"
+        },
+        "SecurityGroupArns":{
+          "shape":"Ec2SecurityGroupArnList",
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the security groups that are configured for the for the FSx for Windows file system.</p>"
+        },
+        "CreationTime":{
+          "shape":"Time",
+          "documentation":"<p>The time that the FSx for Windows location was created.</p>"
+        },
+        "User":{
+          "shape":"SmbUser",
+          "documentation":"<p>The user who has the permissions to access files and folders in the FSx for Windows file system.</p>"
+        },
+        "Domain":{
+          "shape":"SmbDomain",
+          "documentation":"<p>The name of the Windows domain that the FSx for Windows server belongs to.</p>"
+        }
+      }
+    },
     "DescribeLocationNfsRequest":{
       "type":"structure",
       "required":["LocationArn"],
@@ -816,6 +1022,10 @@
           "shape":"LocationUri",
           "documentation":"<p>The URL of the Amazon S3 location that was described.</p>"
         },
+        "S3StorageClass":{
+          "shape":"S3StorageClass",
+          "documentation":"<p>The Amazon S3 storage class that you chose to store your files in when this location is used as a task destination. For more information about S3 storage classes, see <a href=\"https://aws.amazon.com/s3/storage-classes/\">Amazon S3 Storage Classes</a> in the <i>Amazon Simple Storage Service Developer Guide</i>. Some storage classes have behaviors that can affect your S3 storage cost. For detailed information, see <a>using-storage-classes</a>.</p>"
+        },
         "S3Config":{"shape":"S3Config"},
         "CreationTime":{
           "shape":"Time",
@@ -823,6 +1033,51 @@
         }
       },
       "documentation":"<p>DescribeLocationS3Response</p>"
+    },
+    "DescribeLocationSmbRequest":{
+      "type":"structure",
+      "required":["LocationArn"],
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>The Amazon resource Name (ARN) of the SMB location to describe.</p>"
+        }
+      },
+      "documentation":"<p>DescribeLocationSmbRequest</p>"
+    },
+    "DescribeLocationSmbResponse":{
+      "type":"structure",
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>The Amazon resource Name (ARN) of the SMB location that was described.</p>"
+        },
+        "LocationUri":{
+          "shape":"LocationUri",
+          "documentation":"<p>The URL of the source SBM location that was described.</p>"
+        },
+        "AgentArns":{
+          "shape":"AgentArnList",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the source SMB file system location that is created.</p>"
+        },
+        "User":{
+          "shape":"SmbUser",
+          "documentation":"<p>The user who can mount the share, has the permissions to access files and folders in the SMB share.</p>"
+        },
+        "Domain":{
+          "shape":"SmbDomain",
+          "documentation":"<p>The name of the Windows domain that the SMB server belongs to.</p>"
+        },
+        "MountOptions":{
+          "shape":"SmbMountOptions",
+          "documentation":"<p>The mount options that are available for DataSync to use to access an SMB location.</p>"
+        },
+        "CreationTime":{
+          "shape":"Time",
+          "documentation":"<p>The time that the SMB location was created.</p>"
+        }
+      },
+      "documentation":"<p>DescribeLocationSmbResponse</p>"
     },
     "DescribeTaskExecutionRequest":{
       "type":"structure",
@@ -944,6 +1199,10 @@
           "shape":"FilterList",
           "documentation":"<p>A list of filter rules that determines which files to exclude from a task. The list should contain a single filter string that consists of the patterns to exclude. The patterns are delimited by \"|\" (that is, a pipe), for example: <code>\"/folder1|/folder2\"</code> </p> <p> </p>"
         },
+        "Schedule":{
+          "shape":"TaskSchedule",
+          "documentation":"<p>The schedule used to periodically transfer files from a source to a destination location.</p>"
+        },
         "ErrorCode":{
           "shape":"string",
           "documentation":"<p>Errors that AWS DataSync encountered during execution of the task. You can use this error code to help troubleshoot issues.</p>"
@@ -1006,6 +1265,11 @@
       "max":128,
       "pattern":"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):elasticfilesystem:[a-z\\-0-9]*:[0-9]{12}:file-system/fs-.*$"
     },
+    "EfsSubdirectory":{
+      "type":"string",
+      "max":4096,
+      "pattern":"^[a-zA-Z0-9_\\-\\+\\./\\(\\)\\p{Zs}]*$"
+    },
     "Endpoint":{
       "type":"string",
       "max":15,
@@ -1016,7 +1280,8 @@
       "type":"string",
       "enum":[
         "PUBLIC",
-        "PRIVATE_LINK"
+        "PRIVATE_LINK",
+        "FIPS"
       ]
     },
     "FilterList":{
@@ -1049,6 +1314,16 @@
       "type":"string",
       "max":409600,
       "pattern":"^[^\\x00]+$"
+    },
+    "FsxFilesystemArn":{
+      "type":"string",
+      "max":128,
+      "pattern":"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):fsx:[a-z\\-0-9]*:[0-9]{12}:file-system/fs-.*$"
+    },
+    "FsxWindowsSubdirectory":{
+      "type":"string",
+      "max":4096,
+      "pattern":"^[a-zA-Z0-9_\\-\\+\\./\\(\\)\\$\\p{Zs}]+$"
     },
     "Gid":{
       "type":"string",
@@ -1257,12 +1532,21 @@
     },
     "LocationUri":{
       "type":"string",
-      "pattern":"(efs|nfs|s3)://[a-zA-Z0-9.\\-]+"
+      "max":4356,
+      "pattern":"^(efs|nfs|s3|smb|fsxw)://[a-zA-Z0-9.\\-]+$"
     },
     "LogGroupArn":{
       "type":"string",
       "max":562,
       "pattern":"^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):logs:[a-z\\-0-9]*:[0-9]{12}:log-group:([^:\\*]*)$"
+    },
+    "LogLevel":{
+      "type":"string",
+      "enum":[
+        "OFF",
+        "BASIC",
+        "TRANSFER"
+      ]
     },
     "MaxResults":{
       "type":"integer",
@@ -1291,10 +1575,15 @@
       "members":{
         "Version":{
           "shape":"NfsVersion",
-          "documentation":"<p>The specific NFS version that you want DataSync to use to mount your NFS share. If you don't specify a version, DataSync defaults to <code>AUTOMATIC</code>. That is, DataSync automatically selects a version based on negotiation with the NFS server.</p>"
+          "documentation":"<p>The specific NFS version that you want DataSync to use to mount your NFS share. If the server refuses to use the version specified, the sync will fail. If you don't specify a version, DataSync defaults to <code>AUTOMATIC</code>. That is, DataSync automatically selects a version based on negotiation with the NFS server.</p> <p>You can specify the following NFS versions:</p> <ul> <li> <p> <b> <a href=\"https://tools.ietf.org/html/rfc1813\">NFSv3</a> </b> - stateless protocol version that allows for asynchronous writes on the server.</p> </li> <li> <p> <b> <a href=\"https://tools.ietf.org/html/rfc3530\">NFSv4.0</a> </b> - stateful, firewall-friendly protocol version that supports delegations and pseudo filesystems.</p> </li> <li> <p> <b> <a href=\"https://tools.ietf.org/html/rfc5661\">NFSv4.1</a> </b> - stateful protocol version that supports sessions, directory delegations, and parallel data processing. Version 4.1 also includes all features available in version 4.0.</p> </li> </ul>"
         }
       },
       "documentation":"<p>Represents the mount options that are available for DataSync to access an NFS location.</p>"
+    },
+    "NfsSubdirectory":{
+      "type":"string",
+      "max":4096,
+      "pattern":"^[a-zA-Z0-9_\\-\\+\\./\\(\\)\\p{Zs}]+$"
     },
     "NfsVersion":{
       "type":"string",
@@ -1304,11 +1593,6 @@
         "NFS4_0",
         "NFS4_1"
       ]
-    },
-    "NonEmptySubdirectory":{
-      "type":"string",
-      "max":4096,
-      "pattern":"^[a-zA-Z0-9_\\-\\./]+$"
     },
     "OnPremConfig":{
       "type":"structure",
@@ -1326,7 +1610,11 @@
       "members":{
         "VerifyMode":{
           "shape":"VerifyMode",
-          "documentation":"<p>A value that determines whether a data integrity verification should be performed at the end of a task execution after all data and metadata have been transferred. </p> <p>Default value: POINT_IN_TIME_CONSISTENT.</p> <p>POINT_IN_TIME_CONSISTENT: Perform verification (recommended). </p> <p>NONE: Skip verification.</p>"
+          "documentation":"<p>A value that determines whether a data integrity verification should be performed at the end of a task execution after all data and metadata have been transferred. </p> <p>Default value: POINT_IN_TIME_CONSISTENT.</p> <p>POINT_IN_TIME_CONSISTENT: Perform verification (recommended). </p> <p>ONLY_FILES_TRANSFERRED: Perform verification on only files that were transferred.</p> <p>NONE: Skip verification.</p>"
+        },
+        "OverwriteMode":{
+          "shape":"OverwriteMode",
+          "documentation":"<p>A value that determines whether files at the destination should be overwritten or preserved when copying files. If set to <code>NEVER</code> a destination file will not be replaced by a source file, even if the destination file differs from the source file. If you modify files in the destination and you sync the files, you can use this value to protect against overwriting those changes. </p> <p>Some storage classes have specific behaviors that can affect your S3 storage cost. For detailed information, see <a>using-storage-classes</a> in the <i>AWS DataSync User Guide</i>.</p>"
         },
         "Atime":{
           "shape":"Atime",
@@ -1346,7 +1634,7 @@
         },
         "PreserveDeletedFiles":{
           "shape":"PreserveDeletedFiles",
-          "documentation":"<p>A value that specifies whether files in the destination that don't exist in the source file system should be preserved. </p> <p>Default value: PRESERVE.</p> <p>PRESERVE: Ignore such destination files (recommended). </p> <p>REMOVE: Delete destination files that aren’t present in the source.</p>"
+          "documentation":"<p>A value that specifies whether files in the destination that don't exist in the source file system should be preserved. This option can affect your storage cost. If your task deletes objects, you might incur minimum storage duration charges for certain storage classes. For detailed information, see <a>using-storage-classes</a> in the <i>AWS DataSync User Guide</i>.</p> <p>Default value: PRESERVE.</p> <p>PRESERVE: Ignore such destination files (recommended). </p> <p>REMOVE: Delete destination files that aren’t present in the source.</p>"
         },
         "PreserveDevices":{
           "shape":"PreserveDevices",
@@ -1359,9 +1647,24 @@
         "BytesPerSecond":{
           "shape":"BytesPerSecond",
           "documentation":"<p>A value that limits the bandwidth used by AWS DataSync. For example, if you want AWS DataSync to use a maximum of 1 MB, set this value to <code>1048576</code> (<code>=1024*1024</code>).</p>"
+        },
+        "TaskQueueing":{
+          "shape":"TaskQueueing",
+          "documentation":"<p>A value that determines whether tasks should be queued before executing the tasks. If set to <code>ENABLED</code>, the tasks will be queued. The default is <code>ENABLED</code>.</p> <p>If you use the same agent to run multiple tasks you can enable the tasks to run in series. For more information see <a>queue-task-execution</a>.</p>"
+        },
+        "LogLevel":{
+          "shape":"LogLevel",
+          "documentation":"<p>A value that determines the type of logs DataSync will deliver to your AWS CloudWatch Logs file. If set to <code>OFF</code>, no logs will be delivered. <code>BASIC</code> will deliver a few logs per transfer operation and <code>TRANSFER</code> will deliver a verbose log that contains logs for every file that is transferred.</p>"
         }
       },
       "documentation":"<p>Represents the options that are available to control the behavior of a <a>StartTaskExecution</a> operation. Behavior includes preserving metadata such as user ID (UID), group ID (GID), and file permissions, and also overwriting files in the destination, data integrity verification, and so on.</p> <p>A task has a set of default options associated with it. If you don't specify an option in <a>StartTaskExecution</a>, the default value is used. You can override the defaults options on each task execution by specifying an overriding <code>Options</code> value to <a>StartTaskExecution</a>.</p>"
+    },
+    "OverwriteMode":{
+      "type":"string",
+      "enum":[
+        "ALWAYS",
+        "NEVER"
+      ]
     },
     "PLSecurityGroupArnList":{
       "type":"list",
@@ -1387,7 +1690,6 @@
       "type":"string",
       "enum":[
         "NONE",
-        "BEST_EFFORT",
         "PRESERVE"
       ]
     },
@@ -1443,10 +1745,70 @@
       },
       "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role that is used to access an Amazon S3 bucket.</p> <p>For detailed information about using such a role, see Creating a Location for Amazon S3 in the <i>AWS DataSync User Guide</i>.</p>"
     },
+    "S3StorageClass":{
+      "type":"string",
+      "enum":[
+        "STANDARD",
+        "STANDARD_IA",
+        "ONEZONE_IA",
+        "INTELLIGENT_TIERING",
+        "GLACIER",
+        "DEEP_ARCHIVE"
+      ]
+    },
+    "S3Subdirectory":{
+      "type":"string",
+      "max":4096,
+      "pattern":"^[a-zA-Z0-9_\\-\\+\\./\\(\\)\\p{Zs}]*$"
+    },
+    "ScheduleExpressionCron":{
+      "type":"string",
+      "max":256,
+      "pattern":"^[a-zA-Z0-9\\ \\_\\*\\?\\,\\|\\^\\-\\/\\#\\s\\(\\)\\+]*$"
+    },
     "ServerHostname":{
       "type":"string",
       "max":255,
       "pattern":"^(([a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9\\-]*[A-Za-z0-9])$"
+    },
+    "SmbDomain":{
+      "type":"string",
+      "max":253,
+      "pattern":"^([A-Za-z0-9]+[A-Za-z0-9-.]*)*[A-Za-z0-9-]*[A-Za-z0-9]$"
+    },
+    "SmbMountOptions":{
+      "type":"structure",
+      "members":{
+        "Version":{
+          "shape":"SmbVersion",
+          "documentation":"<p>The specific SMB version that you want DataSync to use to mount your SMB share. If you don't specify a version, DataSync defaults to <code>AUTOMATIC</code>. That is, DataSync automatically selects a version based on negotiation with the SMB server.</p>"
+        }
+      },
+      "documentation":"<p>Represents the mount options that are available for DataSync to access an SMB location.</p>"
+    },
+    "SmbPassword":{
+      "type":"string",
+      "max":104,
+      "pattern":"^.{0,104}$",
+      "sensitive":true
+    },
+    "SmbSubdirectory":{
+      "type":"string",
+      "max":4096,
+      "pattern":"^[a-zA-Z0-9_\\-\\+\\./\\(\\)\\$\\p{Zs}]+$"
+    },
+    "SmbUser":{
+      "type":"string",
+      "max":104,
+      "pattern":"^[^\\x5B\\x5D\\\\/:;|=,+*?]{1,104}$"
+    },
+    "SmbVersion":{
+      "type":"string",
+      "enum":[
+        "AUTOMATIC",
+        "SMB2",
+        "SMB3"
+      ]
     },
     "SourceNetworkInterfaceArns":{
       "type":"list",
@@ -1477,11 +1839,6 @@
         }
       },
       "documentation":"<p>StartTaskExecutionResponse</p>"
-    },
-    "Subdirectory":{
-      "type":"string",
-      "max":4096,
-      "pattern":"^[a-zA-Z0-9_\\-\\./]*$"
     },
     "TagKey":{
       "type":"string",
@@ -1543,7 +1900,7 @@
       "type":"string",
       "max":256,
       "min":1,
-      "pattern":"^[a-zA-Z0-9\\s+=._:/-]+$"
+      "pattern":"^[a-zA-Z0-9\\s+=._:@/-]+$"
     },
     "TaggableResourceArn":{
       "type":"string",
@@ -1589,6 +1946,10 @@
           "shape":"PhaseStatus",
           "documentation":"<p>The status of the PREPARING phase.</p>"
         },
+        "TotalDuration":{
+          "shape":"Duration",
+          "documentation":"<p>The total time in milliseconds that AWS DataSync took to transfer the file from the source to the destination location.</p>"
+        },
         "TransferDuration":{
           "shape":"Duration",
           "documentation":"<p>The total time in milliseconds that AWS DataSync spent in the TRANSFERRING phase.</p>"
@@ -1619,6 +1980,7 @@
     "TaskExecutionStatus":{
       "type":"string",
       "enum":[
+        "QUEUED",
         "LAUNCHING",
         "PREPARING",
         "TRANSFERRING",
@@ -1649,11 +2011,30 @@
       },
       "documentation":"<p>Represents a single entry in a list of tasks. <code>TaskListEntry</code> returns an array that contains a list of tasks when the <a>ListTasks</a> operation is called. A task includes the source and destination file systems to sync and the options to use for the tasks.</p>"
     },
+    "TaskQueueing":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "TaskSchedule":{
+      "type":"structure",
+      "required":["ScheduleExpression"],
+      "members":{
+        "ScheduleExpression":{
+          "shape":"ScheduleExpressionCron",
+          "documentation":"<p>A cron expression that specifies when AWS DataSync initiates a scheduled transfer from a source to a destination location. </p>"
+        }
+      },
+      "documentation":"<p>Specifies the schedule you want your task to use for repeated executions. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html\">Schedule Expressions for Rules</a>.</p>"
+    },
     "TaskStatus":{
       "type":"string",
       "enum":[
         "AVAILABLE",
         "CREATING",
+        "QUEUED",
         "RUNNING",
         "UNAVAILABLE"
       ]
@@ -1724,6 +2105,10 @@
           "shape":"FilterList",
           "documentation":"<p>A list of filter rules that determines which files to exclude from a task. The list should contain a single filter string that consists of the patterns to exclude. The patterns are delimited by \"|\" (that is, a pipe), for example: <code>\"/folder1|/folder2\"</code> </p> <p> </p>"
         },
+        "Schedule":{
+          "shape":"TaskSchedule",
+          "documentation":"<p>Specifies a schedule used to periodically transfer files from a source to a destination location. You can configure your task to execute hourly, daily, weekly or on specific days of the week. You control when in the day or hour you want the task to execute. The time you specify is UTC time. For more information, see <a>task-scheduling</a>.</p>"
+        },
         "Name":{
           "shape":"TagValue",
           "documentation":"<p>The name of the task to update.</p>"
@@ -1744,6 +2129,7 @@
       "type":"string",
       "enum":[
         "POINT_IN_TIME_CONSISTENT",
+        "ONLY_FILES_TRANSFERRED",
         "NONE"
       ]
     },

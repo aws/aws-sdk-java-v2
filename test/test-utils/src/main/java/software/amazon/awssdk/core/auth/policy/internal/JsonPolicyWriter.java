@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -179,7 +179,7 @@ public class JsonPolicyWriter {
      */
     private void writeResources(List<Resource> resources) throws IOException {
 
-        List<String> resourceStrings = new ArrayList<String>();
+        List<String> resourceStrings = new ArrayList<>();
 
         for (Resource resource : resources) {
             resourceStrings.add(resource.getId());
@@ -194,7 +194,7 @@ public class JsonPolicyWriter {
      *            the list of the actions to be written.
      */
     private void writeActions(List<Action> actions) throws IOException {
-        List<String> actionStrings = new ArrayList<String>();
+        List<String> actionStrings = new ArrayList<>();
 
         for (Action action : actions) {
             actionStrings.add(action.getActionName());
@@ -240,14 +240,14 @@ public class JsonPolicyWriter {
      */
     private Map<String, List<String>> groupPrincipalByScheme(
             List<Principal> principals) {
-        Map<String, List<String>> principalsByScheme = new LinkedHashMap<String, List<String>>();
+        Map<String, List<String>> principalsByScheme = new LinkedHashMap<>();
 
         String provider;
         List<String> principalValues;
         for (Principal principal : principals) {
             provider = principal.getProvider();
             if (!principalsByScheme.containsKey(provider)) {
-                principalsByScheme.put(provider, new ArrayList<String>());
+                principalsByScheme.put(provider, new ArrayList<>());
             }
             principalValues = principalsByScheme.get(provider);
             principalValues.add(principal.getId());
@@ -266,7 +266,7 @@ public class JsonPolicyWriter {
      */
     private Map<String, ConditionsByKey> groupConditionsByTypeAndKey(
             List<Condition> conditions) {
-        Map<String, ConditionsByKey> conditionsByType = new LinkedHashMap<String, ConditionsByKey>();
+        Map<String, ConditionsByKey> conditionsByType = new LinkedHashMap<>();
 
         String type;
         String key;
@@ -367,7 +367,7 @@ public class JsonPolicyWriter {
         private Map<String, List<String>> conditionsByKey;
 
         ConditionsByKey() {
-            conditionsByKey = new LinkedHashMap<String, List<String>>();
+            conditionsByKey = new LinkedHashMap<>();
         }
 
         public Map<String, List<String>> getConditionsByKey() {
@@ -394,7 +394,7 @@ public class JsonPolicyWriter {
 
             List<String> conditionValues = getConditionsByKey(key);
             if (conditionValues == null) {
-                conditionsByKey.put(key, new ArrayList<String>(values));
+                conditionsByKey.put(key, new ArrayList<>(values));
             } else {
                 conditionValues.addAll(values);
             }

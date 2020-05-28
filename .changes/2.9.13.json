@@ -1,0 +1,26 @@
+{
+    "version": "2.9.13",
+    "date": "2019-10-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Device Farm",
+            "description": "Documentation updates for devicefarm"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "description": "Amazon Elasticsearch Service now supports configuring additional options for domain endpoint, such as whether to require HTTPS for all traffic."
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "description": "Documentation updates for Application Auto Scaling"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release allows customers to purchase regional EC2 RIs on a future date."
+        }
+    ]
+}

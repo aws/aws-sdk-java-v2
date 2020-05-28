@@ -1,0 +1,51 @@
+{
+    "version": "2.10.19",
+    "date": "2019-11-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "description": "add EstimatedOnDemandCostWithCurrentCommitment to GetSavingsPlansPurchaseRecommendationRequest API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "The release contains new API and API changes for AWS Systems Manager Explorer product."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Update default connectionMaxIdleTimeout of NettyNioAsyncClient to 5 seconds"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "description": "Added support for S3 Replication for existing objects. This release allows customers who have requested and been granted access to replicate existing S3 objects across buckets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Runtime",
+            "description": "Amazon SageMaker Runtime now supports a new TargetModel header to invoke a specific model hosted on multi model endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "description": "This release introduces APIs for the CloudFormation Registry, a new service to submit and discover resource providers with which you can manage third-party resources natively in CloudFormation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Documentation updates for rds"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "Amazon SageMaker now supports multi-model endpoints to host multiple models on an endpoint using a single inference container."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "description": "This release of the Amazon Pinpoint API introduces support for using and managing message templates for messages that are sent through the voice channel. It also introduces support for specifying default values for message variables in message templates."
+        }
+    ]
+}

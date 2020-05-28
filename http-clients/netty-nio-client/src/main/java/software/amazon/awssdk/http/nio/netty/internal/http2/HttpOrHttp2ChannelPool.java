@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 
@@ -26,6 +25,7 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
@@ -40,6 +40,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPo
 public class HttpOrHttp2ChannelPool implements ChannelPool {
     private final ChannelPool delegatePool;
     private final int maxConcurrency;
+    private final EventLoopGroup eventLoopGroup;
     private final EventLoop eventLoop;
     private final NettyConfiguration configuration;
 
@@ -53,6 +54,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                   NettyConfiguration configuration) {
         this.delegatePool = delegatePool;
         this.maxConcurrency = maxConcurrency;
+        this.eventLoopGroup = group;
         this.eventLoop = group.next();
         this.configuration = configuration;
     }
@@ -125,16 +127,24 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
         });
     }
 
-    void completeProtocolConfiguration(Channel newChannel, Protocol protocol) {
+    private void completeProtocolConfiguration(Channel newChannel, Protocol protocol) {
         doInEventLoop(eventLoop, () -> {
             if (closed) {
-                newChannel.close();
-                delegatePool.release(newChannel);
-                protocolImplPromise.setFailure(new IllegalStateException("Pool closed"));
+                closeAndRelease(newChannel, new IllegalStateException("Pool closed"));
             } else {
-                protocolImplPromise.setSuccess(configureProtocol(newChannel, protocol));
+                try {
+                    protocolImplPromise.setSuccess(configureProtocol(newChannel, protocol));
+                } catch (Throwable e) {
+                    closeAndRelease(newChannel, e);
+                }
             }
         });
+    }
+
+    private void closeAndRelease(Channel newChannel, Throwable e) {
+        newChannel.close();
+        delegatePool.release(newChannel);
+        protocolImplPromise.setFailure(e);
     }
 
     private ChannelPool configureProtocol(Channel newChannel, Protocol protocol) {
@@ -149,8 +159,9 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .maxPendingAcquires(configuration.maxPendingConnectionAcquires())
                                                  .build();
         } else {
-            ChannelPool h2Pool = new Http2MultiplexedChannelPool(
-                    delegatePool, eventLoop, newChannel.attr(MAX_CONCURRENT_STREAMS).get());
+            Duration idleConnectionTimeout = configuration.reapIdleConnections()
+                                             ? Duration.ofMillis(configuration.idleTimeoutMillis()) : null;
+            ChannelPool h2Pool = new Http2MultiplexedChannelPool(delegatePool, eventLoopGroup, idleConnectionTimeout);
             protocolImpl = BetterFixedChannelPool.builder()
                                                  .channelPool(h2Pool)
                                                  .executor(eventLoop)

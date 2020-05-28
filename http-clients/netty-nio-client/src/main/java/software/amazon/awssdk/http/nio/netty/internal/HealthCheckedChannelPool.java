@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 
 package software.amazon.awssdk.http.nio.netty.internal;
+
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -159,6 +161,12 @@ public class HealthCheckedChannelPool implements ChannelPool {
      * Determine whether the provided channel is 'healthy' enough to use.
      */
     private boolean isHealthy(Channel channel) {
+        // There might be cases where the channel is not reusable but still active at the moment
+        // See https://github.com/aws/aws-sdk-java-v2/issues/1380
+        if (channel.attr(KEEP_ALIVE).get() != null && !channel.attr(KEEP_ALIVE).get()) {
+            return false;
+        }
+
         return channel.isActive();
     }
 }

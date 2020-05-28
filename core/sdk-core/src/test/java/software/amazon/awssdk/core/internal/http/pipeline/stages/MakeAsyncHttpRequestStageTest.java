@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
+import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.combinedAsyncResponseHandler;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -36,14 +37,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import utils.ValidSdkObjects;
 
@@ -71,8 +71,10 @@ public class MakeAsyncHttpRequestStageTest {
 
     @Test
     public void apiCallAttemptTimeoutEnabled_shouldInvokeExecutor() throws Exception {
-        stage = new MakeAsyncHttpRequestStage<>(AsyncResponseHandlerTestUtils.noOpResponseHandler(), AsyncResponseHandlerTestUtils.noOpResponseHandler(),
-                                              clientDependencies(Duration.ofMillis(1000)));
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(Duration.ofMillis(1000)));
         stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
 
         verify(timeoutExecutor, times(1)).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
@@ -80,7 +82,10 @@ public class MakeAsyncHttpRequestStageTest {
 
     @Test
     public void apiCallAttemptTimeoutNotEnabled_shouldNotInvokeExecutor() throws Exception {
-        stage = new MakeAsyncHttpRequestStage<>(AsyncResponseHandlerTestUtils.noOpResponseHandler(), AsyncResponseHandlerTestUtils.noOpResponseHandler(), clientDependencies(null));
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null));
         stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
 
         verify(timeoutExecutor, never()).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
@@ -97,7 +102,6 @@ public class MakeAsyncHttpRequestStageTest {
 
         return HttpClientDependencies.builder()
                                      .clientConfiguration(configuration)
-                                     .capacityManager(new CapacityManager(2))
                                      .build();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -250,6 +250,8 @@ public class DefaultNamingStrategyTest {
 
     @Test
     public void modelNameShouldHavePascalCase() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getServiceId()).thenReturn("UnitTestService");
         assertThat(strat.getRequestClassName("CAPSTest")).isEqualTo("CapsTestRequest");
         assertThat(strat.getExceptionName("CAPSTest")).isEqualTo("CapsTestException");
         assertThat(strat.getResponseClassName("CAPSTest")).isEqualTo("CapsTestResponse");

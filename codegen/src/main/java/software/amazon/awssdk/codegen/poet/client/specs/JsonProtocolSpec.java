@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
@@ -143,14 +144,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock errorResponseHandler(OperationModel opModel) {
+    public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
         String protocolFactory = protocolFactoryLiteral(model, opModel);
 
-        return CodeBlock
-            .builder()
-            .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
-                 HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
-            .build();
+        return Optional.of(
+            CodeBlock.builder()
+                     .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
+                          HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
+                     .build());
     }
 
     @Override
@@ -417,11 +418,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  protocolFactory,
                  JsonOperationMetadata.class,
                  ClassName.get(EventStreamTaggedUnionPojoSupplier.class));
-        EventStreamUtils.getEvents(eventStream)
+        EventStreamUtils.getEventMembers(eventStream)
                         .forEach(m -> builder.add(".putSdkPojoSupplier(\"$L\", $T::builder)\n",
-                                                  m.getC2jName(), poetExtensions.getModelClass(m.getC2jName())));
-        builder.add(".defaultSdkPojoSupplier(() -> $T.UNKNOWN)\n"
-                    + ".build());\n", eventStreamBaseClass);
+                                                  m.getC2jName(), poetExtensions.getModelClass(m.getShape().getC2jName())));
+        builder.add(".defaultSdkPojoSupplier(() -> new $T($T.UNKNOWN))\n"
+                    + ".build());\n", SdkPojoBuilder.class, eventStreamBaseClass);
     }
 
     private String protocolFactoryLiteral(IntermediateModel model, OperationModel opModel) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@ import software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signe
 
 @SdkProtectedApi
 public final class EventStreamAws4Signer extends BaseEventStreamAsyncAws4Signer {
-    private EventStreamAws4Signer() {}
+    private EventStreamAws4Signer() {
+    }
 
     public static EventStreamAws4Signer create() {
         return new EventStreamAws4Signer();

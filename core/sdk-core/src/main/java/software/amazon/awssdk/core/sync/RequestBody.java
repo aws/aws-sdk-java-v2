@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;
@@ -119,7 +118,9 @@ public final class RequestBody {
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
         return fromContentProvider(() -> {
-            invokeSafely(nonCloseable::reset);
+            if (nonCloseable.markSupported()) {
+                invokeSafely(nonCloseable::reset);
+            }
             return nonCloseable;
         }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
@@ -159,12 +160,27 @@ public final class RequestBody {
     /**
      * Creates a {@link RequestBody} from a {@link ByteBuffer}. Buffer contents are copied so any modifications
      * made to the original {@link ByteBuffer} are not reflected in the {@link RequestBody}.
+     * <p>
+     * <b>NOTE:</b> This method always copies the entire contents of the buffer, ignoring the current read position. Use
+     * {@link #fromRemainingByteBuffer(ByteBuffer)} if you need it to copy only the remaining readable bytes.
      *
      * @param byteBuffer ByteBuffer to send to the service.
      * @return RequestBody instance.
      */
     public static RequestBody fromByteBuffer(ByteBuffer byteBuffer) {
         return fromBytesDirect(BinaryUtils.copyAllBytesFrom(byteBuffer));
+    }
+
+    /**
+     * Creates a {@link RequestBody} from the remaining readable bytes from a {@link ByteBuffer}. Unlike
+     * {@link #fromByteBuffer(ByteBuffer)}, this method respects the current read position of the buffer and reads only
+     * the remaining bytes. The buffer is copied before reading so no changes are made to original buffer.
+     *
+     * @param byteBuffer ByteBuffer to send to the service.
+     * @return RequestBody instance.
+     */
+    public static RequestBody fromRemainingByteBuffer(ByteBuffer byteBuffer) {
+        return fromBytesDirect(BinaryUtils.copyRemainingBytesFrom(byteBuffer));
     }
 
     /**
