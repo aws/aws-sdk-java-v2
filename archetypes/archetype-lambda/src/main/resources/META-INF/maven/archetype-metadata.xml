@@ -39,6 +39,7 @@
       <validationRegex>(url-connection-client|apache-client|netty-nio-client)</validationRegex>
     </requiredProperty>
     <requiredProperty key="region">
+     <defaultValue>null</defaultValue>
      <validationRegex>^\w+-(\w+-)+\d+$</validationRegex>
     </requiredProperty>
     <!-- Required to pass the netty-open-ssl-version property from parent pom to velocity-->

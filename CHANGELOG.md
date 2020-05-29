@@ -1,3 +1,79 @@
+# __2.13.26__ __2020-05-28__
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - AWS Marketplace Catalog now supports accessing initial change payloads with DescribeChangeSet operation.
+
+## __Amazon QLDB Session__
+  - ### Features
+    - Documentation updates for Amazon QLDB Session
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for Amazon WorkMail organization-level retention policies.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - New APIs for upgrading the Apache Kafka version of a cluster and to find out compatible upgrade paths
+
+# __2.13.25__ __2020-05-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Documentation updates for GuardDuty
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Check the `x-amz-content-range` header for `GetObject` responses when the `Content-Range` header is not returned by the service. Fixes [#1209](https://github.com/aws/aws-sdk-java-v2/issues/1209).
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release added support for HTTP/2 ALPN preference lists for Network Load Balancers
+
+# __2.13.24__ __2020-05-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Allowing cron expression in the DLM policy creation schedule.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache now allows you to use resource based policies to manage access to operations performed on ElastiCache resources. Also, Amazon ElastiCache now exposes ARN (Amazon Resource Names) for ElastiCache resources such as Cache Clusters and Parameter Groups. ARNs can be used to apply IAM policies to ElastiCache resources.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - ebsOptimizedInfo, efaSupported and supportedVirtualizationTypes added to DescribeInstanceTypes API
+
+## __Amazon Macie__
+  - ### Features
+    - This is a documentation-only update to the Amazon Macie Classic API. This update corrects out-of-date references to the service name.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add DataSetArns to QuickSight DescribeDashboard API response.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - The AWS Systems Manager GetOpsSummary API action now supports multiple OpsResultAttributes in the request. Currently, this feature only supports OpsResultAttributes with the following TypeNames: [AWS:EC2InstanceComputeOptimizer] or [AWS:EC2InstanceInformation, AWS:EC2InstanceComputeOptimizer]. These TypeNames can be used along with either or both of the following: [AWS:EC2InstanceRecommendation, AWS:RecommendationSource]
+
+# __2.13.23__ __2020-05-22__
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release adds support for the standard deviation auto-computed aggregate and improved support for portal logo images in SiteWise.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling
+
 # __2.13.22__ __2020-05-21__
 ## __AWS CodeBuild__
   - ### Features
