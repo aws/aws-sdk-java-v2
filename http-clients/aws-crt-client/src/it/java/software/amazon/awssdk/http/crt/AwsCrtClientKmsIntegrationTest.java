@@ -11,6 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -32,10 +34,12 @@ public class AwsCrtClientKmsIntegrationTest {
     private static String KEY_ALIAS = "alias/aws-sdk-java-v2-integ-test";
     private static Region REGION = Region.US_EAST_1;
     private static List<SdkAsyncHttpClient> awsCrtHttpClients = new ArrayList<>();
+    private static EventLoopGroup eventLoopGroup;
+    private static HostResolver hostResolver;
 
     @Before
     public void setup() {
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        CrtResource.waitForNoResources();
 
         // Create an Http Client for each TLS Cipher Preference supported on the current platform
         for (TlsCipherPreference pref: TlsCipherPreference.values()) {
@@ -43,9 +47,13 @@ public class AwsCrtClientKmsIntegrationTest {
                 continue;
             }
 
+            int numThreads = 1;
+            eventLoopGroup = new EventLoopGroup(numThreads);
+            hostResolver = new HostResolver(eventLoopGroup);
 
             SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                    .eventLoopSize(1)
+                    .eventLoopGroup(eventLoopGroup)
+                    .hostResolver(hostResolver)
                     .build();
 
             awsCrtHttpClients.add(awsCrtHttpClient);
@@ -55,7 +63,9 @@ public class AwsCrtClientKmsIntegrationTest {
 
     @After
     public void tearDown() {
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        hostResolver.close();
+        eventLoopGroup.close();
+        CrtResource.waitForNoResources();
     }
 
     private boolean doesKeyExist(KmsAsyncClient kms, String keyAlias) {

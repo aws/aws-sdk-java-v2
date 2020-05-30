@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -95,8 +97,12 @@ public class AwsCrtClientCallingPatternIntegrationTest {
     }
 
     private boolean testWithNewClient(int eventLoopSize, int numberOfRequests) {
-        try (SdkAsyncHttpClient newAwsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                .eventLoopSize(eventLoopSize)
+
+        try (EventLoopGroup eventLoopGroup = new EventLoopGroup(eventLoopSize);
+             HostResolver hostResolver = new HostResolver(eventLoopGroup);
+             SdkAsyncHttpClient newAwsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
+                .eventLoopGroup(eventLoopGroup)
+                .hostResolver(hostResolver)
                 .build()) {
             try (KmsAsyncClient newAsyncKMSClient = KmsAsyncClient.builder()
                     .region(REGION)
@@ -143,11 +149,8 @@ public class AwsCrtClientCallingPatternIntegrationTest {
                                      @FromDataPoints("SharedClient") boolean useSharedClient) throws Exception {
 
         try {
-            if (CrtResource.getAllocatedNativeResourceCount() > 0) {
-                System.err.println("Leaked Resources: " + String.join(", ", CrtResource.getAllocatedNativeResources()));
-            }
-            Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
 
+            CrtResource.waitForNoResources();
             String testName = String.format("Testing with eventLoopSize %d, connectionPoolSize %d, numberOfRequests %d, " +
                             "numberOfParallelJavaClients %d, useSharedClient %b", eventLoopSize, connectionPoolSize,
                     numberOfRequests, numberOfParallelClients, useSharedClient);
@@ -159,9 +162,12 @@ public class AwsCrtClientCallingPatternIntegrationTest {
                     .put(SdkHttpConfigurationOption.MAX_CONNECTIONS, connectionPoolSize)
                     .build();
 
+            EventLoopGroup eventLoopGroup = new EventLoopGroup(eventLoopSize);
+            HostResolver hostResolver = new HostResolver(eventLoopGroup);
 
             SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                    .eventLoopSize(eventLoopSize)
+                    .eventLoopGroup(eventLoopGroup)
+                    .hostResolver(hostResolver)
                     .buildWithDefaults(attributes);
 
             KmsAsyncClient sharedAsyncKMSClient = KmsAsyncClient.builder()
@@ -197,11 +203,10 @@ public class AwsCrtClientCallingPatternIntegrationTest {
             awsCrtHttpClient.close();
             Assert.assertFalse(failed.get());
 
-            if (CrtResource.getAllocatedNativeResourceCount() > 0) {
-                System.err.println("Leaked Resources: " + String.join(", ", CrtResource.getAllocatedNativeResources()));
-            }
+            hostResolver.close();
+            eventLoopGroup.close();
 
-            Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+            CrtResource.waitForNoResources();
 
             float numSeconds = (float) ((System.currentTimeMillis() - start) / 1000.0);
             String timeElapsed = String.format("%.2f sec", numSeconds);

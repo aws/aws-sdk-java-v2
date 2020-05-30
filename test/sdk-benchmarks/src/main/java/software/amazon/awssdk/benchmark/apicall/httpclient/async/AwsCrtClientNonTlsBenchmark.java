@@ -38,16 +38,16 @@ import software.amazon.awssdk.benchmark.utils.MockServer;
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class AwsCrtClientBenchmark extends BaseCrtBenchmark {
+public class AwsCrtClientNonTlsBenchmark extends BaseCrtBenchmark {
 
     @Override
     protected URI getEndpointOverride(MockServer mock) {
-        return mock.getHttpsUri();
+        return mock.getHttpUri();
     }
 
     public static void main(String... args) throws Exception {
         Options opt = new OptionsBuilder()
-                .include(AwsCrtClientBenchmark.class.getSimpleName())
+                .include(AwsCrtClientNonTlsBenchmark.class.getSimpleName())
                 .addProfiler(StackProfiler.class)
                 .build();
         new Runner(opt).run();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,15 +30,14 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +45,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -64,20 +64,31 @@ public class AwsCrtHttpClientSpiVerificationTest {
             .dynamicPort()
             .dynamicHttpsPort());
 
+    private EventLoopGroup eventLoopGroup;
+    private HostResolver hostResolver;
     private SdkAsyncHttpClient client;
 
     @Before
     public void setup() throws Exception {
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        CrtResource.waitForNoResources();
+
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        eventLoopGroup = new EventLoopGroup(numThreads);
+        hostResolver = new HostResolver(eventLoopGroup);
 
         client = AwsCrtAsyncHttpClient.builder()
+                .eventLoopGroup(eventLoopGroup)
+                .hostResolver(hostResolver)
+                .manualWindowManagement(true)
                 .build();
     }
 
     @After
     public void tearDown() {
         client.close();
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        hostResolver.close();
+        eventLoopGroup.close();
+        CrtResource.waitForNoResources();
     }
 
     private byte[] generateRandomBody(int size) {
@@ -99,7 +110,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
             }
         };
 
-        SdkHttpRequest request = createRequest(URI.create("http://localhost:" + mockServer.port()));
+        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(URI.create("http://localhost:" + mockServer.port()));
 
         CompletableFuture<Void> executeFuture = client.execute(AsyncExecuteRequest.builder()
                 .request(request)
@@ -131,7 +142,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
             }
         };
 
-        SdkHttpRequest request = createRequest(URI.create("http://localhost:" + mockServer.port()));
+        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(URI.create("http://localhost:" + mockServer.port()));
 
         CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
                 .request(request)
@@ -179,7 +190,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
         };
 
         URI uri = URI.create("http://localhost:" + mockServer.port());
-        SdkHttpRequest request = createRequest(uri, path, null, SdkHttpMethod.GET, emptyMap());
+        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(uri, path, null, SdkHttpMethod.GET, emptyMap());
 
         CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
                 .request(request)
@@ -201,24 +212,13 @@ public class AwsCrtHttpClientSpiVerificationTest {
         final AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
         final AtomicReference<Throwable> error = new AtomicReference<>(null);
 
-        SdkAsyncHttpResponseHandler handler = new SdkAsyncHttpResponseHandler() {
-            @Override
-            public void onHeaders(SdkHttpResponse headers) {
-                response.compareAndSet(null, headers);
-            }
-            @Override
-            public void onStream(Publisher<ByteBuffer> stream) {
-                streamReceived.complete(true);
-            }
+        Subscriber<ByteBuffer> subscriber = CrtHttpClientTestUtils.createDummySubscriber();
 
-            @Override
-            public void onError(Throwable t) {
-                error.compareAndSet(null, t);
-            }
-        };
+        SdkAsyncHttpResponseHandler handler = CrtHttpClientTestUtils.createTestResponseHandler(response,
+                streamReceived, error, subscriber);
 
         URI uri = URI.create("http://localhost:" + mockServer.port());
-        SdkHttpRequest request = createRequest(uri, path, reqBody, SdkHttpMethod.PUT, emptyMap());
+        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(uri, path, reqBody, SdkHttpMethod.PUT, emptyMap());
 
         CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
                                             .request(request)
@@ -239,36 +239,13 @@ public class AwsCrtHttpClientSpiVerificationTest {
         stubFor(any(urlEqualTo(pathExpect200)).withRequestBody(binaryEqualTo(expectedBody)).willReturn(aResponse().withStatus(200)));
         makePutRequest(pathExpect200, expectedBody, 200);
 
-
         String pathExpect404 = "/testPutRequest/return_404_always";
         byte[] randomBody = generateRandomBody(TEST_BODY_LEN);
         stubFor(any(urlEqualTo(pathExpect404)).willReturn(aResponse().withStatus(404)));
         makePutRequest(pathExpect404, randomBody, 404);
     }
 
-    private SdkHttpFullRequest createRequest(URI endpoint) {
-        return createRequest(endpoint, "/", null, SdkHttpMethod.GET, emptyMap());
-    }
 
-    private SdkHttpFullRequest createRequest(URI endpoint,
-                                             String resourcePath,
-                                             byte[] body,
-                                             SdkHttpMethod method,
-                                             Map<String, String> params) {
-
-        String contentLength = (body == null) ? null : String.valueOf(body.length);
-        return SdkHttpFullRequest.builder()
-                .uri(endpoint)
-                .method(method)
-                .encodedPath(resourcePath)
-                .applyMutation(b -> params.forEach(b::putRawQueryParameter))
-                .applyMutation(b -> {
-                    b.putHeader("Host", endpoint.getHost());
-                    if (contentLength != null) {
-                        b.putHeader("Content-Length", contentLength);
-                    }
-                }).build();
-    }
 
     private static class TestResponseHandler implements SdkAsyncHttpResponseHandler {
         @Override
