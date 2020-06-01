@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon FSx",
+    "description": "New capabilities to update storage capacity and throughput capacity of your file systems, providing the flexibility to grow file storage and to scale up or down the available performance as needed to meet evolving storage needs over time."
+}
