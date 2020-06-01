@@ -1,3 +1,36 @@
+# __2.13.27__ __2020-06-01__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS Key Management Service (AWS KMS): If the GenerateDataKeyPair or GenerateDataKeyPairWithoutPlaintext APIs are called on a CMK in a custom key store (origin == AWS_CLOUDHSM), they return an UnsupportedOperationException. If a call to UpdateAlias causes a customer to exceed the Alias resource quota, the UpdateAlias API returns a LimitExceededException.
+
+## __AWS Maven Lambda Archetype__
+  - ### Features
+    - Updated the `archetype-lambda` to generate SDK client that uses region from environment variable.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds support for connecting Athena to your own Apache Hive Metastores in addition to the AWS Glue Data Catalog. For more information, please see https://docs.aws.amazon.com/athena/latest/ug/connect-to-data-source-hive.html
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Amazon EMR now supports encrypting log files with AWS Key Management Service (KMS) customer managed keys.
+
+## __Amazon FSx__
+  - ### Features
+    - New capabilities to update storage capacity and throughput capacity of your file systems, providing the flexibility to grow file storage and to scale up or down the available performance as needed to meet evolving storage needs over time.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - We are releasing HumanTaskUiArn as a new parameter in CreateLabelingJob and RenderUiTemplate which can take an ARN for a system managed UI to render a task.
+
+## __Amazon WorkLink__
+  - ### Features
+    - Amazon WorkLink now supports resource tagging for fleets.
+
 # __2.13.26__ __2020-05-28__
 ## __AWS Marketplace Catalog Service__
   - ### Features
@@ -259,7 +292,7 @@
 
 ## __AWSKendraFrontendService__
   - ### Features
-    - Amazon Kendra is now generally available. As part of general availability, we are launching CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Developer edition CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Ability to scale your Amazon Kendra index with capacity units CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for new connectors CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for new tagging API's CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Support for Deleting data source CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Metrics for data source sync operations CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md archetypes aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Metrics for query & storage utilization
+    - Amazon Kendra is now generally available. As part of general availability, we are launching Metrics for query & storage utilization
 
 ## __Amazon CodeGuru Reviewer__
   - ### Features
