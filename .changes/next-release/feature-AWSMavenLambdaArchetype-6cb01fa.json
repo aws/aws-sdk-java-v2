@@ -1,5 +1,0 @@
-{
-    "category": "AWS Maven Lambda Archetype", 
-    "type": "feature", 
-    "description": "Updated the `archetype-lambda` to generate SDK client that uses region from environment variable."
-}

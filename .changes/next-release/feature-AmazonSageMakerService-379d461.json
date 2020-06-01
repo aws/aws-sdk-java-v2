@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "description": "We are releasing HumanTaskUiArn as a new parameter in CreateLabelingJob and RenderUiTemplate which can take an ARN for a system managed UI to render a task."
-}
