@@ -187,8 +187,6 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         releaseNativeResources();
     }
 
-    static AtomicInteger completionCount = new AtomicInteger(0);
-
     /**
      * Completes the Subscription by calling either the .onError() or .onComplete() callbacks exactly once.
      */
@@ -198,9 +196,6 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         if (alreadyComplete) {
             return;
         }
-
-        int completions = completionCount.incrementAndGet();
-        log.info(()->String.format("Completed %d publishers", completions));
 
         // Subscriber may have cancelled their subscription, in which case this may be null.
         Optional<Subscriber<? super ByteBuffer>> subscriber = Optional.ofNullable(subscriberRef.getAndSet(null));

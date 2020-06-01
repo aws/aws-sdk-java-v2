@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
@@ -76,6 +78,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final SocketOptions socketOptions;
     private final TlsContext tlsContext;
     private final HttpProxyOptions proxyOptions;
+    private final HttpMonitoringOptions monitoringOptions;
+    private final long maxConnectionIdleInMilliseconds;
     private final int initialWindowSize;
     private final int maxConnectionsPerEndpoint;
     private final boolean manualWindowManagement;
@@ -104,6 +108,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.initialWindowSize = builder.initialWindowSize;
             this.maxConnectionsPerEndpoint = maxConns;
             this.manualWindowManagement = builder.manualWindowManagement;
+            this.monitoringOptions = builder.monitoringOptions;
+            this.maxConnectionIdleInMilliseconds = (builder.connectionMaxIdleTime != null) ? builder.connectionMaxIdleTime.toMillis() : 0;
 
             ProxyConfiguration builderProxyConfig = builder.proxyConfiguration;
             if (builderProxyConfig != null) {
@@ -172,7 +178,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withWindowSize(initialWindowSize)
                 .withMaxConnections(maxConnectionsPerEndpoint)
                 .withManualWindowManagement(manualWindowManagement)
-                .withProxyOptions(proxyOptions);
+                .withProxyOptions(proxyOptions)
+                .withMonitoringOptions(monitoringOptions)
+                .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds);
 
         return HttpClientConnectionManager.create(options);
     }
@@ -367,6 +375,18 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * @return The builder of the method chaining.
          */
         Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
+
+        /**
+         * Sets the http monitoring options for all connections established by this client.
+         * @param monitoringOptions The http monitoring options to use
+         * @return The builder of the method chaining.
+         */
+        Builder monitoringOptions(HttpMonitoringOptions monitoringOptions);
+
+        /**
+         * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
+         */
+        Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
     }
 
     /**
@@ -381,6 +401,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private EventLoopGroup eventLoopGroup;
         private HostResolver hostResolver;
         private ProxyConfiguration proxyConfiguration;
+        private HttpMonitoringOptions monitoringOptions;
+        private Duration connectionMaxIdleTime;
 
         private DefaultBuilder() {
         }
@@ -435,6 +457,18 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder proxyConfiguration(ProxyConfiguration proxyConfiguration) {
             this.proxyConfiguration = proxyConfiguration;
+            return this;
+        }
+
+        @Override
+        public Builder monitoringOptions(HttpMonitoringOptions monitoringOptions) {
+            this.monitoringOptions = monitoringOptions;
+            return this;
+        }
+
+        @Override
+        public Builder connectionMaxIdleTime(Duration connectionMaxIdleTime) {
+            this.connectionMaxIdleTime = connectionMaxIdleTime;
             return this;
         }
     }

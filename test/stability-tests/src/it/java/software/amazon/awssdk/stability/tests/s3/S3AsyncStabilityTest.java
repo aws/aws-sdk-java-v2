@@ -97,26 +97,11 @@ public abstract class S3AsyncStabilityTest extends S3BaseStabilityTest {
                            .run();
     }
 
-    protected AtomicInteger futuresCreated = new AtomicInteger(0);
-    protected AtomicInteger futuresCompleted = new AtomicInteger(0);
-
     protected void getObject() {
-        LOGGER.info(() -> "Starting to test getObject");
         IntFunction<CompletableFuture<?>> future = i -> {
-            int createCount = futuresCreated.incrementAndGet();
-            LOGGER.info(() -> String.format("Created %d futures", createCount));
-
             String keyName = computeKeyName(i);
             Path path = RandomTempFile.randomUncreatedFile().toPath();
-            //CompletableFuture<?> getFuture = getTestClient().getObject(b -> b.bucket(getTestBucketName()).key(keyName), AsyncResponseTransformer.toFile(path));
-            CompletableFuture<?> getFuture = getTestClient().getObject(b -> b.bucket(getTestBucketName()).key(keyName), AsyncResponseTransformer.toBytes());
-
-            //AwsCrtResponseBodyPublisher.registerFuture(createCount, getFuture);
-            return getFuture.whenComplete((res, throwable) -> {
-                int completeCount = futuresCompleted.incrementAndGet();
-                LOGGER.info(() -> String.format("Completed %d futures", completeCount));
-               // AwsCrtResponseBodyPublisher.unregisterFuture(createCount);
-            });
+            return getTestClient().getObject(b -> b.bucket(getTestBucketName()).key(keyName), AsyncResponseTransformer.toFile(path));
         };
 
         StabilityTestRunner.newRunner()

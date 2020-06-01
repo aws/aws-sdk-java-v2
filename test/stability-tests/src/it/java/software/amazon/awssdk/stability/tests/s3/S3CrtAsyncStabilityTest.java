@@ -29,7 +29,8 @@ public class S3CrtAsyncStabilityTest extends S3AsyncStabilityTest {
 
         SdkAsyncHttpClient.Builder httpClientBuilder = AwsCrtAsyncHttpClient.builder()
                 .eventLoopGroup(eventLoopGroup)
-                .hostResolver(hostResolver);
+                .hostResolver(hostResolver)
+                .connectionMaxIdleTime(Duration.ofSeconds(5));
 
         s3CrtClient = S3AsyncClient.builder()
                 .httpClientBuilder(httpClientBuilder)
