@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic MapReduce",
+    "description": "Amazon EMR now supports encrypting log files with AWS Key Management Service (KMS) customer managed keys."
+}
