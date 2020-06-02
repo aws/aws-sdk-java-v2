@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.crt;
 import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -27,8 +28,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -42,6 +45,7 @@ import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -63,10 +67,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkPublicApi
 public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpClient.class);
-    private static final String HOST_HEADER = "Host";
-    private static final String CONTENT_LENGTH = "Content-Length";
-    private static final String CONNECTION = "Connection";
-    private static final String KEEP_ALIVE = "keep-alive";
+
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
     private static final String NULL_REQUEST_ERROR_MESSAGE = "SdkHttpRequest must not be null";
     private static final String NULL_URI_ERROR_MESSAGE = "URI must not be null";
@@ -101,9 +102,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                      .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
              TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions)) {
 
-            this.bootstrap = own(clientBootstrap);
-            this.socketOptions = own(clientSocketOptions);
-            this.tlsContext = own(clientTlsContext);
+            this.bootstrap = registerOwnedResource(clientBootstrap);
+            this.socketOptions = registerOwnedResource(clientSocketOptions);
+            this.tlsContext = registerOwnedResource(clientTlsContext);
 
             this.initialWindowSize = builder.initialWindowSize;
             this.maxConnectionsPerEndpoint = maxConns;
@@ -111,28 +112,31 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.monitoringOptions = builder.monitoringOptions;
             this.maxConnectionIdleInMilliseconds = (builder.connectionMaxIdleTime != null) ? builder.connectionMaxIdleTime.toMillis() : 0;
 
-            ProxyConfiguration builderProxyConfig = builder.proxyConfiguration;
-            if (builderProxyConfig != null) {
-                HttpProxyOptions clientProxyOptions = new HttpProxyOptions();
+            this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
+        }
+    }
 
-                clientProxyOptions.setHost(builderProxyConfig.host());
-                clientProxyOptions.setPort(builderProxyConfig.port());
-                if (builderProxyConfig.scheme() != null && builderProxyConfig.scheme().equalsIgnoreCase("https")) {
-                    clientProxyOptions.setTlsContext(tlsContext);
-                }
+    private HttpProxyOptions buildProxyOptions(ProxyConfiguration proxyConfiguration) {
+        if (proxyConfiguration != null) {
+            HttpProxyOptions clientProxyOptions = new HttpProxyOptions();
 
-                if (builderProxyConfig.username() != null && builderProxyConfig.password() != null) {
-                    clientProxyOptions.setAuthorizationUsername(builderProxyConfig.username());
-                    clientProxyOptions.setAuthorizationPassword(builderProxyConfig.password());
-                    clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
-                } else {
-                    clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);
-                }
-
-                this.proxyOptions = clientProxyOptions;
-            } else {
-                this.proxyOptions = null;
+            clientProxyOptions.setHost(proxyConfiguration.host());
+            clientProxyOptions.setPort(proxyConfiguration.port());
+            if (proxyConfiguration.scheme() != null && proxyConfiguration.scheme().equalsIgnoreCase("https")) {
+                clientProxyOptions.setTlsContext(tlsContext);
             }
+
+            if (proxyConfiguration.username() != null && proxyConfiguration.password() != null) {
+                clientProxyOptions.setAuthorizationUsername(proxyConfiguration.username());
+                clientProxyOptions.setAuthorizationPassword(proxyConfiguration.password());
+                clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
+            } else {
+                clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);
+            }
+
+            return clientProxyOptions;
+        } else {
+            return null;
         }
     }
 
@@ -143,7 +147,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      * @param <T> The CrtResource Type
      * @return The CrtResource passed in
      */
-    private <T extends CrtResource> T own(T subresource) {
+    private <T extends CrtResource> T registerOwnedResource(T subresource) {
         if (subresource != null) {
             subresource.addRef();
             ownedSubResources.push(subresource);
@@ -167,7 +171,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private HttpClientConnectionManager createConnectionPool(URI uri) {
-        Validate.notNull(uri, NULL_URI_ERROR_MESSAGE);
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
         HttpClientConnectionManagerOptions options = new HttpClientConnectionManagerOptions()
@@ -207,7 +210,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
             }
 
-            HttpClientConnectionManager connPool = connectionPools.computeIfAbsent(uri, k -> createConnectionPool(k));
+            HttpClientConnectionManager connPool = connectionPools.computeIfAbsent(uri, this::createConnectionPool);
             connPool.addRef();
             return connPool;
         }
@@ -219,19 +222,19 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.headers().size() + 3);
 
         // Set Host Header if needed
-        if (isNullOrEmpty(sdkRequest.headers().get(HOST_HEADER))) {
-            crtHeaderList.add(new HttpHeader(HOST_HEADER, uri.getHost()));
+        if (isNullOrEmpty(sdkRequest.headers().get(Header.HOST))) {
+            crtHeaderList.add(new HttpHeader(Header.HOST, uri.getHost()));
         }
 
         // Add Connection Keep Alive Header to reuse this Http Connection as long as possible
-        if (isNullOrEmpty(sdkRequest.headers().get(CONNECTION))) {
-            crtHeaderList.add(new HttpHeader(CONNECTION, KEEP_ALIVE));
+        if (isNullOrEmpty(sdkRequest.headers().get(Header.CONNECTION))) {
+            crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
 
         // Set Content-Length if needed
         Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
-        if (isNullOrEmpty(sdkRequest.headers().get(CONTENT_LENGTH)) && contentLength.isPresent()) {
-            crtHeaderList.add(new HttpHeader(CONTENT_LENGTH, Long.toString(contentLength.get())));
+        if (isNullOrEmpty(sdkRequest.headers().get(Header.CONTENT_LENGTH)) && contentLength.isPresent()) {
+            crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
         }
 
         // Add the rest of the Headers
@@ -279,6 +282,16 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         URI uri = toUri(asyncRequest.request());
 
+        /*
+         * See the note on getOrCreateConnectionPool()
+         *
+         * In particular, this returns a ref-counted object and calling getOrCreateConnectionPool
+         * increments the ref count by one.  We add a try-with-resources to release our ref
+         * once we have successfully submitted a request.  In this way, we avoid a race condition
+         * when close/shutdown is called from another thread while this function is executing (ie.
+         * we have a pool and no one can destroy it underneath us until we've finished submitting the
+         * request)
+         */
         try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(uri)) {
             CompletableFuture<Void> requestFuture = new CompletableFuture<>();
 
@@ -287,8 +300,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                     .whenComplete((crtConn, throwable) -> {
                         // If we didn't get a connection for some reason, fail the request
                         if (throwable != null) {
-                            asyncRequest.responseHandler().onError(throwable);
-                            requestFuture.completeExceptionally(throwable);
+                            try {
+                                asyncRequest.responseHandler().onError(throwable);
+                            } catch (Exception e) {
+                                log.error(() -> String.format("Exception while handling error: %s", e.toString()));
+                            }
+                            requestFuture.completeExceptionally(new IOException(
+                                    "Crt exception while acquiring connection", throwable));
                             return;
                         }
 
@@ -297,7 +315,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                         HttpRequest crtRequest = toCrtRequest(uri, asyncRequest, crtToSdkAdapter);
 
                         // Submit the Request on this Connection
-                        invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate());
+                        invokeSafely(() -> {
+                            try {
+                                crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate();
+                            } catch (IllegalStateException | CrtRuntimeException e) {
+                                throw new IOException("Exception throw while submitting request to CRT http connection", e);
+                            }
+                        });
                     });
 
             return requestFuture;
@@ -312,14 +336,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 return;
             }
 
-            for (HttpClientConnectionManager connPool : connectionPools.values()) {
-                IoUtils.closeQuietly(connPool, log.logger());
-            }
-
-            while (!ownedSubResources.isEmpty()) {
-                CrtResource r = ownedSubResources.pop();
-                IoUtils.closeQuietly(r, log.logger());
-            }
+            connectionPools.values().forEach(pool -> IoUtils.closeQuietly(pool, log.logger()));
+            ownedSubResources.forEach(r -> IoUtils.closeQuietly(r, log.logger()));
+            ownedSubResources.clear();
 
             isClosed = true;
         }
@@ -329,6 +348,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      * Builder that allows configuration of the AWS CRT HTTP implementation.
      */
     public interface Builder extends SdkAsyncHttpClient.Builder<AwsCrtAsyncHttpClient.Builder> {
+
+        /**
+         * The maximum number of connections allowed per distinct endpoint
+         * @param maxConnections maximum connections per endpoint
+         * @return The builder of the method chaining.
+         */
+        Builder maxConnections(int maxConnections);
 
         /**
          * The AWS CRT TlsCipherPreference to use for this Client
@@ -346,9 +372,11 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder manualWindowManagement(boolean manualWindowManagement);
 
         /**
-         * The AWS CRT WindowSize to use for this HttpClient. This represents the number of unread bytes that can be
-         * buffered in the ResponseBodyPublisher before we stop reading from the underlying TCP socket and wait for
-         * the Subscriber to read more data.
+         * The AWS CRT WindowSize to use for this HttpClient.
+         *
+         * For an http/1.1 connection, this represents  the number of unread bytes that can be buffered in the
+         * ResponseBodyPublisher before we stop reading from the underlying TCP socket and wait for the Subscriber
+         * to read more data.
          *
          * @param initialWindowSize The AWS Common Runtime WindowSize
          * @return The builder of the method chaining.
@@ -387,6 +415,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
          */
         Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
+      
+        /**
+         * Sets the http proxy configuration to use for this client.
+         *
+         * @param proxyConfigurationBuilderConsumer The consumer of the proxy configuration builder object.
+         * @return the builder for method chaining.
+         */
+        Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
     }
 
     /**
@@ -420,6 +456,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             return new AwsCrtAsyncHttpClient(this, standardOptions.build()
                                                            .merge(serviceDefaults)
                                                            .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+        }
+
+        @Override
+        public Builder maxConnections(int maxConnections) {
+            Validate.isPositive(maxConnections, "maxConnections");
+            standardOptions.put(SdkHttpConfigurationOption.MAX_CONNECTIONS, maxConnections);
+            return this;
         }
 
         @Override
@@ -472,6 +515,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         public Builder connectionMaxIdleTime(Duration connectionMaxIdleTime) {
             this.connectionMaxIdleTime = connectionMaxIdleTime;
             return this;
+        }
+
+        @Override
+        public Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer) {
+            ProxyConfiguration.Builder builder = ProxyConfiguration.builder();
+            proxyConfigurationBuilderConsumer.accept(builder);
+            return proxyConfiguration(builder.build());
         }
     }
 }

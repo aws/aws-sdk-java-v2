@@ -65,14 +65,10 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      */
     public AwsCrtResponseBodyPublisher(HttpClientConnection connection, HttpStream stream,
                                        CompletableFuture<Void> responseComplete, int windowSize) {
-        Validate.notNull(connection, "HttpConnection must not be null");
-        Validate.notNull(stream, "Stream must not be null");
-        Validate.notNull(responseComplete, "Stream must not be null");
-        Validate.isPositive(windowSize, "windowSize must be > 0");
-        this.connection = connection;
-        this.stream = stream;
-        this.responseComplete = responseComplete;
-        this.windowSize = windowSize;
+        this.connection = Validate.notNull(connection, "HttpConnection must not be null");
+        this.stream = Validate.notNull(stream, "Stream must not be null");
+        this.responseComplete = Validate.notNull(responseComplete, "ResponseComplete future must not be null");
+        this.windowSize = Validate.isPositive(windowSize, "windowSize must be > 0");
     }
 
     /**
@@ -235,8 +231,8 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * subscriber seeing out-of-order data. To avoid this race condition, this method must be synchronized.
      */
     protected void publishToSubscribers() {
-        boolean shouldComplete = false;
-        synchronized(this) {
+        boolean shouldComplete = true;
+        synchronized (this) {
             if (error.get() == null) {
                 if (isSubscriptionComplete.get() || isCancelled.get()) {
                     log.debug(() -> "Subscription already completed or cancelled, can't publish updates to Subscribers.");
@@ -269,6 +265,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
                     // has finished reading the data.
                     if (!areNativeResourcesReleased.get()) {
                         // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
+                        // This is why it is correct to return 0 from AwsCrtAsyncHttpStreamAdapter::onResponseBody
                         stream.incrementWindow(totalAmountTransferred);
                     }
                 }
@@ -304,6 +301,32 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             }
         } finally {
             mutualRecursionDepth.decrementAndGet();
+        }
+    }
+
+    static class AwsCrtResponseBodySubscription implements Subscription {
+        private final AwsCrtResponseBodyPublisher publisher;
+
+        AwsCrtResponseBodySubscription(AwsCrtResponseBodyPublisher publisher) {
+            this.publisher = publisher;
+        }
+
+        @Override
+        public void request(long n) {
+            if (n <= 0) {
+                // Reactive Stream Spec requires us to call onError() callback instead of throwing Exception here.
+                publisher.setError(new IllegalArgumentException("Request is for <= 0 elements: " + n));
+                publisher.publishToSubscribers();
+                return;
+            }
+
+            publisher.request(n);
+            publisher.publishToSubscribers();
+        }
+
+        @Override
+        public void cancel() {
+            publisher.setCancelled();
         }
     }
 
