@@ -402,7 +402,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private HostResolver hostResolver;
         private ProxyConfiguration proxyConfiguration;
         private HttpMonitoringOptions monitoringOptions;
-        private Duration connectionMaxIdleTime;
+
+        // default reaping interval matches Apache client
+        private Duration connectionMaxIdleTime = Duration.ofSeconds(60);
 
         private DefaultBuilder() {
         }
