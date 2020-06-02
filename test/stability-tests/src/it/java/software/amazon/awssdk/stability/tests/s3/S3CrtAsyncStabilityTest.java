@@ -13,7 +13,7 @@ import software.amazon.awssdk.stability.tests.utils.RetryableTest;
 
 import java.time.Duration;
 
-public class S3CrtAsyncStabilityTest extends S3AsyncStabilityTest {
+public class S3CrtAsyncStabilityTest extends S3BaseStabilityTest {
 
     private static String bucketName = "s3crtasyncstabilitytests" + System.currentTimeMillis();
 
