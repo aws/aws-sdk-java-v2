@@ -178,6 +178,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  "errorResponseHandler",
                  opModel.getInput().getVariableName());
 
+        codeBlock.add(".withMetricCollector($N)", "apiCallMetricCollector");
+
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
                      .add(".withMarshaller($L)", syncStreamingMarshaller(model, opModel, marshaller));

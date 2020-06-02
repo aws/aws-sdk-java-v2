@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.metrics.AwsCoreMetric;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
@@ -52,6 +53,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
@@ -186,7 +189,28 @@ public class SyncClientClass implements ClassSpec {
             method.endControlFlow();
         }
 
-        method.addCode(protocolSpec.executionHandler(opModel));
+        String metricCollectorName = "apiCallMetricCollector";
+
+        method.addStatement("$1T $2N = $1T.create($3S)",
+                MetricCollector.class, metricCollectorName, "ApiCall");
+
+        method.addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, AwsCoreMetric.class, "SERVICE_ID",
+                model.getMetadata().getServiceId());
+        method.addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, AwsCoreMetric.class, "OPERATION_NAME",
+                opModel.getOperationName());
+
+        String publisherName = "metricPublisher";
+
+        method.beginControlFlow("try")
+                .addCode(protocolSpec.executionHandler(opModel))
+                .endControlFlow()
+                .beginControlFlow("finally")
+                .addStatement("$T $N = clientConfiguration.option($T.$L)",
+                              MetricPublisher.class, publisherName, SdkClientOption.class, "METRIC_PUBLISHER")
+                .beginControlFlow("if ($N != null)", publisherName)
+                .addStatement("$N.publish($N.collect())", publisherName, metricCollectorName)
+                .endControlFlow()
+                .endControlFlow();
 
         methods.add(method.build());
 

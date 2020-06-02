@@ -18,6 +18,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -89,6 +90,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
      */
     @Override
     public CompletableFuture<DescribeEndpointsResponse> describeEndpoints(DescribeEndpointsRequest describeEndpointsRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
@@ -132,6 +134,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     @Override
     public CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> testDiscoveryIdentifiersRequired(
             TestDiscoveryIdentifiersRequiredRequest testDiscoveryIdentifiersRequiredRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
@@ -182,6 +185,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     @Override
     public CompletableFuture<TestDiscoveryOptionalResponse> testDiscoveryOptional(
             TestDiscoveryOptionalRequest testDiscoveryOptionalRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
@@ -232,6 +236,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     @Override
     public CompletableFuture<TestDiscoveryRequiredResponse> testDiscoveryRequired(
             TestDiscoveryRequiredRequest testDiscoveryRequiredRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
