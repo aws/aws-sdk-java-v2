@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "Adding databaseName in the response for GetUserDefinedFunctions() API."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Identity and Access Management",
-    "description": "GenerateServiceLastAccessedDetails will now return ActionLastAccessed details for certain S3 control plane actions"
-}
