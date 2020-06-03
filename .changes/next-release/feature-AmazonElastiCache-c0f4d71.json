@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon ElastiCache",
+    "description": "This release improves the Multi-AZ feature in ElastiCache by adding a separate flag and proper validations."
+}
