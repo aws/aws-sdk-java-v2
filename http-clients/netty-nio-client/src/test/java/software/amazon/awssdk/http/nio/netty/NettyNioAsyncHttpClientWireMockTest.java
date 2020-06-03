@@ -49,7 +49,6 @@ import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.util.AttributeKey;
@@ -81,6 +80,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.HttpTestUtils;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -91,6 +91,8 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
+import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -253,10 +255,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
     @Test
     public void closeClient_shouldCloseUnderlyingResources() {
         SdkEventLoopGroup eventLoopGroup = SdkEventLoopGroup.builder().build();
-        ChannelPool channelPool = mock(ChannelPool.class);
-        SdkChannelPoolMap<URI, ChannelPool> sdkChannelPoolMap = new SdkChannelPoolMap<URI, ChannelPool>() {
+        SdkChannelPool channelPool = mock(SdkChannelPool.class);
+        SdkChannelPoolMap<URI, SdkChannelPool> sdkChannelPoolMap = new SdkChannelPoolMap<URI, SdkChannelPool>() {
             @Override
-            protected ChannelPool newPool(URI key) {
+            protected SdkChannelPool newPool(URI key) {
                 return channelPool;
             }
         };
@@ -636,7 +638,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            futures.add(makeSimpleRequestAndReturnResponseHandler(customClient).completeFuture);
+            futures.add(makeSimpleRequestAndReturnResponseHandler(customClient, 1000).completeFuture);
         }
 
         assertThatThrownBy(() -> CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join())
@@ -659,7 +661,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
-            futures.add(makeSimpleRequestAndReturnResponseHandler(customClient).completeFuture);
+            futures.add(makeSimpleRequestAndReturnResponseHandler(customClient, 1000).completeFuture);
         }
 
         assertThatThrownBy(() -> CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join())
@@ -680,22 +682,105 @@ public class NettyNioAsyncHttpClientWireMockTest {
         customClient.close();
     }
 
+    @Test
+    public void metricsAreCollectedWhenMaxPendingConnectionAcquisitionsAreExceeded() throws Exception {
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConcurrency(1)
+                                                                 .maxPendingConnectionAcquires(1)
+                                                                 .build();
+
+        List<RecordingResponseHandler> handlers = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            handlers.add(makeSimpleRequestAndReturnResponseHandler(customClient, 1000));
+        }
+
+        for (RecordingResponseHandler handler : handlers) {
+            try {
+                handler.executionFuture.join();
+            } catch (Exception e) {
+                // Ignored.
+            }
+
+            MetricCollection metrics = handler.collector.collect();
+            assertThat(metrics.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("NettyNio");
+            assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS)).containsExactly(1);
+            assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES)).allSatisfy(a -> assertThat(a).isBetween(0, 9));
+            assertThat(metrics.metricValues(HttpMetric.LEASED_CONNECTIONS)).allSatisfy(a -> assertThat(a).isBetween(0, 1));
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS)).allSatisfy(a -> assertThat(a).isBetween(0, 1));
+        }
+
+        customClient.close();
+    }
+
+    @Test
+    public void metricsAreCollectedForSuccessfulCalls() throws Exception {
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConcurrency(10)
+                                                                 .build();
+
+        RecordingResponseHandler handler = makeSimpleRequestAndReturnResponseHandler(customClient);
+
+        handler.executionFuture.get(10, TimeUnit.SECONDS);
+
+        Thread.sleep(5_000);
+        MetricCollection metrics = handler.collector.collect();
+        assertThat(metrics.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("NettyNio");
+        assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS)).containsExactly(10);
+        assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES)).hasSize(1)
+                                                                                .allSatisfy(a -> assertThat(a).isBetween(0, 1));
+        assertThat(metrics.metricValues(HttpMetric.LEASED_CONNECTIONS)).hasSize(1)
+                                                                       .allSatisfy(a -> assertThat(a).isBetween(0, 1));
+        assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS)).hasSize(1)
+                                                                          .allSatisfy(a -> assertThat(a).isBetween(9, 10));
+
+        customClient.close();
+    }
+
+    @Test
+    public void metricsAreCollectedForClosedClientCalls() throws Exception {
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConcurrency(10)
+                                                                 .build();
+        customClient.close();
+
+        RecordingResponseHandler handler = makeSimpleRequestAndReturnResponseHandler(customClient);
+
+        try {
+            handler.executionFuture.get(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            // Expected
+        }
+
+        MetricCollection metrics = handler.collector.collect();
+        assertThat(metrics.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("NettyNio");
+        assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS)).containsExactly(10);
+        assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES)).containsExactly(0);
+        assertThat(metrics.metricValues(HttpMetric.LEASED_CONNECTIONS)).containsExactly(0);
+        assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS)).containsExactly(10);
+    }
+
     private void verifyChannelRelease(Channel channel) throws InterruptedException {
         Thread.sleep(1000);
         assertThat(channel.attr(AttributeKey.valueOf("channelPool")).get()).isNull();
     }
 
     private RecordingResponseHandler makeSimpleRequestAndReturnResponseHandler(SdkAsyncHttpClient client) throws Exception {
+        return makeSimpleRequestAndReturnResponseHandler(client, null);
+    }
+
+    private RecordingResponseHandler makeSimpleRequestAndReturnResponseHandler(SdkAsyncHttpClient client, Integer delayInMillis)
+        throws Exception {
         String body = randomAlphabetic(10);
         URI uri = URI.create("http://localhost:" + mockServer.port());
-        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body).withFixedDelay(1000)));
+        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body).withFixedDelay(delayInMillis)));
         SdkHttpRequest request = createRequest(uri);
         RecordingResponseHandler recorder = new RecordingResponseHandler();
-        client.execute(AsyncExecuteRequest.builder()
-                                          .request(request)
-                                          .requestContentPublisher(createProvider(""))
-                                          .responseHandler(recorder)
-                                          .build());
+        recorder.executionFuture = client.execute(AsyncExecuteRequest.builder()
+                                                                     .request(request)
+                                                                     .requestContentPublisher(createProvider(""))
+                                                                     .responseHandler(recorder)
+                                                                     .metricCollector(recorder.collector)
+                                                                     .build());
         return recorder;
     }
 

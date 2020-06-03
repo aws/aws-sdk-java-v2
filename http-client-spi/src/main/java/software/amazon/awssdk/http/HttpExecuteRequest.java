@@ -83,7 +83,7 @@ public final class HttpExecuteRequest {
          * report metrics collected for this request.
          *
          * @param metricCollector The metric collector.
-         * @return This bilder for method chaining.
+         * @return This builder for method chaining.
          */
         Builder metricCollector(MetricCollector metricCollector);
 

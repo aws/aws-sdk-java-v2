@@ -68,14 +68,4 @@ public class DefaultMetricCollectorTest {
         MetricCollection collected = parent.collect();
         assertThat(collected.children().stream().map(MetricCollection::name)).containsExactly(childNames);
     }
-
-    @Test
-    public void testReportMetric_collected_throws() {
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("This collector has already been closed");
-
-        MetricCollector collector = MetricCollector.create("collector");
-        collector.collect();
-        collector.reportMetric(M1, 42);
-    }
 }
