@@ -33,7 +33,7 @@
         <dependency>
             <groupId>software.amazon.awssdk.crt</groupId>
             <artifactId>aws-crt</artifactId>
-            <version>0.5.5</version>
+            <version>${awscrt.version}</version>
         </dependency>
 
         <!--SDK dependencies-->
