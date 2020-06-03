@@ -204,11 +204,19 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         // Complete the Futures
         if (throwable != null) {
             log.error(() -> "Error before ResponseBodyPublisher could complete: " + throwable.getMessage());
-            subscriber.ifPresent(s -> s.onError(throwable));
+            try {
+                subscriber.ifPresent(s -> s.onError(throwable));
+            } catch (Exception e) {
+                ;
+            }
             responseComplete.completeExceptionally(throwable);
         } else {
             log.debug(() -> "ResponseBodyPublisher Completed Successfully");
-            subscriber.ifPresent(s -> s.onComplete());
+            try {
+                subscriber.ifPresent(s -> s.onComplete());
+            } catch (Exception e) {
+                ;
+            }
             responseComplete.complete(null);
         }
     }
@@ -263,9 +271,12 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
                 }
 
                 shouldComplete = queueComplete.get() && queuedBuffers.isEmpty();
+            } else {
+                shouldComplete = true;
             }
         }
 
+        // Check if Complete, consider no subscriber as a completion.
         if (shouldComplete) {
             completeSubscriptionExactlyOnce();
         }
