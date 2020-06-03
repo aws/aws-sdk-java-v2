@@ -26,10 +26,13 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Channel pool that establishes an initial connection to determine protocol. Delegates
@@ -37,15 +40,16 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPo
  * all connections will be negotiated with the same protocol.
  */
 @SdkInternalApi
-public class HttpOrHttp2ChannelPool implements ChannelPool {
+public class HttpOrHttp2ChannelPool implements SdkChannelPool {
     private final ChannelPool delegatePool;
     private final int maxConcurrency;
     private final EventLoopGroup eventLoopGroup;
     private final EventLoop eventLoop;
     private final NettyConfiguration configuration;
 
+    private boolean protocolImplPromiseInitializationStarted = false;
     private Promise<ChannelPool> protocolImplPromise;
-    private ChannelPool protocolImpl;
+    private BetterFixedChannelPool protocolImpl;
     private boolean closed;
 
     public HttpOrHttp2ChannelPool(ChannelPool delegatePool,
@@ -57,6 +61,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
         this.eventLoopGroup = group;
         this.eventLoop = group.next();
         this.configuration = configuration;
+        this.protocolImplPromise = eventLoop.newPromise();
     }
 
     @Override
@@ -80,7 +85,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
             protocolImpl.acquire(promise);
             return;
         }
-        if (protocolImplPromise == null) {
+        if (!protocolImplPromiseInitializationStarted) {
             initializeProtocol();
         }
         protocolImplPromise.addListener((GenericFutureListener<Future<ChannelPool>>) future -> {
@@ -98,7 +103,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
      * for {@link #protocolImpl}.
      */
     private void initializeProtocol() {
-        protocolImplPromise = eventLoop.newPromise();
+        protocolImplPromiseInitializationStarted = true;
         delegatePool.acquire().addListener((GenericFutureListener<Future<Channel>>) future -> {
             if (future.isSuccess()) {
                 Channel newChannel = future.getNow();
@@ -123,7 +128,8 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
     private void failProtocolImplPromise(Throwable e) {
         doInEventLoop(eventLoop, () -> {
             protocolImplPromise.setFailure(e);
-            protocolImplPromise = null;
+            protocolImplPromise = eventLoop.newPromise();
+            protocolImplPromiseInitializationStarted = false;
         });
     }
 
@@ -212,7 +218,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
         closed = true;
         if (protocolImpl != null) {
             protocolImpl.close();
-        } else if (protocolImplPromise != null) {
+        } else if (protocolImplPromiseInitializationStarted) {
             protocolImplPromise.addListener((Future<ChannelPool> f) -> {
                 if (f.isSuccess()) {
                     f.getNow().close();
@@ -223,5 +229,24 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
         } else {
             delegatePool.close();
         }
+    }
+
+    @Override
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        protocolImplPromise.addListener(f -> {
+            if (!f.isSuccess()) {
+                result.completeExceptionally(f.cause());
+            } else {
+                protocolImpl.collectChannelPoolMetrics(metrics).whenComplete((m, t) -> {
+                    if (t != null) {
+                        result.completeExceptionally(t);
+                    } else {
+                        result.complete(m);
+                    }
+                });
+            }
+        });
+        return result;
     }
 }

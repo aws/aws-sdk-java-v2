@@ -27,13 +27,14 @@ import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * TODO: Before launch, we should iterate on the performance of this collector, because it's currently very naive.
+ */
 @SdkInternalApi
 public final class DefaultMetricCollector implements MetricCollector {
     private final String name;
-    private Map<SdkMetric<?>, List<MetricRecord<?>>> metrics = new LinkedHashMap<>();
+    private final Map<SdkMetric<?>, List<MetricRecord<?>>> metrics = new LinkedHashMap<>();
     private final List<MetricCollector> children = new ArrayList<>();
-
-    private MetricCollection collection;
 
     public DefaultMetricCollector(String name) {
         this.name = name;
@@ -45,40 +46,29 @@ public final class DefaultMetricCollector implements MetricCollector {
     }
 
     @Override
-    public <T> void reportMetric(SdkMetric<T> metric, T data) {
-        if (collected()) {
-            throw new IllegalStateException("This collector has already been closed");
-        }
+    public synchronized <T> void reportMetric(SdkMetric<T> metric, T data) {
         metrics.computeIfAbsent(metric, (m) -> new ArrayList<>())
-                .add(new DefaultMetricRecord<>(metric, data));
+               .add(new DefaultMetricRecord<>(metric, data));
     }
 
     @Override
-    public MetricCollector createChild(String name) {
+    public synchronized MetricCollector createChild(String name) {
         MetricCollector child = new DefaultMetricCollector(name);
         children.add(child);
         return child;
     }
 
     @Override
-    public MetricCollection collect() {
-        if (!collected()) {
-            List<MetricCollection> collectedChildren = children.stream()
-                    .map(MetricCollector::collect)
-                    .collect(Collectors.toList());
+    public synchronized MetricCollection collect() {
+        List<MetricCollection> collectedChildren = children.stream()
+                .map(MetricCollector::collect)
+                .collect(Collectors.toList());
 
-            collection = new DefaultMetricCollection(name, metrics, collectedChildren);
-        }
-
-        return collection;
+        return new DefaultMetricCollection(name, metrics, collectedChildren);
     }
 
     public static MetricCollector create(String name) {
         Validate.notEmpty(name, "name");
         return new DefaultMetricCollector(name);
-    }
-
-    private boolean collected() {
-        return collection != null;
     }
 }

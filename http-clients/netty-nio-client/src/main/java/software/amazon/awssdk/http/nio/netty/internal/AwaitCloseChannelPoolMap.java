@@ -150,7 +150,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
             baseChannelPool = tcpChannelPool;
         }
 
-        ChannelPool wrappedPool = wrapBaseChannelPool(bootstrap, baseChannelPool);
+        SdkChannelPool wrappedPool = wrapBaseChannelPool(bootstrap, baseChannelPool);
 
         channelPoolRef.set(wrappedPool);
         return new SimpleChannelPoolAwareChannelPool(wrappedPool, tcpChannelPool);
@@ -231,33 +231,32 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         }
     }
 
-    private ChannelPool wrapBaseChannelPool(Bootstrap bootstrap, ChannelPool channelPool) {
+    private SdkChannelPool wrapBaseChannelPool(Bootstrap bootstrap, ChannelPool channelPool) {
 
         // Wrap the channel pool such that the ChannelAttributeKey.CLOSE_ON_RELEASE flag is honored.
         channelPool = new HonorCloseOnReleaseChannelPool(channelPool);
 
         // Wrap the channel pool such that HTTP 2 channels won't be released to the underlying pool while they're still in use.
-        channelPool = new HttpOrHttp2ChannelPool(channelPool,
-                                                 bootstrap.config().group(),
-                                                 configuration.maxConnections(),
-                                                 configuration);
-
+        SdkChannelPool sdkChannelPool = new HttpOrHttp2ChannelPool(channelPool,
+                                                                   bootstrap.config().group(),
+                                                                   configuration.maxConnections(),
+                                                                   configuration);
 
         // Wrap the channel pool such that we remove request-specific handlers with each request.
-        channelPool = new HandlerRemovingChannelPool(channelPool);
+        sdkChannelPool = new HandlerRemovingChannelPool(sdkChannelPool);
 
         // Wrap the channel pool such that an individual channel can only be released to the underlying pool once.
-        channelPool = new ReleaseOnceChannelPool(channelPool);
+        sdkChannelPool = new ReleaseOnceChannelPool(sdkChannelPool);
 
         // Wrap the channel pool to guarantee all channels checked out are healthy, and all unhealthy channels checked in are
         // closed.
-        channelPool = new HealthCheckedChannelPool(bootstrap.config().group(), configuration, channelPool);
+        sdkChannelPool = new HealthCheckedChannelPool(bootstrap.config().group(), configuration, sdkChannelPool);
 
         // Wrap the channel pool such that if the Promise given to acquire(Promise) is done when the channel is acquired
         // from the underlying pool, the channel is closed and released.
-        channelPool = new CancellableAcquireChannelPool(bootstrap.config().group().next(), channelPool);
+        sdkChannelPool = new CancellableAcquireChannelPool(bootstrap.config().group().next(), sdkChannelPool);
 
-        return channelPool;
+        return sdkChannelPool;
     }
 
     private SslContext sslContext(URI targetAddress) {

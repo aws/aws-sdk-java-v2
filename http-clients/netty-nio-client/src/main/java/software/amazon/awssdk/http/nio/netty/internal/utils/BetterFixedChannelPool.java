@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
+
 import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.DefaultPromise;
@@ -28,21 +30,25 @@ import io.netty.util.internal.ThrowableUtil;
 import java.nio.channels.ClosedChannelException;
 import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * {@link ChannelPool} implementation that takes another {@link ChannelPool} implementation and enforce a maximum
  * number of concurrent connections.
  */
 //TODO: Contribute me back to Netty
-public class BetterFixedChannelPool implements ChannelPool {
+public class BetterFixedChannelPool implements SdkChannelPool {
     private static final IllegalStateException FULL_EXCEPTION = ThrowableUtil.unknownStackTrace(
         new IllegalStateException("Too many outstanding acquire operations"),
         BetterFixedChannelPool.class, "acquire0(...)");
     private static final TimeoutException TIMEOUT_EXCEPTION = ThrowableUtil.unknownStackTrace(
-        new TimeoutException("Acquire operation took longer then configured maximum time"),
+        new TimeoutException("Acquire operation took longer than configured maximum time"),
         BetterFixedChannelPool.class, "<init>(...)");
     static final IllegalStateException POOL_CLOSED_ON_RELEASE_EXCEPTION = ThrowableUtil.unknownStackTrace(
         new IllegalStateException("BetterFixedChannelPooled was closed"),
@@ -143,6 +149,22 @@ public class BetterFixedChannelPool implements ChannelPool {
             promise.setFailure(cause);
         }
         return promise;
+    }
+
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        doInEventLoop(executor, () -> {
+            try {
+                metrics.reportMetric(HttpMetric.MAX_CONNECTIONS, this.maxConnections);
+                metrics.reportMetric(HttpMetric.AVAILABLE_CONNECTIONS, this.maxConnections - this.acquiredChannelCount);
+                metrics.reportMetric(HttpMetric.LEASED_CONNECTIONS, this.acquiredChannelCount);
+                metrics.reportMetric(HttpMetric.PENDING_CONNECTION_ACQUIRES, this.pendingAcquireCount);
+                result.complete(null);
+            } catch (Throwable t) {
+                result.completeExceptionally(t);
+            }
+        });
+        return result;
     }
 
     private void acquire0(final Promise<Channel> promise) {

@@ -13,19 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache.internal;
+package software.amazon.awssdk.metrics;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.metrics.MetricCollection;
-import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A metric collector that doesn't do anything.
  */
-@SdkInternalApi
+@SdkPublicApi
 public final class NoOpMetricCollector implements MetricCollector {
     private static final NoOpMetricCollector INSTANCE = new NoOpMetricCollector();
+
+    private NoOpMetricCollector() {
+    }
 
     @Override
     public String name() {

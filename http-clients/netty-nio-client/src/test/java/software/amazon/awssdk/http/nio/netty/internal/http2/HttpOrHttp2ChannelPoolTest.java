@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 
 import io.netty.channel.Channel;
@@ -39,9 +40,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -74,6 +78,7 @@ public class HttpOrHttp2ChannelPoolTest {
                                                             new NettyConfiguration(AttributeMap.builder()
                                                                     .put(CONNECTION_ACQUIRE_TIMEOUT, Duration.ofSeconds(1))
                                                                     .put(MAX_PENDING_CONNECTION_ACQUIRES, 5)
+                                                                    .put(REAP_IDLE_CONNECTIONS, false)
                                                                     .build()));
     }
 
@@ -200,6 +205,76 @@ public class HttpOrHttp2ChannelPoolTest {
             verify(mockDelegatePool).close();
         } finally {
             channel.close();
+        }
+    }
+
+    @Test(timeout = 5_000)
+    public void incompleteProtocolFutureDelaysMetricsDelegationAndForwardsFailures() throws InterruptedException {
+        Promise<Channel> acquirePromise = eventLoopGroup.next().newPromise();
+        when(mockDelegatePool.acquire()).thenReturn(acquirePromise);
+
+        // startConnection
+        httpOrHttp2ChannelPool.acquire();
+
+        // query for metrics before the config can complete (we haven't completed acquirePromise yet)
+        CompletableFuture<Void> metrics = httpOrHttp2ChannelPool.collectChannelPoolMetrics(MetricCollector.create("test"));
+
+        Thread.sleep(500);
+
+        assertThat(metrics.isDone()).isFalse();
+        acquirePromise.setFailure(new RuntimeException("Some failure"));
+
+        Thread.sleep(500);
+
+        assertThat(metrics.isCompletedExceptionally()).isTrue();
+    }
+
+    @Test(timeout = 5_000)
+    public void incompleteProtocolFutureDelaysMetricsDelegationAndForwardsSuccessForHttp1() throws Exception {
+        incompleteProtocolFutureDelaysMetricsDelegationAndForwardsSuccessForProtocol(Protocol.HTTP1_1);
+    }
+
+    @Test(timeout = 5_000)
+    public void incompleteProtocolFutureDelaysMetricsDelegationAndForwardsSuccessForHttp2() throws Exception {
+        incompleteProtocolFutureDelaysMetricsDelegationAndForwardsSuccessForProtocol(Protocol.HTTP2);
+    }
+
+    public void incompleteProtocolFutureDelaysMetricsDelegationAndForwardsSuccessForProtocol(Protocol protocol) throws Exception {
+        Promise<Channel> acquirePromise = eventLoopGroup.next().newPromise();
+        when(mockDelegatePool.acquire()).thenReturn(acquirePromise);
+
+        // startConnection
+        httpOrHttp2ChannelPool.acquire();
+
+        // query for metrics before the config can complete (we haven't completed acquirePromise yet)
+        MetricCollector metricCollector = MetricCollector.create("foo");
+        CompletableFuture<Void> metricsFuture = httpOrHttp2ChannelPool.collectChannelPoolMetrics(metricCollector);
+
+        Thread.sleep(500);
+
+        assertThat(metricsFuture.isDone()).isFalse();
+
+        Channel channel = new MockChannel();
+        eventLoopGroup.register(channel);
+        channel.attr(PROTOCOL_FUTURE).set(CompletableFuture.completedFuture(protocol));
+        acquirePromise.setSuccess(channel);
+
+        metricsFuture.join();
+        MetricCollection metrics = metricCollector.collect();
+
+        assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES).get(0)).isEqualTo(0);
+        assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS).get(0)).isEqualTo(4);
+
+        // We get a snapshot at some point during or after the acquire, so we have to check the during and after case
+        // separately.
+        Integer availableConnections = metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS).get(0);
+        Integer leasedConnections = metrics.metricValues(HttpMetric.LEASED_CONNECTIONS).get(0);
+
+        assertThat(availableConnections).isBetween(3, 4);
+        if (availableConnections == 3) {
+            assertThat(leasedConnections).isEqualTo(1);
+        } else {
+            assertThat(leasedConnections).isEqualTo(0);
         }
     }
 }
