@@ -13,39 +13,42 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.fault;
-
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
+package software.amazon.awssdk.http.crt.fault;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
+import software.amazon.awssdk.http.H1ServerErrorTestBase;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
-import software.amazon.awssdk.http.H1ServerErrorTestBase;
-
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 /**
  * Testing the scenario where h1 server sends 5xx errors.
  */
 public class H1ServerErrorTest extends H1ServerErrorTestBase {
-    private SdkAsyncHttpClient netty;
+    private SdkAsyncHttpClient crtClient;
 
     @Override
-    protected SdkAsyncHttpClient getTestClient() { return netty; }
+    protected SdkAsyncHttpClient getTestClient() { return crtClient; }
 
     @Before
     public void setup() throws Exception {
         super.setup();
 
-        netty = NettyNioAsyncHttpClient.builder()
-                                       .eventLoopGroup(SdkEventLoopGroup.builder().numberOfThreads(2).build())
-                                       .protocol(Protocol.HTTP1_1)
-                                       .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        try (EventLoopGroup eventLoopGroup = new EventLoopGroup(numThreads);
+             HostResolver hostResolver = new HostResolver(eventLoopGroup)) {
+
+            crtClient = AwsCrtAsyncHttpClient.builder()
+                    .eventLoopGroup(eventLoopGroup)
+                    .hostResolver(hostResolver)
+                    .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
+        }
     }
 
 
@@ -53,10 +56,10 @@ public class H1ServerErrorTest extends H1ServerErrorTestBase {
     public void teardown() throws InterruptedException {
         super.teardown();
 
-        if (netty != null) {
-            netty.close();
+        if (crtClient != null) {
+            crtClient.close();
         }
-        netty = null;
+        crtClient = null;
     }
 
     @Test

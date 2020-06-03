@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty;
+package software.amazon.awssdk.http;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
