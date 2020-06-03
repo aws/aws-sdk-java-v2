@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Direct Connect",
+    "description": "This release supports the virtual interface failover test, which allows you to verify that traffic routes over redundant virtual interfaces when you bring your primary virtual interface out of service."
+}
