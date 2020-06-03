@@ -348,7 +348,7 @@ public abstract class RequestOverrideConfiguration {
     }
 
     protected abstract static class BuilderImpl<B extends Builder> implements Builder<B> {
-        private Map<String, List<String>> headers = new HashMap<>();
+        private Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         private Map<String, List<String>> rawQueryParameters = new HashMap<>();
         private List<ApiName> apiNames = new ArrayList<>();
         private Duration apiCallTimeout;
@@ -366,7 +366,7 @@ public abstract class RequestOverrideConfiguration {
 
         @Override
         public Map<String, List<String>> headers() {
-            return CollectionUtils.deepUnmodifiableMap(headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+            return CollectionUtils.unmodifiableMapOfLists(headers);
         }
 
         @Override
@@ -386,7 +386,7 @@ public abstract class RequestOverrideConfiguration {
 
         @Override
         public Map<String, List<String>> rawQueryParameters() {
-            return CollectionUtils.deepUnmodifiableMap(rawQueryParameters);
+            return CollectionUtils.unmodifiableMapOfLists(rawQueryParameters);
         }
 
         @Override

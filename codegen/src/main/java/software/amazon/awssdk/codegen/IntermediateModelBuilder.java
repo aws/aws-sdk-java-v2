@@ -106,13 +106,25 @@ public class IntermediateModelBuilder {
         Map<String, AuthorizerModel> authorizers =
             new HashMap<>(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());
 
+        // Iterate through every operation and build an 'endpointOperation' if at least one operation that supports
+        // endpoint discovery is found. If -any operations that require- endpoint discovery are found, then the flag
+        // 'endpointCacheRequired' will be set on the 'endpointOperation'. This 'endpointOperation' summary is then
+        // passed directly into the constructor of the intermediate model and is referred to by the codegen.
         OperationModel endpointOperation = null;
+        boolean endpointCacheRequired = false;
 
         for (OperationModel o : operations.values()) {
             if (o.isEndpointOperation()) {
                 endpointOperation = o;
-                break;
             }
+
+            if (o.getEndpointDiscovery() != null && o.getEndpointDiscovery().isRequired()) {
+                endpointCacheRequired = true;
+            }
+        }
+
+        if (endpointOperation != null) {
+            endpointOperation.setEndpointCacheRequired(endpointCacheRequired);
         }
 
         for (IntermediateModelShapeProcessor processor : shapeProcessors) {
@@ -168,8 +180,7 @@ public class IntermediateModelBuilder {
         for (Map.Entry<String, ShapeModel> entry : model.getShapes().entrySet()) {
             if (entry.getValue().getMembers() != null) {
                 for (MemberModel member : entry.getValue().getMembers()) {
-                    member.setShape(
-                        Utils.findShapeModelByC2jNameIfExists(model, member.getC2jShape()));
+                    member.setShape(Utils.findMemberShapeModelByC2jNameIfExists(model, member.getC2jShape()));
                 }
             }
         }
@@ -186,7 +197,9 @@ public class IntermediateModelBuilder {
 
             if (operation.getOutput() != null) {
                 String outputShapeName = operation.getOutput().getShape();
-                entry.getValue().setOutputShape(model.getShapeByC2jName(outputShapeName));
+                ShapeModel outputShape =
+                    model.getShapeByNameAndC2jName(entry.getValue().getReturnType().getReturnType(), outputShapeName);
+                entry.getValue().setOutputShape(outputShape);
             }
         }
     }

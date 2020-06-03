@@ -4,7 +4,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Base interface for all event types of the EventStreamOperation API.
+ * Base interface for all event types in InputEventStream.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi

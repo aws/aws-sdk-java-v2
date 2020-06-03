@@ -354,6 +354,10 @@ public interface JsonClient extends SdkClient {
      * }
      * </pre>
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
      * operation.</b>
@@ -425,6 +429,10 @@ public interface JsonClient extends SdkClient {
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -498,6 +506,10 @@ public interface JsonClient extends SdkClient {
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -630,6 +642,10 @@ public interface JsonClient extends SdkClient {
      * }
      * </pre>
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
      * operation.</b>
@@ -702,6 +718,10 @@ public interface JsonClient extends SdkClient {
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
@@ -887,7 +907,7 @@ public interface JsonClient extends SdkClient {
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
+     *        StreamingInputOutputOperationResponse and an InputStream to the response content are provided as parameters
      *        to the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
@@ -934,7 +954,7 @@ public interface JsonClient extends SdkClient {
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
+     *        StreamingInputOutputOperationResponse and an InputStream to the response content are provided as parameters
      *        to the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
@@ -1041,7 +1061,7 @@ public interface JsonClient extends SdkClient {
      * @param streamingOutputOperationRequest
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
+     *        StreamingOutputOperationResponse and an InputStream to the response content are provided as parameters
      *        to the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
@@ -1076,7 +1096,7 @@ public interface JsonClient extends SdkClient {
      *        request.
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
+     *        StreamingOutputOperationResponse and an InputStream to the response content are provided as parameters
      *        to the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The

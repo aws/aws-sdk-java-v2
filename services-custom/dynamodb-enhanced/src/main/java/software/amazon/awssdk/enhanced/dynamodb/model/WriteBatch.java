@@ -27,8 +27,8 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.BatchableWriteOperation;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
@@ -241,7 +241,7 @@ public final class WriteBatch {
         private WriteRequest generateWriteRequest(Supplier<MappedTableResource<T>> mappedTableResourceSupplier,
                                                   BatchableWriteOperation<T> operation) {
             return operation.generateWriteRequest(mappedTableResourceSupplier.get().tableSchema(),
-                                                  OperationContext.create(mappedTableResourceSupplier.get().tableName()),
+                                                  DefaultOperationContext.create(mappedTableResourceSupplier.get().tableName()),
                                                   mappedTableResourceSupplier.get().mapperExtension());
         }
     }

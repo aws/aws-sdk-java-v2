@@ -17,8 +17,10 @@ package software.amazon.awssdk.awscore.endpoint;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
@@ -66,10 +68,23 @@ public final class DefaultServiceEndpointBuilder {
         ServiceMetadata serviceMetadata = ServiceMetadata.of(serviceName)
                                                          .reconfigure(c -> c.profileFile(() -> profileFile)
                                                                             .profileName(profileName));
-        return withProtocol(serviceMetadata.endpointFor(region));
+        URI endpoint = addProtocolToServiceEndpoint(serviceMetadata.endpointFor(region));
+
+        if (endpoint.getHost() == null) {
+            String error = "Configured region (" + region + ") resulted in an invalid URI: " + endpoint;
+
+            List<Region> exampleRegions = serviceMetadata.regions();
+            if (!exampleRegions.isEmpty()) {
+                error += " Valid region examples: " + exampleRegions;
+            }
+
+            throw SdkClientException.create(error);
+        }
+
+        return endpoint;
     }
 
-    private URI withProtocol(URI endpointWithoutProtocol) throws IllegalArgumentException {
+    private URI addProtocolToServiceEndpoint(URI endpointWithoutProtocol) throws IllegalArgumentException {
         try {
             return new URI(protocol + "://" + endpointWithoutProtocol);
         } catch (URISyntaxException e) {

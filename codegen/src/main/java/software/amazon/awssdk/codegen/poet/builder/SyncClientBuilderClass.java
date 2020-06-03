@@ -54,15 +54,32 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
 
         if (model.getEndpointOperation().isPresent()) {
-            builder.addMethod(enableEndpointDiscovery());
+            builder.addMethod(endpointDiscoveryEnabled());
+
+            if (model.getCustomizationConfig().isEnableEndpointDiscoveryMethodRequired()) {
+                builder.addMethod(enableEndpointDiscovery());
+            }
         }
 
         return builder.addMethod(buildClientMethod()).build();
     }
 
+    private MethodSpec endpointDiscoveryEnabled() {
+        return MethodSpec.methodBuilder("endpointDiscoveryEnabled")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(builderClassName)
+                         .addParameter(boolean.class, "endpointDiscoveryEnabled")
+                         .addStatement("this.endpointDiscoveryEnabled = endpointDiscoveryEnabled")
+                         .addStatement("return this")
+                         .build();
+    }
+
     private MethodSpec enableEndpointDiscovery() {
         return MethodSpec.methodBuilder("enableEndpointDiscovery")
                          .addAnnotation(Override.class)
+                         .addAnnotation(Deprecated.class)
+                         .addJavadoc("@deprecated Use {@link #endpointDiscoveryEnabled($T)} instead.", boolean.class)
                          .addModifiers(Modifier.PUBLIC)
                          .returns(builderClassName)
                          .addStatement("endpointDiscoveryEnabled = true")

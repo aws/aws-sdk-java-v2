@@ -128,7 +128,7 @@ public class RetryableStageHelper {
     public void logBackingOff(Duration backoffDelay) {
         SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected. Will retry in " +
                                                      backoffDelay.toMillis() + "ms. Request attempt number " +
-                                                     attemptNumber);
+                                                     attemptNumber, lastException);
     }
 
     /**
@@ -138,13 +138,11 @@ public class RetryableStageHelper {
         Integer availableRetryCapacity = TokenBucketRetryCondition.getCapacityForExecution(context.executionAttributes())
                                                                   .map(TokenBucketRetryCondition.Capacity::capacityRemaining)
                                                                   .orElse(null);
-
+        String headerValue = (attemptNumber - 1) + "/" +
+                             lastBackoffDelay.toMillis() + "/" +
+                             (availableRetryCapacity != null ? availableRetryCapacity : "");
         return request.toBuilder()
-                      .putHeader(SDK_RETRY_INFO_HEADER,
-                                 String.format("%s/%s/%s",
-                                               attemptNumber - 1,
-                                               lastBackoffDelay.toMillis(),
-                                               availableRetryCapacity != null ? availableRetryCapacity : ""))
+                      .putHeader(SDK_RETRY_INFO_HEADER, headerValue)
                       .build();
     }
 

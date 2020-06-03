@@ -90,6 +90,7 @@ public class StaticAttributeTest {
                                                                          .getter(TEST_GETTER)
                                                                          .setter(TEST_SETTER)
                                                                          .tags(mockTag)
+                                                                         .attributeConverter(attributeConverter)
                                                                          .build();
 
         assertThat(staticAttribute.name()).isEqualTo("test-attribute");
@@ -97,6 +98,7 @@ public class StaticAttributeTest {
         assertThat(staticAttribute.setter()).isSameAs(TEST_SETTER);
         assertThat(staticAttribute.tags()).containsExactly(mockTag);
         assertThat(staticAttribute.type()).isEqualTo(EnhancedType.of(String.class));
+        assertThat(staticAttribute.attributeConverter()).isSameAs(attributeConverter);
     }
 
     @Test
@@ -151,6 +153,7 @@ public class StaticAttributeTest {
                                                                          .getter(TEST_GETTER)
                                                                          .setter(TEST_SETTER)
                                                                          .tags(mockTag, mockTag2)
+                                                                         .attributeConverter(attributeConverter)
                                                                          .build();
 
         StaticAttribute<Object, String> clonedAttribute = staticAttribute.toBuilder().build();
@@ -160,6 +163,7 @@ public class StaticAttributeTest {
         assertThat(clonedAttribute.setter()).isSameAs(TEST_SETTER);
         assertThat(clonedAttribute.tags()).containsExactly(mockTag, mockTag2);
         assertThat(clonedAttribute.type()).isEqualTo(EnhancedType.of(String.class));
+        assertThat(clonedAttribute.attributeConverter()).isSameAs(attributeConverter);
     }
 
     @Test

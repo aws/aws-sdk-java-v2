@@ -1044,6 +1044,25 @@
       ],
       "documentation":"<p>Gets the specified proxy session details for the specified Amazon Chime Voice Connector.</p>"
     },
+    "GetRetentionSettings":{
+      "name":"GetRetentionSettings",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{accountId}/retention-settings"
+      },
+      "input":{"shape":"GetRetentionSettingsRequest"},
+      "output":{"shape":"GetRetentionSettingsResponse"},
+      "errors":[
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Gets the retention settings for the specified Amazon Chime Enterprise account. For more information about retention settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/chat-retention.html\">Managing Chat Retention Policies</a> in the <i>Amazon Chime Administration Guide</i>.</p>"
+    },
     "GetRoom":{
       "name":"GetRoom",
       "http":{
@@ -1635,6 +1654,27 @@
       ],
       "documentation":"<p>Creates an events configuration that allows a bot to receive outgoing events sent by Amazon Chime. Choose either an HTTPS endpoint or a Lambda function ARN. For more information, see <a>Bot</a>.</p>"
     },
+    "PutRetentionSettings":{
+      "name":"PutRetentionSettings",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/accounts/{accountId}/retention-settings",
+        "responseCode":204
+      },
+      "input":{"shape":"PutRetentionSettingsRequest"},
+      "output":{"shape":"PutRetentionSettingsResponse"},
+      "errors":[
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ConflictException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Puts retention settings for the specified Amazon Chime Enterprise account. We recommend using AWS CloudTrail to monitor usage of this API for your account. For more information, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/cloudtrail.html\">Logging Amazon Chime API Calls with AWS CloudTrail</a> in the <i>Amazon Chime Administration Guide</i>.</p> <p>To turn off existing retention settings, remove the number of days from the corresponding <b>RetentionDays</b> field in the <b>RetentionSettings</b> object. For more information about retention settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/chat-retention.html\">Managing Chat Retention Policies</a> in the <i>Amazon Chime Administration Guide</i>.</p>"
+    },
     "PutVoiceConnectorLoggingConfiguration":{
       "name":"PutVoiceConnectorLoggingConfiguration",
       "http":{
@@ -1754,6 +1794,46 @@
         {"shape":"ServiceFailureException"}
       ],
       "documentation":"<p>Adds termination SIP credentials for the specified Amazon Chime Voice Connector.</p>"
+    },
+    "RedactConversationMessage":{
+      "name":"RedactConversationMessage",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{accountId}/conversations/{conversationId}/messages/{messageId}?operation=redact",
+        "responseCode":200
+      },
+      "input":{"shape":"RedactConversationMessageRequest"},
+      "output":{"shape":"RedactConversationMessageResponse"},
+      "errors":[
+        {"shape":"NotFoundException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Redacts the specified message from the specified Amazon Chime conversation.</p>"
+    },
+    "RedactRoomMessage":{
+      "name":"RedactRoomMessage",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{accountId}/rooms/{roomId}/messages/{messageId}?operation=redact",
+        "responseCode":200
+      },
+      "input":{"shape":"RedactRoomMessageRequest"},
+      "output":{"shape":"RedactRoomMessageResponse"},
+      "errors":[
+        {"shape":"NotFoundException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Redacts the specified message from the specified Amazon Chime chat room.</p>"
     },
     "RegenerateSecurityToken":{
       "name":"RegenerateSecurityToken",
@@ -2777,6 +2857,16 @@
       "documentation":"<p>The request could not be processed because of conflict in the current state of the resource.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
+    },
+    "ConversationRetentionSettings":{
+      "type":"structure",
+      "members":{
+        "RetentionDays":{
+          "shape":"RetentionDays",
+          "documentation":"<p>The number of days for which to retain chat conversation messages.</p>"
+        }
+      },
+      "documentation":"<p>The retention settings that determine how long to retain chat conversation messages for an Amazon Chime Enterprise account.</p>"
     },
     "Country":{
       "type":"string",
@@ -3903,6 +3993,31 @@
         "ProxySession":{
           "shape":"ProxySession",
           "documentation":"<p>The proxy session details.</p>"
+        }
+      }
+    },
+    "GetRetentionSettingsRequest":{
+      "type":"structure",
+      "required":["AccountId"],
+      "members":{
+        "AccountId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Chime account ID.</p>",
+          "location":"uri",
+          "locationName":"accountId"
+        }
+      }
+    },
+    "GetRetentionSettingsResponse":{
+      "type":"structure",
+      "members":{
+        "RetentionSettings":{
+          "shape":"RetentionSettings",
+          "documentation":"<p>The retention settings.</p>"
+        },
+        "InitiateDeletionTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The timestamp representing the time at which the specified items are permanently deleted, in ISO 8601 format.</p>"
         }
       }
     },
@@ -5048,6 +5163,14 @@
       "error":{"httpStatusCode":404},
       "exception":true
     },
+    "NotificationTarget":{
+      "type":"string",
+      "enum":[
+        "EventBridge",
+        "SNS",
+        "SQS"
+      ]
+    },
     "NullableBoolean":{"type":"boolean"},
     "NumberSelectionBehavior":{
       "type":"string",
@@ -5529,6 +5652,38 @@
         "EventsConfiguration":{"shape":"EventsConfiguration"}
       }
     },
+    "PutRetentionSettingsRequest":{
+      "type":"structure",
+      "required":[
+        "AccountId",
+        "RetentionSettings"
+      ],
+      "members":{
+        "AccountId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Chime account ID.</p>",
+          "location":"uri",
+          "locationName":"accountId"
+        },
+        "RetentionSettings":{
+          "shape":"RetentionSettings",
+          "documentation":"<p>The retention settings.</p>"
+        }
+      }
+    },
+    "PutRetentionSettingsResponse":{
+      "type":"structure",
+      "members":{
+        "RetentionSettings":{
+          "shape":"RetentionSettings",
+          "documentation":"<p>The retention settings.</p>"
+        },
+        "InitiateDeletionTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The timestamp representing the time at which the specified items are permanently deleted, in ISO 8601 format.</p>"
+        }
+      }
+    },
     "PutVoiceConnectorLoggingConfigurationRequest":{
       "type":"structure",
       "required":[
@@ -5698,6 +5853,72 @@
         }
       }
     },
+    "RedactConversationMessageRequest":{
+      "type":"structure",
+      "required":[
+        "AccountId",
+        "ConversationId",
+        "MessageId"
+      ],
+      "members":{
+        "AccountId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Chime account ID.</p>",
+          "location":"uri",
+          "locationName":"accountId"
+        },
+        "ConversationId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The conversation ID.</p>",
+          "location":"uri",
+          "locationName":"conversationId"
+        },
+        "MessageId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The message ID.</p>",
+          "location":"uri",
+          "locationName":"messageId"
+        }
+      }
+    },
+    "RedactConversationMessageResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "RedactRoomMessageRequest":{
+      "type":"structure",
+      "required":[
+        "AccountId",
+        "RoomId",
+        "MessageId"
+      ],
+      "members":{
+        "AccountId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Chime account ID.</p>",
+          "location":"uri",
+          "locationName":"accountId"
+        },
+        "RoomId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The room ID.</p>",
+          "location":"uri",
+          "locationName":"roomId"
+        },
+        "MessageId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The message ID.</p>",
+          "location":"uri",
+          "locationName":"messageId"
+        }
+      }
+    },
+    "RedactRoomMessageResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "RegenerateSecurityTokenRequest":{
       "type":"structure",
       "required":[
@@ -5799,6 +6020,25 @@
       "max":99,
       "min":1
     },
+    "RetentionDays":{
+      "type":"integer",
+      "max":5475,
+      "min":1
+    },
+    "RetentionSettings":{
+      "type":"structure",
+      "members":{
+        "RoomRetentionSettings":{
+          "shape":"RoomRetentionSettings",
+          "documentation":"<p>The chat room retention settings.</p>"
+        },
+        "ConversationRetentionSettings":{
+          "shape":"ConversationRetentionSettings",
+          "documentation":"<p>The chat conversation retention settings.</p>"
+        }
+      },
+      "documentation":"<p>The retention settings for an Amazon Chime Enterprise account that determine how long to retain items such as chat room messages and chat conversation messages.</p>"
+    },
     "Room":{
       "type":"structure",
       "members":{
@@ -5866,6 +6106,16 @@
         "Administrator",
         "Member"
       ]
+    },
+    "RoomRetentionSettings":{
+      "type":"structure",
+      "members":{
+        "RetentionDays":{
+          "shape":"RetentionDays",
+          "documentation":"<p>The number of days for which to retain chat room messages.</p>"
+        }
+      },
+      "documentation":"<p>The retention settings that determine how long to retain chat room messages for an Amazon Chime Enterprise account.</p>"
     },
     "SearchAvailablePhoneNumbersRequest":{
       "type":"structure",
@@ -5978,9 +6228,30 @@
         "Disabled":{
           "shape":"Boolean",
           "documentation":"<p>When true, media streaming to Amazon Kinesis is turned off.</p>"
+        },
+        "StreamingNotificationTargets":{
+          "shape":"StreamingNotificationTargetList",
+          "documentation":"<p>The streaming notification targets.</p>"
         }
       },
       "documentation":"<p>The streaming configuration associated with an Amazon Chime Voice Connector. Specifies whether media streaming is enabled for sending to Amazon Kinesis, and shows the retention period for the Amazon Kinesis data, in hours.</p>"
+    },
+    "StreamingNotificationTarget":{
+      "type":"structure",
+      "required":["NotificationTarget"],
+      "members":{
+        "NotificationTarget":{
+          "shape":"NotificationTarget",
+          "documentation":"<p>The streaming notification target.</p>"
+        }
+      },
+      "documentation":"<p>The targeted recipient for a streaming configuration notification.</p>"
+    },
+    "StreamingNotificationTargetList":{
+      "type":"list",
+      "member":{"shape":"StreamingNotificationTarget"},
+      "max":3,
+      "min":1
     },
     "String":{"type":"string"},
     "String128":{

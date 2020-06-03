@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * This class is used to construct an endpoint host for an S3 access point.
@@ -102,7 +103,11 @@ public class S3AccessPointBuilder {
         String dualStackSegment = Boolean.TRUE.equals(dualstackEnabled) ? ".dualstack" : "";
         String uriString = String.format("%s://%s-%s.s3-accesspoint%s.%s.%s", protocol, urlEncode(accessPointName),
                                          accountId, dualStackSegment, region, domain);
-        return URI.create(uriString);
+        URI uri = URI.create(uriString);
+        if (uri.getHost() == null) {
+            throw SdkClientException.create("ARN region (" + region + ") resulted in an invalid URI:" + uri);
+        }
+        return uri;
     }
 
     private static void validateHostnameCompliant(String hostnameComponent, String paramName) {

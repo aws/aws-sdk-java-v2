@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.ConditionCheck;
@@ -53,7 +54,7 @@ public class ConditionCheckTest {
                           .key(k -> k.partitionValue(fakeItem.getId()))
                           .conditionExpression(conditionExpression)
                           .build();
-        OperationContext context = OperationContext.create("table-name", TableMetadata.primaryIndexName());
+        OperationContext context = DefaultOperationContext.create("table-name", TableMetadata.primaryIndexName());
 
         TransactWriteItem result = operation.generateTransactWriteItem(FakeItem.getTableSchema(), context,
                                                                        mockDynamoDbEnhancedClientExtension);

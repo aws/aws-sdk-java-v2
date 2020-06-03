@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -56,7 +57,8 @@ public interface IndexOperation<ItemT, RequestT, ResponseT, ResultT>
                                             String indexName,
                                             DynamoDbEnhancedClientExtension extension,
                                             DynamoDbClient dynamoDbClient) {
-        OperationContext context = OperationContext.create(tableName, indexName);
+        OperationContext context =
+            DefaultOperationContext.create(tableName, indexName);
         return execute(tableSchema, context, extension, dynamoDbClient);
     }
 
@@ -79,7 +81,8 @@ public interface IndexOperation<ItemT, RequestT, ResponseT, ResultT>
                                                                     String indexName,
                                                                     DynamoDbEnhancedClientExtension extension,
                                                                     DynamoDbAsyncClient dynamoDbAsyncClient) {
-        OperationContext context = OperationContext.create(tableName, indexName);
+        OperationContext context =
+            DefaultOperationContext.create(tableName, indexName);
         return executeAsync(tableSchema, context, extension, dynamoDbAsyncClient);
     }
 }

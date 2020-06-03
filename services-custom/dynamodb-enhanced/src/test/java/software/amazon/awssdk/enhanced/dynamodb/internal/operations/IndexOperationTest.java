@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -57,7 +58,7 @@ public class IndexOperationTest {
         assertThat(fakeIndexOperation.lastDynamoDbClient, sameInstance(mockDynamoDbClient));
         assertThat(fakeIndexOperation.lastDynamoDbEnhancedClientExtension, sameInstance(mockDynamoDbEnhancedClientExtension));
         assertThat(fakeIndexOperation.lastTableSchema, sameInstance(FakeItem.getTableSchema()));
-        assertThat(fakeIndexOperation.lastOperationContext, is(OperationContext.create(FAKE_TABLE_NAME, FAKE_INDEX_NAME)));
+        assertThat(fakeIndexOperation.lastOperationContext, is(DefaultOperationContext.create(FAKE_TABLE_NAME, FAKE_INDEX_NAME)));
     }
 
     private static class FakeIndexOperation implements IndexOperation<FakeItem, String, String, String> {

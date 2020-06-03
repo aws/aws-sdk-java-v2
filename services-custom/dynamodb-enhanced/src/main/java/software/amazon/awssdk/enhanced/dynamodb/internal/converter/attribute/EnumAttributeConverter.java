@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.Validate;
  * This stores values in DynamoDB as a string.
  *
  * <p>
- * This can be created via {@link #create(Class<T>)}.
+ * This can be created via {@link #create(Class)}.
  */
 @SdkInternalApi
 public class EnumAttributeConverter<T extends Enum<T>> implements AttributeConverter<T> {
