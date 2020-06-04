@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "SSM State Manager support for executing an association only at specified CRON schedule after creating/updating an association."
+}
