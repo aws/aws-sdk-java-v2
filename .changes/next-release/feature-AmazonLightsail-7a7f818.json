@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Lightsail",
+    "description": "This release adds the BurstCapacityPercentage and BurstCapacityTime instance metrics, which allow you to track the burst capacity available to your instance."
+}
