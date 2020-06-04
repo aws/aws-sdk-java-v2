@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -55,6 +56,7 @@ public final class ClientOverrideConfiguration
     private final Duration apiCallTimeout;
     private final ProfileFile defaultProfileFile;
     private final String defaultProfileName;
+    private final MetricPublisher metricPublisher;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -68,6 +70,7 @@ public final class ClientOverrideConfiguration
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.defaultProfileFile = builder.defaultProfileFile();
         this.defaultProfileName = builder.defaultProfileName();
+        this.metricPublisher = builder.metricPublisher();
     }
 
     @Override
@@ -182,6 +185,15 @@ public final class ClientOverrideConfiguration
      */
     public Optional<String> defaultProfileName() {
         return Optional.ofNullable(defaultProfileName);
+    }
+
+    /**
+     * The metric publisher to use to publisher metrics collected for this client.
+     *
+     * @return The metric publisher.
+     */
+    public Optional<MetricPublisher> metricPublisher() {
+        return Optional.ofNullable(metricPublisher);
     }
 
     @Override
@@ -408,6 +420,16 @@ public final class ClientOverrideConfiguration
         Builder defaultProfileName(String defaultProfileName);
 
         String defaultProfileName();
+
+        /**
+         * Set the metric publisher to use for publishing metrics collected fo this client.
+         *
+         * @param metricPublisher The metric publisher to use.
+         * @return This object for method chaining.
+         */
+        Builder metricPublisher(MetricPublisher metricPublisher);
+
+        MetricPublisher metricPublisher();
     }
 
     /**
@@ -422,6 +444,7 @@ public final class ClientOverrideConfiguration
         private Duration apiCallAttemptTimeout;
         private ProfileFile defaultProfileFile;
         private String defaultProfileName;
+        private MetricPublisher metricPublisher;
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -561,6 +584,17 @@ public final class ClientOverrideConfiguration
         public Builder defaultProfileName(String defaultProfileName) {
             this.defaultProfileName = defaultProfileName;
             return this;
+        }
+
+        @Override
+        public Builder metricPublisher(MetricPublisher metricPublisher) {
+            this.metricPublisher = metricPublisher;
+            return this;
+        }
+
+        @Override
+        public MetricPublisher metricPublisher() {
+            return metricPublisher;
         }
 
         @Override

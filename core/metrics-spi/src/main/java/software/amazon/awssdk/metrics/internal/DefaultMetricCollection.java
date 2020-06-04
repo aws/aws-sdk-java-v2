@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.metrics.internal;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -30,15 +29,15 @@ import software.amazon.awssdk.metrics.SdkMetric;
 public final class DefaultMetricCollection implements MetricCollection {
     private final String name;
     private final Map<SdkMetric<?>, List<MetricRecord<?>>> metrics;
-    private final Collection<MetricCollection> children;
+    private final List<MetricCollection> children;
 
 
     public DefaultMetricCollection(String name, Map<SdkMetric<?>,
                                    List<MetricRecord<?>>> metrics,
-                                   Collection<MetricCollection> children) {
+                                   List<MetricCollection> children) {
         this.name = name;
         this.metrics = metrics;
-        this.children = children != null ? Collections.unmodifiableCollection(children) : Collections.emptyList();
+        this.children = children != null ? Collections.unmodifiableList(children) : Collections.emptyList();
     }
 
     @Override
@@ -60,7 +59,7 @@ public final class DefaultMetricCollection implements MetricCollection {
     }
 
     @Override
-    public Collection<MetricCollection> children() {
+    public List<MetricCollection> children() {
         return children;
     }
 

@@ -48,6 +48,7 @@ import software.amazon.awssdk.core.internal.http.request.SlowExecutionIntercepto
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
 import utils.ValidSdkObjects;
 
 
@@ -143,6 +144,7 @@ public class HttpClientApiCallAttemptTimeoutTest {
                                .interceptorChain(interceptors)
                                .executionAttributes(new ExecutionAttributes())
                                .interceptorContext(incerceptorContext)
+                               .metricCollector(MetricCollector.create("ApiCall"))
                                .build();
     }
 }

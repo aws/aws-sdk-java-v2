@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -44,6 +45,7 @@ public abstract class RequestOverrideConfiguration {
     private final Duration apiCallTimeout;
     private final Duration apiCallAttemptTimeout;
     private final Signer signer;
+    private final MetricPublisher metricPublisher;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -52,6 +54,7 @@ public abstract class RequestOverrideConfiguration {
         this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.signer = builder.signer();
+        this.metricPublisher = builder.metricPublisher();
     }
 
     /**
@@ -127,6 +130,14 @@ public abstract class RequestOverrideConfiguration {
         return Optional.ofNullable(signer);
     }
 
+    /**
+     * Return the metric publisher for publishing the metrics collected for this request. This publisher supersedes the
+     * metric publisher set on the client.
+     */
+    public Optional<MetricPublisher> metricPublisher() {
+        return Optional.ofNullable(metricPublisher);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -141,7 +152,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(apiNames, that.apiNames) &&
                Objects.equals(apiCallTimeout, that.apiCallTimeout) &&
                Objects.equals(apiCallAttemptTimeout, that.apiCallAttemptTimeout) &&
-               Objects.equals(signer, that.signer);
+               Objects.equals(signer, that.signer) &&
+               Objects.equals(metricPublisher, that.metricPublisher);
     }
 
     @Override
@@ -153,6 +165,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(apiCallTimeout);
         hashCode = 31 * hashCode + Objects.hashCode(apiCallAttemptTimeout);
         hashCode = 31 * hashCode + Objects.hashCode(signer);
+        hashCode = 31 * hashCode + Objects.hashCode(metricPublisher);
         return hashCode;
     }
 
@@ -340,6 +353,17 @@ public abstract class RequestOverrideConfiguration {
         Signer signer();
 
         /**
+         * Sets the metric publisher for publishing the metrics collected for this request. This publisher supersedes
+         * the metric publisher set on the client.
+         *
+         * @param metricPublisher The metric publisher for this request.
+         * @return This object for method chaining.
+         */
+        B metricPublisher(MetricPublisher metricPublisher);
+
+        MetricPublisher metricPublisher();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -354,6 +378,7 @@ public abstract class RequestOverrideConfiguration {
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
         private Signer signer;
+        private MetricPublisher metricPublisher;
 
         protected BuilderImpl() {
         }
@@ -469,6 +494,21 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public Signer signer() {
             return signer;
+        }
+
+        @Override
+        public B metricPublisher(MetricPublisher metricPublisher) {
+            this.metricPublisher = metricPublisher;
+            return (B) this;
+        }
+
+        public void setMetricPublisher(MetricPublisher metricPublisher) {
+            metricPublisher(metricPublisher);
+        }
+
+        @Override
+        public MetricPublisher metricPublisher() {
+            return metricPublisher;
         }
     }
 }

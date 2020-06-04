@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.CollectionUtils.firstIfPresent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -42,9 +43,13 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
@@ -69,7 +74,11 @@ public final class AwsClientHandlerUtils {
                                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
                                                                     .orElse(clientCredentials);
 
-        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        Pair<AwsCredentials, Duration> measuredCredentialsFetch = MetricUtils.measureDuration(
+                credentialsProvider::resolveCredentials);
+        AwsCredentials credentials = measuredCredentialsFetch.left();
+        MetricCollector metricCollector = resolveMetricCollector(executionParams);
+        metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, measuredCredentialsFetch.right());
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
@@ -99,6 +108,7 @@ public final class AwsClientHandlerUtils {
                                                                      .build())
                                .executionAttributes(executionAttributes)
                                .signer(computeSigner(originalRequest, clientConfig))
+                               .metricCollector(metricCollector)
                                .build();
     }
 
@@ -132,5 +142,13 @@ public final class AwsClientHandlerUtils {
         return originalRequest.overrideConfiguration()
                               .flatMap(RequestOverrideConfiguration::signer)
                               .orElse(clientConfiguration.option(AwsAdvancedClientOption.SIGNER));
+    }
+
+    private static MetricCollector resolveMetricCollector(ClientExecutionParams<?, ?> params) {
+        MetricCollector metricCollector = params.getMetricCollector();
+        if (metricCollector == null) {
+            metricCollector = MetricCollector.create("ApiCall");
+        }
+        return metricCollector;
     }
 }
