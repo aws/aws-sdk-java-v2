@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront",
+    "description": "Amazon CloudFront adds support for configurable origin connection attempts and origin connection timeout."
+}
