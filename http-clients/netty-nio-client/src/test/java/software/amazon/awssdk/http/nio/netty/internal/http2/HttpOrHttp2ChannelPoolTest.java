@@ -262,19 +262,9 @@ public class HttpOrHttp2ChannelPoolTest {
         metricsFuture.join();
         MetricCollection metrics = metricCollector.collect();
 
-        assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES).get(0)).isEqualTo(0);
-        assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS).get(0)).isEqualTo(4);
-
-        // We get a snapshot at some point during or after the acquire, so we have to check the during and after case
-        // separately.
-        Integer availableConnections = metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS).get(0);
-        Integer leasedConnections = metrics.metricValues(HttpMetric.LEASED_CONNECTIONS).get(0);
-
-        assertThat(availableConnections).isBetween(3, 4);
-        if (availableConnections == 3) {
-            assertThat(leasedConnections).isEqualTo(1);
-        } else {
-            assertThat(leasedConnections).isEqualTo(0);
-        }
+        assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES).get(0)).isEqualTo(0);
+        assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY).get(0)).isEqualTo(4);
+        assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY).get(0)).isBetween(0, 1);
+        assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY).get(0)).isBetween(0, 1);
     }
 }

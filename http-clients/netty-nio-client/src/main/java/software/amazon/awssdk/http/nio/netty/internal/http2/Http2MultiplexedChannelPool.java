@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
+import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_CONNECTION;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_INITIAL_WINDOW_SIZE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 
 import io.netty.channel.Channel;
@@ -42,14 +45,17 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -66,7 +72,7 @@ import software.amazon.awssdk.utils.Validate;
  * </p>
  */
 @SdkInternalApi
-public class Http2MultiplexedChannelPool implements ChannelPool {
+public class Http2MultiplexedChannelPool implements SdkChannelPool {
     private static final Logger log = Logger.loggerFor(Http2MultiplexedChannelPool.class);
 
     /**
@@ -91,7 +97,9 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     /**
      * @param connectionPool Connection pool for parent channels (i.e. the socket channel).
      */
-    Http2MultiplexedChannelPool(ChannelPool connectionPool, EventLoopGroup eventLoopGroup, Duration idleConnectionTimeout) {
+    Http2MultiplexedChannelPool(ChannelPool connectionPool,
+                                EventLoopGroup eventLoopGroup,
+                                Duration idleConnectionTimeout) {
         this.connectionPool = connectionPool;
         this.eventLoopGroup = eventLoopGroup;
         this.connections = ConcurrentHashMap.newKeySet();
@@ -140,10 +148,10 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
 
             Channel parentChannel = newConnectionAcquire.getNow();
             try {
-                parentChannel.attr(ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL).set(this);
+                parentChannel.attr(HTTP2_MULTIPLEXED_CHANNEL_POOL).set(this);
 
                 // When the protocol future is completed on the new connection, we're ready for new streams to be added to it.
-                parentChannel.attr(ChannelAttributeKey.PROTOCOL_FUTURE).get()
+                parentChannel.attr(PROTOCOL_FUTURE).get()
                              .thenAccept(protocol -> acquireStreamOnFreshConnection(promise, parentChannel, protocol))
                              .exceptionally(throwable -> failAndCloseParent(promise, parentChannel, throwable));
             } catch (Throwable e) {
@@ -267,7 +275,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
                 }
 
                 Channel channel = acquirePromise.getNow();
-                channel.attr(ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL).set(this);
+                channel.attr(HTTP2_MULTIPLEXED_CHANNEL_POOL).set(this);
                 channel.attr(MULTIPLEXED_CHANNEL).set(channelRecord);
                 promise.setSuccess(channel);
 
@@ -415,6 +423,59 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
         return closeFinishedPromise;
     }
 
+    @Override
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+
+        CompletableFuture<MultiplexedChannelRecord.Metrics> summedMetrics = new CompletableFuture<>();
+
+        List<CompletableFuture<MultiplexedChannelRecord.Metrics>> channelMetrics =
+            connections.stream()
+                       .map(MultiplexedChannelRecord::getMetrics)
+                       .collect(toList());
+
+        accumulateMetrics(summedMetrics, channelMetrics);
+
+        summedMetrics.whenComplete((m, t) -> {
+            if (t != null) {
+                result.completeExceptionally(t);
+            } else {
+                try {
+                    metrics.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, Math.toIntExact(m.getAvailableStreams()));
+                    result.complete(null);
+                } catch (Exception e) {
+                    result.completeExceptionally(e);
+                }
+            }
+        });
+
+        return result;
+    }
+
+    private void accumulateMetrics(CompletableFuture<MultiplexedChannelRecord.Metrics> result,
+                                   List<CompletableFuture<MultiplexedChannelRecord.Metrics>> channelMetrics) {
+        accumulateMetrics(result, channelMetrics, new MultiplexedChannelRecord.Metrics(), 0);
+    }
+
+    private void accumulateMetrics(CompletableFuture<MultiplexedChannelRecord.Metrics> result,
+                                   List<CompletableFuture<MultiplexedChannelRecord.Metrics>> channelMetrics,
+                                   MultiplexedChannelRecord.Metrics resultAccumulator,
+                                   int index) {
+        if (index >= channelMetrics.size()) {
+            result.complete(resultAccumulator);
+            return;
+        }
+
+        channelMetrics.get(index).whenComplete((m, t) -> {
+            if (t != null) {
+                result.completeExceptionally(t);
+            } else {
+                resultAccumulator.add(m);
+                accumulateMetrics(result, channelMetrics, resultAccumulator, index + 1);
+            }
+        });
+    }
+
     @Sharable
     private static final class ReleaseOnExceptionHandler extends ChannelDuplexHandler {
         private static final ReleaseOnExceptionHandler INSTANCE = new ReleaseOnExceptionHandler();
@@ -443,7 +504,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
         }
 
         private void closeAndReleaseParent(ChannelHandlerContext ctx, Throwable cause) {
-            Http2MultiplexedChannelPool pool = ctx.channel().attr(ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL).get();
+            Http2MultiplexedChannelPool pool = ctx.channel().attr(HTTP2_MULTIPLEXED_CHANNEL_POOL).get();
             pool.closeAndReleaseParent(ctx.channel(), cause);
         }
     }

@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Connection;
+import io.netty.handler.codec.http2.Http2FrameStream;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -60,6 +61,13 @@ public final class ChannelAttributeKey {
      */
     public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = AttributeKey.newInstance(
         "aws.http.nio.netty.async.maxConcurrentStreams");
+
+    /**
+     * The {@link Http2FrameStream} associated with this stream channel. This is added to stream channels when they are created,
+     * before they are fully initialized.
+     */
+    public static final AttributeKey<Http2FrameStream> HTTP2_FRAME_STREAM = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.http2FrameStream");
 
     /**
      * {@link AttributeKey} to keep track of whether we should close the connection after this request

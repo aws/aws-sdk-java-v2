@@ -72,7 +72,7 @@ public class BetterFixedChannelPool implements SdkChannelPool {
     private final EventExecutor executor;
     private final long acquireTimeoutNanos;
     private final Runnable timeoutTask;
-    private final ChannelPool delegateChannelPool;
+    private final SdkChannelPool delegateChannelPool;
 
     // There is no need to worry about synchronization as everything that modified the queue or counts is done
     // by the above EventExecutor.
@@ -152,19 +152,19 @@ public class BetterFixedChannelPool implements SdkChannelPool {
     }
 
     public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        CompletableFuture<Void> delegateMetricResult = delegateChannelPool.collectChannelPoolMetrics(metrics);
         CompletableFuture<Void> result = new CompletableFuture<>();
         doInEventLoop(executor, () -> {
             try {
-                metrics.reportMetric(HttpMetric.MAX_CONNECTIONS, this.maxConnections);
-                metrics.reportMetric(HttpMetric.AVAILABLE_CONNECTIONS, this.maxConnections - this.acquiredChannelCount);
-                metrics.reportMetric(HttpMetric.LEASED_CONNECTIONS, this.acquiredChannelCount);
-                metrics.reportMetric(HttpMetric.PENDING_CONNECTION_ACQUIRES, this.pendingAcquireCount);
+                metrics.reportMetric(HttpMetric.MAX_CONCURRENCY, this.maxConnections);
+                metrics.reportMetric(HttpMetric.PENDING_CONCURRENCY_ACQUIRES, this.pendingAcquireCount);
+                metrics.reportMetric(HttpMetric.LEASED_CONCURRENCY, this.acquiredChannelCount);
                 result.complete(null);
             } catch (Throwable t) {
                 result.completeExceptionally(t);
             }
         });
-        return result;
+        return CompletableFuture.allOf(result, delegateMetricResult);
     }
 
     private void acquire0(final Promise<Channel> promise) {
@@ -398,7 +398,7 @@ public class BetterFixedChannelPool implements SdkChannelPool {
 
     public static final class Builder {
 
-        private ChannelPool channelPool;
+        private SdkChannelPool channelPool;
         private EventExecutor executor;
         private AcquireTimeoutAction action;
         private long acquireTimeoutMillis;
@@ -408,7 +408,7 @@ public class BetterFixedChannelPool implements SdkChannelPool {
         private Builder() {
         }
 
-        public Builder channelPool(ChannelPool channelPool) {
+        public Builder channelPool(SdkChannelPool channelPool) {
             this.channelPool = channelPool;
             return this;
         }

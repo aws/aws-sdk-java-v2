@@ -20,7 +20,8 @@ import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.SdkMetric;
 
 /**
- * Metrics collected by HTTP clients.
+ * Metrics collected by HTTP clients for HTTP/1 and HTTP/2 operations. See {@link Http2Metric} for metrics that are only available
+ * on HTTP/2 operations.
  */
 @SdkPublicApi
 public final class HttpMetric {
@@ -30,24 +31,64 @@ public final class HttpMetric {
     public static final SdkMetric<String> HTTP_CLIENT_NAME = metric("HttpClientName", String.class);
 
     /**
-     * The maximum number of connections that will be pooled by the HTTP client.
+     * The maximum number of concurrent requests that is supported by the HTTP client.
+     *
+     * <p>For HTTP/1 operations, this is equal to the maximum number of TCP connections that can be be pooled by the HTTP client.
+     * For HTTP/2 operations, this is equal to the maximum number of streams that can be pooled by the HTTP client.
+     *
+     * <p>Note: Depending on the HTTP client, this is either a value for all endpoints served by the HTTP client, or a value
+     * that applies only to the specific endpoint/host used in the request. For 'apache-http-client', this value is
+     * for the entire HTTP client. For 'netty-nio-client', this value is per-endpoint. In all cases, this value is scoped to an
+     * individual HTTP client instance, and does not include concurrency that may be available in other HTTP clients running
+     * within the same JVM.
      */
-    public static final SdkMetric<Integer> MAX_CONNECTIONS = metric("MaxConnections", Integer.class);
+    public static final SdkMetric<Integer> MAX_CONCURRENCY = metric("MaxConcurrency", Integer.class);
 
     /**
-     * The number of idle connections in the connection pool that are ready to serve a request.
+     * The number of additional concurrent requests that can be supported by the HTTP client without needing to establish
+     * additional connections to the target server.
+     *
+     * <p>For HTTP/1 operations, this is equal to the number of TCP connections that have been established with the service,
+     * but are currently idle/unused. For HTTP/2 operations, this is equal to the number of streams that are currently
+     * idle/unused.
+     *
+     * <p>Note: Depending on the HTTP client, this is either a value for all endpoints served by the HTTP client, or a value
+     * that applies only to the specific endpoint/host used in the request. For 'apache-http-client', this value is
+     * for the entire HTTP client. For 'netty-nio-client', this value is per-endpoint. In all cases, this value is scoped to an
+     * individual HTTP client instance, and does not include concurrency that may be available in other HTTP clients running
+     * within the same JVM.
      */
-    public static final SdkMetric<Integer> AVAILABLE_CONNECTIONS = metric("AvailableConnections", Integer.class);
+    public static final SdkMetric<Integer> AVAILABLE_CONCURRENCY = metric("AvailableConcurrency", Integer.class);
 
     /**
-     * The number of connections from the connection pool that are busy serving requests.
+     * The number of requests that are currently being executed by the HTTP client.
+     *
+     * <p>For HTTP/1 operations, this is equal to the number of TCP connections currently in active communication with the service
+     * (excluding idle connections). For HTTP/2 operations, this is equal to the number of HTTP streams currently in active
+     * communication with the service (excluding idle stream capacity).
+     *
+     * <p>Note: Depending on the HTTP client, this is either a value for all endpoints served by the HTTP client, or a value
+     * that applies only to the specific endpoint/host used in the request. For 'apache-http-client', this value is
+     * for the entire HTTP client. For 'netty-nio-client', this value is per-endpoint. In all cases, this value is scoped to an
+     * individual HTTP client instance, and does not include concurrency that may be available in other HTTP clients running
+     * within the same JVM.
      */
-    public static final SdkMetric<Integer> LEASED_CONNECTIONS = metric("LeasedConnections", Integer.class);
+    public static final SdkMetric<Integer> LEASED_CONCURRENCY = metric("LeasedConcurrency", Integer.class);
 
     /**
-     * The number of requests awaiting a free connection from the pool.
+     * The number of requests that are awaiting concurrency to be made available from the HTTP client.
+     *
+     * <p>For HTTP/1 operations, this is equal to the number of requests currently blocked, waiting for a TCP connection to be
+     * established or returned from the connection pool. For HTTP/2 operations, this is equal to the number of requests currently
+     * blocked, waiting for a new stream (and possibly a new HTTP/2 connection) from the connection pool.
+     *
+     * <p>Note: Depending on the HTTP client, this is either a value for all endpoints served by the HTTP client, or a value
+     * that applies only to the specific endpoint/host used in the request. For 'apache-http-client', this value is
+     * for the entire HTTP client. For 'netty-nio-client', this value is per-endpoint. In all cases, this value is scoped to an
+     * individual HTTP client instance, and does not include concurrency that may be available in other HTTP clients running
+     * within the same JVM.
      */
-    public static final SdkMetric<Integer> PENDING_CONNECTION_ACQUIRES = metric("PendingConnectionAcquires", Integer.class);
+    public static final SdkMetric<Integer> PENDING_CONCURRENCY_ACQUIRES = metric("PendingConcurrencyAcquires", Integer.class);
 
     private HttpMetric() {
     }

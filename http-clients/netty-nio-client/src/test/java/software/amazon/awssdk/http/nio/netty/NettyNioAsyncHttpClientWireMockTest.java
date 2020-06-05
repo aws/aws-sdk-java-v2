@@ -703,10 +703,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
             MetricCollection metrics = handler.collector.collect();
             assertThat(metrics.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("NettyNio");
-            assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS)).containsExactly(1);
-            assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES)).allSatisfy(a -> assertThat(a).isBetween(0, 9));
-            assertThat(metrics.metricValues(HttpMetric.LEASED_CONNECTIONS)).allSatisfy(a -> assertThat(a).isBetween(0, 1));
-            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS)).allSatisfy(a -> assertThat(a).isBetween(0, 1));
+            assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(1);
+            assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES)).allSatisfy(a -> assertThat(a).isBetween(0, 9));
+            assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY)).allSatisfy(a -> assertThat(a).isBetween(0, 1));
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).allSatisfy(a -> assertThat(a).isBetween(0, 1));
         }
 
         customClient.close();
@@ -725,13 +725,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
         Thread.sleep(5_000);
         MetricCollection metrics = handler.collector.collect();
         assertThat(metrics.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("NettyNio");
-        assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS)).containsExactly(10);
-        assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES)).hasSize(1)
-                                                                                .allSatisfy(a -> assertThat(a).isBetween(0, 1));
-        assertThat(metrics.metricValues(HttpMetric.LEASED_CONNECTIONS)).hasSize(1)
-                                                                       .allSatisfy(a -> assertThat(a).isBetween(0, 1));
-        assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS)).hasSize(1)
-                                                                          .allSatisfy(a -> assertThat(a).isBetween(9, 10));
+        assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(10);
+        assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES).get(0)).isBetween(0, 1);
+        assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY).get(0)).isBetween(0, 1);
+        assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY).get(0)).isBetween(0, 1);
 
         customClient.close();
     }
@@ -753,10 +750,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         MetricCollection metrics = handler.collector.collect();
         assertThat(metrics.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("NettyNio");
-        assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS)).containsExactly(10);
-        assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES)).containsExactly(0);
-        assertThat(metrics.metricValues(HttpMetric.LEASED_CONNECTIONS)).containsExactly(0);
-        assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS)).containsExactly(10);
+        assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(10);
+        assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES)).containsExactly(0);
+        assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY)).containsExactly(0);
+        assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY).get(0)).isBetween(0, 1);
     }
 
     private void verifyChannelRelease(Channel channel) throws InterruptedException {
