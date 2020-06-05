@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Runtime",
+    "description": "You can now specify the production variant to send the inference request to, when invoking a SageMaker Endpoint that is running two or more variants."
+}
