@@ -113,6 +113,9 @@ public class QueryProtocolSpec implements ProtocolSpec {
                  "responseHandler",
                  "errorResponseHandler",
                  opModel.getInput().getVariableName());
+
+        codeBlock.add(".withMetricCollector($N)", "apiCallMetricCollector");
+
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withRequestBody(requestBody)")
                             .add(".withMarshaller($L));", syncStreamingMarshaller(intermediateModel, opModel, marshaller))
