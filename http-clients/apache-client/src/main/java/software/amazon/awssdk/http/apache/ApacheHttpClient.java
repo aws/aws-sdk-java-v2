@@ -18,11 +18,11 @@ package software.amazon.awssdk.http.apache;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONNECTIONS;
+import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
-import static software.amazon.awssdk.http.HttpMetric.LEASED_CONNECTIONS;
-import static software.amazon.awssdk.http.HttpMetric.MAX_CONNECTIONS;
-import static software.amazon.awssdk.http.HttpMetric.PENDING_CONNECTION_ACQUIRES;
+import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -300,10 +300,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
         if (cm instanceof PoolingHttpClientConnectionManager) {
             PoolingHttpClientConnectionManager poolingCm = (PoolingHttpClientConnectionManager) cm;
             PoolStats totalStats = poolingCm.getTotalStats();
-            metricCollector.reportMetric(MAX_CONNECTIONS, totalStats.getMax());
-            metricCollector.reportMetric(AVAILABLE_CONNECTIONS, totalStats.getAvailable());
-            metricCollector.reportMetric(LEASED_CONNECTIONS, totalStats.getLeased());
-            metricCollector.reportMetric(PENDING_CONNECTION_ACQUIRES, totalStats.getPending());
+            metricCollector.reportMetric(MAX_CONCURRENCY, totalStats.getMax());
+            metricCollector.reportMetric(AVAILABLE_CONCURRENCY, totalStats.getAvailable());
+            metricCollector.reportMetric(LEASED_CONCURRENCY, totalStats.getLeased());
+            metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, totalStats.getPending());
         }
     }
 

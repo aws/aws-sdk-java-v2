@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.IdleConnectionCountingChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
@@ -156,8 +157,9 @@ public class HttpOrHttp2ChannelPool implements SdkChannelPool {
     private ChannelPool configureProtocol(Channel newChannel, Protocol protocol) {
         if (Protocol.HTTP1_1 == protocol) {
             // For HTTP/1.1 we use a traditional channel pool without multiplexing
+            SdkChannelPool idleConnectionMetricChannelPool = new IdleConnectionCountingChannelPool(eventLoop, delegatePool);
             protocolImpl = BetterFixedChannelPool.builder()
-                                                 .channelPool(delegatePool)
+                                                 .channelPool(idleConnectionMetricChannelPool)
                                                  .executor(eventLoop)
                                                  .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
                                                  .acquireTimeoutMillis(configuration.connectionAcquireTimeoutMillis())
@@ -167,7 +169,7 @@ public class HttpOrHttp2ChannelPool implements SdkChannelPool {
         } else {
             Duration idleConnectionTimeout = configuration.reapIdleConnections()
                                              ? Duration.ofMillis(configuration.idleTimeoutMillis()) : null;
-            ChannelPool h2Pool = new Http2MultiplexedChannelPool(delegatePool, eventLoopGroup, idleConnectionTimeout);
+            SdkChannelPool h2Pool = new Http2MultiplexedChannelPool(delegatePool, eventLoopGroup, idleConnectionTimeout);
             protocolImpl = BetterFixedChannelPool.builder()
                                                  .channelPool(h2Pool)
                                                  .executor(eventLoop)

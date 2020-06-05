@@ -15,15 +15,17 @@
 
 package software.amazon.awssdk.metrics.internal;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public final class DefaultMetricCollection implements MetricCollection {
@@ -52,7 +54,7 @@ public final class DefaultMetricCollection implements MetricCollection {
             List<MetricRecord<?>> metricRecords = metrics.get(metric);
             List<?> values = metricRecords.stream()
                     .map(MetricRecord::value)
-                    .collect(Collectors.toList());
+                    .collect(toList());
             return (List<T>) Collections.unmodifiableList(values);
         }
         return Collections.emptyList();
@@ -68,5 +70,14 @@ public final class DefaultMetricCollection implements MetricCollection {
         return metrics.values().stream()
                 .flatMap(List::stream)
                 .iterator();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("MetricCollection")
+                       .add("name", name)
+                       .add("metrics", metrics.values().stream().flatMap(List::stream).collect(toList()))
+                       .add("children", children)
+                       .build();
     }
 }

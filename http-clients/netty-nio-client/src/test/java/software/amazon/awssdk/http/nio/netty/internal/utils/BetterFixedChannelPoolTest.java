@@ -16,18 +16,22 @@
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,15 +40,17 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool.AcquireTimeoutAction;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class BetterFixedChannelPoolTest {
     private static EventLoopGroup eventLoopGroup;
 
     private BetterFixedChannelPool channelPool;
-    private ChannelPool delegatePool;
+    private SdkChannelPool delegatePool;
 
     @BeforeClass
     public static void setupClass() {
@@ -58,7 +64,7 @@ public class BetterFixedChannelPoolTest {
 
     @Before
     public void setup() {
-        delegatePool = mock(ChannelPool.class);
+        delegatePool = mock(SdkChannelPool.class);
 
         channelPool = BetterFixedChannelPool.builder()
                                             .channelPool(delegatePool)
@@ -73,6 +79,16 @@ public class BetterFixedChannelPoolTest {
     @After
     public void teardown() {
         channelPool.close();
+    }
+
+    @Test
+    public void delegateChannelPoolMetricFailureIsReported() {
+        Throwable t = new Throwable();
+        Mockito.when(delegatePool.collectChannelPoolMetrics(any())).thenReturn(CompletableFutureUtils.failedFuture(t));
+
+        CompletableFuture<Void> result = channelPool.collectChannelPoolMetrics(MetricCollector.create("test"));
+        waitForCompletion(result);
+        assertThat(result).hasFailedWithThrowableThat().isEqualTo(t);
     }
 
     @Test(timeout = 5_000)
@@ -90,6 +106,8 @@ public class BetterFixedChannelPoolTest {
             releasePromises.add(promise);
             return promise;
         });
+
+        Mockito.when(delegatePool.collectChannelPoolMetrics(any())).thenReturn(CompletableFuture.completedFuture(null));
 
         assertConnectionsCheckedOutAndPending(0, 0);
 
@@ -149,13 +167,22 @@ public class BetterFixedChannelPoolTest {
 
     private void assertConnectionsCheckedOutAndPending(int checkedOut, int pending) {
         MetricCollector metricCollector = MetricCollector.create("foo");
-        channelPool.collectChannelPoolMetrics(metricCollector).join();
+        waitForCompletion(channelPool.collectChannelPoolMetrics(metricCollector));
 
         MetricCollection metrics = metricCollector.collect();
 
-        assertThat(metrics.metricValues(HttpMetric.MAX_CONNECTIONS)).containsExactly(2);
-        assertThat(metrics.metricValues(HttpMetric.LEASED_CONNECTIONS)).containsExactly(checkedOut);
-        assertThat(metrics.metricValues(HttpMetric.PENDING_CONNECTION_ACQUIRES)).containsExactly(pending);
-        assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONNECTIONS)).containsExactly(2 - checkedOut);
+        assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(2);
+        assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY)).containsExactly(checkedOut);
+        assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES)).containsExactly(pending);
+    }
+
+    private void waitForCompletion(CompletableFuture<Void> future) {
+        try {
+            future.get(5, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            return;
+        } catch (InterruptedException | TimeoutException e) {
+            throw new Error(e);
+        }
     }
 }

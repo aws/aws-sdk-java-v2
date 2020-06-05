@@ -18,6 +18,7 @@ package software.amazon.awssdk.metrics.internal;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public final class DefaultMetricRecord<T> implements MetricRecord<T> {
@@ -37,5 +38,13 @@ public final class DefaultMetricRecord<T> implements MetricRecord<T> {
     @Override
     public T value() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("MetricRecord")
+                       .add("metric", metric.name())
+                       .add("value", value)
+                       .build();
     }
 }

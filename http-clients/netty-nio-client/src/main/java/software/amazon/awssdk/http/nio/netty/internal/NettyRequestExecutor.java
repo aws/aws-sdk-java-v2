@@ -68,7 +68,6 @@ import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandl
 import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpRequest;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.metrics.NoOpMetricCollector;
 
 @SdkInternalApi
 public final class NettyRequestExecutor {
@@ -138,7 +137,7 @@ public final class NettyRequestExecutor {
 
     private CompletableFuture<Void> initiateMetricsCollection() {
         MetricCollector metricCollector = context.metricCollector();
-        if (metricCollector == null  || metricCollector instanceof NoOpMetricCollector) {
+        if (!NettyRequestMetrics.metricsAreEnabled(metricCollector)) {
             return null;
         }
         return context.channelPool().collectChannelPoolMetrics(metricCollector);
@@ -239,6 +238,8 @@ public final class NettyRequestExecutor {
                    // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
+                       NettyRequestMetrics.publishHttp2StreamMetrics(context.metricCollector(), channel);
+
                        if (context.executeRequest().fullDuplex()) {
                            return;
                        }
@@ -246,7 +247,6 @@ public final class NettyRequestExecutor {
                        channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                           TimeUnit.MILLISECONDS));
                        channel.read();
-
                    } else {
                        // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);

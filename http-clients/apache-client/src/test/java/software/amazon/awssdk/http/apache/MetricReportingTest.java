@@ -19,11 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONNECTIONS;
+import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
-import static software.amazon.awssdk.http.HttpMetric.LEASED_CONNECTIONS;
-import static software.amazon.awssdk.http.HttpMetric.MAX_CONNECTIONS;
-import static software.amazon.awssdk.http.HttpMetric.PENDING_CONNECTION_ACQUIRES;
+import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
 import java.io.IOException;
 import java.time.Duration;
 import org.apache.http.HttpVersion;
@@ -77,10 +77,10 @@ public class MetricReportingTest {
         MetricCollection collected = collector.collect();
 
         assertThat(collected.metricValues(HTTP_CLIENT_NAME)).containsExactly("Apache");
-        assertThat(collected.metricValues(LEASED_CONNECTIONS)).containsExactly(1);
-        assertThat(collected.metricValues(PENDING_CONNECTION_ACQUIRES)).containsExactly(2);
-        assertThat(collected.metricValues(AVAILABLE_CONNECTIONS)).containsExactly(3);
-        assertThat(collected.metricValues(MAX_CONNECTIONS)).containsExactly(4);
+        assertThat(collected.metricValues(LEASED_CONCURRENCY)).containsExactly(1);
+        assertThat(collected.metricValues(PENDING_CONCURRENCY_ACQUIRES)).containsExactly(2);
+        assertThat(collected.metricValues(AVAILABLE_CONCURRENCY)).containsExactly(3);
+        assertThat(collected.metricValues(MAX_CONCURRENCY)).containsExactly(4);
     }
 
     @Test
@@ -95,10 +95,10 @@ public class MetricReportingTest {
         MetricCollection collected = collector.collect();
 
         assertThat(collected.metricValues(HTTP_CLIENT_NAME)).containsExactly("Apache");
-        assertThat(collected.metricValues(LEASED_CONNECTIONS)).isEmpty();
-        assertThat(collected.metricValues(PENDING_CONNECTION_ACQUIRES)).isEmpty();
-        assertThat(collected.metricValues(AVAILABLE_CONNECTIONS)).isEmpty();
-        assertThat(collected.metricValues(MAX_CONNECTIONS)).isEmpty();
+        assertThat(collected.metricValues(LEASED_CONCURRENCY)).isEmpty();
+        assertThat(collected.metricValues(PENDING_CONCURRENCY_ACQUIRES)).isEmpty();
+        assertThat(collected.metricValues(AVAILABLE_CONCURRENCY)).isEmpty();
+        assertThat(collected.metricValues(MAX_CONCURRENCY)).isEmpty();
     }
 
     private ApacheHttpClient newClient() {
