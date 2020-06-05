@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elastic Beanstalk",
+    "description": "These API changes enable an IAM user to associate an operations role with an Elastic Beanstalk environment, so that the IAM user can call Elastic Beanstalk actions without having access to underlying downstream AWS services that these actions call."
+}
