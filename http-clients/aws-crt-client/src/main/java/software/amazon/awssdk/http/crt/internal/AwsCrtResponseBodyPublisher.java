@@ -207,15 +207,15 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             try {
                 subscriber.ifPresent(s -> s.onError(throwable));
             } catch (Exception e) {
-                ;
+                log.warn(() -> "Failed to exceptionally complete subscriber future with: " + throwable.getMessage());
             }
             responseComplete.completeExceptionally(throwable);
         } else {
             log.debug(() -> "ResponseBodyPublisher Completed Successfully");
             try {
-                subscriber.ifPresent(s -> s.onComplete());
+                subscriber.ifPresent(Subscriber::onComplete);
             } catch (Exception e) {
-                ;
+                log.warn(() -> "Failed to successfully complete subscriber future");
             }
             responseComplete.complete(null);
         }

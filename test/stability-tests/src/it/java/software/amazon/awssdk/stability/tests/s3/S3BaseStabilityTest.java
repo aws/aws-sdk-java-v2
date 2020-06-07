@@ -41,8 +41,8 @@ import software.amazon.awssdk.utils.Logger;
 
 public abstract class S3BaseStabilityTest extends AwsTestBase {
     private static final Logger log = Logger.loggerFor(S3BaseStabilityTest.class);
-    protected static final int CONCURRENCY = 500;
-    protected static final int TOTAL_RUNS = 10;
+    protected static final int CONCURRENCY = 100;
+    protected static final int TOTAL_RUNS = 50;
     protected static final String LARGE_KEY_NAME = "2GB";
 
     protected static S3Client s3ApacheClient;

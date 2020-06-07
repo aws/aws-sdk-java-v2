@@ -25,6 +25,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 /**
@@ -64,11 +65,13 @@ public class H1ServerErrorTest extends H1ServerErrorTestBase {
 
     @Test
     public void connectionReceive500_shouldNotReuseConnection() throws Exception {
+        assertThat(crtClient).isNotNull();
         super.connectionReceive500_shouldNotReuseConnection();
     }
 
     @Test
     public void connectionReceive200_shouldReuseConnection() {
+        assertThat(crtClient).isNotNull();
         super.connectionReceive200_shouldReuseConnection();
     }
 }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.fault;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import org.junit.After;
@@ -61,11 +62,13 @@ public class H1ServerErrorTest extends H1ServerErrorTestBase {
 
     @Test
     public void connectionReceive500_shouldNotReuseConnection() throws Exception {
+        assertThat(netty).isNotNull();
         super.connectionReceive500_shouldNotReuseConnection();
     }
 
     @Test
     public void connectionReceive200_shouldReuseConnection() {
+        assertThat(netty).isNotNull();
         super.connectionReceive200_shouldReuseConnection();
     }
 }

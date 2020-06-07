@@ -70,7 +70,7 @@ public abstract class H1ServerErrorTestBase {
         server = null;
     }
 
-    public void connectionReceive500_shouldNotReuseConnection() throws Exception {
+    public void connectionReceive500_shouldNotReuseConnection() {
         server.return500OnFirstRequest = true;
 
         TestUtils.sendGetRequest(server.port(), getTestClient()).join();

@@ -35,9 +35,9 @@ import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
@@ -110,7 +110,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.maxConnectionsPerEndpoint = maxConns;
             this.manualWindowManagement = builder.manualWindowManagement;
             this.monitoringOptions = builder.monitoringOptions;
-            this.maxConnectionIdleInMilliseconds = (builder.connectionMaxIdleTime != null) ? builder.connectionMaxIdleTime.toMillis() : 0;
+            this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
 
             this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
         }
@@ -439,9 +439,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private ProxyConfiguration proxyConfiguration;
         private HttpMonitoringOptions monitoringOptions;
 
-        // default reaping interval matches Apache client
-        private Duration connectionMaxIdleTime = Duration.ofSeconds(60);
-
         private DefaultBuilder() {
         }
 
@@ -513,7 +510,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder connectionMaxIdleTime(Duration connectionMaxIdleTime) {
-            this.connectionMaxIdleTime = connectionMaxIdleTime;
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT, connectionMaxIdleTime);
             return this;
         }
 
