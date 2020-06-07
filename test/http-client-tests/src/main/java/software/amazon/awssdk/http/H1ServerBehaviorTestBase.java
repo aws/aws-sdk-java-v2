@@ -42,8 +42,10 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
 import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
@@ -51,9 +53,9 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
 /**
- * Testing the scenario where h1 server sends 5xx errors.
+ * Testing how clients react to various h1 server behaviors
  */
-public abstract class H1ServerErrorTestBase {
+public abstract class H1ServerBehaviorTestBase {
     private Server server;
 
     protected abstract SdkAsyncHttpClient getTestClient();
@@ -72,6 +74,7 @@ public abstract class H1ServerErrorTestBase {
 
     public void connectionReceive500_shouldNotReuseConnection() {
         server.return500OnFirstRequest = true;
+        server.closeConnection = false;
 
         TestUtils.sendGetRequest(server.port(), getTestClient()).join();
         TestUtils.sendGetRequest(server.port(), getTestClient()).join();
@@ -80,10 +83,26 @@ public abstract class H1ServerErrorTestBase {
 
     public void connectionReceive200_shouldReuseConnection() {
         server.return500OnFirstRequest = false;
+        server.closeConnection = false;
 
         TestUtils.sendGetRequest(server.port(), getTestClient()).join();
         TestUtils.sendGetRequest(server.port(), getTestClient()).join();
         assertThat(server.channels.size()).isEqualTo(1);
+    }
+
+    public void connectionCloseHeader_shouldNotReuseConnection() {
+        server.return500OnFirstRequest = false;
+        server.closeConnection = true;
+
+        TestUtils.sendGetRequest(server.port(), getTestClient()).join();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ie) {
+            throw new RuntimeException("Sleep interrupted");
+        }
+
+        TestUtils.sendGetRequest(server.port(), getTestClient()).join();
+        assertThat(server.channels.size()).isEqualTo(2);
     }
 
     private static class Server extends ChannelInitializer<SocketChannel> {
@@ -94,6 +113,7 @@ public abstract class H1ServerErrorTestBase {
         private final NioEventLoopGroup group = new NioEventLoopGroup();
         private SslContext sslCtx;
         private boolean return500OnFirstRequest;
+        private boolean closeConnection;
 
         public void init() throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -114,7 +134,7 @@ public abstract class H1ServerErrorTestBase {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast(sslCtx.newHandler(ch.alloc()));
             pipeline.addLast(new HttpServerCodec());
-            pipeline.addLast(new MightReturn500ChannelHandler());
+            pipeline.addLast(new BehaviorTestChannelHandler());
         }
 
         public void shutdown() throws InterruptedException {
@@ -125,7 +145,7 @@ public abstract class H1ServerErrorTestBase {
             return serverSock.localAddress().getPort();
         }
 
-        private class MightReturn500ChannelHandler extends ChannelDuplexHandler {
+        private class BehaviorTestChannelHandler extends ChannelDuplexHandler {
 
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -143,6 +163,11 @@ public abstract class H1ServerErrorTestBase {
                     response.headers()
                             .set(CONTENT_TYPE, TEXT_PLAIN)
                             .setInt(CONTENT_LENGTH, response.content().readableBytes());
+
+                    if (closeConnection) {
+                        response.headers().set(CONNECTION, CLOSE);
+                    }
+
                     ctx.writeAndFlush(response);
                 }
             }

@@ -27,13 +27,13 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
 
-import software.amazon.awssdk.http.H1ServerErrorTestBase;
+import software.amazon.awssdk.http.H1ServerBehaviorTestBase;
 
 
 /**
  * Testing the scenario where h1 server sends 5xx errors.
  */
-public class H1ServerErrorTest extends H1ServerErrorTestBase {
+public class H1ServerErrorTest extends H1ServerBehaviorTestBase {
     private SdkAsyncHttpClient netty;
 
     @Override
@@ -61,7 +61,7 @@ public class H1ServerErrorTest extends H1ServerErrorTestBase {
     }
 
     @Test
-    public void connectionReceive500_shouldNotReuseConnection() throws Exception {
+    public void connectionReceive500_shouldNotReuseConnection() {
         assertThat(netty).isNotNull();
         super.connectionReceive500_shouldNotReuseConnection();
     }

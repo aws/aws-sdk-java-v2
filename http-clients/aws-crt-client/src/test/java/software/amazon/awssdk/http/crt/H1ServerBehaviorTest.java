@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt.fault;
+package software.amazon.awssdk.http.crt;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
-import software.amazon.awssdk.http.H1ServerErrorTestBase;
+import software.amazon.awssdk.http.H1ServerBehaviorTestBase;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -31,7 +31,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 /**
  * Testing the scenario where h1 server sends 5xx errors.
  */
-public class H1ServerErrorTest extends H1ServerErrorTestBase {
+public class H1ServerBehaviorTest extends H1ServerBehaviorTestBase {
     private SdkAsyncHttpClient crtClient;
 
     @Override
@@ -64,7 +64,7 @@ public class H1ServerErrorTest extends H1ServerErrorTestBase {
     }
 
     @Test
-    public void connectionReceive500_shouldNotReuseConnection() throws Exception {
+    public void connectionReceive500_shouldNotReuseConnection() {
         assertThat(crtClient).isNotNull();
         super.connectionReceive500_shouldNotReuseConnection();
     }
@@ -73,5 +73,11 @@ public class H1ServerErrorTest extends H1ServerErrorTestBase {
     public void connectionReceive200_shouldReuseConnection() {
         assertThat(crtClient).isNotNull();
         super.connectionReceive200_shouldReuseConnection();
+    }
+
+    @Test
+    public void connectionCloseHeader_shouldNotReuseConnection() {
+        assertThat(crtClient).isNotNull();
+        super.connectionCloseHeader_shouldNotReuseConnection();
     }
 }
