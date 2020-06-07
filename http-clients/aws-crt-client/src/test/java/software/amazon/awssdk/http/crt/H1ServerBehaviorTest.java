@@ -76,7 +76,7 @@ public class H1ServerBehaviorTest extends H1ServerBehaviorTestBase {
     }
 
     @Test
-    public void connectionCloseHeader_shouldNotReuseConnection() {
+    public void connectionCloseHeader_shouldNotReuseConnection() throws InterruptedException {
         assertThat(crtClient).isNotNull();
         super.connectionCloseHeader_shouldNotReuseConnection();
     }

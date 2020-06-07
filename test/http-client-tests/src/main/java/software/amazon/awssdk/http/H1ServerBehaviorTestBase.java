@@ -90,16 +90,12 @@ public abstract class H1ServerBehaviorTestBase {
         assertThat(server.channels.size()).isEqualTo(1);
     }
 
-    public void connectionCloseHeader_shouldNotReuseConnection() {
+    public void connectionCloseHeader_shouldNotReuseConnection() throws InterruptedException {
         server.return500OnFirstRequest = false;
         server.closeConnection = true;
 
         TestUtils.sendGetRequest(server.port(), getTestClient()).join();
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ie) {
-            throw new RuntimeException("Sleep interrupted");
-        }
+        Thread.sleep(1000);
 
         TestUtils.sendGetRequest(server.port(), getTestClient()).join();
         assertThat(server.channels.size()).isEqualTo(2);
