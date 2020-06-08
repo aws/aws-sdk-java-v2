@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -41,6 +42,7 @@ public final class RequestExecutionContext {
     private final ExecutionContext executionContext;
     private TimeoutTracker apiCallTimeoutTracker;
     private TimeoutTracker apiCallAttemptTimeoutTracker;
+    private MetricCollector metricCollector;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
@@ -113,6 +115,14 @@ public final class RequestExecutionContext {
 
     public void apiCallAttemptTimeoutTracker(TimeoutTracker timeoutTracker) {
         this.apiCallAttemptTimeoutTracker = timeoutTracker;
+    }
+
+    public MetricCollector metricCollector() {
+        return metricCollector;
+    }
+
+    public void metricCollector(MetricCollector metricCollector) {
+        this.metricCollector = metricCollector;
     }
 
     /**

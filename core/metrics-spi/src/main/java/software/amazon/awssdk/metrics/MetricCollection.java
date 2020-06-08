@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.metrics;
 
-import java.util.Collection;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
@@ -41,5 +40,5 @@ public interface MetricCollection extends Iterable<MetricRecord<?>> {
     /**
      * @return The child metric collections.
      */
-    Collection<MetricCollection> children();
+    List<MetricCollection> children();
 }

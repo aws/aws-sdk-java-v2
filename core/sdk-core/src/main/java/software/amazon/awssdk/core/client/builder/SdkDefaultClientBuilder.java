@@ -366,6 +366,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                    overrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION).orElse(null));
         clientConfiguration.option(PROFILE_FILE, overrideConfig.defaultProfileFile().orElse(null));
         clientConfiguration.option(PROFILE_NAME, overrideConfig.defaultProfileName().orElse(null));
+        clientConfiguration.option(METRIC_PUBLISHER, overrideConfig.metricPublisher().orElse(null));
         return thisBuilder();
     }
 
