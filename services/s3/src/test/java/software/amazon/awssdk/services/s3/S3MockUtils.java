@@ -35,21 +35,24 @@ public final class S3MockUtils {
     public static HttpExecuteResponse mockListObjectsResponse() throws UnsupportedEncodingException {
         return HttpExecuteResponse.builder().response(SdkHttpResponse.builder().statusCode(200).build()).responseBody(
             AbortableInputStream.create(new StringInputStream(
-                "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n" +
-                "  <Name>example-bucket</Name>\n" +
-                "  <Prefix>photos/2006/</Prefix>\n" +
-                "  <Marker></Marker>\n" +
-                "  <MaxKeys>1000</MaxKeys>\n" +
-                "  <Delimiter>/</Delimiter>\n" +
-                "  <IsTruncated>false</IsTruncated>\n" +
-                "\n" +
-                "  <CommonPrefixes>\n" +
-                "    <Prefix>photos/2006/February/</Prefix>\n" +
-                "  </CommonPrefixes>\n" +
-                "  <CommonPrefixes>\n" +
-                "    <Prefix>photos/2006/January/</Prefix>\n" +
-                "  </CommonPrefixes>\n" +
-                "</ListBucketResult>")))
+                // Text Block: https://docs.oracle.com/en/java/javase/14/text-blocks/index.html
+                """
+                <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+                  <Name>example-bucket</Name>
+                  <Prefix>photos/2006/</Prefix>
+                  <Marker></Marker>
+                  <MaxKeys>1000</MaxKeys>
+                  <Delimiter>/</Delimiter>
+                  <IsTruncated>false</IsTruncated>
+                  <CommonPrefixes>
+                    <Prefix>photos/2006/February/</Prefix>
+                  </CommonPrefixes>
+                  <CommonPrefixes>
+                    <Prefix>photos/2006/January/</Prefix>
+                  </CommonPrefixes>
+                </ListBucketResult>"
+                """
+            )))
                                   .build();
     }
 

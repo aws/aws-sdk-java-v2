@@ -82,20 +82,21 @@ public abstract class TypeConvertingVisitor<T> {
      *     <li>If the value cannot be converted by this visitor.</li>
      * </ol>
      */
+    // switch expressions: https://openjdk.java.net/jeps/361
     public final T convert(EnhancedAttributeValue value) {
-        switch (value.type()) {
-            case NULL: return convertNull();
-            case M: return convertMap(value.asMap());
-            case S: return convertString(value.asString());
-            case N: return convertNumber(value.asNumber());
-            case B: return convertBytes(value.asBytes());
-            case BOOL: return convertBoolean(value.asBoolean());
-            case SS: return convertSetOfStrings(value.asSetOfStrings());
-            case NS: return convertSetOfNumbers(value.asSetOfNumbers());
-            case BS: return convertSetOfBytes(value.asSetOfBytes());
-            case L: return convertListOfAttributeValues(value.asListOfAttributeValues());
-            default: throw new IllegalStateException("Unsupported type: " + value.type());
-        }
+        return switch (value.type()) {
+            case NULL -> convertNull();
+            case M -> convertMap(value.asMap());
+            case S -> convertString(value.asString());
+            case N -> convertNumber(value.asNumber());
+            case B -> convertBytes(value.asBytes());
+            case BOOL -> convertBoolean(value.asBoolean());
+            case SS -> convertSetOfStrings(value.asSetOfStrings());
+            case NS -> convertSetOfNumbers(value.asSetOfNumbers());
+            case BS -> convertSetOfBytes(value.asSetOfBytes());
+            case L -> convertListOfAttributeValues(value.asListOfAttributeValues());
+            default -> throw new IllegalStateException("Unsupported type: " + value.type());
+        };
     }
 
     /**
