@@ -61,14 +61,14 @@ public class H1ServerErrorTest extends H1ServerBehaviorTestBase {
     }
 
     @Test
-    public void connectionReceive500_shouldNotReuseConnection() {
+    public void connectionReceiveServerErrorStatusShouldNotReuseConnection() {
         assertThat(netty).isNotNull();
-        super.connectionReceive500_shouldNotReuseConnection();
+        super.connectionReceiveServerErrorStatusShouldNotReuseConnection();
     }
 
     @Test
-    public void connectionReceive200_shouldReuseConnection() {
+    public void connectionReceiveOkStatusShouldReuseConnection() {
         assertThat(netty).isNotNull();
-        super.connectionReceive200_shouldReuseConnection();
+        super.connectionReceiveOkStatusShouldReuseConnection();
     }
 }

@@ -15,6 +15,15 @@
 
 package software.amazon.awssdk.http;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
+import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelDuplexHandler;
@@ -36,21 +45,9 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
-import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
-import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**
  * Testing how clients react to various h1 server behaviors
@@ -72,32 +69,32 @@ public abstract class H1ServerBehaviorTestBase {
         server = null;
     }
 
-    public void connectionReceive500_shouldNotReuseConnection() {
+    public void connectionReceiveServerErrorStatusShouldNotReuseConnection() {
         server.return500OnFirstRequest = true;
         server.closeConnection = false;
 
-        TestUtils.sendGetRequest(server.port(), getTestClient()).join();
-        TestUtils.sendGetRequest(server.port(), getTestClient()).join();
+        HttpTestUtils.sendGetRequest(server.port(), getTestClient()).join();
+        HttpTestUtils.sendGetRequest(server.port(), getTestClient()).join();
         assertThat(server.channels.size()).isEqualTo(2);
     }
 
-    public void connectionReceive200_shouldReuseConnection() {
+    public void connectionReceiveOkStatusShouldReuseConnection() {
         server.return500OnFirstRequest = false;
         server.closeConnection = false;
 
-        TestUtils.sendGetRequest(server.port(), getTestClient()).join();
-        TestUtils.sendGetRequest(server.port(), getTestClient()).join();
+        HttpTestUtils.sendGetRequest(server.port(), getTestClient()).join();
+        HttpTestUtils.sendGetRequest(server.port(), getTestClient()).join();
         assertThat(server.channels.size()).isEqualTo(1);
     }
 
-    public void connectionCloseHeader_shouldNotReuseConnection() throws InterruptedException {
+    public void connectionReceiveCloseHeaderShouldNotReuseConnection() throws InterruptedException {
         server.return500OnFirstRequest = false;
         server.closeConnection = true;
 
-        TestUtils.sendGetRequest(server.port(), getTestClient()).join();
+        HttpTestUtils.sendGetRequest(server.port(), getTestClient()).join();
         Thread.sleep(1000);
 
-        TestUtils.sendGetRequest(server.port(), getTestClient()).join();
+        HttpTestUtils.sendGetRequest(server.port(), getTestClient()).join();
         assertThat(server.channels.size()).isEqualTo(2);
     }
 

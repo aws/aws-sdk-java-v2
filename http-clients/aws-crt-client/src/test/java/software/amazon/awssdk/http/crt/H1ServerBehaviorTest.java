@@ -64,20 +64,20 @@ public class H1ServerBehaviorTest extends H1ServerBehaviorTestBase {
     }
 
     @Test
-    public void connectionReceive500_shouldNotReuseConnection() {
+    public void connectionReceiveServerErrorStatusShouldNotReuseConnection() {
         assertThat(crtClient).isNotNull();
-        super.connectionReceive500_shouldNotReuseConnection();
+        super.connectionReceiveServerErrorStatusShouldNotReuseConnection();
     }
 
     @Test
-    public void connectionReceive200_shouldReuseConnection() {
+    public void connectionReceiveOkStatusShouldReuseConnection() {
         assertThat(crtClient).isNotNull();
-        super.connectionReceive200_shouldReuseConnection();
+        super.connectionReceiveOkStatusShouldReuseConnection();
     }
 
     @Test
-    public void connectionCloseHeader_shouldNotReuseConnection() throws InterruptedException {
+    public void connectionReceiveCloseHeaderShouldNotReuseConnection() throws InterruptedException {
         assertThat(crtClient).isNotNull();
-        super.connectionCloseHeader_shouldNotReuseConnection();
+        super.connectionReceiveCloseHeaderShouldNotReuseConnection();
     }
 }
