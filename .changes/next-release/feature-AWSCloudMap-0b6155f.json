@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Map",
+    "description": "Added support for tagging Service and Namespace type resources in Cloud Map"
+}
