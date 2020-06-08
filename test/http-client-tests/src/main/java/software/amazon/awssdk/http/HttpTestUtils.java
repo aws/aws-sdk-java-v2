@@ -19,16 +19,15 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.reactivex.Flowable;
-import org.reactivestreams.Publisher;
-import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.KeyStore;
 import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Publisher;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 public class HttpTestUtils {
     private HttpTestUtils() {
