@@ -1,3 +1,12 @@
+# __2.13.33__ __2020-06-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release updates the API so customers can test use of Source IP to allow, deny or limit access to data in their S3 buckets after integrating their identity provider.
+
 # __2.13.32__ __2020-06-08__
 ## __AWS Cloud Map__
   - ### Features
