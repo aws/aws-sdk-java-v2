@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -44,6 +45,7 @@ public final class MetricUtils {
      * @param requestConfig The request override configuration.
      * @return The metric publisher to use.
      */
+    //TODO: remove this and use the overload instead
     public static Optional<MetricPublisher> resolvePublisher(SdkClientConfiguration clientConfig,
                                                              SdkRequest requestConfig) {
         Optional<MetricPublisher> requestOverride = requestConfig.overrideConfiguration()
@@ -51,6 +53,22 @@ public final class MetricUtils {
         if (requestOverride.isPresent()) {
             return requestOverride;
         }
+        return Optional.ofNullable(clientConfig.option(METRIC_PUBLISHER));
+    }
+
+    /**
+     * Resolve the correct metric publisher to use. The publisher set on the request always takes precedence.
+     *
+     * @param clientConfig The client configuration.
+     * @param requestConfig The request override configuration.
+     * @return The metric publisher to use.
+     */
+    public static Optional<MetricPublisher> resolvePublisher(SdkClientConfiguration clientConfig,
+                                                             RequestOverrideConfiguration requestConfig) {
+        if (requestConfig != null) {
+            return OptionalUtils.firstPresent(requestConfig.metricPublisher(), () -> clientConfig.option(METRIC_PUBLISHER));
+        }
+
         return Optional.ofNullable(clientConfig.option(METRIC_PUBLISHER));
     }
 

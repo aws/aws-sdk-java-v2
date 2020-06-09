@@ -20,6 +20,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.Optional;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -169,8 +170,12 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                     opModel.getInput().getVariableName(),
                                     opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
 
+        builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
+                             AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
         if (opModel.hasStreamingOutput()) {
             builder.add("executeFuture$L;", streamingOutputWhenComplete("asyncResponseTransformer"));
+        } else {
+            builder.add("executeFuture$L;", publishMetricsWhenComplete());
         }
         builder.addStatement("return executeFuture");
         return builder.build();

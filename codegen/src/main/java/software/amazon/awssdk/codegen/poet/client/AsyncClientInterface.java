@@ -47,7 +47,6 @@ import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 public class AsyncClientInterface implements ClassSpec {
@@ -284,12 +283,6 @@ public class AsyncClientInterface implements ClassSpec {
         MethodSpec.Builder builder = methodSignatureWithReturnType(opModel)
                 .addParameter(requestType, opModel.getInput().getVariableName())
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC));
-
-
-        String metricCollectorName = "apiCallMetricCollector";
-
-        builder.addStatement("$1T $2N = $1T.create($3S)",
-                MetricCollector.class, metricCollectorName, "ApiCall");
 
         if (opModel.hasStreamingInput()) {
             builder.addParameter(ClassName.get(AsyncRequestBody.class), "requestBody");
