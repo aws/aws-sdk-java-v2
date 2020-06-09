@@ -32,6 +32,7 @@ import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -61,11 +62,17 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
+    private static final String PUBLISHER_NAME = "metricPublisher";
+    private static final String METRIC_COLLECTOR_NAME = "apiCallMetricCollector";
     private final IntermediateModel model;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
@@ -190,9 +197,18 @@ public final class AsyncClientClass extends AsyncClientInterface {
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
 
         builder.addModifiers(Modifier.PUBLIC)
-               .addAnnotation(Override.class)
-               .beginControlFlow("try")
-               .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
+               .addAnnotation(Override.class);
+
+        builder.addStatement("$1T $2N = $1T.create($3S)",
+                             MetricCollector.class, METRIC_COLLECTOR_NAME, "ApiCall");
+        builder.beginControlFlow("try");
+
+        builder.addStatement("$N.reportMetric($T.$L, $S)", METRIC_COLLECTOR_NAME, CoreMetric.class, "SERVICE_ID",
+                             model.getMetadata().getServiceId());
+        builder.addStatement("$N.reportMetric($T.$L, $S)", METRIC_COLLECTOR_NAME, CoreMetric.class, "OPERATION_NAME",
+                             opModel.getOperationName());
+
+        builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
                .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
                .addCode(protocolSpec.responseHandler(model, opModel));
         protocolSpec.errorResponseHandler(opModel).ifPresent(builder::addCode);
@@ -224,8 +240,17 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "() -> $N.exceptionOccurred(t))", paramName);
         }
 
-        return builder.addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
-                      .endControlFlow();
+        builder.addStatement("$T<$T> $N = $T.resolvePublisher(clientConfiguration, $N.overrideConfiguration().orElse(null))",
+                             Optional.class,
+                             MetricPublisher.class,
+                             PUBLISHER_NAME,
+                             MetricUtils.class,
+                             opModel.getInput().getVariableName())
+               .addStatement("$N.ifPresent(p -> p.publish($N.collect()))", PUBLISHER_NAME, "apiCallMetricCollector")
+               .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
+               .endControlFlow();
+
+        return builder;
     }
 
     @Override

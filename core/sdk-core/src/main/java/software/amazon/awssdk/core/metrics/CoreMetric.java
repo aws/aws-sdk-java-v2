@@ -76,7 +76,7 @@ public final class CoreMetric {
 
     /**
      * The exception thrown during request execution. Note this may be a service
-     * error that has been unmarshalled, or a clientside exception.
+     * error that has been unmarshalled, or a client side exception.
      */
     public static final SdkMetric<Throwable> EXCEPTION = metric("Exception", Throwable.class);
 

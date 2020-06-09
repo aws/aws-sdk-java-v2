@@ -28,6 +28,7 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
@@ -266,6 +267,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     asyncResponseTransformerVariable(isStreaming, isRestJson, opModel));
         String whenComplete = whenCompleteBody(opModel, customerResponseHandler);
         if (!whenComplete.isEmpty()) {
+            builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
+                                 AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
             builder.add("executeFuture$L;", whenComplete);
         }
         if (opModel.hasEventStreamOutput()) {
@@ -326,7 +329,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
             return streamingOutputWhenComplete(responseHandlerName);
         } else {
             // Non streaming can just return the future as is
-            return "";
+            return publishMetricsWhenComplete();
         }
     }
 
@@ -335,6 +338,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
      * to the lifecycle of the wire request. Successful completion of the future is signalled in
      * {@link EventStreamAsyncResponseTransformer}. Failure is notified via the normal future (the one returned by the client
      * handler).
+     *
      *
      * @param responseHandlerName Variable name of response handler customer passed in.
      * @return whenComplete to append to future.
@@ -347,10 +351,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
                              + "         } finally {"
                              + "             future.completeExceptionally(e);"
                              + "         }"
-                             + "     }%n"
-                             + "})", responseHandlerName);
+                             + "     }"
+                             + "%s"
+                             + "})", responseHandlerName, publishMetrics());
     }
-
 
 
     @Override

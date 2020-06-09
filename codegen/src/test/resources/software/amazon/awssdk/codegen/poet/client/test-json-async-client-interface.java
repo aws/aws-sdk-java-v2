@@ -8,7 +8,6 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -86,7 +85,6 @@ public interface JsonAsyncClient extends SdkClient {
      *      API Documentation</a>
      */
     default CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -148,7 +146,6 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -209,7 +206,6 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
             Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -268,7 +264,6 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
             EventStreamOperationWithOnlyInputRequest eventStreamOperationWithOnlyInputRequest,
             Publisher<InputEventStreamTwo> requestStream) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -329,7 +324,6 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
             EventStreamOperationWithOnlyOutputRequest eventStreamOperationWithOnlyOutputRequest,
             EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -392,7 +386,6 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
             GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -454,7 +447,6 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
             PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -535,7 +527,7 @@ public interface JsonAsyncClient extends SdkClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
@@ -545,19 +537,19 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -610,7 +602,7 @@ public interface JsonAsyncClient extends SdkClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
@@ -620,19 +612,19 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -687,7 +679,7 @@ public interface JsonAsyncClient extends SdkClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
@@ -697,19 +689,19 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -771,7 +763,6 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
             PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -829,7 +820,7 @@ public interface JsonAsyncClient extends SdkClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -839,19 +830,19 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -906,7 +897,7 @@ public interface JsonAsyncClient extends SdkClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -916,19 +907,19 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -994,7 +985,6 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -1131,7 +1121,6 @@ public interface JsonAsyncClient extends SdkClient {
     default <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
             StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
             AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
@@ -1282,7 +1271,6 @@ public interface JsonAsyncClient extends SdkClient {
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest,
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         throw new UnsupportedOperationException();
     }
 
