@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Compute Optimizer",
+    "description": "Compute Optimizer supports exporting recommendations to Amazon S3."
+}
