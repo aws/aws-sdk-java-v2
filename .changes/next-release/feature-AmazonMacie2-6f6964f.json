@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Macie 2",
-    "description": "This release of the Amazon Macie API removes support for the ArchiveFindings and UnarchiveFindings operations. This release also adds UNKNOWN as an encryption type for S3 bucket metadata."
-}

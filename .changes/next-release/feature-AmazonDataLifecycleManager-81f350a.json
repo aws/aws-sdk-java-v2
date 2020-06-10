@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Data Lifecycle Manager",
-    "description": "Reducing the schedule name of DLM Lifecycle policy from 500 to 120 characters."
-}
