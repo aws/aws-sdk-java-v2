@@ -31,7 +31,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class OrderedWriteChannelHandlerContext extends DelegatingChannelHandlerContext {
     private static final AttributeKey<Void> ORDERED =
-        AttributeKey.newInstance("aws.http.nio.netty.async.OrderedWriteChannelHandlerContext.ORDERED");
+        NettyUtils.getOrCreateAttributeKey("aws.http.nio.netty.async.OrderedWriteChannelHandlerContext.ORDERED");
 
     private OrderedWriteChannelHandlerContext(ChannelHandlerContext delegate) {
         super(delegate);
