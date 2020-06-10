@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "CodeArtifact",
+    "description": "Added support for AWS CodeArtifact."
+}

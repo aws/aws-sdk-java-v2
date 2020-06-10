@@ -242,6 +242,7 @@
         <module>synthetics</module>
         <module>iotsitewise</module>
         <module>macie2</module>
+        <module>codeartifact</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
