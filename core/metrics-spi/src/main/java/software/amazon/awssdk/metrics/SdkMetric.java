@@ -53,6 +53,20 @@ public interface SdkMetric<T> {
     T convertValue(Object o);
 
     /**
+     * Create a new metric under the {@link MetricCategory#DEFAULT} category.
+     *
+     * @param name The name of this metric.
+     * @param clzz The class of the object containing the associated value for this metric.
+     * @param <T> The type of the object containing the associated value for this metric.
+     * @return The created metric.
+     *
+     * @throws IllegalArgumentException If a metric of the same name has already been created.
+     */
+    static <T> SdkMetric<T> create(String name, Class<T> clzz) {
+        return DefaultSdkMetric.create(name, clzz, MetricCategory.DEFAULT);
+    }
+
+    /**
      * Create a new metric.
      *
      * @param name The name of this metric.
