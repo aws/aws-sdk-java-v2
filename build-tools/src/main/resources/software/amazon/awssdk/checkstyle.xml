@@ -365,6 +365,14 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use AttributeKey.newInstance directly -->
+        <module name="Regexp">
+            <property name="format" value="AttributeKey\.newInstance"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Use NettyUtils.getOrCreateAttributeKey to safely declare AttributeKeys"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks that we don't use plural enum names -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.PluralEnumNames"/>
 
