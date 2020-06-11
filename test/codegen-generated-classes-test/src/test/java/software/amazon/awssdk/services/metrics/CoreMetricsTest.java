@@ -151,8 +151,6 @@ public class CoreMetricsTest {
                 .containsExactly("AllTypes");
         assertThat(capturedCollection.metricValues(CoreMetric.CREDENTIALS_FETCH_DURATION).get(0))
                 .isGreaterThanOrEqualTo(Duration.ZERO);
-        assertThat(capturedCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
-                .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.MARSHALLING_DURATION).get(0))
                 .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
@@ -161,10 +159,12 @@ public class CoreMetricsTest {
         assertThat(capturedCollection.children()).hasSize(1);
         MetricCollection attemptCollection = capturedCollection.children().get(0);
 
-        assertThat(attemptCollection.name()).isEqualTo("ApiCallAttemptMetrics");
+        assertThat(attemptCollection.name()).isEqualTo("ApiCallAttempt");
         assertThat(attemptCollection.children()).isEmpty();
         assertThat(attemptCollection.metricValues(CoreMetric.HTTP_STATUS_CODE))
                 .containsExactly(200);
+        assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(attemptCollection.metricValues(CoreMetric.AWS_REQUEST_ID))
                 .containsExactly(REQUEST_ID);
         assertThat(attemptCollection.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID))

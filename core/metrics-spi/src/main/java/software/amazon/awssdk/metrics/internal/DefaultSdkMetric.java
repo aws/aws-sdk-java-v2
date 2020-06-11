@@ -26,6 +26,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -83,6 +84,14 @@ public final class DefaultSdkMetric<T> extends AttributeMap.Key<T> implements Sd
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DefaultMetric")
+                       .add("name", name)
+                       .add("categories", categories())
+                       .build();
     }
 
     /**

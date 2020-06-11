@@ -243,6 +243,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     "$L" +
                     ".withResponseHandler($L)\n" +
                     ".withErrorResponseHandler(errorResponseHandler)\n" +
+                    ".withMetricCollector(apiCallMetricCollector)\n" +
                     hostPrefixExpression(opModel) +
                     discoveredEndpoint(opModel) +
                     asyncRequestBody +

@@ -16,12 +16,14 @@
 package software.amazon.awssdk.metrics;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * A metric collector that doesn't do anything.
  */
 @SdkPublicApi
 public final class NoOpMetricCollector implements MetricCollector {
+    private static final Logger log = Logger.loggerFor(NoOpMetricCollector.class);
     private static final NoOpMetricCollector INSTANCE = new NoOpMetricCollector();
 
     private NoOpMetricCollector() {
@@ -34,6 +36,7 @@ public final class NoOpMetricCollector implements MetricCollector {
 
     @Override
     public <T> void reportMetric(SdkMetric<T> metric, T data) {
+        log.trace(() -> "Metrics reported: " + data);
     }
 
     @Override

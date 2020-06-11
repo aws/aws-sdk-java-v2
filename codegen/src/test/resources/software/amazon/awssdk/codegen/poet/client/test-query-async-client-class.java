@@ -109,7 +109,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                             .withOperationName("APostOperation")
                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
+                            .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
+                            .withInput(aPostOperationRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
                 Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
@@ -166,7 +167,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                             .withOperationName("APostOperationWithOutput")
                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(aPostOperationWithOutputRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -227,8 +228,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                                     AsyncStreamingRequestMarshaller.builder()
                                             .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                             .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withAsyncRequestBody(requestBody)
-                            .withInput(streamingInputOperationRequest));
+                            .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
+                            .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -288,7 +289,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                             .withOperationName("StreamingOutputOperation")
                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
+                            .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
+                    asyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingOutputOperationRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {

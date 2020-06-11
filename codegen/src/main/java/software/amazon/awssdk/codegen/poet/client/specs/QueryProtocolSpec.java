@@ -141,6 +141,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                                                             ".withMarshaller($L)" +
                                                             ".withResponseHandler(responseHandler)" +
                                                             ".withErrorResponseHandler($N)\n" +
+                                                            ".withMetricCollector(apiCallMetricCollector)\n" +
                                                             hostPrefixExpression(opModel) +
                                                             asyncRequestBody +
                                                             ".withInput($L) $L);",

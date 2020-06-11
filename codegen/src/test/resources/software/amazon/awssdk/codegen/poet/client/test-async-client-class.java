@@ -177,7 +177,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("APostOperation")
                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
+                            .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
+                            .withInput(aPostOperationRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
                 Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
@@ -237,7 +238,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("APostOperationWithOutput")
                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(aPostOperationWithOutputRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -320,8 +321,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
                             .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
                             .withFullDuplex(true).withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withInput(eventStreamOperationRequest),
-                    restAsyncResponseTransformer);
+                            .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
+                            .withInput(eventStreamOperationRequest), restAsyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationRequest.overrideConfiguration().orElse(
                     null);
             executeFuture.whenComplete((r, e) -> {
@@ -398,7 +399,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMarshaller(new EventStreamOperationWithOnlyInputRequestMarshaller(protocolFactory))
                             .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(eventStreamOperationWithOnlyInputRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationWithOnlyInputRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationWithOnlyInputRequest
                     .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -477,6 +478,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                     .withOperationName("EventStreamOperationWithOnlyOutput")
                                     .withMarshaller(new EventStreamOperationWithOnlyOutputRequestMarshaller(protocolFactory))
                                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                    .withMetricCollector(apiCallMetricCollector)
                                     .withInput(eventStreamOperationWithOnlyOutputRequest), restAsyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationWithOnlyOutputRequest
                     .overrideConfiguration().orElse(null);
@@ -547,7 +549,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("GetWithoutRequiredMembers")
                             .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(getWithoutRequiredMembersRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(getWithoutRequiredMembersRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = getWithoutRequiredMembersRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -605,7 +607,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("PaginatedOperationWithResultKey")
                             .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(paginatedOperationWithResultKeyRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(paginatedOperationWithResultKeyRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = paginatedOperationWithResultKeyRequest
                     .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -740,7 +742,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("PaginatedOperationWithoutResultKey")
                             .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(paginatedOperationWithoutResultKeyRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(paginatedOperationWithoutResultKeyRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = paginatedOperationWithoutResultKeyRequest
                     .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -882,8 +884,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                     AsyncStreamingRequestMarshaller.builder()
                                             .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                             .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withAsyncRequestBody(requestBody)
-                            .withInput(streamingInputOperationRequest));
+                            .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
+                            .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -958,8 +960,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                     new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
                                             .asyncRequestBody(requestBody).transferEncoding(true).build())
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withAsyncRequestBody(requestBody).withInput(streamingInputOutputOperationRequest),
-                    asyncResponseTransformer);
+                            .withMetricCollector(apiCallMetricCollector).withAsyncRequestBody(requestBody)
+                            .withInput(streamingInputOutputOperationRequest), asyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOutputOperationRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
@@ -1028,7 +1030,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("StreamingOutputOperation")
                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
+                            .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
+                    asyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingOutputOperationRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
