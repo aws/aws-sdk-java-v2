@@ -83,7 +83,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final long maxConnectionIdleInMilliseconds;
     private final int initialWindowSize;
     private final int maxConnectionsPerEndpoint;
-    private final boolean manualWindowManagement;
     private boolean isClosed = false;
 
     private AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
@@ -108,7 +107,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
             this.initialWindowSize = builder.initialWindowSize;
             this.maxConnectionsPerEndpoint = maxConns;
-            this.manualWindowManagement = builder.manualWindowManagement;
             this.monitoringOptions = builder.monitoringOptions;
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
 
@@ -180,7 +178,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withUri(uri)
                 .withWindowSize(initialWindowSize)
                 .withMaxConnections(maxConnectionsPerEndpoint)
-                .withManualWindowManagement(manualWindowManagement)
+                .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
                 .withMonitoringOptions(monitoringOptions)
                 .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds);
@@ -364,14 +362,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder tlsCipherPreference(TlsCipherPreference tlsCipherPreference);
 
         /**
-         * If set to true, then the TCP read back pressure mechanism will be enabled, and the user
-         * is responsible for calling incrementWindow on the stream object.
-         * @param manualWindowManagement true if the TCP back pressure mechanism should be enabled.
-         * @return The builder of the method chaining.
-         */
-        Builder manualWindowManagement(boolean manualWindowManagement);
-
-        /**
          * The AWS CRT WindowSize to use for this HttpClient.
          *
          * For an http/1.1 connection, this represents  the number of unread bytes that can be buffered in the
@@ -433,7 +423,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
         private int initialWindowSize = DEFAULT_STREAM_WINDOW_SIZE;
-        private boolean manualWindowManagement;
         private EventLoopGroup eventLoopGroup;
         private HostResolver hostResolver;
         private ProxyConfiguration proxyConfiguration;
@@ -468,12 +457,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             Validate.isTrue(TlsContextOptions.isCipherPreferenceSupported(tlsCipherPreference),
                             "TlsCipherPreference not supported on current Platform");
             this.cipherPreference = tlsCipherPreference;
-            return this;
-        }
-
-        @Override
-        public Builder manualWindowManagement(boolean manualWindowManagement) {
-            this.manualWindowManagement = manualWindowManagement;
             return this;
         }
 
