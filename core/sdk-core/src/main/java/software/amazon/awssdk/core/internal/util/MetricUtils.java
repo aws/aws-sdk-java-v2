@@ -25,6 +25,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.Pair;
@@ -96,5 +100,19 @@ public final class MetricUtils {
         T result = c.call();
         Duration d = Duration.ofNanos(System.nanoTime() - start);
         return Pair.of(result, d);
+    }
+
+    public static void collectHttpMetrics(MetricCollector metricCollector, SdkHttpFullResponse httpResponse) {
+        metricCollector.reportMetric(CoreMetric.HTTP_STATUS_CODE, httpResponse.statusCode());
+        httpResponse.firstMatchingHeader("x-amz-request-id")
+                    .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
+        httpResponse.firstMatchingHeader("x-amz-id-2")
+                    .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_EXTENDED_REQUEST_ID, v));
+    }
+
+    public static MetricCollector createAttemptMetricsCollector(RequestExecutionContext context) {
+        return context.executionContext()
+                      .metricCollector()
+                      .createChild("ApiCallAttempt");
     }
 }

@@ -112,6 +112,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
             .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()" +
                  ".withOperationName(\"$N\")\n" +
                  ".withCombinedResponseHandler($N)" +
+                 ".withMetricCollector(apiCallMetricCollector)\n" +
                  hostPrefixExpression(opModel) +
                  discoveredEndpoint(opModel) +
                  ".withInput($L)",

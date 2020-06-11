@@ -25,6 +25,8 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -32,6 +34,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class DefaultMetricCollector implements MetricCollector {
+    private static final Logger log = Logger.loggerFor(DefaultMetricCollector.class);
     private final String name;
     private final Map<SdkMetric<?>, List<MetricRecord<?>>> metrics = new LinkedHashMap<>();
     private final List<MetricCollector> children = new ArrayList<>();
@@ -64,11 +67,20 @@ public final class DefaultMetricCollector implements MetricCollector {
                 .map(MetricCollector::collect)
                 .collect(Collectors.toList());
 
-        return new DefaultMetricCollection(name, metrics, collectedChildren);
+        DefaultMetricCollection metricRecords = new DefaultMetricCollection(name, metrics, collectedChildren);
+
+        log.debug(() -> "collected metrics records: " + metricRecords);
+        return metricRecords;
     }
 
     public static MetricCollector create(String name) {
         Validate.notEmpty(name, "name");
         return new DefaultMetricCollector(name);
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DefaultMetricCollector")
+            .add("metrics", metrics).build();
     }
 }

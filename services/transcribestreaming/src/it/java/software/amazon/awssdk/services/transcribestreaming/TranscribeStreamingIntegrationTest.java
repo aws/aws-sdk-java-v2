@@ -36,6 +36,8 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.transcribestreaming.model.AudioStream;
 import software.amazon.awssdk.services.transcribestreaming.model.LanguageCode;
@@ -58,7 +60,19 @@ public class TranscribeStreamingIntegrationTest {
     public static void setup() throws URISyntaxException {
         client = TranscribeStreamingAsyncClient.builder()
                                                .region(Region.US_EAST_1)
-                                               .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor()))
+                                               .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor())
+                                               .metricPublisher(new MetricPublisher() {
+                                                   @Override
+                                                   public void publish(MetricCollection metricCollection) {
+                                                       System.out.println(metricCollection);
+                                                   }
+
+                                                   @Override
+                                                   public void close() {
+
+                                                   }
+                                               })
+                                               )
                                                .credentialsProvider(getCredentials())
                                                .build();
     }

@@ -43,12 +43,14 @@ import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublishe
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -148,7 +150,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                                 .fullDuplex(isFullDuplex(context.executionAttributes()))
                                                                 .build();
 
-        CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
+        CompletableFuture<Void> httpClientFuture = doExecuteHttpRequest(context, executeRequest);
 
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);
@@ -171,6 +173,19 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         }, futureCompletionExecutor);
 
         return responseFuture;
+    }
+
+    private CompletableFuture<Void> doExecuteHttpRequest(RequestExecutionContext context, AsyncExecuteRequest executeRequest) {
+        MetricCollector metricCollector = context.metricCollector();
+        long callStart = System.nanoTime();
+        CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
+
+        // Offload the metrics reporting from this stage onto the future completion executor
+        httpClientFuture.whenCompleteAsync((r, t) -> {
+            long duration = System.nanoTime() - callStart;
+            metricCollector.reportMetric(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME, Duration.ofNanos(duration));
+        }, futureCompletionExecutor);
+        return httpClientFuture;
     }
 
     private boolean isFullDuplex(ExecutionAttributes executionAttributes) {

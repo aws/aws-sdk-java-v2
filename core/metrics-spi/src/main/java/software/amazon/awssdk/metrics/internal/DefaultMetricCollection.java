@@ -35,7 +35,7 @@ public final class DefaultMetricCollection implements MetricCollection {
 
 
     public DefaultMetricCollection(String name, Map<SdkMetric<?>,
-                                   List<MetricRecord<?>>> metrics,
+        List<MetricRecord<?>>> metrics,
                                    List<MetricCollection> children) {
         this.name = name;
         this.metrics = metrics;
@@ -68,8 +68,8 @@ public final class DefaultMetricCollection implements MetricCollection {
     @Override
     public Iterator<MetricRecord<?>> iterator() {
         return metrics.values().stream()
-                .flatMap(List::stream)
-                .iterator();
+                      .flatMap(List::stream)
+                      .iterator();
     }
 
     @Override

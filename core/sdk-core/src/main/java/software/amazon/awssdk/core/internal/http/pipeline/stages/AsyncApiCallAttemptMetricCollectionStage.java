@@ -18,11 +18,11 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static software.amazon.awssdk.core.internal.util.MetricUtils.collectHttpMetrics;
 import static software.amazon.awssdk.core.internal.util.MetricUtils.createAttemptMetricsCollector;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -32,31 +32,35 @@ import software.amazon.awssdk.metrics.MetricCollector;
  * stages will track API call attempt metrics.
  */
 @SdkInternalApi
-public final class ApiCallAttemptMetricCollectionStage<OutputT> implements RequestToResponsePipeline<OutputT>  {
-    private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
+public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements RequestPipeline<SdkHttpFullRequest,
+    CompletableFuture<Response<OutputT>>> {
+    private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> wrapped;
 
-    public ApiCallAttemptMetricCollectionStage(RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped) {
+    public AsyncApiCallAttemptMetricCollectionStage(RequestPipeline<SdkHttpFullRequest,
+        CompletableFuture<Response<OutputT>>> wrapped) {
         this.wrapped = wrapped;
     }
 
     @Override
-    public Response<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
+    public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest input,
+                                                        RequestExecutionContext context) throws Exception {
+
         MetricCollector apiCallAttemptMetrics = createAttemptMetricsCollector(context);
         context.metricCollector(apiCallAttemptMetrics);
 
-        try {
-            Response<OutputT> response = wrapped.execute(input, context);
+        CompletableFuture<Response<OutputT>> executeFuture = wrapped.execute(input, context);
 
-            collectHttpMetrics(apiCallAttemptMetrics, response.httpResponse());
-
-            if (!response.isSuccess() && response.exception() != null) {
-                apiCallAttemptMetrics.reportMetric(CoreMetric.EXCEPTION, response.exception());
+        executeFuture.whenComplete((r, t) -> {
+            if (t != null) {
+                apiCallAttemptMetrics.reportMetric(CoreMetric.EXCEPTION, t);
+            } else {
+                collectHttpMetrics(apiCallAttemptMetrics, r.httpResponse());
+                if (!r.isSuccess()) {
+                    apiCallAttemptMetrics.reportMetric(CoreMetric.EXCEPTION, r.exception());
+                }
             }
+        });
 
-            return response;
-        } catch (Throwable t) {
-            apiCallAttemptMetrics.reportMetric(CoreMetric.EXCEPTION, t);
-            throw t;
-        }
+        return executeFuture;
     }
 }
