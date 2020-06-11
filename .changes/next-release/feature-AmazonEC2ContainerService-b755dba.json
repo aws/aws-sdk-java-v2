@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "description": "This release adds support for deleting capacity providers."
-}

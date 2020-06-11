@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "description": "EC2 Image Builder now supports specifying a custom working directory for your build and test workflows. In addition, Image Builder now supports defining tags that are applied to ephemeral resources created by EC2 Image Builder as part of the image creation workflow."
-}

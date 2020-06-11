@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "description": "Avoid unnecessary copying in `AsyncRequestBody.fromBytes()`"
-}
