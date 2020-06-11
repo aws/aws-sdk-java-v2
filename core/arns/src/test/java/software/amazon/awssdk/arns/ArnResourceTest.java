@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.arns;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Optional;
+
 import org.junit.Test;
 
 public class ArnResourceTest {
@@ -55,6 +55,120 @@ public class ArnResourceTest {
         assertThat(arnResource.qualifier()).isEqualTo(Optional.of("1"));
         assertThat(arnResource.resourceType()).isEqualTo(Optional.of("foobar"));
         assertThat(arnResource.resource()).isEqualTo("bucket:foobar:1");
+    }
+
+    @Test
+    public void fromString_slashForm_pathNoQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint/test/object/unit-01/finance/*");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test/object/unit-01/finance/*");
+        assertThat(arnResource.qualifier()).isEmpty();
+    }
+
+    @Test
+    public void fromString_slashForm_pathWithQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint/test/object/unit-01/finance/file1:123");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test/object/unit-01/finance/file1");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.of("123"));
+    }
+
+    @Test
+    public void fromString_slashForm_pathEmptyQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint/test/object/unit-01/finance/*:");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test/object/unit-01/finance/*");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.of(""));
+    }
+
+    @Test
+    public void fromString_colonForm_pathNoQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint:test/object/unit-01/finance/*");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test/object/unit-01/finance/*");
+        assertThat(arnResource.qualifier()).isEmpty();
+    }
+
+    @Test
+    public void fromString_colonForm_pathWithQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint:test/object/unit-01/finance/file1:123");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test/object/unit-01/finance/file1");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.of("123"));
+    }
+
+    @Test
+    public void fromString_colonForm_pathEmptyQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint:test/object/unit-01/finance/file1:");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test/object/unit-01/finance/file1");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.of(""));
+    }
+
+    @Test
+    public void fromString_slashForm_typeAndNameNoQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint/test");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test");
+        assertThat(arnResource.qualifier()).isEmpty();
+    }
+
+    @Test
+    public void fromString_slashForm_typeAndNameWithQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint/test:123");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.of("123"));
+    }
+
+    @Test
+    public void fromString_slashForm_typeAndNameEmptyQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint/test:");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.of(""));
+    }
+
+    @Test
+    public void fromString_colonForm_typeAndNameNoQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint:test");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test");
+        assertThat(arnResource.qualifier()).isEmpty();
+    }
+
+    @Test
+    public void fromString_colonForm_typeAndNameWithQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint:test:123");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.of("123"));
+    }
+
+    @Test
+    public void fromString_colonForm_typeAndNameEmptyQualifier() {
+        ArnResource arnResource = ArnResource.fromString("accesspoint:test:");
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("accesspoint"));
+        assertThat(arnResource.resource()).isEqualTo("test");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.of(""));
+    }
+
+    @Test
+    public void fromString_nameOnly() {
+        ArnResource arnResource = ArnResource.fromString("bob");
+        assertThat(arnResource.resourceType()).isEmpty();
+        assertThat(arnResource.resource()).isEqualTo("bob");
+        assertThat(arnResource.qualifier()).isEmpty();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void fromString_colonForm_typeWithNoId() {
+        ArnResource.fromString("bob:");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void fromString_slashForm_typeWithNoId() {
+        ArnResource.fromString("bob/");
     }
 
     @Test
