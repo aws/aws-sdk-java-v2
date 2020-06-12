@@ -79,7 +79,6 @@ public class AwsCrtHttpClientSpiVerificationTest {
         client = AwsCrtAsyncHttpClient.builder()
                 .eventLoopGroup(eventLoopGroup)
                 .hostResolver(hostResolver)
-                .manualWindowManagement(true)
                 .build();
     }
 

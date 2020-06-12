@@ -83,7 +83,6 @@ public class ProxyWireMockTest {
         client = AwsCrtAsyncHttpClient.builder()
                 .eventLoopGroup(eventLoopGroup)
                 .hostResolver(hostResolver)
-                .manualWindowManagement(true)
                 .proxyConfiguration(proxyCfg)
                 .build();
     }
