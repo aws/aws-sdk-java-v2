@@ -52,7 +52,7 @@ public final class TransactWriteItemsEnhancedRequest {
 
     private final List<TransactWriteItem> transactWriteItems;
 
-    private String clientRequestToken;
+    private final String clientRequestToken;
 
     private TransactWriteItemsEnhancedRequest(Builder builder) {
         this.transactWriteItems = getItemsFromSupplier(builder.itemSupplierList);
@@ -107,7 +107,7 @@ public final class TransactWriteItemsEnhancedRequest {
     public static final class Builder {
         private List<Supplier<TransactWriteItem>> itemSupplierList = new ArrayList<>();
 
-        private String clientRequestToken = null;
+        private String clientRequestToken;
 
         private Builder() {
         }
