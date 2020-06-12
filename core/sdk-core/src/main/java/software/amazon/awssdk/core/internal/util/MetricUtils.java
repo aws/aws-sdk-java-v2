@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.util;
 
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHER;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -105,6 +106,8 @@ public final class MetricUtils {
     public static void collectHttpMetrics(MetricCollector metricCollector, SdkHttpFullResponse httpResponse) {
         metricCollector.reportMetric(CoreMetric.HTTP_STATUS_CODE, httpResponse.statusCode());
         httpResponse.firstMatchingHeader("x-amz-request-id")
+                    .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
+        httpResponse.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
                     .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
         httpResponse.firstMatchingHeader("x-amz-id-2")
                     .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_EXTENDED_REQUEST_ID, v));

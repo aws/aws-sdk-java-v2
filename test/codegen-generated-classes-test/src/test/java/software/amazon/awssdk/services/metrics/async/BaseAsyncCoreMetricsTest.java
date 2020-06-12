@@ -50,8 +50,8 @@ public abstract class BaseAsyncCoreMetricsTest {
     @Test
     public void apiCall_operationSuccessful_addsMetrics() {
         stubSuccessfulResponse();
-
         callable().get().join();
+        addDelayIfNeeded();
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(publisher()).publish(collectionCaptor.capture());
@@ -74,6 +74,7 @@ public abstract class BaseAsyncCoreMetricsTest {
     public void apiCall_allRetryAttemptsFailedOf500() {
         stubErrorResponse();
         assertThatThrownBy(() -> callable().get().join()).hasCauseInstanceOf(EmptyModeledException.class);
+        addDelayIfNeeded();
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(publisher()).publish(collectionCaptor.capture());
@@ -89,6 +90,7 @@ public abstract class BaseAsyncCoreMetricsTest {
     public void apiCall_allRetryAttemptsFailedOfNetworkError() {
         stubNetworkError();
         assertThatThrownBy(() -> callable().get().join()).hasCauseInstanceOf(SdkClientException.class);
+        addDelayIfNeeded();
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(publisher()).publish(collectionCaptor.capture());
@@ -115,6 +117,7 @@ public abstract class BaseAsyncCoreMetricsTest {
     public void apiCall_firstAttemptFailedRetrySucceeded() {
         stubSuccessfulRetry();
         callable().get().join();
+        addDelayIfNeeded();
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(publisher()).publish(collectionCaptor.capture());
@@ -128,6 +131,14 @@ public abstract class BaseAsyncCoreMetricsTest {
 
         MetricCollection successfulAttempt = capturedCollection.children().get(1);
         verifySuccessfulApiCallAttemptCollection(successfulAttempt);
+    }
+
+    /**
+     * Adds delay after calling CompletableFuture.join to wait for publisher to get metrics.
+     * no op by default, can be overridden by subclasses
+     */
+    void addDelayIfNeeded() {
+        // no op by default
     }
 
     abstract String operationName();
