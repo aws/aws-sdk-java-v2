@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2 DynamoDB Enhanced Client", 
-    "type": "bugfix", 
-    "description": "Added ClientRequestToken in class TransactWriteItemsEnhancedRequest."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Storage Gateway",
-    "description": "Display EndpointType in DescribeGatewayInformation"
-}
