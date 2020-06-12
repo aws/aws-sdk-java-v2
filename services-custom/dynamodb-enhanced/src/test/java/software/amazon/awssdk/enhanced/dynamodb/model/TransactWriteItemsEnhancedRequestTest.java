@@ -175,7 +175,7 @@ public class TransactWriteItemsEnhancedRequestTest {
     }
 
     @Test
-    public void setClientRequestTokenTest() {
+    public void builder_passRequestToken_shouldWork() {
         String token = UUID.randomUUID().toString();
         TransactWriteItemsEnhancedRequest enhancedRequest = TransactWriteItemsEnhancedRequest.builder()
                                                                                              .clientRequestToken(token)
