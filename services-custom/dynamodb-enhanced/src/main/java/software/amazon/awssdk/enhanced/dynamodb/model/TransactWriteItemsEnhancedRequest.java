@@ -52,8 +52,11 @@ public final class TransactWriteItemsEnhancedRequest {
 
     private final List<TransactWriteItem> transactWriteItems;
 
+    private final String clientRequestToken;
+
     private TransactWriteItemsEnhancedRequest(Builder builder) {
         this.transactWriteItems = getItemsFromSupplier(builder.itemSupplierList);
+        this.clientRequestToken = builder.clientRequestToken;
     }
 
     /**
@@ -61,6 +64,13 @@ public final class TransactWriteItemsEnhancedRequest {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * Gets the ClientRequestToken of this enhanced request.
+     */
+    public String clientRequestToken() {
+        return clientRequestToken;
     }
 
     /**
@@ -96,6 +106,8 @@ public final class TransactWriteItemsEnhancedRequest {
      */
     public static final class Builder {
         private List<Supplier<TransactWriteItem>> itemSupplierList = new ArrayList<>();
+
+        private String clientRequestToken;
 
         private Builder() {
         }
@@ -248,6 +260,17 @@ public final class TransactWriteItemsEnhancedRequest {
                 UpdateItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
                                          .item(item)
                                          .build());
+        }
+
+        /**
+         * Sets the clientRequestToken in this builder.
+         *
+         * @param clientRequestToken the clientRequestToken going to be used for build
+         * @return a builder of this type
+         */
+        public Builder clientRequestToken(String clientRequestToken) {
+            this.clientRequestToken = clientRequestToken;
+            return this;
         }
 
         /**
