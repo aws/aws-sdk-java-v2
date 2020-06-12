@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "description": "The following parameters now return the organization root ID or organizational unit (OU) IDs that you specified for DeploymentTargets: the OrganizationalUnitIds parameter on StackSet and the OrganizationalUnitId parameter on StackInstance, StackInstanceSummary, and StackSetOperationResultSummary"
+}
