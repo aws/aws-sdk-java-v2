@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "description": "Added support for job executions rollout configuration, job abort configuration, and job executions timeout configuration for AWS IoT Over-the-Air (OTA) Update Feature."
+}
