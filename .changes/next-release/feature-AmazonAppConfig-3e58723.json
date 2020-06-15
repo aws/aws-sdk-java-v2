@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon AppConfig",
+    "description": "This release adds a hosted configuration source provider. Customers can now store their application configurations directly in AppConfig, without the need for an external configuration source."
+}
