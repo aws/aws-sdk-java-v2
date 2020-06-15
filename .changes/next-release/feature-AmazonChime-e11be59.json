@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "description": "feature: Chime: This release introduces the ability to create an AWS Chime SDK meeting with attendees."
+}
