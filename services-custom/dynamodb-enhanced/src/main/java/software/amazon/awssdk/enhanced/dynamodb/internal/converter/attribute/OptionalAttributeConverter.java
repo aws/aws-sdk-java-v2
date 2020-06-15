@@ -66,7 +66,7 @@ public class OptionalAttributeConverter<T> implements AttributeConverter<Optiona
     @Override
     public Optional<T> transformTo(AttributeValue input) {
         Optional<T> result;
-        if (input.nul()) {
+        if (Boolean.TRUE.equals(input.nul())) {
             // This is safe - An Optional.empty() can be used for any Optional<?> subtype.
             result = Optional.empty();
         } else {
