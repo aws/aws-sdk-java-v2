@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "description": "Fix an NPE in `OptionalAttributeConverter` that can happen the if the `nul()` property of the `AttributeValue` is `null`."
-}
