@@ -24,7 +24,6 @@ import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
-import com.sun.org.apache.xpath.internal.ExtensionsProvider;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
