@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS App Mesh",
-    "description": "Adds support for route and virtual node listener timeouts."
-}
