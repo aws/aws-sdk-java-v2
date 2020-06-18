@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "Adding support for global write forwarding on secondary clusters in an Aurora global database."
+}
