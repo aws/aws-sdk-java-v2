@@ -25,7 +25,7 @@ public final class CoreMetric {
     /**
      * The unique ID for the service. This is present for all API call metrics.
      */
-    public static final SdkMetric<String> SERVICE_ID = metric("ServiceName", String.class);
+    public static final SdkMetric<String> SERVICE_ID = metric("ServiceId", String.class);
 
     /**
      * The name of the service operation being invoked. This is present for all

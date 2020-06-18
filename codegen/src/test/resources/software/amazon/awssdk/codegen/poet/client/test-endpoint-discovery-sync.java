@@ -94,9 +94,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
         MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
-        apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
-        apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "DescribeEndpoints");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "DescribeEndpoints");
 
             return clientHandler.execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
                     .withOperationName("DescribeEndpoints").withResponseHandler(responseHandler)
@@ -145,9 +145,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
         MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
-        apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
-        apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryIdentifiersRequired");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryIdentifiersRequired");
 
             return clientHandler
                     .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
@@ -196,9 +196,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
         MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
-        apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
-        apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryOptional");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryOptional");
 
             return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
                     .withOperationName("TestDiscoveryOptional").withResponseHandler(responseHandler)
@@ -246,9 +246,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
         MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
-        apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
-        apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryRequired");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryRequired");
 
             return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
                     .withOperationName("TestDiscoveryRequired").withResponseHandler(responseHandler)

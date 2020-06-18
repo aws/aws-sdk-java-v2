@@ -90,9 +90,9 @@ final class DefaultQueryClient implements QueryClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
-        apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
-        apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                     .withOperationName("APostOperation").withResponseHandler(responseHandler)
@@ -135,9 +135,9 @@ final class DefaultQueryClient implements QueryClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
-        apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
-        apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
 
             return clientHandler
                     .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
@@ -188,9 +188,9 @@ final class DefaultQueryClient implements QueryClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
-        apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
-        apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
 
             return clientHandler
                     .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
@@ -244,9 +244,9 @@ final class DefaultQueryClient implements QueryClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
-        apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
-        apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
 
             return clientHandler.execute(
                     new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
@@ -275,4 +275,3 @@ final class DefaultQueryClient implements QueryClient {
         clientHandler.close();
     }
 }
-
