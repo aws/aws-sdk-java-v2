@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53",
+    "description": "Added a new ListHostedZonesByVPC API for customers to list all the private hosted zones that a specified VPC is associated with."
+}
