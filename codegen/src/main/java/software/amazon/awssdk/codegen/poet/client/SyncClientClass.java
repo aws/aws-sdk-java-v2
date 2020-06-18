@@ -196,14 +196,13 @@ public class SyncClientClass implements ClassSpec {
         method.addStatement("$1T $2N = $1T.create($3S)",
                 MetricCollector.class, metricCollectorName, "ApiCall");
 
-        method.addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "SERVICE_ID",
-                model.getMetadata().getServiceId());
-        method.addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "OPERATION_NAME",
-                opModel.getOperationName());
-
         String publisherName = "metricPublisher";
 
         method.beginControlFlow("try")
+                .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "SERVICE_ID",
+                        model.getMetadata().getServiceId())
+                .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "OPERATION_NAME",
+                        opModel.getOperationName())
                 .addCode(protocolSpec.executionHandler(opModel))
                 .endControlFlow()
                 .beginControlFlow("finally")

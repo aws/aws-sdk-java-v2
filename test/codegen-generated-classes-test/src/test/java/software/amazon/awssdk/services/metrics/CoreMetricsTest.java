@@ -210,7 +210,7 @@ public class CoreMetricsTest {
                         // Note: for some reason we don't throw the same exact
                         // instance as the one unmarshalled by the response
                         // handler (seems we make a copy upstream) so an
-                        // isSamAs assertion fails here
+                        // isSameAs assertion fails here
                         .isInstanceOf(EmptyModeledException.class);
 
                 // A service exception is still a successful HTTP execution so
