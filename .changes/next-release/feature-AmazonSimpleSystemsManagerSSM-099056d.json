@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "description": "Added offset support for specifying the number of days to wait after the date and time specified by a CRON expression before running the maintenance window."
-}

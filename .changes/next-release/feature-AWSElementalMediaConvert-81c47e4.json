@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaConvert",
-    "description": "AWS Elemental MediaConvert SDK has added support for NexGuard FileMarker SDK, which allows NexGuard partners to watermark proprietary content in mezzanine and OTT streaming contexts."
-}
