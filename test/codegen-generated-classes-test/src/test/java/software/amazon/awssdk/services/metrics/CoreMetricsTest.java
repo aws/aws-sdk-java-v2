@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -232,17 +233,66 @@ public class CoreMetricsTest {
         when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenThrow(new RuntimeException("oops"));
 
         thrown.expect(RuntimeException.class);
+        try {
+            client.allTypes();
+        } finally {
 
-        client.allTypes();
+            ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+            verify(mockPublisher).publish(collectionCaptor.capture());
 
-        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
-        verify(mockPublisher).publish(collectionCaptor.capture());
+            MetricCollection capturedCollection = collectionCaptor.getValue();
 
-        MetricCollection capturedCollection = collectionCaptor.getValue();
+            MetricCollection requestMetrics = capturedCollection.children().get(0);
 
-        MetricCollection requestMetrics = capturedCollection.children().get(0);
+            assertThat(requestMetrics.metricValues(CoreMetric.EXCEPTION).get(0))
+                    .isExactlyInstanceOf(RuntimeException.class);
+        }
+    }
 
-        assertThat(requestMetrics.metricValues(CoreMetric.EXCEPTION).get(0)).isExactlyInstanceOf(RuntimeException.class);
+    @Test
+    public void testApiCall_requestExecutionThrowsClientSideException_includedInMetrics() throws IOException {
+        IOException ioe = new IOException("oops");
+        ExecutableHttpRequest mockExecutableRequest = mock(ExecutableHttpRequest.class);
+        when(mockExecutableRequest.call()).thenThrow(ioe);
+
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecutableRequest);
+
+        thrown.expectCause(is(ioe));
+        try {
+            client.allTypes();
+        } finally {
+            ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+            verify(mockPublisher).publish(collectionCaptor.capture());
+
+            MetricCollection callMetrics = collectionCaptor.getValue();
+            MetricCollection attemptMetrics = callMetrics.children().get(0);
+
+            assertThat(attemptMetrics.metricValues(CoreMetric.EXCEPTION)).containsExactly(ioe);
+        }
+    }
+
+    @Test
+    public void testApiCall_streamingOutput_transformerThrows_includedInMetrics() throws IOException {
+        IOException ioe = new IOException("oops");
+        ExecutableHttpRequest mockExecutableRequest = mock(ExecutableHttpRequest.class);
+        when(mockExecutableRequest.call()).thenThrow(ioe);
+
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecutableRequest);
+
+        thrown.expectCause(is(ioe));
+        try {
+            client.streamingOutputOperation(req -> {}, (response, is) -> {
+                throw ioe;
+            });
+        } finally {
+            ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+            verify(mockPublisher).publish(collectionCaptor.capture());
+
+            MetricCollection callMetrics = collectionCaptor.getValue();
+            MetricCollection attemptMetrics = callMetrics.children().get(0);
+
+            assertThat(attemptMetrics.metricValues(CoreMetric.EXCEPTION)).containsExactly(ioe);
+        }
     }
 
     private static HttpExecuteResponse mockExecuteResponse(SdkHttpFullResponse httpResponse) {
