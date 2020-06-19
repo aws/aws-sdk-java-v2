@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformFrom;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformTo;
 
+import java.nio.ByteBuffer;
 import java.util.Set;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Byt
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SdkBytesAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SetAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteBufferAttributeConverter;
 
 public class BinaryAttributeConvertersTest {
     @Test
@@ -55,5 +57,16 @@ public class BinaryAttributeConvertersTest {
     public void sdkBytesSetAttributeConverter_ReturnsBSType() {
         SetAttributeConverter<Set<SdkBytes>> bytesSet = SetAttributeConverter.setConverter(SdkBytesAttributeConverter.create());
         assertThat(bytesSet.attributeValueType()).isEqualTo(AttributeValueType.BS);
+    }
+
+    @Test
+    public void byteBufferAttributeConverterBehaves() {
+        ByteBufferAttributeConverter converter = ByteBufferAttributeConverter.create();
+        assertThat(converter.attributeValueType()).isEqualTo(AttributeValueType.B);
+        String foo = "foo";
+        ByteBuffer byteBuffer = ByteBuffer.wrap(foo.getBytes());
+        SdkBytes sdkBytes = SdkBytes.fromUtf8String(foo);
+        assertThat(transformFrom(converter, byteBuffer).b()).isEqualTo(sdkBytes);
+        assertThat(transformTo(converter, EnhancedAttributeValue.fromBytes(sdkBytes).toAttributeValue())).isEqualTo(byteBuffer);
     }
 }
