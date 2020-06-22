@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic MapReduce",
-    "description": "Adding support for MaximumCoreCapacityUnits parameter for EMR Managed Scaling. It allows users to control how many units/nodes are added to the CORE group/fleet. Remaining units/nodes are added to the TASK groups/fleet in the cluster."
-}

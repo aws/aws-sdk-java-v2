@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Queue Service",
-    "description": "AWS SQS adds pagination support for ListQueues and ListDeadLetterSourceQueues APIs"
-}
