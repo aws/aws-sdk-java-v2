@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Rekognition",
+    "description": "This update adds the ability to detect black frames, end credits, shots, and color bars in stored videos"
+}
