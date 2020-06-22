@@ -83,6 +83,55 @@ public class MetricCollectionAggregatorTest {
     }
 
     @Test
+    public void smallValuesAreNormalizedToZeroWithSummaryMetrics() {
+        // Really small values (close to 0) result in CloudWatch failing with an "unsupported value" error. Make sure that we
+        // floor those values to 0 to prevent that error.
+
+        MetricCollectionAggregator aggregator = defaultAggregator();
+
+        MetricCollector collector = collector();
+        SdkMetric<Double> metric = someMetric(Double.class);
+        collector.reportMetric(metric, -1E-10);
+        collector.reportMetric(metric, 1E-10);
+        aggregator.addCollection(collectToFixedTime(collector));
+
+        assertThat(aggregator.getRequests()).hasOnlyOneElementSatisfying(request -> {
+            assertThat(request.metricData()).hasOnlyOneElementSatisfying(metricData -> {
+                StatisticSet stats = metricData.statisticValues();
+                assertThat(stats.minimum()).isEqualTo(0.0);
+                assertThat(stats.maximum()).isEqualTo(0.0);
+                assertThat(stats.sum()).isEqualTo(0.0);
+                assertThat(stats.sampleCount()).isEqualTo(2.0);
+            });
+        });
+    }
+
+    @Test
+    public void smallValuesAreNormalizedToZeroWithDetailedMetrics() {
+        // Really small values (close to 0) result in CloudWatch failing with an "unsupported value" error. Make sure that we
+        // floor those values to 0 to prevent that error.
+
+        SdkMetric<Double> metric = someMetric(Double.class);
+        MetricCollectionAggregator aggregator = aggregatorWithCustomDetailedMetrics(metric);
+
+        MetricCollector collector = collector();
+        collector.reportMetric(metric, -1E-10);
+        collector.reportMetric(metric, 1E-10);
+        aggregator.addCollection(collectToFixedTime(collector));
+
+        assertThat(aggregator.getRequests()).hasOnlyOneElementSatisfying(request -> {
+            assertThat(request.metricData()).hasOnlyOneElementSatisfying(metricData -> {
+                assertThat(metricData.values()).hasOnlyOneElementSatisfying(metricValue -> {
+                    assertThat(metricValue).isEqualTo(0.0);
+                });
+                assertThat(metricData.counts()).hasOnlyOneElementSatisfying(metricCount -> {
+                    assertThat(metricCount).isEqualTo(2.0);
+                });
+            });
+        });
+    }
+
+    @Test
     public void dimensionOrderInCollectionDoesNotMatter() {
         MetricCollectionAggregator aggregator = defaultAggregator();
 

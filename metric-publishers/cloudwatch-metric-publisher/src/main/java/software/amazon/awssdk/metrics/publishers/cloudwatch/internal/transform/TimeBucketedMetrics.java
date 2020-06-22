@@ -120,7 +120,7 @@ class TimeBucketedMetrics {
             MetricAggregatorKey aggregatorKey = new MetricAggregatorKey(metricRecord.metric(), dimensions);
             valueFor(metricRecord).ifPresent(metricValue -> {
                 bucket.computeIfAbsent(aggregatorKey, m -> newAggregator(aggregatorKey))
-                      .addMetricValue(metricValue);
+                      .addMetricValue(MetricValueNormalizer.normalize(metricValue));
             });
         });
     }
