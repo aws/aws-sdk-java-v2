@@ -150,7 +150,7 @@ public class MetricCollectionAggregator {
                                                        .limit(maxElements);
 
         boundedMetrics.forEach(detailedMetrics -> {
-            values.add(detailedMetrics.metricValue());
+            values.add(MetricValueNormalizer.normalize(detailedMetrics.metricValue()));
             counts.add((double) detailedMetrics.metricCount());
         });
 
@@ -167,9 +167,9 @@ public class MetricCollectionAggregator {
     private MetricDatum summaryMetricDatum(Instant timeBucket,
                                            SummaryMetricAggregator metric) {
         StatisticSet stats = StatisticSet.builder()
-                                         .minimum(metric.min())
-                                         .maximum(metric.max())
-                                         .sum(metric.sum())
+                                         .minimum(MetricValueNormalizer.normalize(metric.min()))
+                                         .maximum(MetricValueNormalizer.normalize(metric.max()))
+                                         .sum(MetricValueNormalizer.normalize(metric.sum()))
                                          .sampleCount((double) metric.count())
                                          .build();
         return MetricDatum.builder()
