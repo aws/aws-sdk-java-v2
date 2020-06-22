@@ -63,7 +63,6 @@ public abstract class BaseAsyncCoreMetricsTest {
         MetricCollection attemptCollection = capturedCollection.children().get(0);
 
         assertThat(attemptCollection.name()).isEqualTo("ApiCallAttempt");
-        assertThat(attemptCollection.children()).isEmpty();
 
         verifySuccessfulApiCallAttemptCollection(attemptCollection);
         assertThat(attemptCollection.metricValues(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME).get(0))
