@@ -161,7 +161,6 @@ public class CoreMetricsTest {
         MetricCollection attemptCollection = capturedCollection.children().get(0);
 
         assertThat(attemptCollection.name()).isEqualTo("ApiCallAttempt");
-        assertThat(attemptCollection.children()).isEmpty();
         assertThat(attemptCollection.metricValues(CoreMetric.HTTP_STATUS_CODE))
                 .containsExactly(200);
         assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))

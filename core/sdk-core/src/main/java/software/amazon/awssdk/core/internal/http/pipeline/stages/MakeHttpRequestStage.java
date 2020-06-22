@@ -59,16 +59,19 @@ public class MakeHttpRequestStage
     }
 
     private HttpExecuteResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
+        MetricCollector metricCollector = context.metricCollector();
+
+        MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
+
         ExecutableHttpRequest requestCallable = sdkHttpClient
             .prepareRequest(HttpExecuteRequest.builder()
                                               .request(request)
+                                              .metricCollector(httpMetricCollector)
                                               .contentStreamProvider(request.contentStreamProvider().orElse(null))
                                               .build());
 
         context.apiCallTimeoutTracker().abortable(requestCallable);
         context.apiCallAttemptTimeoutTracker().abortable(requestCallable);
-
-        MetricCollector metricCollector = context.metricCollector();
 
         Pair<HttpExecuteResponse, Duration> measuredExecute = MetricUtils.measureDurationUnsafe(requestCallable);
 

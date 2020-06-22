@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,17 +37,23 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.MetricCollector;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -89,6 +98,49 @@ public class MakeAsyncHttpRequestStageTest {
         stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
 
         verify(timeoutExecutor, never()).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+    }
+
+    @Test
+    public void testExecute_contextContainsMetricCollector_addsChildToExecuteRequest() {
+        stage = new MakeAsyncHttpRequestStage<>(
+                combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                        AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+                clientDependencies(null));
+
+        SdkHttpFullRequest sdkHttpRequest = SdkHttpFullRequest.builder()
+                .method(SdkHttpMethod.GET)
+                .host("mybucket.s3.us-west-2.amazonaws.com")
+                .protocol("https")
+                .build();
+
+        MetricCollector mockCollector = mock(MetricCollector.class);
+        MetricCollector childCollector = mock(MetricCollector.class);
+
+        when(mockCollector.createChild(any(String.class))).thenReturn(childCollector);
+
+        ExecutionContext executionContext = ExecutionContext.builder()
+                .executionAttributes(new ExecutionAttributes())
+                .build();
+
+        RequestExecutionContext context = RequestExecutionContext.builder()
+                .originalRequest(ValidSdkObjects.sdkRequest())
+                .executionContext(executionContext)
+                .build();
+
+        context.metricCollector(mockCollector);
+
+        try {
+            stage.execute(sdkHttpRequest, context);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // ignored, don't really care about successful execution of the stage in this case
+        } finally {
+            ArgumentCaptor<AsyncExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+
+            verify(mockCollector).createChild(eq("HttpClient"));
+            verify(sdkAsyncHttpClient).execute(httpRequestCaptor.capture());
+            assertThat(httpRequestCaptor.getValue().metricCollector()).contains(childCollector);
+        }
     }
 
     private HttpClientDependencies clientDependencies(Duration timeout) {

@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.Pair;
 
@@ -114,8 +115,18 @@ public final class MetricUtils {
     }
 
     public static MetricCollector createAttemptMetricsCollector(RequestExecutionContext context) {
-        return context.executionContext()
-                      .metricCollector()
-                      .createChild("ApiCallAttempt");
+        MetricCollector parentCollector = context.executionContext().metricCollector();
+        if (parentCollector != null) {
+            return parentCollector.createChild("ApiCallAttempt");
+        }
+        return NoOpMetricCollector.create();
+    }
+
+    public static MetricCollector createHttpMetricsCollector(RequestExecutionContext context) {
+        MetricCollector parentCollector = context.metricCollector();
+        if (parentCollector != null) {
+            return parentCollector.createChild("HttpClient");
+        }
+        return NoOpMetricCollector.create();
     }
 }
