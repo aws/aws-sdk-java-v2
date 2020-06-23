@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "description": "AWS Elemental MediaTailor SDK now allows configuration of Bumper."
+}
