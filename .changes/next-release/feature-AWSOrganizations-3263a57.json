@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "description": "Added a new error message to support the requirement for a Business License on AWS accounts in China to create an organization."
-}
