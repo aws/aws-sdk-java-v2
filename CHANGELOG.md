@@ -1,3 +1,16 @@
+# __2.13.43__ __2020-06-23__
+## __AWS MediaTailor__
+  - ### Features
+    - AWS Elemental MediaTailor SDK now allows configuration of Bumper.
+
+## __AWS Organizations__
+  - ### Features
+    - Added a new error message to support the requirement for a Business License on AWS accounts in China to create an organization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.13.42__ __2020-06-22__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
