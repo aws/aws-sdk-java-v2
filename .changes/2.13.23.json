@@ -1,0 +1,21 @@
+{
+    "version": "2.13.23",
+    "date": "2020-05-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "description": "This release adds support for the standard deviation auto-computed aggregate and improved support for portal logo images in SiteWise."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "description": "Documentation updates for Amazon EC2 Auto Scaling"
+        }
+    ]
+}

@@ -26,6 +26,7 @@ import io.netty.util.concurrent.Promise;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Logger;
 
@@ -43,7 +44,7 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
      * The idle channel state for a specific channel. This should only be accessed from the {@link #executor}.
      */
     private static final AttributeKey<ChannelIdleState> CHANNEL_STATE =
-        AttributeKey.newInstance("IdleConnectionCountingChannelPool.CHANNEL_STATE");
+        NettyUtils.getOrCreateAttributeKey("IdleConnectionCountingChannelPool.CHANNEL_STATE");
 
     /**
      * The executor in which all updates to {@link #idleConnections} is performed.

@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.http2.PingTracker;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 
 /**
  * Keys for attributes attached via {@link io.netty.channel.Channel#attr(AttributeKey)}.
@@ -37,77 +38,78 @@ public final class ChannelAttributeKey {
     /**
      * Future that when a protocol (http/1.1 or h2) has been selected.
      */
-    public static final AttributeKey<CompletableFuture<Protocol>> PROTOCOL_FUTURE = AttributeKey.newInstance(
+    public static final AttributeKey<CompletableFuture<Protocol>> PROTOCOL_FUTURE = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.protocolFuture");
 
     /**
      * Reference to {@link Http2MultiplexedChannelPool} which stores information about leased streams for a multiplexed
      * connection.
      */
-    public static final AttributeKey<Http2MultiplexedChannelPool> HTTP2_MULTIPLEXED_CHANNEL_POOL = AttributeKey.newInstance(
-        "aws.http.nio.netty.async.http2MultiplexedChannelPool");
+    public static final AttributeKey<Http2MultiplexedChannelPool> HTTP2_MULTIPLEXED_CHANNEL_POOL =
+        NettyUtils.getOrCreateAttributeKey("aws.http.nio.netty.async.http2MultiplexedChannelPool");
 
     public static final AttributeKey<PingTracker> PING_TRACKER =
-        AttributeKey.newInstance("aws.http.nio.netty.async.h2.pingTracker");
+        NettyUtils.getOrCreateAttributeKey("aws.http.nio.netty.async.h2.pingTracker");
 
     public static final AttributeKey<Http2Connection> HTTP2_CONNECTION =
-        AttributeKey.newInstance("aws.http.nio.netty.async.http2Connection");
+        NettyUtils.getOrCreateAttributeKey("aws.http.nio.netty.async.http2Connection");
 
     public static final AttributeKey<Integer> HTTP2_INITIAL_WINDOW_SIZE =
-        AttributeKey.newInstance("aws.http.nio.netty.async.http2InitialWindowSize");
+        NettyUtils.getOrCreateAttributeKey("aws.http.nio.netty.async.http2InitialWindowSize");
 
     /**
      * Value of the MAX_CONCURRENT_STREAMS from the server's SETTING frame.
      */
-    public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = AttributeKey.newInstance(
+    public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.maxConcurrentStreams");
 
     /**
      * The {@link Http2FrameStream} associated with this stream channel. This is added to stream channels when they are created,
      * before they are fully initialized.
      */
-    public static final AttributeKey<Http2FrameStream> HTTP2_FRAME_STREAM = AttributeKey.newInstance(
+    public static final AttributeKey<Http2FrameStream> HTTP2_FRAME_STREAM = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.http2FrameStream");
 
     /**
      * {@link AttributeKey} to keep track of whether we should close the connection after this request
      * has completed.
      */
-    static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
+    static final AttributeKey<Boolean> KEEP_ALIVE = NettyUtils.getOrCreateAttributeKey("aws.http.nio.netty.async.keepAlive");
 
     /**
      * Attribute key for {@link RequestContext}.
      */
-    static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance(
+    static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.requestContext");
 
-    static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance(
+    static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.subscriber");
 
-    static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance(
+    static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.responseComplete");
 
     /**
      * {@link AttributeKey} to keep track of whether we have received the {@link LastHttpContent}.
      */
-    static final AttributeKey<Boolean> LAST_HTTP_CONTENT_RECEIVED_KEY = AttributeKey.newInstance(
+    static final AttributeKey<Boolean> LAST_HTTP_CONTENT_RECEIVED_KEY = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.lastHttpContentReceived");
 
-    static final AttributeKey<CompletableFuture<Void>> EXECUTE_FUTURE_KEY = AttributeKey.newInstance(
+    static final AttributeKey<CompletableFuture<Void>> EXECUTE_FUTURE_KEY = NettyUtils.getOrCreateAttributeKey(
             "aws.http.nio.netty.async.executeFuture");
 
-    static final AttributeKey<Long> EXECUTION_ID_KEY = AttributeKey.newInstance(
+    static final AttributeKey<Long> EXECUTION_ID_KEY = NettyUtils.getOrCreateAttributeKey(
             "aws.http.nio.netty.async.executionId");
 
     /**
      * Whether the channel is still in use
      */
-    static final AttributeKey<Boolean> IN_USE = AttributeKey.newInstance("aws.http.nio.netty.async.inUse");
+    static final AttributeKey<Boolean> IN_USE = NettyUtils.getOrCreateAttributeKey("aws.http.nio.netty.async.inUse");
 
     /**
      * Whether the channel should be closed once it is released.
      */
-    static final AttributeKey<Boolean> CLOSE_ON_RELEASE = AttributeKey.newInstance("aws.http.nio.netty.async.closeOnRelease");
+    static final AttributeKey<Boolean> CLOSE_ON_RELEASE = NettyUtils.getOrCreateAttributeKey(
+            "aws.http.nio.netty.async.closeOnRelease");
 
     private ChannelAttributeKey() {
     }

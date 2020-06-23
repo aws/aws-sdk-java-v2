@@ -14,7 +14,7 @@ You can use `mvn archetype:generate` to generate a project using this archetype.
 mvn archetype:generate \
   -DarchetypeGroupId=software.amazon.awssdk \
   -DarchetypeArtifactId=archetype-lambda \
-  -DarchetypeVersion=2.x\
+  -DarchetypeVersion=2.x
 ```
 
 - Batch mode
@@ -23,12 +23,11 @@ mvn archetype:generate \
 mvn archetype:generate \
     -DarchetypeGroupId=software.amazon.awssdk \
     -DarchetypeArtifactId=archetype-lambda \
-    -DarchetypeVersion=2.x\
+    -DarchetypeVersion=2.x \
     -DgroupId=com.test \
     -DartifactId=sample-project \
     -Dservice=s3  \
-    -Dregion=us-west-2 \
-    -DinteractiveMode=false \
+    -DinteractiveMode=false
 ```
 
 ### Parameters
@@ -36,9 +35,9 @@ mvn archetype:generate \
 Parameter Name | Default Value | Description
 ---|---|---
 `service` (required) | n/a | Specifies the service client to be used in the lambda function, eg: s3, dynamodb. You can find available services [here][java-sdk-v2-services].
-`region` (required) | n/a | Specifies the region to be set for the SDK client in the application
 `groupId`(required) | n/a | Specifies the group ID of the project
 `artifactId`(required) | n/a | Specifies the artifact ID of the project
+`region` | n/a | Specifies the region to be set for the SDK client in the application
 `httpClient` | url-connection-client | Specifies the http client to be used by the SDK client. Available options are `url-connection-client` (sync), `apache-client` (sync), `netty-nio-client` (async). See [http clients][sdk-http-clients]
 `handlerClassName` | `"App"`| Specifies the class name of the handler, which will be used as the lambda function name. It should be camel case.
 `javaSdkVersion` | Same version as the archetype version | Specifies the version of the AWS Java SDK 2.x to be used
