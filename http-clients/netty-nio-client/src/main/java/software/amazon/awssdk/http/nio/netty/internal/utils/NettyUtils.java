@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import io.netty.channel.EventLoop;
+import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -159,5 +160,17 @@ public final class NettyUtils {
                                           + "AWS SDK for Java team on GitHub, because it could result in race conditions.");
             log.warn(() -> "Execution is happening outside of the expected event loop.", exception);
         }
+    }
+
+    /**
+     * @return an {@code AttributeKey} for {@code attr}. This returns an existing instance if it was previously created.
+     */
+    public static <T> AttributeKey<T> getOrCreateAttributeKey(String attr) {
+        if (AttributeKey.exists(attr)) {
+            return AttributeKey.valueOf(attr);
+        }
+        //CHECKSTYLE:OFF - This is the only place allowed to call AttributeKey.newInstance()
+        return AttributeKey.newInstance(attr);
+        //CHECKSTYLE:ON
     }
 }

@@ -20,27 +20,33 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
+import software.amazon.awssdk.enhanced.dynamodb.internal.client.ExtensionResolver;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactWriteItemsOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
+import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TransactWriteItemsEnhancedRequestTest {
@@ -165,6 +171,17 @@ public class TransactWriteItemsEnhancedRequestTest {
 
         assertThat(builtObject.transactWriteItems().get(3).conditionCheck(), is(notNullValue()));
         assertThat(builtObject.transactWriteItems().get(3).conditionCheck().key().get("id").s(), is(fakeItem.getId()));
+    }
+
+    @Test
+    public void builder_passRequestToken_shouldWork() {
+        String token = UUID.randomUUID().toString();
+        TransactWriteItemsEnhancedRequest enhancedRequest = TransactWriteItemsEnhancedRequest.builder()
+                                                                                             .clientRequestToken(token)
+                                                                                             .build();
+        DynamoDbEnhancedClientExtension extension = ExtensionResolver.resolveExtensions(ExtensionResolver.defaultExtensions());
+        TransactWriteItemsRequest request = TransactWriteItemsOperation.create(enhancedRequest).generateRequest(extension);
+        assertEquals(token, request.clientRequestToken());
     }
 
     private List<TransactWriteItem> getTransactWriteItems(FakeItem fakeItem) {

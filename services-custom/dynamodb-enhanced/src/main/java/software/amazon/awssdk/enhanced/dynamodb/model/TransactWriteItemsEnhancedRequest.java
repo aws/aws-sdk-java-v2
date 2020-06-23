@@ -52,8 +52,11 @@ public final class TransactWriteItemsEnhancedRequest {
 
     private final List<TransactWriteItem> transactWriteItems;
 
+    private final String clientRequestToken;
+
     private TransactWriteItemsEnhancedRequest(Builder builder) {
         this.transactWriteItems = getItemsFromSupplier(builder.itemSupplierList);
+        this.clientRequestToken = builder.clientRequestToken;
     }
 
     /**
@@ -61,6 +64,26 @@ public final class TransactWriteItemsEnhancedRequest {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * <p>
+     * Providing a <code>ClientRequestToken</code> makes the call to <code>TransactWriteItems</code> idempotent, meaning
+     * that multiple identical calls have the same effect as one single call.
+     * </p>
+     * <p>
+     * A client request token is valid for 10 minutes after the first request that uses it is completed. After 10
+     * minutes, any request with the same client token is treated as a new request. Do not resubmit the same request
+     * with the same client token for more than 10 minutes, or the result might not be idempotent.
+     * </p>
+     * <p>
+     * If you submit a request with the same client token but a change in other parameters within the 10-minute
+     * idempotency window, DynamoDB returns an <code>IdempotentParameterMismatch</code> exception.
+     * </p>
+     */
+
+    public String clientRequestToken() {
+        return clientRequestToken;
     }
 
     /**
@@ -96,6 +119,8 @@ public final class TransactWriteItemsEnhancedRequest {
      */
     public static final class Builder {
         private List<Supplier<TransactWriteItem>> itemSupplierList = new ArrayList<>();
+
+        private String clientRequestToken;
 
         private Builder() {
         }
@@ -248,6 +273,17 @@ public final class TransactWriteItemsEnhancedRequest {
                 UpdateItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
                                          .item(item)
                                          .build());
+        }
+
+        /**
+         * Sets the clientRequestToken in this builder.
+         *
+         * @param clientRequestToken the clientRequestToken going to be used for build
+         * @return a builder of this type
+         */
+        public Builder clientRequestToken(String clientRequestToken) {
+            this.clientRequestToken = clientRequestToken;
+            return this;
         }
 
         /**

@@ -13,18 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.waiters;
+package software.amazon.awssdk.http.nio.netty.internal.utils;
 
-public class WaiterUnrecoverableException extends RuntimeException {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    /**
-     * Constructs a new WaiterUnrecoverableException with the specified error
-     * message.
-     *
-     * @param message Describes the error encountered.
-     */
-    public WaiterUnrecoverableException(String message) {
-        super(message);
+import io.netty.util.AttributeKey;
+import org.junit.Test;
+
+public class NettyUtilsTest {
+    @Test
+    public void testGetOrCreateAttributeKey_calledTwiceWithSameName_returnsSameInstance() {
+        String attr = "NettyUtilsTest.Foo";
+        AttributeKey<String> fooAttr = NettyUtils.getOrCreateAttributeKey(attr);
+        assertThat(NettyUtils.getOrCreateAttributeKey(attr)).isSameAs(fooAttr);
     }
-
 }

@@ -55,6 +55,7 @@ import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -78,13 +79,13 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
     /**
      * Reference to the {@link MultiplexedChannelRecord} on a channel.
      */
-    private static final AttributeKey<MultiplexedChannelRecord> MULTIPLEXED_CHANNEL = AttributeKey.newInstance(
-        "software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChannelPool.MULTIPLEXED_CHANNEL");
+    private static final AttributeKey<MultiplexedChannelRecord> MULTIPLEXED_CHANNEL = NettyUtils.getOrCreateAttributeKey(
+            "software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChannelPool.MULTIPLEXED_CHANNEL");
 
     /**
      * Whether a parent channel has been released yet. This guards against double-releasing to the delegate connection pool.
      */
-    private static final AttributeKey<Boolean> RELEASED = AttributeKey.newInstance(
+    private static final AttributeKey<Boolean> RELEASED = NettyUtils.getOrCreateAttributeKey(
         "software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChannelPool.RELEASED");
 
     private final ChannelPool connectionPool;

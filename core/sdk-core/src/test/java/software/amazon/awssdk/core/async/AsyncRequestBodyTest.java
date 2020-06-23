@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 @RunWith(Parameterized.class)
 public class AsyncRequestBodyTest {
@@ -92,5 +94,18 @@ public class AsyncRequestBodyTest {
         provider.subscribe(subscriber);
         done.await();
         assertThat(sb.toString()).isEqualTo(testString);
+    }
+
+    @Test
+    public void fromBytes_byteArrayNotNull_createsCopy() {
+        byte[] original = {0x1, 0x2, 0x3, 0x4};
+        byte[] toModify = new byte[original.length];
+        System.arraycopy(original, 0, toModify, 0, original.length);
+        AsyncRequestBody body = AsyncRequestBody.fromBytes(toModify);
+        for (int i = 0; i < toModify.length; ++i) {
+            toModify[i]++;
+        }
+        ByteBuffer publishedBb = Flowable.fromPublisher(body).toList().blockingGet().get(0);
+        assertThat(BinaryUtils.copyAllBytesFrom(publishedBb)).isEqualTo(original);
     }
 }
