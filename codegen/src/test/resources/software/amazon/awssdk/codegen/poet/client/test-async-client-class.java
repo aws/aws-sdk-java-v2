@@ -60,7 +60,6 @@ import software.amazon.awssdk.services.json.model.EventTwo;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InputEvent;
-import software.amazon.awssdk.services.json.model.InputEventOne;
 import software.amazon.awssdk.services.json.model.InputEventStream;
 import software.amazon.awssdk.services.json.model.InputEventStreamTwo;
 import software.amazon.awssdk.services.json.model.InputEventTwo;
@@ -86,7 +85,6 @@ import software.amazon.awssdk.services.json.transform.EventStreamOperationWithOn
 import software.amazon.awssdk.services.json.transform.EventStreamOperationWithOnlyOutputRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventMarshaller;
-import software.amazon.awssdk.services.json.transform.InputEventOneMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventTwoMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutResultKeyRequestMarshaller;
@@ -343,7 +341,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                     operationMetadata);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
-                    .putMarshaller(InputEventOne.class, new InputEventOneMarshaller(protocolFactory))
+                    .putMarshaller(InputEvent.class, new InputEventMarshaller(protocolFactory))
                     .putMarshaller(InputEventTwo.class, new InputEventTwoMarshaller(protocolFactory)).build();
             SdkPublisher<InputEventStreamTwo> eventPublisher = SdkPublisher.adapt(requestStream);
             Publisher<ByteBuffer> adapted = eventPublisher.map(event -> eventMarshaller.marshall(event)).map(
