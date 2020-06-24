@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify",
+    "description": "This release of AWS Amplify Console introduces support for automatically creating custom subdomains for branches based on user-defined glob patterns, as well as automatically cleaning up Amplify branches when their corresponding git branches are deleted."
+}
