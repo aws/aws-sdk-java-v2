@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -61,6 +62,7 @@ public class PutItemOperationTest {
         DefaultOperationContext.create(TABLE_NAME, "gsi_1");
     private static final Expression CONDITION_EXPRESSION;
     private static final Expression CONDITION_EXPRESSION_2;
+    private static final Expression MINIMAL_CONDITION_EXPRESSION = Expression.builder().expression("foo = bar").build();
 
     static {
         Map<String, String> expressionNames = new HashMap<>();
@@ -164,6 +166,24 @@ public class PutItemOperationTest {
                           .expressionAttributeValues(CONDITION_EXPRESSION.expressionValues())
                           .build();
         assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withMinimalConditionExpression() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .conditionExpression(MINIMAL_CONDITION_EXPRESSION)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        assertThat(request.conditionExpression(), is(MINIMAL_CONDITION_EXPRESSION.expression()));
+        assertThat(request.expressionAttributeNames(), is(emptyMap()));
+        assertThat(request.expressionAttributeValues(), is(emptyMap()));
     }
 
     @Test
