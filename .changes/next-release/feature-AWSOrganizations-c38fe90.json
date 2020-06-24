@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "description": "This release adds support for a new backup policy type for AWS Organizations."
-}

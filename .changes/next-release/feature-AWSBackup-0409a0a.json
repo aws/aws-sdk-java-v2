@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Backup",
-    "description": "Customers can now manage and monitor their backups in a policied manner across their AWS accounts, via an integration between AWS Backup and AWS Organizations"
-}
