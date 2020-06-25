@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS DynamoDB Enhanced Client",
-    "description": "Fixed a bug causing a NullPointerException to be thrown in the enhanced DeleteItem operation if a conditionExpression was given with null attributeNames or null attributeValues."
-}

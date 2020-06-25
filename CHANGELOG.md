@@ -1,3 +1,20 @@
+# __2.13.45__ __2020-06-25__
+## __AWS DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed a bug causing a NullPointerException to be thrown in the enhanced DeleteItem operation if a conditionExpression was given with null attributeNames or null attributeValues.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds new APIs to support column level statistics in AWS Glue Data Catalog
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for tag-on-create for Host Reservations in Dedicated Hosts. You can now specify tags when you create a Host Reservation for a Dedicated Host. For more information about tagging, see AWS Tagging Strategies.
+
 # __2.13.44__ __2020-06-24__
 ## __AWS Amplify__
   - ### Features
