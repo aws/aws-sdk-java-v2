@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "This release adds new APIs to support column level statistics in AWS Glue Data Catalog"
+}
