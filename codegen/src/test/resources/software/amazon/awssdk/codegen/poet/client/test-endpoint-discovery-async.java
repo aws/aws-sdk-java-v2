@@ -3,7 +3,7 @@ package software.amazon.awssdk.services.endpointdiscoverytest;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.net.URI;
-import java.util.Optional;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,15 +116,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                             .withMetricCollector(apiCallMetricCollector).withInput(describeEndpointsRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = describeEndpointsRequest.overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     describeEndpointsRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -181,15 +181,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryIdentifiersRequiredRequest
                     .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -245,15 +245,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryOptionalRequest.overrideConfiguration().orElse(
                     null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     testDiscoveryOptionalRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -309,15 +309,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryRequiredRequest.overrideConfiguration().orElse(
                     null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     testDiscoveryRequiredRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }

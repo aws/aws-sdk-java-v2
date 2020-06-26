@@ -18,11 +18,12 @@ package software.amazon.awssdk.core.internal.util;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHER;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +31,6 @@ import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -124,21 +124,29 @@ public class MetricUtilsTest {
 
     @Test
     public void resolvePublisher_requestConfigNull_ShouldUseSdkClientConfig() {
-        MetricPublisher metricPublisher = mock(MetricPublisher.class);
+        List metricPublishers = mock(List.class);
 
-        SdkClientConfiguration config = SdkClientConfiguration.builder().option(METRIC_PUBLISHER, metricPublisher).build();
+        SdkClientConfiguration config = SdkClientConfiguration.builder().option(METRIC_PUBLISHERS, metricPublishers).build();
         RequestOverrideConfiguration requestOverrideConfiguration = null;
-        Optional<MetricPublisher> result = MetricUtils.resolvePublisher(config, requestOverrideConfiguration);
-        Assertions.assertThat(result).isEqualTo(Optional.of(metricPublisher));
+        List<MetricPublisher> result = MetricUtils.resolvePublishers(config, requestOverrideConfiguration);
+        Assertions.assertThat(result).isEqualTo(metricPublishers);
     }
 
     @Test
     public void resolvePublisher_requestConfigNotNull_shouldTakePrecedence() {
-        MetricPublisher metricPublisher = mock(MetricPublisher.class);
+        List metricPublishers = mock(List.class);
 
-        SdkClientConfiguration config = SdkClientConfiguration.builder().option(METRIC_PUBLISHER, mock(MetricPublisher.class)).build();
-        RequestOverrideConfiguration requestOverrideConfiguration = SdkRequestOverrideConfiguration.builder().metricPublisher(metricPublisher).build();
-        Optional<MetricPublisher> result = MetricUtils.resolvePublisher(config, requestOverrideConfiguration);
-        Assertions.assertThat(result).isEqualTo(Optional.of(metricPublisher));
+        SdkClientConfiguration config = SdkClientConfiguration.builder().option(METRIC_PUBLISHERS, metricPublishers).build();
+        RequestOverrideConfiguration requestOverrideConfiguration = SdkRequestOverrideConfiguration.builder().metricPublishers(metricPublishers).build();
+        List<MetricPublisher> result = MetricUtils.resolvePublishers(config, requestOverrideConfiguration);
+        Assertions.assertThat(result).isEqualTo(metricPublishers);
+    }
+
+    @Test
+    public void resolvePublisher_bothConfigNull_ShouldReturnEmptyList() {
+        SdkClientConfiguration config = null;
+        RequestOverrideConfiguration requestOverrideConfiguration = null;
+        List<MetricPublisher> result = MetricUtils.resolvePublishers(config, requestOverrideConfiguration);
+        Assertions.assertThat(result).isEqualTo(new ArrayList());
     }
 }

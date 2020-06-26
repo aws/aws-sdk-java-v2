@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.core.internal.util;
 
-import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHER;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -32,7 +34,6 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
-import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -45,37 +46,53 @@ public final class MetricUtils {
     }
 
     /**
-     * Resolve the correct metric publisher to use. The publisher set on the request always takes precedence.
+     * Resolve the correct list of metric publishers to use. The publishers set on the request always takes precedence.
      *
      * @param clientConfig The client configuration.
-     * @param requestConfig The request override configuration.
-     * @return The metric publisher to use.
+     * @param request The request.
+     * @return The list of metric publishers to use.
      */
     //TODO: remove this and use the overload instead
-    public static Optional<MetricPublisher> resolvePublisher(SdkClientConfiguration clientConfig,
-                                                             SdkRequest requestConfig) {
-        Optional<MetricPublisher> requestOverride = requestConfig.overrideConfiguration()
-                .flatMap(RequestOverrideConfiguration::metricPublisher);
-        if (requestOverride.isPresent()) {
-            return requestOverride;
+    public static List<MetricPublisher> resolvePublishers(SdkClientConfiguration clientConfig,
+                                                          SdkRequest request) {
+        Optional<? extends RequestOverrideConfiguration> requestConfig = request.overrideConfiguration();
+        if (requestConfig.isPresent()) {
+            List<MetricPublisher> requestOverridePublishers = requestConfig.get().metricPublishers();
+            if (!requestOverridePublishers.isEmpty()) {
+                return requestOverridePublishers;
+            }
         }
-        return Optional.ofNullable(clientConfig.option(METRIC_PUBLISHER));
+
+        if (clientConfig != null) {
+            return clientConfig.option(METRIC_PUBLISHERS);
+        }
+
+        // Else if both of the two configurations are null, return an empty list
+        return new ArrayList<>();
     }
 
     /**
-     * Resolve the correct metric publisher to use. The publisher set on the request always takes precedence.
+     * Resolve the correct list of metric publishers to use. The publishers set on the request always takes precedence.
      *
      * @param clientConfig The client configuration.
      * @param requestConfig The request override configuration.
-     * @return The metric publisher to use.
+     * @return The list of metric publishers to use.
      */
-    public static Optional<MetricPublisher> resolvePublisher(SdkClientConfiguration clientConfig,
-                                                             RequestOverrideConfiguration requestConfig) {
+    public static List<MetricPublisher> resolvePublishers(SdkClientConfiguration clientConfig,
+                                                          RequestOverrideConfiguration requestConfig) {
         if (requestConfig != null) {
-            return OptionalUtils.firstPresent(requestConfig.metricPublisher(), () -> clientConfig.option(METRIC_PUBLISHER));
+            List<MetricPublisher> requestOverridePublishers = requestConfig.metricPublishers();
+            if (!requestOverridePublishers.isEmpty()) {
+                return requestOverridePublishers;
+            }
         }
 
-        return Optional.ofNullable(clientConfig.option(METRIC_PUBLISHER));
+        if (clientConfig != null) {
+            return clientConfig.option(METRIC_PUBLISHERS);
+        }
+
+        // Else if both of the two configurations are null, return an empty list
+        return new ArrayList<>();
     }
 
     /**

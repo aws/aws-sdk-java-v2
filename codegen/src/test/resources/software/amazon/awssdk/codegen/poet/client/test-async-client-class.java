@@ -3,7 +3,7 @@ package software.amazon.awssdk.services.json;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -181,15 +181,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withInput(aPostOperationRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration, aPostOperationRequest
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration, aPostOperationRequest
                     .overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -242,15 +242,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     aPostOperationWithOutputRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -333,17 +333,17 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                         future.completeExceptionally(e);
                     }
                 }
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                     () -> asyncResponseHandler.exceptionOccurred(t));
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     eventStreamOperationRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -403,15 +403,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationWithOnlyInputRequest
                     .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     eventStreamOperationWithOnlyInputRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -490,17 +490,17 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                         future.completeExceptionally(e);
                     }
                 }
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                     () -> asyncResponseHandler.exceptionOccurred(t));
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     eventStreamOperationWithOnlyOutputRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -553,15 +553,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = getWithoutRequiredMembersRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     getWithoutRequiredMembersRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -611,15 +611,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = paginatedOperationWithResultKeyRequest
                     .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     paginatedOperationWithResultKeyRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -746,15 +746,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = paginatedOperationWithoutResultKeyRequest
                     .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     paginatedOperationWithoutResultKeyRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -889,15 +889,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingInputOperationRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -969,17 +969,17 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                             () -> asyncResponseTransformer.exceptionOccurred(e));
                 }
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                     () -> asyncResponseTransformer.exceptionOccurred(t));
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingInputOutputOperationRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1039,17 +1039,17 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                             () -> asyncResponseTransformer.exceptionOccurred(e));
                 }
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                     () -> asyncResponseTransformer.exceptionOccurred(t));
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingOutputOperationRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }

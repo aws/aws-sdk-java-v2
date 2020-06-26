@@ -1,7 +1,7 @@
 package software.amazon.awssdk.services.endpointdiscoverytest;
 
 import java.net.URI;
-import java.util.Optional;
+import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -104,9 +104,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                     .withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     describeEndpointsRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -156,9 +156,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                             .withInput(testDiscoveryIdentifiersRequiredRequest).withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     testDiscoveryIdentifiersRequiredRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -206,9 +206,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                     .withInput(testDiscoveryOptionalRequest).withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     testDiscoveryOptionalRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -256,9 +256,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                     .withInput(testDiscoveryRequiredRequest).withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     testDiscoveryRequiredRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 

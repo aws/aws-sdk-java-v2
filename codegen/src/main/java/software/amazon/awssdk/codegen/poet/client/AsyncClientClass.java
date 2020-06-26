@@ -32,7 +32,6 @@ import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -71,7 +70,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
-    private static final String PUBLISHER_NAME = "metricPublisher";
+    private static final String PUBLISHERS_NAME = "metricPublishers";
     private static final String METRIC_COLLECTOR_NAME = "apiCallMetricCollector";
     private final IntermediateModel model;
     private final PoetExtensions poetExtensions;
@@ -240,13 +239,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "() -> $N.exceptionOccurred(t))", paramName);
         }
 
-        builder.addStatement("$T<$T> $N = $T.resolvePublisher(clientConfiguration, $N.overrideConfiguration().orElse(null))",
-                             Optional.class,
+        builder.addStatement("$T<$T> $N = $T.resolvePublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
+                             List.class,
                              MetricPublisher.class,
-                             PUBLISHER_NAME,
+                             PUBLISHERS_NAME,
                              MetricUtils.class,
                              opModel.getInput().getVariableName())
-               .addStatement("$N.ifPresent(p -> p.publish($N.collect()))", PUBLISHER_NAME, "apiCallMetricCollector")
+               .addStatement("$N.forEach(p -> p.publish($N.collect()))", PUBLISHERS_NAME, "apiCallMetricCollector")
                .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                .endControlFlow();
 

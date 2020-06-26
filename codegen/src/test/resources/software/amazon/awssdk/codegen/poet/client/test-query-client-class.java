@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.query;
 
-import java.util.Optional;
+import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
@@ -100,8 +100,8 @@ final class DefaultQueryClient implements QueryClient {
                     .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration, aPostOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration, aPostOperationRequest);
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -146,9 +146,9 @@ final class DefaultQueryClient implements QueryClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     aPostOperationWithOutputRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -205,9 +205,9 @@ final class DefaultQueryClient implements QueryClient {
                                             .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                             .requestBody(requestBody).build()));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingInputOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -255,9 +255,9 @@ final class DefaultQueryClient implements QueryClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingOutputOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 

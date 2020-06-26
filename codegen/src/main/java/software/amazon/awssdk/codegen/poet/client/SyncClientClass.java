@@ -28,7 +28,6 @@ import com.squareup.javapoet.TypeSpec.Builder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -196,7 +195,7 @@ public class SyncClientClass implements ClassSpec {
         method.addStatement("$1T $2N = $1T.create($3S)",
                 MetricCollector.class, metricCollectorName, "ApiCall");
 
-        String publisherName = "metricPublisher";
+        String publisherListName = "metricPublishers";
 
         method.beginControlFlow("try")
                 .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "SERVICE_ID",
@@ -206,13 +205,13 @@ public class SyncClientClass implements ClassSpec {
                 .addCode(protocolSpec.executionHandler(opModel))
                 .endControlFlow()
                 .beginControlFlow("finally")
-                .addStatement("$T<$T> $N = $T.resolvePublisher(clientConfiguration, $N)",
-                              Optional.class,
+                .addStatement("$T<$T> $N = $T.resolvePublishers(clientConfiguration, $N)",
+                              List.class,
                               MetricPublisher.class,
-                              publisherName,
+                              publisherListName,
                               MetricUtils.class,
                               opModel.getInput().getVariableName())
-                .addStatement("$N.ifPresent(p -> p.publish($N.collect()))", publisherName, metricCollectorName)
+                .addStatement("$N.forEach(p -> p.publish($N.collect()))", publisherListName, metricCollectorName)
                 .endControlFlow();
 
         methods.add(method.build());

@@ -45,7 +45,7 @@ public abstract class RequestOverrideConfiguration {
     private final Duration apiCallTimeout;
     private final Duration apiCallAttemptTimeout;
     private final Signer signer;
-    private final MetricPublisher metricPublisher;
+    private final List<MetricPublisher> metricPublishers;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -54,7 +54,7 @@ public abstract class RequestOverrideConfiguration {
         this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.signer = builder.signer();
-        this.metricPublisher = builder.metricPublisher();
+        this.metricPublishers = builder.metricPublishers();
     }
 
     /**
@@ -134,8 +134,8 @@ public abstract class RequestOverrideConfiguration {
      * Return the metric publisher for publishing the metrics collected for this request. This publisher supersedes the
      * metric publisher set on the client.
      */
-    public Optional<MetricPublisher> metricPublisher() {
-        return Optional.ofNullable(metricPublisher);
+    public List<MetricPublisher> metricPublishers() {
+        return metricPublishers;
     }
 
     @Override
@@ -153,7 +153,7 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(apiCallTimeout, that.apiCallTimeout) &&
                Objects.equals(apiCallAttemptTimeout, that.apiCallAttemptTimeout) &&
                Objects.equals(signer, that.signer) &&
-               Objects.equals(metricPublisher, that.metricPublisher);
+               Objects.equals(metricPublishers, that.metricPublishers);
     }
 
     @Override
@@ -165,7 +165,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(apiCallTimeout);
         hashCode = 31 * hashCode + Objects.hashCode(apiCallAttemptTimeout);
         hashCode = 31 * hashCode + Objects.hashCode(signer);
-        hashCode = 31 * hashCode + Objects.hashCode(metricPublisher);
+        hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
         return hashCode;
     }
 
@@ -353,15 +353,20 @@ public abstract class RequestOverrideConfiguration {
         Signer signer();
 
         /**
-         * Sets the metric publisher for publishing the metrics collected for this request. This publisher supersedes
-         * the metric publisher set on the client.
+         * Sets the metric publishers for publishing the metrics collected for this request. This list of publishers supersedes
+         * the metric publishers set on the client.
          *
-         * @param metricPublisher The metric publisher for this request.
+         * @param metricPublishers The list of metric publishers for this request.
          * @return This object for method chaining.
          */
-        B metricPublisher(MetricPublisher metricPublisher);
+        B metricPublishers(List<MetricPublisher> metricPublishers);
 
-        MetricPublisher metricPublisher();
+        List<MetricPublisher> metricPublishers();
+
+        /**
+         * Adds a new metric publisher for this request.
+         */
+        B addMetricPublisher(MetricPublisher metricPublisher);
 
         /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
@@ -378,7 +383,7 @@ public abstract class RequestOverrideConfiguration {
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
         private Signer signer;
-        private MetricPublisher metricPublisher;
+        private List<MetricPublisher> metricPublishers = new ArrayList<>();
 
         protected BuilderImpl() {
         }
@@ -497,18 +502,19 @@ public abstract class RequestOverrideConfiguration {
         }
 
         @Override
-        public B metricPublisher(MetricPublisher metricPublisher) {
-            this.metricPublisher = metricPublisher;
+        public B metricPublishers(List<MetricPublisher> metricPublishers) {
+            this.metricPublishers = metricPublishers;
             return (B) this;
         }
 
-        public void setMetricPublisher(MetricPublisher metricPublisher) {
-            metricPublisher(metricPublisher);
+        public B addMetricPublisher(MetricPublisher metricPublisher) {
+            metricPublishers.add(metricPublisher);
+            return (B) this;
         }
 
         @Override
-        public MetricPublisher metricPublisher() {
-            return metricPublisher;
+        public List<MetricPublisher> metricPublishers() {
+            return metricPublishers;
         }
     }
 }

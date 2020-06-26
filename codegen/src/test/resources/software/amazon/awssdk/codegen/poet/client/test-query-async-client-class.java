@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.query;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,15 +113,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                             .withInput(aPostOperationRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                        requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                List<MetricPublisher> metricPublishers = MetricUtils
+                    .resolvePublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration, aPostOperationRequest
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration, aPostOperationRequest
                     .overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -171,15 +171,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     aPostOperationWithOutputRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -233,15 +233,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
                     .orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingInputOperationRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -298,17 +298,17 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                             () -> asyncResponseTransformer.exceptionOccurred(e));
                 }
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+                List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                         requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                     () -> asyncResponseTransformer.exceptionOccurred(t));
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingOutputOperationRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }

@@ -56,7 +56,7 @@ public final class ClientOverrideConfiguration
     private final Duration apiCallTimeout;
     private final ProfileFile defaultProfileFile;
     private final String defaultProfileName;
-    private final MetricPublisher metricPublisher;
+    private final List<MetricPublisher> metricPublishers;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -70,7 +70,7 @@ public final class ClientOverrideConfiguration
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.defaultProfileFile = builder.defaultProfileFile();
         this.defaultProfileName = builder.defaultProfileName();
-        this.metricPublisher = builder.metricPublisher();
+        this.metricPublishers = builder.metricPublishers();
     }
 
     @Override
@@ -188,12 +188,12 @@ public final class ClientOverrideConfiguration
     }
 
     /**
-     * The metric publisher to use to publisher metrics collected for this client.
+     * The list of metric publishers to use to publish metrics collected for this client.
      *
      * @return The metric publisher.
      */
-    public Optional<MetricPublisher> metricPublisher() {
-        return Optional.ofNullable(metricPublisher);
+    public List<MetricPublisher> metricPublishers() {
+        return metricPublishers;
     }
 
     @Override
@@ -422,14 +422,21 @@ public final class ClientOverrideConfiguration
         String defaultProfileName();
 
         /**
-         * Set the metric publisher to use for publishing metrics collected fo this client.
+         * Set the metric publishers to use for publishing metrics collected for this client.
          *
-         * @param metricPublisher The metric publisher to use.
+         * @param metricPublishers The list of metric publishers to use.
          * @return This object for method chaining.
          */
-        Builder metricPublisher(MetricPublisher metricPublisher);
+        Builder metricPublishers(List<MetricPublisher> metricPublishers);
 
-        MetricPublisher metricPublisher();
+        /**
+         * Add a new metric publisher to the metric publishers list.
+         * @param metricPublisher Newly added metric publisher.
+         * @return This object for method chaining.
+         */
+        Builder addMetricPublisher(MetricPublisher metricPublisher);
+
+        List<MetricPublisher> metricPublishers();
     }
 
     /**
@@ -444,7 +451,7 @@ public final class ClientOverrideConfiguration
         private Duration apiCallAttemptTimeout;
         private ProfileFile defaultProfileFile;
         private String defaultProfileName;
-        private MetricPublisher metricPublisher;
+        private List<MetricPublisher> metricPublishers = new ArrayList<>();
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -587,14 +594,20 @@ public final class ClientOverrideConfiguration
         }
 
         @Override
-        public Builder metricPublisher(MetricPublisher metricPublisher) {
-            this.metricPublisher = metricPublisher;
+        public Builder metricPublishers(List<MetricPublisher> metricPublishers) {
+            this.metricPublishers = metricPublishers;
             return this;
         }
 
         @Override
-        public MetricPublisher metricPublisher() {
-            return metricPublisher;
+        public Builder addMetricPublisher(MetricPublisher metricPublisher) {
+            this.metricPublishers.add(metricPublisher);
+            return this;
+        }
+
+        @Override
+        public List<MetricPublisher> metricPublishers() {
+            return metricPublishers;
         }
 
         @Override

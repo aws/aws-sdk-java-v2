@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.json;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -129,8 +129,8 @@ final class DefaultJsonClient implements JsonClient {
                     .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration, aPostOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration, aPostOperationRequest);
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -178,9 +178,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     aPostOperationWithOutputRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -228,9 +228,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     getWithoutRequiredMembersRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -274,9 +274,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     paginatedOperationWithResultKeyRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -398,9 +398,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     paginatedOperationWithoutResultKeyRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -539,9 +539,9 @@ final class DefaultJsonClient implements JsonClient {
                                             .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                             .requestBody(requestBody).build()));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingInputOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -614,9 +614,9 @@ final class DefaultJsonClient implements JsonClient {
                                                     new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
                                             .requestBody(requestBody).transferEncoding(true).build()), responseTransformer);
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingInputOutputOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -667,9 +667,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = MetricUtils.resolvePublishers(clientConfiguration,
                     streamingOutputOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
