@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "description": "ListStackInstances and DescribeStackInstance now return a new `StackInstanceStatus` object that contains `DetailedStatus` values: a disambiguation of the more generic `Status` value. ListStackInstances output can now be filtered on `DetailedStatus` using the new `Filters` parameter."
+}
