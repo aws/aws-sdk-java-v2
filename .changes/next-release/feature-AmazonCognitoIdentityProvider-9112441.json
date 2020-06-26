@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "description": "Don't require Authorization for InitiateAuth and RespondToAuthChallenge."
-}
