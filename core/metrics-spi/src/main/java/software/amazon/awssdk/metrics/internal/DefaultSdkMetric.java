@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.ToString;
@@ -36,11 +37,13 @@ public final class DefaultSdkMetric<T> extends AttributeMap.Key<T> implements Sd
     private final String name;
     private final Class<T> clzz;
     private final Set<MetricCategory> categories;
+    private final MetricLevel level;
 
-    private DefaultSdkMetric(String name, Class<T> clzz, Set<MetricCategory> categories) {
+    private DefaultSdkMetric(String name, Class<T> clzz, MetricLevel level, Set<MetricCategory> categories) {
         super(clzz);
         this.name = Validate.notBlank(name, "name must not be blank");
         this.clzz = Validate.notNull(clzz, "clzz must not be null");
+        this.level = Validate.notNull(level, "level must not be null");
         Validate.notEmpty(categories, "categories must not be empty");
         this.categories = EnumSet.copyOf(categories);
     }
@@ -48,6 +51,7 @@ public final class DefaultSdkMetric<T> extends AttributeMap.Key<T> implements Sd
     /**
      * @return The name of this event.
      */
+    @Override
     public String name() {
         return name;
     }
@@ -55,13 +59,20 @@ public final class DefaultSdkMetric<T> extends AttributeMap.Key<T> implements Sd
     /**
      * @return The categories of this event.
      */
+    @Override
     public Set<MetricCategory> categories() {
         return Collections.unmodifiableSet(categories);
+    }
+
+    @Override
+    public MetricLevel level() {
+        return level;
     }
 
     /**
      * @return The class of the value associated with this event.
      */
+    @Override
     public Class<T> valueClass() {
         return clzz;
     }
@@ -106,13 +117,14 @@ public final class DefaultSdkMetric<T> extends AttributeMap.Key<T> implements Sd
      *
      * @throws IllegalArgumentException If a metric of the same name has already been created.
      */
-    public static <T> SdkMetric<T> create(String name, Class<T> clzz, MetricCategory c1, MetricCategory... cn) {
+    public static <T> SdkMetric<T> create(String name, Class<T> clzz, MetricLevel level,
+                                          MetricCategory c1, MetricCategory... cn) {
         Stream<MetricCategory> categoryStream = Stream.of(c1);
         if (cn != null) {
             categoryStream = Stream.concat(categoryStream, Stream.of(cn));
         }
         Set<MetricCategory> categories = categoryStream.collect(Collectors.toSet());
-        return create(name, clzz, categories);
+        return create(name, clzz, level, categories);
     }
 
     /**
@@ -126,9 +138,9 @@ public final class DefaultSdkMetric<T> extends AttributeMap.Key<T> implements Sd
      *
      * @throws IllegalArgumentException If a metric of the same name has already been created.
      */
-    public static <T> SdkMetric<T> create(String name, Class<T> clzz, Set<MetricCategory> categories) {
+    public static <T> SdkMetric<T> create(String name, Class<T> clzz, MetricLevel level, Set<MetricCategory> categories) {
         Validate.noNullElements(categories, "categories must not contain null elements");
-        SdkMetric<T> event = new DefaultSdkMetric<>(name, clzz, categories);
+        SdkMetric<T> event = new DefaultSdkMetric<>(name, clzz, level, categories);
         if (SDK_METRICS.putIfAbsent(event, Boolean.TRUE) != null) {
             throw new IllegalArgumentException("Metric with name " + name + " has already been created");
         }

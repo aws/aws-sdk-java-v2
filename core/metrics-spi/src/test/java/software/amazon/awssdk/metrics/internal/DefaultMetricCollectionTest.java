@@ -16,6 +16,7 @@
 package software.amazon.awssdk.metrics.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,11 +28,12 @@ import java.util.stream.StreamSupport;
 import org.junit.AfterClass;
 import org.junit.Test;
 import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
 
 public class DefaultMetricCollectionTest {
-    private static final SdkMetric<Integer> M1 = SdkMetric.create("m1", Integer.class, MetricCategory.DEFAULT);
+    private static final SdkMetric<Integer> M1 = SdkMetric.create("m1", Integer.class, MetricLevel.INFO, MetricCategory.CORE);
 
     @AfterClass
     public static void teardown() {

@@ -61,7 +61,7 @@ public class SigningStage implements RequestToRequestPipeline {
         updateInterceptorContext(request, context.executionContext());
 
         Signer signer = context.signer();
-        MetricCollector metricCollector = context.metricCollector();
+        MetricCollector metricCollector = context.attemptMetricCollector();
 
         if (shouldSign(signer)) {
             adjustForClockSkew(context.executionAttributes());

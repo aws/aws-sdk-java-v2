@@ -24,10 +24,11 @@ import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 
 public class DefaultMetricCollectorTest {
-    private static final SdkMetric<Integer> M1 = SdkMetric.create("m1", Integer.class, MetricCategory.DEFAULT);
+    private static final SdkMetric<Integer> M1 = SdkMetric.create("m1", Integer.class, MetricLevel.INFO, MetricCategory.CORE);
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();

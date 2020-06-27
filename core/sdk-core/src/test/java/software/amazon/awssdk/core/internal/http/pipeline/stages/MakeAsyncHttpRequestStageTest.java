@@ -127,7 +127,7 @@ public class MakeAsyncHttpRequestStageTest {
                 .executionContext(executionContext)
                 .build();
 
-        context.metricCollector(mockCollector);
+        context.attemptMetricCollector(mockCollector);
 
         try {
             stage.execute(sdkHttpRequest, context);

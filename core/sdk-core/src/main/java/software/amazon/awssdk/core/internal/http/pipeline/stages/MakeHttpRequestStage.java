@@ -59,7 +59,7 @@ public class MakeHttpRequestStage
     }
 
     private HttpExecuteResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        MetricCollector metricCollector = context.metricCollector();
+        MetricCollector attemptMetricCollector = context.attemptMetricCollector();
 
         MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
 
@@ -75,7 +75,7 @@ public class MakeHttpRequestStage
 
         Pair<HttpExecuteResponse, Duration> measuredExecute = MetricUtils.measureDurationUnsafe(requestCallable);
 
-        metricCollector.reportMetric(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME, measuredExecute.right());
+        attemptMetricCollector.reportMetric(CoreMetric.SERVICE_CALL_DURATION, measuredExecute.right());
 
         return measuredExecute.left();
     }

@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
@@ -68,14 +69,16 @@ public class MakeHttpRequestStageTest {
 
         when(mockCollector.createChild(any(String.class))).thenReturn(childCollector);
 
-        ExecutionContext executionContext = ExecutionContext.builder().build();
+        ExecutionContext executionContext = ExecutionContext.builder()
+                                                            .executionAttributes(new ExecutionAttributes())
+                                                            .build();
 
         RequestExecutionContext context = RequestExecutionContext.builder()
                 .originalRequest(ValidSdkObjects.sdkRequest())
                 .executionContext(executionContext)
                 .build();
 
-        context.metricCollector(mockCollector);
+        context.attemptMetricCollector(mockCollector);
         context.apiCallAttemptTimeoutTracker(mock(TimeoutTracker.class));
         context.apiCallTimeoutTracker(mock(TimeoutTracker.class));
 

@@ -16,12 +16,12 @@
 package software.amazon.awssdk.services.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Duration;
@@ -41,6 +41,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollection;
@@ -150,28 +151,33 @@ public class CoreMetricsTest {
                 .containsExactly(SERVICE_ID);
         assertThat(capturedCollection.metricValues(CoreMetric.OPERATION_NAME))
                 .containsExactly("AllTypes");
-        assertThat(capturedCollection.metricValues(CoreMetric.CREDENTIALS_FETCH_DURATION).get(0))
-                .isGreaterThanOrEqualTo(Duration.ZERO);
-        assertThat(capturedCollection.metricValues(CoreMetric.MARSHALLING_DURATION).get(0))
-                .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(true);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
-                .isGreaterThan(Duration.ZERO);
+            .isGreaterThan(Duration.ZERO);
+        assertThat(capturedCollection.metricValues(CoreMetric.CREDENTIALS_FETCH_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(capturedCollection.metricValues(CoreMetric.MARSHALLING_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(0);
 
         assertThat(capturedCollection.children()).hasSize(1);
         MetricCollection attemptCollection = capturedCollection.children().get(0);
 
         assertThat(attemptCollection.name()).isEqualTo("ApiCallAttempt");
-        assertThat(attemptCollection.metricValues(CoreMetric.HTTP_STATUS_CODE))
-                .containsExactly(200);
+        assertThat(attemptCollection.metricValues(CoreMetric.BACKOFF_DELAY_DURATION))
+            .containsExactly(Duration.ZERO);
+        assertThat(attemptCollection.metricValues(HttpMetric.HTTP_STATUS_CODE))
+            .containsExactly(200);
         assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(attemptCollection.metricValues(CoreMetric.AWS_REQUEST_ID))
-                .containsExactly(REQUEST_ID);
+            .containsExactly(REQUEST_ID);
         assertThat(attemptCollection.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID))
-                .containsExactly(EXTENDED_REQUEST_ID);
-
-        assertThat(attemptCollection.metricValues(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME).get(0))
-                .isGreaterThanOrEqualTo(Duration.ofMillis(100));
+            .containsExactly(EXTENDED_REQUEST_ID);
+        assertThat(attemptCollection.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ofMillis(100));
+        assertThat(attemptCollection.metricValues(CoreMetric.UNMARSHALLING_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
     }
 
     @Test
@@ -204,93 +210,25 @@ public class CoreMetricsTest {
             MetricCollection capturedCollection = collectionCaptor.getValue();
 
             assertThat(capturedCollection.children()).hasSize(MAX_RETRIES + 1);
+            assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(MAX_RETRIES);
+            assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(false);
 
             for (MetricCollection requestMetrics : capturedCollection.children()) {
-                assertThat(requestMetrics.metricValues(CoreMetric.EXCEPTION).get(0))
-                        // Note: for some reason we don't throw the same exact
-                        // instance as the one unmarshalled by the response
-                        // handler (seems we make a copy upstream) so an
-                        // isSameAs assertion fails here
-                        .isInstanceOf(EmptyModeledException.class);
-
                 // A service exception is still a successful HTTP execution so
                 // we should still have HTTP metrics as well.
-                assertThat(requestMetrics.metricValues(CoreMetric.HTTP_STATUS_CODE))
-                        .containsExactly(500);
+                assertThat(requestMetrics.metricValues(HttpMetric.HTTP_STATUS_CODE))
+                    .containsExactly(500);
                 assertThat(requestMetrics.metricValues(CoreMetric.AWS_REQUEST_ID))
-                        .containsExactly(REQUEST_ID);
+                    .containsExactly(REQUEST_ID);
                 assertThat(requestMetrics.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID))
-                        .containsExactly(EXTENDED_REQUEST_ID);
-                assertThat(requestMetrics.metricValues(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME).get(0))
-                        .isGreaterThanOrEqualTo(Duration.ZERO);
+                    .containsExactly(EXTENDED_REQUEST_ID);
+                assertThat(requestMetrics.metricValues(CoreMetric.SERVICE_CALL_DURATION)).hasOnlyOneElementSatisfying(d -> {
+                    assertThat(d).isGreaterThanOrEqualTo(Duration.ZERO);
+                });
+                assertThat(requestMetrics.metricValues(CoreMetric.UNMARSHALLING_DURATION)).hasOnlyOneElementSatisfying(d -> {
+                    assertThat(d).isGreaterThanOrEqualTo(Duration.ZERO);
+                });
             }
-        }
-    }
-
-    @Test
-    public void testApiCall_clientSideExceptionThrown_includedInMetrics() {
-        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenThrow(new RuntimeException("oops"));
-
-        thrown.expect(RuntimeException.class);
-        try {
-            client.allTypes();
-        } finally {
-
-            ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
-            verify(mockPublisher).publish(collectionCaptor.capture());
-
-            MetricCollection capturedCollection = collectionCaptor.getValue();
-
-            MetricCollection requestMetrics = capturedCollection.children().get(0);
-
-            assertThat(requestMetrics.metricValues(CoreMetric.EXCEPTION).get(0))
-                    .isExactlyInstanceOf(RuntimeException.class);
-        }
-    }
-
-    @Test
-    public void testApiCall_requestExecutionThrowsClientSideException_includedInMetrics() throws IOException {
-        IOException ioe = new IOException("oops");
-        ExecutableHttpRequest mockExecutableRequest = mock(ExecutableHttpRequest.class);
-        when(mockExecutableRequest.call()).thenThrow(ioe);
-
-        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecutableRequest);
-
-        thrown.expectCause(is(ioe));
-        try {
-            client.allTypes();
-        } finally {
-            ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
-            verify(mockPublisher).publish(collectionCaptor.capture());
-
-            MetricCollection callMetrics = collectionCaptor.getValue();
-            MetricCollection attemptMetrics = callMetrics.children().get(0);
-
-            assertThat(attemptMetrics.metricValues(CoreMetric.EXCEPTION)).containsExactly(ioe);
-        }
-    }
-
-    @Test
-    public void testApiCall_streamingOutput_transformerThrows_includedInMetrics() throws IOException {
-        IOException ioe = new IOException("oops");
-        ExecutableHttpRequest mockExecutableRequest = mock(ExecutableHttpRequest.class);
-        when(mockExecutableRequest.call()).thenThrow(ioe);
-
-        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecutableRequest);
-
-        thrown.expectCause(is(ioe));
-        try {
-            client.streamingOutputOperation(req -> {}, (response, is) -> {
-                throw ioe;
-            });
-        } finally {
-            ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
-            verify(mockPublisher).publish(collectionCaptor.capture());
-
-            MetricCollection callMetrics = collectionCaptor.getValue();
-            MetricCollection attemptMetrics = callMetrics.children().get(0);
-
-            assertThat(attemptMetrics.metricValues(CoreMetric.EXCEPTION)).containsExactly(ioe);
         }
     }
 

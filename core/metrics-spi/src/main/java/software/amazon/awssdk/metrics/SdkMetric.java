@@ -38,6 +38,11 @@ public interface SdkMetric<T> {
     Set<MetricCategory> categories();
 
     /**
+     * @return The level of this metric.
+     */
+    MetricLevel level();
+
+    /**
      * @return The class of the value associated with this metric.
      */
     Class<T> valueClass();
@@ -53,20 +58,6 @@ public interface SdkMetric<T> {
     T convertValue(Object o);
 
     /**
-     * Create a new metric under the {@link MetricCategory#DEFAULT} category.
-     *
-     * @param name The name of this metric.
-     * @param clzz The class of the object containing the associated value for this metric.
-     * @param <T> The type of the object containing the associated value for this metric.
-     * @return The created metric.
-     *
-     * @throws IllegalArgumentException If a metric of the same name has already been created.
-     */
-    static <T> SdkMetric<T> create(String name, Class<T> clzz) {
-        return DefaultSdkMetric.create(name, clzz, MetricCategory.DEFAULT);
-    }
-
-    /**
      * Create a new metric.
      *
      * @param name The name of this metric.
@@ -78,8 +69,8 @@ public interface SdkMetric<T> {
      *
      * @throws IllegalArgumentException If a metric of the same name has already been created.
      */
-    static <T> SdkMetric<T> create(String name, Class<T> clzz, MetricCategory c1, MetricCategory... cn) {
-        return DefaultSdkMetric.create(name, clzz, c1, cn);
+    static <T> SdkMetric<T> create(String name, Class<T> clzz, MetricLevel level, MetricCategory c1, MetricCategory... cn) {
+        return DefaultSdkMetric.create(name, clzz, level, c1, cn);
     }
 
     /**
@@ -93,7 +84,7 @@ public interface SdkMetric<T> {
      *
      * @throws IllegalArgumentException If a metric of the same name has already been created.
      */
-    static <T> SdkMetric<T> create(String name, Class<T> clzz, Set<MetricCategory> categories) {
-        return DefaultSdkMetric.create(name, clzz, categories);
+    static <T> SdkMetric<T> create(String name, Class<T> clzz, MetricLevel level, Set<MetricCategory> categories) {
+        return DefaultSdkMetric.create(name, clzz, level, categories);
     }
 }

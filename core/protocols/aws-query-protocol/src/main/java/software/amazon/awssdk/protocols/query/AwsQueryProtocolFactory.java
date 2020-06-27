@@ -28,6 +28,8 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.MetricCollectingHttpResponseHandler;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -47,20 +49,20 @@ public class AwsQueryProtocolFactory {
     private final SdkClientConfiguration clientConfiguration;
     private final List<ExceptionMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
-    private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
+    private final MetricCollectingHttpResponseHandler<AwsServiceException> errorUnmarshaller;
 
     AwsQueryProtocolFactory(Builder<?> builder) {
         this.clientConfiguration = builder.clientConfiguration;
         this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
-        this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
+        this.errorUnmarshaller = timeUnmarshalling(AwsXmlErrorProtocolUnmarshaller
             .builder()
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
             .exceptions(modeledExceptions)
             // We don't set result wrapper since that's handled by the errorRootExtractor
             .errorUnmarshaller(QueryProtocolUnmarshaller.builder().build())
             .errorRootExtractor(this::getErrorRoot)
-            .build();
+            .build());
     }
 
     /**
@@ -86,10 +88,9 @@ public class AwsQueryProtocolFactory {
      * @return New {@link HttpResponseHandler} for success responses.
      */
     public final <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
-        return new AwsQueryResponseHandler<>(QueryProtocolUnmarshaller.builder()
-                                                                      .hasResultWrapper(!isEc2())
-                                                                      .build(),
-            r -> pojoSupplier.get());
+        return timeUnmarshalling(new AwsQueryResponseHandler<>(QueryProtocolUnmarshaller.builder()
+                                                                                        .hasResultWrapper(!isEc2())
+                                                                                        .build(), r -> pojoSupplier.get()));
     }
 
     /**
@@ -98,6 +99,10 @@ public class AwsQueryProtocolFactory {
      */
     public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
         return errorUnmarshaller;
+    }
+
+    private <T> MetricCollectingHttpResponseHandler<T> timeUnmarshalling(HttpResponseHandler<T> delegate) {
+        return MetricCollectingHttpResponseHandler.create(CoreMetric.UNMARSHALLING_DURATION, delegate);
     }
 
     /**

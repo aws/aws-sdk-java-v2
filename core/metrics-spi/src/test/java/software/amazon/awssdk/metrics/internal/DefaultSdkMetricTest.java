@@ -16,6 +16,7 @@
 package software.amazon.awssdk.metrics.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 
 public class DefaultSdkMetricTest {
@@ -37,19 +39,19 @@ public class DefaultSdkMetricTest {
 
     @Test
     public void testOf_variadicOverload_createdProperly() {
-        SdkMetric<Integer> event = SdkMetric.create("event", Integer.class, MetricCategory.DEFAULT);
+        SdkMetric<Integer> event = SdkMetric.create("event", Integer.class, MetricLevel.INFO, MetricCategory.CORE);
 
-        assertThat(event.categories()).containsExactly(MetricCategory.DEFAULT);
+        assertThat(event.categories()).containsExactly(MetricCategory.CORE);
         assertThat(event.name()).isEqualTo("event");
         assertThat(event.valueClass()).isEqualTo(Integer.class);
     }
 
     @Test
     public void testOf_setOverload_createdProperly() {
-        SdkMetric<Integer> event = SdkMetric.create("event", Integer.class, Stream.of(MetricCategory.DEFAULT)
+        SdkMetric<Integer> event = SdkMetric.create("event", Integer.class, MetricLevel.INFO, Stream.of(MetricCategory.CORE)
                 .collect(Collectors.toSet()));
 
-        assertThat(event.categories()).containsExactly(MetricCategory.DEFAULT);
+        assertThat(event.categories()).containsExactly(MetricCategory.CORE);
         assertThat(event.name()).isEqualTo("event");
         assertThat(event.valueClass()).isEqualTo(Integer.class);
     }
@@ -58,33 +60,33 @@ public class DefaultSdkMetricTest {
     public void testOf_variadicOverload_c1Null_throws() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("must not contain null elements");
-        SdkMetric.create("event", Integer.class, (MetricCategory) null);
+        SdkMetric.create("event", Integer.class, MetricLevel.INFO, (MetricCategory) null);
     }
 
     @Test
     public void testOf_variadicOverload_c1NotNull_cnNull_doesNotThrow() {
-        SdkMetric.create("event", Integer.class, MetricCategory.DEFAULT, null);
+        SdkMetric.create("event", Integer.class, MetricLevel.INFO, MetricCategory.CORE, null);
     }
 
     @Test
     public void testOf_variadicOverload_cnContainsNull_throws() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("must not contain null elements");
-        SdkMetric.create("event", Integer.class, MetricCategory.DEFAULT, new MetricCategory[]{ null });
+        SdkMetric.create("event", Integer.class, MetricLevel.INFO, MetricCategory.CORE, new MetricCategory[]{null });
     }
 
     @Test
     public void testOf_setOverload_null_throws() {
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("object is null");
-        SdkMetric.create("event", Integer.class, (Set<MetricCategory>) null);
+        SdkMetric.create("event", Integer.class, MetricLevel.INFO, (Set<MetricCategory>) null);
     }
 
     @Test
     public void testOf_setOverload_nullElement_throws() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("categories must not contain null elements");
-        SdkMetric.create("event", Integer.class, Stream.of((MetricCategory) null).collect(Collectors.toSet()));
+        SdkMetric.create("event", Integer.class, MetricLevel.INFO, Stream.of((MetricCategory) null).collect(Collectors.toSet()));
     }
 
     @Test
@@ -94,8 +96,8 @@ public class DefaultSdkMetricTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(fooName + " has already been created");
 
-        SdkMetric.create(fooName, Integer.class, MetricCategory.DEFAULT);
-        SdkMetric.create(fooName, Integer.class, MetricCategory.DEFAULT);
+        SdkMetric.create(fooName, Integer.class, MetricLevel.INFO, MetricCategory.CORE);
+        SdkMetric.create(fooName, Integer.class, MetricLevel.INFO, MetricCategory.CORE);
     }
 
     @Test
@@ -105,8 +107,8 @@ public class DefaultSdkMetricTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(fooName + " has already been created");
 
-        SdkMetric.create(fooName, Integer.class, MetricCategory.DEFAULT);
-        SdkMetric.create(fooName, Long.class, MetricCategory.STREAMING);
+        SdkMetric.create(fooName, Integer.class, MetricLevel.INFO, MetricCategory.CORE);
+        SdkMetric.create(fooName, Long.class, MetricLevel.INFO, MetricCategory.HTTP_CLIENT);
     }
 
     @Test
@@ -116,9 +118,9 @@ public class DefaultSdkMetricTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(fooName + " has already been created");
 
-        SdkMetric.create(fooName, Integer.class, MetricCategory.DEFAULT);
+        SdkMetric.create(fooName, Integer.class, MetricLevel.INFO, MetricCategory.CORE);
         try {
-            SdkMetric.create(fooName, Long.class, MetricCategory.STREAMING);
+            SdkMetric.create(fooName, Long.class, MetricLevel.INFO, MetricCategory.HTTP_CLIENT);
         } finally {
             SdkMetric<?> fooMetric = DefaultSdkMetric.declaredEvents()
                 .stream()
@@ -128,7 +130,7 @@ public class DefaultSdkMetricTest {
 
             assertThat(fooMetric.name()).isEqualTo(fooName);
             assertThat(fooMetric.valueClass()).isEqualTo(Integer.class);
-            assertThat(fooMetric.categories()).containsExactly(MetricCategory.DEFAULT);
+            assertThat(fooMetric.categories()).containsExactly(MetricCategory.CORE);
         }
     }
 }

@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
@@ -160,13 +161,13 @@ public class TranscribeStreamingIntegrationTest {
 
         MetricCollection attemptCollection = capturedCollection.children().get(0);
         assertThat(attemptCollection.name()).isEqualTo("ApiCallAttempt");
-        assertThat(attemptCollection.metricValues(CoreMetric.HTTP_STATUS_CODE))
+        assertThat(attemptCollection.metricValues(HttpMetric.HTTP_STATUS_CODE))
             .containsExactly(200);
         assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(attemptCollection.metricValues(CoreMetric.AWS_REQUEST_ID).get(0)).isNotEmpty();
 
-        assertThat(attemptCollection.metricValues(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME).get(0))
+        assertThat(attemptCollection.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ofMillis(100));
     }
 

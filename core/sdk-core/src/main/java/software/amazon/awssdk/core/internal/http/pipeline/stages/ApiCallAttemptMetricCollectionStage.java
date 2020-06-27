@@ -18,11 +18,13 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static software.amazon.awssdk.core.internal.util.MetricUtils.collectHttpMetrics;
 import static software.amazon.awssdk.core.internal.util.MetricUtils.createAttemptMetricsCollector;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -42,21 +44,20 @@ public final class ApiCallAttemptMetricCollectionStage<OutputT> implements Reque
     @Override
     public Response<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
         MetricCollector apiCallAttemptMetrics = createAttemptMetricsCollector(context);
-        context.metricCollector(apiCallAttemptMetrics);
+        context.attemptMetricCollector(apiCallAttemptMetrics);
+        reportBackoffDelay(context);
 
-        try {
-            Response<OutputT> response = wrapped.execute(input, context);
+        Response<OutputT> response = wrapped.execute(input, context);
 
-            collectHttpMetrics(apiCallAttemptMetrics, response.httpResponse());
+        collectHttpMetrics(apiCallAttemptMetrics, response.httpResponse());
 
-            if (!response.isSuccess() && response.exception() != null) {
-                apiCallAttemptMetrics.reportMetric(CoreMetric.EXCEPTION, response.exception());
-            }
+        return response;
+    }
 
-            return response;
-        } catch (Throwable t) {
-            apiCallAttemptMetrics.reportMetric(CoreMetric.EXCEPTION, t);
-            throw t;
+    private void reportBackoffDelay(RequestExecutionContext context) {
+        Duration lastBackoffDelay = context.executionAttributes().getAttribute(RetryableStageHelper.LAST_BACKOFF_DELAY_DURATION);
+        if (lastBackoffDelay != null) {
+            context.attemptMetricCollector().reportMetric(CoreMetric.BACKOFF_DELAY_DURATION, lastBackoffDelay);
         }
     }
 }
