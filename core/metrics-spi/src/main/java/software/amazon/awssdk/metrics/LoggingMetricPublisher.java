@@ -16,37 +16,29 @@
 package software.amazon.awssdk.metrics;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
- * A metric collector that doesn't do anything.
+ * An implementation of {@link MetricPublisher} that writes all published metrics to the logs at the INFO level under the
+ * {@code software.amazon.awssdk.metrics.LoggingMetricPublisher} namespace.
  */
 @SdkPublicApi
-public final class NoOpMetricCollector implements MetricCollector {
-    private static final NoOpMetricCollector INSTANCE = new NoOpMetricCollector();
+public final class LoggingMetricPublisher implements MetricPublisher {
+    private static final Logger LOGGER = Logger.loggerFor(LoggingMetricPublisher.class);
 
-    private NoOpMetricCollector() {
+    private LoggingMetricPublisher() {
+    }
+
+    public static LoggingMetricPublisher create() {
+        return new LoggingMetricPublisher();
     }
 
     @Override
-    public String name() {
-        return "NoOp";
+    public void publish(MetricCollection metricCollection) {
+        LOGGER.info(() -> "Metrics published: " + metricCollection);
     }
 
     @Override
-    public <T> void reportMetric(SdkMetric<T> metric, T data) {
-    }
-
-    @Override
-    public MetricCollector createChild(String name) {
-        throw new UnsupportedOperationException("No op collector does not support createChild");
-    }
-
-    @Override
-    public MetricCollection collect() {
-        throw new UnsupportedOperationException("No op collector does not support collect");
-    }
-
-    public static NoOpMetricCollector create() {
-        return INSTANCE;
+    public void close() {
     }
 }

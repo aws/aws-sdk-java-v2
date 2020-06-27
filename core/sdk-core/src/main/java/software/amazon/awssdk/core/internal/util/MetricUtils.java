@@ -15,23 +15,29 @@
 
 package software.amazon.awssdk.core.internal.util;
 
-import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Utility methods for working with metrics.
+ *
+ * TODO: Can these be made into internal APIs to reduce the protected surface area? (e.g. do not use this from the clients, put
+ * it into the core). If not, this should be moved to a non-internal package.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class MetricUtils {
 
     private MetricUtils() {
@@ -64,12 +70,10 @@ public final class MetricUtils {
     }
 
     public static void collectHttpMetrics(MetricCollector metricCollector, SdkHttpFullResponse httpResponse) {
-        metricCollector.reportMetric(CoreMetric.HTTP_STATUS_CODE, httpResponse.statusCode());
-        httpResponse.firstMatchingHeader("x-amz-request-id")
-                    .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
-        httpResponse.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
-                    .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
-        httpResponse.firstMatchingHeader("x-amz-id-2")
+        metricCollector.reportMetric(HttpMetric.HTTP_STATUS_CODE, httpResponse.statusCode());
+        SdkHttpUtils.allMatchingHeadersFromCollection(httpResponse.headers(), X_AMZN_REQUEST_ID_HEADERS)
+                    .forEach(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
+        httpResponse.firstMatchingHeader(X_AMZ_ID_2_HEADER)
                     .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_EXTENDED_REQUEST_ID, v));
     }
 
@@ -82,7 +86,7 @@ public final class MetricUtils {
     }
 
     public static MetricCollector createHttpMetricsCollector(RequestExecutionContext context) {
-        MetricCollector parentCollector = context.metricCollector();
+        MetricCollector parentCollector = context.attemptMetricCollector();
         if (parentCollector != null) {
             return parentCollector.createChild("HttpClient");
         }

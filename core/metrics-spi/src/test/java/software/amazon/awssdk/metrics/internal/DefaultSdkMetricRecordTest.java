@@ -18,6 +18,7 @@ package software.amazon.awssdk.metrics.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.metrics.MetricRecord;
 
@@ -27,7 +28,7 @@ import software.amazon.awssdk.metrics.MetricRecord;
 public class DefaultSdkMetricRecordTest {
     @Test
     public void testGetters() {
-        SdkMetric<Integer> event = SdkMetric.create("foo", Integer.class, MetricCategory.DEFAULT);
+        SdkMetric<Integer> event = SdkMetric.create("foo", Integer.class, MetricLevel.INFO, MetricCategory.CORE);
 
         MetricRecord<Integer> record = new DefaultMetricRecord<>(event, 2);
 

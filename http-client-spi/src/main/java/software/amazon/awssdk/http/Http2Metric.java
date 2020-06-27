@@ -17,6 +17,7 @@ package software.amazon.awssdk.http;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 
 /**
@@ -30,19 +31,21 @@ public final class Http2Metric {
      *
      * <p>See https://http2.github.io/http2-spec/#FlowControl for more information on HTTP/2 window sizes.
      */
-    public static final SdkMetric<Integer> LOCAL_STREAM_WINDOW_SIZE_IN_BYTES = metric("LocalStreamWindowSize", Integer.class);
+    public static final SdkMetric<Integer> LOCAL_STREAM_WINDOW_SIZE_IN_BYTES =
+        metric("LocalStreamWindowSize", Integer.class, MetricLevel.TRACE);
 
     /**
      * The remote HTTP/2 window size in bytes for the stream that this request was executed on.
      *
      * <p>See https://http2.github.io/http2-spec/#FlowControl for more information on HTTP/2 window sizes.
      */
-    public static final SdkMetric<Integer> REMOTE_STREAM_WINDOW_SIZE_IN_BYTES = metric("RemoteStreamWindowSize", Integer.class);
+    public static final SdkMetric<Integer> REMOTE_STREAM_WINDOW_SIZE_IN_BYTES =
+        metric("RemoteStreamWindowSize", Integer.class, MetricLevel.TRACE);
 
     private Http2Metric() {
     }
 
-    private static <T> SdkMetric<T> metric(String name, Class<T> clzz) {
-        return SdkMetric.create(name, clzz, MetricCategory.DEFAULT, MetricCategory.HTTP_CLIENT);
+    private static <T> SdkMetric<T> metric(String name, Class<T> clzz, MetricLevel level) {
+        return SdkMetric.create(name, clzz, level, MetricCategory.CORE, MetricCategory.HTTP_CLIENT);
     }
 }
