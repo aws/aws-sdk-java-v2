@@ -17,6 +17,7 @@ package software.amazon.awssdk.http;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 
 /**
@@ -28,7 +29,8 @@ public final class HttpMetric {
     /**
      * The name of the HTTP client.
      */
-    public static final SdkMetric<String> HTTP_CLIENT_NAME = metric("HttpClientName", String.class);
+    public static final SdkMetric<String> HTTP_CLIENT_NAME =
+        metric("HttpClientName", String.class, MetricLevel.INFO);
 
     /**
      * The maximum number of concurrent requests that is supported by the HTTP client.
@@ -42,7 +44,8 @@ public final class HttpMetric {
      * individual HTTP client instance, and does not include concurrency that may be available in other HTTP clients running
      * within the same JVM.
      */
-    public static final SdkMetric<Integer> MAX_CONCURRENCY = metric("MaxConcurrency", Integer.class);
+    public static final SdkMetric<Integer> MAX_CONCURRENCY =
+        metric("MaxConcurrency", Integer.class, MetricLevel.INFO);
 
     /**
      * The number of additional concurrent requests that can be supported by the HTTP client without needing to establish
@@ -58,7 +61,8 @@ public final class HttpMetric {
      * individual HTTP client instance, and does not include concurrency that may be available in other HTTP clients running
      * within the same JVM.
      */
-    public static final SdkMetric<Integer> AVAILABLE_CONCURRENCY = metric("AvailableConcurrency", Integer.class);
+    public static final SdkMetric<Integer> AVAILABLE_CONCURRENCY =
+        metric("AvailableConcurrency", Integer.class, MetricLevel.INFO);
 
     /**
      * The number of requests that are currently being executed by the HTTP client.
@@ -73,7 +77,8 @@ public final class HttpMetric {
      * individual HTTP client instance, and does not include concurrency that may be available in other HTTP clients running
      * within the same JVM.
      */
-    public static final SdkMetric<Integer> LEASED_CONCURRENCY = metric("LeasedConcurrency", Integer.class);
+    public static final SdkMetric<Integer> LEASED_CONCURRENCY =
+        metric("LeasedConcurrency", Integer.class, MetricLevel.INFO);
 
     /**
      * The number of requests that are awaiting concurrency to be made available from the HTTP client.
@@ -88,12 +93,21 @@ public final class HttpMetric {
      * individual HTTP client instance, and does not include concurrency that may be available in other HTTP clients running
      * within the same JVM.
      */
-    public static final SdkMetric<Integer> PENDING_CONCURRENCY_ACQUIRES = metric("PendingConcurrencyAcquires", Integer.class);
+    public static final SdkMetric<Integer> PENDING_CONCURRENCY_ACQUIRES =
+        metric("PendingConcurrencyAcquires", Integer.class, MetricLevel.INFO);
+
+    /**
+     * The status code of the HTTP response.
+     *
+     * @implSpec This is reported by the SDK core, and should not be reported by an individual HTTP client implementation.
+     */
+    public static final SdkMetric<Integer> HTTP_STATUS_CODE =
+        metric("HttpStatusCode", Integer.class, MetricLevel.TRACE);
 
     private HttpMetric() {
     }
 
-    private static <T> SdkMetric<T> metric(String name, Class<T> clzz) {
-        return SdkMetric.create(name, clzz, MetricCategory.DEFAULT, MetricCategory.HTTP_CLIENT);
+    private static <T> SdkMetric<T> metric(String name, Class<T> clzz, MetricLevel level) {
+        return SdkMetric.create(name, clzz, level, MetricCategory.CORE, MetricCategory.HTTP_CLIENT);
     }
 }

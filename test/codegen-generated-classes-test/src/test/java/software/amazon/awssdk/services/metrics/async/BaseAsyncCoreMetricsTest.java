@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -35,6 +34,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
@@ -57,7 +57,7 @@ public abstract class BaseAsyncCoreMetricsTest {
         verify(publisher()).publish(collectionCaptor.capture());
         MetricCollection capturedCollection = collectionCaptor.getValue();
 
-        verifyApiCallCollection(capturedCollection);
+        verifySuccessfulApiCallCollection(capturedCollection);
 
         assertThat(capturedCollection.children()).hasSize(1);
         MetricCollection attemptCollection = capturedCollection.children().get(0);
@@ -65,7 +65,7 @@ public abstract class BaseAsyncCoreMetricsTest {
         assertThat(attemptCollection.name()).isEqualTo("ApiCallAttempt");
 
         verifySuccessfulApiCallAttemptCollection(attemptCollection);
-        assertThat(attemptCollection.metricValues(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME).get(0))
+        assertThat(attemptCollection.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
             .isGreaterThanOrEqualTo(FIXED_DELAY);
     }
 
@@ -79,7 +79,7 @@ public abstract class BaseAsyncCoreMetricsTest {
         verify(publisher()).publish(collectionCaptor.capture());
 
         MetricCollection capturedCollection = collectionCaptor.getValue();
-        verifyApiCallCollection(capturedCollection);
+        verifyFailedApiCallCollection(capturedCollection);
         assertThat(capturedCollection.children()).hasSize(MAX_RETRIES + 1);
 
         capturedCollection.children().forEach(this::verifyFailedApiCallAttemptCollection);
@@ -95,19 +95,17 @@ public abstract class BaseAsyncCoreMetricsTest {
         verify(publisher()).publish(collectionCaptor.capture());
 
         MetricCollection capturedCollection = collectionCaptor.getValue();
-        verifyApiCallCollection(capturedCollection);
+        verifyFailedApiCallCollection(capturedCollection);
         assertThat(capturedCollection.children()).hasSize(MAX_RETRIES + 1);
 
         capturedCollection.children().forEach(requestMetrics -> {
-            assertThat(requestMetrics.metricValues(CoreMetric.EXCEPTION).get(0))
-                .isInstanceOf(IOException.class);
-            assertThat(requestMetrics.metricValues(CoreMetric.HTTP_STATUS_CODE))
+            assertThat(requestMetrics.metricValues(HttpMetric.HTTP_STATUS_CODE))
                 .isEmpty();
             assertThat(requestMetrics.metricValues(CoreMetric.AWS_REQUEST_ID))
                 .isEmpty();
             assertThat(requestMetrics.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID))
                 .isEmpty();
-            assertThat(requestMetrics.metricValues(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME).get(0))
+            assertThat(requestMetrics.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
                 .isGreaterThanOrEqualTo(FIXED_DELAY);
         });
     }
@@ -123,6 +121,9 @@ public abstract class BaseAsyncCoreMetricsTest {
 
         MetricCollection capturedCollection = collectionCaptor.getValue();
         verifyApiCallCollection(capturedCollection);
+        assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(1);
+        assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(true);
+
         assertThat(capturedCollection.children()).hasSize(2);
 
         MetricCollection failedAttempt = capturedCollection.children().get(0);
@@ -150,27 +151,41 @@ public abstract class BaseAsyncCoreMetricsTest {
     abstract MetricPublisher publisher();
 
     private void verifyFailedApiCallAttemptCollection(MetricCollection requestMetrics) {
-        assertThat(requestMetrics.metricValues(CoreMetric.EXCEPTION).get(0))
-            .isInstanceOf(EmptyModeledException.class);
-        assertThat(requestMetrics.metricValues(CoreMetric.HTTP_STATUS_CODE))
+        assertThat(requestMetrics.metricValues(HttpMetric.HTTP_STATUS_CODE))
             .containsExactly(500);
         assertThat(requestMetrics.metricValues(CoreMetric.AWS_REQUEST_ID))
             .containsExactly(REQUEST_ID);
         assertThat(requestMetrics.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID))
             .containsExactly(EXTENDED_REQUEST_ID);
-        assertThat(requestMetrics.metricValues(CoreMetric.HTTP_REQUEST_ROUND_TRIP_TIME).get(0))
+        assertThat(requestMetrics.metricValues(CoreMetric.BACKOFF_DELAY_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(requestMetrics.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
     }
 
     private void verifySuccessfulApiCallAttemptCollection(MetricCollection attemptCollection) {
-        assertThat(attemptCollection.metricValues(CoreMetric.HTTP_STATUS_CODE))
+        assertThat(attemptCollection.metricValues(HttpMetric.HTTP_STATUS_CODE))
             .containsExactly(200);
         assertThat(attemptCollection.metricValues(CoreMetric.AWS_REQUEST_ID))
             .containsExactly(REQUEST_ID);
-        assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
-            .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(attemptCollection.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID))
             .containsExactly(EXTENDED_REQUEST_ID);
+        assertThat(attemptCollection.metricValues(CoreMetric.BACKOFF_DELAY_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+    }
+
+    private void verifyFailedApiCallCollection(MetricCollection capturedCollection) {
+        verifyApiCallCollection(capturedCollection);
+        assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(MAX_RETRIES);
+        assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(false);
+    }
+
+    private void verifySuccessfulApiCallCollection(MetricCollection capturedCollection) {
+        verifyApiCallCollection(capturedCollection);
+        assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(0);
+        assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(true);
     }
 
     private void verifyApiCallCollection(MetricCollection capturedCollection) {

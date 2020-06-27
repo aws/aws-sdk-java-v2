@@ -42,6 +42,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.MetricUploader;
@@ -92,7 +93,7 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
  *
  * <i>Step 1: Define which metrics you wish to collect</i>
  *
- * <p>Metrics are described using the {@link SdkMetric#create(String, Class)} method. When you describe your metric, you specify
+ * <p>Metrics are described using the {@link SdkMetric#create} method. When you describe your metric, you specify
  * the name that will appear in CloudWatch and the Java data-type of the metric. The metric should be described once for your
  * entire application.
  *
@@ -103,11 +104,11 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
  *     public static final class MyMethodMetrics {
  *         // The number of times "myMethod" has been called.
  *         private static final SdkMetric&lt;Integer&gt; MY_METHOD_CALL_COUNT =
- *                 SdkMetric.create("MyMethodCallCount", Integer.class);
+ *                 SdkMetric.create("MyMethodCallCount", Integer.class, MetricLevel.INFO, MetricCategory.CUSTOM);
  *
  *         // The amount of time that "myMethod" took to execute.
  *         private static final SdkMetric&lt;Duration&gt; MY_METHOD_LATENCY =
- *                 SdkMetric.create("MyMethodLatency", Duration.class);
+ *                 SdkMetric.create("MyMethodLatency", Duration.class, MetricLevel.INFO, MetricCategory.CUSTOM);
  *     }
  * </pre>
  *
@@ -172,9 +173,8 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
     private static final Set<SdkMetric<String>> DEFAULT_DIMENSIONS = Stream.of(CoreMetric.SERVICE_ID,
                                                                                CoreMetric.OPERATION_NAME)
                                                                            .collect(Collectors.toSet());
-    private static final Set<MetricCategory> DEFAULT_METRIC_CATEGORIES = Stream.of(MetricCategory.DEFAULT,
-                                                                                   MetricCategory.HTTP_CLIENT)
-                                                                               .collect(Collectors.toSet());
+    private static final Set<MetricCategory> DEFAULT_METRIC_CATEGORIES = Collections.singleton(MetricCategory.ALL);
+    private static final MetricLevel DEFAULT_METRIC_LEVEL = MetricLevel.INFO;
     private static final Set<SdkMetric<?>> DEFAULT_DETAILED_METRICS = Collections.emptySet();
 
     /**
@@ -218,6 +218,7 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
         this.metricAggregator = new MetricCollectionAggregator(resolveNamespace(builder),
                                                                resolveDimensions(builder),
                                                                resolveMetricCategories(builder),
+                                                               resolveMetricLevel(builder),
                                                                resolveDetailedMetrics(builder));
         this.metricUploader = new MetricUploader(resolveClient(builder));
         this.maximumCallsPerUpload = resolveMaximumCallsPerUpload(builder);
@@ -237,6 +238,10 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
 
     private Set<MetricCategory> resolveMetricCategories(Builder builder) {
         return builder.metricCategories == null ? DEFAULT_METRIC_CATEGORIES : new HashSet<>(builder.metricCategories);
+    }
+
+    private MetricLevel resolveMetricLevel(Builder builder) {
+        return builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
     }
 
     private Set<SdkMetric<?>> resolveDetailedMetrics(Builder builder) {
@@ -353,6 +358,7 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
         private Integer maximumCallsPerUpload;
         private Collection<SdkMetric<String>> dimensions;
         private Collection<MetricCategory> metricCategories;
+        private MetricLevel metricLevel;
         private Collection<SdkMetric<?>> detailedMetrics;
 
         private Builder() {
@@ -465,7 +471,7 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
         /**
          * Configure the {@link MetricCategory}s that should be uploaded to CloudWatch.
          *
-         * <p>If this is not specified, {@link MetricCategory#DEFAULT} and {@link MetricCategory#HTTP_CLIENT} are used.
+         * <p>If this is not specified, {@link MetricCategory#ALL} is used.
          *
          * <p>All {@link SdkMetric}s are associated with at least one {@code MetricCategory}. This setting determines which
          * category of metrics uploaded to CloudWatch. Any metrics {@link #publish(MetricCollection)}ed that do not fall under
@@ -485,6 +491,24 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
          */
         public Builder metricCategories(MetricCategory... metricCategories) {
             return metricCategories(Arrays.asList(metricCategories));
+        }
+
+        /**
+         * Configure the {@link MetricLevel} that should be uploaded to CloudWatch.
+         *
+         * <p>If this is not specified, {@link MetricLevel#INFO} is used.
+         *
+         * <p>All {@link SdkMetric}s are associated with one {@code MetricLevel}. This setting determines which level of metrics
+         * uploaded to CloudWatch. Any metrics {@link #publish(MetricCollection)}ed that do not fall under these configured
+         * categories are ignored.
+         *
+         * <p>Note: If there are {@link #dimensions(Collection)} configured that do not fall under this {@code MetricLevel}
+         * values, the dimensions will NOT be ignored. In other words, the metric category configuration only affects which
+         * metrics are uploaded to CloudWatch, not which values can be used for {@code dimensions}.
+         */
+        public Builder metricLevel(MetricLevel metricLevel) {
+            this.metricLevel = metricLevel;
+            return this;
         }
 
         /**

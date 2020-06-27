@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
@@ -68,16 +69,26 @@ class TimeBucketedMetrics {
     private final Set<MetricCategory> metricCategories;
 
     /**
+     * The metric levels for which we should aggregate values. Any categories at a more "verbose" level than this one will have
+     * their values ignored/dropped.
+     */
+    private final MetricLevel metricLevel;
+
+    /**
      * True, when the {@link #metricCategories} contains {@link MetricCategory#ALL}.
      */
     private final boolean metricCategoriesContainsAll;
 
+
+
     TimeBucketedMetrics(Set<SdkMetric<String>> dimensions,
                         Set<MetricCategory> metricCategories,
+                        MetricLevel metricLevel,
                         Set<SdkMetric<?>> detailedMetrics) {
         this.dimensions = dimensions;
         this.detailedMetrics = detailedMetrics;
         this.metricCategories = metricCategories;
+        this.metricLevel = metricLevel;
         this.metricCategoriesContainsAll = metricCategories.contains(MetricCategory.ALL);
     }
 
@@ -171,11 +182,12 @@ class TimeBucketedMetrics {
         if (Duration.class.isAssignableFrom(metricType)) {
             return StandardUnit.MILLISECONDS;
         }
+
         return StandardUnit.NONE;
     }
 
     private Optional<Double> valueFor(MetricRecord<?> metricRecord) {
-        if (!hasReportedCategory(metricRecord)) {
+        if (!shouldReport(metricRecord)) {
             return Optional.empty();
         }
 
@@ -188,16 +200,27 @@ class TimeBucketedMetrics {
         } else if (Number.class.isAssignableFrom(metricType)) {
             Number numberMetricValue = (Number) metricRecord.value();
             return Optional.of(numberMetricValue.doubleValue());
+        } else if (Boolean.class.isAssignableFrom(metricType)) {
+            Boolean booleanMetricValue = (Boolean) metricRecord.value();
+            return Optional.of(booleanMetricValue ? 1.0 : 0.0);
         }
 
         return Optional.empty();
     }
 
-    private boolean hasReportedCategory(MetricRecord<?> metricRecord) {
+    private boolean shouldReport(MetricRecord<?> metricRecord) {
+        return isSupportedCategory(metricRecord) && isSupportedLevel(metricRecord);
+    }
+
+    private boolean isSupportedCategory(MetricRecord<?> metricRecord) {
         return metricCategoriesContainsAll ||
                metricRecord.metric()
                            .categories()
                            .stream()
                            .anyMatch(metricCategories::contains);
+    }
+
+    private boolean isSupportedLevel(MetricRecord<?> metricRecord) {
+        return metricLevel.includesLevel(metricRecord.metric().level());
     }
 }

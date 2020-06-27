@@ -17,6 +17,8 @@ package software.amazon.awssdk.metrics;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -28,6 +30,13 @@ public interface MetricCollection extends Iterable<MetricRecord<?>> {
      * @return The name of this metric collection.
      */
     String name();
+
+    /**
+     * Return a stream of records in this collection.
+     */
+    default Stream<MetricRecord<?>> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
 
     /**
      * Return all the values of the given metric.
@@ -42,6 +51,16 @@ public interface MetricCollection extends Iterable<MetricRecord<?>> {
      * @return The child metric collections.
      */
     List<MetricCollection> children();
+
+    /**
+     * Return all of the {@link #children()} with a specific name.
+     *
+     * @param name The name by which we will filter {@link #children()}.
+     * @return The child metric collections that have the provided name.
+     */
+    default Stream<MetricCollection> childrenWithName(String name) {
+        return children().stream().filter(c -> c.name().equals(name));
+    }
 
     /**
      * @return The time at which this collection was created.

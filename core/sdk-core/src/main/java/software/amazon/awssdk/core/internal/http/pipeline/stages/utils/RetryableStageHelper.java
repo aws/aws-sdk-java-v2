@@ -26,12 +26,14 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.RetryUtils;
@@ -45,6 +47,9 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  */
 @SdkInternalApi
 public class RetryableStageHelper {
+    public static final ExecutionAttribute<Duration> LAST_BACKOFF_DELAY_DURATION =
+        new ExecutionAttribute<>("LastBackoffDuration");
+
     private final SdkHttpFullRequest request;
     private final RequestExecutionContext context;
     private final RetryPolicy retryPolicy;
@@ -53,7 +58,6 @@ public class RetryableStageHelper {
     private int attemptNumber = 0;
     private SdkHttpResponse lastResponse = null;
     private SdkException lastException = null;
-    private Duration lastBackoffDelay = null;
 
     public RetryableStageHelper(SdkHttpFullRequest request,
                                 RequestExecutionContext context,
@@ -99,6 +103,7 @@ public class RetryableStageHelper {
      * Return the exception that should be thrown, because the retry policy did not allow the request to be retried.
      */
     public SdkException retryPolicyDisallowedRetryException() {
+        context.executionContext().metricCollector().reportMetric(CoreMetric.RETRY_COUNT, retriesAttemptedSoFar(true));
         return lastException;
     }
 
@@ -118,7 +123,7 @@ public class RetryableStageHelper {
                 result = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(context);
             }
         }
-        lastBackoffDelay = result;
+        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, result);
         return result;
     }
 
@@ -139,7 +144,7 @@ public class RetryableStageHelper {
                                                                   .map(TokenBucketRetryCondition.Capacity::capacityRemaining)
                                                                   .orElse(null);
         String headerValue = (attemptNumber - 1) + "/" +
-                             lastBackoffDelay.toMillis() + "/" +
+                             context.executionAttributes().getAttribute(LAST_BACKOFF_DELAY_DURATION).toMillis() + "/" +
                              (availableRetryCapacity != null ? availableRetryCapacity : "");
         return request.toBuilder()
                       .putHeader(SDK_RETRY_INFO_HEADER, headerValue)
@@ -169,6 +174,7 @@ public class RetryableStageHelper {
      */
     public void attemptSucceeded() {
         retryPolicy.aggregateRetryCondition().requestSucceeded(retryPolicyContext(false));
+        context.executionContext().metricCollector().reportMetric(CoreMetric.RETRY_COUNT, retriesAttemptedSoFar(false));
     }
 
     /**

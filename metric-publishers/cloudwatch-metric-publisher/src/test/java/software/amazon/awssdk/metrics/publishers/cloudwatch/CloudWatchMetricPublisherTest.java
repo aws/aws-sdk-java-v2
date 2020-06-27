@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.transform.MetricCollectionAggregator;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
@@ -149,18 +150,39 @@ public class CloudWatchMetricPublisherTest {
         try (CloudWatchMetricPublisher publisher = publisherBuilder.metricCategories(MetricCategory.HTTP_CLIENT).build()) {
             MetricCollector collector = newCollector();
             collector.reportMetric(CoreMetric.SERVICE_ID, "ServiceId");
-            collector.reportMetric(CoreMetric.HTTP_STATUS_CODE, 404);
+            collector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, true);
             collector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
             publisher.publish(new FixedTimeMetricCollection(collector.collect()));
         }
 
         PutMetricDataRequest call = getPutMetricCall();
         MetricDatum metric = call.metricData().get(0);
+        assertThat(call.metricData()).hasSize(1);
         assertThat(metric.dimensions()).containsExactly(Dimension.builder()
                                                                  .name(CoreMetric.SERVICE_ID.name())
                                                                  .value("ServiceId")
                                                                  .build());
         assertThat(metric.metricName()).isEqualTo(HttpMetric.AVAILABLE_CONCURRENCY.name());
+    }
+
+    @Test
+    public void metricLevelSettingIsHonored() {
+        try (CloudWatchMetricPublisher publisher = publisherBuilder.metricLevel(MetricLevel.INFO).build()) {
+            MetricCollector collector = newCollector();
+            collector.reportMetric(CoreMetric.SERVICE_ID, "ServiceId");
+            collector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, true);
+            collector.reportMetric(HttpMetric.HTTP_STATUS_CODE, 404);
+            publisher.publish(new FixedTimeMetricCollection(collector.collect()));
+        }
+
+        PutMetricDataRequest call = getPutMetricCall();
+        MetricDatum metric = call.metricData().get(0);
+        assertThat(call.metricData()).hasSize(1);
+        assertThat(metric.dimensions()).containsExactly(Dimension.builder()
+                                                                 .name(CoreMetric.SERVICE_ID.name())
+                                                                 .value("ServiceId")
+                                                                 .build());
+        assertThat(metric.metricName()).isEqualTo(CoreMetric.API_CALL_SUCCESSFUL.name());
     }
 
     @Test
