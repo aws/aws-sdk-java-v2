@@ -108,6 +108,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
                                                             .interceptorChain(interceptors)
                                                             .executionAttributes(new ExecutionAttributes())
                                                             .interceptorContext(incerceptorContext)
+                                                            .metricCollector(MetricCollector.create("ApiCall"))
                                                             .build();
 
         CompletableFuture future =

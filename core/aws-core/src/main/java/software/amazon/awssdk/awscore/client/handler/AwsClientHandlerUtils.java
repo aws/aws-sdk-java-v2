@@ -43,13 +43,11 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
@@ -74,11 +72,11 @@ public final class AwsClientHandlerUtils {
                                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
                                                                     .orElse(clientCredentials);
 
-        Pair<AwsCredentials, Duration> measuredCredentialsFetch = MetricUtils.measureDuration(
-                credentialsProvider::resolveCredentials);
-        AwsCredentials credentials = measuredCredentialsFetch.left();
+        long credentialsResolveStart = System.nanoTime();
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        Duration fetchDuration = Duration.ofNanos(System.nanoTime() - credentialsResolveStart);
         MetricCollector metricCollector = resolveMetricCollector(executionParams);
-        metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, measuredCredentialsFetch.right());
+        metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, fetchDuration);
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
 

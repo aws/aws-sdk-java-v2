@@ -3,7 +3,8 @@ package software.amazon.awssdk.services.endpointdiscoverytest;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.net.URI;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
@@ -20,7 +22,6 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -116,15 +117,14 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                             .withMetricCollector(apiCallMetricCollector).withInput(describeEndpointsRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = describeEndpointsRequest.overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                        requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    describeEndpointsRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, describeEndpointsRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -181,15 +181,14 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryIdentifiersRequiredRequest
                     .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                        requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                     testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -245,15 +244,14 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryOptionalRequest.overrideConfiguration().orElse(
                     null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                        requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    testDiscoveryOptionalRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryOptionalRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -309,15 +307,14 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryRequiredRequest.overrideConfiguration().orElse(
                     null);
             executeFuture.whenComplete((r, e) -> {
-                Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                        requestOverrideConfig);
-                metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    testDiscoveryRequiredRequest.overrideConfiguration().orElse(null));
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryRequiredRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -333,8 +330,24 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                 .protocolVersion("1.1");
     }
 
+    private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
+            RequestOverrideConfiguration requestOverrideConfiguration) {
+        List<MetricPublisher> publishers = null;
+        if (requestOverrideConfiguration != null) {
+            publishers = requestOverrideConfiguration.metricPublishers();
+        }
+        if (publishers == null || publishers.isEmpty()) {
+            publishers = clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS);
+        }
+        if (publishers == null) {
+            publishers = Collections.emptyList();
+        }
+        return publishers;
+    }
+
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
             JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 }
+

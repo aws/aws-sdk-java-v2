@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.json;
 
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -9,12 +10,13 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.signer.Signer;
@@ -129,8 +131,9 @@ final class DefaultJsonClient implements JsonClient {
                     .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration, aPostOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -178,9 +181,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    aPostOperationWithOutputRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -228,9 +231,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    getWithoutRequiredMembersRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    getWithoutRequiredMembersRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -274,9 +277,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    paginatedOperationWithResultKeyRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    paginatedOperationWithResultKeyRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -398,9 +401,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    paginatedOperationWithoutResultKeyRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    paginatedOperationWithoutResultKeyRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -539,9 +542,9 @@ final class DefaultJsonClient implements JsonClient {
                                             .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                             .requestBody(requestBody).build()));
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    streamingInputOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -614,9 +617,9 @@ final class DefaultJsonClient implements JsonClient {
                                                     new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
                                             .requestBody(requestBody).transferEncoding(true).build()), responseTransformer);
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    streamingInputOutputOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    streamingInputOutputOperationRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
 
@@ -667,10 +670,25 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
-            Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration,
-                    streamingOutputOperationRequest);
-            metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
+    }
+
+    private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
+            RequestOverrideConfiguration requestOverrideConfiguration) {
+        List<MetricPublisher> publishers = null;
+        if (requestOverrideConfiguration != null) {
+            publishers = requestOverrideConfiguration.metricPublishers();
+        }
+        if (publishers == null || publishers.isEmpty()) {
+            publishers = clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS);
+        }
+        if (publishers == null) {
+            publishers = Collections.emptyList();
+        }
+        return publishers;
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

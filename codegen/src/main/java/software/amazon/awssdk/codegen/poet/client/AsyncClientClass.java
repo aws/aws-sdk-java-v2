@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static com.squareup.javapoet.TypeSpec.Builder;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
@@ -31,8 +32,8 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -55,6 +56,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -62,7 +64,6 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -71,7 +72,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
-    private static final String PUBLISHER_NAME = "metricPublisher";
+    private static final String PUBLISHER_NAME = "metricPublishers";
     private static final String METRIC_COLLECTOR_NAME = "apiCallMetricCollector";
     private final IntermediateModel model;
     private final PoetExtensions poetExtensions;
@@ -108,7 +109,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                     .addMethods(operations())
                     .addMethod(closeMethod())
                     .addMethods(protocolSpec.additionalMethods())
-                    .addMethod(protocolSpec.initProtocolFactory(model));
+                    .addMethod(protocolSpec.initProtocolFactory(model))
+                    .addMethod(resolveMetricPublishersMethod());
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
@@ -240,13 +242,12 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "() -> $N.exceptionOccurred(t))", paramName);
         }
 
-        builder.addStatement("$T<$T> $N = $T.resolvePublisher(clientConfiguration, $N.overrideConfiguration().orElse(null))",
-                             Optional.class,
+        builder.addStatement("$T<$T> $N = resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
+                             List.class,
                              MetricPublisher.class,
                              PUBLISHER_NAME,
-                             MetricUtils.class,
                              opModel.getInput().getVariableName())
-               .addStatement("$N.ifPresent(p -> p.publish($N.collect()))", PUBLISHER_NAME, "apiCallMetricCollector")
+               .addStatement("$N.forEach(p -> p.publish($N.collect()))", PUBLISHER_NAME, "apiCallMetricCollector")
                .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                .endControlFlow();
 
@@ -325,5 +326,40 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                        returnType,
                                        String.join(",", config.getCreateMethodParams()))
                          .build();
+    }
+
+    private MethodSpec resolveMetricPublishersMethod() {
+        String clientConfigName = "clientConfiguration";
+        String requestOverrideConfigName = "requestOverrideConfiguration";
+
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("resolveMetricPublishers")
+                .addModifiers(PRIVATE, STATIC)
+                .returns(ParameterizedTypeName.get(List.class, MetricPublisher.class))
+                .addParameter(SdkClientConfiguration.class, clientConfigName)
+                .addParameter(RequestOverrideConfiguration.class, requestOverrideConfigName);
+
+        String publishersName = "publishers";
+
+        methodBuilder.addStatement("$T $N = null", ParameterizedTypeName.get(List.class, MetricPublisher.class), publishersName);
+
+        methodBuilder.beginControlFlow("if ($N != null)", requestOverrideConfigName)
+                .addStatement("$N = $N.metricPublishers()", publishersName, requestOverrideConfigName)
+                .endControlFlow();
+
+        methodBuilder.beginControlFlow("if ($1N == null || $1N.isEmpty())", publishersName)
+                .addStatement("$N = $N.option($T.$N)",
+                              publishersName,
+                              clientConfigName,
+                              SdkClientOption.class,
+                              "METRIC_PUBLISHERS")
+                .endControlFlow();
+
+        methodBuilder.beginControlFlow("if ($1N == null)", publishersName)
+                .addStatement("$N = $T.emptyList()", publishersName, Collections.class)
+                .endControlFlow();
+
+        methodBuilder.addStatement("return $N", publishersName);
+
+        return methodBuilder.build();
     }
 }

@@ -70,7 +70,7 @@ public class TranscribeStreamingIntegrationTest {
         client = TranscribeStreamingAsyncClient.builder()
                                                .region(Region.US_EAST_1)
                                                .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor())
-                                               .metricPublisher(mockPublisher))
+                                               .addMetricPublisher(mockPublisher))
                                                .credentialsProvider(getCredentials())
                                                .build();
     }
@@ -160,7 +160,6 @@ public class TranscribeStreamingIntegrationTest {
 
         MetricCollection attemptCollection = capturedCollection.children().get(0);
         assertThat(attemptCollection.name()).isEqualTo("ApiCallAttempt");
-        assertThat(attemptCollection.children()).isEmpty();
         assertThat(attemptCollection.metricValues(CoreMetric.HTTP_STATUS_CODE))
             .containsExactly(200);
         assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
