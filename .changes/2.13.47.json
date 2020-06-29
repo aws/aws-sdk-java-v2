@@ -1,0 +1,31 @@
+{
+    "version": "2.13.47",
+    "date": "2020-06-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "description": "Documentation updates for Amazon EC2 Auto Scaling."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Profiler",
+            "description": "Amazon CodeGuru Profiler is now generally available. The Profiler helps developers to optimize their software, troubleshoot issues in production, and identify their most expensive lines of code. As part of general availability, we are launching: Profiling of AWS Lambda functions, Anomaly detection in CPU profiles, Color My Code on flame graphs, Expanding presence to 10 AWS regions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Virtual Private Cloud (VPC) customers can now create and manage their own Prefix Lists to simplify VPC configurations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeStar connections",
+            "description": "Updated and new APIs in support of hosts for connections to installed provider types. New integration with the GitHub Enterprise Server provider type."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
