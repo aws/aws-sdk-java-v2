@@ -62,7 +62,7 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .credentialsProvider(mockCredentialsProvider)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                            .overrideConfiguration(c -> c.metricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
+                                            .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                                             .build();
 
         when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {
@@ -114,7 +114,7 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
         stubSuccessfulResponse();
         MetricPublisher requestMetricPublisher = mock(MetricPublisher.class);
 
-        client.allTypes(r -> r.overrideConfiguration(o -> o.metricPublisher(requestMetricPublisher))).join();
+        client.allTypes(r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher))).join();
 
         verify(requestMetricPublisher).publish(any(MetricCollection.class));
         verifyZeroInteractions(mockPublisher);

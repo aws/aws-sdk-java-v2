@@ -130,7 +130,8 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<String> PROFILE_NAME = new SdkClientOption<>(String.class);
 
-    public static final SdkClientOption<MetricPublisher> METRIC_PUBLISHER = new SdkClientOption<>(MetricPublisher.class);
+    public static final SdkClientOption<List<MetricPublisher>> METRIC_PUBLISHERS =
+            new SdkClientOption<>(new UnsafeValueType(List.class));
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

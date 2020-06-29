@@ -74,7 +74,7 @@ public class CoreMetricsTest {
         client = ProtocolRestJsonClient.builder()
                 .httpClient(mockHttpClient)
                 .credentialsProvider(mockCredentialsProvider)
-                .overrideConfiguration(c -> c.metricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
+                .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                 .build();
         AbortableInputStream content = contentStream("{}");
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
@@ -130,7 +130,7 @@ public class CoreMetricsTest {
     public void testApiCall_publisherOverriddenOnRequest_requestPublisherTakesPrecedence() {
         MetricPublisher requestMetricPublisher = mock(MetricPublisher.class);
 
-        client.allTypes(r -> r.overrideConfiguration(o -> o.metricPublisher(requestMetricPublisher)));
+        client.allTypes(r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher)));
 
         verify(requestMetricPublisher).publish(any(MetricCollection.class));
         verifyZeroInteractions(mockPublisher);

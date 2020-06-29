@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Wrapper pipeline that tracks the {@link CoreMetric#API_CALL_DURATION} metric.
@@ -40,14 +41,22 @@ public final class AsyncApiCallMetricCollectionStage<OutputT> implements Request
     public CompletableFuture<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
         MetricCollector metricCollector = context.executionContext().metricCollector();
 
-        long callStart = System.nanoTime();
-        CompletableFuture<OutputT> future = wrapped.execute(input, context);
+        CompletableFuture<OutputT> future = new CompletableFuture<>();
 
-        future.whenComplete((r, t) -> {
+        long callStart = System.nanoTime();
+        CompletableFuture<OutputT> executeFuture = wrapped.execute(input, context);
+
+        executeFuture.whenComplete((r, t) -> {
             long duration = System.nanoTime() - callStart;
             metricCollector.reportMetric(CoreMetric.API_CALL_DURATION, Duration.ofNanos(duration));
+
+            if (t != null) {
+                future.completeExceptionally(t);
+            } else {
+                future.complete(r);
+            }
         });
 
-        return future;
+        return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
     }
 }

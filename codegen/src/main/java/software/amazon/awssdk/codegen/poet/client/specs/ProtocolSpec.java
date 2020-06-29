@@ -186,8 +186,8 @@ public interface ProtocolSpec {
     }
 
     default String publishMetrics() {
-        return "Optional<MetricPublisher> metricPublisher = MetricUtils.resolvePublisher(clientConfiguration, "
+        return "List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, "
                + "requestOverrideConfig);\n"
-               + "metricPublisher.ifPresent(p -> p.publish(apiCallMetricCollector.collect()));";
+               + "metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));";
     }
 }

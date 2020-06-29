@@ -134,10 +134,13 @@ public abstract class BaseAsyncCoreMetricsTest {
 
     /**
      * Adds delay after calling CompletableFuture.join to wait for publisher to get metrics.
-     * no op by default, can be overridden by subclasses
      */
     void addDelayIfNeeded() {
-        // no op by default
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
     }
 
     abstract String operationName();

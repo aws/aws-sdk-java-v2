@@ -58,7 +58,7 @@ public class AsyncEventStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest
         client = ProtocolRestJsonAsyncClient.builder()
                                             .credentialsProvider(mockCredentialsProvider)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                            .overrideConfiguration(c -> c.metricPublisher(mockPublisher)
+                                            .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher)
                                                                          .retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                                             .build();
 
@@ -98,13 +98,5 @@ public class AsyncEventStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest
     @Override
     MetricPublisher publisher() {
         return mockPublisher;
-    }
-
-    void addDelayIfNeeded() {
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }
