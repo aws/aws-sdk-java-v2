@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "Virtual Private Cloud (VPC) customers can now create and manage their own Prefix Lists to simplify VPC configurations."
+}
