@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CodeStar connections",
+    "description": "Updated and new APIs in support of hosts for connections to installed provider types. New integration with the GitHub Enterprise Server provider type."
+}
