@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Registry",
+    "description": "Add a new parameter (ImageDigest) and a new exception (ImageDigestDoesNotMatchException) to PutImage API to support pushing image by digest."
+}
