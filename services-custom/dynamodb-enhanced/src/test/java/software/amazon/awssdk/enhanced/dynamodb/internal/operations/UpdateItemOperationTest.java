@@ -76,6 +76,8 @@ public class UpdateItemOperationTest {
     private static final OperationContext GSI_1_CONTEXT =
         DefaultOperationContext.create(TABLE_NAME, "gsi_1");
     private static final Expression CONDITION_EXPRESSION;
+    private static final Expression MINIMAL_CONDITION_EXPRESSION = Expression.builder().expression("foo = bar").build();
+
 
     static {
         Map<String, String> expressionNames = new HashMap<>();
@@ -188,6 +190,31 @@ public class UpdateItemOperationTest {
                                                                         null);
 
         assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withMinimalConditionExpression() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
+                                                                .item(item)
+                                                                .conditionExpression(MINIMAL_CONDITION_EXPRESSION)
+                                                                .build());
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        Map<String, AttributeValue> expectedValues = new HashMap<>();
+        expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
+        Map<String, String> expectedNames = new HashMap<>();
+        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
+        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
+        assertThat(request.conditionExpression(), is(MINIMAL_CONDITION_EXPRESSION.expression()));
+        assertThat(request.expressionAttributeNames(), is(expectedNames));
+        assertThat(request.expressionAttributeValues(), is(expectedValues));
     }
 
     @Test
