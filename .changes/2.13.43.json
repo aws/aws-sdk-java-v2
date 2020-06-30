@@ -1,0 +1,21 @@
+{
+    "version": "2.13.43",
+    "date": "2020-06-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "description": "AWS Elemental MediaTailor SDK now allows configuration of Bumper."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "Added a new error message to support the requirement for a Business License on AWS accounts in China to create an organization."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
