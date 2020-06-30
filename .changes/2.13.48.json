@@ -1,0 +1,36 @@
+{
+    "version": "2.13.48",
+    "date": "2020-06-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "description": "Release GitHub Enterprise Server source provider integration"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix marshaller binding for input event streams when member name and shape name are not equal."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "description": "This release adds the relationships between MedicalCondition and Anatomy in DetectEntitiesV2 API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Documentation updates for rds"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Added support for tag-on-create for CreateVpc, CreateEgressOnlyInternetGateway, CreateSecurityGroup, CreateSubnet, CreateNetworkInterface, CreateNetworkAcl, CreateDhcpOptions and CreateInternetGateway. You can now specify tags when creating any of these resources. For more information about tagging, see AWS Tagging Strategies."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "description": "Add a new parameter (ImageDigest) and a new exception (ImageDigestDoesNotMatchException) to PutImage API to support pushing image by digest."
+        }
+    ]
+}
