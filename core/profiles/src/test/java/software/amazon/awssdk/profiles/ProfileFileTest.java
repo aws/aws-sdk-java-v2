@@ -326,14 +326,14 @@ public class ProfileFileTest {
 
     @Test
     public void allValidProfileNameCharactersAreSupported() {
-        assertThat(configFileProfiles("[profile ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./%@]"))
-            .isEqualTo(profiles(profile("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./%@")));
+        assertThat(configFileProfiles("[profile ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./%@:]"))
+            .isEqualTo(profiles(profile("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./%@:")));
     }
 
     @Test
     public void allValidPropertyNameCharactersAreSupported() {
-        assertThat(configFileProfiles("[profile foo]\nABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./%@ = value"))
-            .isEqualTo(profiles(profile("foo", property("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./%@",
+        assertThat(configFileProfiles("[profile foo]\nABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./%@: = value"))
+            .isEqualTo(profiles(profile("foo", property("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./%@:",
                                                         "value"))));
     }
 
