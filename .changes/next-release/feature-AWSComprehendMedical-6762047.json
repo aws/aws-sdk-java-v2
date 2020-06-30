@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Comprehend Medical",
+    "description": "This release adds the relationships between MedicalCondition and Anatomy in DetectEntitiesV2 API."
+}
