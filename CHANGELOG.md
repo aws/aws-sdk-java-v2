@@ -1,3 +1,399 @@
+# __2.13.48__ __2020-06-30__
+## __AWS Comprehend Medical__
+  - ### Features
+    - This release adds the relationships between MedicalCondition and Anatomy in DetectEntitiesV2 API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix marshaller binding for input event streams when member name and shape name are not equal.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Release GitHub Enterprise Server source provider integration
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - Add a new parameter (ImageDigest) and a new exception (ImageDigestDoesNotMatchException) to PutImage API to support pushing image by digest.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for tag-on-create for CreateVpc, CreateEgressOnlyInternetGateway, CreateSecurityGroup, CreateSubnet, CreateNetworkInterface, CreateNetworkAcl, CreateDhcpOptions and CreateInternetGateway. You can now specify tags when creating any of these resources. For more information about tagging, see AWS Tagging Strategies.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for rds
+
+# __2.13.47__ __2020-06-29__
+## __AWS CodeStar connections__
+  - ### Features
+    - Updated and new APIs in support of hosts for connections to installed provider types. New integration with the GitHub Enterprise Server provider type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CodeGuru Profiler__
+  - ### Features
+    - Amazon CodeGuru Profiler is now generally available. The Profiler helps developers to optimize their software, troubleshoot issues in production, and identify their most expensive lines of code. As part of general availability, we are launching: Profiling of AWS Lambda functions, Anomaly detection in CPU profiles, Color My Code on flame graphs, Expanding presence to 10 AWS regions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Virtual Private Cloud (VPC) customers can now create and manage their own Prefix Lists to simplify VPC configurations.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling.
+
+# __2.13.46__ __2020-06-26__
+## __AWS CloudFormation__
+  - ### Features
+    - ListStackInstances and DescribeStackInstance now return a new `StackInstanceStatus` object that contains `DetailedStatus` values: a disambiguation of the more generic `Status` value. ListStackInstances output can now be filtered on `DetailedStatus` using the new `Filters` parameter.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - This release contains miscellaneous API documentation updates for AWS DMS in response to several customer reported issues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Don't require Authorization for InitiateAuth and RespondToAuthChallenge.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added support for cross-region DataSource credentials copying.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - The new 'ModelClientConfig' parameter being added for CreateTransformJob and DescribeTransformJob api actions enable customers to configure model invocation related parameters such as timeout and retry.
+
+# __2.13.45__ __2020-06-25__
+## __AWS DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed a bug causing a NullPointerException to be thrown in the enhanced DeleteItem operation if a conditionExpression was given with null attributeNames or null attributeValues.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds new APIs to support column level statistics in AWS Glue Data Catalog
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for tag-on-create for Host Reservations in Dedicated Hosts. You can now specify tags when you create a Host Reservation for a Dedicated Host. For more information about tagging, see AWS Tagging Strategies.
+
+# __2.13.44__ __2020-06-24__
+## __AWS Amplify__
+  - ### Features
+    - This release of AWS Amplify Console introduces support for automatically creating custom subdomains for branches based on user-defined glob patterns, as well as automatically cleaning up Amplify branches when their corresponding git branches are deleted.
+
+## __AWS Backup__
+  - ### Features
+    - Customers can now manage and monitor their backups in a policied manner across their AWS accounts, via an integration between AWS Backup and AWS Organizations
+
+## __AWS CodeCommit__
+  - ### Features
+    - This release introduces support for reactions to CodeCommit comments. Users will be able to select from a pre-defined list of emojis to express their reaction to any comments.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for iam
+
+## __AWS Organizations__
+  - ### Features
+    - This release adds support for a new backup policy type for AWS Organizations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Amazon EMR customers can now set allocation strategies for On-Demand and Spot instances in their EMR clusters with instance fleets. These allocation strategies use real-time capacity insights to provision clusters faster and make the most efficient use of available spare capacity to allocate Spot instances to reduce interruptions.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds the capability to take highly-durable, incremental backups of your FSx for Lustre persistent file systems. This capability makes it easy to further protect your file system data and to meet business and regulatory compliance requirements.
+
+## __Amazon Honeycode__
+  - ### Features
+    - Introducing Amazon Honeycode - a fully managed service that allows you to quickly build mobile and web apps for teams without programming.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling.
+
+# __2.13.43__ __2020-06-23__
+## __AWS MediaTailor__
+  - ### Features
+    - AWS Elemental MediaTailor SDK now allows configuration of Bumper.
+
+## __AWS Organizations__
+  - ### Features
+    - Added a new error message to support the requirement for a Business License on AWS accounts in China to create an organization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+# __2.13.42__ __2020-06-22__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds Tag On Create feature support for the ImportImage, ImportSnapshot, ExportImage and CreateInstanceExportTask APIs.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Adding support for MaximumCoreCapacityUnits parameter for EMR Managed Scaling. It allows users to control how many units/nodes are added to the CORE group/fleet. Remaining units/nodes are added to the TASK groups/fleet in the cluster.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This update adds the ability to detect black frames, end credits, shots, and color bars in stored videos
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Added paginators for various APIs.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - AWS SQS adds pagination support for ListQueues and ListDeadLetterSourceQueues APIs
+
+# __2.13.41__ __2020-06-19__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports Input Prepare schedule actions. This feature improves existing input switching by allowing users to prepare an input prior to switching to it.
+
+## __AWS OpsWorks CM__
+  - ### Features
+    - Documentation updates for AWS OpsWorks CM.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation updates for elasticache
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support to tag elastic-gpu on the RunInstances api
+
+# __2.13.40__ __2020-06-18__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for NexGuard FileMarker SDK, which allows NexGuard partners to watermark proprietary content in mezzanine and OTT streaming contexts.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Support__
+  - ### Features
+    - Documentation updates for support
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Documentation updates for meteringmarketplace
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for global write forwarding on secondary clusters in an Aurora global database.
+
+## __Amazon Route 53__
+  - ### Features
+    - Added a new ListHostedZonesByVPC API for customers to list all the private hosted zones that a specified VPC is associated with.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - You can now configure Amazon SES to send event notifications when the delivery of an email is delayed because of a temporary issue. For example, you can receive a notification if the recipient's inbox is full, or if there's a temporary problem with the receiving email server.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added offset support for specifying the number of days to wait after the date and time specified by a CRON expression before running the maintenance window.
+
+# __2.13.39__ __2020-06-17__
+## __AWS App Mesh__
+  - ### Features
+    - Adds support for route and virtual node listener timeouts.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - nvmeSupport added to DescribeInstanceTypes API
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - AWS Snowcone is a portable, rugged and secure device for edge computing and data transfer. You can use Snowcone to collect, process, and move data to AWS, either offline by shipping the device to AWS or online by using AWS DataSync. With 2 CPUs and 4 GB RAM of compute and 8 TB of storage, Snowcone can run edge computing workloads and store data securely. Snowcone's small size (8.94" x 5.85" x 3.25" / 227 mm x 148.6 mm x 82.65 mm) allows you to set it next to machinery in a factory. Snowcone weighs about 4.5 lbs. (2 kg), so you can carry one in a backpack, use it with battery-based operation, and use the Wi-Fi interface to gather sensor data. Snowcone supports a file interface with NFS support.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This is a documentation-only update to the Amazon Macie API. This update contains miscellaneous editorial improvements to various API descriptions.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add PriorRequestNotComplete exception to AssociateVPCWithHostedZone API
+
+# __2.13.38__ __2020-06-16__
+## __AWS Data Exchange__
+  - ### Features
+    - This release fixes a bug in the AWS Data Exchange Python and NodeJS SDKs. The 'KmsKeyArn' field in the create-job API was configured to be required instead of optional. We updated this field to be optional in this release.
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for using Amazon Elastic File System (persistent storage) with AWS Lambda. This enables customers to share data across function invocations, read large reference data files, and write function output to a persistent and shared store.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation updates for CloudFront
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix an NPE in `OptionalAttributeConverter` that can happen the if the `nul()` property of the `AttributeValue` is `null`.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new US English child voice - Kevin. Kevin is available as Neural voice only.
+
+## __Amazon QLDB__
+  - ### Features
+    - Documentation updates for Amazon QLDB
+
+## __Auto Scaling__
+  - ### Features
+    - Introducing instance refresh, a feature that helps you update all instances in an Auto Scaling group in a rolling fashion (for example, to apply a new AMI or instance type). You can control the pace of the refresh by defining the percentage of the group that must remain running/healthy during the replacement process and the time for new instances to warm up between replacements.
+
+# __2.13.37__ __2020-06-15__
+## __AWS IoT__
+  - ### Features
+    - Added support for job executions rollout configuration, job abort configuration, and job executions timeout configuration for AWS IoT Over-the-Air (OTA) Update Feature.
+
+## __Alexa For Business__
+  - ### Features
+    - Adding support for optional tags in CreateBusinessReportSchedule, CreateProfile and CreateSkillGroup APIs
+
+## __Amazon AppConfig__
+  - ### Features
+    - This release adds a hosted configuration source provider. Customers can now store their application configurations directly in AppConfig, without the need for an external configuration source.
+
+## __Amazon Chime__
+  - ### Features
+    - feature: Chime: This release introduces the ability to create an AWS Chime SDK meeting with attendees.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Updated all AuthParameters to be sensitive.
+
+# __2.13.36__ __2020-06-12__
+## __AWS CloudFormation__
+  - ### Features
+    - The following parameters now return the organization root ID or organizational unit (OU) IDs that you specified for DeploymentTargets: the OrganizationalUnitIds parameter on StackSet and the OrganizationalUnitId parameter on StackInstance, StackInstanceSummary, and StackSetOperationResultSummary
+
+## __AWS Glue__
+  - ### Features
+    - You can now choose to crawl the entire table or just a sample of records in DynamoDB when using AWS Glue crawlers. Additionally, you can also specify a scanning rate for crawling DynamoDB tables.
+
+## __AWS SDK for Java v2 DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Added ClientRequestToken in class TransactWriteItemsEnhancedRequest.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Display EndpointType in DescribeGatewayInformation
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+# __2.13.35__ __2020-06-11__
+## __AWS IoT Data Plane__
+  - ### Features
+    - As part of this release, we are introducing a new feature called named shadow, which extends the capability of AWS IoT Device Shadow to support multiple shadows for a single IoT device. With this release, customers can store different device state data into different shadows, and as a result access only the required state data when needed and reduce individual shadow size.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Avoid unnecessary copying in `AsyncRequestBody.fromBytes()`
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for deleting capacity providers.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - This change adds the built-in AMAZON.KendraSearchIntent that enables integration with Amazon Kendra.
+
+## __EC2 Image Builder__
+  - ### Features
+    - EC2 Image Builder now supports specifying a custom working directory for your build and test workflows. In addition, Image Builder now supports defining tags that are applied to ephemeral resources created by EC2 Image Builder as part of the image creation workflow.
+
+# __2.13.34__ __2020-06-10__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Compute Optimizer supports exporting recommendations to Amazon S3.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Service Catalog Documentation Update for Integration with AWS Organizations Delegated Administrator feature
+
+## __AWS Shield__
+  - ### Features
+    - Corrections to the supported format for contact phone numbers and to the description for the create subscription action.
+
+## __Amazon AppConfig__
+  - ### Features
+    - This release allows customers to choose from a list of predefined deployment strategies while starting deployments.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Reducing the schedule name of DLM Lifecycle policy from 500 to 120 characters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New C6g instances powered by AWS Graviton2 processors and ideal for running advanced, compute-intensive workloads; New R6g instances powered by AWS Graviton2 processors and ideal for running memory-intensive workloads.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for lightsail
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API removes support for the ArchiveFindings and UnarchiveFindings operations. This release also adds UNKNOWN as an encryption type for S3 bucket metadata.
+
+## __CodeArtifact__
+  - ### Features
+    - Added support for AWS CodeArtifact.
+
+# __2.13.33__ __2020-06-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release updates the API so customers can test use of Source IP to allow, deny or limit access to data in their S3 buckets after integrating their identity provider.
+
+# __2.13.32__ __2020-06-08__
+## __AWS Cloud Map__
+  - ### Features
+    - Added support for tagging Service and Namespace type resources in Cloud Map
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Update javadoc annotation for AwsBasicCredentials
+
+## __AWS Shield__
+  - ### Features
+    - This release adds the option for customers to identify a contact name and method that the DDoS Response Team can proactively engage when a Route 53 Health Check that is associated with a Shield protected resource fails.
+
 # __2.13.31__ __2020-06-05__
 ## __AWS Elastic Beanstalk__
   - ### Features

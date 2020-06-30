@@ -1,0 +1,26 @@
+{
+    "version": "2.13.45",
+    "date": "2020-06-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Added support for tag-on-create for Host Reservations in Dedicated Hosts. You can now specify tags when you create a Host Reservation for a Dedicated Host. For more information about tagging, see AWS Tagging Strategies."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "This release adds new APIs to support column level statistics in AWS Glue Data Catalog"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS DynamoDB Enhanced Client",
+            "description": "Fixed a bug causing a NullPointerException to be thrown in the enhanced DeleteItem operation if a conditionExpression was given with null attributeNames or null attributeValues."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

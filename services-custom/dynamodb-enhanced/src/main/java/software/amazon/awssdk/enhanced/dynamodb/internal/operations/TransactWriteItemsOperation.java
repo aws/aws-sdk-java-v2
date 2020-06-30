@@ -43,6 +43,7 @@ public class TransactWriteItemsOperation
     public TransactWriteItemsRequest generateRequest(DynamoDbEnhancedClientExtension extension) {
         return TransactWriteItemsRequest.builder()
                                         .transactItems(this.request.transactWriteItems())
+                                        .clientRequestToken(this.request.clientRequestToken())
                                         .build();
     }
 
