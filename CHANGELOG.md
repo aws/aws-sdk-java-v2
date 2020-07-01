@@ -1,3 +1,28 @@
+# __2.13.49__ __2020-07-01__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync supports new 12xlarge instance for server-side API caching
+
+## __AWS CodeBuild__
+  - ### Features
+    - Support build status config in project source
+
+## __AWS SecurityHub__
+  - ### Features
+    - This release adds additional details for findings. There are now finding details for auto scaling groups, EC2 volumes, and EC2 VPCs. You can identify detected vulnerabilities and provide related network paths.
+
+## __Amazon Chime__
+  - ### Features
+    - This release supports third party emergency call routing configuration for Amazon Chime Voice Connectors.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds the exceptions KMSKeyNotAccessibleFault and InvalidDBClusterStateFault to the Amazon RDS ModifyDBInstance API.
+
+## __EC2 Image Builder__
+  - ### Features
+    - EC2 Image Builder adds support for encrypted AMI distribution.
+
 # __2.13.48__ __2020-06-30__
 ## __AWS Comprehend Medical__
   - ### Features
