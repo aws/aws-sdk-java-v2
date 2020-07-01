@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS AppSync",
-    "description": "AWS AppSync supports new 12xlarge instance for server-side API caching"
-}

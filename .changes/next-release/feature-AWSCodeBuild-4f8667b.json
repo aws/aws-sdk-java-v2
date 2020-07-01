@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "description": "Support build status config in project source"
-}

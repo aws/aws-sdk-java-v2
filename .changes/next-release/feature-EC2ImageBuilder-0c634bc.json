@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "description": "EC2 Image Builder adds support for encrypted AMI distribution."
-}
