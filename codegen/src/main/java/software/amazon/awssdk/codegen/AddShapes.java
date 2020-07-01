@@ -98,11 +98,11 @@ abstract class AddShapes {
                 String c2jMemberName = memberEntry.getKey();
                 Member c2jMemberDefinition = memberEntry.getValue();
                 Shape parentShape = shape;
+                shape.setC2jName(shapeName);
 
                 MemberModel memberModel = generateMemberModel(c2jMemberName, c2jMemberDefinition,
                                                               getProtocol(), parentShape,
                                                               getServiceModel().getShapes());
-
                 if (memberModel.getHttp().getLocation() == Location.HEADER) {
                     hasHeaderMember = true;
 
@@ -161,8 +161,8 @@ abstract class AddShapes {
 
 
         MemberModel memberModel = new MemberModel();
-
         memberModel.withC2jName(c2jMemberName)
+                   .withParentName(parentShape.getC2jName())
                    .withC2jShape(c2jShapeName)
                    .withName(capitalize(c2jMemberName))
                    .withVariable(new VariableModel(variableName, variableType, variableDeclarationType)

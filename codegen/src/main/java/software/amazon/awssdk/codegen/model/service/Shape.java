@@ -75,6 +75,8 @@ public class Shape {
 
     private XmlNamespace xmlNamespace;
 
+    private String c2jName;
+
     public boolean isFault() {
         return fault;
     }
@@ -277,6 +279,14 @@ public class Shape {
 
     public void setXmlNamespace(XmlNamespace xmlNamespace) {
         this.xmlNamespace = xmlNamespace;
+    }
+
+    public String getC2jName() {
+        return c2jName;
+    }
+
+    public void setC2jName(String c2jName) {
+        this.c2jName = c2jName;
     }
 
 }

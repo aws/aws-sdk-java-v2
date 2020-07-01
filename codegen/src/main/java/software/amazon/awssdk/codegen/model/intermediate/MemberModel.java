@@ -45,6 +45,8 @@ public class MemberModel extends DocumentationModel {
 
     private String c2jShape;
 
+    private String parentName;
+
     private VariableModel variable;
 
     private VariableModel setterModel;
@@ -122,6 +124,19 @@ public class MemberModel extends DocumentationModel {
 
     public void setC2jName(String c2jName) {
         this.c2jName = c2jName;
+    }
+
+    public void setParentName(String parentName) {
+        this.parentName = parentName;
+    }
+
+    public String getParentName() {
+        return parentName;
+    }
+
+    public MemberModel withParentName(String parentName) {
+        setParentName(parentName);
+        return this;
     }
 
     public MemberModel withC2jName(String c2jName) {
