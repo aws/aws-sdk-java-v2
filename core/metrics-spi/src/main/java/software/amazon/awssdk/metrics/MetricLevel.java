@@ -15,13 +15,17 @@
 
 package software.amazon.awssdk.metrics;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * The {@code MetricLevel} associated with a {@link SdkMetric}, similar to log levels, defines the 'scenario' in which the metric
  * is useful. This makes it easy to reduce the cost of metric publishing (e.g. by setting it to {@link #INFO}), and then increase
  * it when additional data level is needed for debugging purposes (e.g. by setting it to {@link #TRACE}.
+ *
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
+@SdkPreviewApi
 @SdkPublicApi
 public enum MetricLevel {
     /**

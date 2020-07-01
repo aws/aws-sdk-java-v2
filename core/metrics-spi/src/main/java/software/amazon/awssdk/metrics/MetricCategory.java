@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.metrics;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -22,7 +23,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * <p>
  * A metric can be tagged with multiple categories. Clients can enable/disable metric collection
  * at a {@link MetricCategory} level.
+ *
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
+@SdkPreviewApi
 @SdkPublicApi
 public enum MetricCategory {
     /**

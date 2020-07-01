@@ -16,12 +16,17 @@
 package software.amazon.awssdk.core.metrics;
 
 import java.time.Duration;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 
+/**
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
+ */
+@SdkPreviewApi
 @SdkPublicApi
 public final class CoreMetric {
     /**

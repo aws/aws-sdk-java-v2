@@ -13,26 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics;
+package software.amazon.awssdk.annotations;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 
 /**
- * A container associating a metric and its value.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
+ * Marker interface for preview and experimental APIs. Breaking changes may be
+ * introduced to elements marked as {@link SdkPreviewApi}. Users of the SDK
+ * should assume that anything annotated as preview will change or break, and
+ * <b>should not</b> use them in production.
  */
-@SdkPreviewApi
-@SdkPublicApi
-public interface MetricRecord<T> {
-    /**
-     * @return The metric.
-     */
-    SdkMetric<T> metric();
-
-    /**
-     * @return The value of this metric.
-     */
-    T value();
+@Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
+@SdkProtectedApi
+public @interface SdkPreviewApi {
 }

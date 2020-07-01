@@ -15,13 +15,17 @@
 
 package software.amazon.awssdk.metrics;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Logger;
 
 /**
  * An implementation of {@link MetricPublisher} that writes all published metrics to the logs at the INFO level under the
  * {@code software.amazon.awssdk.metrics.LoggingMetricPublisher} namespace.
+ *
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
+@SdkPreviewApi
 @SdkPublicApi
 public final class LoggingMetricPublisher implements MetricPublisher {
     private static final Logger LOGGER = Logger.loggerFor(LoggingMetricPublisher.class);
