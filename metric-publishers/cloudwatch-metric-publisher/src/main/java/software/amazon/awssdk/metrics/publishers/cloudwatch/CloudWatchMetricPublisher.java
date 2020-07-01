@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -151,7 +152,10 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
  *
  * <p><b>Warning:</b> Make sure the {@link #close()} this publisher when it is done being used to release all resources it
  * consumes. Failure to do so will result in possible thread or file descriptor leaks.
+ *
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
+@SdkPreviewApi
 @ThreadSafe
 @Immutable
 @SdkPublicApi

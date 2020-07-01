@@ -16,12 +16,16 @@
 package software.amazon.awssdk.metrics;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.internal.DefaultMetricCollector;
 
 /**
  * Used to collect metrics reported by the SDK.
+ *
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
+@SdkPreviewApi
 @NotThreadSafe
 @SdkPublicApi
 public interface MetricCollector {

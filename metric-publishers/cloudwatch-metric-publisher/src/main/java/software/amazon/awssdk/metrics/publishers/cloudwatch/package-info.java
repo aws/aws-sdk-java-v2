@@ -13,26 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics;
+@SdkPreviewApi
+package software.amazon.awssdk.metrics.publishers.cloudwatch;
 
 import software.amazon.awssdk.annotations.SdkPreviewApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-
-/**
- * A container associating a metric and its value.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
- */
-@SdkPreviewApi
-@SdkPublicApi
-public interface MetricRecord<T> {
-    /**
-     * @return The metric.
-     */
-    SdkMetric<T> metric();
-
-    /**
-     * @return The value of this metric.
-     */
-    T value();
-}
