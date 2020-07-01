@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "This release adds the exceptions KMSKeyNotAccessibleFault and InvalidDBClusterStateFault to the Amazon RDS ModifyDBInstance API."
+}
