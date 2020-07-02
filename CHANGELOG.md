@@ -1,3 +1,16 @@
+# __2.13.50__ __2020-07-02__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Documentation updates for Amazon Connect.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation updates for elasticache
+
 # __2.13.49__ __2020-07-01__
 ## __AWS AppSync__
   - ### Features
