@@ -48,7 +48,6 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMars
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -299,7 +298,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                             EventStreamTaggedUnionJsonMarshaller.class);
 
         List<String> eventNames = EventStreamUtils.getEventMembers(eventStreamShape)
-                                                  .map(MemberModel::getC2jName)
+                                                  .map(m -> m.getShape().getShapeName())
                                                   .collect(Collectors.toList());
 
         eventNames.forEach(event -> builder.add(".putMarshaller($T.class, new $T(protocolFactory))",
