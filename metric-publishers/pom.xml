@@ -33,7 +33,7 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom-internal</artifactId>
-                <version>${project.version}</version>
+                <version>${awsjavasdk.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
