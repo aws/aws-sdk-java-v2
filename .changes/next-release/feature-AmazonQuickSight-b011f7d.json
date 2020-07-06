@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "description": "Add Theme APIs and update Dashboard APIs to support theme overrides."
+}
