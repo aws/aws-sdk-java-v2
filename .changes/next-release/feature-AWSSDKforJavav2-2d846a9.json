@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "This release includes the preview release of the client-side metrics for the AWS SDK for Java v2. The SPI can be found in the `metrics-spi` module, and this release also includes a metric publisher for CloudWatch in `cloudwatch-metric-publisher`. See our post over at the [AWS Developer Blog](https://aws.amazon.com/blogs/developer/category/developer-tools/aws-sdk-for-java/) for additional information."
+}
