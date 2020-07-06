@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT SiteWise",
+    "description": "This release supports optional start date and end date parameters for the GetAssetPropertyValueHistory API."
+}
