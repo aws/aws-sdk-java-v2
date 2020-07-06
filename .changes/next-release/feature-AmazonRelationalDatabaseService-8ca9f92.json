@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "description": "Adds support for Amazon RDS on AWS Outposts."
-}
