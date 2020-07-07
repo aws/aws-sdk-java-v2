@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic File System",
-    "description": "This release adds support for automatic backups of Amazon EFS file systems to further simplify backup management."
-}
