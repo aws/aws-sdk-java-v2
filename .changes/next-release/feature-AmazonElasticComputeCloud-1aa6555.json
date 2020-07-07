@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "DescribeAvailabilityZones now returns additional data about Availability Zones and Local Zones."
+}
