@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "description": "Adding support for file-system driven directory refresh, Case Sensitivity toggle for SMB File Shares, and S3 Prefixes and custom File Share names"
+}
