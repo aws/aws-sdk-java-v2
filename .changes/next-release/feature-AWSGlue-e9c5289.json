@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "AWS Glue Data Catalog supports cross account sharing of tables through AWS Lake Formation"
+}
