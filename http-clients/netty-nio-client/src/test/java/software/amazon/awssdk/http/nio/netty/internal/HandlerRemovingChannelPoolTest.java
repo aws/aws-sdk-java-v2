@@ -37,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HandlerRemovingChannelPoolTest {
@@ -61,13 +62,13 @@ public class HandlerRemovingChannelPoolTest {
         RequestContext requestContext = new RequestContext(channelPool,
                                                            nioEventLoopGroup,
                                                            AsyncExecuteRequest.builder().responseHandler(responseHandler).build(),
-                                                           null);
+                                                           new NettyConfiguration(AttributeMap.builder().build()));
 
         mockChannel.attr(IN_USE).set(true);
         mockChannel.attr(REQUEST_CONTEXT_KEY).set(requestContext);
         mockChannel.attr(RESPONSE_COMPLETE_KEY).set(true);
 
-        pipeline.addLast(new HttpStreamsClientHandler());
+        pipeline.addLast(new HttpStreamsClientHandler(requestContext.configuration()));
         pipeline.addLast(ResponseHandler.getInstance());
         pipeline.addLast(new ReadTimeoutHandler(10));
         pipeline.addLast(new WriteTimeoutHandler(10));

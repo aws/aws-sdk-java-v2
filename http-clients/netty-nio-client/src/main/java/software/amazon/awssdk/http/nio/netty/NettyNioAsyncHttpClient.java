@@ -443,6 +443,22 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return the builder for method chaining.
          */
         Builder http2Configuration(Consumer<Http2Configuration.Builder> http2ConfigurationBuilderConsumer);
+
+        /**
+         * The low watermark for demand of streamed HttpMessages. When demand drops below this, more will be requested.
+         *
+         * @param streamingDemandLowWatermark The low watermark for demand of streamed HttpMessages.
+         * @return the builder for method chaining.
+         */
+        Builder streamingDemandLowWatermark(int streamingDemandLowWatermark);
+
+        /**
+         * The high watermark for demand of streamed HttpMessages. This is the maximum that will be requested.
+         *
+         * @param streamingDemandHighWatermark The high watermark for demand of streamed HttpMessages.
+         * @return the builder for method chaining.
+         */
+        Builder streamingDemandHighWatermark(int streamingDemandHighWatermark);
     }
 
     /**
@@ -657,6 +673,18 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             Http2Configuration.Builder builder = Http2Configuration.builder();
             http2ConfigurationBuilderConsumer.accept(builder);
             return http2Configuration(builder.build());
+        }
+
+        @Override
+        public Builder streamingDemandLowWatermark(int streamingDemandLowWatermark) {
+            standardOptions.put(SdkHttpConfigurationOption.STREAMING_DEMAND_LOW_WATERMARK, streamingDemandLowWatermark);
+            return this;
+        }
+
+        @Override
+        public Builder streamingDemandHighWatermark(int streamingDemandHighWatermark) {
+            standardOptions.put(SdkHttpConfigurationOption.STREAMING_DEMAND_HIGH_WATERMARK, streamingDemandHighWatermark);
+            return this;
         }
 
         public void setHttp2Configuration(Http2Configuration http2Configuration) {

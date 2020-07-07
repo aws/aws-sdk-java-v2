@@ -85,6 +85,18 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("MaxConnectionAcquires", Integer.class);
 
     /**
+     * The low watermark for demand of streamed HttpMessages. When demand drops below this, more will be requested.
+     */
+    public static final SdkHttpConfigurationOption<Integer> STREAMING_DEMAND_LOW_WATERMARK =
+            new SdkHttpConfigurationOption<>("SreamingDemandLowWatermark", Integer.class);
+
+    /**
+     * The high watermark for demand of streamed HttpMessages. This is the maximum that will be requested.
+     */
+    public static final SdkHttpConfigurationOption<Integer> STREAMING_DEMAND_HIGH_WATERMARK =
+            new SdkHttpConfigurationOption<>("StreamingDemandHighWatermark", Integer.class);
+
+    /**
      * Whether idle connection should be removed after the {@link #CONNECTION_MAX_IDLE_TIMEOUT} has passed.
      */
     public static final SdkHttpConfigurationOption<Boolean> REAP_IDLE_CONNECTIONS =
@@ -121,6 +133,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
+    private static final int DEFAULT_STREAMING_DEMAND_LOW_WATERMARK = 4;
+    private static final int DEFAULT_STREAMING_DEMAND_HIGH_WATERMARK = 12;
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
 
@@ -142,6 +156,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(REAP_IDLE_CONNECTIONS, DEFAULT_REAP_IDLE_CONNECTIONS)
             .put(TLS_KEY_MANAGERS_PROVIDER, DEFAULT_TLS_KEY_MANAGERS_PROVIDER)
             .put(TLS_TRUST_MANAGERS_PROVIDER, DEFAULT_TLS_TRUST_MANAGERS_PROVIDER)
+            .put(STREAMING_DEMAND_LOW_WATERMARK, DEFAULT_STREAMING_DEMAND_LOW_WATERMARK)
+            .put(STREAMING_DEMAND_HIGH_WATERMARK, DEFAULT_STREAMING_DEMAND_HIGH_WATERMARK)
             .build();
 
     private final String name;

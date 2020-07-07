@@ -30,6 +30,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 
 /**
  * Handler that converts written {@link StreamedHttpRequest} messages into {@link HttpRequest} messages
@@ -66,8 +67,8 @@ public class HttpStreamsClientHandler extends HttpStreamsHandler<HttpResponse, H
     private StreamedHttpMessage awaiting100ContinueMessage;
     private boolean ignoreResponseBody = false;
 
-    public HttpStreamsClientHandler() {
-        super(HttpResponse.class, HttpRequest.class);
+    public HttpStreamsClientHandler(NettyConfiguration configuration) {
+        super(HttpResponse.class, HttpRequest.class, configuration);
     }
 
     @Override

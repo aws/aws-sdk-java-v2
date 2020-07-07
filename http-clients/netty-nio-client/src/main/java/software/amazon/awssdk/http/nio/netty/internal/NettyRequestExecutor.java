@@ -207,7 +207,7 @@ public final class NettyRequestExecutor {
         if (Protocol.HTTP2.equals(protocol)) {
             pipeline.addLast(FlushOnReadHandler.getInstance());
         }
-        pipeline.addLast(new HttpStreamsClientHandler());
+        pipeline.addLast(new HttpStreamsClientHandler(context.configuration()));
         pipeline.addLast(ResponseHandler.getInstance());
 
         // It's possible that the channel could become inactive between checking it out from the pool, and adding our response

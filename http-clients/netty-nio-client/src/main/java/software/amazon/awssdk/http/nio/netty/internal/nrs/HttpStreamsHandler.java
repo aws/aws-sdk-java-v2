@@ -30,6 +30,7 @@ import java.util.Queue;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 
 /**
  * This class contains source imported from https://github.com/playframework/netty-reactive-streams,
@@ -45,6 +46,7 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
     private final Queue<Outgoing> outgoing = new LinkedList<>();
     private final Class<InT> inClass;
     private final Class<OutT> outClass;
+    private final NettyConfiguration configuration;
 
     /**
      * The incoming message that is currently being streamed out to a subscriber.
@@ -72,9 +74,10 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
      */
     private boolean sendLastHttpContent;
 
-    HttpStreamsHandler(Class<InT> inClass, Class<OutT> outClass) {
+    HttpStreamsHandler(Class<InT> inClass, Class<OutT> outClass, NettyConfiguration configuration) {
         this.inClass = inClass;
         this.outClass = outClass;
+        this.configuration = configuration;
     }
 
     /**
@@ -295,7 +298,8 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
         } else if (out.message instanceof StreamedHttpMessage) {
 
             StreamedHttpMessage streamed = (StreamedHttpMessage) out.message;
-            HandlerSubscriber<HttpContent> subscriber = new HandlerSubscriber<HttpContent>(ctx.executor()) {
+            HandlerSubscriber<HttpContent> subscriber = new HandlerSubscriber<HttpContent>(ctx.executor(),
+                    configuration.streamingDemandLowWatermark(), configuration.streamingDemandHighWatermark()) {
                 @Override
                 protected void error(Throwable error) {
                     out.promise.tryFailure(error);

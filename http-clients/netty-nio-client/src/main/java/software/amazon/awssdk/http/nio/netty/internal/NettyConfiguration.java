@@ -19,6 +19,8 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.STREAMING_DEMAND_HIGH_WATERMARK;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.STREAMING_DEMAND_LOW_WATERMARK;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
@@ -96,5 +98,13 @@ public final class NettyConfiguration {
 
     public boolean trustAllCertificates() {
         return configuration.get(TRUST_ALL_CERTIFICATES);
+    }
+
+    public int streamingDemandLowWatermark() {
+        return configuration.get(STREAMING_DEMAND_LOW_WATERMARK);
+    }
+
+    public int streamingDemandHighWatermark() {
+        return configuration.get(STREAMING_DEMAND_HIGH_WATERMARK);
     }
 }
