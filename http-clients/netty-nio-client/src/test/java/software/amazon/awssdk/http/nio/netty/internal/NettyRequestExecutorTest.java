@@ -25,7 +25,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Promise;
 import java.util.concurrent.CompletableFuture;
 import org.junit.After;
@@ -38,7 +37,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 public class NettyRequestExecutorTest {
 
-    private ChannelPool mockChannelPool;
+    private SdkChannelPool mockChannelPool;
 
     private EventLoopGroup eventLoopGroup;
 
@@ -48,7 +47,7 @@ public class NettyRequestExecutorTest {
 
     @Before
     public void setup() {
-        mockChannelPool = mock(ChannelPool.class);
+        mockChannelPool = mock(SdkChannelPool.class);
 
         eventLoopGroup = new NioEventLoopGroup();
 

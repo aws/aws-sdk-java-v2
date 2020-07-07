@@ -28,6 +28,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
@@ -66,6 +67,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -364,6 +366,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                    overrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION).orElse(null));
         clientConfiguration.option(PROFILE_FILE, overrideConfig.defaultProfileFile().orElse(null));
         clientConfiguration.option(PROFILE_NAME, overrideConfig.defaultProfileName().orElse(null));
+        clientConfiguration.option(METRIC_PUBLISHERS, overrideConfig.metricPublishers());
         return thisBuilder();
     }
 
@@ -388,6 +391,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     public final B httpClientBuilder(SdkAsyncHttpClient.Builder httpClientBuilder) {
         this.asyncHttpClientBuilder = httpClientBuilder;
+        return thisBuilder();
+    }
+
+    public final B metricPublishers(List<MetricPublisher> metricPublishers) {
+        clientConfiguration.option(METRIC_PUBLISHERS, metricPublishers);
         return thisBuilder();
     }
 

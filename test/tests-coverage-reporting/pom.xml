@@ -152,6 +152,11 @@
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <artifactId>cloudwatch-metric-publisher</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}-PREVIEW</version>
+        </dependency>
 
         <!-- Need to explicitly add service modules to aggregate the tests coverage
         and a few services that we know with more tests should be sufficient

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.handler;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
@@ -32,8 +33,12 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
@@ -65,7 +70,14 @@ public abstract class BaseClientHandler {
         SdkClientConfiguration clientConfiguration) {
 
         runBeforeMarshallingInterceptors(executionContext);
-        SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
+
+        Pair<SdkHttpFullRequest, Duration> measuredMarshall = MetricUtils.measureDuration(() ->
+                executionParams.getMarshaller().marshall(inputT));
+
+        executionContext.metricCollector().reportMetric(CoreMetric.MARSHALLING_DURATION, measuredMarshall.right());
+
+        SdkHttpFullRequest request = measuredMarshall.left();
+
         request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams);
 
         addHttpRequest(executionContext, request);
@@ -177,6 +189,8 @@ public abstract class BaseClientHandler {
         ExecutionInterceptorChain interceptorChain =
                 new ExecutionInterceptorChain(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));
 
+        MetricCollector metricCollector = resolveMetricCollector(params);
+
         return ExecutionContext.builder()
                                .interceptorChain(interceptorChain)
                                .interceptorContext(InterceptorContext.builder()
@@ -184,6 +198,7 @@ public abstract class BaseClientHandler {
                                                                      .build())
                                .executionAttributes(executionAttributes)
                                .signer(clientConfiguration.option(SdkAdvancedClientOption.SIGNER))
+                               .metricCollector(metricCollector)
                                .build();
     }
 
@@ -270,5 +285,13 @@ public abstract class BaseClientHandler {
     private static <T, R> BiFunction<T, R, T> composeResponseFunctions(BiFunction<T, R, T> function1,
                                                                        BiFunction<T, R, T> function2) {
         return (x, y) -> function2.apply(function1.apply(x, y), y);
+    }
+
+    private MetricCollector resolveMetricCollector(ClientExecutionParams<?, ?> params) {
+        MetricCollector metricCollector = params.getMetricCollector();
+        if (metricCollector == null) {
+            metricCollector = MetricCollector.create("ApiCall");
+        }
+        return metricCollector;
     }
 }

@@ -30,6 +30,8 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallAttemptMetricCollectionStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
@@ -172,11 +174,13 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                         .first(SigningStage::new)
                                         .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                         .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, d))
+                                        .wrappedWith(AsyncApiCallAttemptMetricCollectionStage::new)
                                         .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps, wrapped))
                                         .then(async(() -> new UnwrapResponseContainer<>()))
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
-                                        .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)::build)::build)
+                                        .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)
+                                        .wrappedWith(AsyncApiCallMetricCollectionStage::new)::build)::build)
                         .build(httpClientDependencies)
                         .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {

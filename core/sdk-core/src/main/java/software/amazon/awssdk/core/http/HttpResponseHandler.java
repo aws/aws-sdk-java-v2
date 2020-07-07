@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.core.http;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -30,9 +34,11 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 @SdkProtectedApi
 @FunctionalInterface
 public interface HttpResponseHandler<T> {
-
     String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
-
+    String X_AMZN_REQUEST_ID_HEADER_ALTERNATE = "x-amz-request-id";
+    Set<String> X_AMZN_REQUEST_ID_HEADERS = Collections.unmodifiableSet(Stream.of(X_AMZN_REQUEST_ID_HEADER,
+                                                                                  X_AMZN_REQUEST_ID_HEADER_ALTERNATE)
+                                                                              .collect(Collectors.toSet()));
     String X_AMZ_ID_2_HEADER = "x-amz-id-2";
 
     /**

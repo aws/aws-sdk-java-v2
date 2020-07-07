@@ -1,11 +1,14 @@
 package software.amazon.awssdk.services.endpointdiscoverytest;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -14,6 +17,9 @@ import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCac
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -88,11 +94,21 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "DescribeEndpoints");
 
-        return clientHandler.execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
-                .withOperationName("DescribeEndpoints").withResponseHandler(responseHandler)
-                .withErrorResponseHandler(errorResponseHandler).withInput(describeEndpointsRequest)
-                .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
+                    .withOperationName("DescribeEndpoints").withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).withInput(describeEndpointsRequest)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
+        } finally {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, describeEndpointsRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -129,13 +145,22 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                     .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryIdentifiersRequired");
 
-        return clientHandler
-                .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
-                        .withOperationName("TestDiscoveryIdentifiersRequired").withResponseHandler(responseHandler)
-                        .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                        .withInput(testDiscoveryIdentifiersRequiredRequest)
-                        .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
+            return clientHandler
+                    .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
+                            .withOperationName("TestDiscoveryIdentifiersRequired").withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
+                            .withInput(testDiscoveryIdentifiersRequiredRequest).withMetricCollector(apiCallMetricCollector)
+                            .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
+        } finally {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -171,12 +196,21 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                     .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryOptional");
 
-        return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
-                .withOperationName("TestDiscoveryOptional").withResponseHandler(responseHandler)
-                .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                .withInput(testDiscoveryOptionalRequest)
-                .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
+                    .withOperationName("TestDiscoveryOptional").withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
+                    .withInput(testDiscoveryOptionalRequest).withMetricCollector(apiCallMetricCollector)
+                    .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
+        } finally {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryOptionalRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -212,12 +246,36 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                     .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryRequired");
 
-        return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
-                .withOperationName("TestDiscoveryRequired").withResponseHandler(responseHandler)
-                .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                .withInput(testDiscoveryRequiredRequest)
-                .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
+                    .withOperationName("TestDiscoveryRequired").withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
+                    .withInput(testDiscoveryRequiredRequest).withMetricCollector(apiCallMetricCollector)
+                    .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
+        } finally {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryRequiredRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
+            RequestOverrideConfiguration requestOverrideConfiguration) {
+        List<MetricPublisher> publishers = null;
+        if (requestOverrideConfiguration != null) {
+            publishers = requestOverrideConfiguration.metricPublishers();
+        }
+        if (publishers == null || publishers.isEmpty()) {
+            publishers = clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS);
+        }
+        if (publishers == null) {
+            publishers = Collections.emptyList();
+        }
+        return publishers;
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
@@ -236,3 +294,4 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         clientHandler.close();
     }
 }
+

@@ -16,18 +16,21 @@ package software.amazon.awssdk.services.transcribestreaming;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -36,12 +39,17 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
+import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.transcribestreaming.model.AudioStream;
 import software.amazon.awssdk.services.transcribestreaming.model.LanguageCode;
 import software.amazon.awssdk.services.transcribestreaming.model.MediaEncoding;
 import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTranscriptionRequest;
 import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTranscriptionResponseHandler;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An example test class to show the usage of
@@ -51,31 +59,36 @@ import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTran
  * The audio files used in this class don't have voice, so there won't be any transcripted text would be empty
  */
 public class TranscribeStreamingIntegrationTest {
+    private static final Logger log = Logger.loggerFor(TranscribeStreamingIntegrationTest.class);
 
     private static TranscribeStreamingAsyncClient client;
 
+    private static MetricPublisher mockPublisher;
+
     @BeforeClass
-    public static void setup() throws URISyntaxException {
+    public static void setup() {
+        mockPublisher = mock(MetricPublisher.class);
         client = TranscribeStreamingAsyncClient.builder()
                                                .region(Region.US_EAST_1)
-                                               .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor()))
+                                               .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor())
+                                               .addMetricPublisher(mockPublisher))
                                                .credentialsProvider(getCredentials())
                                                .build();
     }
 
     @Test
-    public void testFileWith16kRate() throws ExecutionException, InterruptedException, URISyntaxException {
+    public void testFileWith16kRate() throws InterruptedException {
         CompletableFuture<Void> result = client.startStreamTranscription(getRequest(16_000),
                                                                          new AudioStreamPublisher(
                                                                              getInputStream("silence_16kHz_s16le.wav")),
                                                                          TestResponseHandlers.responseHandlerBuilder_Classic());
 
-        // Blocking call to keep the main thread for shutting down
-        result.get();
+        result.join();
+        verifyMetrics();
     }
 
     @Test
-    public void testFileWith8kRate() throws ExecutionException, InterruptedException, URISyntaxException {
+    public void testFileWith8kRate() throws ExecutionException, InterruptedException {
         CompletableFuture<Void> result = client.startStreamTranscription(getRequest(8_000),
                                                                          new AudioStreamPublisher(
                                                                              getInputStream("silence_8kHz_s16le.wav")),
@@ -129,4 +142,33 @@ public class TranscribeStreamingIntegrationTest {
             assertThat(contentTypeHeader.get(0)).isEqualTo(Mimetype.MIMETYPE_EVENT_STREAM);
         }
     }
+
+    private void verifyMetrics() throws InterruptedException {
+        // wait for 100ms for metrics to be delivered to mockPublisher
+        Thread.sleep(100);
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(mockPublisher).publish(collectionCaptor.capture());
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+        assertThat(capturedCollection.name()).isEqualTo("ApiCall");
+        log.info(() -> "captured collection: " + capturedCollection);
+
+        assertThat(capturedCollection.metricValues(CoreMetric.CREDENTIALS_FETCH_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(capturedCollection.metricValues(CoreMetric.MARSHALLING_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
+            .isGreaterThan(Duration.ZERO);
+
+        MetricCollection attemptCollection = capturedCollection.children().get(0);
+        assertThat(attemptCollection.name()).isEqualTo("ApiCallAttempt");
+        assertThat(attemptCollection.metricValues(HttpMetric.HTTP_STATUS_CODE))
+            .containsExactly(200);
+        assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(attemptCollection.metricValues(CoreMetric.AWS_REQUEST_ID).get(0)).isNotEmpty();
+
+        assertThat(attemptCollection.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ofMillis(100));
+    }
+
 }
