@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Lake Formation",
+    "description": "AWS Lake Formation supports sharing tables with other AWS accounts and organizations"
+}
