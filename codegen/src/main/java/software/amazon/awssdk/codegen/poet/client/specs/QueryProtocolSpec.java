@@ -24,6 +24,7 @@ import com.squareup.javapoet.TypeName;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -113,6 +114,9 @@ public class QueryProtocolSpec implements ProtocolSpec {
                  "responseHandler",
                  "errorResponseHandler",
                  opModel.getInput().getVariableName());
+
+        codeBlock.add(".withMetricCollector($N)", "apiCallMetricCollector");
+
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withRequestBody(requestBody)")
                             .add(".withMarshaller($L));", syncStreamingMarshaller(intermediateModel, opModel, marshaller))
@@ -137,6 +141,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                                                             ".withMarshaller($L)" +
                                                             ".withResponseHandler(responseHandler)" +
                                                             ".withErrorResponseHandler($N)\n" +
+                                                            ".withMetricCollector(apiCallMetricCollector)\n" +
                                                             hostPrefixExpression(opModel) +
                                                             asyncRequestBody +
                                                             ".withInput($L) $L);",
@@ -151,9 +156,12 @@ public class QueryProtocolSpec implements ProtocolSpec {
                                                             "errorResponseHandler",
                                                             opModel.getInput().getVariableName(),
                                                             opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
-
+        builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
+                             AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
         if (opModel.hasStreamingOutput()) {
             builder.add("executeFuture$L;", streamingOutputWhenComplete("asyncResponseTransformer"));
+        }  else {
+            builder.add("executeFuture$L;", publishMetricsWhenComplete());
         }
         builder.addStatement("return executeFuture");
         return builder.build();

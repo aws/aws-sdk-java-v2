@@ -43,12 +43,16 @@ import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublishe
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -141,14 +145,17 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
+        MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
+
         AsyncExecuteRequest executeRequest = AsyncExecuteRequest.builder()
                                                                 .request(requestWithContentLength)
                                                                 .requestContentPublisher(requestProvider)
                                                                 .responseHandler(wrappedResponseHandler)
                                                                 .fullDuplex(isFullDuplex(context.executionAttributes()))
+                                                                .metricCollector(httpMetricCollector)
                                                                 .build();
 
-        CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
+        CompletableFuture<Void> httpClientFuture = doExecuteHttpRequest(context, executeRequest);
 
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);
@@ -171,6 +178,23 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         }, futureCompletionExecutor);
 
         return responseFuture;
+    }
+
+    private CompletableFuture<Void> doExecuteHttpRequest(RequestExecutionContext context, AsyncExecuteRequest executeRequest) {
+        MetricCollector metricCollector = context.attemptMetricCollector();
+        long callStart = System.nanoTime();
+        CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
+
+        // Offload the metrics reporting from this stage onto the future completion executor
+        CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
+            long duration = System.nanoTime() - callStart;
+            metricCollector.reportMetric(CoreMetric.SERVICE_CALL_DURATION, Duration.ofNanos(duration));
+        });
+
+        // Make sure failures on the result future are forwarded to the http client future.
+        CompletableFutureUtils.forwardExceptionTo(result, httpClientFuture);
+
+        return result;
     }
 
     private boolean isFullDuplex(ExecutionAttributes executionAttributes) {

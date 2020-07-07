@@ -17,6 +17,7 @@ package software.amazon.awssdk.http;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Request object containing the parameters necessary to make a synchronous HTTP request.
@@ -28,10 +29,12 @@ public final class HttpExecuteRequest {
 
     private final SdkHttpRequest request;
     private final Optional<ContentStreamProvider> contentStreamProvider;
+    private final MetricCollector metricCollector;
 
     private HttpExecuteRequest(BuilderImpl builder) {
         this.request = builder.request;
         this.contentStreamProvider = builder.contentStreamProvider;
+        this.metricCollector = builder.metricCollector;
     }
 
     /**
@@ -46,6 +49,13 @@ public final class HttpExecuteRequest {
      */
     public Optional<ContentStreamProvider> contentStreamProvider() {
         return contentStreamProvider;
+    }
+
+    /**
+     * @return The {@link MetricCollector}.
+     */
+    public Optional<MetricCollector> metricCollector() {
+        return Optional.ofNullable(metricCollector);
     }
 
     public static Builder builder() {
@@ -68,12 +78,22 @@ public final class HttpExecuteRequest {
          */
         Builder contentStreamProvider(ContentStreamProvider contentStreamProvider);
 
+        /**
+         * Set the {@link MetricCollector} to be used by the HTTP client to
+         * report metrics collected for this request.
+         *
+         * @param metricCollector The metric collector.
+         * @return This builder for method chaining.
+         */
+        Builder metricCollector(MetricCollector metricCollector);
+
         HttpExecuteRequest build();
     }
 
     private static class BuilderImpl implements Builder {
         private SdkHttpRequest request;
         private Optional<ContentStreamProvider> contentStreamProvider = Optional.empty();
+        private MetricCollector metricCollector;
 
         @Override
         public Builder request(SdkHttpRequest request) {
@@ -84,6 +104,12 @@ public final class HttpExecuteRequest {
         @Override
         public Builder contentStreamProvider(ContentStreamProvider contentStreamProvider) {
             this.contentStreamProvider = Optional.ofNullable(contentStreamProvider);
+            return this;
+        }
+
+        @Override
+        public Builder metricCollector(MetricCollector metricCollector) {
+            this.metricCollector = metricCollector;
             return this;
         }
 

@@ -3,6 +3,8 @@ package software.amazon.awssdk.services.json;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -22,6 +24,7 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupp
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -29,14 +32,18 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
@@ -149,7 +156,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
             String hostPrefix = "{StringMember}-foo.";
             Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
@@ -167,9 +177,18 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("APostOperation")
                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
+                            .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
+                            .withInput(aPostOperationRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -200,7 +219,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
 
@@ -215,9 +237,18 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("APostOperationWithOutput")
                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(aPostOperationWithOutputRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
+                    .orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -244,7 +275,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
             Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "EventStreamOperation");
             eventStreamOperationRequest = applySignerOverride(eventStreamOperationRequest, EventStreamAws4Signer.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
@@ -259,8 +293,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
                     EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
                             .putSdkPojoSupplier("event-two", EventTwo::builder)
-                            .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN))
-                            .build());
+                            .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                     operationMetadata);
@@ -286,8 +319,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
                             .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
                             .withFullDuplex(true).withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withInput(eventStreamOperationRequest),
-                    restAsyncResponseTransformer);
+                            .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
+                            .withInput(eventStreamOperationRequest), restAsyncResponseTransformer);
+            AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationRequest.overrideConfiguration().orElse(
+                    null);
             executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     try {
@@ -296,11 +331,16 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                         future.completeExceptionally(e);
                     }
                 }
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                     () -> asyncResponseHandler.exceptionOccurred(t));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, eventStreamOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -329,7 +369,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
             EventStreamOperationWithOnlyInputRequest eventStreamOperationWithOnlyInputRequest,
             Publisher<InputEventStreamTwo> requestStream) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "EventStreamOperationWithOnlyInput");
             eventStreamOperationWithOnlyInputRequest = applySignerOverride(eventStreamOperationWithOnlyInputRequest,
                     EventStreamAws4Signer.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
@@ -353,9 +396,18 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMarshaller(new EventStreamOperationWithOnlyInputRequestMarshaller(protocolFactory))
                             .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(eventStreamOperationWithOnlyInputRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationWithOnlyInputRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationWithOnlyInputRequest
+                    .overrideConfiguration().orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    eventStreamOperationWithOnlyInputRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -382,45 +434,50 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
-        EventStreamOperationWithOnlyOutputRequest eventStreamOperationWithOnlyOutputRequest,
-        EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
+            EventStreamOperationWithOnlyOutputRequest eventStreamOperationWithOnlyOutputRequest,
+            EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "EventStreamOperationWithOnlyOutput");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<EventStreamOperationWithOnlyOutputResponse> responseHandler = new AttachHttpMetadataResponseHandler(
-                protocolFactory.createResponseHandler(operationMetadata, EventStreamOperationWithOnlyOutputResponse::builder));
+                    protocolFactory.createResponseHandler(operationMetadata, EventStreamOperationWithOnlyOutputResponse::builder));
 
             HttpResponseHandler<SdkResponse> voidResponseHandler = protocolFactory.createResponseHandler(JsonOperationMetadata
-                                                                                                             .builder().isPayloadJson(false).hasStreamingSuccessResponse(true).build(), VoidSdkResponse::builder);
+                    .builder().isPayloadJson(false).hasStreamingSuccessResponse(true).build(), VoidSdkResponse::builder);
 
             HttpResponseHandler<? extends EventStream> eventResponseHandler = protocolFactory.createResponseHandler(
-                JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
-                EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
-                                                  .putSdkPojoSupplier("event-two", EventTwo::builder)
-                                                  .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN))
-                                                  .build());
+                    JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
+                    EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
+                            .putSdkPojoSupplier("event-two", EventTwo::builder)
+                            .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
             CompletableFuture<Void> future = new CompletableFuture<>();
             EventStreamAsyncResponseTransformer<EventStreamOperationWithOnlyOutputResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
-                .<EventStreamOperationWithOnlyOutputResponse, EventStream> builder()
-                .eventStreamResponseHandler(asyncResponseHandler).eventResponseHandler(eventResponseHandler)
-                .initialResponseHandler(responseHandler).exceptionResponseHandler(errorResponseHandler).future(future)
-                .executor(executor).serviceName(serviceName()).build();
+                    .<EventStreamOperationWithOnlyOutputResponse, EventStream> builder()
+                    .eventStreamResponseHandler(asyncResponseHandler).eventResponseHandler(eventResponseHandler)
+                    .initialResponseHandler(responseHandler).exceptionResponseHandler(errorResponseHandler).future(future)
+                    .executor(executor).serviceName(serviceName()).build();
             RestEventStreamAsyncResponseTransformer<EventStreamOperationWithOnlyOutputResponse, EventStream> restAsyncResponseTransformer = RestEventStreamAsyncResponseTransformer
-                .<EventStreamOperationWithOnlyOutputResponse, EventStream> builder()
-                .eventStreamAsyncResponseTransformer(asyncResponseTransformer)
-                .eventStreamResponseHandler(asyncResponseHandler).build();
+                    .<EventStreamOperationWithOnlyOutputResponse, EventStream> builder()
+                    .eventStreamAsyncResponseTransformer(asyncResponseTransformer)
+                    .eventStreamResponseHandler(asyncResponseHandler).build();
 
             CompletableFuture<Void> executeFuture = clientHandler
-                .execute(
-                    new ClientExecutionParams<EventStreamOperationWithOnlyOutputRequest, EventStreamOperationWithOnlyOutputResponse>()
-                        .withOperationName("EventStreamOperationWithOnlyOutput")
-                        .withMarshaller(new EventStreamOperationWithOnlyOutputRequestMarshaller(protocolFactory))
-                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                        .withInput(eventStreamOperationWithOnlyOutputRequest), restAsyncResponseTransformer);
+                    .execute(
+                            new ClientExecutionParams<EventStreamOperationWithOnlyOutputRequest, EventStreamOperationWithOnlyOutputResponse>()
+                                    .withOperationName("EventStreamOperationWithOnlyOutput")
+                                    .withMarshaller(new EventStreamOperationWithOnlyOutputRequestMarshaller(protocolFactory))
+                                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                    .withMetricCollector(apiCallMetricCollector)
+                                    .withInput(eventStreamOperationWithOnlyOutputRequest), restAsyncResponseTransformer);
+            AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationWithOnlyOutputRequest
+                    .overrideConfiguration().orElse(null);
             executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     try {
@@ -429,11 +486,16 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                         future.completeExceptionally(e);
                     }
                 }
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseHandler.exceptionOccurred(t));
+                    () -> asyncResponseHandler.exceptionOccurred(t));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    eventStreamOperationWithOnlyOutputRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -464,7 +526,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
             GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetWithoutRequiredMembers");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
 
@@ -479,9 +544,18 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("GetWithoutRequiredMembers")
                             .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(getWithoutRequiredMembersRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(getWithoutRequiredMembersRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = getWithoutRequiredMembersRequest.overrideConfiguration()
+                    .orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    getWithoutRequiredMembersRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -509,7 +583,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
             PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PaginatedOperationWithResultKey");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
 
@@ -524,9 +601,18 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("PaginatedOperationWithResultKey")
                             .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(paginatedOperationWithResultKeyRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(paginatedOperationWithResultKeyRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = paginatedOperationWithResultKeyRequest
+                    .overrideConfiguration().orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    paginatedOperationWithResultKeyRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -553,7 +639,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
@@ -563,19 +649,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
-     *
+     * 
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     *
-     *
+     * 
+     * 
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
      * });}
      * </pre>
-     *
+     * 
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -631,7 +717,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
             PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PaginatedOperationWithoutResultKey");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
 
@@ -646,9 +735,18 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("PaginatedOperationWithoutResultKey")
                             .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(paginatedOperationWithoutResultKeyRequest));
+                            .withMetricCollector(apiCallMetricCollector).withInput(paginatedOperationWithoutResultKeyRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = paginatedOperationWithoutResultKeyRequest
+                    .overrideConfiguration().orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    paginatedOperationWithoutResultKeyRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -675,7 +773,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -685,19 +783,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse>() {
-     *
+     * 
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     *
-     *
+     * 
+     * 
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response) { //... };
      * });}
      * </pre>
-     *
+     * 
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -758,7 +856,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
 
@@ -772,13 +873,22 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                             .withOperationName("StreamingInputOperation")
                             .withMarshaller(
-                                AsyncStreamingRequestMarshaller.builder()
-                                                               .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                                               .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withAsyncRequestBody(requestBody)
-                            .withInput(streamingInputOperationRequest));
+                                    AsyncStreamingRequestMarshaller.builder()
+                                            .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                            .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
+                            .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
+                    .orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -816,7 +926,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
             StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
             AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOutputOperation");
             streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
                     Aws4UnsignedPayloadSigner.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
@@ -832,24 +945,31 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
                             .withOperationName("StreamingInputOutputOperation")
                             .withMarshaller(
-                                AsyncStreamingRequestMarshaller
-                                    .builder()
-                                    .delegateMarshaller(
-                                        new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
-                                    .asyncRequestBody(requestBody).transferEncoding(true).build())
+                                    AsyncStreamingRequestMarshaller
+                                            .builder()
+                                            .delegateMarshaller(
+                                                    new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
+                                            .asyncRequestBody(requestBody).transferEncoding(true).build())
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withAsyncRequestBody(requestBody).withInput(streamingInputOutputOperationRequest),
-                    asyncResponseTransformer);
+                            .withMetricCollector(apiCallMetricCollector).withAsyncRequestBody(requestBody)
+                            .withInput(streamingInputOutputOperationRequest), asyncResponseTransformer);
+            AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOutputOperationRequest.overrideConfiguration()
+                    .orElse(null);
             executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                                   () -> asyncResponseTransformer.exceptionOccurred(e));
+                            () -> asyncResponseTransformer.exceptionOccurred(e));
                 }
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                     () -> asyncResponseTransformer.exceptionOccurred(t));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                    streamingInputOutputOperationRequest.overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -882,7 +1002,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest,
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
                     .isPayloadJson(false).build();
 
@@ -897,17 +1020,25 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withOperationName("StreamingOutputOperation")
                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
+                            .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
+                    asyncResponseTransformer);
+            AwsRequestOverrideConfiguration requestOverrideConfig = streamingOutputOperationRequest.overrideConfiguration()
+                    .orElse(null);
             executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                                   () -> asyncResponseTransformer.exceptionOccurred(e));
+                            () -> asyncResponseTransformer.exceptionOccurred(e));
                 }
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                     () -> asyncResponseTransformer.exceptionOccurred(t));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -926,6 +1057,21 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 .registerModeledException(
                         ExceptionMetadata.builder().errorCode("InvalidInput")
                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+    }
+
+    private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
+            RequestOverrideConfiguration requestOverrideConfiguration) {
+        List<MetricPublisher> publishers = null;
+        if (requestOverrideConfiguration != null) {
+            publishers = requestOverrideConfiguration.metricPublishers();
+        }
+        if (publishers == null || publishers.isEmpty()) {
+            publishers = clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS);
+        }
+        if (publishers == null) {
+            publishers = Collections.emptyList();
+        }
+        return publishers;
     }
 
     private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {
@@ -958,3 +1104,4 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 }
+

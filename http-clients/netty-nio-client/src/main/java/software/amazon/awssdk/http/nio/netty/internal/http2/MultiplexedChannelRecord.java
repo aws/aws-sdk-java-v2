@@ -34,10 +34,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.http.nio.netty.internal.UnusedChannelExceptionHandler;
 import software.amazon.awssdk.utils.Logger;
 
@@ -108,6 +110,7 @@ public class MultiplexedChannelRecord {
 
                 Http2StreamChannel channel = future.getNow();
                 channel.pipeline().addLast(UnusedChannelExceptionHandler.getInstance());
+                channel.attr(ChannelAttributeKey.HTTP2_FRAME_STREAM).set(channel.stream());
                 childChannels.put(channel.id(), channel);
                 promise.setSuccess(channel);
 
@@ -296,6 +299,15 @@ public class MultiplexedChannelRecord {
         return state != RecordState.OPEN && availableChildChannels.get() == maxConcurrencyPerConnection;
     }
 
+    CompletableFuture<Metrics> getMetrics() {
+        CompletableFuture<Metrics> result = new CompletableFuture<>();
+        doInEventLoop(connection.eventLoop(), () -> {
+            int streamCount = childChannels.size();
+            result.complete(new Metrics().setAvailableStreams(maxConcurrencyPerConnection - streamCount));
+        });
+        return result;
+    }
+
     private enum RecordState {
         /**
          * The connection is open and new streams may be acquired from it, if they are available.
@@ -312,5 +324,22 @@ public class MultiplexedChannelRecord {
          * The connection is closed and new streams may not be acquired from it.
          */
         CLOSED
+    }
+
+    public static class Metrics {
+        private long availableStreams = 0;
+
+        public long getAvailableStreams() {
+            return availableStreams;
+        }
+
+        public Metrics setAvailableStreams(long availableStreams) {
+            this.availableStreams = availableStreams;
+            return this;
+        }
+
+        public void add(Metrics rhs) {
+            this.availableStreams += rhs.availableStreams;
+        }
     }
 }

@@ -26,8 +26,10 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -44,6 +46,7 @@ public abstract class RequestOverrideConfiguration {
     private final Duration apiCallTimeout;
     private final Duration apiCallAttemptTimeout;
     private final Signer signer;
+    private final List<MetricPublisher> metricPublishers;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -52,6 +55,7 @@ public abstract class RequestOverrideConfiguration {
         this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.signer = builder.signer();
+        this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
     }
 
     /**
@@ -127,6 +131,14 @@ public abstract class RequestOverrideConfiguration {
         return Optional.ofNullable(signer);
     }
 
+    /**
+     * Return the metric publishers for publishing the metrics collected for this request. This list supersedes the
+     * metric publishers set on the client.
+     */
+    public List<MetricPublisher> metricPublishers() {
+        return metricPublishers;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -141,7 +153,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(apiNames, that.apiNames) &&
                Objects.equals(apiCallTimeout, that.apiCallTimeout) &&
                Objects.equals(apiCallAttemptTimeout, that.apiCallAttemptTimeout) &&
-               Objects.equals(signer, that.signer);
+               Objects.equals(signer, that.signer) &&
+               Objects.equals(metricPublishers, that.metricPublishers);
     }
 
     @Override
@@ -153,6 +166,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(apiCallTimeout);
         hashCode = 31 * hashCode + Objects.hashCode(apiCallAttemptTimeout);
         hashCode = 31 * hashCode + Objects.hashCode(signer);
+        hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
         return hashCode;
     }
 
@@ -340,6 +354,32 @@ public abstract class RequestOverrideConfiguration {
         Signer signer();
 
         /**
+         * Sets the metric publishers for publishing the metrics collected for this request. This list supersedes
+         * the metric publisher set on the client.
+         *
+         * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
+         *
+         * @param metricPublisher The list metric publisher for this request.
+         * @return This object for method chaining.
+         */
+        @SdkPreviewApi
+        B metricPublishers(List<MetricPublisher> metricPublisher);
+
+        /**
+         * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics
+         * for this request.
+         *
+         * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
+         *
+         * @param metricPublisher The metric publisher to add.
+         */
+        @SdkPreviewApi
+        B addMetricPublisher(MetricPublisher metricPublisher);
+
+        @SdkPreviewApi
+        List<MetricPublisher> metricPublishers();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -354,6 +394,7 @@ public abstract class RequestOverrideConfiguration {
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
         private Signer signer;
+        private List<MetricPublisher> metricPublishers = new ArrayList<>();
 
         protected BuilderImpl() {
         }
@@ -469,6 +510,29 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public Signer signer() {
             return signer;
+        }
+
+        @Override
+        public B metricPublishers(List<MetricPublisher> metricPublishers) {
+            Validate.paramNotNull(metricPublishers, "metricPublishers");
+            this.metricPublishers = new ArrayList<>(metricPublishers);
+            return (B) this;
+        }
+
+        @Override
+        public B addMetricPublisher(MetricPublisher metricPublisher) {
+            Validate.paramNotNull(metricPublisher, "metricPublisher");
+            this.metricPublishers.add(metricPublisher);
+            return (B) this;
+        }
+
+        public void setMetricPublishers(List<MetricPublisher> metricPublishers) {
+            metricPublishers(metricPublishers);
+        }
+
+        @Override
+        public List<MetricPublisher> metricPublishers() {
+            return metricPublishers;
         }
     }
 }

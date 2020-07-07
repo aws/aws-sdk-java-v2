@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Promise;
@@ -47,7 +46,7 @@ public class CancellableAcquireChannelPoolTest {
     private EventExecutor eventExecutor;
 
     @Mock
-    private ChannelPool mockDelegatePool;
+    private SdkChannelPool mockDelegatePool;
 
     private Channel channel;
 

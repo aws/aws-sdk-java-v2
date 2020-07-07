@@ -23,10 +23,12 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.SucceededFuture;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Wrapper around a {@link ChannelPool} to protect it from having the same channel released twice. This can
@@ -34,14 +36,14 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
  * mechanism to track leased connections.
  */
 @SdkInternalApi
-public class ReleaseOnceChannelPool implements ChannelPool {
+public class ReleaseOnceChannelPool implements SdkChannelPool {
 
     private static final AttributeKey<AtomicBoolean> IS_RELEASED = NettyUtils.getOrCreateAttributeKey(
             "software.amazon.awssdk.http.nio.netty.internal.http2.ReleaseOnceChannelPool.isReleased");
 
-    private final ChannelPool delegate;
+    private final SdkChannelPool delegate;
 
-    public ReleaseOnceChannelPool(ChannelPool delegate) {
+    public ReleaseOnceChannelPool(SdkChannelPool delegate) {
         this.delegate = delegate;
     }
 
@@ -91,5 +93,10 @@ public class ReleaseOnceChannelPool implements ChannelPool {
     @Override
     public void close() {
         delegate.close();
+    }
+
+    @Override
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        return delegate.collectChannelPoolMetrics(metrics);
     }
 }

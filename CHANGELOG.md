@@ -1,3 +1,33 @@
+# __2.13.52__ __2020-07-07__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Data Catalog supports cross account sharing of tables through AWS Lake Formation
+
+## __AWS Lake Formation__
+  - ### Features
+    - AWS Lake Formation supports sharing tables with other AWS accounts and organizations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This release includes the preview release of the client-side metrics for the AWS SDK for Java v2. The SPI can be found in the `metrics-spi` module, and this release also includes a metric publisher for CloudWatch in `cloudwatch-metric-publisher`. See our post over at the [AWS Developer Blog](https://aws.amazon.com/blogs/developer/category/developer-tools/aws-sdk-for-java/) for additional information.
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for file-system driven directory refresh, Case Sensitivity toggle for SMB File Shares, and S3 Prefixes and custom File Share names
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront adds support for a new security policy, TLSv1.2_2019.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeAvailabilityZones now returns additional data about Availability Zones and Local Zones.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - This release adds support for automatic backups of Amazon EFS file systems to further simplify backup management.
+
 # __2.13.51__ __2020-07-06__
 ## __AWS IoT SiteWise__
   - ### Features

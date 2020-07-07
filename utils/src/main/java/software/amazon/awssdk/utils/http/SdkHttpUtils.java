@@ -21,6 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -277,6 +278,21 @@ public final class SdkHttpUtils {
     }
 
     /**
+     * Perform a case-insensitive search for a particular header in the provided map of headers.
+     *
+     * @param headersToSearch The headers to search.
+     * @param headersToFind The headers to search for (case insensitively).
+     * @return A stream providing the values for the headers that matched the requested header.
+     */
+    public static Stream<String> allMatchingHeadersFromCollection(Map<String, List<String>> headersToSearch,
+                                                                  Collection<String> headersToFind) {
+        return headersToSearch.entrySet().stream()
+                              .filter(e -> headersToFind.stream()
+                                                        .anyMatch(headerToFind -> e.getKey().equalsIgnoreCase(headerToFind)))
+                              .flatMap(e -> e.getValue() != null ? e.getValue().stream() : Stream.empty());
+    }
+
+    /**
      * Perform a case-insensitive search for a particular header in the provided map of headers, returning the first matching
      * header, if one is found.
      * <br>
@@ -288,6 +304,19 @@ public final class SdkHttpUtils {
      */
     public static Optional<String> firstMatchingHeader(Map<String, List<String>> headers, String header) {
         return allMatchingHeaders(headers, header).findFirst();
+    }
+
+    /**
+     * Perform a case-insensitive search for a set of headers in the provided map of headers, returning the first matching
+     * header, if one is found.
+     *
+     * @param headersToSearch The headers to search.
+     * @param headersToFind The header to search for (case insensitively).
+     * @return The first header that matched a requested one, or empty if one was not found.
+     */
+    public static Optional<String> firstMatchingHeaderFromCollection(Map<String, List<String>> headersToSearch,
+                                                                     Collection<String> headersToFind) {
+        return allMatchingHeadersFromCollection(headersToSearch, headersToFind).findFirst();
     }
 
     public static boolean isSingleHeader(String h) {

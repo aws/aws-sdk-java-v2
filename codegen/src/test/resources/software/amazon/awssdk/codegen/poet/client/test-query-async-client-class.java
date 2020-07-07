@@ -2,20 +2,28 @@ package software.amazon.awssdk.services.query;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
@@ -86,23 +94,35 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
             String hostPrefix = "foo-";
             String resolvedHostExpression = "foo-";
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
-                .createResponseHandler(APostOperationResponse::builder);
+                    .createResponseHandler(APostOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                             .withOperationName("APostOperation")
-                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
+                    .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
+                            .withOperationName("APostOperation")
+                            .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
+                            .withInput(aPostOperationRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -132,22 +152,34 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-        APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+            APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
 
             HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory
-                .createResponseHandler(APostOperationWithOutputResponse::builder);
+                    .createResponseHandler(APostOperationWithOutputResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput")
-                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withInput(aPostOperationWithOutputRequest));
+                    .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                            .withOperationName("APostOperationWithOutput")
+                            .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
+                    .orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -178,25 +210,37 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-        StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
 
             HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory
-                .createResponseHandler(StreamingInputOperationResponse::builder);
+                    .createResponseHandler(StreamingInputOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                             .withOperationName("StreamingInputOperation")
-                             .withMarshaller(
-                                 AsyncStreamingRequestMarshaller.builder()
-                                                                .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                                                .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withAsyncRequestBody(requestBody)
-                             .withInput(streamingInputOperationRequest));
+                    .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                            .withOperationName("StreamingInputOperation")
+                            .withMarshaller(
+                                    AsyncStreamingRequestMarshaller.builder()
+                                            .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                            .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
+                            .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
+                    .orElse(null);
+            executeFuture.whenComplete((r, e) -> {
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
             return executeFuture;
         } catch (Throwable t) {
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -227,31 +271,42 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
-        StreamingOutputOperationRequest streamingOutputOperationRequest,
-        AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+            StreamingOutputOperationRequest streamingOutputOperationRequest,
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
         try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
 
             HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory
-                .createResponseHandler(StreamingOutputOperationResponse::builder);
+                    .createResponseHandler(StreamingOutputOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
-                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation")
-                    .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
+                    new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                            .withOperationName("StreamingOutputOperation")
+                            .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
+                    asyncResponseTransformer);
+            AwsRequestOverrideConfiguration requestOverrideConfig = streamingOutputOperationRequest.overrideConfiguration()
+                    .orElse(null);
             executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                                   () -> asyncResponseTransformer.exceptionOccurred(e));
+                            () -> asyncResponseTransformer.exceptionOccurred(e));
                 }
+                List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseTransformer.exceptionOccurred(t));
+                    () -> asyncResponseTransformer.exceptionOccurred(t));
+            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
+                    .overrideConfiguration().orElse(null));
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -263,10 +318,26 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private AwsQueryProtocolFactory init() {
         return AwsQueryProtocolFactory
-            .builder()
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("InvalidInput")
-                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
-            .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
+                .builder()
+                .registerModeledException(
+                        ExceptionMetadata.builder().errorCode("InvalidInput")
+                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+                .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
+    }
+
+    private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
+            RequestOverrideConfiguration requestOverrideConfiguration) {
+        List<MetricPublisher> publishers = null;
+        if (requestOverrideConfiguration != null) {
+            publishers = requestOverrideConfiguration.metricPublishers();
+        }
+        if (publishers == null || publishers.isEmpty()) {
+            publishers = clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS);
+        }
+        if (publishers == null) {
+            publishers = Collections.emptyList();
+        }
+        return publishers;
     }
 }
+

@@ -148,4 +148,29 @@ public class SdkHttpUtilsTest {
         assertThat(SdkHttpUtils.firstMatchingHeader(headers, null)).isNotPresent();
         assertThat(SdkHttpUtils.firstMatchingHeader(headers, "nothing")).isNotPresent();
     }
+
+    @Test
+    public void headersFromCollectionWorksCorrectly() {
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("FOO", asList("bar", "baz"));
+        headers.put("foo", singletonList(null));
+        headers.put("other", singletonList("foo"));
+        headers.put("Foo", singletonList("baz2"));
+
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("nothing"))).isEmpty();
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("foo")))
+            .containsExactlyInAnyOrder("bar", "baz", null, "baz2");
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("nothing", "foo")))
+            .containsExactlyInAnyOrder("bar", "baz", null, "baz2");
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("foo", "nothing")))
+            .containsExactlyInAnyOrder("bar", "baz", null, "baz2");
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("foo", "other")))
+            .containsExactlyInAnyOrder("bar", "baz", null, "foo", "baz2");
+
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("nothing"))).isEmpty();
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("foo"))).hasValue("bar");
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("nothing", "foo"))).hasValue("bar");
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("foo", "nothing"))).hasValue("bar");
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("foo", "other"))).hasValue("foo");
+    }
 }
