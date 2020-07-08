@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "EC2 Spot now enables customers to tag their Spot Instances Requests on creation."
+}
