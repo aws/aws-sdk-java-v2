@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Cost Explorer Service",
-    "description": "Customers can now see Instance Name alongside each rightsizing recommendation."
-}
