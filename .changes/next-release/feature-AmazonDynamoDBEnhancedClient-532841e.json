@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "description": "Support converting \"0\" and \"1\" numbers read from DynamoDB to Boolean and AtomicBoolean."
+}
