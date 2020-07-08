@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Forecast Service",
+    "description": "With this release, Amazon Forecast now supports the ability to add a tag to any resource via the launch of three new APIs: TagResouce, UntagResource and ListTagsForResource. A tag is a simple label consisting of a customer-defined key and an optional value allowing for easier resource management."
+}
