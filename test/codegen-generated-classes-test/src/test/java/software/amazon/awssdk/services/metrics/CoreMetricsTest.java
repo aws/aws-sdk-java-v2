@@ -121,6 +121,7 @@ public class CoreMetricsTest {
     @Test
     public void testApiCall_noConfiguredPublisher_succeeds() {
         ProtocolRestJsonClient noPublisher = ProtocolRestJsonClient.builder()
+                .credentialsProvider(mockCredentialsProvider)
                 .httpClient(mockHttpClient)
                 .build();
 

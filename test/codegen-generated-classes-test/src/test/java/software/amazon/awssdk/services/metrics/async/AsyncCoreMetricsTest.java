@@ -103,6 +103,7 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
     public void apiCall_noConfiguredPublisher_succeeds() {
         stubSuccessfulResponse();
         ProtocolRestJsonAsyncClient noPublisher = ProtocolRestJsonAsyncClient.builder()
+                                                                             .credentialsProvider(mockCredentialsProvider)
                                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                                                              .build();
 
