@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Events",
+    "description": "Amazon CloudWatch Events/EventBridge adds support for API Gateway as a target."
+}
