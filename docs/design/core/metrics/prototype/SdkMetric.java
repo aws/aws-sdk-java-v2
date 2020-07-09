@@ -32,6 +32,11 @@ public interface SdkMetric<T> {
     public Set<MetricCategory> categories();
 
     /**
+     * @return The level of this metric.
+     */
+    MetricLevel level();
+
+    /**
      * @return The class of the value associated with this metric.
      */
     public Class<T> valueClass();
