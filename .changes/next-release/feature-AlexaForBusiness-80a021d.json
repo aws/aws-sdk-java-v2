@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Alexa For Business",
+    "description": "Added support for registering an AVS device directly to a room using RegisterAVSDevice with a room ARN"
+}
