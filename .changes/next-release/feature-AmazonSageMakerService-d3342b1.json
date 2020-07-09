@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "description": "This release adds the DeleteHumanTaskUi API to Amazon Augmented AI"
-}

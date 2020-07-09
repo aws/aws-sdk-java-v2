@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "description": "Added the option to use IP addresses from an HTTP header that you specify, instead of using the web request origin. Available for IP set matching, geo matching, and rate-based rule count aggregation."
-}
