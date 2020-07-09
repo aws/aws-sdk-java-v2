@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Notification Service",
+    "description": "This release adds support for SMS origination number as an attribute in the MessageAttributes parameter for the SNS Publish API."
+}
