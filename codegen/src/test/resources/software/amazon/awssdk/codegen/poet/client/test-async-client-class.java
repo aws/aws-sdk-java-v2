@@ -180,10 +180,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
                             .withInput(aPostOperationRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationRequest.overrideConfiguration().orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<APostOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
@@ -240,10 +241,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = aPostOperationWithOutputRequest.overrideConfiguration()
                     .orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<APostOperationWithOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
@@ -323,7 +325,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withInput(eventStreamOperationRequest), restAsyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationRequest.overrideConfiguration().orElse(
                     null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<Void> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     try {
                         asyncResponseHandler.exceptionOccurred(e);
@@ -334,6 +336,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
@@ -399,10 +402,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationWithOnlyInputRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationWithOnlyInputRequest
                     .overrideConfiguration().orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<EventStreamOperationWithOnlyInputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -478,7 +482,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                     .withInput(eventStreamOperationWithOnlyOutputRequest), restAsyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationWithOnlyOutputRequest
                     .overrideConfiguration().orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<Void> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     try {
                         asyncResponseHandler.exceptionOccurred(e);
@@ -489,6 +493,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
@@ -547,10 +552,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMetricCollector(apiCallMetricCollector).withInput(getWithoutRequiredMembersRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = getWithoutRequiredMembersRequest.overrideConfiguration()
                     .orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<GetWithoutRequiredMembersResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -604,10 +610,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMetricCollector(apiCallMetricCollector).withInput(paginatedOperationWithResultKeyRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = paginatedOperationWithResultKeyRequest
                     .overrideConfiguration().orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<PaginatedOperationWithResultKeyResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -738,10 +745,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withMetricCollector(apiCallMetricCollector).withInput(paginatedOperationWithoutResultKeyRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = paginatedOperationWithoutResultKeyRequest
                     .overrideConfiguration().orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<PaginatedOperationWithoutResultKeyResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -880,10 +888,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOperationRequest.overrideConfiguration()
                     .orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<StreamingInputOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
@@ -955,7 +964,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withInput(streamingInputOutputOperationRequest), asyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingInputOutputOperationRequest.overrideConfiguration()
                     .orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                             () -> asyncResponseTransformer.exceptionOccurred(e));
@@ -963,6 +972,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
@@ -1024,7 +1034,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     asyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = streamingOutputOperationRequest.overrideConfiguration()
                     .orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                             () -> asyncResponseTransformer.exceptionOccurred(e));
@@ -1032,6 +1042,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",

@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class QueryProtocolSpec implements ProtocolSpec {
 
@@ -158,12 +159,18 @@ public class QueryProtocolSpec implements ProtocolSpec {
                                                             opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
         builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
                              AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
+
+        String whenCompleteFutureName = "whenCompleteFuture";
+        builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                executeFutureValueType), whenCompleteFutureName);
         if (opModel.hasStreamingOutput()) {
-            builder.add("executeFuture$L;", streamingOutputWhenComplete("asyncResponseTransformer"));
-        }  else {
-            builder.add("executeFuture$L;", publishMetricsWhenComplete());
+            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName,
+                    streamingOutputWhenComplete("asyncResponseTransformer"));
+        } else {
+            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName, publishMetricsWhenComplete());
         }
-        builder.addStatement("return executeFuture");
+        builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
+                whenCompleteFutureName);
         return builder.build();
     }
 
