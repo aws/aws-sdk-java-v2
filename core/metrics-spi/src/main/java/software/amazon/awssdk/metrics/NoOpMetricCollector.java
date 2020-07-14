@@ -17,6 +17,7 @@ package software.amazon.awssdk.metrics;
 
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.metrics.internal.EmptyMetricCollection;
 
 /**
  * A metric collector that doesn't do anything.
@@ -42,12 +43,12 @@ public final class NoOpMetricCollector implements MetricCollector {
 
     @Override
     public MetricCollector createChild(String name) {
-        throw new UnsupportedOperationException("No op collector does not support createChild");
+        return INSTANCE;
     }
 
     @Override
     public MetricCollection collect() {
-        throw new UnsupportedOperationException("No op collector does not support collect");
+        return EmptyMetricCollection.create();
     }
 
     public static NoOpMetricCollector create() {
