@@ -45,6 +45,8 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -99,7 +101,7 @@ public abstract class H1ServerBehaviorTestBase {
     }
 
     private static class Server extends ChannelInitializer<SocketChannel> {
-        private static final byte[] CONTENT = "helloworld".getBytes();
+        private static final byte[] CONTENT = "helloworld".getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;
         private ServerSocketChannel serverSock;
         private List<SocketChannel> channels = new ArrayList<>();
