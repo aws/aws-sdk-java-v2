@@ -15,35 +15,30 @@
 
 package software.amazon.awssdk.services.s3.internal.resource;
 
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
- * An enum representing the types of resources supported by S3. Each resource type below will have a
- * concrete implementation of {@link S3Resource}.
+ * An enum representing the types of resources supported by S3 outpost. Each resource type below will have a
+ * concrete implementation of {@link S3OutpostResource}.
  */
 @SdkInternalApi
-public enum S3ResourceType {
-    /**
-     * A specific S3 bucket. Implemented by {@link S3BucketResource}.
-     */
-    BUCKET("bucket_name"),
-    /**
-     * An access point that fronts a bucket. Implemented by {@link S3AccessPointResource}.
-     */
-    ACCESS_POINT("accesspoint"),
-    /**
-     * A specific S3 object (bucket and key). Implemented by {@link S3ObjectResource}.
-     */
-    OBJECT("object"),
+public enum OutpostResourceType {
 
     /**
-     * An outpost access point. Implemented by {@link S3OutpostResource}.
+     * A specific S3 outpost bucket.
      */
-    OUTPOST("outpost");
+    OUTPOST_BUCKET("bucket"),
+
+    /**
+     * An outpost access point
+     */
+    OUTPOST_ACCESS_POINT("accesspoint");
 
     private final String value;
 
-    S3ResourceType(String value) {
+    OutpostResourceType(String value) {
         this.value = value;
     }
 
@@ -62,12 +57,12 @@ public enum S3ResourceType {
      * @return S3ResourceType corresponding to the value
      * @throws IllegalArgumentException If the specified value does not map to one of the known values in this enum.
      */
-    public static S3ResourceType fromValue(String value) {
-        if (value == null || "".equals(value)) {
-            throw new IllegalArgumentException("Value cannot be null or empty!");
+    public static OutpostResourceType fromValue(String value) {
+        if (StringUtils.isEmpty(value)) {
+            throw new IllegalArgumentException("value cannot be null or empty!");
         }
 
-        for (S3ResourceType enumEntry : S3ResourceType.values()) {
+        for (OutpostResourceType enumEntry : OutpostResourceType.values()) {
             if (enumEntry.toString().equals(value)) {
                 return enumEntry;
             }
