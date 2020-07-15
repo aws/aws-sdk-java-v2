@@ -1,3 +1,12 @@
+# __2.13.55__ __2020-07-15__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Introducing Amazon Interactive Video Service - a managed live streaming solution that is quick and easy to set up, and ideal for creating interactive video experiences.
+
 # __2.13.54__ __2020-07-09__
 ## __AWS Amplify__
   - ### Features
