@@ -52,16 +52,6 @@ public interface SdkMetric<T> {
     Class<T> valueClass();
 
     /**
-     * Cast the given object to the value class associated with this event.
-     *
-     * @param o The object.
-     * @return The cast object.
-     * @throws ClassCastException If {@code o} is not an instance of type {@code
-     * T}.
-     */
-    T convertValue(Object o);
-
-    /**
      * Create a new metric.
      *
      * @param name The name of this metric.

@@ -36,8 +36,7 @@ public final class DefaultMetricCollection implements MetricCollection {
     private final Instant creationTime;
 
     public DefaultMetricCollection(String name, Map<SdkMetric<?>,
-        List<MetricRecord<?>>> metrics,
-                                   List<MetricCollection> children) {
+        List<MetricRecord<?>>> metrics, List<MetricCollection> children) {
         this.name = name;
         this.metrics = metrics;
         this.children = children != null ? Collections.unmodifiableList(children) : Collections.emptyList();

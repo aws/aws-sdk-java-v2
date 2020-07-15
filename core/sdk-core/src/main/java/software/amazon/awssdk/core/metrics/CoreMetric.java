@@ -58,7 +58,7 @@ public final class CoreMetric {
     /**
      * The duration of the API call. This includes all call attempts made.
      *
-     * <p>{@code API_CALL_DURATION = CREDENTIALS_FETCH_DURATION + MARSHALLING_DURATION + SUM_ALL(BACKOFF_DELAY_DURATION) +
+     * <p>{@code API_CALL_DURATION ~= CREDENTIALS_FETCH_DURATION + MARSHALLING_DURATION + SUM_ALL(BACKOFF_DELAY_DURATION) +
      * SUM_ALL(SIGNING_DURATION) + SUM_ALL(SERVICE_CALL_DURATION) + SUM_ALL(UNMARSHALLING_DURATION)}
      */
     public static final SdkMetric<Duration> API_CALL_DURATION =
