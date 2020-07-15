@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
@@ -44,9 +45,11 @@ import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncStreamingResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.CombinedResponseAsyncHttpResponseHandler;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -69,21 +72,23 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
 
-        validateExecutionParams(executionParams);
-        ExecutionContext executionContext = createExecutionContext(executionParams, createInitialExecutionAttributes());
-        TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler;
+        return measureApiCallSuccess(executionParams, () -> {
+            validateExecutionParams(executionParams);
+            ExecutionContext executionContext = createExecutionContext(executionParams, createInitialExecutionAttributes());
+            TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler;
 
-        /* Decorate and combine provided response handlers into a single decorated response handler */
-        if (executionParams.getCombinedResponseHandler() == null) {
-            combinedResponseHandler = createDecoratedHandler(executionParams.getResponseHandler(),
-                                                             executionParams.getErrorResponseHandler(),
-                                                             executionContext);
-        } else {
-            combinedResponseHandler = createDecoratedHandler(executionParams.getCombinedResponseHandler(),
-                                                             executionContext);
-        }
+            /* Decorate and combine provided response handlers into a single decorated response handler */
+            if (executionParams.getCombinedResponseHandler() == null) {
+                combinedResponseHandler = createDecoratedHandler(executionParams.getResponseHandler(),
+                                                                 executionParams.getErrorResponseHandler(),
+                                                                 executionContext);
+            } else {
+                combinedResponseHandler = createDecoratedHandler(executionParams.getCombinedResponseHandler(),
+                                                                 executionContext);
+            }
 
-        return doExecute(executionParams, executionContext, combinedResponseHandler);
+            return doExecute(executionParams, executionContext, combinedResponseHandler);
+        });
     }
 
     @Override
@@ -91,46 +96,48 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
-        validateExecutionParams(executionParams);
+        return measureApiCallSuccess(executionParams, () -> {
+            validateExecutionParams(executionParams);
 
-        if (executionParams.getCombinedResponseHandler() != null) {
-            // There is no support for catching errors in a body for streaming responses. Our codegen must never
-            // attempt to do this.
-            throw new IllegalArgumentException("A streaming 'asyncResponseTransformer' may not be used when a "
-                                               + "'combinedResponseHandler' has been specified in a "
-                                               + "ClientExecutionParams object.");
-        }
+            if (executionParams.getCombinedResponseHandler() != null) {
+                // There is no support for catching errors in a body for streaming responses. Our codegen must never
+                // attempt to do this.
+                throw new IllegalArgumentException("A streaming 'asyncResponseTransformer' may not be used when a "
+                                                   + "'combinedResponseHandler' has been specified in a "
+                                                   + "ClientExecutionParams object.");
+            }
 
-        ExecutionAttributes executionAttributes = createInitialExecutionAttributes();
+            ExecutionAttributes executionAttributes = createInitialExecutionAttributes();
 
-        AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
-            new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
+            AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
+                new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
 
-        // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
-        // See https://github.com/aws/aws-sdk-java-v2/issues/1268. We do this with a wrapper that caches the prepare
-        // result until the execution attempt number changes. This guarantees that prepare is only called once per
-        // execution.
-        TransformingAsyncResponseHandler<ReturnT> wrappedAsyncStreamingResponseHandler =
-            IdempotentAsyncResponseHandler.create(
-                asyncStreamingResponseHandler,
-                () -> executionAttributes.getAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT),
-                Integer::equals);
-        wrappedAsyncStreamingResponseHandler.prepare();
+            // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
+            // See https://github.com/aws/aws-sdk-java-v2/issues/1268. We do this with a wrapper that caches the prepare
+            // result until the execution attempt number changes. This guarantees that prepare is only called once per
+            // execution.
+            TransformingAsyncResponseHandler<ReturnT> wrappedAsyncStreamingResponseHandler =
+                IdempotentAsyncResponseHandler.create(
+                    asyncStreamingResponseHandler,
+                    () -> executionAttributes.getAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT),
+                    Integer::equals);
+            wrappedAsyncStreamingResponseHandler.prepare();
 
-        ExecutionContext context = createExecutionContext(executionParams, executionAttributes);
+            ExecutionContext context = createExecutionContext(executionParams, executionAttributes);
 
-        HttpResponseHandler<OutputT> decoratedResponseHandlers =
-            decorateResponseHandlers(executionParams.getResponseHandler(), context);
+            HttpResponseHandler<OutputT> decoratedResponseHandlers =
+                decorateResponseHandlers(executionParams.getResponseHandler(), context);
 
-        asyncStreamingResponseHandler.responseHandler(decoratedResponseHandlers);
+            asyncStreamingResponseHandler.responseHandler(decoratedResponseHandlers);
 
-        TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
-            resolveErrorResponseHandler(executionParams.getErrorResponseHandler(), context, crc32Validator);
+            TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
+                resolveErrorResponseHandler(executionParams.getErrorResponseHandler(), context, crc32Validator);
 
-        TransformingAsyncResponseHandler<Response<ReturnT>> combinedResponseHandler =
-            new CombinedResponseAsyncHttpResponseHandler<>(wrappedAsyncStreamingResponseHandler, errorHandler);
+            TransformingAsyncResponseHandler<Response<ReturnT>> combinedResponseHandler =
+                new CombinedResponseAsyncHttpResponseHandler<>(wrappedAsyncStreamingResponseHandler, errorHandler);
 
-        return doExecute(executionParams, context, combinedResponseHandler);
+            return doExecute(executionParams, context, combinedResponseHandler);
+        });
     }
 
     /**
@@ -260,5 +267,29 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                      .originalRequest(originalRequest)
                      .executionContext(executionContext)
                      .execute(responseHandler);
+    }
+
+    private <T> CompletableFuture<T> measureApiCallSuccess(ClientExecutionParams<?, ?> executionParams,
+                                                           Supplier<CompletableFuture<T>> apiCall) {
+        try {
+            CompletableFuture<T> apiCallResult = apiCall.get();
+            CompletableFuture<T> outputFuture =
+                apiCallResult.whenComplete((r, t) -> reportApiCallSuccess(executionParams, t == null));
+
+            // Preserve cancellations on the output future, by passing cancellations of the output future to the api call future.
+            CompletableFutureUtils.forwardExceptionTo(outputFuture, apiCallResult);
+
+            return outputFuture;
+        } catch (Exception e) {
+            reportApiCallSuccess(executionParams, false);
+            throw e;
+        }
+    }
+
+    private void reportApiCallSuccess(ClientExecutionParams<?, ?> executionParams, boolean value) {
+        MetricCollector metricCollector = executionParams.getMetricCollector();
+        if (metricCollector != null) {
+            metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, value);
+        }
     }
 }

@@ -31,7 +31,6 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http2.Http2Connection;
-import io.netty.handler.codec.http2.Http2FrameCodec;
 import io.netty.handler.codec.http2.Http2LocalFlowController;
 import io.netty.handler.codec.http2.Http2Stream;
 import io.netty.util.concurrent.DefaultPromise;
@@ -41,14 +40,16 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Tests for {@link Http2MultiplexedChannelPool}.
@@ -257,5 +258,93 @@ public class Http2MultiplexedChannelPoolTest {
         } finally {
             channel.close();
         }
+    }
+
+    @Test
+    public void metricsShouldSumAllChildChannels() throws InterruptedException {
+        int maxConcurrentStream = 2;
+        EmbeddedChannel channel1 = newHttp2Channel();
+        EmbeddedChannel channel2 = newHttp2Channel();
+        channel1.attr(ChannelAttributeKey.MAX_CONCURRENT_STREAMS).set((long) maxConcurrentStream);
+        channel2.attr(ChannelAttributeKey.MAX_CONCURRENT_STREAMS).set((long) maxConcurrentStream);
+
+        try {
+            ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
+
+            loopGroup.register(channel1).awaitUninterruptibly();
+            loopGroup.register(channel2).awaitUninterruptibly();
+            Promise<Channel> channel1Promise = new DefaultPromise<>(loopGroup.next());
+            Promise<Channel> channel2Promise = new DefaultPromise<>(loopGroup.next());
+            channel1Promise.setSuccess(channel1);
+            channel2Promise.setSuccess(channel2);
+
+            Mockito.when(connectionPool.acquire()).thenReturn(channel1Promise, channel2Promise);
+
+            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool,
+                                                                                 Http2MultiplexedChannelPoolTest.loopGroup,
+                                                                                 Collections.emptySet(), null);
+            MetricCollection metrics;
+
+            metrics = getMetrics(h2Pool);
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(0);
+
+            doAcquire(channel1, channel2, h2Pool);
+
+            metrics = getMetrics(h2Pool);
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(1);
+
+            doAcquire(channel1, channel2, h2Pool);
+
+            metrics = getMetrics(h2Pool);
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(0);
+
+            doAcquire(channel1, channel2, h2Pool);
+
+            metrics = getMetrics(h2Pool);
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(1);
+
+            Channel lastAcquire = doAcquire(channel1, channel2, h2Pool);
+
+            metrics = getMetrics(h2Pool);
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(0);
+
+            lastAcquire.close();
+            h2Pool.release(lastAcquire).awaitUninterruptibly();
+
+            metrics = getMetrics(h2Pool);
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(1);
+
+            channel1.close();
+            h2Pool.release(channel1);
+
+            metrics = getMetrics(h2Pool);
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(1);
+
+            channel2.close();
+
+            metrics = getMetrics(h2Pool);
+            assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(0);
+        } finally {
+            channel1.close();
+            channel2.close();
+        }
+    }
+
+    private Channel doAcquire(EmbeddedChannel channel1, EmbeddedChannel channel2, Http2MultiplexedChannelPool h2Pool) {
+        Future<Channel> acquire = h2Pool.acquire();
+        acquire.awaitUninterruptibly();
+        runPendingTasks(channel1, channel2);
+        return acquire.getNow();
+    }
+
+    private void runPendingTasks(EmbeddedChannel channel1, EmbeddedChannel channel2) {
+        channel1.runPendingTasks();
+        channel2.runPendingTasks();
+    }
+
+    private MetricCollection getMetrics(Http2MultiplexedChannelPool h2Pool) {
+        MetricCollector metricCollector = MetricCollector.create("test");
+        h2Pool.collectChannelPoolMetrics(metricCollector);
+        return metricCollector.collect();
     }
 }

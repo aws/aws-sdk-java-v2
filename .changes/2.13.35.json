@@ -1,0 +1,36 @@
+{
+    "version": "2.13.35",
+    "date": "2020-06-11",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Avoid unnecessary copying in `AsyncRequestBody.fromBytes()`"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Data Plane",
+            "description": "As part of this release, we are introducing a new feature called named shadow, which extends the capability of AWS IoT Device Shadow to support multiple shadows for a single IoT device. With this release, customers can store different device state data into different shadows, and as a result access only the required state data when needed and reduce individual shadow size."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "description": "This change adds the built-in AMAZON.KendraSearchIntent that enables integration with Amazon Kendra."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "This release adds support for deleting capacity providers."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "description": "EC2 Image Builder now supports specifying a custom working directory for your build and test workflows. In addition, Image Builder now supports defining tags that are applied to ephemeral resources created by EC2 Image Builder as part of the image creation workflow."
+        }
+    ]
+}

@@ -40,6 +40,8 @@ public class BooleanAttributeConvertersTest {
         assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("0").toAttributeValue()));
         assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("1").toAttributeValue()));
         assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("").toAttributeValue()));
+        assertThat(transformTo(converter, EnhancedAttributeValue.fromNumber("1").toAttributeValue())).isTrue();
+        assertThat(transformTo(converter, EnhancedAttributeValue.fromNumber("0").toAttributeValue())).isFalse();
         assertThat(transformTo(converter, EnhancedAttributeValue.fromString("true").toAttributeValue())).isTrue();
         assertThat(transformTo(converter, EnhancedAttributeValue.fromString("false").toAttributeValue())).isFalse();
         assertThat(transformTo(converter, EnhancedAttributeValue.fromBoolean(true).toAttributeValue())).isTrue();
@@ -58,6 +60,8 @@ public class BooleanAttributeConvertersTest {
         assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("0").toAttributeValue()));
         assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("1").toAttributeValue()));
         assertFails(() -> transformTo(converter, EnhancedAttributeValue.fromString("").toAttributeValue()));
+        assertThat(transformTo(converter, EnhancedAttributeValue.fromNumber("1").toAttributeValue())).isTrue();
+        assertThat(transformTo(converter, EnhancedAttributeValue.fromNumber("0").toAttributeValue())).isFalse();
         assertThat(transformTo(converter, EnhancedAttributeValue.fromString("true").toAttributeValue())).isTrue();
         assertThat(transformTo(converter, EnhancedAttributeValue.fromString("false").toAttributeValue())).isFalse();
         assertThat(transformTo(converter, EnhancedAttributeValue.fromBoolean(true).toAttributeValue())).isTrue();

@@ -67,6 +67,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundA
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpRequest;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
 public final class NettyRequestExecutor {
@@ -87,8 +88,8 @@ public final class NettyRequestExecutor {
     @SuppressWarnings("unchecked")
     public CompletableFuture<Void> execute() {
         Promise<Channel> channelFuture = context.eventLoopGroup().next().newPromise();
+        executeFuture = createExecutionFuture(channelFuture);
         context.channelPool().acquire(channelFuture);
-        executeFuture = createExecuteFuture(channelFuture);
         channelFuture.addListener((GenericFutureListener) this::makeRequestListener);
         return executeFuture;
     }
@@ -100,10 +101,13 @@ public final class NettyRequestExecutor {
      *
      * @return The created execution future.
      */
-    private CompletableFuture<Void> createExecuteFuture(Promise<Channel> channelPromise) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
+    private CompletableFuture<Void> createExecutionFuture(Promise<Channel> channelPromise) {
+        CompletableFuture<Void> metricsFuture = initiateMetricsCollection();
 
+        CompletableFuture<Void> future = new CompletableFuture<>();
         future.whenComplete((r, t) -> {
+            verifyMetricsWereCollected(metricsFuture);
+
             if (t == null) {
                 return;
             }
@@ -129,6 +133,31 @@ public final class NettyRequestExecutor {
         });
 
         return future;
+    }
+
+    private CompletableFuture<Void> initiateMetricsCollection() {
+        MetricCollector metricCollector = context.metricCollector();
+        if (!NettyRequestMetrics.metricsAreEnabled(metricCollector)) {
+            return null;
+        }
+        return context.channelPool().collectChannelPoolMetrics(metricCollector);
+    }
+
+    private void verifyMetricsWereCollected(CompletableFuture<Void> metricsFuture) {
+        if (metricsFuture == null) {
+            return;
+        }
+
+        if (!metricsFuture.isDone()) {
+            log.debug("HTTP request metric collection did not finish in time, so results may be incomplete.");
+            metricsFuture.cancel(false);
+            return;
+        }
+
+        metricsFuture.exceptionally(t -> {
+            log.debug("HTTP request metric collection failed, so results may be incomplete.", t);
+            return null;
+        });
     }
 
     private void makeRequestListener(Future<Channel> channelFuture) {
@@ -209,6 +238,8 @@ public final class NettyRequestExecutor {
                    // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
+                       NettyRequestMetrics.publishHttp2StreamMetrics(context.metricCollector(), channel);
+
                        if (context.executeRequest().fullDuplex()) {
                            return;
                        }
@@ -216,7 +247,6 @@ public final class NettyRequestExecutor {
                        channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                           TimeUnit.MILLISECONDS));
                        channel.read();
-
                    } else {
                        // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);

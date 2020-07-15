@@ -28,7 +28,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.util.Attribute;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
@@ -53,7 +52,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 public class HealthCheckedChannelPoolTest {
     private EventLoopGroup eventLoopGroup = Mockito.mock(EventLoopGroup.class);
     private EventLoop eventLoop = Mockito.mock(EventLoop.class);
-    private ChannelPool downstreamChannelPool = Mockito.mock(ChannelPool.class);
+    private SdkChannelPool downstreamChannelPool = Mockito.mock(SdkChannelPool.class);
     private List<Channel> channels = new ArrayList<>();
     private ScheduledFuture<?> scheduledFuture = Mockito.mock(ScheduledFuture.class);
     private Attribute<Boolean> attribute = mock(Attribute.class);

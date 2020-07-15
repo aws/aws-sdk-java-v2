@@ -134,7 +134,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     }
 
     private String getRequestIdFromHeaders(Map<String, List<String>> headers) {
-        return SdkHttpUtils.firstMatchingHeader(headers, X_AMZN_REQUEST_ID_HEADER).orElse(null);
+        return SdkHttpUtils.firstMatchingHeaderFromCollection(headers, X_AMZN_REQUEST_ID_HEADERS).orElse(null);
     }
 
     private String getExtendedRequestIdFromHeaders(Map<String, List<String>> headers) {

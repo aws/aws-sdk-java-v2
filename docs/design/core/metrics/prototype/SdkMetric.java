@@ -18,6 +18,7 @@
  *
  * @param <T> The type for values of this metric.
  */
+@SdkPublicApi
 public interface SdkMetric<T> {
 
     /**
@@ -29,6 +30,11 @@ public interface SdkMetric<T> {
      * @return The categories of this metric.
      */
     public Set<MetricCategory> categories();
+
+    /**
+     * @return The level of this metric.
+     */
+    MetricLevel level();
 
     /**
      * @return The class of the value associated with this metric.
@@ -43,5 +49,5 @@ public interface SdkMetric<T> {
      * @throws ClassCastException If {@code o} is not an instance of type {@code
      * T}.
      */
-    public T convertToType(Object o);
+    public T convertValue(Object o);
 }

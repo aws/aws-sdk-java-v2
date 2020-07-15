@@ -24,11 +24,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -55,6 +57,7 @@ public final class ClientOverrideConfiguration
     private final Duration apiCallTimeout;
     private final ProfileFile defaultProfileFile;
     private final String defaultProfileName;
+    private final List<MetricPublisher> metricPublishers;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -68,6 +71,7 @@ public final class ClientOverrideConfiguration
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.defaultProfileFile = builder.defaultProfileFile();
         this.defaultProfileName = builder.defaultProfileName();
+        this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
     }
 
     @Override
@@ -182,6 +186,15 @@ public final class ClientOverrideConfiguration
      */
     public Optional<String> defaultProfileName() {
         return Optional.ofNullable(defaultProfileName);
+    }
+
+    /**
+     * The metric publishers to use to publisher metrics collected for this client.
+     *
+     * @return The metric publisher.
+     */
+    public List<MetricPublisher> metricPublishers() {
+        return metricPublishers;
     }
 
     @Override
@@ -408,6 +421,31 @@ public final class ClientOverrideConfiguration
         Builder defaultProfileName(String defaultProfileName);
 
         String defaultProfileName();
+
+        /**
+         * Set the Metric publishers to be use to publish metrics for this client. This overwrites the current list of
+         * metric publishers set on the builder.
+         *
+         * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
+         *
+         * @param metricPublishers The metric publishers.
+         */
+        @SdkPreviewApi
+        Builder metricPublishers(List<MetricPublisher> metricPublishers);
+
+        /**
+         * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics
+         * for this client.
+         *
+         * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
+         *
+         * @param metricPublisher The metric publisher to add.
+         */
+        @SdkPreviewApi
+        Builder addMetricPublisher(MetricPublisher metricPublisher);
+
+        @SdkPreviewApi
+        List<MetricPublisher> metricPublishers();
     }
 
     /**
@@ -422,6 +460,7 @@ public final class ClientOverrideConfiguration
         private Duration apiCallAttemptTimeout;
         private ProfileFile defaultProfileFile;
         private String defaultProfileName;
+        private List<MetricPublisher> metricPublishers = new ArrayList<>();
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -561,6 +600,29 @@ public final class ClientOverrideConfiguration
         public Builder defaultProfileName(String defaultProfileName) {
             this.defaultProfileName = defaultProfileName;
             return this;
+        }
+
+        @Override
+        public Builder metricPublishers(List<MetricPublisher> metricPublishers) {
+            Validate.paramNotNull(metricPublishers, "metricPublishers");
+            this.metricPublishers = new ArrayList<>(metricPublishers);
+            return this;
+        }
+
+        public void setMetricPublishers(List<MetricPublisher> metricPublishers) {
+            metricPublishers(metricPublishers);
+        }
+
+        @Override
+        public Builder addMetricPublisher(MetricPublisher metricPublisher) {
+            Validate.paramNotNull(metricPublisher, "metricPublisher");
+            this.metricPublishers.add(metricPublisher);
+            return this;
+        }
+
+        @Override
+        public List<MetricPublisher> metricPublishers() {
+            return Collections.unmodifiableList(metricPublishers);
         }
 
         @Override

@@ -16,17 +16,18 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.Channel;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
-final class SimpleChannelPoolAwareChannelPool implements ChannelPool {
-    private final ChannelPool delegate;
+final class SimpleChannelPoolAwareChannelPool implements SdkChannelPool {
+    private final SdkChannelPool delegate;
     private final BetterSimpleChannelPool simpleChannelPool;
 
-    SimpleChannelPoolAwareChannelPool(ChannelPool delegate, BetterSimpleChannelPool simpleChannelPool) {
+    SimpleChannelPoolAwareChannelPool(SdkChannelPool delegate, BetterSimpleChannelPool simpleChannelPool) {
         this.delegate = delegate;
         this.simpleChannelPool = simpleChannelPool;
     }
@@ -60,4 +61,8 @@ final class SimpleChannelPoolAwareChannelPool implements ChannelPool {
         return simpleChannelPool;
     }
 
+    @Override
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        return delegate.collectChannelPoolMetrics(metrics);
+    }
 }

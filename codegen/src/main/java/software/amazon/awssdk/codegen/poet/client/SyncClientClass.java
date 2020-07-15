@@ -17,16 +17,19 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -47,11 +50,15 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
+import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
@@ -84,7 +91,8 @@ public class SyncClientClass implements ClassSpec {
                                         .addMethod(constructor())
                                         .addMethod(nameMethod())
                                         .addMethods(protocolSpec.additionalMethods())
-                                        .addMethods(operations());
+                                        .addMethods(operations())
+                                        .addMethod(resolveMetricPublishersMethod());
 
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
@@ -186,7 +194,28 @@ public class SyncClientClass implements ClassSpec {
             method.endControlFlow();
         }
 
-        method.addCode(protocolSpec.executionHandler(opModel));
+        String metricCollectorName = "apiCallMetricCollector";
+
+        method.addStatement("$1T $2N = $1T.create($3S)",
+                MetricCollector.class, metricCollectorName, "ApiCall");
+
+        String publishersName = "metricPublishers";
+
+        method.beginControlFlow("try")
+                .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "SERVICE_ID",
+                        model.getMetadata().getServiceId())
+                .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "OPERATION_NAME",
+                        opModel.getOperationName())
+                .addCode(protocolSpec.executionHandler(opModel))
+                .endControlFlow()
+                .beginControlFlow("finally")
+                .addStatement("$T<$T> $N = resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
+                              List.class,
+                              MetricPublisher.class,
+                              publishersName,
+                              opModel.getInput().getVariableName())
+                .addStatement("$N.forEach(p -> p.publish($N.collect()))", publishersName, metricCollectorName)
+                .endControlFlow();
 
         methods.add(method.build());
 
@@ -258,5 +287,40 @@ public class SyncClientClass implements ClassSpec {
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());
         }
+    }
+
+    private MethodSpec resolveMetricPublishersMethod() {
+        String clientConfigName = "clientConfiguration";
+        String requestOverrideConfigName = "requestOverrideConfiguration";
+
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("resolveMetricPublishers")
+                .addModifiers(PRIVATE, STATIC)
+                .returns(ParameterizedTypeName.get(List.class, MetricPublisher.class))
+                .addParameter(SdkClientConfiguration.class, clientConfigName)
+                .addParameter(RequestOverrideConfiguration.class, requestOverrideConfigName);
+
+        String publishersName = "publishers";
+
+        methodBuilder.addStatement("$T $N = null", ParameterizedTypeName.get(List.class, MetricPublisher.class), publishersName);
+
+        methodBuilder.beginControlFlow("if ($N != null)", requestOverrideConfigName)
+                .addStatement("$N = $N.metricPublishers()", publishersName, requestOverrideConfigName)
+                .endControlFlow();
+
+        methodBuilder.beginControlFlow("if ($1N == null || $1N.isEmpty())", publishersName)
+                .addStatement("$N = $N.option($T.$N)",
+                              publishersName,
+                              clientConfigName,
+                              SdkClientOption.class,
+                              "METRIC_PUBLISHERS")
+                .endControlFlow();
+
+        methodBuilder.beginControlFlow("if ($1N == null)", publishersName)
+                .addStatement("$N = $T.emptyList()", publishersName, Collections.class)
+                .endControlFlow();
+
+        methodBuilder.addStatement("return $N", publishersName);
+
+        return methodBuilder.build();
     }
 }
