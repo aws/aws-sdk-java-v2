@@ -161,8 +161,8 @@
     </Match>
 
     <Match>
-        <Class name="software.amazon.awssdk.http.HttpTestUtils"/>
-        <Bug pattern="URF_UNREAD_FIELD, RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+        <Package name="~software.amazon.awssdk.http.*"/>
+        <Bug pattern="URF_UNREAD_FIELD, RV_RETURN_VALUE_IGNORED"/>
     </Match>
 
     <Match>
