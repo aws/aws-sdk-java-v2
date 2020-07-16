@@ -44,6 +44,8 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
         configuredRequest.signingRegionModification().ifPresent(
             region -> executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region));
 
+        configuredRequest.signingServiceModification().ifPresent(
+            name -> executionAttributes.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, name));
         return configuredRequest.sdkHttpRequest();
     }
 }

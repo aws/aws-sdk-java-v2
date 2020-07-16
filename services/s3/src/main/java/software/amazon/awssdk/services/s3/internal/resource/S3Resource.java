@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.resource;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -28,4 +29,12 @@ public interface S3Resource extends AwsResource {
      * @return the string name of the S3 resource type.
      */
     String type();
+
+    /**
+     * Gets the optional parent resource.
+     * @return the optional parent resource.
+     */
+    default Optional<S3Resource> parentS3Resource() {
+        return Optional.empty();
+    }
 }
