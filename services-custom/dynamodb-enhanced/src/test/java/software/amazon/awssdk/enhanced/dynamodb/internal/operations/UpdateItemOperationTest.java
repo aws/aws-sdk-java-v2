@@ -26,7 +26,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -46,6 +45,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
@@ -72,11 +72,12 @@ public class UpdateItemOperationTest {
     private static final String SUBCLASS_ATTRIBUTE_VALUE = ":AMZN_MAPPED_subclass_attribute";
 
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+        DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
-        OperationContext.create(TABLE_NAME, "gsi_1");
+        DefaultOperationContext.create(TABLE_NAME, "gsi_1");
     private static final Expression CONDITION_EXPRESSION;
-    private static final Expression CONDITION_EXPRESSION_2;
+    private static final Expression MINIMAL_CONDITION_EXPRESSION = Expression.builder().expression("foo = bar").build();
+
 
     static {
         Map<String, String> expressionNames = new HashMap<>();
@@ -90,20 +91,6 @@ public class UpdateItemOperationTest {
                                          .expressionNames(Collections.unmodifiableMap(expressionNames))
                                          .expressionValues(Collections.unmodifiableMap(expressionValues))
                                          .build();
-    }
-
-    static {
-        Map<String, String> expressionNames = new HashMap<>();
-        expressionNames.put("#test_field_3", "test_field_3");
-        expressionNames.put("#test_field_4", "test_field_4");
-        Map<String, AttributeValue> expressionValues = new HashMap<>();
-        expressionValues.put(":test_value_3", numberValue(3));
-        expressionValues.put(":test_value_4", numberValue(4));
-        CONDITION_EXPRESSION_2 = Expression.builder()
-                                           .expression("#test_field_3 = :test_value_3 OR #test_field_4 = :test_value_4")
-                                           .expressionNames(Collections.unmodifiableMap(expressionNames))
-                                           .expressionValues(Collections.unmodifiableMap(expressionValues))
-                                           .build();
     }
 
     @Mock
@@ -203,6 +190,31 @@ public class UpdateItemOperationTest {
                                                                         null);
 
         assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withMinimalConditionExpression() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
+                                                                .item(item)
+                                                                .conditionExpression(MINIMAL_CONDITION_EXPRESSION)
+                                                                .build());
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        Map<String, AttributeValue> expectedValues = new HashMap<>();
+        expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
+        Map<String, String> expectedNames = new HashMap<>();
+        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
+        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
+        assertThat(request.conditionExpression(), is(MINIMAL_CONDITION_EXPRESSION.expression()));
+        assertThat(request.expressionAttributeNames(), is(expectedNames));
+        assertThat(request.expressionAttributeValues(), is(expectedValues));
     }
 
     @Test
@@ -693,7 +705,7 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItemOperation<FakeItem> updateItemOperation =
             spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build()));
-        OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
         String updateExpression = "update-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
         Map<String, String> attributeNames = Collections.singletonMap("key", "value2");
@@ -730,7 +742,7 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItemOperation<FakeItem> updateItemOperation =
             spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build()));
-        OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
         String updateExpression = "update-expression";
         String conditionExpression = "condition-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));

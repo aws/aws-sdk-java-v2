@@ -1995,7 +1995,7 @@
         },
         "destinationArn":{
           "shape":"String",
-          "documentation":"<p>The ARN of the CloudWatch Logs log group to receive access logs.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the CloudWatch Logs log group or Kinesis Data Firehose delivery stream to receive access logs. If you specify a Kinesis Data Firehose delivery stream, the stream name must begin with <code>amazon-apigateway-</code>.</p>"
         }
       },
       "documentation":"<p>Access log settings, including the access log format and access log destination ARN.</p>"
@@ -2364,7 +2364,7 @@
         },
         "generateDistinctId":{
           "shape":"Boolean",
-          "documentation":"<p>Specifies whether (<code>true</code>) or not (<code>false</code>) the key identifier is distinct from the created API key value.</p>"
+          "documentation":"<p>Specifies whether (<code>true</code>) or not (<code>false</code>) the key identifier is distinct from the created API key value. This parameter is deprecated and should not be used.</p>"
         },
         "value":{
           "shape":"String",
@@ -2461,7 +2461,7 @@
         },
         "stage":{
           "shape":"String",
-          "documentation":"<p>The name of the API's stage that you want to use for this mapping. Specify '(none)' if you do not want callers to explicitly specify the stage name after any base path name.</p>"
+          "documentation":"<p>The name of the API's stage that you want to use for this mapping. Specify '(none)' if you want callers to explicitly specify the stage name after any base path name.</p>"
         }
       },
       "documentation":"<p>Requests API Gateway to create a new <a>BasePathMapping</a> resource.</p>"
@@ -2877,7 +2877,7 @@
         },
         "targetArns":{
           "shape":"ListOfString",
-          "documentation":"<p>[Required] The ARNs of network load balancers of the VPC targeted by the VPC link. The network load balancers must be owned by the same AWS account of the API owner.</p>"
+          "documentation":"<p>[Required] The ARN of the network load balancer of the VPC targeted by the VPC link. The network load balancer must be owned by the same AWS account of the API owner.</p>"
         },
         "tags":{
           "shape":"MapOfStringToString",
@@ -4693,7 +4693,7 @@
       "members":{
         "resourceArn":{
           "shape":"String",
-          "documentation":"<p>[Required] The ARN of a resource that can be tagged. The resource ARN must be URL-encoded.</p>",
+          "documentation":"<p>[Required] The ARN of a resource that can be tagged.</p>",
           "location":"uri",
           "locationName":"resource_arn"
         },
@@ -4957,7 +4957,7 @@
         },
         "body":{
           "shape":"Blob",
-          "documentation":"<p>[Required] The POST request body containing external API definitions. Currently, only OpenAPI definition JSON/YAML files are supported. The maximum size of the API definition file is 2MB.</p>"
+          "documentation":"<p>[Required] The POST request body containing external API definitions. Currently, only OpenAPI definition JSON/YAML files are supported. The maximum size of the API definition file is 6MB.</p>"
         }
       },
       "documentation":"<p>A POST request to import an API to API Gateway using an input of an API definition file.</p>",
@@ -5013,7 +5013,7 @@
         },
         "cacheNamespace":{
           "shape":"String",
-          "documentation":"<p>An API-specific tag group of related cached parameters. To be valid values for <code>cacheKeyParameters</code>, these parameters must also be specified for <a>Method</a> <code>requestParameters</code>.</p>"
+          "documentation":"<p>Specifies a group of related cached parameters. By default, API Gateway uses the resource ID as the <code>cacheNamespace</code>. You can specify the same <code>cacheNamespace</code> across resources to return the same cached data for requests to different resources.</p>"
         },
         "cacheKeyParameters":{
           "shape":"ListOfString",
@@ -5022,6 +5022,10 @@
         "integrationResponses":{
           "shape":"MapOfIntegrationResponse",
           "documentation":"<p>Specifies the integration's responses.</p> <div class=\"remarks\"> <p/> <h4>Example: Get integration responses of a method</h4> <h5>Request</h5> <p/> <pre><code>GET /restapis/fugvjdxtri/resources/3kzxbg5sa2/methods/GET/integration/responses/200 HTTP/1.1 Content-Type: application/json Host: apigateway.us-east-1.amazonaws.com X-Amz-Date: 20160607T191449Z Authorization: AWS4-HMAC-SHA256 Credential={access_key_ID}/20160607/us-east-1/apigateway/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature={sig4_hash} </code></pre> <h5>Response</h5> <p>The successful response returns <code>200 OK</code> status and a payload as follows:</p> <pre><code>{ \"_links\": { \"curies\": { \"href\": \"https://docs.aws.amazon.com/apigateway/latest/developerguide/restapi-integration-response-{rel}.html\", \"name\": \"integrationresponse\", \"templated\": true }, \"self\": { \"href\": \"/restapis/fugvjdxtri/resources/3kzxbg5sa2/methods/GET/integration/responses/200\", \"title\": \"200\" }, \"integrationresponse:delete\": { \"href\": \"/restapis/fugvjdxtri/resources/3kzxbg5sa2/methods/GET/integration/responses/200\" }, \"integrationresponse:update\": { \"href\": \"/restapis/fugvjdxtri/resources/3kzxbg5sa2/methods/GET/integration/responses/200\" } }, \"responseParameters\": { \"method.response.header.Content-Type\": \"'application/xml'\" }, \"responseTemplates\": { \"application/json\": \"$util.urlDecode(\\\"%3CkinesisStreams%3E#foreach($stream in $input.path('$.StreamNames'))%3Cstream%3E%3Cname%3E$stream%3C/name%3E%3C/stream%3E#end%3C/kinesisStreams%3E\\\")\\n\" }, \"statusCode\": \"200\" }</code></pre> <p/> </div> <div class=\"seeAlso\"> <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-create-api.html\">Creating an API</a> </div>"
+        },
+        "tlsConfig":{
+          "shape":"TlsConfig",
+          "documentation":"<p>Specifies the TLS configuration for an integration.</p>"
         }
       },
       "documentation":"<p>Represents an HTTP, HTTP_PROXY, AWS, AWS_PROXY, or Mock integration.</p> <div class=\"remarks\">In the API Gateway console, the built-in Lambda integration is an AWS integration.</div> <div class=\"seeAlso\"> <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-create-api.html\">Creating an API</a> </div>"
@@ -5321,7 +5325,7 @@
         },
         "loggingLevel":{
           "shape":"String",
-          "documentation":"<p>Specifies the logging level for this method, which affects the log entries pushed to Amazon CloudWatch Logs. The PATCH path for this setting is <code>/{method_setting_key}/logging/loglevel</code>, and the available levels are <code>OFF</code>, <code>ERROR</code>, and <code>INFO</code>.</p>"
+          "documentation":"<p>Specifies the logging level for this method, which affects the log entries pushed to Amazon CloudWatch Logs. The PATCH path for this setting is <code>/{method_setting_key}/logging/loglevel</code>, and the available levels are <code>OFF</code>, <code>ERROR</code>, and <code>INFO</code>. Choose <code>ERROR</code> to write only error-level entries to CloudWatch Logs, or choose <code>INFO</code> to include all <code>ERROR</code> events as well as extra informational events.</p>"
         },
         "dataTraceEnabled":{
           "shape":"Boolean",
@@ -5560,11 +5564,11 @@
         },
         "cacheNamespace":{
           "shape":"String",
-          "documentation":"<p>A list of request parameters whose values are to be cached.</p>"
+          "documentation":"<p>Specifies a group of related cached parameters. By default, API Gateway uses the resource ID as the <code>cacheNamespace</code>. You can specify the same <code>cacheNamespace</code> across resources to return the same cached data for requests to different resources.</p>"
         },
         "cacheKeyParameters":{
           "shape":"ListOfString",
-          "documentation":"<p>An API-specific tag group of related cached parameters.</p>"
+          "documentation":"<p>A list of request parameters whose values API Gateway caches. To be valid values for <code>cacheKeyParameters</code>, these parameters must also be specified for <a>Method</a> <code>requestParameters</code>.</p>"
         },
         "contentHandling":{
           "shape":"ContentHandlingStrategy",
@@ -5573,7 +5577,8 @@
         "timeoutInMillis":{
           "shape":"NullableInteger",
           "documentation":"<p>Custom timeout between 50 and 29,000 milliseconds. The default value is 29,000 milliseconds or 29 seconds.</p>"
-        }
+        },
+        "tlsConfig":{"shape":"TlsConfig"}
       },
       "documentation":"<p>Sets up a method's integration.</p>"
     },
@@ -5774,7 +5779,7 @@
         },
         "body":{
           "shape":"Blob",
-          "documentation":"<p>[Required] The PUT request body containing external API definitions. Currently, only OpenAPI definition JSON/YAML files are supported. The maximum size of the API definition file is 2MB.</p>"
+          "documentation":"<p>[Required] The PUT request body containing external API definitions. Currently, only OpenAPI definition JSON/YAML files are supported. The maximum size of the API definition file is 6MB.</p>"
         }
       },
       "documentation":"<p>A PUT request to update an existing API, with external API definitions specified as the request body.</p>",
@@ -6162,7 +6167,7 @@
       "members":{
         "resourceArn":{
           "shape":"String",
-          "documentation":"<p>[Required] The ARN of a resource that can be tagged. The resource ARN must be URL-encoded.</p>",
+          "documentation":"<p>[Required] The ARN of a resource that can be tagged.</p>",
           "location":"uri",
           "locationName":"resource_arn"
         },
@@ -6188,7 +6193,7 @@
       "members":{
         "value":{
           "shape":"String",
-          "documentation":"<p>The Apache <a href=\"https://velocity.apache.org/engine/devel/vtl-reference-guide.html\" target=\"_blank\">Velocity Template Language (VTL)</a> template content used for the template resource.</p>"
+          "documentation":"<p>The Apache <a href=\"https://velocity.apache.org/engine/devel/vtl-reference.html\" target=\"_blank\">Velocity Template Language (VTL)</a> template content used for the template resource.</p>"
         }
       },
       "documentation":"<p>Represents a mapping template used to transform a payload.</p> <div class=\"seeAlso\"> <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/models-mappings.html#models-mappings-mappings\">Mapping Templates</a> </div>"
@@ -6368,6 +6373,15 @@
       "documentation":"<p> The API request rate limits.</p>"
     },
     "Timestamp":{"type":"timestamp"},
+    "TlsConfig":{
+      "type":"structure",
+      "members":{
+        "insecureSkipVerification":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether or not API Gateway skips verification that the certificate for an integration endpoint is issued by a <a href=\"https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-supported-certificate-authorities-for-http-endpoints.html\">supported certificate authority</a>. This isn’t recommended, but it enables you to use certificates that are signed by private certificate authorities, or certificates that are self-signed. If enabled, API Gateway still performs basic certificate validation, which includes checking the certificate's expiration date, hostname, and presence of a root certificate authority. Supported only for <code>HTTP</code> and <code>HTTP_PROXY</code> integrations.</p>"
+        }
+      }
+    },
     "TooManyRequestsException":{
       "type":"structure",
       "members":{
@@ -6408,7 +6422,7 @@
       "members":{
         "resourceArn":{
           "shape":"String",
-          "documentation":"<p>[Required] The ARN of a resource that can be tagged. The resource ARN must be URL-encoded.</p>",
+          "documentation":"<p>[Required] The ARN of a resource that can be tagged.</p>",
           "location":"uri",
           "locationName":"resource_arn"
         },
@@ -7090,7 +7104,7 @@
         },
         "targetArns":{
           "shape":"ListOfString",
-          "documentation":"<p>The ARNs of network load balancers of the VPC targeted by the VPC link. The network load balancers must be owned by the same AWS account of the API owner.</p>"
+          "documentation":"<p>The ARN of the network load balancer of the VPC targeted by the VPC link. The network load balancer must be owned by the same AWS account of the API owner.</p>"
         },
         "status":{
           "shape":"VpcLinkStatus",
@@ -7105,7 +7119,7 @@
           "documentation":"<p>The collection of tags. Each tag element is associated with a given resource.</p>"
         }
       },
-      "documentation":"<p>A API Gateway VPC link for a <a>RestApi</a> to access resources in an Amazon Virtual Private Cloud (VPC).</p> <div class=\"remarks\"> <p><p>To enable access to a resource in an Amazon Virtual Private Cloud through Amazon API Gateway, you, as an API developer, create a <a>VpcLink</a> resource targeted for one or more network load balancers of the VPC and then integrate an API method with a private integration that uses the <a>VpcLink</a>. The private integration has an integration type of <code>HTTP</code> or <code>HTTP_PROXY</code> and has a connection type of <code>VPC_LINK</code>. The integration uses the <code>connectionId</code> property to identify the <a>VpcLink</a> used.</p> </p> </div>"
+      "documentation":"<p>An API Gateway VPC link for a <a>RestApi</a> to access resources in an Amazon Virtual Private Cloud (VPC).</p> <div class=\"remarks\"> <p><p>To enable access to a resource in an Amazon Virtual Private Cloud through Amazon API Gateway, you, as an API developer, create a <a>VpcLink</a> resource targeted for one or more network load balancers of the VPC and then integrate an API method with a private integration that uses the <a>VpcLink</a>. The private integration has an integration type of <code>HTTP</code> or <code>HTTP_PROXY</code> and has a connection type of <code>VPC_LINK</code>. The integration uses the <code>connectionId</code> property to identify the <a>VpcLink</a> used.</p> </p> </div>"
     },
     "VpcLinkStatus":{
       "type":"string",

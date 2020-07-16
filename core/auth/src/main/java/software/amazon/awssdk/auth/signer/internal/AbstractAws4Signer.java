@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -75,7 +76,14 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                       .filter(h -> h.equals("required"))
                       .ifPresent(h -> mutableRequest.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, contentSha256));
 
-        String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256, signingParams.doubleUrlEncode());
+        Map<String, List<String>> canonicalHeaders = canonicalizeSigningHeaders(mutableRequest.headers());
+        String signedHeadersString = getSignedHeadersString(canonicalHeaders);
+
+        String canonicalRequest = createCanonicalRequest(mutableRequest,
+                                                         canonicalHeaders,
+                                                         signedHeadersString,
+                                                         contentSha256,
+                                                         signingParams.doubleUrlEncode());
 
         String stringToSign = createStringToSign(canonicalRequest, requestParams);
 
@@ -84,7 +92,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         byte[] signature = computeSignature(stringToSign, signingKey);
 
         mutableRequest.putHeader(SignerConstant.AUTHORIZATION,
-                                 buildAuthorizationHeader(signature, sanitizedCredentials, requestParams, mutableRequest));
+                                 buildAuthorizationHeader(signature, sanitizedCredentials, requestParams, signedHeadersString));
 
         processRequestPayload(mutableRequest, signature, signingKey, requestParams, signingParams);
 
@@ -110,11 +118,16 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         }
 
         // Add the important parameters for v4 signing
-        addPreSignInformationToRequest(mutableRequest, sanitizedCredentials, requestParams, expirationInSeconds);
+        Map<String, List<String>> canonicalizedHeaders = canonicalizeSigningHeaders(mutableRequest.headers());
+        String signedHeadersString = getSignedHeadersString(canonicalizedHeaders);
+
+        addPreSignInformationToRequest(mutableRequest, signedHeadersString, sanitizedCredentials,
+                                       requestParams, expirationInSeconds);
 
         String contentSha256 = calculateContentHashPresign(mutableRequest, signingParams);
 
-        String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256, signingParams.doubleUrlEncode());
+        String canonicalRequest = createCanonicalRequest(mutableRequest, canonicalizedHeaders, signedHeadersString,
+                                                         contentSha256, signingParams.doubleUrlEncode());
 
         String stringToSign = createStringToSign(canonicalRequest, requestParams);
 
@@ -191,9 +204,10 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * generate the canonical request.
      */
     private String createCanonicalRequest(SdkHttpFullRequest.Builder request,
+                                          Map<String, List<String>> canonicalHeaders,
+                                          String signedHeadersString,
                                           String contentSha256,
                                           boolean doubleUrlEncode) {
-
         String canonicalRequest = request.method().toString() +
                                   SignerConstant.LINE_SEPARATOR +
                                   // This would optionally double url-encode the resource path
@@ -201,9 +215,9 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                   SignerConstant.LINE_SEPARATOR +
                                   getCanonicalizedQueryString(request.rawQueryParameters()) +
                                   SignerConstant.LINE_SEPARATOR +
-                                  getCanonicalizedHeaderString(request.headers()) +
+                                  getCanonicalizedHeaderString(canonicalHeaders) +
                                   SignerConstant.LINE_SEPARATOR +
-                                  getSignedHeadersString(request.headers()) +
+                                  signedHeadersString +
                                   SignerConstant.LINE_SEPARATOR +
                                   contentSha256;
 
@@ -254,12 +268,11 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     private String buildAuthorizationHeader(byte[] signature,
                                             AwsCredentials credentials,
                                             Aws4SignerRequestParams signerParams,
-                                            SdkHttpFullRequest.Builder mutableRequest) {
+                                            String signedHeadersString) {
 
         String signingCredentials = credentials.accessKeyId() + "/" + signerParams.getScope();
         String credential = "Credential=" + signingCredentials;
-        String signerHeaders = "SignedHeaders=" +
-                               getSignedHeadersString(mutableRequest.headers());
+        String signerHeaders = "SignedHeaders=" + signedHeadersString;
         String signatureHeader = "Signature=" + BinaryUtils.toHex(signature);
 
         return SignerConstant.AWS4_SIGNING_ALGORITHM + " " + credential + ", " + signerHeaders + ", " + signatureHeader;
@@ -269,6 +282,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * Includes all the signing headers as request parameters for pre-signing.
      */
     private void addPreSignInformationToRequest(SdkHttpFullRequest.Builder mutableRequest,
+                                                String signedHeadersString,
                                                 AwsCredentials sanitizedCredentials,
                                                 Aws4SignerRequestParams signerParams,
                                                 long expirationInSeconds) {
@@ -277,34 +291,39 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_DATE, signerParams.getFormattedRequestSigningDateTime());
-        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADER,
-                                            getSignedHeadersString(mutableRequest.headers()));
-        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES,
-                                            Long.toString(expirationInSeconds));
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADER, signedHeadersString);
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationInSeconds));
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
     }
 
+    private Map<String, List<String>> canonicalizeSigningHeaders(Map<String, List<String>> headers) {
+        Map<String, List<String>> result = new TreeMap<>();
 
-    private String getCanonicalizedHeaderString(Map<String, List<String>> headers) {
-        List<String> sortedHeaders = new ArrayList<>(headers.keySet());
-        sortedHeaders.sort(String.CASE_INSENSITIVE_ORDER);
-
-        StringBuilder buffer = new StringBuilder();
-        for (String header : sortedHeaders) {
-            if (shouldExcludeHeaderFromSigning(header)) {
+        for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+            String lowerCaseHeader = lowerCase(header.getKey());
+            if (LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE.contains(lowerCaseHeader)) {
                 continue;
             }
-            String key = lowerCase(header);
 
-            for (String headerValue : headers.get(header)) {
-                appendCompactedString(buffer, key);
+            result.computeIfAbsent(lowerCaseHeader, x -> new ArrayList<>()).addAll(header.getValue());
+        }
+
+        return result;
+    }
+
+    private String getCanonicalizedHeaderString(Map<String, List<String>> canonicalizedHeaders) {
+        StringBuilder buffer = new StringBuilder();
+
+        canonicalizedHeaders.forEach((headerName, headerValues) -> {
+            for (String headerValue : headerValues) {
+                appendCompactedString(buffer, headerName);
                 buffer.append(":");
                 if (headerValue != null) {
                     appendCompactedString(buffer, headerValue);
                 }
                 buffer.append("\n");
             }
-        }
+        });
 
         return buffer.toString();
     }
@@ -350,26 +369,15 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
     }
 
-    private String getSignedHeadersString(Map<String, List<String>> headers) {
-        List<String> sortedHeaders = new ArrayList<>(headers.keySet());
-        sortedHeaders.sort(String.CASE_INSENSITIVE_ORDER);
-
+    private String getSignedHeadersString(Map<String, List<String>> canonicalizedHeaders) {
         StringBuilder buffer = new StringBuilder();
-        for (String header : sortedHeaders) {
-            if (shouldExcludeHeaderFromSigning(header)) {
-                continue;
-            }
+        for (String header : canonicalizedHeaders.keySet()) {
             if (buffer.length() > 0) {
                 buffer.append(";");
             }
-            buffer.append(lowerCase(header));
+            buffer.append(header);
         }
-
         return buffer.toString();
-    }
-
-    private boolean shouldExcludeHeaderFromSigning(String header) {
-        return LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE.contains(lowerCase(header));
     }
 
     private void addHostHeader(SdkHttpFullRequest.Builder mutableRequest) {

@@ -23,7 +23,10 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +47,7 @@ public class QueryEnhancedRequestTest {
         assertThat(builtObject.limit(), is(nullValue()));
         assertThat(builtObject.queryConditional(), is(nullValue()));
         assertThat(builtObject.scanIndexForward(), is(nullValue()));
+        assertThat(builtObject.attributesToProject(), is(nullValue()));
     }
 
     @Test
@@ -60,6 +64,11 @@ public class QueryEnhancedRequestTest {
 
         QueryConditional queryConditional = keyEqualTo(k -> k.partitionValue("id-value"));
 
+        String[] attributesToProjectArray = {"one", "two"};
+        String additionalElement = "three";
+        List<String> attributesToProject = new ArrayList<>(Arrays.asList(attributesToProjectArray));
+        attributesToProject.add(additionalElement);
+
         QueryEnhancedRequest builtObject = QueryEnhancedRequest.builder()
                                                                .exclusiveStartKey(exclusiveStartKey)
                                                                .consistentRead(false)
@@ -67,6 +76,8 @@ public class QueryEnhancedRequestTest {
                                                                .limit(3)
                                                                .queryConditional(queryConditional)
                                                                .scanIndexForward(true)
+                                                               .attributesToProject(attributesToProjectArray)
+                                                               .addAttributeToProject(additionalElement)
                                                                .build();
 
         assertThat(builtObject.exclusiveStartKey(), is(exclusiveStartKey));
@@ -75,6 +86,7 @@ public class QueryEnhancedRequestTest {
         assertThat(builtObject.limit(), is(3));
         assertThat(builtObject.queryConditional(), is(queryConditional));
         assertThat(builtObject.scanIndexForward(), is(true));
+        assertThat(builtObject.attributesToProject(), is(attributesToProject));
     }
 
     @Test

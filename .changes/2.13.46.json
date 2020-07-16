@@ -1,0 +1,36 @@
+{
+    "version": "2.13.46",
+    "date": "2020-06-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "description": "Don't require Authorization for InitiateAuth and RespondToAuthChallenge."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "Added support for cross-region DataSource credentials copying."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "description": "This release contains miscellaneous API documentation updates for AWS DMS in response to several customer reported issues."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "description": "ListStackInstances and DescribeStackInstance now return a new `StackInstanceStatus` object that contains `DetailedStatus` values: a disambiguation of the more generic `Status` value. ListStackInstances output can now be filtered on `DetailedStatus` using the new `Filters` parameter."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "The new 'ModelClientConfig' parameter being added for CreateTransformJob and DescribeTransformJob api actions enable customers to configure model invocation related parameters such as timeout and retry."
+        }
+    ]
+}

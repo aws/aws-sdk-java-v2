@@ -1,0 +1,81 @@
+{
+    "version": "2.11.13",
+    "date": "2020-04-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Augmented AI Runtime",
+            "description": "This release updates Amazon Augmented AI ListHumanLoops and StartHumanLoop APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "AWS Elemental MediaConvert now allows you to specify your input captions frame rate for SCC captions sources."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "description": "Added a new BatchUpdateFindings action, which allows customers to update selected information about their findings. Security Hub customers use BatchUpdateFindings to track their investigation into a finding. BatchUpdateFindings is intended to replace the UpdateFindings action, which is deprecated."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Amazon EC2 now supports adding AWS resource tags for placement groups and key pairs, at creation time. The CreatePlacementGroup API will now return placement group information when created successfully. The DeleteKeyPair API now supports deletion by resource ID."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "This release adds support for querying GetUserDefinedFunctions API without databaseName."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "description": "AWS Elemental MediaTailor SDK now allows configuration of Avail Suppression."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "This release adds support for Amazon RDS Proxy with PostgreSQL compatibility."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "description": "This release includes support for additional OS Versions within EC2 Image Builder."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "description": "Sample code for AWS Lambda operations"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "Amazon SageMaker now supports running training jobs on ml.g4dn and ml.c5n instance types. Amazon SageMaker supports in \"IN\" operation for Search now."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Mark a connection as unreusable if there was a 5xx server error so that a new request will establish a new connection."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "description": "An update to the Snowball Edge Storage Optimized device has been launched. Like the previous version, it has 80 TB of capacity for data transfer. Now it has 40 vCPUs, 80 GiB, and a 1 TiB SATA SSD of memory for EC2 compatible compute. The 80 TB of capacity can also be used for EBS-like volumes for AMIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub",
+            "description": "Adding ThrottlingException"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "description": "API update that allows users to customize event action payloads, and adds support for Amazon DynamoDB actions."
+        }
+    ]
+}

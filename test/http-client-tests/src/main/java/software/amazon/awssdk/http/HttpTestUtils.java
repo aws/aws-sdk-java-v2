@@ -18,9 +18,16 @@ package software.amazon.awssdk.http;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import io.reactivex.Flowable;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.security.KeyStore;
+import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Publisher;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 public class HttpTestUtils {
     private HttpTestUtils() {
@@ -45,5 +52,37 @@ public class HttpTestUtils {
         }
 
         return keyStore;
+    }
+
+    public static CompletableFuture<Void> sendGetRequest(int serverPort, SdkAsyncHttpClient client) {
+        AsyncExecuteRequest req = AsyncExecuteRequest.builder()
+                .responseHandler(new SdkAsyncHttpResponseHandler() {
+                    private SdkHttpResponse headers;
+
+                    @Override
+                    public void onHeaders(SdkHttpResponse headers) {
+                        this.headers = headers;
+                    }
+
+                    @Override
+                    public void onStream(Publisher<ByteBuffer> stream) {
+                        Flowable.fromPublisher(stream).forEach(b -> {
+                        });
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                    }
+                })
+                .request(SdkHttpFullRequest.builder()
+                        .method(SdkHttpMethod.GET)
+                        .protocol("https")
+                        .host("localhost")
+                        .port(serverPort)
+                        .build())
+                .requestContentPublisher(new EmptyPublisher())
+                .build();
+
+        return client.execute(req);
     }
 }

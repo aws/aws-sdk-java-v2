@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongUnaryOperator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpStream;
@@ -64,14 +65,10 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      */
     public AwsCrtResponseBodyPublisher(HttpClientConnection connection, HttpStream stream,
                                        CompletableFuture<Void> responseComplete, int windowSize) {
-        Validate.notNull(connection, "HttpConnection must not be null");
-        Validate.notNull(stream, "Stream must not be null");
-        Validate.notNull(responseComplete, "Stream must not be null");
-        Validate.isPositive(windowSize, "windowSize must be > 0");
-        this.connection = connection;
-        this.stream = stream;
-        this.responseComplete = responseComplete;
-        this.windowSize = windowSize;
+        this.connection = Validate.notNull(connection, "HttpConnection must not be null");
+        this.stream = Validate.notNull(stream, "Stream must not be null");
+        this.responseComplete = Validate.notNull(responseComplete, "ResponseComplete future must not be null");
+        this.windowSize = Validate.isPositive(windowSize, "windowSize must be > 0");
     }
 
     /**
@@ -86,11 +83,23 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
 
         if (!wasFirstSubscriber) {
             log.error(() -> "Only one subscriber allowed");
-            subscriber.onError(new IllegalStateException("Only one subscriber allowed"));
-            return;
-        }
 
-        subscriber.onSubscribe(new AwsCrtResponseBodySubscription(this));
+            // onSubscribe must be called first before onError gets called, so give it a do-nothing Subscription
+            subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long n) {
+                    // This is a dummy implementation to allow the onError call
+                }
+
+                @Override
+                public void cancel() {
+                    // This is a dummy implementation to allow the onError call
+                }
+            });
+            subscriber.onError(new IllegalStateException("Only one subscriber allowed"));
+        } else {
+            subscriber.onSubscribe(new AwsCrtResponseBodySubscription(this));
+        }
     }
 
     /**
@@ -185,7 +194,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         }
 
         // Subscriber may have cancelled their subscription, in which case this may be null.
-        Optional<Subscriber> subscriber = Optional.ofNullable(subscriberRef.getAndSet(null));
+        Optional<Subscriber<? super ByteBuffer>> subscriber = Optional.ofNullable(subscriberRef.getAndSet(null));
 
         Throwable throwable = error.get();
 
@@ -195,11 +204,19 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         // Complete the Futures
         if (throwable != null) {
             log.error(() -> "Error before ResponseBodyPublisher could complete: " + throwable.getMessage());
-            subscriber.ifPresent(s -> s.onError(throwable));
+            try {
+                subscriber.ifPresent(s -> s.onError(throwable));
+            } catch (Exception e) {
+                log.warn(() -> "Failed to exceptionally complete subscriber future with: " + throwable.getMessage());
+            }
             responseComplete.completeExceptionally(throwable);
         } else {
             log.debug(() -> "ResponseBodyPublisher Completed Successfully");
-            subscriber.ifPresent(s -> s.onComplete());
+            try {
+                subscriber.ifPresent(Subscriber::onComplete);
+            } catch (Exception e) {
+                log.warn(() -> "Failed to successfully complete subscriber future");
+            }
             responseComplete.complete(null);
         }
     }
@@ -213,49 +230,54 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * calling queuedBuffers.poll(), but then have the 2nd thread call subscriber.onNext(buffer) first, resulting in the
      * subscriber seeing out-of-order data. To avoid this race condition, this method must be synchronized.
      */
-    protected synchronized void publishToSubscribers() {
-        if (error.get() != null) {
-            completeSubscriptionExactlyOnce();
-            return;
-        }
+    protected void publishToSubscribers() {
+        boolean shouldComplete = true;
+        synchronized (this) {
+            if (error.get() == null) {
+                if (isSubscriptionComplete.get() || isCancelled.get()) {
+                    log.debug(() -> "Subscription already completed or cancelled, can't publish updates to Subscribers.");
+                    return;
+                }
 
-        if (isSubscriptionComplete.get() || isCancelled.get()) {
-            log.warn(() -> "Subscription already completed or cancelled, can't publish updates to Subscribers.");
-            return;
-        }
+                if (mutualRecursionDepth.get() > 0) {
+                    /**
+                     * If our depth is > 0, then we already made a call to publishToSubscribers() further up the stack that
+                     * will continue publishing to subscribers, and this call should return without completing work to avoid
+                     * infinite recursive loop between: "subscription.request() -> subscriber.onNext() -> subscription.request()"
+                     */
+                    return;
+                }
 
-        if (mutualRecursionDepth.get() > 0) {
-            /**
-             * If our depth is > 0, then we already made a call to publishToSubscribers() further up the stack that
-             * will continue publishing to subscribers, and this call should return without completing work to avoid
-             * infinite recursive loop between: "subscription.request() -> subscriber.onNext() -> subscription.request()"
-             */
-            return;
-        }
+                int totalAmountTransferred = 0;
 
-        int totalAmountTransferred = 0;
+                while (outstandingRequests.get() > 0 && !queuedBuffers.isEmpty()) {
+                    byte[] buffer = queuedBuffers.poll();
+                    outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
+                    int amount = buffer.length;
+                    publishWithoutMutualRecursion(subscriberRef.get(), ByteBuffer.wrap(buffer));
+                    totalAmountTransferred += amount;
+                }
 
-        while (outstandingRequests.get() > 0 && queuedBuffers.size() > 0) {
-            byte[] buffer = queuedBuffers.poll();
-            outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
-            int amount = buffer.length;
-            publishWithoutMutualRecursion(subscriberRef.get(), ByteBuffer.wrap(buffer));
-            totalAmountTransferred += amount;
-        }
+                if (totalAmountTransferred > 0) {
+                    queuedBytes.addAndGet(-totalAmountTransferred);
 
-        if (totalAmountTransferred > 0) {
-            queuedBytes.addAndGet(-totalAmountTransferred);
+                    // We may have released the Native HttpConnection and HttpStream if they completed before the Subscriber
+                    // has finished reading the data.
+                    if (!areNativeResourcesReleased.get()) {
+                        // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
+                        // This is why it is correct to return 0 from AwsCrtAsyncHttpStreamAdapter::onResponseBody
+                        stream.incrementWindow(totalAmountTransferred);
+                    }
+                }
 
-            // We may have released the Native HttpConnection and HttpStream if they completed before the Subscriber
-            // has finished reading the data.
-            if (!areNativeResourcesReleased.get()) {
-                // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
-                stream.incrementWindow(totalAmountTransferred);
+                shouldComplete = queueComplete.get() && queuedBuffers.isEmpty();
+            } else {
+                shouldComplete = true;
             }
         }
 
         // Check if Complete, consider no subscriber as a completion.
-        if (queueComplete.get() && queuedBuffers.size() == 0) {
+        if (shouldComplete) {
             completeSubscriptionExactlyOnce();
         }
     }
@@ -279,6 +301,32 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             }
         } finally {
             mutualRecursionDepth.decrementAndGet();
+        }
+    }
+
+    static class AwsCrtResponseBodySubscription implements Subscription {
+        private final AwsCrtResponseBodyPublisher publisher;
+
+        AwsCrtResponseBodySubscription(AwsCrtResponseBodyPublisher publisher) {
+            this.publisher = publisher;
+        }
+
+        @Override
+        public void request(long n) {
+            if (n <= 0) {
+                // Reactive Stream Spec requires us to call onError() callback instead of throwing Exception here.
+                publisher.setError(new IllegalArgumentException("Request is for <= 0 elements: " + n));
+                publisher.publishToSubscribers();
+                return;
+            }
+
+            publisher.request(n);
+            publisher.publishToSubscribers();
+        }
+
+        @Override
+        public void cancel() {
+            publisher.setCancelled();
         }
     }
 

@@ -22,6 +22,7 @@ import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 
 /**
@@ -29,15 +30,32 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
  * a {@link BeanTableSchema} must have this annotation. If a class is used as a document within another DynamoDbBean,
  * it will also require this annotation.
  * <p>
+ * <b>Attribute Converter Providers</b><br>
  * Using {@link AttributeConverterProvider}s is optional and, if used, the supplied provider supersedes the default
- * converter provided by the table schema. The converter must provide {@link AttributeConverter}s for all types used
- * in the schema. The table schema default AttributeConverterProvider provides standard converters for most primitive
- * and common Java types. Use custom AttributeConverterProviders when you have specific needs for type conversion
- * that the defaults do not cover.
+ * converter provided by the table schema.
+ * <p>
+ * Note:
+ * <ul>
+ *     <li>The converter(s) must provide {@link AttributeConverter}s for all types used in the schema. </li>
+ *     <li>The table schema DefaultAttributeConverterProvider provides standard converters for most primitive
+ *     and common Java types. Use custom AttributeConverterProviders when you have specific needs for type conversion
+ *     that the defaults do not cover.</li>
+ *     <li>If you provide a list of attribute converter providers, you can add DefaultAttributeConverterProvider
+ *     to the end of the list to fall back on the defaults.</li>
+ *     <li>Providing an empty list {} will cause no providers to get loaded.</li>
+ * </ul>
+ *
+ * Example using attribute converter providers with one custom provider and the default provider:
+ * <pre>
+ * {@code
+ * (converterProviders = {CustomAttributeConverter.class, DefaultAttributeConverterProvider.class});
+ * }
+ * </pre>
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @SdkPublicApi
 public @interface DynamoDbBean {
-    Class<? extends AttributeConverterProvider>[] converterProviders() default {};
+    Class<? extends AttributeConverterProvider>[] converterProviders()
+            default { DefaultAttributeConverterProvider.class };
 }

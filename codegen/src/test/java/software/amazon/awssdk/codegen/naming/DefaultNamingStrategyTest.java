@@ -250,6 +250,8 @@ public class DefaultNamingStrategyTest {
 
     @Test
     public void modelNameShouldHavePascalCase() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getServiceId()).thenReturn("UnitTestService");
         assertThat(strat.getRequestClassName("CAPSTest")).isEqualTo("CapsTestRequest");
         assertThat(strat.getExceptionName("CAPSTest")).isEqualTo("CapsTestException");
         assertThat(strat.getResponseClassName("CAPSTest")).isEqualTo("CapsTestResponse");

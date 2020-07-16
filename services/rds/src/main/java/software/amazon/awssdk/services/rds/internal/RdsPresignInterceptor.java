@@ -21,9 +21,9 @@ import java.net.URI;
 import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
-import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -103,16 +103,10 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
             return request;
         }
 
-        String destinationRegion =
-                AwsHostNameUtils.parseSigningRegion(request.host(), SERVICE_NAME)
-                                .orElseThrow(() -> new IllegalArgumentException("Could not determine region for " +
-                                                                                request.host()))
-                                .id();
+        String destinationRegion = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id();
 
         URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME);
-        SdkHttpFullRequest.Builder marshalledRequest = presignableRequest.marshall()
-                                                                         .toBuilder()
-                                                                         .uri(endpoint);
+        SdkHttpFullRequest.Builder marshalledRequest = presignableRequest.marshall().toBuilder().uri(endpoint);
 
         SdkHttpFullRequest requestToPresign =
                 marshalledRequest.method(SdkHttpMethod.GET)

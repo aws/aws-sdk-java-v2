@@ -24,7 +24,8 @@
         {"shape":"BadRequestException"},
         {"shape":"LimitExceededException"},
         {"shape":"InternalFailureException"},
-        {"shape":"ConflictException"}
+        {"shape":"ConflictException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Starts a bidirectional HTTP2 stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application.</p> <p>The following are encoded as HTTP2 headers:</p> <ul> <li> <p>x-amzn-transcribe-language-code</p> </li> <li> <p>x-amzn-transcribe-media-encoding</p> </li> <li> <p>x-amzn-transcribe-sample-rate</p> </li> <li> <p>x-amzn-transcribe-session-id</p> </li> </ul>"
     }
@@ -120,6 +121,10 @@
         "Content":{
           "shape":"String",
           "documentation":"<p>The word or punctuation that was recognized in the input audio.</p>"
+        },
+        "VocabularyFilterMatch":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether a word in the item matches a word in the vocabulary filter you've chosen for your real-time stream. If <code>true</code> then a word in the item matches your vocabulary filter.</p>"
         }
       },
       "documentation":"<p>A word or phrase transcribed from the input audio.</p>"
@@ -195,6 +200,15 @@
       "type":"list",
       "member":{"shape":"Result"}
     },
+    "ServiceUnavailableException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>Service is currently unavailable. Try your request later.</p>",
+      "error":{"httpStatusCode":503},
+      "exception":true
+    },
     "SessionId":{
       "type":"string",
       "pattern":"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
@@ -241,6 +255,18 @@
         "AudioStream":{
           "shape":"AudioStream",
           "documentation":"<p>PCM-encoded stream of audio blobs. The audio stream is encoded as an HTTP2 data frame.</p>"
+        },
+        "VocabularyFilterName":{
+          "shape":"VocabularyFilterName",
+          "documentation":"<p>The name of the vocabulary filter you've created that is unique to your AWS accountf. Provide the name in this field to successfully use it in a stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-name"
+        },
+        "VocabularyFilterMethod":{
+          "shape":"VocabularyFilterMethod",
+          "documentation":"<p>The manner in which you use your vocabulary filter to filter words in your transcript. <code>Remove</code> removes filtered words from your transcription results. <code>Mask</code> masks those words with a <code>***</code> in your transcription results. <code>Tag</code> keeps the filtered words in your transcription results and tags them. The tag appears as <code>VocabularyFilterMatch</code> equal to <code>True</code> </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-method"
         }
       },
       "payload":"AudioStream"
@@ -274,7 +300,7 @@
         },
         "VocabularyName":{
           "shape":"VocabularyName",
-          "documentation":"<p>The name of the vocabulary used when processing the job.</p>",
+          "documentation":"<p>The name of the vocabulary used when processing the stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-name"
         },
@@ -287,6 +313,18 @@
         "TranscriptResultStream":{
           "shape":"TranscriptResultStream",
           "documentation":"<p>Represents the stream of transcription events from Amazon Transcribe to your application.</p>"
+        },
+        "VocabularyFilterName":{
+          "shape":"VocabularyFilterName",
+          "documentation":"<p>The name of the vocabulary filter used in your real-time stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-name"
+        },
+        "VocabularyFilterMethod":{
+          "shape":"VocabularyFilterMethod",
+          "documentation":"<p>The vocabulary filtering method used in the real-time stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-method"
         }
       },
       "payload":"TranscriptResultStream"
@@ -335,10 +373,28 @@
         "ConflictException":{
           "shape":"ConflictException",
           "documentation":"<p>A new stream started with the same session ID. The current stream has been terminated.</p>"
+        },
+        "ServiceUnavailableException":{
+          "shape":"ServiceUnavailableException",
+          "documentation":"<p>Service is currently unavailable. Try your request later.</p>"
         }
       },
       "documentation":"<p>Represents the transcription result stream from Amazon Transcribe to your application.</p>",
       "eventstream":true
+    },
+    "VocabularyFilterMethod":{
+      "type":"string",
+      "enum":[
+        "remove",
+        "mask",
+        "tag"
+      ]
+    },
+    "VocabularyFilterName":{
+      "type":"string",
+      "max":200,
+      "min":1,
+      "pattern":"^[0-9a-zA-Z._-]+"
     },
     "VocabularyName":{
       "type":"string",

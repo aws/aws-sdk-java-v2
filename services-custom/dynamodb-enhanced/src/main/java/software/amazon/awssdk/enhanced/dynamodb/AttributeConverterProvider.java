@@ -16,7 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DefaultAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProviderResolver;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -40,6 +40,6 @@ public interface AttributeConverterProvider {
      * standard Java type converters included.
      */
     static AttributeConverterProvider defaultProvider() {
-        return DefaultAttributeConverterProvider.create();
+        return ConverterProviderResolver.defaultConverterProvider();
     }
 }

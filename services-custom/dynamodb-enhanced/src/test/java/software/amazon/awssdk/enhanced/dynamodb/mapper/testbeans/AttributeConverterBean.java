@@ -61,12 +61,13 @@ public class AttributeConverterBean {
         if (o == null || getClass() != o.getClass()) return false;
         AttributeConverterBean that = (AttributeConverterBean) o;
         return Objects.equals(id, that.id) &&
-            Objects.equals(integerAttribute, that.integerAttribute);
+                Objects.equals(integerAttribute, that.integerAttribute) &&
+                Objects.equals(attributeItem, that.attributeItem);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, integerAttribute);
+        return Objects.hash(id, integerAttribute, attributeItem);
     }
 
     public static class CustomAttributeConverter implements AttributeConverter<AttributeItem> {
@@ -76,12 +77,12 @@ public class AttributeConverterBean {
 
         @Override
         public AttributeValue transformFrom(AttributeItem input) {
-            return EnhancedAttributeValue.fromString(input.innerValue).toAttributeValue();
+            return EnhancedAttributeValue.fromString(input.getInnerValue()).toAttributeValue();
         }
 
         @Override
         public AttributeItem transformTo(AttributeValue input) {
-            return null;
+            return new AttributeItem(input.s());
         }
 
         @Override
@@ -96,7 +97,14 @@ public class AttributeConverterBean {
     }
 
     public static class AttributeItem {
-        String innerValue;
+        private String innerValue;
+
+        public AttributeItem() {
+        }
+
+        AttributeItem(String value) {
+            innerValue = value;
+        }
 
         public String getInnerValue() {
             return innerValue;
@@ -104,6 +112,19 @@ public class AttributeConverterBean {
 
         public void setInnerValue(String innerValue) {
             this.innerValue = innerValue;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            AttributeItem that = (AttributeItem) o;
+            return Objects.equals(innerValue, that.innerValue);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(innerValue);
         }
     }
 }

@@ -15,38 +15,20 @@
 
 package software.amazon.awssdk.benchmark.apicall.httpclient.async;
 
-import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.CONCURRENT_CALLS;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.awaitCountdownLatchUninterruptibly;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.countDownUponCompletion;
-
-import java.util.Collection;
-import java.util.concurrent.CountDownLatch;
+import java.net.URI;
 import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OperationsPerInvocation;
 import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.profile.StackProfiler;
-import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockServer;
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
-import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 
 /**
  * Using aws-crt-client to test against local mock https server.
@@ -56,66 +38,11 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class AwsCrtClientNonTlsBenchmark implements SdkHttpClientBenchmark {
-
-    private MockServer mockServer;
-    private SdkAsyncHttpClient sdkHttpClient;
-    private ProtocolRestJsonAsyncClient client;
-    private EventLoopGroup eventLoopGroup;
-    private HostResolver hostResolver;
-
-    @Setup(Level.Trial)
-    public void setup() throws Exception {
-        mockServer = new MockServer();
-        mockServer.start();
-
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        eventLoopGroup = new EventLoopGroup(numThreads);
-        hostResolver = new HostResolver(eventLoopGroup);
-
-        sdkHttpClient = AwsCrtAsyncHttpClient.builder()
-                .verifyPeer(false)
-                .eventLoopGroup(eventLoopGroup)
-                .hostResolver(hostResolver)
-                .build();
-
-        client = ProtocolRestJsonAsyncClient.builder()
-                .endpointOverride(mockServer.getHttpUri())
-                .httpClient(sdkHttpClient)
-                .build();
-
-        // Making sure the request actually succeeds
-        client.allTypes().join();
-    }
-
-    @TearDown(Level.Trial)
-    public void tearDown() throws Exception {
-        mockServer.stop();
-        client.close();
-        sdkHttpClient.close();
-        hostResolver.close();
-        eventLoopGroup.close();
-    }
+public class AwsCrtClientNonTlsBenchmark extends BaseCrtBenchmark {
 
     @Override
-    @Benchmark
-    @OperationsPerInvocation(CONCURRENT_CALLS)
-    public void concurrentApiCall(Blackhole blackhole) {
-        CountDownLatch countDownLatch = new CountDownLatch(CONCURRENT_CALLS);
-        for (int i = 0; i < CONCURRENT_CALLS; i++) {
-            countDownUponCompletion(blackhole, client.allTypes(), countDownLatch);
-        }
-
-        awaitCountdownLatchUninterruptibly(countDownLatch, 10, TimeUnit.SECONDS);
-
-    }
-
-    @Override
-    @Benchmark
-    public void sequentialApiCall(Blackhole blackhole) {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        countDownUponCompletion(blackhole, client.allTypes(), countDownLatch);
-        awaitCountdownLatchUninterruptibly(countDownLatch, 1, TimeUnit.SECONDS);
+    protected URI getEndpointOverride(MockServer mock) {
+        return mock.getHttpUri();
     }
 
     public static void main(String... args) throws Exception {
@@ -123,6 +50,6 @@ public class AwsCrtClientNonTlsBenchmark implements SdkHttpClientBenchmark {
                 .include(AwsCrtClientNonTlsBenchmark.class.getSimpleName())
                 .addProfiler(StackProfiler.class)
                 .build();
-        Collection<RunResult> run = new Runner(opt).run();
+        new Runner(opt).run();
     }
 }

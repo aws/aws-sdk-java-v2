@@ -57,29 +57,30 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 /**
  * Implementation of {@link TableSchema} that builds a table schema based on properties and annotations of a bean
  * class. Example:
- * {@code
- * @literal @DynamoDbBean
+ * <pre>
+ * <code>
+ * {@literal @}DynamoDbBean
  * public class CustomerAccount {
  *     private String unencryptedBillingKey;
  *
- *     @literal @DynamoDbPartitionKey
- *     @literal @DynamoDbSecondarySortKey(indexName = "accounts_by_customer")
+ *     {@literal @}DynamoDbPartitionKey
+ *     {@literal @}DynamoDbSecondarySortKey(indexName = "accounts_by_customer")
  *     public String accountId;
  *
- *     @literal @DynamoDbSortKey
- *     @literal @DynamoDbSecondaryPartitionKey(indexName = "accounts_by_customer")
+ *     {@literal @}DynamoDbSortKey
+ *     {@literal @}DynamoDbSecondaryPartitionKey(indexName = "accounts_by_customer")
  *     public String customerId;
  *
- *     @literal @DynamoDbAttribute("account_status")
+ *     {@literal @}DynamoDbAttribute("account_status")
  *     public CustomerAccountStatus status;
  *
- *     @literal @DynamoDbFlatten(dynamoDbBeanClass = Customer.class)
+ *     {@literal @}DynamoDbFlatten(dynamoDbBeanClass = Customer.class)
  *     public Customer customer;
  *
  *     public Instant createdOn;
  *
  *     // All public fields must be opted out to not participate in mapping
- *     @literal @DynamoDbIgnore
+ *     {@literal @}DynamoDbIgnore
  *     public String internalKey;
  *
  *     public enum CustomerAccountStatus {
@@ -87,14 +88,15 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *         CLOSED
  *     }
  * }
- *
- * @literal @DynamoDbBean
+ * </code>
+ * {@literal @}DynamoDbBean
  * public class Customer {
  *     public String name;
  *
- *     public List<String> address;
+ *     {@literal public List<String> address;}
  * }
  * }
+ * </pre>
  * @param <T> The type of object that this {@link TableSchema} maps to.
  */
 @SdkPublicApi
@@ -192,15 +194,14 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
                                                                 .newItemSupplier(newObjectSupplier);
 
-        Optional<AttributeConverterProvider> attributeConverterProvider = converterProviderAnnotation(dynamoDbBean);
-        attributeConverterProvider.ifPresent(builder::attributeConverterProvider);
+        builder.attributeConverterProviders(createConverterProvidersFromAnnotation(dynamoDbBean));
 
         List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
 
         Arrays.stream(beanInfo.getPropertyDescriptors())
               .filter(BeanTableSchema::isMappableProperty)
               .forEach(propertyDescriptor -> {
-                  DynamoDbFlatten dynamoDbFlatten = propertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
+                  DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
                   if (dynamoDbFlatten != null) {
                       builder.flatten(createStaticTableSchema(dynamoDbFlatten.dynamoDbBeanClass()),
@@ -210,7 +211,8 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                       StaticAttribute.Builder<T, ?> attributeBuilder =
                           staticAttributeBuilder(propertyDescriptor, beanClass);
 
-                      Optional<AttributeConverter> attributeConverter = attributeConverterAnnotation(propertyDescriptor);
+                      Optional<AttributeConverter> attributeConverter =
+                              createAttributeConverterFromAnnotation(propertyDescriptor);
                       attributeConverter.ifPresent(attributeBuilder::attributeConverter);
 
                       addTagsToAttribute(attributeBuilder, propertyDescriptor);
@@ -223,12 +225,12 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         return builder.build();
     }
 
-    private static Optional<AttributeConverterProvider> converterProviderAnnotation(DynamoDbBean dynamoDbBean) {
-        Class<?>[] converterClasses = dynamoDbBean.converterProviders();
-        //TODO: temporary solution to pick one AttributeConverterProvider.
-        return converterClasses.length > 0 ?
-               Optional.of((AttributeConverterProvider) newObjectSupplierForClass(converterClasses[0]).get()) :
-               Optional.empty();
+    private static List<AttributeConverterProvider> createConverterProvidersFromAnnotation(DynamoDbBean dynamoDbBean) {
+        Class<? extends AttributeConverterProvider>[] providerClasses = dynamoDbBean.converterProviders();
+
+        return Arrays.stream(providerClasses)
+                .map(c -> (AttributeConverterProvider) newObjectSupplierForClass(c).get())
+                .collect(Collectors.toList());
     }
 
     private static <T> StaticAttribute.Builder<T, ?> staticAttributeBuilder(PropertyDescriptor propertyDescriptor,
@@ -283,16 +285,19 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         return EnhancedType.of(type);
     }
 
-    private static Optional<AttributeConverter> attributeConverterAnnotation(PropertyDescriptor propertyDescriptor) {
-        DynamoDbConvertedBy attributeConverterBean = propertyAnnotation(propertyDescriptor, DynamoDbConvertedBy.class);
+    private static Optional<AttributeConverter> createAttributeConverterFromAnnotation(
+            PropertyDescriptor propertyDescriptor) {
+        DynamoDbConvertedBy attributeConverterBean =
+                getPropertyAnnotation(propertyDescriptor, DynamoDbConvertedBy.class);
         Optional<Class<?>> optionalClass = Optional.ofNullable(attributeConverterBean)
                                                    .map(DynamoDbConvertedBy::value);
         return optionalClass.map(clazz -> (AttributeConverter) newObjectSupplierForClass(clazz).get());
     }
 
     /**
-     * This method scans all the annotations on a property and looks for a meta-annotation of {@link BeanTableSchemaAttributeTag}.
-     * If the meta-annotation is found, it attempts to create an annotation tag based on a standard named static method
+     * This method scans all the annotations on a property and looks for a meta-annotation of
+     * {@link BeanTableSchemaAttributeTag}. If the meta-annotation is found, it attempts to create
+     * an annotation tag based on a standard named static method
      * of the class that tag has been annotated with passing in the original property annotation as an argument.
      */
     private static void addTagsToAttribute(StaticAttribute.Builder<?, ?> attributeBuilder,
@@ -359,7 +364,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
     }
 
     private static String attributeNameForProperty(PropertyDescriptor propertyDescriptor) {
-        DynamoDbAttribute dynamoDbAttribute = propertyAnnotation(propertyDescriptor, DynamoDbAttribute.class);
+        DynamoDbAttribute dynamoDbAttribute = getPropertyAnnotation(propertyDescriptor, DynamoDbAttribute.class);
         if (dynamoDbAttribute != null) {
             return dynamoDbAttribute.value();
         }
@@ -370,11 +375,11 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
     private static boolean isMappableProperty(PropertyDescriptor propertyDescriptor) {
         return propertyDescriptor.getReadMethod() != null
             && propertyDescriptor.getWriteMethod() != null
-            && propertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) == null;
+            && getPropertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) == null;
     }
 
-    private static <R extends Annotation> R propertyAnnotation(PropertyDescriptor propertyDescriptor,
-                                                               Class<R> annotationType) {
+    private static <R extends Annotation> R getPropertyAnnotation(PropertyDescriptor propertyDescriptor,
+                                                                  Class<R> annotationType) {
         R getterAnnotation = propertyDescriptor.getReadMethod().getAnnotation(annotationType);
         R setterAnnotation = propertyDescriptor.getWriteMethod().getAnnotation(annotationType);
 

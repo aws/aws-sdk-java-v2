@@ -22,9 +22,11 @@ import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.utils.Logger;
@@ -47,15 +49,10 @@ public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, 
 
     public AwsCrtAsyncHttpStreamAdapter(HttpClientConnection connection, CompletableFuture<Void> responseComplete,
                                         AsyncExecuteRequest sdkRequest, int windowSize) {
-        Validate.notNull(connection, "HttpConnection is null");
-        Validate.notNull(responseComplete, "reqComplete Future is null");
-        Validate.notNull(sdkRequest, "AsyncExecuteRequest Future is null");
-        Validate.isPositive(windowSize, "windowSize is <= 0");
-
-        this.connection = connection;
-        this.responseComplete = responseComplete;
-        this.sdkRequest = sdkRequest;
-        this.windowSize = windowSize;
+        this.connection = Validate.notNull(connection, "HttpConnection is null");
+        this.responseComplete = Validate.notNull(responseComplete, "reqComplete Future is null");
+        this.sdkRequest = Validate.notNull(sdkRequest, "AsyncExecuteRequest Future is null");
+        this.windowSize = Validate.isPositive(windowSize, "windowSize is <= 0");
         this.requestBodySubscriber = new AwsCrtRequestBodySubscriber(windowSize);
 
         sdkRequest.requestContentPublisher().subscribe(requestBodySubscriber);
@@ -71,8 +68,6 @@ public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, 
     public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType, HttpHeader[] nextHeaders) {
         initRespBodyPublisherIfNeeded(stream);
 
-        respBuilder.statusCode(responseStatusCode);
-
         for (HttpHeader h : nextHeaders) {
             respBuilder.appendHeader(h.getName(), h.getValue());
         }
@@ -80,31 +75,38 @@ public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, 
 
     @Override
     public void onResponseHeadersDone(HttpStream stream, int headerType) {
-        initRespBodyPublisherIfNeeded(stream);
+        if (headerType == HttpHeaderBlock.MAIN.getValue()) {
+            initRespBodyPublisherIfNeeded(stream);
 
-        respBuilder.statusCode(stream.getResponseStatusCode());
-        sdkRequest.responseHandler().onHeaders(respBuilder.build());
-        sdkRequest.responseHandler().onStream(respBodyPublisher);
+            respBuilder.statusCode(stream.getResponseStatusCode());
+            sdkRequest.responseHandler().onHeaders(respBuilder.build());
+            sdkRequest.responseHandler().onStream(respBodyPublisher);
+        }
     }
 
     @Override
     public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
         initRespBodyPublisherIfNeeded(stream);
 
-        if (respBodyPublisher == null) {
-            log.error(() -> "Publisher is null, onResponseHeadersDone() was never called");
-            throw new IllegalStateException("Publisher is null, onResponseHeadersDone() was never called");
-        }
-
         respBodyPublisher.queueBuffer(bodyBytesIn);
         respBodyPublisher.publishToSubscribers();
 
+        /*
+         * Intentionally zero. We manually manage the crt stream's window within the body publisher by updating with
+         * the exact amount we were able to push to the subcriber.
+         *
+         * See the call to stream.incrementWindow() in AwsCrtResponseBodyPublisher.
+         */
         return 0;
     }
 
     @Override
     public void onResponseComplete(HttpStream stream, int errorCode) {
         initRespBodyPublisherIfNeeded(stream);
+
+        if (HttpStatusFamily.of(respBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
+            connection.shutdown();
+        }
 
         if (errorCode == CRT.AWS_CRT_SUCCESS) {
             log.debug(() -> "Response Completed Successfully");
@@ -115,7 +117,12 @@ public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, 
             log.error(() -> "Response Encountered an Error.", error);
 
             // Invoke Error Callback on SdkAsyncHttpResponseHandler
-            sdkRequest.responseHandler().onError(error);
+            try {
+                sdkRequest.responseHandler().onError(error);
+            } catch (Exception e) {
+                log.error(() -> String.format("SdkAsyncHttpResponseHandler %s threw an exception in onError: %s",
+                        sdkRequest.responseHandler(), e));
+            }
 
             // Invoke Error Callback on any Subscriber's of the Response Body
             respBodyPublisher.setError(error);

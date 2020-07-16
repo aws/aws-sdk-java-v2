@@ -44,9 +44,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterNoConstructorBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ConverterBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ConverterNoConstructorBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DocumentBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterProvidersInvalidBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterProvidersValidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EnumBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ExtendedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBean;
@@ -54,6 +54,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttribut
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MapBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MultipleConverterProvidersBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NoConstructorConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedAbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedDocumentBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.PrimitiveTypesBean;
@@ -62,6 +64,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SecondaryIndexB
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SetBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SetterAnnotatedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SingleConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SortKeyBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -866,29 +869,10 @@ public class BeanTableSchemaTest {
     }
 
     @Test
-    public void usesCustomAttributeConverterProvider() {
-        BeanTableSchema<ConverterBean> beanTableSchema = BeanTableSchema.create(ConverterBean.class);
-
-        ConverterBean converterBean = new ConverterBean();
-        converterBean.setId("id-value");
-        converterBean.setIntegerAttribute(123);
-
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
-
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
-        assertThat(itemMap, hasEntry("integerAttribute", numberValue(133)));
-
-        ConverterBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse.getId(), is(equalTo("id-value-custom")));
-        assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
-    }
-
-    @Test
-    public void converterProviderWithoutConstructor_throwsIllegalArgumentException() {
+    public void attributeConverterWithoutConstructor_throwsIllegalArgumentException() {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("default constructor");
-        BeanTableSchema.create(ConverterNoConstructorBean.class);
+        BeanTableSchema.create(AttributeConverterNoConstructorBean.class);
     }
 
     @Test
@@ -915,9 +899,74 @@ public class BeanTableSchemaTest {
     }
 
     @Test
-    public void attributeConverterWithoutConstructor_throwsIllegalArgumentException() {
+    public void converterProviderWithoutConstructor_throwsIllegalArgumentException() {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("default constructor");
-        BeanTableSchema.create(AttributeConverterNoConstructorBean.class);
+        BeanTableSchema.create(NoConstructorConverterProvidersBean.class);
+    }
+
+    @Test
+    public void usesCustomAttributeConverterProvider() {
+        BeanTableSchema<SingleConverterProvidersBean> beanTableSchema = BeanTableSchema.create(SingleConverterProvidersBean.class);
+
+        SingleConverterProvidersBean converterBean = new SingleConverterProvidersBean();
+        converterBean.setId("id-value");
+        converterBean.setIntegerAttribute(123);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
+
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
+        assertThat(itemMap, hasEntry("integerAttribute", numberValue(133)));
+
+        SingleConverterProvidersBean reverse = beanTableSchema.mapToItem(itemMap);
+        assertThat(reverse.getId(), is(equalTo("id-value-custom")));
+        assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
+    }
+
+    @Test
+    public void usesCustomAttributeConverterProviders() {
+        BeanTableSchema<MultipleConverterProvidersBean> beanTableSchema =
+                BeanTableSchema.create(MultipleConverterProvidersBean.class);
+
+        MultipleConverterProvidersBean converterBean = new MultipleConverterProvidersBean();
+        converterBean.setId("id-value");
+        converterBean.setIntegerAttribute(123);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
+
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
+        assertThat(itemMap, hasEntry("integerAttribute", numberValue(133)));
+
+        MultipleConverterProvidersBean reverse = beanTableSchema.mapToItem(itemMap);
+        assertThat(reverse.getId(), is(equalTo("id-value-custom")));
+        assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
+    }
+
+    @Test
+    public void emptyConverterProviderList_fails_whenAttributeConvertersAreMissing() {
+        exception.expect(NullPointerException.class);
+        BeanTableSchema.create(EmptyConverterProvidersInvalidBean.class);
+    }
+
+    @Test
+    public void emptyConverterProviderList_correct_whenAttributeConvertersAreSupplied() {
+        BeanTableSchema<EmptyConverterProvidersValidBean> beanTableSchema =
+                BeanTableSchema.create(EmptyConverterProvidersValidBean.class);
+
+        EmptyConverterProvidersValidBean converterBean = new EmptyConverterProvidersValidBean();
+        converterBean.setId("id-value");
+        converterBean.setIntegerAttribute(123);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
+
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
+        assertThat(itemMap, hasEntry("integerAttribute", numberValue(133)));
+
+        EmptyConverterProvidersValidBean reverse = beanTableSchema.mapToItem(itemMap);
+        assertThat(reverse.getId(), is(equalTo("id-value-custom")));
+        assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
     }
 }

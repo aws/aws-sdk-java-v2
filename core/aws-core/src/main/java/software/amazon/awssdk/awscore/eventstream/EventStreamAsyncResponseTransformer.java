@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.eventstream;
 
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
@@ -49,6 +50,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
 
@@ -193,9 +195,10 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     @Override
     public void onResponse(SdkResponse response) {
         if (response != null && response.sdkHttpResponse() != null) {
-            this.requestId = response.sdkHttpResponse()
-                                     .firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
-                                     .orElse(null);
+            this.requestId = SdkHttpUtils.firstMatchingHeaderFromCollection(response.sdkHttpResponse().headers(),
+                                                                            X_AMZN_REQUEST_ID_HEADERS)
+                                         .orElse(null);
+
             this.extendedRequestId = response.sdkHttpResponse()
                                              .firstMatchingHeader(X_AMZ_ID_2_HEADER)
                                              .orElse(null);

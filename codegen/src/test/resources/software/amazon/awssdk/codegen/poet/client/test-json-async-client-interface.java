@@ -182,7 +182,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
             Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
         return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().applyMutation(aPostOperationWithOutputRequest)
-                                                                       .build());
+                .build());
     }
 
     /**
@@ -205,7 +205,7 @@ public interface JsonAsyncClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
-                                                         Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
+            Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
         throw new UnsupportedOperationException();
     }
 
@@ -238,7 +238,7 @@ public interface JsonAsyncClient extends SdkClient {
             Consumer<EventStreamOperationRequest.Builder> eventStreamOperationRequest, Publisher<InputEventStream> requestStream,
             EventStreamOperationResponseHandler asyncResponseHandler) {
         return eventStreamOperation(EventStreamOperationRequest.builder().applyMutation(eventStreamOperationRequest).build(),
-                                    requestStream, asyncResponseHandler);
+                requestStream, asyncResponseHandler);
     }
 
     /**
@@ -298,7 +298,7 @@ public interface JsonAsyncClient extends SdkClient {
             Publisher<InputEventStreamTwo> requestStream) {
         return eventStreamOperationWithOnlyInput(
                 EventStreamOperationWithOnlyInputRequest.builder().applyMutation(eventStreamOperationWithOnlyInputRequest)
-                                                        .build(), requestStream);
+                        .build(), requestStream);
     }
 
     /**
@@ -322,8 +322,8 @@ public interface JsonAsyncClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
-        EventStreamOperationWithOnlyOutputRequest eventStreamOperationWithOnlyOutputRequest,
-        EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
+            EventStreamOperationWithOnlyOutputRequest eventStreamOperationWithOnlyOutputRequest,
+            EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
         throw new UnsupportedOperationException();
     }
 
@@ -354,11 +354,11 @@ public interface JsonAsyncClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
-        Consumer<EventStreamOperationWithOnlyOutputRequest.Builder> eventStreamOperationWithOnlyOutputRequest,
-        EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
+            Consumer<EventStreamOperationWithOnlyOutputRequest.Builder> eventStreamOperationWithOnlyOutputRequest,
+            EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
         return eventStreamOperationWithOnlyOutput(
-            EventStreamOperationWithOnlyOutputRequest.builder().applyMutation(eventStreamOperationWithOnlyOutputRequest)
-                                                     .build(), asyncResponseHandler);
+                EventStreamOperationWithOnlyOutputRequest.builder().applyMutation(eventStreamOperationWithOnlyOutputRequest)
+                        .build(), asyncResponseHandler);
     }
 
     /**
@@ -422,7 +422,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
             Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder()
-                                                                         .applyMutation(getWithoutRequiredMembersRequest).build());
+                .applyMutation(getWithoutRequiredMembersRequest).build());
     }
 
     /**
@@ -479,7 +479,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
             Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
-                                                                                     .applyMutation(paginatedOperationWithResultKeyRequest).build());
+                .applyMutation(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -552,6 +552,10 @@ public interface JsonAsyncClient extends SdkClient {
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
      * operation.</b>
@@ -622,6 +626,10 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -696,6 +704,10 @@ public interface JsonAsyncClient extends SdkClient {
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
      * operation.</b>
@@ -726,7 +738,7 @@ public interface JsonAsyncClient extends SdkClient {
     default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
             Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
         return paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest.builder()
-                                                                                              .applyMutation(paginatedOperationWithResultKeyRequest).build());
+                .applyMutation(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -783,7 +795,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                           .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
+                .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -832,6 +844,10 @@ public interface JsonAsyncClient extends SdkClient {
      * </pre>
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
@@ -906,6 +922,10 @@ public interface JsonAsyncClient extends SdkClient {
      *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
+     * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
      * operation.</b>
@@ -936,7 +956,7 @@ public interface JsonAsyncClient extends SdkClient {
     default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                                    .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
+                .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -1001,7 +1021,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, AsyncRequestBody requestBody) {
         return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest)
-                                                                     .build(), requestBody);
+                .build(), requestBody);
     }
 
     /**
@@ -1066,7 +1086,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path sourcePath) {
         return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest)
-                                                                     .build(), sourcePath);
+                .build(), sourcePath);
     }
 
     /**
@@ -1179,7 +1199,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<StreamingInputOutputOperationResponse> streamingInputOutputOperation(
             StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, Path sourcePath, Path destinationPath) {
         return streamingInputOutputOperation(streamingInputOutputOperationRequest, AsyncRequestBody.fromFile(sourcePath),
-                                             AsyncResponseTransformer.toFile(destinationPath));
+                AsyncResponseTransformer.toFile(destinationPath));
     }
 
     /**
@@ -1288,7 +1308,7 @@ public interface JsonAsyncClient extends SdkClient {
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
-                                                                       .build(), asyncResponseTransformer);
+                .build(), asyncResponseTransformer);
     }
 
     /**
@@ -1351,7 +1371,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path destinationPath) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
-                                                                       .build(), destinationPath);
+                .build(), destinationPath);
     }
 
     /**

@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.codegen.poet.eventstream;
 
+import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -55,10 +58,11 @@ public class EventStreamUtils {
     }
 
     /**
-     * Get event stream shape from a request/response shape model. Otherwise return empty optional.
+     * Get event stream shape from a request/response shape model. Otherwise, throw
      *
      * @param shapeModel request or response shape of an operation
-     * @return Optional containing the Eventstream shape
+     * @return the EventStream shape
+     * @throws IllegalStateException if there is no associated event stream shape
      */
     private static ShapeModel eventStreamFrom(ShapeModel shapeModel) {
         if (shapeModel == null || shapeModel.getMembers() == null) {
@@ -80,17 +84,15 @@ public class EventStreamUtils {
      *
      * @param model Intermediate model
      * @param eventShape shape with "event: true" trait
-     * @return the event stream shape (eventstream: true) that contains the given event.
+     * @return the event stream shape (eventstream: true) that contains the given event, or an empty optional if the C2J shape
+     * is marked as an event but the intermediate model representation is not used by an event stream
      */
-    public static ShapeModel getBaseEventStreamShape(IntermediateModel model, ShapeModel eventShape) {
+    public static Optional<ShapeModel> getBaseEventStreamShape(IntermediateModel model, ShapeModel eventShape) {
         return model.getShapes().values()
                     .stream()
                     .filter(ShapeModel::isEventStream)
                     .filter(s -> s.getMembers().stream().anyMatch(m -> m.getShape().equals(eventShape)))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                        String.format("Event shape %s not referenced in model by any eventstream shape",
-                                      eventShape.getC2jName())));
+                    .findFirst();
     }
 
     /**
@@ -116,16 +118,21 @@ public class EventStreamUtils {
     }
 
     /**
-     * Returns the first operation that contains the given event stream shape. The event stream can be in operation
+     * Returns the all operations that contain the given event stream shape. The event stream can be in operation
      * request or response shape.
      */
-    public static OperationModel findOperationWithEventStream(IntermediateModel model, ShapeModel eventStreamShape) {
-        return model.getOperations().values()
+    public static Collection<OperationModel> findOperationsWithEventStream(IntermediateModel model, ShapeModel eventStreamShape) {
+        Collection<OperationModel> operations = model.getOperations().values()
                     .stream()
                     .filter(op -> operationContainsEventStream(op, eventStreamShape))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(String.format(
-                        "%s is an event shape but has no corresponding operation in the model", eventStreamShape.getC2jName())));
+                    .collect(Collectors.toList());
+
+        if (operations.isEmpty()) {
+            throw new IllegalStateException(String.format(
+                "%s is an event shape but has no corresponding operation in the model", eventStreamShape.getC2jName()));
+        }
+
+        return operations;
     }
 
     /**
@@ -145,14 +152,11 @@ public class EventStreamUtils {
      * Returns true if the given event shape is a sub-member of any operation request.
      */
     public static boolean isRequestEvent(IntermediateModel model, ShapeModel eventShape) {
-        try {
-            ShapeModel eventStreamShape = getBaseEventStreamShape(model, eventShape);
-            return model.getOperations().values()
-                        .stream()
-                        .anyMatch(o -> doesShapeContainsEventStream(o.getInputShape(), eventStreamShape));
-        } catch (IllegalStateException e) {
-            return false;
-        }
+        return getBaseEventStreamShape(model, eventShape)
+            .map(stream -> model.getOperations().values()
+                                .stream()
+                                .anyMatch(o -> doesShapeContainsEventStream(o.getInputShape(), stream)))
+            .orElse(false);
     }
 
     private static boolean operationContainsEventStream(OperationModel opModel, ShapeModel eventStreamShape) {

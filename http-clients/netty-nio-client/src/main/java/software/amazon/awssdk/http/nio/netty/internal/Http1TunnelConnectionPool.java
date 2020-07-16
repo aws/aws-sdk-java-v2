@@ -29,6 +29,7 @@ import io.netty.util.concurrent.Promise;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -37,7 +38,7 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 @SdkInternalApi
 public class Http1TunnelConnectionPool implements ChannelPool {
-    static final AttributeKey<Boolean> TUNNEL_ESTABLISHED_KEY = AttributeKey.newInstance(
+    static final AttributeKey<Boolean> TUNNEL_ESTABLISHED_KEY = NettyUtils.getOrCreateAttributeKey(
             "aws.http.nio.netty.async.Http1TunnelConnectionPool.tunnelEstablished");
 
     private static final Logger log = Logger.loggerFor(Http1TunnelConnectionPool.class);

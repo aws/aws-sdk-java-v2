@@ -100,12 +100,16 @@ public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
         return SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.getStringValue().orElse(null);
     }
 
-    private String profileFileSetting(Supplier<ProfileFile> profileFileSupplier, Supplier<String> profileName) {
+    private String profileFileSetting(Supplier<ProfileFile> profileFileSupplier, Supplier<String> profileNameSupplier) {
         try {
-            return profileFileSupplier.get()
-                                      .profile(profileName.get())
-                                      .flatMap(p -> p.property(ProfileProperty.S3_US_EAST_1_REGIONAL_ENDPOINT))
-                                      .orElse(null);
+            ProfileFile profileFile = profileFileSupplier.get();
+            String profileName = profileNameSupplier.get();
+            if (profileFile == null || profileName == null) {
+                return null;
+            }
+            return profileFile.profile(profileName)
+                              .flatMap(p -> p.property(ProfileProperty.S3_US_EAST_1_REGIONAL_ENDPOINT))
+                              .orElse(null);
         } catch (Exception t) {
             log.warn(() -> "Unable to load config file", t);
             return null;

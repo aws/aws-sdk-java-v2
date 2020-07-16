@@ -20,7 +20,9 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Simple decorator {@link ChannelPool} that attempts to complete the promise
@@ -29,11 +31,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * is closed then released back to the delegate.
  */
 @SdkInternalApi
-public final class CancellableAcquireChannelPool implements ChannelPool {
+public final class CancellableAcquireChannelPool implements SdkChannelPool {
     private final EventExecutor executor;
-    private final ChannelPool delegatePool;
+    private final SdkChannelPool delegatePool;
 
-    public CancellableAcquireChannelPool(EventExecutor executor, ChannelPool delegatePool) {
+    public CancellableAcquireChannelPool(EventExecutor executor, SdkChannelPool delegatePool) {
         this.executor = executor;
         this.delegatePool = delegatePool;
     }
@@ -72,5 +74,10 @@ public final class CancellableAcquireChannelPool implements ChannelPool {
     @Override
     public void close() {
         delegatePool.close();
+    }
+
+    @Override
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        return delegatePool.collectChannelPoolMetrics(metrics);
     }
 }

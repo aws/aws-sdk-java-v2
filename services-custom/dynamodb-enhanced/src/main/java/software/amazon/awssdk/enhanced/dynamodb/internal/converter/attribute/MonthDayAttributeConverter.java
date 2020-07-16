@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils.padLeft2;
-
-import java.time.DateTimeException;
 import java.time.MonthDay;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -25,29 +22,31 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * A converter between {@link MonthDay} and {@link AttributeValue}.
  *
  * <p>
- * This stores and reads values in DynamoDB as a number, so that they can be sorted numerically as part of a sort key.
+ * This stores and reads values in DynamoDB as a String.
  *
  * <p>
- * LocalTimes are stored in the format "MMDD", where:
+ * MonthDays are stored in the official {@link MonthDay} format "--MM-DD", where:
  * <ol>
  *     <li>M is a 2-character, zero-prefixed month between 01 and 12</li>
  *     <li>D is a 2-character, zero-prefixed day between 01 and 31</li>
  * </ol>
+ * See {@link MonthDay} for more details on the serialization format.
  *
  * <p>
+ * This serialization is lexicographically orderable.
+ * <p>
+ *
  * Examples:
  * <ul>
- *     <li>{@code MonthDay.of(5, 21)} is stored as {@code ItemAttributeValueMapper.fromNumber("0521")}</li>
- *     <li>{@code MonthDay.of(12, 1)} is stored as {@code ItemAttributeValueMapper.fromNumber("1201")}</li>
+ *     <li>{@code MonthDay.of(5, 21)} is stored as as an AttributeValue with the String "--05-21"}</li>
+ *     <li>{@code MonthDay.of(12, 1)} is stored as as an AttributeValue with the String "--12-01"}</li>
  * </ul>
  *
  * <p>
@@ -73,24 +72,25 @@ public final class MonthDayAttributeConverter implements AttributeConverter<Mont
 
     @Override
     public AttributeValueType attributeValueType() {
-        return AttributeValueType.N;
+        return AttributeValueType.S;
     }
 
     @Override
     public AttributeValue transformFrom(MonthDay input) {
-        String value = "" +
-                       padLeft2(input.getMonthValue()) +
-                       padLeft2(input.getDayOfMonth());
-        return AttributeValue.builder().n(value).build();
+        return AttributeValue.builder().s(input.toString()).build();
     }
 
     @Override
     public MonthDay transformTo(AttributeValue input) {
-        if (input.n() != null) {
-            return EnhancedAttributeValue.fromNumber(input.n()).convert(VISITOR);
-        }
+        try {
+            if (input.s() != null) {
+                return EnhancedAttributeValue.fromString(input.s()).convert(VISITOR);
+            }
 
-        return EnhancedAttributeValue.fromAttributeValue(input).convert(VISITOR);
+            return EnhancedAttributeValue.fromAttributeValue(input).convert(VISITOR);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     private static final class Visitor extends TypeConvertingVisitor<MonthDay> {
@@ -99,15 +99,8 @@ public final class MonthDayAttributeConverter implements AttributeConverter<Mont
         }
 
         @Override
-        public MonthDay convertNumber(String value) {
-            Validate.isTrue(value.length() == 4, "Invalid Month/Day length: %s, expected 4 (MMDD)", value.length());
-            String[] chunkedMonthDay = ConverterUtils.chunk(value, 2, 2);
-            try {
-                return MonthDay.of(Integer.parseInt(chunkedMonthDay[0]),
-                                   Integer.parseInt(chunkedMonthDay[1]));
-            } catch (DateTimeException e) {
-                throw new IllegalArgumentException(e);
-            }
+        public MonthDay convertString(String value) {
+            return MonthDay.parse(value);
         }
     }
 }

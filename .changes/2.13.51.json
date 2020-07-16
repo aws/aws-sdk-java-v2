@@ -1,0 +1,21 @@
+{
+    "version": "2.13.51",
+    "date": "2020-07-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "description": "This release supports optional start date and end date parameters for the GetAssetPropertyValueHistory API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "Add Theme APIs and update Dashboard APIs to support theme overrides."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Adds support for Amazon RDS on AWS Outposts."
+        }
+    ]
+}

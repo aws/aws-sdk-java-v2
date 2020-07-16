@@ -16,29 +16,71 @@
 package software.amazon.awssdk.stability.tests.sqs;
 
 import java.time.Duration;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.IntFunction;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.RandomStringUtils;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
+import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
+import software.amazon.awssdk.utils.Logger;
 
 
 public abstract class SqsBaseStabilityTest extends AwsTestBase {
+    private static final Logger log = Logger.loggerFor(SqsNettyAsyncStabilityTest.class);
     protected static final int CONCURRENCY = 100;
-    protected static final int TOTAL_REQUEST_NUMBER = 5000;
     protected static final int TOTAL_RUNS = 50;
 
-    protected static SqsAsyncClient sqsAsyncClient = SqsAsyncClient.builder()
-                                                                   .httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(CONCURRENCY))
-                                                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                                   .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(1)))
-                                                                   .build();
 
-    protected static SqsClient sqsClient = SqsClient.builder()
-                                                    .httpClientBuilder(ApacheHttpClient.builder().maxConnections(CONCURRENCY))
-                                                    .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(1)))
-                                                    .build();
+    protected abstract SqsAsyncClient getTestClient();
+    protected abstract String getQueueUrl();
+    protected abstract String getQueueName();
 
+    protected static String setup(SqsAsyncClient client, String queueName) {
+        CreateQueueResponse createQueueResponse = client.createQueue(b -> b.queueName(queueName)).join();
+        return createQueueResponse.queueUrl();
+    }
 
-    public abstract void sendMessage_receiveMessage();
+    protected static void tearDown(SqsAsyncClient client, String queueUrl) {
+        if (queueUrl != null) {
+            client.deleteQueue(b -> b.queueUrl(queueUrl));
+        }
+    }
+
+    protected void sendMessage() {
+        log.info(() -> String.format("Starting testing sending messages to queue %s with queueUrl %s", getQueueName(), getQueueUrl()));
+        String messageBody = RandomStringUtils.randomAscii(1000);
+        IntFunction<CompletableFuture<?>> futureIntFunction =
+                i -> getTestClient().sendMessage(b -> b.queueUrl(getQueueUrl()).messageBody(messageBody));
+
+        runSqsTests("sendMessage", futureIntFunction);
+    }
+
+    protected void receiveMessage() {
+        log.info(() -> String.format("Starting testing receiving messages from queue %s with queueUrl %s", getQueueName(), getQueueUrl()));
+        IntFunction<CompletableFuture<?>> futureIntFunction =
+                i -> getTestClient().receiveMessage(b -> b.queueUrl(getQueueUrl()))
+                        .thenApply(
+                                r -> {
+                                    List<DeleteMessageBatchRequestEntry> batchRequestEntries =
+                                            r.messages().stream().map(m -> DeleteMessageBatchRequestEntry.builder().id(m.messageId()).receiptHandle(m.receiptHandle()).build())
+                                                    .collect(Collectors.toList());
+                                    return getTestClient().deleteMessageBatch(b -> b.queueUrl(getQueueUrl()).entries(batchRequestEntries));
+                                });
+        runSqsTests("receiveMessage", futureIntFunction);
+    }
+
+    private void runSqsTests(String testName, IntFunction<CompletableFuture<?>> futureIntFunction) {
+        StabilityTestRunner.newRunner()
+                .testName("SqsAsyncStabilityTest." + testName)
+                .futureFactory(futureIntFunction)
+                .totalRuns(TOTAL_RUNS)
+                .requestCountPerRun(CONCURRENCY)
+                .delaysBetweenEachRun(Duration.ofMillis(100))
+                .run();
+    }
 }

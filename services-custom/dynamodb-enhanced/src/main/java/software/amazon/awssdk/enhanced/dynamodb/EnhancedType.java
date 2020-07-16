@@ -64,7 +64,7 @@ public class EnhancedType<T> {
      * Create a type token, capturing the generic type arguments of the token as {@link Class}es.
      *
      * <p>
-     * <b>This must be called from an anonymous subclass.</b> For example, </b>
+     * <b>This must be called from an anonymous subclass.</b> For example,
      * {@code new EnhancedType<Iterable<String>>()&#123;&#125;} (note the extra {}) for a {@code EnhancedType<Iterable<String>>}.
      */
     protected EnhancedType() {
@@ -508,7 +508,7 @@ public class EnhancedType<T> {
         StringBuilder result = new StringBuilder();
         result.append(rawClass.getTypeName());
 
-        if (!rawClassParameters.isEmpty()) {
+        if (null != rawClassParameters && !rawClassParameters.isEmpty()) {
             result.append("<");
             result.append(rawClassParameters.stream().map(EnhancedType::innerToString).collect(Collectors.joining(", ")));
             result.append(">");

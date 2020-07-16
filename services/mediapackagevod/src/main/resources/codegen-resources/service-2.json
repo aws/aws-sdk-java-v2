@@ -444,6 +444,85 @@
         "documentation": "A collection of MediaPackage VOD PackagingGroup resources.",
         "shape": "ListPackagingGroupsResponse"
       }
+    },
+    "ListTagsForResource": {
+      "documentation": "Returns a list of the tags assigned to the specified resource.",
+      "errors": [],
+      "http": {
+        "method": "GET",
+        "requestUri": "/tags/{resource-arn}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "ListTagsForResourceRequest"
+      },
+      "name": "ListTagsForResource",
+      "output": {
+        "documentation": "200 response",
+        "shape": "ListTagsForResourceResponse"
+      }
+    },
+    "TagResource": {
+      "documentation": "Adds tags to the specified resource. You can specify one or more tags to add.",
+      "errors": [],
+      "http": {
+        "method": "POST",
+        "requestUri": "/tags/{resource-arn}",
+        "responseCode": 204
+      },
+      "input": {
+        "shape": "TagResourceRequest"
+      },
+      "name": "TagResource"
+    },
+    "UntagResource": {
+      "documentation": "Removes tags from the specified resource. You can specify one or more tags to remove.",
+      "errors": [],
+      "http": {
+        "method": "DELETE",
+        "requestUri": "/tags/{resource-arn}",
+        "responseCode": 204
+      },
+      "input": {
+        "shape": "UntagResourceRequest"
+      },
+      "name": "UntagResource"
+    },
+    "UpdatePackagingGroup": {
+      "documentation": "Updates a specific packaging group. You can't change the id attribute or any other system-generated attributes.",
+      "errors": [
+        {
+          "shape": "UnprocessableEntityException"
+        },
+        {
+          "shape": "InternalServerErrorException"
+        },
+        {
+          "shape": "ForbiddenException"
+        },
+        {
+          "shape": "NotFoundException"
+        },
+        {
+          "shape": "ServiceUnavailableException"
+        },
+        {
+          "shape": "TooManyRequestsException"
+        }
+      ],
+      "http": {
+        "method": "PUT",
+        "requestUri": "/packaging_groups/{id}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdatePackagingGroupRequest"
+      },
+      "name": "UpdatePackagingGroup",
+      "output": {
+        "documentation": "The updated MediaPackage VOD PackagingGroup resource.",
+        "shape": "UpdatePackagingGroupResponse"
+      }
     }
   },
   "shapes": {
@@ -497,6 +576,10 @@
           "documentation": "The IAM role_arn used to access the source S3 bucket.",
           "locationName": "sourceRoleArn",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -528,6 +611,10 @@
           "documentation": "The IAM role ARN used to access the source S3 bucket.",
           "locationName": "sourceRoleArn",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "required": [
@@ -591,8 +678,32 @@
           "documentation": "The IAM role ARN used to access the source S3 bucket.",
           "locationName": "sourceRoleArn",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
+      "type": "structure"
+    },
+    "Authorization": {
+      "documentation": "CDN Authorization credentials",
+      "members": {
+        "CdnIdentifierSecret": {
+          "documentation": "The Amazon Resource Name (ARN) for the secret in AWS Secrets Manager that is used for CDN authorization.",
+          "locationName": "cdnIdentifierSecret",
+          "shape": "__string"
+        },
+        "SecretsRoleArn": {
+          "documentation": "The Amazon Resource Name (ARN) for the IAM role that allows MediaPackage to communicate with AWS Secrets Manager.",
+          "locationName": "secretsRoleArn",
+          "shape": "__string"
+        }
+      },
+      "required": [
+        "SecretsRoleArn",
+        "CdnIdentifierSecret"
+      ],
       "type": "structure"
     },
     "CmafEncryption": {
@@ -658,6 +769,10 @@
           "documentation": "The IAM role ARN used to access the source S3 bucket.",
           "locationName": "sourceRoleArn",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "required": [
@@ -709,6 +824,10 @@
           "documentation": "The IAM role_arn used to access the source S3 bucket.",
           "locationName": "sourceRoleArn",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -741,6 +860,10 @@
           "documentation": "The ID of a PackagingGroup.",
           "locationName": "packagingGroupId",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "required": [
@@ -781,6 +904,10 @@
           "documentation": "The ID of a PackagingGroup.",
           "locationName": "packagingGroupId",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -788,10 +915,18 @@
     "CreatePackagingGroupRequest": {
       "documentation": "A new MediaPackage VOD PackagingGroup resource configuration.",
       "members": {
+        "Authorization": {
+          "locationName": "authorization",
+          "shape": "Authorization"
+        },
         "Id": {
           "documentation": "The ID of the PackagingGroup.",
           "locationName": "id",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "required": [
@@ -806,6 +941,10 @@
           "locationName": "arn",
           "shape": "__string"
         },
+        "Authorization": {
+          "locationName": "authorization",
+          "shape": "Authorization"
+        },
         "DomainName": {
           "documentation": "The fully qualified domain name for Assets in the PackagingGroup.",
           "locationName": "domainName",
@@ -815,6 +954,10 @@
           "documentation": "The ID of the PackagingGroup.",
           "locationName": "id",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -1004,6 +1147,10 @@
           "documentation": "The IAM role_arn used to access the source S3 bucket.",
           "locationName": "sourceRoleArn",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -1054,6 +1201,10 @@
           "documentation": "The ID of a PackagingGroup.",
           "locationName": "packagingGroupId",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -1079,6 +1230,10 @@
           "locationName": "arn",
           "shape": "__string"
         },
+        "Authorization": {
+          "locationName": "authorization",
+          "shape": "Authorization"
+        },
         "DomainName": {
           "documentation": "The fully qualified domain name for Assets in the PackagingGroup.",
           "locationName": "domainName",
@@ -1088,6 +1243,10 @@
           "documentation": "The ID of the PackagingGroup.",
           "locationName": "id",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -1337,6 +1496,30 @@
       },
       "type": "structure"
     },
+    "ListTagsForResourceRequest": {
+      "members": {
+        "ResourceArn": {
+          "documentation": "The Amazon Resource Name (ARN) for the resource. You can get this from the response to any request to the resource.",
+          "location": "uri",
+          "locationName": "resource-arn",
+          "shape": "__string"
+        }
+      },
+      "required": [
+        "ResourceArn"
+      ],
+      "type": "structure"
+    },
+    "ListTagsForResourceResponse": {
+      "members": {
+        "Tags": {
+          "documentation": "A collection of tags associated with a resource",
+          "locationName": "tags",
+          "shape": "__mapOf__string"
+        }
+      },
+      "type": "structure"
+    },
     "ManifestLayout": {
       "enum": [
         "FULL",
@@ -1447,6 +1630,10 @@
           "documentation": "The ID of a PackagingGroup.",
           "locationName": "packagingGroupId",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -1479,6 +1666,10 @@
           "documentation": "The ID of a PackagingGroup.",
           "locationName": "packagingGroupId",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "required": [
@@ -1511,6 +1702,10 @@
           "locationName": "arn",
           "shape": "__string"
         },
+        "Authorization": {
+          "locationName": "authorization",
+          "shape": "Authorization"
+        },
         "DomainName": {
           "documentation": "The fully qualified domain name for Assets in the PackagingGroup.",
           "locationName": "domainName",
@@ -1520,6 +1715,10 @@
           "documentation": "The ID of the PackagingGroup.",
           "locationName": "id",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -1527,10 +1726,18 @@
     "PackagingGroupCreateParameters": {
       "documentation": "Parameters used to create a new MediaPackage VOD PackagingGroup resource.",
       "members": {
+        "Authorization": {
+          "locationName": "authorization",
+          "shape": "Authorization"
+        },
         "Id": {
           "documentation": "The ID of the PackagingGroup.",
           "locationName": "id",
           "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "required": [
@@ -1550,6 +1757,16 @@
           "documentation": "A list of MediaPackage VOD PackagingGroup resources.",
           "locationName": "packagingGroups",
           "shape": "__listOfPackagingGroup"
+        }
+      },
+      "type": "structure"
+    },
+    "PackagingGroupUpdateParameters": {
+      "documentation": "Parameters used to update a MediaPackage packaging group.",
+      "members": {
+        "Authorization": {
+          "locationName": "authorization",
+          "shape": "Authorization"
         }
       },
       "type": "structure"
@@ -1638,6 +1855,49 @@
       },
       "type": "structure"
     },
+    "TagResourceRequest": {
+      "members": {
+        "ResourceArn": {
+          "documentation": "The Amazon Resource Name (ARN) for the resource. You can get this from the response to any request to the resource.",
+          "location": "uri",
+          "locationName": "resource-arn",
+          "shape": "__string"
+        },
+        "Tags": {
+          "documentation": "A collection of tags associated with a resource",
+          "locationName": "tags",
+          "shape": "__mapOf__string"
+        }
+      },
+      "required": [
+        "ResourceArn",
+        "Tags"
+      ],
+      "type": "structure"
+    },
+    "Tags": {
+      "documentation": "A collection of tags associated with a resource",
+      "key": {
+        "shape": "__string"
+      },
+      "type": "map",
+      "value": {
+        "shape": "__string"
+      }
+    },
+    "TagsModel": {
+      "members": {
+        "Tags": {
+          "documentation": "A collection of tags associated with a resource",
+          "locationName": "tags",
+          "shape": "__mapOf__string"
+        }
+      },
+      "required": [
+        "Tags"
+      ],
+      "type": "structure"
+    },
     "TooManyRequestsException": {
       "documentation": "The client has exceeded their resource or throttling limits.",
       "error": {
@@ -1662,6 +1922,74 @@
         "Message": {
           "locationName": "message",
           "shape": "__string"
+        }
+      },
+      "type": "structure"
+    },
+    "UntagResourceRequest": {
+      "members": {
+        "ResourceArn": {
+          "documentation": "The Amazon Resource Name (ARN) for the resource. You can get this from the response to any request to the resource.",
+          "location": "uri",
+          "locationName": "resource-arn",
+          "shape": "__string"
+        },
+        "TagKeys": {
+          "documentation": "A comma-separated list of the tag keys to remove from the resource.",
+          "location": "querystring",
+          "locationName": "tagKeys",
+          "shape": "__listOf__string"
+        }
+      },
+      "required": [
+        "TagKeys",
+        "ResourceArn"
+      ],
+      "type": "structure"
+    },
+    "UpdatePackagingGroupRequest": {
+      "documentation": "A MediaPackage VOD PackagingGroup resource configuration.",
+      "members": {
+        "Authorization": {
+          "locationName": "authorization",
+          "shape": "Authorization"
+        },
+        "Id": {
+          "documentation": "The ID of a MediaPackage VOD PackagingGroup resource.",
+          "location": "uri",
+          "locationName": "id",
+          "shape": "__string"
+        }
+      },
+      "required": [
+        "Id"
+      ],
+      "type": "structure"
+    },
+    "UpdatePackagingGroupResponse": {
+      "members": {
+        "Arn": {
+          "documentation": "The ARN of the PackagingGroup.",
+          "locationName": "arn",
+          "shape": "__string"
+        },
+        "Authorization": {
+          "locationName": "authorization",
+          "shape": "Authorization"
+        },
+        "DomainName": {
+          "documentation": "The fully qualified domain name for Assets in the PackagingGroup.",
+          "locationName": "domainName",
+          "shape": "__string"
+        },
+        "Id": {
+          "documentation": "The ID of the PackagingGroup.",
+          "locationName": "id",
+          "shape": "__string"
+        },
+        "Tags": {
+          "locationName": "tags",
+          "shape": "Tags"
         }
       },
       "type": "structure"
@@ -1737,6 +2065,15 @@
     },
     "__long": {
       "type": "long"
+    },
+    "__mapOf__string": {
+      "key": {
+        "shape": "__string"
+      },
+      "type": "map",
+      "value": {
+        "shape": "__string"
+      }
     },
     "__string": {
       "type": "string"

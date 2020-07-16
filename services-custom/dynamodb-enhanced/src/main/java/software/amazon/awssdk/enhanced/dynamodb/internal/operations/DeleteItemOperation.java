@@ -15,16 +15,19 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
@@ -122,14 +125,16 @@ public class DeleteItemOperation<T>
     private DeleteItemRequest.Builder addExpressionsIfExist(DeleteItemRequest.Builder requestBuilder) {
         if (this.request.conditionExpression() != null) {
             requestBuilder = requestBuilder.conditionExpression(this.request.conditionExpression().expression());
+            Map<String, String> expressionNames = this.request.conditionExpression().expressionNames();
+            Map<String, AttributeValue> expressionValues = this.request.conditionExpression().expressionValues();
 
             // Avoiding adding empty collections that the low level SDK will propagate to DynamoDb where it causes error.
-            if (!this.request.conditionExpression().expressionNames().isEmpty()) {
-                requestBuilder = requestBuilder.expressionAttributeNames(this.request.conditionExpression().expressionNames());
+            if (expressionNames != null && !expressionNames.isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeNames(expressionNames);
             }
 
-            if (!this.request.conditionExpression().expressionValues().isEmpty()) {
-                requestBuilder = requestBuilder.expressionAttributeValues(this.request.conditionExpression().expressionValues());
+            if (expressionValues != null && !expressionValues.isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeValues(expressionValues);
             }
         }
         return requestBuilder;

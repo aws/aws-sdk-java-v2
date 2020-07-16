@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.InstantAsIntegerAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.InstantAsStringAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.StringAttributeConverter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -31,8 +30,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * <ul>
  *     <li>The {@link StringAttributeConverter} converts a {@link String} into a DynamoDB string
  *     ({@link software.amazon.awssdk.services.dynamodb.model.AttributeValue#s()}).</li>
- *     <li>The {@link InstantAsIntegerAttributeConverter} converts an {@link Instant} into a DynamoDB number
- *     ({@link software.amazon.awssdk.services.dynamodb.model.AttributeValue#n()}).</li>
  *     <li>The {@link InstantAsStringAttributeConverter} converts an {@link Instant} into a DynamoDB string
  *     ({@link software.amazon.awssdk.services.dynamodb.model.AttributeValue#s()}).</li>
  * </ul>
@@ -67,7 +64,8 @@ public interface AttributeConverter<T> {
      * InstantAsStringAttributeConverter converter = InstantAsStringAttributeConverter.create();
      * assertEquals(converter.transformTo(EnhancedAttributeValue.fromString("1970-01-01T00:00:00Z").toAttributeValue()),
      *              Instant.EPOCH);
-     * <pre>
+     * }
+     * </pre>
      */
     T transformTo(AttributeValue input);
 

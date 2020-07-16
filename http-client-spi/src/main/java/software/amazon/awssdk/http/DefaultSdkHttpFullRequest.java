@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http;
 
+import static software.amazon.awssdk.utils.CollectionUtils.deepCopyMap;
 import static software.amazon.awssdk.utils.CollectionUtils.deepUnmodifiableMap;
 
 import java.util.ArrayList;
@@ -53,10 +54,15 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         this.host = Validate.paramNotNull(builder.host, "host");
         this.port = standardizePort(builder.port);
         this.path = standardizePath(builder.path);
-        this.queryParameters = deepUnmodifiableMap(builder.queryParameters, () -> new LinkedHashMap<>());
         this.httpMethod = Validate.paramNotNull(builder.httpMethod, "method");
-        this.headers = deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
         this.contentStreamProvider = builder.contentStreamProvider;
+
+        this.queryParameters = builder.queryParametersAreFromToBuilder
+                               ? builder.queryParameters
+                               : deepUnmodifiableMap(builder.queryParameters, () -> new LinkedHashMap<>());
+        this.headers = builder.headersAreFromToBuilder
+                       ? builder.headers
+                       : deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
     }
 
     private String standardizeProtocol(String protocol) {
@@ -139,16 +145,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
     @Override
     public SdkHttpFullRequest.Builder toBuilder() {
-        return new Builder()
-                .contentStreamProvider(contentStreamProvider)
-                .protocol(protocol)
-                .host(host)
-                .port(port)
-                .encodedPath(path)
-                .rawQueryParameters(queryParameters)
-                .method(httpMethod)
-                .headers(headers)
-            ;
+        return new Builder(this);
     }
 
     @Override
@@ -172,12 +169,35 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         private String host;
         private Integer port;
         private String path;
-        private Map<String, List<String>> queryParameters = new LinkedHashMap<>();
+
+        private boolean queryParametersAreFromToBuilder;
+        private Map<String, List<String>> queryParameters;
+
         private SdkHttpMethod httpMethod;
-        private Map<String, List<String>> headers = new LinkedHashMap<>();
+
+        private boolean headersAreFromToBuilder;
+        private Map<String, List<String>> headers;
+
         private ContentStreamProvider contentStreamProvider;
 
         Builder() {
+            queryParameters = new LinkedHashMap<>();
+            queryParametersAreFromToBuilder = false;
+            headers = new LinkedHashMap<>();
+            headersAreFromToBuilder = false;
+        }
+
+        Builder(DefaultSdkHttpFullRequest request) {
+            queryParameters = request.queryParameters;
+            queryParametersAreFromToBuilder = true;
+            headers = request.headers;
+            headersAreFromToBuilder = true;
+            protocol = request.protocol;
+            host = request.host;
+            port = request.port;
+            path = request.path;
+            httpMethod = request.httpMethod;
+            contentStreamProvider = request.contentStreamProvider;
         }
 
         @Override
@@ -226,12 +246,14 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
         @Override
         public DefaultSdkHttpFullRequest.Builder putRawQueryParameter(String paramName, List<String> paramValues) {
+            copyQueryParamsIfNeeded();
             this.queryParameters.put(paramName, new ArrayList<>(paramValues));
             return this;
         }
 
         @Override
         public SdkHttpFullRequest.Builder appendRawQueryParameter(String paramName, String paramValue) {
+            copyQueryParamsIfNeeded();
             this.queryParameters.computeIfAbsent(paramName, k -> new ArrayList<>()).add(paramValue);
             return this;
         }
@@ -239,24 +261,34 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         @Override
         public DefaultSdkHttpFullRequest.Builder rawQueryParameters(Map<String, List<String>> queryParameters) {
             this.queryParameters = CollectionUtils.deepCopyMap(queryParameters, () -> new LinkedHashMap<>());
+            queryParametersAreFromToBuilder = false;
             return this;
         }
 
         @Override
         public Builder removeQueryParameter(String paramName) {
+            copyQueryParamsIfNeeded();
             this.queryParameters.remove(paramName);
             return this;
         }
 
         @Override
         public Builder clearQueryParameters() {
-            this.queryParameters.clear();
+            this.queryParameters = new LinkedHashMap<>();
+            queryParametersAreFromToBuilder = false;
             return this;
+        }
+
+        private void copyQueryParamsIfNeeded() {
+            if (queryParametersAreFromToBuilder) {
+                queryParametersAreFromToBuilder = false;
+                this.queryParameters = deepCopyMap(queryParameters);
+            }
         }
 
         @Override
         public Map<String, List<String>> rawQueryParameters() {
-            return CollectionUtils.deepUnmodifiableMap(this.queryParameters, () -> new LinkedHashMap<>());
+            return CollectionUtils.unmodifiableMapOfLists(queryParameters);
         }
 
         @Override
@@ -272,12 +304,14 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
         @Override
         public DefaultSdkHttpFullRequest.Builder putHeader(String headerName, List<String> headerValues) {
+            copyHeadersIfNeeded();
             this.headers.put(headerName, new ArrayList<>(headerValues));
             return this;
         }
 
         @Override
         public SdkHttpFullRequest.Builder appendHeader(String headerName, String headerValue) {
+            copyHeadersIfNeeded();
             this.headers.computeIfAbsent(headerName, k -> new ArrayList<>()).add(headerValue);
             return this;
         }
@@ -285,24 +319,34 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         @Override
         public DefaultSdkHttpFullRequest.Builder headers(Map<String, List<String>> headers) {
             this.headers = CollectionUtils.deepCopyMap(headers);
+            headersAreFromToBuilder = false;
             return this;
         }
 
         @Override
         public SdkHttpFullRequest.Builder removeHeader(String headerName) {
+            copyHeadersIfNeeded();
             this.headers.remove(headerName);
             return this;
         }
 
         @Override
         public SdkHttpFullRequest.Builder clearHeaders() {
-            this.headers.clear();
+            this.headers = new LinkedHashMap<>();
+            headersAreFromToBuilder = false;
             return this;
         }
 
         @Override
         public Map<String, List<String>> headers() {
-            return CollectionUtils.deepUnmodifiableMap(this.headers);
+            return CollectionUtils.unmodifiableMapOfLists(this.headers);
+        }
+
+        private void copyHeadersIfNeeded() {
+            if (headersAreFromToBuilder) {
+                headersAreFromToBuilder = false;
+                this.headers = deepCopyMap(headers);
+            }
         }
 
         @Override

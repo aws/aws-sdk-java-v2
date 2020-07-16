@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.util.Collection;
 import java.util.Deque;
@@ -29,6 +30,8 @@ import java.util.SortedSet;
 import java.util.concurrent.ConcurrentMap;
 
 import org.junit.Test;
+
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class EnhancedTypeTest {
     @Test
@@ -206,6 +209,13 @@ public class EnhancedTypeTest {
 
         assertThat(type.rawClass()).isEqualTo(NavigableMap.class);
         assertThat(type.rawClassParameters()).containsExactly(EnhancedType.of(String.class), EnhancedType.of(Integer.class));
+    }
+    
+    @Test
+    public void documentOf_toString_doesNotRaiseNPE() {
+        TableSchema<String> tableSchema = StaticTableSchema.builder(String.class).build();
+        EnhancedType<String> type = EnhancedType.documentOf(String.class, tableSchema);
+        assertThatCode(() -> type.toString()).doesNotThrowAnyException();
     }
 
     public class InnerType {

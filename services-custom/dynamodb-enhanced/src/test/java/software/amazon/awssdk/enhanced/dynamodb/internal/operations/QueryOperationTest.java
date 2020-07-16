@@ -49,6 +49,7 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
@@ -70,9 +71,9 @@ import software.amazon.awssdk.services.dynamodb.paginators.QueryPublisher;
 public class QueryOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+        DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
-        OperationContext.create(TABLE_NAME, "gsi_1");
+        DefaultOperationContext.create(TABLE_NAME, "gsi_1");
 
     private final FakeItem keyItem = createUniqueFakeItem();
     private final QueryOperation<FakeItem> queryOperation =
@@ -270,6 +271,23 @@ public class QueryOperationTest {
                                                                 null);
 
         assertThat(queryRequest.consistentRead(), is(true));
+    }
+
+    @Test
+    public void generateRequest_projectionExpression() {
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k.partitionValue(keyItem.getId())))
+                                                      .attributesToProject("id")
+                                                      .addAttributeToProject("version")
+                                                      .build());
+        QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
+                                                                PRIMARY_CONTEXT,
+                                                                null);
+
+        assertThat(queryRequest.projectionExpression(), is("#AMZN_MAPPED_id,#AMZN_MAPPED_version"));
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_id"), is ("id"));
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_version"), is ("version"));
     }
 
     @Test

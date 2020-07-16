@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
@@ -141,6 +142,24 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
+    public void queryAllRecordsDefaultSettings_withProjection() {
+        insertRecords();
+
+        Iterator<Page<Record>> results =
+                mappedTable.scan(b -> b.attributesToProject("sort")).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items().size(), is(RECORDS.size()));
+
+        Record firstRecord = page.items().get(0);
+        assertThat(firstRecord.id, is(nullValue()));
+        assertThat(firstRecord.sort, is(0));
+    }
+
+    @Test
     public void scanAllRecordsDefaultSettings_viaItems() {
         insertRecords();
 
@@ -169,6 +188,38 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(page.items(),
                    is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecordsWithFilterAndProjection() {
+        insertRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+        Iterator<Page<Record>> results =
+                mappedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .attributesToProject("sort")
+                                .filterExpression(expression)
+                                .build()
+                ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items(), hasSize(3));
+
+        Record record = page.items().get(0);
+
+        assertThat(record.id, is(nullValue()));
+        assertThat(record.sort, is(3));
     }
 
     @Test

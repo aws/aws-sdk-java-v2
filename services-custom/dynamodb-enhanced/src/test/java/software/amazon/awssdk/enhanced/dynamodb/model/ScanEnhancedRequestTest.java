@@ -22,7 +22,10 @@ import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +43,7 @@ public class ScanEnhancedRequestTest {
         assertThat(builtObject.exclusiveStartKey(), is(nullValue()));
         assertThat(builtObject.consistentRead(), is(nullValue()));
         assertThat(builtObject.filterExpression(), is(nullValue()));
+        assertThat(builtObject.attributesToProject(), is(nullValue()));
         assertThat(builtObject.limit(), is(nullValue()));
     }
 
@@ -55,16 +59,24 @@ public class ScanEnhancedRequestTest {
                                                 .expressionValues(expressionValues)
                                                 .build();
 
+        String[] attributesToProjectArray = {"one", "two"};
+        String additionalElement = "three";
+        List<String> attributesToProject = new ArrayList<>(Arrays.asList(attributesToProjectArray));
+        attributesToProject.add(additionalElement);
+
         ScanEnhancedRequest builtObject = ScanEnhancedRequest.builder()
                                                              .exclusiveStartKey(exclusiveStartKey)
                                                              .consistentRead(false)
                                                              .filterExpression(filterExpression)
+                                                             .attributesToProject(attributesToProjectArray)
+                                                             .addAttributeToProject(additionalElement)
                                                              .limit(3)
                                                              .build();
 
         assertThat(builtObject.exclusiveStartKey(), is(exclusiveStartKey));
         assertThat(builtObject.consistentRead(), is(false));
         assertThat(builtObject.filterExpression(), is(filterExpression));
+        assertThat(builtObject.attributesToProject(), is(attributesToProject));
         assertThat(builtObject.limit(), is(3));
     }
 

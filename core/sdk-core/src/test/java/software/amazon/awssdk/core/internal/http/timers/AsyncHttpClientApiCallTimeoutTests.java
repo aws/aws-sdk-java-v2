@@ -53,6 +53,7 @@ import software.amazon.awssdk.core.internal.http.request.SlowExecutionIntercepto
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
 import utils.ValidSdkObjects;
 
 public class AsyncHttpClientApiCallTimeoutTests {
@@ -107,6 +108,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
                                                             .interceptorChain(interceptors)
                                                             .executionAttributes(new ExecutionAttributes())
                                                             .interceptorContext(incerceptorContext)
+                                                            .metricCollector(MetricCollector.create("ApiCall"))
                                                             .build();
 
         CompletableFuture future =
@@ -181,6 +183,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
                                .interceptorChain(interceptors)
                                .executionAttributes(new ExecutionAttributes())
                                .interceptorContext(incerceptorContext)
+                               .metricCollector(MetricCollector.create("ApiCall"))
                                .build();
     }
 }
