@@ -159,4 +159,9 @@
             <Confidence value="1"/>
         </Not>
     </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.core.internal.waiters.ResponseOrException"/>
+        <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+    </Match>
 </FindBugsFilter>
