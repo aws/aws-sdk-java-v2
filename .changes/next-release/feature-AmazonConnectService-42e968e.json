@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "description": "This release adds a set of Amazon Connect APIs to programmatically control call recording with start, stop, pause and resume functions."
+}
