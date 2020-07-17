@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elastic Beanstalk",
-    "description": "Add waiters for `EnvironmentExists`, `EnvironmentUpdated`, and `EnvironmentTerminated`. Add paginators for `DescribeEnvironmentManagedActionHistory` and `ListPlatformVersions`."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS AppSync",
-    "description": "Documentation update to Cachingconfig.cachingKeys to include $context.source as a valid value."
-}
