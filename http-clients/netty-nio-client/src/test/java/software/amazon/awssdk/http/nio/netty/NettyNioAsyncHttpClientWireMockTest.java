@@ -181,6 +181,18 @@ public class NettyNioAsyncHttpClientWireMockTest {
     }
 
     @Test
+    public void customStreamingWatermark() throws Exception {
+        try (SdkAsyncHttpClient customClient =
+                     NettyNioAsyncHttpClient.builder()
+                             .streamingDemandLowWatermark(1)
+                             .streamingDemandHighWatermark(5)
+                             .build()) {
+            makeSimpleRequest(customClient);
+            customClient.close();
+        }
+    }
+
+    @Test
     public void defaultThreadFactoryUsesHelpfulName() throws Exception {
         // Make a request to ensure a thread is primed
         makeSimpleRequest(client);
