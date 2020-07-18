@@ -93,6 +93,15 @@ public final class BooleanAttributeConverter implements AttributeConverter<Boole
         }
 
         @Override
+        public Boolean convertNumber(String value) {
+            switch (value) {
+                case "0": return false;
+                case "1": return true;
+                default: throw new IllegalArgumentException("Number could not be converted to boolean: " + value);
+            }
+        }
+
+        @Override
         public Boolean convertBoolean(Boolean value) {
             return value;
         }

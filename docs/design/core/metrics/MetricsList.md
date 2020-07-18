@@ -1,130 +1,61 @@
-Here is the detailed list of metrics that SDK can collect. Each metric belongs to a category. If a category is enabled,
-then all metrics belonging to that category will be collected by the SDK.
+# Collected Metrics
 
-## Category
+ This document lists the metrics collected by various components of the SDK,
+ namely the core libraries, and HTTP clients.
 
-1) Default - All metrics under this category will be collected when the metrics are enabled
-2) HttpClient - Additional information collected for http client. The metrics collected for each http client can vary
-3) All - All metrics collected by the SDK comes under this category. This can be useful for debugging purposes.
+ A note on collector path: The path is assuming a `MetricCollection` tree rooted at an API call.
 
-Note: When metrics feature is enabled, only the `Default` category metrics are collected. Other categories should be
-explicitly enabled.
+## Core Metrics
 
-## Information collected at application level (Category: Default)
+The set of core metrics includes all metrics collected by the core components
+of the SDK. This includes components like SDK service clients,
+request/resposne marshallers and unmarshallers, and signers.
 
-| Metric Name                    | Meter         | Description      |
-| ------------------             | -----------   | ---------------- |
-| RequestCount                   | Counter       | Total number of requests (successful and failed) made from your code to AWS services
-| SuccessRequestCount            | Counter       | Total number of requests from your code to AWS services that resulted in a successful response
-| FailedRequestCount             | Counter       | Total number of requests from your code to AWS services that resulted in a failure. This can be expanded later to categorize the failures into buckets (like ClientErrorCount, ServiceErrorCount, ConnectionErrorCount etc)
-                  
-## Information collected for each request (ApiCall) (Category: Default)
+All the in code constants associated with metric below can be found in the
+[`software.amazon.awssdk.core.metrics.CoreMetric`](https://github.com/aws/aws-sdk-java-v2/blob/8c192e3b04892987bf0872f76ba4f65167f3a872/core/sdk-core/src/main/java/software/amazon/awssdk/core/metrics/CoreMetric.java#L24)
+class within `sdk-core`.
 
-| Metric Name                    | Meter         | Description      |
-| ------------------             | -----------   | ---------------- |
-| Service                        | ConstantGauge | Service ID of the AWS service that the API request is made against
-| Api                            | ConstantGauge | The name of the AWS API the request is made to
-| StreamingRequest               | ConstantGauge | True if the request has streaming payload
-| StreamingResponse              | ConstantGauge | True if the response has streaming payload
-| ApiCallStartTime               | Timer         | The start time of the request
-| ApiCallEndTime                 | Timer         | The end time of the request
-| ApiCallLatency                 | Timer         | The total time taken to finish a request (inclusive of all retries), ApiCallEndTime - ApiCallStartTime
-| MarshallingLatency             | Timer         | The time taken to marshall the request
-| ApiCallAttemptCount            | Counter       | Total number of attempts that were made by the service client to fulfill this request before succeeding or failing. (Value is 1 if there are no retries)
+| Name                          | Type          | Description |
+|-------------------------------|---------------|-------------|
+| ServiceId                     | `String`      | The unique ID for the service. This is present for all API call metrics.|
+| OperationName                 | `String`      | The name of the service operation being invoked. This is present for all API call metrics.|
+| ApiCallDuration               | `Duration`    | The duration of the API call. This includes all call attempts made.|
+| ApiCallSuccessful             | `Boolean`     | True if the API call succeeded, false otherwise. |
+| BackoffDelayDuration          | `Duration`    | The duration of time that the SDK has waited before this API call attempt, based on the retry policy. |
+| MarshallingDuration           | `Duration`    | The duration of time taken to marshall the SDK request to an HTTP request.|
+| CredentialsFetchDuration      | `Duration`    | The duration of time taken to fetch signing credentials for the request.|
+| SigningDuration               | `Duration`    | The duration of time taken to sign the HTTP request.|
+| AwsRequestId                  | `String`      | The request ID of the service request.|
+| AwsExtendedRequestId          | `String`      | The extended request ID of the service request.|
+| UnmarshallingDuration         | `Duration`    | The duration of time taken to unmarshall the HTTP response to an SDK response. |
+| ServiceCallDuration           | `Duration`    | The duration of time  taken to connect to the service (or acquire a connection from the connection pool), send the serialized request and receive the initial response (e.g. HTTP status code and headers). This DOES NOT include the time taken to read the entire response from the service. |
+| `RetryCount`                  | `Integer`    | The number of retries that the SDK performed in the execution of the request. 0 implies that the request worked the first  time, and no retries were attempted. |
 
-Each ApiCall can have multiple attempts before the call succeed or fail. The following metrics are collected for each ApiCall Attempt.
+## HTTP Metrics
 
-| Metric Name                    | Meter         | Description      |
-| ------------------             | -----------   | ---------------- |
-| ApiCallAttemptStartTime        | Timer         | The start time of each Api call attempt
-| SigningLatency                 | Timer         | The time taken to sign the request in an Api Call Attempt
-| HttpRequestRoundTripLatency    | Timer         | The time taken by the underlying http client to start the Api call attempt and return the response
-| UnmarshallingLatency           | Timer         | The time taken to unmarshall the response (same metric for both successful and failed requests)
-| ApiCallAttemptEndTime          | Timer         | The end time of a Api call attempt
-| ApiCallAttemptLatency          | Timer         | The total time taken for an Api call attempt (exclusive of retries), ApiCallAttemptEndTime - ApiCallAttemptStartTime
-| AwsRequestId                   | ConstantGauge      | The request Id for the request. Represented by `x-amz-request-id` header in response
-| ExtendedRequestId              | ConstantGauge      | The extended request Id for the request. Represented by `x-amz-id-2` header in response
-| HttpStatusCode                 | ConstantGauge      | The http status code returned in the response. Null if there is no response
-| AwsException                   | ConstantGauge      | The Aws exception code returned by the service. This is included for each Api call attempt if the call results in a failure and caused by service
-| SdkException                   | ConstantGauge      | The error name for any failure that is due to something other than an Aws exception. This is included for each API call attempt if the call results in a failure and is caused by something other than service
+The set of HTTP metrics below are collected by components that implement the [HTTP SPI](https://github.com/aws/aws-sdk-java-v2/tree/sdk-metrics-development-2/http-client-spi). Which metrics are collected depends on the specific HTTP library used to implement the SPI; not all libraries will allow the collection of every metric below.
 
-For each attempt, the following http client metrics are collected:
+Note that in the context of an SDK client API call, all `HttpClient` collectors are children of `ApiCallAttept`; i.e. the full path to HTTP client metrics for an individual API call attempt is `ApiCall` > `ApiCallAttept` > `HttpClient`.
 
-| Metric Name                    | Meter         | Description      |
-| ------------------             | -----------   | ---------------- |
-| HttpClientName                 | ConstantGauge      | Name of the underlying http client (Apache, Netty, UrlConnection)
-| MaxConnections                 | Gauge         | Maximum number of connections allowed in the connection pool
-| AvailableConnections           | Gauge         | The number of idle connections in the connection pool that are ready to serve a request
-| LeasedConnections              | Gauge         | The number of connections in the connection pool that are busy serving requests
-| PendingRequests                | Gauge         | The number of requests awaiting a free connection from the pool
+### Common HTTP Metrics
 
-## Additional Information collected for each http client (Category: HttpClient)
+Below are the metrics common to both HTTP/1.1 and HTTP/2 operations.
 
-### ApacheHttpClient
-HttpClientName - Apache
+The constants are located in `software.amazon.awssdk.http.HttpMetric` class in the `http-spi` module.
 
-No additional metrics available for apache client currently
+| Name                          | Type      | Description | 
+|-------------------------------|-----------|-------------|
+| HttpClientName                | `String`  |  The name of the HTTP client. |
+| MaxConcurrency                | `Integer` | For HTTP/1.1 operations, this is equal to the maximum number of TCP connections that can be be pooled by the HTTP client. For HTTP/2 operations, this is equal to the maximum number of streams that can be pooled by the HTTP client.
+| LeasedConcurrency             | `Integer` | The number of requests that are currently being executed by the HTTP client. |
+| PendingConcurrencyAcquires    | `Integer` | The number of requests that are awaiting concurrency to be made available from the HTTP client. |
+| HttpStatusCode                | `Integer` | The status code of the HTTP response. |
 
-### UrlConnectionHttpClient
-HttpClientName - UrlConnection
+### HTTP/2 Metrics
 
-No additional metrics available for url connection client currently
+Below are the metrics specific to HTTP/2 operations.
 
-### NettyNioAsyncHttpClient
-HttpClientName - Netty
-
-| Metric Name                    |    Meter      |    Description   |
-| ------------------             | -----------   | ---------------- |
-| FailedConnectionClose          | Counter       | Number of times a connection close has failed
-| FailedPoolAcquire              | Counter       | Number of times a request failed to acquire a connection
-
-For Http2 requests,
-
-| Metric Name                    |    Meter      |    Description   |
-| ------------------             | -----------   | ---------------- |
-| ConnectionId                   | ConstantGauge      | The identifier for a connection
-| MaxStreamCount                 | Gauge         | Maximum number of streams allowed on the connection
-| CurrentStreamCount             | Gauge         | Number of active streams on the connection
-
-
-## Information collected for event stream requests (Category: Default)
-
-| Metric Name                    |    Meter      |    Description   |
-| ------------------             | -----------   | ---------------- |
-| RequestEventsReceivedCount     | Counter       | Number of events received from the client
-| RequestEventsSentCount         | Counter       | Number of events sent to the service
-| ResponseEventsReceivedCount    | Counter       | Number of events received from the service
-| ResponseEventsDeliveredCount   | Counter       | Number of events delivered to the client
-| RequestSubscriptionCreated     | Counter       | Number of request subscriptions created to deliver events from client to service (For event stream requests like startStreamTranscription API in Transcribe Streaming service)
-| RequestSubscriptionCompleted   | Counter       | Number of request subscriptions completed 
-| RequestSubscriptionCanceled    | Counter       | Number of request subscriptions canceled 
-| ResponseSubscriptionCreated    | Counter       | Number of response subscriptions created to deliver events from service to client
-| ResponseSubscriptionCompleted  | Counter       | Number of response subscriptions completed 
-| ResponseSubscriptionCanceled   | Counter       | Number of response subscriptions canceled 
-
-
-## FAQ
-1) When is the end time calculated for async requests?  
-   The end time is calculated when the future is completed (either successfully or exceptionally) as opposed to the time when future is returned from API
-   
-2) What errors are considered as throttling errors?
-   The request was considered as throttled if one of the following conditions are met:
-   1) The http status code is equal to: `429` or `503`
-   2) The error code is equal to one of the following values:  
-   SlowDown   
-   SlowDownException  
-   Throttling  
-   ThrottlingException  
-   Throttled  
-   ThrottledException  
-   ServiceUnavailable  
-   ServiceUnavailableException  
-   ServiceUnavailableError  
-   ProvisionedThroughputExceededException  
-   TooManyRequests  
-   TooManyRequestsException  
-   DescribeAttachmentLimitExceeded
-
-           
-## References
-1) [V1 Metrics Description](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/metrics/package-summary.html)
+|  Name                    | Type      | Description  |
+|--------------------------|-----------|--------------|
+| LocalStreamWindowSize    | `Integer` | The local HTTP/2 window size in bytes for the stream that this request was executed on. |
+| RemoteStreamWindowSize   | `Integer` | The remote HTTP/2 window size in bytes for the stream that this request was executed on. |

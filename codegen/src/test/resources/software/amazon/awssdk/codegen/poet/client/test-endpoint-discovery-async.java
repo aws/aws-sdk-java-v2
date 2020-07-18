@@ -116,10 +116,11 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                             .withMetricCollector(apiCallMetricCollector).withInput(describeEndpointsRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = describeEndpointsRequest.overrideConfiguration().orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<DescribeEndpointsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, describeEndpointsRequest
@@ -180,10 +181,11 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                             .withInput(testDiscoveryIdentifiersRequiredRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryIdentifiersRequiredRequest
                     .overrideConfiguration().orElse(null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -243,10 +245,11 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                             .withInput(testDiscoveryOptionalRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryOptionalRequest.overrideConfiguration().orElse(
                     null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<TestDiscoveryOptionalResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryOptionalRequest
@@ -306,10 +309,11 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                             .withInput(testDiscoveryRequiredRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = testDiscoveryRequiredRequest.overrideConfiguration().orElse(
                     null);
-            executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<TestDiscoveryRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, requestOverrideConfig);
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
             List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryRequiredRequest

@@ -1,3 +1,149 @@
+# __2.13.56__ __2020-07-17__
+## __AWS AppSync__
+  - ### Features
+    - Documentation update to Cachingconfig.cachingKeys to include $context.source as a valid value.
+
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Add waiters for `EnvironmentExists`, `EnvironmentUpdated`, and `EnvironmentTerminated`. Add paginators for `DescribeEnvironmentManagedActionHistory` and `ListPlatformVersions`.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds a set of Amazon Connect APIs to programmatically control call recording with start, stop, pause and resume functions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Documentation updates for Application Auto Scaling
+
+# __2.13.55__ __2020-07-15__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Introducing Amazon Interactive Video Service - a managed live streaming solution that is quick and easy to set up, and ideal for creating interactive video experiences.
+
+# __2.13.54__ __2020-07-09__
+## __AWS Amplify__
+  - ### Features
+    - Documentation update to the introduction text to specify that this is the Amplify Console API.
+
+## __AWS App Mesh__
+  - ### Features
+    - AppMesh now supports Ingress which allows resources outside a mesh to communicate to resources that are inside the mesh. See https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_gateways.html
+
+## __AWS CloudHSM V2__
+  - ### Features
+    - Documentation updates for cloudhsmv2
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Adds support for filters on the ListSecrets API to allow filtering results by name, tag key, tag value, or description. Adds support for the BlockPublicPolicy option on the PutResourcePolicy API to block resource policies which grant a wide range of IAM principals access to secrets. Adds support for the ValidateResourcePolicy API to validate resource policies for syntax and prevent lockout error scenarios and wide access to secrets.
+
+## __AWS WAFV2__
+  - ### Features
+    - Added the option to use IP addresses from an HTTP header that you specify, instead of using the web request origin. Available for IP set matching, geo matching, and rate-based rule count aggregation.
+
+## __Alexa For Business__
+  - ### Features
+    - Added support for registering an AVS device directly to a room using RegisterAVSDevice with a room ARN
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Amazon CloudWatch Events/EventBridge adds support for API Gateway as a target.
+
+## __Amazon Comprehend__
+  - ### Features
+    - AWS Comprehend now supports Real-time Analysis with Custom Entity Recognition.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Support converting "0" and "1" numbers read from DynamoDB to Boolean and AtomicBoolean.
+
+## __Amazon Elastic Block Store__
+  - ### Features
+    - This release introduces the following set of actions for the EBS direct APIs: 1. StartSnapshot, which creates a new Amazon EBS snapshot. 2. PutSnapshotBlock, which writes a block of data to a snapshot. 3. CompleteSnapshot, which seals and completes a snapshot after blocks of data have been written to it.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Amazon EventBridge adds support for API Gateway as a target.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds the DeleteHumanTaskUi API to Amazon Augmented AI
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds support for SMS origination number as an attribute in the MessageAttributes parameter for the SNS Publish API.
+
+# __2.13.53__ __2020-07-08__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Customers can now see Instance Name alongside each rightsizing recommendation.
+
+## __AWS Organizations__
+  - ### Features
+    - We have launched a self-service option to make it easier for customers to manage the use of their content by AI services. Certain AI services (Amazon CodeGuru Profiler, Amazon Comprehend, Amazon Lex, Amazon Polly, Amazon Rekognition, Amazon Textract, Amazon Transcribe, and Amazon Translate), may use content to improve the service. Customers have been able to opt out of this use by contacting AWS Support, and now they can opt out on a self-service basis by setting an Organizations policy for all or an individual AI service as listed above. Please refer to the technical documentation for more details.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 Spot now enables customers to tag their Spot Instances Requests on creation.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - With this release, Amazon Forecast now supports the ability to add a tag to any resource via the launch of three new APIs: TagResouce, UntagResource and ListTagsForResource. A tag is a simple label consisting of a customer-defined key and an optional value allowing for easier resource management.
+
+# __2.13.52__ __2020-07-07__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Data Catalog supports cross account sharing of tables through AWS Lake Formation
+
+## __AWS Lake Formation__
+  - ### Features
+    - AWS Lake Formation supports sharing tables with other AWS accounts and organizations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This release includes the preview release of the client-side metrics for the AWS SDK for Java v2. The SPI can be found in the `metrics-spi` module, and this release also includes a metric publisher for CloudWatch in `cloudwatch-metric-publisher`. See our post over at the [AWS Developer Blog](https://aws.amazon.com/blogs/developer/category/developer-tools/aws-sdk-for-java/) for additional information.
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for file-system driven directory refresh, Case Sensitivity toggle for SMB File Shares, and S3 Prefixes and custom File Share names
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront adds support for a new security policy, TLSv1.2_2019.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeAvailabilityZones now returns additional data about Availability Zones and Local Zones.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - This release adds support for automatic backups of Amazon EFS file systems to further simplify backup management.
+
 # __2.13.51__ __2020-07-06__
 ## __AWS IoT SiteWise__
   - ### Features
