@@ -69,7 +69,7 @@ public final class DefaultMetricCollector implements MetricCollector {
 
         DefaultMetricCollection metricRecords = new DefaultMetricCollection(name, metrics, collectedChildren);
 
-        log.debug(() -> "collected metrics records: " + metricRecords);
+        log.debug(() -> "Collected metrics records: " + metricRecords);
         return metricRecords;
     }
 

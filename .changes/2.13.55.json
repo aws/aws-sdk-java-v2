@@ -1,0 +1,16 @@
+{
+    "version": "2.13.55",
+    "date": "2020-07-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "description": "Introducing Amazon Interactive Video Service - a managed live streaming solution that is quick and easy to set up, and ideal for creating interactive video experiences."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

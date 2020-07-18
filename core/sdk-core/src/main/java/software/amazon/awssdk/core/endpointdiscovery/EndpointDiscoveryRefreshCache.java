@@ -20,14 +20,11 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.utils.Logger;
 
 @SdkProtectedApi
 public final class EndpointDiscoveryRefreshCache {
-
-    private static final Logger log = Logger.loggerFor(EndpointDiscoveryRefreshCache.class);
-
     private final Map<String, EndpointDiscoveryEndpoint> cache = new ConcurrentHashMap<>();
 
     private final EndpointDiscoveryCacheLoader client;
@@ -63,7 +60,7 @@ public final class EndpointDiscoveryRefreshCache {
 
         if (endpoint == null) {
             if (request.required()) {
-                return cache.computeIfAbsent(key, k -> discoverEndpoint(request).join()).endpoint();
+                return cache.computeIfAbsent(key, k -> getAndJoin(request)).endpoint();
             } else {
                 EndpointDiscoveryEndpoint tempEndpoint = EndpointDiscoveryEndpoint.builder()
                                                                                   .endpoint(request.defaultEndpoint())
@@ -88,6 +85,17 @@ public final class EndpointDiscoveryRefreshCache {
         }
 
         return endpoint.endpoint();
+    }
+
+    private EndpointDiscoveryEndpoint getAndJoin(EndpointDiscoveryRequest request) {
+        try {
+            return discoverEndpoint(request).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw EndpointDiscoveryFailedException.create(e);
+        } catch (ExecutionException e) {
+            throw EndpointDiscoveryFailedException.create(e.getCause());
+        }
     }
 
     private void refreshCacheAsync(EndpointDiscoveryRequest request, String key) {

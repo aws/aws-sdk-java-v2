@@ -1,0 +1,41 @@
+{
+    "version": "2.13.56",
+    "date": "2020-07-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "description": "This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elastic Beanstalk",
+            "description": "Add waiters for `EnvironmentExists`, `EnvironmentUpdated`, and `EnvironmentTerminated`. Add paginators for `DescribeEnvironmentManagedActionHistory` and `ListPlatformVersions`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Documentation updates for EC2"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "description": "This release adds a set of Amazon Connect APIs to programmatically control call recording with start, stop, pause and resume functions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "description": "Documentation update to Cachingconfig.cachingKeys to include $context.source as a valid value."
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "description": "Documentation updates for Application Auto Scaling"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

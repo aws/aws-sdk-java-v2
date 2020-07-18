@@ -18,10 +18,10 @@ package software.amazon.awssdk.core.endpointdiscovery;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
-@SdkInternalApi
+@SdkProtectedApi
 public interface EndpointDiscoveryCacheLoader {
     CompletableFuture<EndpointDiscoveryEndpoint> discoverEndpoint(EndpointDiscoveryRequest endpointDiscoveryRequest);
 
