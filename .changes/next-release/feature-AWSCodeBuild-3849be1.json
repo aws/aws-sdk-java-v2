@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "description": "AWS CodeBuild adds support for Session Manager and Windows 2019 Environment type"
+}
