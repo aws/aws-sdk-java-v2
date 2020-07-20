@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Firewall Management Service",
-    "description": "Added managed policies for auditing security group rules, including the use of managed application and protocol lists."
-}
