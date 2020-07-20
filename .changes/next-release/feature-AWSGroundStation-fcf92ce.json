@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Ground Station",
+    "description": "Adds optional MTU property to DataflowEndpoint and adds contact source and destination details to DescribeContact response."
+}
