@@ -1,3 +1,8 @@
+# __2.13.58__ __2020-07-21__
+## __Amazon CodeGuru Profiler__
+  - ### Features
+    - Amazon CodeGuru Profiler now supports resource tagging APIs, tags-on-create and tag-based access control features. You can now tag profiling groups for better resource and access control management.
+
 # __2.13.57__ __2020-07-20__
 ## __AWS CodeBuild__
   - ### Features
