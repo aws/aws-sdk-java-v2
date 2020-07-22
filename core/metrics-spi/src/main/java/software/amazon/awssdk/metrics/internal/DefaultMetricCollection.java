@@ -18,7 +18,9 @@ package software.amazon.awssdk.metrics.internal;
 import static java.util.stream.Collectors.toList;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +40,8 @@ public final class DefaultMetricCollection implements MetricCollection {
     public DefaultMetricCollection(String name, Map<SdkMetric<?>,
         List<MetricRecord<?>>> metrics, List<MetricCollection> children) {
         this.name = name;
-        this.metrics = metrics;
-        this.children = children != null ? Collections.unmodifiableList(children) : Collections.emptyList();
+        this.metrics = new HashMap<>(metrics);
+        this.children = children != null ? Collections.unmodifiableList(new ArrayList<>(children)) : Collections.emptyList();
         this.creationTime = Instant.now();
     }
 

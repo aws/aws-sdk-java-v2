@@ -66,13 +66,12 @@ import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
-    private static final String PUBLISHER_NAME = "metricPublishers";
-    private static final String METRIC_COLLECTOR_NAME = "apiCallMetricCollector";
     private final IntermediateModel model;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
@@ -200,14 +199,19 @@ public final class AsyncClientClass extends AsyncClientInterface {
         builder.addModifiers(Modifier.PUBLIC)
                .addAnnotation(Override.class);
 
-        builder.addStatement("$1T $2N = $1T.create($3S)",
-                             MetricCollector.class, METRIC_COLLECTOR_NAME, "ApiCall");
+        builder.addStatement("$T<$T> metricPublishers = "
+                             + "resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
+                             List.class,
+                             MetricPublisher.class,
+                             opModel.getInput().getVariableName())
+               .addStatement("$1T apiCallMetricCollector = metricPublishers.isEmpty() ? $2T.create() : $1T.create($3S)",
+                             MetricCollector.class, NoOpMetricCollector.class, "ApiCall");
         builder.beginControlFlow("try");
 
-        builder.addStatement("$N.reportMetric($T.$L, $S)", METRIC_COLLECTOR_NAME, CoreMetric.class, "SERVICE_ID",
-                             model.getMetadata().getServiceId());
-        builder.addStatement("$N.reportMetric($T.$L, $S)", METRIC_COLLECTOR_NAME, CoreMetric.class, "OPERATION_NAME",
-                             opModel.getOperationName());
+        builder.addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
+                             CoreMetric.class, "SERVICE_ID", model.getMetadata().getServiceId());
+        builder.addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
+                             CoreMetric.class, "OPERATION_NAME", opModel.getOperationName());
 
         builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
                .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
@@ -241,12 +245,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "() -> $N.exceptionOccurred(t))", paramName);
         }
 
-        builder.addStatement("$T<$T> $N = resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
-                             List.class,
-                             MetricPublisher.class,
-                             PUBLISHER_NAME,
-                             opModel.getInput().getVariableName())
-               .addStatement("$N.forEach(p -> p.publish($N.collect()))", PUBLISHER_NAME, "apiCallMetricCollector")
+        builder.addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
                .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                .endControlFlow();
 
