@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "description": "The AWS Elemental MediaLive APIs and SDKs now support the ability to get thumbnails for MediaLive devices that are attached or not attached to a channel. Previously, this thumbnail feature was available only on the console."
-}
