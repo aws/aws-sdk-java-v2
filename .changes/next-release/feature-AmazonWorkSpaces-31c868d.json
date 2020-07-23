@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "description": "Added UpdateWorkspaceImagePermission API to share Amazon WorkSpaces images across AWS accounts."
-}

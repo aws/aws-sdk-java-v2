@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "description": "This release adds support for Amazon Lightsail content delivery network (CDN) distributions and SSL/TLS certificates."
-}

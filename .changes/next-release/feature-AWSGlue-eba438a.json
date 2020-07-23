@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "Added new ConnectionProperties: \"KAFKA_SSL_ENABLED\" (to toggle SSL connections) and \"KAFKA_CUSTOM_CERT\" (import CA certificate file)"
-}
