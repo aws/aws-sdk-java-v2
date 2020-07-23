@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "description": "Adding service linked configuration aggregation support along with new enums for config resource coverage"
+}
