@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AmazonMQ",
+    "description": "Amazon MQ now supports LDAP (Lightweight Directory Access Protocol), providing authentication and authorization of Amazon MQ users via a customer designated LDAP server."
+}
