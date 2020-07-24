@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Fraud Detector",
+    "description": "GetPrediction has been replaced with GetEventPrediction. PutExternalModel has been simplified to accept a role ARN."
+}
