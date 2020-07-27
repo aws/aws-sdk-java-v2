@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "Add ability to manually resume workflows in AWS Glue providing customers further control over the orchestration of ETL workloads."
+}
