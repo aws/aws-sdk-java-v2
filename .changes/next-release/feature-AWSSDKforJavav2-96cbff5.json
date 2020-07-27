@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "The client-side metrics feature is out of developer preview and is now generaly available."
+}
