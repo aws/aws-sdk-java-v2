@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "description": "Today AWS DataSync releases support for self-managed object storage Locations and the new TransferMode Option."
-}

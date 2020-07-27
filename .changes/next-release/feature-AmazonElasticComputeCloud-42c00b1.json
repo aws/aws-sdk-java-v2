@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "m6gd, c6gd, r6gd instances are powered by AWS Graviton2 processors and support local NVMe instance storage"
-}

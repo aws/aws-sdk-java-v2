@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "description": "Basic endpoint settings for relational databases, Preflight validation API."
-}
