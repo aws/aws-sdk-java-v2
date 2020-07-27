@@ -20,7 +20,7 @@
     <parent>
         <artifactId>services</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.13.61-SNAPSHOT</version>
+        <version>2.13.62-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>migrationhub</artifactId>
