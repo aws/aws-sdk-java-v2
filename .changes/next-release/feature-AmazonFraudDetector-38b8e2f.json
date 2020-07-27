@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Fraud Detector",
+    "description": "Moved the eventTypeName attribute for PutExternalModel API to inputConfiguration. Model ID's no longer allow hyphens."
+}
