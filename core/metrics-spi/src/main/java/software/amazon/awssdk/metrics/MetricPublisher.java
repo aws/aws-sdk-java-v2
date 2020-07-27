@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.metrics;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -35,10 +34,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * <p>
  * The SDK may invoke methods on the interface from multiple threads
  * concurrently so implementations must be threadsafe.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
-@SdkPreviewApi
 @ThreadSafe
 @SdkPublicApi
 public interface MetricPublisher extends SdkAutoCloseable {

@@ -23,7 +23,7 @@
     <artifactId>cloudwatch-metric-publisher</artifactId>
     <name>AWS Java SDK :: Metric Publishers :: CloudWatch</name>
     <packaging>jar</packaging>
-    <version>${awsjavasdk.version}-PREVIEW</version>
+    <version>${awsjavasdk.version}</version>
 
     <properties>
         <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
