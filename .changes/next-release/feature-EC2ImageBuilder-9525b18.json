@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "description": "This release updates distribution configurations to allow periods in AMI names."
+}
