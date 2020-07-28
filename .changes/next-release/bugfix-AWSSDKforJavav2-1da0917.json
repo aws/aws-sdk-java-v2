@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "description": "Fixed an issue where HTTP status code metrics were not always published for async clients."
-}

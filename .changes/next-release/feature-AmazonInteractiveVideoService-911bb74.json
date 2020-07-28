@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service",
-    "description": "Added a new error code, PendingVerification, to differentiate between errors caused by insufficient IAM permissions and errors caused by account verification."
-}

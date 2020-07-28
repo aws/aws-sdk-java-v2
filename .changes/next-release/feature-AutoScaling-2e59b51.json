@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Auto Scaling",
-    "description": "Now you can enable Instance Metadata Service Version 2 (IMDSv2) or disable the instance metadata endpoint with Launch Configurations."
-}
