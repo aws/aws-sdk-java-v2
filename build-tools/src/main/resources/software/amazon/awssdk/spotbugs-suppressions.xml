@@ -133,6 +133,14 @@
         <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
     </Match>
 
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.authcrt.signer.AwsS3V4aSigner"/>
+            <Class name="software.amazon.awssdk.authcrt.signer.internal.BaseCrtAws4aSigner"/>
+        </Or>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
     <!-- https://github.com/spotbugs/spotbugs/issues/600 -->
     <Match>
         <Or>
