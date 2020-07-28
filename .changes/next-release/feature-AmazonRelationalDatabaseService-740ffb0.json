@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "Adds reporting of manual cluster snapshot quota to DescribeAccountAttributes API"
+}
