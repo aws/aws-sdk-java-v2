@@ -59,6 +59,7 @@ import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
@@ -194,27 +195,23 @@ public class SyncClientClass implements ClassSpec {
             method.endControlFlow();
         }
 
-        String metricCollectorName = "apiCallMetricCollector";
-
-        method.addStatement("$1T $2N = $1T.create($3S)",
-                MetricCollector.class, metricCollectorName, "ApiCall");
-
-        String publishersName = "metricPublishers";
+        method.addStatement("$T<$T> metricPublishers = "
+                            + "resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
+                            List.class,
+                            MetricPublisher.class,
+                            opModel.getInput().getVariableName())
+              .addStatement("$1T apiCallMetricCollector = metricPublishers.isEmpty() ? $2T.create() : $1T.create($3S)",
+                            MetricCollector.class, NoOpMetricCollector.class, "ApiCall");
 
         method.beginControlFlow("try")
-                .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "SERVICE_ID",
-                        model.getMetadata().getServiceId())
-                .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "OPERATION_NAME",
-                        opModel.getOperationName())
+                .addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
+                              CoreMetric.class, "SERVICE_ID", model.getMetadata().getServiceId())
+                .addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
+                              CoreMetric.class, "OPERATION_NAME", opModel.getOperationName())
                 .addCode(protocolSpec.executionHandler(opModel))
                 .endControlFlow()
                 .beginControlFlow("finally")
-                .addStatement("$T<$T> $N = resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
-                              List.class,
-                              MetricPublisher.class,
-                              publishersName,
-                              opModel.getInput().getVariableName())
-                .addStatement("$N.forEach(p -> p.publish($N.collect()))", publishersName, metricCollectorName)
+                .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
                 .endControlFlow();
 
         methods.add(method.build());
