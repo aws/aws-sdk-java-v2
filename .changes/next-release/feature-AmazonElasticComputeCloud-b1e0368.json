@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "Adding support to target EC2 On-Demand Capacity Reservations within an AWS Resource Group to launch EC2 instances."
+}
