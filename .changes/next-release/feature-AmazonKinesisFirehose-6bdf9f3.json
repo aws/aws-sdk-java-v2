@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Firehose",
+    "description": "This release includes a new Kinesis Data Firehose feature that supports data delivery to Https endpoint and to partners. You can now use Kinesis Data Firehose to ingest real-time data and deliver to Https endpoint and partners in a serverless, reliable, and salable manner."
+}
