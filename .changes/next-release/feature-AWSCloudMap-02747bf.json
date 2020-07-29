@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Map",
+    "description": "Added new attribute AWS_EC2_INSTANCE_ID for RegisterInstance API"
+}
