@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka",
-    "description": "Amazon MSK has added a new API that allows you to reboot brokers within a cluster."
-}
