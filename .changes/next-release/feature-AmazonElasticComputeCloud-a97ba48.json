@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "EC2 On-Demand Capacity Reservations now adds support to bring your own licenses (BYOL) of Windows operating system to launch EC2 instances."
+}
