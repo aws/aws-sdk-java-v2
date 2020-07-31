@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize Runtime",
-    "description": "Adds support to use filters with Personalized Ranking recipe"
-}

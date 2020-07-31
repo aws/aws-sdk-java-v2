@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime",
-    "description": "This release increases the CreateMeetingWithAttendee max attendee limit to 10."
-}
