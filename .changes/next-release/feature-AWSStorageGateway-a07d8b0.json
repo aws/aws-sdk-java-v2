@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "description": "Add support for gateway VM deprecation dates"
+}
