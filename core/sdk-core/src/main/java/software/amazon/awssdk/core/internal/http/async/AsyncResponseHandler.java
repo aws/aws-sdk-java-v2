@@ -73,12 +73,26 @@ public final class AsyncResponseHandler<T> implements TransformingAsyncResponseH
 
     @Override
     public void onError(Throwable err) {
-        streamFuture.completeExceptionally(err);
+        // Method assumes onError will be never be executed concurrently with prepare.
+        if (streamFuture != null) {
+            streamFuture.completeExceptionally(err);
+        } else {
+            CompletableFuture<ByteArrayOutputStream> streamFuture = new CompletableFuture<>();
+            this.streamFuture = streamFuture;
+            streamFuture.completeExceptionally(err);
+        }
     }
 
     @Override
     public CompletableFuture<T> prepare() {
-        streamFuture = new CompletableFuture<>();
+        // Method assumes onError will be never be executed concurrently with prepare.
+        CompletableFuture<ByteArrayOutputStream> streamFuture = this.streamFuture;
+
+        if (streamFuture == null) {
+            streamFuture = new CompletableFuture<>();
+            this.streamFuture = streamFuture;
+        }
+
         return streamFuture.thenCompose(baos -> {
             ByteArrayInputStream content = new ByteArrayInputStream(baos.toByteArray());
             // Ignore aborts - we already have all of the content.

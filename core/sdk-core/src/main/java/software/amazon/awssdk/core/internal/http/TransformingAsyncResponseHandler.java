@@ -16,7 +16,9 @@
 package software.amazon.awssdk.core.internal.http;
 
 import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 /**
@@ -29,8 +31,11 @@ public interface TransformingAsyncResponseHandler<ResultT> extends SdkAsyncHttpR
     /**
      * Return the future holding the transformed response.
      * <p>
-     * This method is guaranteed to be called before the request is executed, and before {@link
-     * SdkAsyncHttpResponseHandler#onHeaders(software.amazon.awssdk.http.SdkHttpResponse)} is signaled.
+     * This method is guaranteed to be called before the request is executed, before {@link
+     * #onHeaders(SdkHttpResponse)} and before {@link #onStream(Publisher)} is signaled.
+     * <p>
+     * Note: {@link #onError(Throwable)} *may* be invoked before this method is invoked, but it will
+     * never be invoked in parallel with this method.
      *
      * @return The future holding the transformed response.
      */

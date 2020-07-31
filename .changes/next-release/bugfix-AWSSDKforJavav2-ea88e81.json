@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Fixed an issue where \"Error thrown from TransformingAsyncResponseHandler#onError, ignoring\" could be logged during an unrelated failure."
+}
