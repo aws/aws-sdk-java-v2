@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "description": "Fixed an issue that could cause \"Data read has a different checksum than expected\" errors."
+}
