@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Resource Groups Tagging API",
+    "description": "Updates to the list of services supported by this API."
+}
