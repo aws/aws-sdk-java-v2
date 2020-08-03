@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
@@ -53,20 +54,20 @@ public class BaseCrtAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPres
     }
 
     @Override
-    protected SdkHttpFullRequest sign(SdkHttpFullRequest request, Aws4aSignerParams signingParams) {
-        try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams)) {
+    public SdkHttpFullRequest doSign(SdkHttpFullRequest request, Aws4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+        try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams, requestSigningParams)) {
             return signWithCrt(request, signingConfig);
         }
     }
 
     @Override
-    protected SdkHttpFullRequest presign(SdkHttpFullRequest request, Aws4aPresignerParams signingParams) {
-        try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams)) {
+    public SdkHttpFullRequest doPresign(SdkHttpFullRequest request, Aws4aPresignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+        try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams, requestSigningParams)) {
             return signWithCrt(request, signingConfig);
         }
     }
 
-    protected void fillInCrtSigningConfig(AwsSigningConfig signingConfig, Aws4aSignerParams signingParams) {
+    protected void fillInCrtSigningConfig(AwsSigningConfig signingConfig, Aws4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
         AwsCredentials sdkCredentials = SigningUtils.sanitizeCredentials(signingParams.awsCredentials());
         byte[] sessionToken = null;
         if (sdkCredentials instanceof AwsSessionCredentials) {
@@ -79,22 +80,22 @@ public class BaseCrtAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPres
         signingConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
         signingConfig.setRegion(signingParams.signingRegionSet());
         signingConfig.setService(signingParams.signingName());
-        signingConfig.setTime(signingParams.signingTimestamp().toEpochMilli());
+        signingConfig.setTime(requestSigningParams.getSigningClock().instant().toEpochMilli());
         signingConfig.setUseDoubleUriEncode(signingParams.doubleUrlEncode());
         signingConfig.setShouldNormalizeUriPath(true);
         signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValueType.PAYLOAD);
         signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
     }
 
-    protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig, Aws4aPresignerParams signingParams) {
-        fillInCrtSigningConfig(signingConfig, signingParams);
+    protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig, Aws4aPresignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+        fillInCrtSigningConfig(signingConfig, signingParams, requestSigningParams);
 
         long expirationInSeconds = 0;
         Optional<Instant> expirationTime = signingParams.expirationTime();
         if (expirationTime == null || !expirationTime.isPresent()) {
             expirationInSeconds = SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS;
         } else {
-            Instant start = signingParams.signingTimestamp();
+            Instant start = requestSigningParams.getSigningClock().instant();
             Instant end = expirationTime.get();
             expirationInSeconds = Math.max(0, Duration.between(start, end).getSeconds());
         }
@@ -102,19 +103,21 @@ public class BaseCrtAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPres
         signingConfig.setExpirationInSeconds(expirationInSeconds);
     }
 
-    protected AwsSigningConfig createCrtSigningConfig(Aws4aSignerParams signingParams) {
+    @SdkTestInternalApi
+    public AwsSigningConfig createCrtSigningConfig(Aws4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
         AwsSigningConfig signingConfig = new AwsSigningConfig();
 
-        fillInCrtSigningConfig(signingConfig, signingParams);
+        fillInCrtSigningConfig(signingConfig, signingParams, requestSigningParams);
         signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
 
         return signingConfig;
     }
 
-    protected AwsSigningConfig createCrtSigningConfig(Aws4aPresignerParams signingParams) {
+    @SdkTestInternalApi
+    public AwsSigningConfig createCrtSigningConfig(Aws4aPresignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
         AwsSigningConfig signingConfig = new AwsSigningConfig();
 
-        fillInCrtPresigningConfig(signingConfig, signingParams);
+        fillInCrtPresigningConfig(signingConfig, signingParams, requestSigningParams);
         signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
 
         return signingConfig;

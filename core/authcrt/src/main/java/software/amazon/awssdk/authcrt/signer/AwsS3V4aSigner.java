@@ -18,6 +18,7 @@ package software.amazon.awssdk.authcrt.signer;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
+import software.amazon.awssdk.authcrt.signer.internal.Aws4aSignerRequestParams;
 import software.amazon.awssdk.authcrt.signer.internal.BaseCrtAws4aSigner;
 import software.amazon.awssdk.authcrt.signer.params.Aws4aPresignerParams;
 import software.amazon.awssdk.authcrt.signer.params.AwsS3V4aSignerParams;
@@ -39,7 +40,9 @@ public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
         AwsS3V4aSignerParams signingParams = buildSignerParams(executionAttributes);
-        try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams)) {
+        Aws4aSignerRequestParams requestSigningParams = buildRequestSigningParams(request, executionAttributes, signingParams);
+
+        try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams, requestSigningParams)) {
             return signWithCrt(request, signingConfig);
         }
     }
@@ -54,10 +57,10 @@ public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws
 
     }
 
-    protected AwsSigningConfig createCrtSigningConfig(AwsS3V4aSignerParams signingParams) {
+    protected AwsSigningConfig createCrtSigningConfig(AwsS3V4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
         AwsSigningConfig signingConfig = new AwsSigningConfig();
 
-        fillInCrtSigningConfig(signingConfig, signingParams);
+        fillInCrtSigningConfig(signingConfig, signingParams, requestSigningParams);
 
         if (signingParams.enablePayloadSigning()) {
             signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValueType.PAYLOAD);

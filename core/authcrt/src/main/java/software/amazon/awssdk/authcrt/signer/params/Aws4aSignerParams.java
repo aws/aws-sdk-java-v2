@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.authcrt.signer.params;
 
-import java.time.Instant;
+import java.time.Clock;
+import java.util.Optional;
+
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.utils.Validate;
@@ -32,14 +34,16 @@ public class Aws4aSignerParams {
     private final AwsCredentials awsCredentials;
     private final String signingName;
     private final String signingRegionSet;
-    private final Instant signingTimestamp;
+    private final Integer timeOffset;
+    private final Clock signingClockOverride;
 
     Aws4aSignerParams(BuilderImpl<?> builder) {
         this.doubleUrlEncode = Validate.paramNotNull(builder.doubleUrlEncode, "Double Url encode");
         this.awsCredentials = Validate.paramNotNull(builder.awsCredentials, "Credentials");
         this.signingName = Validate.paramNotNull(builder.signingName, "service signing name");
         this.signingRegionSet = Validate.paramNotNull(builder.signingRegionSet, "signing region set");
-        this.signingTimestamp = builder.signingTimestamp;
+        this.timeOffset = builder.timeOffset;
+        this.signingClockOverride = builder.signingClockOverride;
     }
 
     public static Builder builder() {
@@ -62,8 +66,12 @@ public class Aws4aSignerParams {
         return signingRegionSet;
     }
 
-    public Instant signingTimestamp() {
-        return signingTimestamp;
+    public Optional<Integer> timeOffset() {
+        return Optional.ofNullable(timeOffset);
+    }
+
+    public Optional<Clock> signingClockOverride() {
+        return Optional.ofNullable(signingClockOverride);
     }
 
     public interface Builder<B extends Builder> {
@@ -100,11 +108,21 @@ public class Aws4aSignerParams {
         B signingRegionSet(String signingRegionSet);
 
         /**
-         * The timestamp to use when computing the signing date for the request.
+         * The time offset (for clock skew correction) to use when computing the signing date for the request.
          *
-         * @param signingTimestamp The timestamp to use when computing the signing date for the request.
+         * @param timeOffset The time offset (for clock skew correction) to use when computing the signing date for the request.
          */
-        B signingTimestamp(Instant signingTimestamp);
+        B timeOffset(Integer timeOffset);
+
+        /**
+         * The clock to use for overriding the signing time when computing signature for a request.
+         *
+         * By default, current time of the system is used for signing. This parameter can be used to set custom signing time.
+         * Useful option for testing.
+         *
+         * @param signingClockOverride The clock to use for overriding the signing time when computing signature for a request.
+         */
+        B signingClockOverride(Clock signingClockOverride);
 
         Aws4aSignerParams build();
     }
@@ -116,7 +134,8 @@ public class Aws4aSignerParams {
         private AwsCredentials awsCredentials;
         private String signingName;
         private String signingRegionSet;
-        private Instant signingTimestamp;
+        private Integer timeOffset;
+        private Clock signingClockOverride;
 
         protected BuilderImpl() {
 
@@ -163,13 +182,23 @@ public class Aws4aSignerParams {
         }
 
         @Override
-        public B signingTimestamp(Instant signingTimestamp) {
-            this.signingTimestamp = signingTimestamp;
+        public B timeOffset(Integer timeOffset) {
+            this.timeOffset = timeOffset;
             return (B) this;
         }
 
-        public void setTimeOffset(Instant signingTimestamp) {
-            signingTimestamp(signingTimestamp);
+        public void setTimeOffset(Integer timeOffset) {
+            timeOffset(timeOffset);
+        }
+
+        @Override
+        public B signingClockOverride(Clock signingClockOverride) {
+            this.signingClockOverride = signingClockOverride;
+            return (B) this;
+        }
+
+        public void setSigningClockOverride(Clock signingClockOverride) {
+            signingClockOverride(signingClockOverride);
         }
 
         @Override

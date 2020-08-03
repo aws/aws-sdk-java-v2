@@ -19,9 +19,14 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.authcrt.signer.internal.BaseCrtAws4aSigner;
 import software.amazon.awssdk.authcrt.signer.params.Aws4aPresignerParams;
 import software.amazon.awssdk.authcrt.signer.params.Aws4aSignerParams;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+
+import java.time.Clock;
 
 @SdkPublicApi
 public final class Aws4aSigner extends BaseCrtAws4aSigner<Aws4aSignerParams, Aws4aPresignerParams> {
+
+    public static final ExecutionAttribute<Clock> SIGNING_CLOCK = new ExecutionAttribute<>("SigningClock");
 
     private Aws4aSigner() {
     }

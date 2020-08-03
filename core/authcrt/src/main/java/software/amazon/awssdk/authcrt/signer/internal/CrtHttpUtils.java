@@ -162,7 +162,7 @@ public class CrtHttpUtils {
 
         builder.clearQueryParameters();
         while (remainingQuery != null && remainingQuery.length() > 0) {
-            int nextQuery = remainingQuery.indexOf('?');
+            int nextQuery = remainingQuery.indexOf('&');
             int nextAssign = remainingQuery.indexOf('=');
             if (nextAssign < nextQuery || (nextAssign >= 0 && nextQuery < 0)) {
                 String queryName = remainingQuery.substring(0, nextAssign);
