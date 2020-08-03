@@ -1,3 +1,20 @@
+# __2.13.67__ __2020-08-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue that could cause "Data read has a different checksum than expected" errors.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Adds a waiter for CommandExecuted and paginators for various other APIs.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where, under rare circumstances, streaming request bytes could be misordered.
+
 # __2.13.66__ __2020-07-31__
 ## __AWS Resource Groups Tagging API__
   - ### Features
