@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "Adds a waiter for CommandExecuted and paginators for various other APIs."
+}
