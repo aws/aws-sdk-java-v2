@@ -1,0 +1,36 @@
+{
+    "version": "2.13.66",
+    "date": "2020-07-31",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "description": "Adds support to use filters with Personalized Ranking recipe"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "description": "Updates to the list of services supported by this API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "description": "Add ManagedByFirewallManager flag to the logging configuration, which indicates whether AWS Firewall Manager controls the configuration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "description": "This release increases the CreateMeetingWithAttendee max attendee limit to 10."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "description": "Add support for gateway VM deprecation dates"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
