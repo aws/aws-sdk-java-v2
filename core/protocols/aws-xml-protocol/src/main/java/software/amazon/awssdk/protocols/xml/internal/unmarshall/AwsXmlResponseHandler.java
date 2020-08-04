@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Response handler for REST-XML services (Cloudfront, Route53, and S3).
@@ -92,7 +93,7 @@ public final class AwsXmlResponseHandler<T extends AwsResponse> implements HttpR
     private AwsResponseMetadata generateResponseMetadata(SdkHttpResponse response) {
         Map<String, String> metadata = new HashMap<>();
         metadata.put(AWS_REQUEST_ID,
-                     response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null));
+                     SdkHttpUtils.firstMatchingHeaderFromCollection(response.headers(), X_AMZN_REQUEST_ID_HEADERS).orElse(null));
 
         response.headers().forEach((key, value) -> metadata.put(key, value.get(0)));
         return DefaultAwsResponseMetadata.create(metadata);

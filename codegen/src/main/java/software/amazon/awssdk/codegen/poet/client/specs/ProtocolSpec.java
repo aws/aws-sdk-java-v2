@@ -155,7 +155,8 @@ public interface ProtocolSpec {
                              + "         runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\", () "
                              + "-> %s.exceptionOccurred(e));%n"
                              + "     }%n"
-                             + "})", responseHandlerName);
+                             + "%s"
+                             + "})", responseHandlerName, publishMetrics());
 
     }
 
@@ -176,5 +177,17 @@ public interface ProtocolSpec {
      */
     default TypeName getPojoResponseType(OperationModel opModel, PoetExtensions poetExtensions) {
         return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+    }
+
+    default String publishMetricsWhenComplete() {
+        return String.format(".whenComplete((r, e) -> {%n"
+                             + "%s%n"
+                             + "})", publishMetrics());
+    }
+
+    default String publishMetrics() {
+        return "List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, "
+               + "requestOverrideConfig);\n"
+               + "metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));";
     }
 }

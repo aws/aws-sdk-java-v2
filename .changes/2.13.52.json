@@ -1,0 +1,46 @@
+{
+    "version": "2.13.52",
+    "date": "2020-07-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "DescribeAvailabilityZones now returns additional data about Availability Zones and Local Zones."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "description": "This release adds support for automatic backups of Amazon EFS file systems to further simplify backup management."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "This release includes the preview release of the client-side metrics for the AWS SDK for Java v2. The SPI can be found in the `metrics-spi` module, and this release also includes a metric publisher for CloudWatch in `cloudwatch-metric-publisher`. See our post over at the [AWS Developer Blog](https://aws.amazon.com/blogs/developer/category/developer-tools/aws-sdk-for-java/) for additional information."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "description": "Adding support for file-system driven directory refresh, Case Sensitivity toggle for SMB File Shares, and S3 Prefixes and custom File Share names"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "AWS Glue Data Catalog supports cross account sharing of tables through AWS Lake Formation"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "description": "Amazon CloudFront adds support for a new security policy, TLSv1.2_2019."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "description": "AWS Lake Formation supports sharing tables with other AWS accounts and organizations"
+        }
+    ]
+}

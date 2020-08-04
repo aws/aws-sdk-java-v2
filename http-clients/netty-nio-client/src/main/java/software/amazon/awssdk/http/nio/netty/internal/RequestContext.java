@@ -16,20 +16,23 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 
 @SdkInternalApi
 public final class RequestContext {
 
-    private final ChannelPool channelPool;
+    private final SdkChannelPool channelPool;
     private final EventLoopGroup eventLoopGroup;
     private final AsyncExecuteRequest executeRequest;
     private final NettyConfiguration configuration;
 
-    public RequestContext(ChannelPool channelPool,
+    private final MetricCollector metricCollector;
+
+    public RequestContext(SdkChannelPool channelPool,
                           EventLoopGroup eventLoopGroup,
                           AsyncExecuteRequest executeRequest,
                           NettyConfiguration configuration) {
@@ -37,9 +40,10 @@ public final class RequestContext {
         this.eventLoopGroup = eventLoopGroup;
         this.executeRequest = executeRequest;
         this.configuration = configuration;
+        this.metricCollector = executeRequest.metricCollector().orElseGet(NoOpMetricCollector::create);
     }
 
-    public ChannelPool channelPool() {
+    public SdkChannelPool channelPool() {
         return channelPool;
     }
 
@@ -63,5 +67,9 @@ public final class RequestContext {
 
     public NettyConfiguration configuration() {
         return configuration;
+    }
+
+    public MetricCollector metricCollector() {
+        return metricCollector;
     }
 }

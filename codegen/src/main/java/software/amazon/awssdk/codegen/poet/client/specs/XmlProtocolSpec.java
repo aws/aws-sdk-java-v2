@@ -20,12 +20,15 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public final class XmlProtocolSpec extends QueryProtocolSpec {
 
@@ -111,6 +114,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
             .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()" +
                  ".withOperationName(\"$N\")\n" +
                  ".withCombinedResponseHandler($N)" +
+                 ".withMetricCollector(apiCallMetricCollector)\n" +
                  hostPrefixExpression(opModel) +
                  discoveredEndpoint(opModel) +
                  ".withInput($L)",
@@ -120,6 +124,9 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                  opModel.getOperationName(),
                  "responseHandler",
                  opModel.getInput().getVariableName());
+
+        codeBlock.add(".withMetricCollector($N)", "apiCallMetricCollector");
+
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withRequestBody(requestBody)")
                             .add(".withMarshaller($L));", syncStreamingMarshaller(intermediateModel, opModel, marshaller))
@@ -166,10 +173,20 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                     opModel.getInput().getVariableName(),
                                     opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
 
+        builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
+                             AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
+
+        String whenCompleteFutureName = "whenCompleteFuture";
+        builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                executeFutureValueType), whenCompleteFutureName);
         if (opModel.hasStreamingOutput()) {
-            builder.add("executeFuture$L;", streamingOutputWhenComplete("asyncResponseTransformer"));
+            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName,
+                    streamingOutputWhenComplete("asyncResponseTransformer"));
+        } else {
+            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName, publishMetricsWhenComplete());
         }
-        builder.addStatement("return executeFuture");
+        builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
+                whenCompleteFutureName);
         return builder.build();
     }
 

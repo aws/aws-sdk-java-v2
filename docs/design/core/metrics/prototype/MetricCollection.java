@@ -38,4 +38,17 @@ public interface MetricCollection extends SdkIterable<MetricRecord<?>> {
      * @return The child metric collections.
      */
     List<MetricCollection> children();
+
+    /**
+     * Return all of the {@link #children()} with a specific name.
+     *
+     * @param name The name by which we will filter {@link #children()}.
+     * @return The child metric collections that have the provided name.
+     */
+    Stream<MetricCollection> childrenWithName(String name);
+
+    /**
+     * @return The time at which this collection was created.
+     */
+    Instant creationTime();
 }

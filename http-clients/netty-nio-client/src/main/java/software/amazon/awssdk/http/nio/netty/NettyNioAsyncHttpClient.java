@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
+import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS;
@@ -23,7 +24,6 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslProvider;
 import java.net.URI;
@@ -51,6 +51,7 @@ import software.amazon.awssdk.http.nio.netty.internal.NettyRequestExecutor;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -79,7 +80,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                     .build();
 
     private final SdkEventLoopGroup sdkEventLoopGroup;
-    private final SdkChannelPoolMap<URI, ? extends ChannelPool> pools;
+    private final SdkChannelPoolMap<URI, ? extends SdkChannelPool> pools;
     private final NettyConfiguration configuration;
 
     private NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
@@ -107,7 +108,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     @SdkTestInternalApi
     NettyNioAsyncHttpClient(SdkEventLoopGroup sdkEventLoopGroup,
-                            SdkChannelPoolMap<URI, ? extends ChannelPool> pools,
+                            SdkChannelPoolMap<URI, ? extends SdkChannelPool> pools,
                             NettyConfiguration configuration) {
         this.sdkEventLoopGroup = sdkEventLoopGroup;
         this.pools = pools;
@@ -117,6 +118,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
         RequestContext ctx = createRequestContext(request);
+        ctx.metricCollector().reportMetric(HTTP_CLIENT_NAME, clientName()); // TODO: Can't this be done in core?
         return new NettyRequestExecutor(ctx).execute();
     }
 
@@ -125,7 +127,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private RequestContext createRequestContext(AsyncExecuteRequest request) {
-        ChannelPool pool = pools.get(poolKey(request.request()));
+        SdkChannelPool pool = pools.get(poolKey(request.request()));
         return new RequestContext(pool, sdkEventLoopGroup.eventLoopGroup(), request, configuration);
     }
 

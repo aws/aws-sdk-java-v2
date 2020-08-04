@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandl
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Useful asserts and utilities for verifying behavior or the client execution timeout and request
@@ -116,6 +117,7 @@ public class ClientExecutionAndRequestTimerTestUtils {
                                .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
                                .executionAttributes(new ExecutionAttributes())
                                .interceptorContext(incerceptorContext)
+                               .metricCollector(MetricCollector.create("ApiCall"))
                                .build();
     }
 

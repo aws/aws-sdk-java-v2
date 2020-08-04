@@ -31,6 +31,8 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.MetricCollectingHttpResponseHandler;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -102,11 +104,12 @@ public abstract class BaseAwsJsonProtocolFactory {
     public final <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata,
         Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
-        return new AwsJsonResponseHandler<>(
-            new JsonResponseHandler<>(protocolUnmarshaller,
-                                      pojoSupplier,
-                                      operationMetadata.hasStreamingSuccessResponse(),
-                                      operationMetadata.isPayloadJson()));
+        return timeUnmarshalling(
+            new AwsJsonResponseHandler<>(
+                new JsonResponseHandler<>(protocolUnmarshaller,
+                                          pojoSupplier,
+                                          operationMetadata.hasStreamingSuccessResponse(),
+                                          operationMetadata.isPayloadJson())));
     }
 
     /**
@@ -114,7 +117,7 @@ public abstract class BaseAwsJsonProtocolFactory {
      */
     public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
         JsonOperationMetadata errorResponseMetadata) {
-        return AwsJsonProtocolErrorUnmarshaller
+        return timeUnmarshalling(AwsJsonProtocolErrorUnmarshaller
             .builder()
             .jsonProtocolUnmarshaller(protocolUnmarshaller)
             .exceptions(modeledExceptions)
@@ -122,7 +125,11 @@ public abstract class BaseAwsJsonProtocolFactory {
             .errorMessageParser(AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER)
             .jsonFactory(getSdkFactory().getJsonFactory())
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
-            .build();
+            .build());
+    }
+
+    private <T> MetricCollectingHttpResponseHandler<T> timeUnmarshalling(HttpResponseHandler<T> delegate) {
+        return MetricCollectingHttpResponseHandler.create(CoreMetric.UNMARSHALLING_DURATION, delegate);
     }
 
     private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {

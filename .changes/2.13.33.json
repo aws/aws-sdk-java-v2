@@ -1,0 +1,16 @@
+{
+    "version": "2.13.33",
+    "date": "2020-06-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "description": "This release updates the API so customers can test use of Source IP to allow, deny or limit access to data in their S3 buckets after integrating their identity provider."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

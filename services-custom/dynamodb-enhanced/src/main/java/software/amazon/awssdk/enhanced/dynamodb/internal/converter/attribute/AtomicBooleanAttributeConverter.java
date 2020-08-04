@@ -22,8 +22,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.AtomicBooleanStringConverter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -43,8 +41,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @ThreadSafe
 @Immutable
 public final class AtomicBooleanAttributeConverter implements AttributeConverter<AtomicBoolean> {
-    private static final Visitor VISITOR = new Visitor();
-    private static final AtomicBooleanStringConverter STRING_CONVERTER = AtomicBooleanStringConverter.create();
+    private static final BooleanAttributeConverter BOOLEAN_CONVERTER = BooleanAttributeConverter.create();
 
     private AtomicBooleanAttributeConverter() {
     }
@@ -70,26 +67,6 @@ public final class AtomicBooleanAttributeConverter implements AttributeConverter
 
     @Override
     public AtomicBoolean transformTo(AttributeValue input) {
-        if (input.bool() != null) {
-            return EnhancedAttributeValue.fromBoolean(input.bool()).convert(VISITOR);
-        }
-
-        return EnhancedAttributeValue.fromAttributeValue(input).convert(VISITOR);
-    }
-
-    private static final class Visitor extends TypeConvertingVisitor<AtomicBoolean> {
-        private Visitor() {
-            super(AtomicBoolean.class, AtomicBooleanAttributeConverter.class);
-        }
-
-        @Override
-        public AtomicBoolean convertString(String value) {
-            return STRING_CONVERTER.fromString(value);
-        }
-
-        @Override
-        public AtomicBoolean convertBoolean(Boolean value) {
-            return new AtomicBoolean(value);
-        }
+        return new AtomicBoolean(BOOLEAN_CONVERTER.transformTo(input));
     }
 }

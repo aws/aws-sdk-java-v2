@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class AwsJsonResponseHandler<T> implements HttpResponseHandler<T> {
@@ -57,7 +58,9 @@ public final class AwsJsonResponseHandler<T> implements HttpResponseHandler<T> {
     private AwsResponseMetadata generateResponseMetadata(SdkHttpResponse response) {
         Map<String, String> metadata = new HashMap<>();
 
-        metadata.put(AWS_REQUEST_ID, response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null));
+        metadata.put(AWS_REQUEST_ID, SdkHttpUtils.firstMatchingHeaderFromCollection(response.headers(),
+                                                                                    X_AMZN_REQUEST_ID_HEADERS)
+                                                 .orElse(null));
         response.headers().forEach((key, value) -> metadata.put(key, value.get(0)));
 
         return DefaultAwsResponseMetadata.create(metadata);

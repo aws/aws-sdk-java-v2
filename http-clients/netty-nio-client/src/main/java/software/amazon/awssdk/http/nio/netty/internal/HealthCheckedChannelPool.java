@@ -23,9 +23,11 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.ScheduledFuture;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * An implementation of {@link ChannelPool} that validates the health of its connections.
@@ -40,14 +42,14 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * {@link NettyConfiguration#connectionAcquireTimeoutMillis()} timeout is reached.
  */
 @SdkInternalApi
-public class HealthCheckedChannelPool implements ChannelPool {
+public class HealthCheckedChannelPool implements SdkChannelPool {
     private final EventLoopGroup eventLoopGroup;
     private final int acquireTimeoutMillis;
-    private final ChannelPool delegate;
+    private final SdkChannelPool delegate;
 
     public HealthCheckedChannelPool(EventLoopGroup eventLoopGroup,
                                     NettyConfiguration configuration,
-                                    ChannelPool delegate) {
+                                    SdkChannelPool delegate) {
         this.eventLoopGroup = eventLoopGroup;
         this.acquireTimeoutMillis = configuration.connectionAcquireTimeoutMillis();
         this.delegate = delegate;
@@ -168,5 +170,10 @@ public class HealthCheckedChannelPool implements ChannelPool {
         }
 
         return channel.isActive();
+    }
+
+    @Override
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        return delegate.collectChannelPoolMetrics(metrics);
     }
 }
