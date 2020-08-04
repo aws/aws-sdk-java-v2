@@ -1,3 +1,12 @@
+# __2.13.68__ __2020-08-04__
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Documentation updates for health
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.13.67__ __2020-08-03__
 ## __AWS SDK for Java v2__
   - ### Features
