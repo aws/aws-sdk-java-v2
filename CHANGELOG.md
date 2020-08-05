@@ -1,3 +1,24 @@
+# __2.13.69__ __2020-08-05__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync releases support for Direct Lambda Resolvers.
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Documentation updates for the Resource Group Tagging API namespace.
+
+## __Amazon FSx__
+  - ### Features
+    - Documentation updates for StorageCapacity input value format.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Documentation updates for SNS.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports custom language models, which can improve transcription accuracy for your specific use case.
+
 # __2.13.68__ __2020-08-04__
 ## __AWS Health APIs and Notifications__
   - ### Features
