@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Model Building Service",
-    "description": "Amazon Lex supports the option to enable accuracy improvements and specify an intent classification confidence score threshold."
-}
