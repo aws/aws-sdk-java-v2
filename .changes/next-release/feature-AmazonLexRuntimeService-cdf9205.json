@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Runtime Service",
+    "description": "Amazon Lex supports intent classification confidence scores along with a list of the top five intents."
+}
