@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize Events",
+    "description": "Adds support implicit and explicit impression input"
+}
