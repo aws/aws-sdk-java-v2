@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "This release supports Wavelength resources, including carrier gateways, and carrier IP addresses."
+}
