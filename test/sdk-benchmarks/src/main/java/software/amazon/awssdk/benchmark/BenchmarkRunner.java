@@ -96,8 +96,9 @@ public class BenchmarkRunner {
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
         benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
         benchmarksToRun.addAll(COLD_START_BENCHMARKS);
-        benchmarksToRun.addAll(MAPPER_BENCHMARKS);
-        benchmarksToRun.addAll(METRIC_BENCHMARKS);
+
+        log.info(() -> "Skipping tests, to reduce benchmark times: \n" + MAPPER_BENCHMARKS + "\n" + METRIC_BENCHMARKS);
+
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
 
