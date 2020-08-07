@@ -1,3 +1,53 @@
+# __2.13.70__ __2020-08-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release supports Wavelength resources, including carrier gateways, and carrier IP addresses.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Amazon Lex supports the option to enable accuracy improvements and specify an intent classification confidence score threshold.
+
+## __Amazon Lex Runtime Service__
+  - ### Features
+    - Amazon Lex supports intent classification confidence scores along with a list of the top five intents.
+
+## __Amazon Personalize__
+  - ### Features
+    - Add 'exploration' functionality
+
+## __Amazon Personalize Events__
+  - ### Features
+    - Adds support implicit and explicit impression input
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Adds support for implicit impressions
+
+# __2.13.69__ __2020-08-05__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync releases support for Direct Lambda Resolvers.
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Documentation updates for the Resource Group Tagging API namespace.
+
+## __Amazon FSx__
+  - ### Features
+    - Documentation updates for StorageCapacity input value format.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Documentation updates for SNS.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports custom language models, which can improve transcription accuracy for your specific use case.
+
 # __2.13.68__ __2020-08-04__
 ## __AWS Health APIs and Notifications__
   - ### Features
