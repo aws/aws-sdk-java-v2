@@ -530,7 +530,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder connectionTimeToLive(Duration connectionTimeToLive) {
-            Validate.isPositive(connectionTimeToLive, "connectionTimeToLive");
+            Validate.isNotNegative(connectionTimeToLive, "connectionTimeToLive");
             standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE, connectionTimeToLive);
             return this;
         }
