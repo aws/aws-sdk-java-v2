@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "Starting today, you can further control orchestration of your ETL workloads in AWS Glue by specifying the maximum number of concurrent runs for a Glue workflow."
+}
