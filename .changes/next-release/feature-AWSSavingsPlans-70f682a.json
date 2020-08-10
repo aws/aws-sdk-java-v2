@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Savings Plans",
+    "description": "Updates to the list of services supported by this API."
+}
