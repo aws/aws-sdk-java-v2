@@ -12,7 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package software.amazon.awssdk.services.s3;
+package software.amazon.awssdk.services.s3control;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
@@ -23,14 +23,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3control.S3ControlClient;
 import software.amazon.awssdk.services.sts.StsClient;
 
-public class AccessPointsIntegrationTest extends S3IntegrationTestBase {
+public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase {
 
-    private static final String BUCKET = temporaryBucketName(AccessPointsIntegrationTest.class);
+    private static final String BUCKET = temporaryBucketName(S3AccessPointsIntegrationTest.class);
 
     private static final String AP_NAME = "java-sdk-" + System.currentTimeMillis();
 

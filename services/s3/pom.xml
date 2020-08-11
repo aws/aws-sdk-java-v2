@@ -91,12 +91,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <artifactId>s3control</artifactId>
-            <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <artifactId>kms</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
