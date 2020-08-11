@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -178,9 +179,9 @@ final class ClientClassUtils {
                 builder.addStatement("String resolvedHostExpression = $S", processor.hostWithStringSpecifier());
             } else {
                 processor.c2jNames()
-                         .forEach(name -> builder.addStatement("$T.paramNotBlank($L, $S)", Validate.class,
+                         .forEach(name -> builder.addStatement("$T.validateHostnameCompliant($L, $S, $S)", HostnameValidator.class,
                                                               inputShapeMemberGetter(opModel, name),
-                                                               name));
+                                                               name, opModel.getInput().getVariableName()));
 
                 builder.addStatement("String resolvedHostExpression = String.format($S, $L)",
                                      processor.hostWithStringSpecifier(),

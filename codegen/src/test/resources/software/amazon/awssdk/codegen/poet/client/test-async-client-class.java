@@ -99,7 +99,7 @@ import software.amazon.awssdk.services.json.transform.StreamingInputOperationReq
 import software.amazon.awssdk.services.json.transform.StreamingInputOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.HostnameValidator;
 
 /**
  * Internal implementation of {@link JsonAsyncClient}.
@@ -161,7 +161,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
             String hostPrefix = "{StringMember}-foo.";
-            Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
+            HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
+                    "aPostOperationRequest");
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
@@ -639,7 +640,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
@@ -649,19 +650,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -773,7 +774,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -783,19 +784,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
@@ -1104,4 +1105,3 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 }
-

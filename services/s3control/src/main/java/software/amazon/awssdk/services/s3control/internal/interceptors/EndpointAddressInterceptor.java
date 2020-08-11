@@ -15,16 +15,27 @@
 
 package software.amazon.awssdk.services.s3control.internal.interceptors;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SIGNING_REGION;
+import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.S3_OUTPOSTS;
+import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isDualstackEnabled;
+import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsEnabledInClientConfig;
+import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsRegion;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlConfiguration;
+import software.amazon.awssdk.services.s3control.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3control.model.ListRegionalBucketsRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Execution interceptor which modifies the HTTP request to S3 Control to
@@ -32,37 +43,62 @@ import software.amazon.awssdk.services.s3control.S3ControlConfiguration;
  * account identifier and, when enabled, adding in FIPS and dualstack.
  */
 @SdkInternalApi
-public class EndpointAddressInterceptor implements ExecutionInterceptor {
-    private static final Pattern HOSTNAME_COMPLIANT_PATTERN = Pattern.compile("[A-Za-z0-9\\-]+");
-    private static final int HOSTNAME_MAX_LENGTH = 63;
-
+public final class EndpointAddressInterceptor implements ExecutionInterceptor {
     private static final String ENDPOINT_PREFIX = "s3-control";
-
-    private static final String X_AMZ_ACCOUNT_ID = "x-amz-account-id";
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
         SdkHttpRequest request = context.httpRequest();
 
-        if (!request.headers().containsKey(X_AMZ_ACCOUNT_ID)) {
-            throw SdkClientException.create("Account ID must be specified for all requests");
-        }
-
-        String accountId = request.headers().get(X_AMZ_ACCOUNT_ID).get(0);
-
         S3ControlConfiguration config = (S3ControlConfiguration) executionAttributes.getAttribute(
             AwsSignerExecutionAttribute.SERVICE_CONFIG);
 
-        String host = resolveHost(request, accountId, config);
+        String host;
+
+        // If the request is an non-arn outpost request
+        if (isNonArnOutpostRequest(context.request())) {
+            host = resolveHostForNonArnOutpostRequest(context.httpRequest(), config, executionAttributes);
+        } else {
+            host = resolveHost(request, config);
+        }
 
         return request.toBuilder()
                       .host(host)
                       .build();
     }
 
-    private String resolveHost(SdkHttpRequest request, String accountId, S3ControlConfiguration configuration) {
-        if (isDualstackEnabled(configuration) && isFipsEnabled(configuration)) {
+    private String resolveHostForNonArnOutpostRequest(SdkHttpRequest request, S3ControlConfiguration configuration,
+                                                      ExecutionAttributes executionAttributes) {
+        if (isDualstackEnabled(configuration)) {
+            throw new IllegalArgumentException("Dualstack endpoints are not supported");
+        }
+
+        Region region = executionAttributes.getAttribute(SIGNING_REGION);
+        if (isFipsEnabledInClientConfig(configuration) || isFipsRegion(region.id())) {
+            throw new IllegalArgumentException("FIPS endpoints are not supported");
+        }
+
+        executionAttributes.putAttribute(SERVICE_SIGNING_NAME, S3_OUTPOSTS);
+
+        String host = request.host();
+        return host.replace(ENDPOINT_PREFIX, S3_OUTPOSTS);
+    }
+
+    /**
+     * It should redirect signer if the request is CreateBucketRequest or ListRegionalBucketsRequest with outpostId present
+     */
+    private boolean isNonArnOutpostRequest(SdkRequest request) {
+        if (request instanceof CreateBucketRequest && (StringUtils.isNotBlank(((CreateBucketRequest) request).outpostId()))) {
+            return true;
+        }
+
+        return request instanceof ListRegionalBucketsRequest &&
+               (StringUtils.isNotBlank(((ListRegionalBucketsRequest) request).outpostId()));
+    }
+
+    private String resolveHost(SdkHttpRequest request, S3ControlConfiguration configuration) {
+        if (isDualstackEnabled(configuration) && isFipsEnabledInClientConfig(configuration)) {
             throw SdkClientException.create("Cannot use both Dual-Stack endpoints and FIPS endpoints");
         }
         String host = request.getUri().getHost();
@@ -72,7 +108,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
                                                               request.getUri()));
             }
             host = host.replace(ENDPOINT_PREFIX, String.format("%s.%s", ENDPOINT_PREFIX, "dualstack"));
-        } else if (isFipsEnabled(configuration)) {
+        } else if (isFipsEnabledInClientConfig(configuration)) {
             if (!host.contains(ENDPOINT_PREFIX)) {
                 throw SdkClientException.create(String.format("The FIPS option cannot be used with custom endpoints (%s)",
                                                               request.getUri()));
@@ -80,37 +116,6 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
             host = host.replace(ENDPOINT_PREFIX, String.format("%s-%s", ENDPOINT_PREFIX, "fips"));
 
         }
-        validateComponentIsHostnameCompliant(accountId, "account id");
-        return String.format("%s.%s", accountId, host);
-    }
-
-    private boolean isDualstackEnabled(S3ControlConfiguration configuration) {
-        return configuration != null && configuration.dualstackEnabled();
-    }
-
-    private boolean isFipsEnabled(S3ControlConfiguration configuration) {
-        return configuration != null && configuration.fipsModeEnabled();
-    }
-
-    private static void validateComponentIsHostnameCompliant(String component, String componentName) {
-        if (component.isEmpty()) {
-            throw new IllegalArgumentException(
-                String.format("An argument has been passed that is not valid: the required '%s' "
-                              + "component is missing.", componentName));
-        }
-
-        if (component.length() > HOSTNAME_MAX_LENGTH) {
-            throw new IllegalArgumentException(
-                String.format("An argument has been passed that is not valid: the '%s' "
-                              + "component exceeds the maximum length of %d characters.", componentName,
-                              HOSTNAME_MAX_LENGTH));
-        }
-
-        Matcher m = HOSTNAME_COMPLIANT_PATTERN.matcher(component);
-        if (!m.matches()) {
-            throw new IllegalArgumentException(
-                String.format("An argument has been passed that is not valid: the '%s' "
-                              + "component must only contain alphanumeric characters and dashes.", componentName));
-        }
+        return host;
     }
 }

@@ -59,7 +59,7 @@ import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutR
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.HostnameValidator;
 
 /**
  * Internal implementation of {@link JsonClient}.
@@ -110,7 +110,8 @@ final class DefaultJsonClient implements JsonClient {
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
             AwsServiceException, SdkClientException, JsonException {
         String hostPrefix = "{StringMember}-foo.";
-        Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
+        HostnameValidator
+                .validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember", "aPostOperationRequest");
         String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                 .isPayloadJson(true).build();
@@ -302,7 +303,7 @@ final class DefaultJsonClient implements JsonClient {
      * The following are few ways to iterate through the response pages:
      * </p>
      * 1) Using a Stream
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
@@ -311,7 +312,7 @@ final class DefaultJsonClient implements JsonClient {
      * </pre>
      *
      * 2) Using For loop
-     * 
+     *
      * <pre>
      * {
      *     &#064;code
@@ -324,7 +325,7 @@ final class DefaultJsonClient implements JsonClient {
      * </pre>
      *
      * 3) Use iterator directly
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
@@ -426,7 +427,7 @@ final class DefaultJsonClient implements JsonClient {
      * The following are few ways to iterate through the response pages:
      * </p>
      * 1) Using a Stream
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -435,7 +436,7 @@ final class DefaultJsonClient implements JsonClient {
      * </pre>
      *
      * 2) Using For loop
-     * 
+     *
      * <pre>
      * {
      *     &#064;code
@@ -448,7 +449,7 @@ final class DefaultJsonClient implements JsonClient {
      * </pre>
      *
      * 3) Use iterator directly
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -494,11 +495,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.
@@ -556,11 +557,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
@@ -737,4 +738,3 @@ final class DefaultJsonClient implements JsonClient {
         return JsonUtilities.create(param1, param2, param3);
     }
 }
-
