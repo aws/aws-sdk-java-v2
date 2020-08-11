@@ -1,3 +1,45 @@
+# __2.13.72__ __2020-08-10__
+## __AWS Glue__
+  - ### Features
+    - Starting today, you can further control orchestration of your ETL workloads in AWS Glue by specifying the maximum number of concurrent runs for a Glue workflow.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Savings Plans__
+  - ### Features
+    - Updates to the list of services supported by this API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Remove CoIP Auto-Assign feature references.
+
+# __2.13.71__ __2020-08-07__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now adds support for Network connection type enabling you to access resources inside your VPC using Glue crawlers and Glue ETL jobs.
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for some new error reasons.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Server Migration Service__
+  - ### Features
+    - In this release, AWS Server Migration Service (SMS) has added new features: 1. APIs to work with application and instance level validation 2. Import application catalog from AWS Application Discovery Service 3. For an application you can start on-demand replication
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updates Amazon S3 API reference documentation.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed the issue where `connectionTimeToLive` was not allowed to set to zero. See [#1976](https://github.com/aws/aws-sdk-java-v2/issues/1976)
+
 # __2.13.70__ __2020-08-06__
 ## __AWS SDK for Java v2__
   - ### Features
