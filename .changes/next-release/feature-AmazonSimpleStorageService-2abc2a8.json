@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "description": "Add support for in-region CopyObject and UploadPartCopy through S3 Access Points"
+}
