@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "description": "Support Managed Streaming for Kafka as an Event Source. Support retry until record expiration for Kinesis and Dynamodb streams event source mappings."
+}
