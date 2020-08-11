@@ -1,0 +1,26 @@
+{
+    "version": "2.13.73",
+    "date": "2020-08-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "Minor documentation update for AWS Organizations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "description": "Support Managed Streaming for Kafka as an Event Source. Support retry until record expiration for Kinesis and Dynamodb streams event source mappings."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "description": "Add support for in-region CopyObject and UploadPartCopy through S3 Access Points"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release rolls back the EC2 On-Demand Capacity Reservations (ODCRs) release 1.11.831 published on 2020-07-30, which was deployed in error."
+        }
+    ]
+}
