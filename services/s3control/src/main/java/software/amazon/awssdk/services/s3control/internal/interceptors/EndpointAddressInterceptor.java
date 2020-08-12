@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3control.internal.interceptors;
 
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SIGNING_REGION;
+import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.ENDPOINT_PREFIX;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.S3_OUTPOSTS;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isDualstackEnabled;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsEnabledInClientConfig;
@@ -44,7 +45,6 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 @SdkInternalApi
 public final class EndpointAddressInterceptor implements ExecutionInterceptor {
-    private static final String ENDPOINT_PREFIX = "s3-control";
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,

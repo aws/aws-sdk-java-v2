@@ -21,7 +21,8 @@ import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class HandlerUtils {
-
+    public static final String X_AMZ_ACCOUNT_ID = "x-amz-account-id";
+    public static final String ENDPOINT_PREFIX = "s3-control";
     public static final String S3_OUTPOSTS = "s3-outposts";
 
     private HandlerUtils() {
@@ -33,6 +34,10 @@ public final class HandlerUtils {
 
     public static boolean isFipsEnabledInClientConfig(S3ControlConfiguration configuration) {
         return configuration != null && configuration.fipsModeEnabled();
+    }
+
+    public static boolean isUseArnRegionEnabledInClientConfig(S3ControlConfiguration configuration) {
+        return configuration != null && configuration.useArnRegionEnabled();
     }
 
     /**

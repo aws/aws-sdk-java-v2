@@ -111,7 +111,8 @@ public final class S3ControlBucketResource implements S3Resource {
      * Gets the optional parent s3 resource
      * @return the parent s3 resource if exists, otherwise null
      */
-    public Optional<S3Resource> getParentS3Resource() {
+    @Override
+    public Optional<S3Resource> parentS3Resource() {
         return Optional.ofNullable(parentS3Resource);
     }
 
