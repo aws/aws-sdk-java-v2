@@ -32,6 +32,13 @@
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
     </Match>
 
+    <Match>
+        <!-- Explicitly an unsafe option that the customer must opt into. -->
+        <Class name="software.amazon.awssdk.core.BytesWrapper" />
+        <Method name="asByteArrayUnsafe" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
     <!-- Delegate closes input stream. -->
     <Match>
         <Class name="software.amazon.awssdk.protocols.ion.internal.IonFactory" />
