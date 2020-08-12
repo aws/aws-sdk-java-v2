@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud9",
+    "description": "Add ConnectionType input parameter to CreateEnvironmentEC2 endpoint. New parameter enables creation of environments with SSM connection."
+}
