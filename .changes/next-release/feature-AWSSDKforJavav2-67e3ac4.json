@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "description": "Added an \"unsafe\" way to retrieve a byte array from `SdkBytes` and `ResponseBytes` without copying the data."
-}
