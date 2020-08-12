@@ -16,6 +16,20 @@
 
 <FindBugsFilter>
 
+    <!-- Ignore Java "Serializable" problems in the code generator. -->
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.codegen.*"/>
+        <Bug pattern="SE_BAD_FIELD,SE_NO_SERIALVERSIONID,SE_BAD_FIELD_STORE"/>
+    </Match>
+
+
+    <!-- Ignore "confusing name" problems that result of needing to match the inconsistent naming in
+    the service model. -->
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.codegen\.model.*"/>
+        <Bug pattern="NM_CONFUSING"/>
+    </Match>
+
     <Match>
         <!-- PZLA_PREFER_ZERO_LENGTH_ARRAYS: This rule causes many false positives, because sometimes we want to return
              null for arrays. -->

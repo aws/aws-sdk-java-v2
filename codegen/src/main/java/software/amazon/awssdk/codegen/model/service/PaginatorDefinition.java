@@ -15,10 +15,17 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static java.util.Collections.singletonList;
+
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.jr.stree.JrsArray;
+import com.fasterxml.jackson.jr.stree.JrsValue;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Represents the structure for each operation in paginators-1.json file
@@ -27,23 +34,20 @@ import software.amazon.awssdk.utils.CollectionUtils;
  */
 public class PaginatorDefinition {
 
-    private static final String VALID_REGEX = "[a-zA-Z\\.]+";
+    private static final String VALID_REGEX = "[a-zA-Z.]+";
     /**
      * The members in the request which needs to be set to get the next page.
      */
-    @JsonProperty("input_token")
     private List<String> inputToken;
 
     /**
      * The members in the response which are used to get the next page.
      */
-    @JsonProperty("output_token")
     private List<String> outputToken;
 
     /**
      * The paginated list of members in the response
      */
-    @JsonProperty("result_key")
     private List<String> resultKey;
 
     /**
@@ -54,13 +58,11 @@ public class PaginatorDefinition {
      * This is an optional field. If this value is missing, use the outputToken instead to check
      * if more results are available or not.
      */
-    @JsonProperty("more_results")
     private String moreResults;
 
     /**
      * The member in the request that is used to limit the number of results per page.
      */
-    @JsonProperty("limit_key")
     private String limitKey;
 
     public PaginatorDefinition() {
@@ -119,4 +121,57 @@ public class PaginatorDefinition {
                !CollectionUtils.isNullOrEmpty(outputToken) &&
                outputToken.stream().allMatch(t -> p.matcher(t).matches());
     }
+
+    private List<String> asList(JrsValue node) {
+        if (node.isArray()) {
+            List<String> output = new ArrayList<>();
+            Iterator<JrsValue> elements = ((JrsArray) node).elements();
+            elements.forEachRemaining(v  -> output.add(asString(v)));
+            return output;
+        } else {
+            return singletonList(asString(node));
+        }
+    }
+
+    private String asString(JrsValue value) {
+        Validate.isTrue(value.asToken() == JsonToken.VALUE_STRING, "Expected a string node: " + value);
+        return value.asText();
+    }
+
+    // CHECKSTYLE:OFF - These are all gross versions of the setter methods that match the C2J name.
+    /**
+     * Gross version of {@link #setLimitKey} that matches the JSON attribute name.
+     */
+    public void setLimit_key(String limitKey) {
+        this.limitKey = limitKey;
+    }
+
+    /**
+     * Gross version of {@link #setInputToken} that matches the JSON attribute name.
+     */
+    public void setInput_token(JrsValue inputToken) {
+        this.inputToken = asList(inputToken);
+    }
+
+    /**
+     * Gross version of {@link #setOutputToken} that matches the JSON attribute name.
+     */
+    public void setOutput_token(JrsValue outputToken) {
+        this.outputToken = asList(outputToken);
+    }
+
+    /**
+     * Gross version of {@link #setResultKey} that matches the JSON attribute name.
+     */
+    public void setResult_key(JrsValue resultKey) {
+        this.resultKey = asList(resultKey);
+    }
+
+    /**
+     * Gross version of {@link #setMoreResults} that matches the JSON attribute name.
+     */
+    public void setMore_results(String moreResults) {
+        this.moreResults = moreResults;
+    }
+    // CHECKSTYLE:ON
 }

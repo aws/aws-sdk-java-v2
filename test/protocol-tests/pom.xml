@@ -172,6 +172,9 @@
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                        <configuration>
+                            <writeIntermediateModel>true</writeIntermediateModel>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

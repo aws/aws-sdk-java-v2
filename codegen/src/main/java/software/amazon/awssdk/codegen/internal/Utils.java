@@ -21,6 +21,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -202,9 +204,10 @@ public final class Utils {
 
     public static void createDirectory(File dir) {
         if (!(dir.exists())) {
-            if (!dir.mkdirs()) {
-                throw new RuntimeException("Not able to create directory. "
-                        + dir.getAbsolutePath());
+            try {
+                Files.createDirectories(dir.toPath());
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to create " + dir, e);
             }
         }
     }

@@ -37,7 +37,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
-import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.Operation;
@@ -56,7 +55,6 @@ public class IntermediateModelBuilder {
     private static final Logger log = LoggerFactory.getLogger(IntermediateModelBuilder.class);
     private final CustomizationConfig customConfig;
     private final ServiceModel service;
-    private final ServiceExamples examples;
     private final NamingStrategy namingStrategy;
     private final TypeUtils typeUtils;
     private final List<IntermediateModelShapeProcessor> shapeProcessors;
@@ -65,7 +63,6 @@ public class IntermediateModelBuilder {
     public IntermediateModelBuilder(C2jModels models) {
         this.customConfig = models.customizationConfig();
         this.service = models.serviceModel();
-        this.examples = models.examplesModel();
         this.namingStrategy = new DefaultNamingStrategy(service, customConfig);
         this.typeUtils = new TypeUtils(namingStrategy);
         this.shapeProcessors = createShapeProcessors();
@@ -88,13 +85,6 @@ public class IntermediateModelBuilder {
     }
 
     public IntermediateModel build() {
-        // Note: This needs to come before any pre/post processing of the
-        // models, as the transformer must have access to the original shapes,
-        // before any customizations have been applied (which modifies them).
-        log.info("Applying customizations to examples...");
-        new ExamplesCustomizer(service, customConfig).applyCustomizationsToExamples(examples);
-        log.info("Examples customized.");
-
         CodegenCustomizationProcessor customization = DefaultCustomizationProcessor
             .getProcessorFor(customConfig);
 
@@ -134,13 +124,13 @@ public class IntermediateModelBuilder {
 
         // Remove deprecated operations and their paginators
         operations.entrySet().removeIf(e -> customConfig.getDeprecatedOperations().contains(e.getKey()));
-        paginators.getPaginators().entrySet().removeIf(e -> customConfig.getDeprecatedOperations().contains(e.getKey()));
+        paginators.getPagination().entrySet().removeIf(e -> customConfig.getDeprecatedOperations().contains(e.getKey()));
 
         log.info("{} shapes found in total.", shapes.size());
 
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
-            customConfig, examples, endpointOperation, authorizers, paginators.getPaginators(), namingStrategy);
+            customConfig, endpointOperation, authorizers, paginators.getPagination(), namingStrategy);
 
         customization.postprocess(fullModel);
 
@@ -156,7 +146,6 @@ public class IntermediateModelBuilder {
                                                                fullModel.getOperations(),
                                                                trimmedShapes,
                                                                fullModel.getCustomizationConfig(),
-                                                               fullModel.getExamples(),
                                                                endpointOperation,
                                                                fullModel.getCustomAuthorizers(),
                                                                fullModel.getPaginators(),
@@ -219,7 +208,7 @@ public class IntermediateModelBuilder {
                  if (model.getMetadata().getProtocol() == Protocol.API_GATEWAY) {
                      linkAuthorizationToRequestShapeForApiGatewayProtocol(model, c2jOperation, shape);
                  } else {
-                     linkAuthorizationToRequestShapeForAwsProtocol(c2jOperation.getAuthType(), shape);
+                     linkAuthorizationToRequestShapeForAwsProtocol(c2jOperation.getAuthtype(), shape);
                  }
              });
     }
@@ -227,7 +216,7 @@ public class IntermediateModelBuilder {
     private void linkAuthorizationToRequestShapeForApiGatewayProtocol(IntermediateModel model,
                                                                       Operation c2jOperation,
                                                                       ShapeModel shape) {
-        if (AuthType.CUSTOM.equals(c2jOperation.getAuthType())) {
+        if (AuthType.CUSTOM.equals(c2jOperation.getAuthtype())) {
             AuthorizerModel auth = model.getCustomAuthorizers().get(c2jOperation.getAuthorizer());
             if (auth == null) {
                 throw new RuntimeException(String.format("Required custom auth not defined: %s",
@@ -235,7 +224,7 @@ public class IntermediateModelBuilder {
             }
             shape.setRequestSignerClassFqcn(model.getMetadata().getAuthPolicyPackageName() + '.' +
                                             auth.getInterfaceName());
-        } else if (AuthType.IAM.equals(c2jOperation.getAuthType())) {
+        } else if (AuthType.IAM.equals(c2jOperation.getAuthtype())) {
             model.getMetadata().setRequiresIamSigners(true);
             // TODO IamRequestSigner does not exist
             shape.setRequestSignerClassFqcn("software.amazon.awssdk.opensdk.protect.auth.IamRequestSigner");
@@ -289,10 +278,6 @@ public class IntermediateModelBuilder {
 
     public ServiceModel getService() {
         return service;
-    }
-
-    public ServiceExamples getExamples() {
-        return examples;
     }
 
     public NamingStrategy getNamingStrategy() {
