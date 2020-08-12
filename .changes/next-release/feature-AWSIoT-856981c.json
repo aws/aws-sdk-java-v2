@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "description": "Audit finding suppressions: Device Defender enables customers to turn off non-compliant findings for specific resources on a per check basis."
+}
