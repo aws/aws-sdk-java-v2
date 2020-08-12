@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "description": "Adds security policies to control cryptographic algorithms advertised by your server, additional characters in usernames and length increase, and FIPS compliant endpoints in the US and Canada regions."
-}

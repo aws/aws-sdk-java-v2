@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "description": "Adds optional EnableWorkDocs property to WorkspaceCreationProperties in the ModifyWorkspaceCreationProperties API"
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "description": "Support for creating Lambda Functions using 'java8.al2' and 'provided.al2'"
-}
