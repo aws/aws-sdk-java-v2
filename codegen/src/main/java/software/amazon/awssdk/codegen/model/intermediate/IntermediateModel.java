@@ -15,11 +15,10 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,36 +32,40 @@ import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.utils.IoUtils;
 
 public final class IntermediateModel {
-    private final Metadata metadata;
+    private static final String FILE_HEADER;
 
-    private final Map<String, OperationModel> operations;
+    private Metadata metadata;
 
-    private final Map<String, ShapeModel> shapes;
+    private Map<String, OperationModel> operations;
 
-    private final CustomizationConfig customizationConfig;
+    private Map<String, ShapeModel> shapes;
 
-    private final ServiceExamples examples;
+    private CustomizationConfig customizationConfig;
 
-    private final Map<String, AuthorizerModel> customAuthorizers;
+    private Map<String, AuthorizerModel> customAuthorizers;
 
-    @JsonIgnore
-    private final Optional<OperationModel> endpointOperation;
+    private Optional<OperationModel> endpointOperation;
 
-    @JsonIgnore
-    private final Map<String, PaginatorDefinition> paginators;
+    private Map<String, PaginatorDefinition> paginators;
 
     @JsonIgnore
-    private final NamingStrategy namingStrategy;
+    private NamingStrategy namingStrategy;
 
-    @JsonCreator
-    public IntermediateModel(
-        @JsonProperty("metadata") Metadata metadata,
-        @JsonProperty("operations") Map<String, OperationModel> operations,
-        @JsonProperty("shapes") Map<String, ShapeModel> shapes,
-        @JsonProperty("customizationConfig") CustomizationConfig customizationConfig,
-        @JsonProperty("serviceExamples") ServiceExamples examples) {
+    static {
+        FILE_HEADER = loadDefaultFileHeader();
+    }
 
-        this(metadata, operations, shapes, customizationConfig, examples, null,
+    public IntermediateModel() {
+        this.endpointOperation = Optional.empty();
+        this.paginators = Collections.emptyMap();
+        this.namingStrategy = null;
+    }
+
+    public IntermediateModel(Metadata metadata,
+                             Map<String, OperationModel> operations,
+                             Map<String, ShapeModel> shapes,
+                             CustomizationConfig customizationConfig) {
+        this(metadata, operations, shapes, customizationConfig, null,
              Collections.emptyMap(), Collections.emptyMap(), null);
     }
 
@@ -71,7 +74,6 @@ public final class IntermediateModel {
         Map<String, OperationModel> operations,
         Map<String, ShapeModel> shapes,
         CustomizationConfig customizationConfig,
-        ServiceExamples examples,
         OperationModel endpointOperation,
         Map<String, AuthorizerModel> customAuthorizers,
         Map<String, PaginatorDefinition> paginators,
@@ -80,7 +82,6 @@ public final class IntermediateModel {
         this.operations = operations;
         this.shapes = shapes;
         this.customizationConfig = customizationConfig;
-        this.examples = examples;
         this.endpointOperation = Optional.ofNullable(endpointOperation);
         this.customAuthorizers = customAuthorizers;
         this.paginators = paginators;
@@ -91,8 +92,16 @@ public final class IntermediateModel {
         return metadata;
     }
 
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
+    }
+
     public Map<String, OperationModel> getOperations() {
         return operations;
+    }
+
+    public void setOperations(Map<String, OperationModel> operations) {
+        this.operations = operations;
     }
 
     public OperationModel getOperation(String operationName) {
@@ -101,6 +110,10 @@ public final class IntermediateModel {
 
     public Map<String, ShapeModel> getShapes() {
         return shapes;
+    }
+
+    public void setShapes(Map<String, ShapeModel> shapes) {
+        this.shapes = shapes;
     }
 
     /**
@@ -124,16 +137,24 @@ public final class IntermediateModel {
         return customizationConfig;
     }
 
-    public ServiceExamples getExamples() {
-        return examples;
+    public void setCustomizationConfig(CustomizationConfig customizationConfig) {
+        this.customizationConfig = customizationConfig;
     }
 
     public Map<String, PaginatorDefinition> getPaginators() {
         return paginators;
     }
 
+    public void setPaginators(Map<String, PaginatorDefinition> paginators) {
+        this.paginators = paginators;
+    }
+
     public NamingStrategy getNamingStrategy() {
         return namingStrategy;
+    }
+
+    public void setNamingStrategy(NamingStrategy namingStrategy) {
+        this.namingStrategy = namingStrategy;
     }
 
     public String getCustomRetryPolicy() {
@@ -170,14 +191,16 @@ public final class IntermediateModel {
         }
     }
 
-    public String getFileHeader() throws IOException {
-        return loadDefaultFileHeader();
+    public String getFileHeader() {
+        return FILE_HEADER;
     }
 
-    private String loadDefaultFileHeader() throws IOException {
-        try (InputStream inputStream = getClass()
-            .getResourceAsStream("/software/amazon/awssdk/codegen/DefaultFileHeader.txt")) {
+    private static String loadDefaultFileHeader() {
+        try (InputStream inputStream =
+                 IntermediateModel.class.getResourceAsStream("/software/amazon/awssdk/codegen/DefaultFileHeader.txt")) {
             return IoUtils.toUtf8String(inputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -206,8 +229,16 @@ public final class IntermediateModel {
         return customAuthorizers;
     }
 
+    public void setCustomAuthorizers(Map<String, AuthorizerModel> customAuthorizers) {
+        this.customAuthorizers = customAuthorizers;
+    }
+
     public Optional<OperationModel> getEndpointOperation() {
         return endpointOperation;
+    }
+
+    public void setEndpointOperation(OperationModel endpointOperation) {
+        this.endpointOperation = Optional.ofNullable(endpointOperation);
     }
 
     public boolean hasPaginators() {

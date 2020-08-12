@@ -72,20 +72,20 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
      * query or rest the error code should just be the shape name
      */
     private String getErrorCode(String errorShapeName) {
-        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getErrorTrait();
+        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getError();
         if (isErrorCodeOverridden(errorTrait)) {
-            return errorTrait.getErrorCode();
+            return errorTrait.getCode();
         } else {
             return errorShapeName;
         }
     }
 
     private boolean isErrorCodeOverridden(ErrorTrait errorTrait) {
-        return errorTrait != null && !Utils.isNullOrEmpty(errorTrait.getErrorCode());
+        return errorTrait != null && !Utils.isNullOrEmpty(errorTrait.getCode());
     }
 
     private Integer getHttpStatusCode(String errorShapeName) {
-        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getErrorTrait();
+        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getError();
         return errorTrait != null ? errorTrait.getHttpStatusCode() : null;
     }
 }

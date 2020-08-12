@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Represents a single enum field in a enum.
  */
@@ -27,9 +25,10 @@ public class EnumModel {
     /** The name of the enum field. */
     private String name;
 
-    public EnumModel(
-            @JsonProperty("name") String name,
-            @JsonProperty("value") String value) {
+    public EnumModel() {
+    }
+
+    public EnumModel(String name, String value) {
         this.name = name;
         this.value = value;
     }

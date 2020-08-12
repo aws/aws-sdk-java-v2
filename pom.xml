@@ -85,6 +85,7 @@
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
         <jackson.version>2.10.4</jackson.version>
+        <jacksonjr.version>2.11.2</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.4</commons.lang.version>
@@ -102,7 +103,7 @@
         <spotbugs.version>3.1.11</spotbugs.version>
         <netty-reactive-streams-http.version>2.0.4</netty-reactive-streams-http.version>
         <freemarker.version>2.3.24-incubating</freemarker.version>
-        <javapoet.verion>1.11.1</javapoet.verion>
+        <javapoet.verion>1.13.0</javapoet.verion>
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
         <org.eclipse.text.version>3.5.101</org.eclipse.text.version>
         <rxjava.version>2.1.9</rxjava.version>

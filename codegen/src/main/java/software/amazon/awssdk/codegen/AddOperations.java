@@ -49,12 +49,12 @@ final class AddOperations {
     AddOperations(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
-        this.paginators = builder.getPaginators().getPaginators();
+        this.paginators = builder.getPaginators().getPagination();
         this.deprecatedShapes = builder.getCustomConfig().getDeprecatedShapes();
     }
 
     private static boolean isAuthenticated(Operation op) {
-        return op.getAuthType() == null || !op.getAuthType().equals(AuthType.NONE);
+        return op.getAuthtype() == null || !op.getAuthtype().equals(AuthType.NONE);
     }
 
     private static String getOperationDocumentation(final Output output, final Shape outputShape) {
@@ -157,10 +157,10 @@ final class AddOperations {
             operationModel.setDeprecated(op.isDeprecated());
             operationModel.setDocumentation(op.getDocumentation());
             operationModel.setIsAuthenticated(isAuthenticated(op));
-            operationModel.setAuthType(op.getAuthType());
+            operationModel.setAuthType(op.getAuthtype());
             operationModel.setPaginated(isPaginated(op));
-            operationModel.setEndpointOperation(op.isEndpointOperation());
-            operationModel.setEndpointDiscovery(op.getEndpointDiscovery());
+            operationModel.setEndpointOperation(op.isEndpointoperation());
+            operationModel.setEndpointDiscovery(op.getEndpointdiscovery());
             operationModel.setEndpointTrait(op.getEndpoint());
 
             Input input = op.getInput();
@@ -221,8 +221,8 @@ final class AddOperations {
      * @return HTTP status code or null if not present.
      */
     private Integer getHttpStatusCode(ErrorMap error, Shape shape) {
-        Integer httpStatusCode = getHttpStatusCode(error.getErrorTrait());
-        return httpStatusCode == null ? getHttpStatusCode(shape.getErrorTrait()) : httpStatusCode;
+        Integer httpStatusCode = getHttpStatusCode(error.getError());
+        return httpStatusCode == null ? getHttpStatusCode(shape.getError()) : httpStatusCode;
     }
 
     /**
