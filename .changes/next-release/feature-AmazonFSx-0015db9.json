@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon FSx",
+    "description": "This release adds the capability to create persistent file systems for throughput-intensive workloads using Hard Disk Drive (HDD) storage and an optional read-only Solid-State Drive (SSD) cache."
+}
