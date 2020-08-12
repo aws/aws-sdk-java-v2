@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Comprehend",
+    "description": "Amazon Comprehend Custom Entity Recognition now supports Spanish, German, French, Italian and Portuguese and up to 25 entity types per model."
+}
