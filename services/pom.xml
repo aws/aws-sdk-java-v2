@@ -245,6 +245,7 @@
         <module>codeartifact</module>
         <module>honeycode</module>
         <module>ivs</module>
+        <module>braket</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
