@@ -1,3 +1,36 @@
+# __2.13.75__ __2020-08-13__
+## __AWS AppSync__
+  - ### Features
+    - Documentation update for AWS AppSync support for Direct Lambda Resolvers.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Adding ability to customize expiry for Refresh, Access and ID tokens.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added MapCustomerOwnedIpOnLaunch and CustomerOwnedIpv4Pool to ModifySubnetAttribute to allow CoIP auto assign. Fields are returned in DescribeSubnets and DescribeNetworkInterfaces responses.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding support for customer provided EC2 launch templates and AMIs to EKS Managed Nodegroups. Also adds support for Arm-based instances to EKS Managed Nodegroups.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release allows customers to specify a replica mode when creating or modifying a Read Replica, for DB engines which support this feature.
+
+## __Braket__
+  - ### Features
+    - Amazon Braket general availability with Device and Quantum Task operations.
+
+## __CloudWatch Metrics Publisher__
+  - ### Bugfixes
+    - Fixed a bug where `CloudWatchPublisher#close` would not always complete flushing pending metrics before returning.
+
 # __2.13.74__ __2020-08-12__
 ## __AWS Cloud9__
   - ### Features

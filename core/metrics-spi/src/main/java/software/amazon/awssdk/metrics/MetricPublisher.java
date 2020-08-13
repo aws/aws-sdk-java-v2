@@ -18,7 +18,6 @@ package software.amazon.awssdk.metrics;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
