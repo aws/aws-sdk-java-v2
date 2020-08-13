@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "CloudWatch Metrics Publisher",
-    "description": "Fixed a bug where `CloudWatchPublisher#close` would not always complete flushing pending metrics before returning."
-}

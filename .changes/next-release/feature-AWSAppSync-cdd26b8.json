@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS AppSync",
-    "description": "Documentation update for AWS AppSync support for Direct Lambda Resolvers."
-}
