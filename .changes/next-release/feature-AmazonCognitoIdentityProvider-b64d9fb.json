@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity Provider",
+    "description": "Adding ability to customize expiry for Refresh, Access and ID tokens."
+}
