@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "This release allows customers to specify a replica mode when creating or modifying a Read Replica, for DB engines which support this feature."
+}
