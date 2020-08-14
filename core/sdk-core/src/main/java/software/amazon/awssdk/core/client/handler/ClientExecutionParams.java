@@ -23,6 +23,8 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -49,6 +51,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private String operationName;
     private URI discoveredEndpoint;
     private MetricCollector metricCollector;
+    private final ExecutionAttributes attributes = new ExecutionAttributes();
 
     public Marshaller<InputT> getMarshaller() {
         return marshaller;
@@ -172,6 +175,15 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     public ClientExecutionParams<InputT, OutputT> withMetricCollector(MetricCollector metricCollector) {
         this.metricCollector = metricCollector;
         return this;
+    }
+
+    public <T> ClientExecutionParams<InputT, OutputT> putAttribute(ExecutionAttribute<T> attribute, T value) {
+        this.attributes.putAttribute(attribute, value);
+        return this;
+    }
+
+    public ExecutionAttributes executionAttributes() {
+        return attributes;
     }
 
     public MetricCollector getMetricCollector() {

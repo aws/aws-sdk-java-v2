@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.poet.client;
 
+import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -22,12 +24,17 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.codegen.model.config.customization.S3ArnableField;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
@@ -192,6 +199,64 @@ final class ClientClassUtils {
         }
 
         return builder.build();
+    }
+
+    static Optional<CodeBlock> addS3ArnableFieldCode(OperationModel opModel, IntermediateModel model) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        Map<String, S3ArnableField> s3ArnableFields = model.getCustomizationConfig().getS3ArnableFields();
+
+        if (s3ArnableFields != null &&
+            s3ArnableFields.containsKey(opModel.getInputShape().getShapeName())) {
+            S3ArnableField s3ArnableField = s3ArnableFields.get(opModel.getInputShape().getShapeName());
+            String fieldName = s3ArnableField.getField();
+            MemberModel arnableMember = opModel.getInputShape().tryFindMemberModelByC2jName(fieldName, true);
+            ClassName arnResourceFqcn = classNameFromFqcn(s3ArnableField.getArnResourceFqcn());
+
+            builder.addStatement("String $N = $N.$N()", fieldName,
+                                 opModel.getInput().getVariableName(), arnableMember.getFluentGetterMethodName());
+            builder.addStatement("$T arn = null", Arn.class);
+            builder.beginControlFlow("if ($N != null && $N.startsWith(\"arn:\"))", fieldName, fieldName)
+                   .addStatement("arn = $T.fromString($N)", Arn.class, fieldName)
+                   .addStatement("$T s3Resource = $T.getInstance().convertArn(arn)",
+                                 classNameFromFqcn(s3ArnableField.getBaseArnResourceFqcn()),
+                                 classNameFromFqcn(s3ArnableField.getArnConverterFqcn()))
+                   .beginControlFlow("if (!(s3Resource instanceof $T))", arnResourceFqcn)
+                   .addStatement("throw new $T(String.format(\"Unsupported ARN type: %s\", s3Resource.type()))", IllegalArgumentException.class)
+                   .endControlFlow()
+                   .addStatement("$T resource = ($T) s3Resource", arnResourceFqcn, arnResourceFqcn);
+
+            Map<String, String> otherFieldsToPopulate = s3ArnableField.getOtherFieldsToPopulate();
+
+            for (Map.Entry<String, String> entry : otherFieldsToPopulate.entrySet()) {
+                MemberModel memberModel = opModel.getInputShape().tryFindMemberModelByC2jName(entry.getKey(), true);
+                String variableName = memberModel.getVariable().getVariableName();
+                String arnVariableName = variableName + "InArn";
+                builder.addStatement("String $N = $N.$N()", variableName,
+                                     opModel.getInput().getVariableName(),
+                                     memberModel.getFluentGetterMethodName());
+                builder.addStatement("String $N = resource.$N", arnVariableName, entry.getValue());
+                builder.beginControlFlow("if ($N != null && !$N.equals($N))", variableName, variableName, arnVariableName)
+                       .addStatement("throw new $T(String.format(\"%s field provided from the request (%s) is different from the one in "
+                            + "the ARN (%s)\", $S, $N, $N))", IllegalArgumentException.class, variableName, variableName, arnVariableName)
+                       .endControlFlow();
+            }
+
+            builder.add("$N = $N.toBuilder().$N(resource.$N())",
+                        opModel.getInput().getVariableName(),
+                        opModel.getInput().getVariableName(),
+                        arnableMember.getFluentSetterMethodName(),
+                        s3ArnableField.getArnResourceSubstitutionGetter());
+
+            for (Map.Entry<String, String> entry : otherFieldsToPopulate.entrySet()) {
+                MemberModel memberModel = opModel.getInputShape().tryFindMemberModelByC2jName(entry.getKey(), true);
+                String variableName = memberModel.getVariable().getVariableName();
+                String arnVariableName = variableName + "InArn";
+                builder.add(".$N($N)", memberModel.getFluentSetterMethodName(), arnVariableName);
+            }
+
+            return Optional.of(builder.addStatement(".build()").endControlFlow().build());
+        }
+        return Optional.empty();
     }
 
     /**

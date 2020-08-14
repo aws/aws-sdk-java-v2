@@ -18,11 +18,13 @@ package software.amazon.awssdk.services.s3control.internal.interceptors;
 
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SIGNING_REGION;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.ENDPOINT_PREFIX;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.S3_OUTPOSTS;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isDualstackEnabled;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsEnabledInClientConfig;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsRegion;
+import static software.amazon.awssdk.services.s3control.internal.S3ControlInternalExecutionAttribute.S3_ARNABLE_FIELD;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -32,8 +34,11 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlConfiguration;
+import software.amazon.awssdk.services.s3control.internal.ArnHandler;
+import software.amazon.awssdk.services.s3control.internal.S3ArnableField;
 import software.amazon.awssdk.services.s3control.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3control.model.ListRegionalBucketsRequest;
 import software.amazon.awssdk.utils.StringUtils;
@@ -45,6 +50,11 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 @SdkInternalApi
 public final class EndpointAddressInterceptor implements ExecutionInterceptor {
+    private final ArnHandler arnHandler;
+
+    public EndpointAddressInterceptor() {
+        arnHandler = ArnHandler.getInstance();
+    }
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
@@ -54,11 +64,17 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
         S3ControlConfiguration config = (S3ControlConfiguration) executionAttributes.getAttribute(
             AwsSignerExecutionAttribute.SERVICE_CONFIG);
 
+        S3ArnableField arnableField = executionAttributes.getAttribute(S3_ARNABLE_FIELD);
+
+        if (arnableField != null && arnableField.arn() != null) {
+            return arnHandler.resolveHostForArn(request, config, arnableField.arn(), executionAttributes);
+        }
+
         String host;
 
         // If the request is an non-arn outpost request
         if (isNonArnOutpostRequest(context.request())) {
-            host = resolveHostForNonArnOutpostRequest(context.httpRequest(), config, executionAttributes);
+            host = resolveHostForNonArnOutpostRequest(config, executionAttributes);
         } else {
             host = resolveHost(request, config);
         }
@@ -68,8 +84,12 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
                       .build();
     }
 
-    private String resolveHostForNonArnOutpostRequest(SdkHttpRequest request, S3ControlConfiguration configuration,
+    private String resolveHostForNonArnOutpostRequest(S3ControlConfiguration configuration,
                                                       ExecutionAttributes executionAttributes) {
+        if (Boolean.TRUE.equals(executionAttributes.getAttribute(ENDPOINT_OVERRIDDEN))) {
+            throw new IllegalArgumentException("Endpoint must not be overridden");
+        }
+
         if (isDualstackEnabled(configuration)) {
             throw new IllegalArgumentException("Dualstack endpoints are not supported");
         }
@@ -81,8 +101,9 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
 
         executionAttributes.putAttribute(SERVICE_SIGNING_NAME, S3_OUTPOSTS);
 
-        String host = request.host();
-        return host.replace(ENDPOINT_PREFIX, S3_OUTPOSTS);
+        String dnsSuffix = PartitionMetadata.of(region).dnsSuffix();
+
+        return String.format("s3-outposts.%s.%s", region, dnsSuffix);
     }
 
     /**

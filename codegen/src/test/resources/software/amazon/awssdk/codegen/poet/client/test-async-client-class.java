@@ -160,10 +160,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
-            String hostPrefix = "{StringMember}-foo.";
-            HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
-                    "aPostOperationRequest");
-            String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
 
@@ -172,6 +168,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                     operationMetadata);
+            String hostPrefix = "{StringMember}-foo.";
+            HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
+                    "aPostOperationRequest");
+            String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                     .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
@@ -280,7 +280,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "EventStreamOperation");
-            eventStreamOperationRequest = applySignerOverride(eventStreamOperationRequest, EventStreamAws4Signer.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
 
@@ -303,6 +302,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             SdkPublisher<InputEventStream> eventPublisher = SdkPublisher.adapt(requestStream);
             Publisher<ByteBuffer> adapted = eventPublisher.map(event -> eventMarshaller.marshall(event)).map(
                     AwsClientHandlerUtils::encodeEventStreamRequestToByteBuffer);
+            eventStreamOperationRequest = applySignerOverride(eventStreamOperationRequest, EventStreamAws4Signer.create());
             CompletableFuture<Void> future = new CompletableFuture<>();
             EventStreamAsyncResponseTransformer<EventStreamOperationResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
                     .<EventStreamOperationResponse, EventStream> builder().eventStreamResponseHandler(asyncResponseHandler)
@@ -374,8 +374,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "EventStreamOperationWithOnlyInput");
-            eventStreamOperationWithOnlyInputRequest = applySignerOverride(eventStreamOperationWithOnlyInputRequest,
-                    EventStreamAws4Signer.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                     .isPayloadJson(true).build();
 
@@ -390,6 +388,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             SdkPublisher<InputEventStreamTwo> eventPublisher = SdkPublisher.adapt(requestStream);
             Publisher<ByteBuffer> adapted = eventPublisher.map(event -> eventMarshaller.marshall(event)).map(
                     AwsClientHandlerUtils::encodeEventStreamRequestToByteBuffer);
+            eventStreamOperationWithOnlyInputRequest = applySignerOverride(eventStreamOperationWithOnlyInputRequest,
+                    EventStreamAws4Signer.create());
 
             CompletableFuture<EventStreamOperationWithOnlyInputResponse> executeFuture = clientHandler
                     .execute(new ClientExecutionParams<EventStreamOperationWithOnlyInputRequest, EventStreamOperationWithOnlyInputResponse>()
@@ -931,8 +931,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOutputOperation");
-            streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
-                    Aws4UnsignedPayloadSigner.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
                     .isPayloadJson(false).build();
 
@@ -941,6 +939,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                     operationMetadata);
+            streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
+                    Aws4UnsignedPayloadSigner.create());
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                     new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()

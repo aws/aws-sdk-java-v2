@@ -649,12 +649,7 @@
           "shape":"VpcConfiguration",
           "documentation":"<p>If you include this field, Amazon S3 restricts access to this access point to requests from the specified virtual private cloud (VPC).</p>"
         },
-        "PublicAccessBlockConfiguration":{"shape":"PublicAccessBlockConfiguration"},
-        "OutpostId":{
-          "shape":"NonEmptyMaxLength64String",
-          "location":"header",
-          "locationName":"x-amz-outpost-id"
-        }
+        "PublicAccessBlockConfiguration":{"shape":"PublicAccessBlockConfiguration"}
       }
     },
     "CreateAccessPointResult":{
@@ -1839,7 +1834,6 @@
       "members":{
         "Expiration":{"shape":"LifecycleExpiration"},
         "ID":{"shape":"ID"},
-        "Prefix":{"shape":"Prefix"},
         "Filter":{"shape":"LifecycleRuleFilter"},
         "Status":{"shape":"ExpirationStatus"},
         "Transitions":{"shape":"TransitionList"},

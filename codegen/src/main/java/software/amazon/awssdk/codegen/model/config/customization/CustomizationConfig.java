@@ -165,6 +165,11 @@ public class CustomizationConfig {
      */
     private boolean enableEndpointDiscoveryMethodRequired = false;
 
+    /**
+     * Arnable fields used in s3 control
+     */
+    private Map<String, S3ArnableField> s3ArnableFields;
+
     private CustomizationConfig() {
     }
 
@@ -419,5 +424,14 @@ public class CustomizationConfig {
 
     public void setEnableEndpointDiscoveryMethodRequired(boolean enableEndpointDiscoveryMethodRequired) {
         this.enableEndpointDiscoveryMethodRequired = enableEndpointDiscoveryMethodRequired;
+    }
+
+    public Map<String, S3ArnableField> getS3ArnableFields() {
+        return s3ArnableFields;
+    }
+
+    public CustomizationConfig withS3ArnableFields(Map<String, S3ArnableField> s3ArnableFields) {
+        this.s3ArnableFields = s3ArnableFields;
+        return this;
     }
 }
