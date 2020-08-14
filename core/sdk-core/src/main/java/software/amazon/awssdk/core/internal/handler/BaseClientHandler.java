@@ -172,8 +172,8 @@ public abstract class BaseClientHandler {
                     (OutputT) response.toBuilder().sdkHttpResponse(httpFullResponse).build());
     }
 
-    static ExecutionAttributes createInitialExecutionAttributes() {
-        return new ExecutionAttributes().putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1);
+    static ExecutionAttributes addInitialExecutionAttributes(ExecutionAttributes executionAttributes) {
+        return executionAttributes.putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1);
     }
 
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(

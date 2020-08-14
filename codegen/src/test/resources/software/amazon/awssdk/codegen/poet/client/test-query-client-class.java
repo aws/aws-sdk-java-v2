@@ -84,8 +84,6 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
             AwsServiceException, SdkClientException, QueryException {
-        String hostPrefix = "foo-";
-        String resolvedHostExpression = "foo-";
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(APostOperationResponse::builder);
@@ -95,6 +93,8 @@ final class DefaultQueryClient implements QueryClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
+            String hostPrefix = "foo-";
+            String resolvedHostExpression = "foo-";
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                     .withOperationName("APostOperation").withResponseHandler(responseHandler)
@@ -163,11 +163,11 @@ final class DefaultQueryClient implements QueryClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.
@@ -293,4 +293,3 @@ final class DefaultQueryClient implements QueryClient {
         clientHandler.close();
     }
 }
-

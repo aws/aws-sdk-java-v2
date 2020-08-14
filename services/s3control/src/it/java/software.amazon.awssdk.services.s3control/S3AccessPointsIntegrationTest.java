@@ -15,6 +15,7 @@
 package software.amazon.awssdk.services.s3control;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.StringJoiner;
@@ -105,5 +106,11 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase 
                                                                                   .build()).asUtf8String();
 
         assertThat(objectContent).isEqualTo("helloworld");
+    }
+
+    @Test
+    public void accessPointOperation_nonArns() {
+        assertNotNull(s3control.listAccessPoints(b -> b.bucket(BUCKET).accountId(accountId).maxResults(1)));
+        assertNotNull(s3control.getAccessPoint(b -> b.name(AP_NAME).accountId(accountId)));
     }
 }

@@ -179,6 +179,19 @@
       "output": {
         "shape": "EventStreamOutput"
       }
+    },
+    "OperationWithHostPrefix": {
+      "name": "OperationWithHostPrefix",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/OperationWithHostPrefix"
+      },
+      "endpoint": {
+        "hostPrefix": "{StringMember}-foo."
+      },
+      "input": {
+        "shape": "AllTypesStructure"
+      }
     }
   },
   "shapes":{

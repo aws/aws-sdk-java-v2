@@ -13,14 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.resource;
+package software.amazon.awssdk.utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class HostnameValidator {
 
     private static final Pattern HOSTNAME_COMPLIANT_PATTERN = Pattern.compile("[A-Za-z0-9\\-]+");

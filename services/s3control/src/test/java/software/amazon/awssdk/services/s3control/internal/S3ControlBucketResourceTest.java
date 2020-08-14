@@ -128,7 +128,7 @@ public class S3ControlBucketResourceTest {
         assertEquals(Optional.of("region"), bucketResource.region());
         assertEquals("bucket", bucketResource.bucketName());
         assertEquals("bucket", bucketResource.type());
-        assertEquals(Optional.of(parentResource), bucketResource.getParentS3Resource());
+        assertEquals(Optional.of(parentResource), bucketResource.parentS3Resource());
     }
 
     @Test

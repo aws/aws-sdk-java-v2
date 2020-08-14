@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.resource;
 
-import static software.amazon.awssdk.services.s3.internal.resource.HostnameValidator.validateHostnameCompliant;
+import static software.amazon.awssdk.utils.HostnameValidator.validateHostnameCompliant;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;

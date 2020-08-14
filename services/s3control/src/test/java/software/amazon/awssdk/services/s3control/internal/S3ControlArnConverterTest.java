@@ -71,8 +71,8 @@ public class S3ControlArnConverterTest {
         S3ControlBucketResource bucketResource = (S3ControlBucketResource) resource;
         assertThat(bucketResource.bucketName(), is("myBucket"));
 
-        assertThat(bucketResource.getParentS3Resource().get(), instanceOf(S3OutpostResource.class));
-        S3OutpostResource outpostResource = (S3OutpostResource) bucketResource.getParentS3Resource().get();
+        assertThat(bucketResource.parentS3Resource().get(), instanceOf(S3OutpostResource.class));
+        S3OutpostResource outpostResource = (S3OutpostResource) bucketResource.parentS3Resource().get();
 
         assertThat(outpostResource.accountId(), is(Optional.of("123456789012")));
         assertThat(outpostResource.partition(), is(Optional.of("aws")));

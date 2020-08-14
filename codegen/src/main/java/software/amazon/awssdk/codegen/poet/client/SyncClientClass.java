@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
@@ -174,7 +175,6 @@ public class SyncClientClass implements ClassSpec {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
                                                        .addAnnotation(Override.class)
                                                        .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-                                                       .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
                                                        .addCode(protocolSpec.responseHandler(model, opModel));
 
         protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);
@@ -201,21 +201,30 @@ public class SyncClientClass implements ClassSpec {
 
         String publishersName = "metricPublishers";
 
-        method.beginControlFlow("try")
-                .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "SERVICE_ID",
-                        model.getMetadata().getServiceId())
-                .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName, CoreMetric.class, "OPERATION_NAME",
-                        opModel.getOperationName())
-                .addCode(protocolSpec.executionHandler(opModel))
-                .endControlFlow()
-                .beginControlFlow("finally")
-                .addStatement("$T<$T> $N = resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
-                              List.class,
-                              MetricPublisher.class,
-                              publishersName,
-                              opModel.getInput().getVariableName())
-                .addStatement("$N.forEach(p -> p.publish($N.collect()))", publishersName, metricCollectorName)
-                .endControlFlow();
+        MethodSpec.Builder methodBuilder = method.beginControlFlow("try")
+                                                 .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName,
+                                                               CoreMetric.class,
+                                                               "SERVICE_ID",
+                                                               model.getMetadata().getServiceId())
+                                                 .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName,
+                                                               CoreMetric.class,
+                                                               "OPERATION_NAME",
+                                                               opModel.getOperationName());
+
+        addS3ArnableFieldCode(opModel, model).ifPresent(methodBuilder::addCode);
+        methodBuilder.addCode(ClientClassUtils.addEndpointTraitCode(opModel));
+
+        methodBuilder.addCode(protocolSpec.executionHandler(opModel))
+                     .endControlFlow()
+                     .beginControlFlow("finally")
+                     .addStatement("$T<$T> $N = resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse"
+                                   + "(null))",
+                                   List.class,
+                                   MetricPublisher.class,
+                                   publishersName,
+                                   opModel.getInput().getVariableName())
+                     .addStatement("$N.forEach(p -> p.publish($N.collect()))", publishersName, metricCollectorName)
+                     .endControlFlow();
 
         methods.add(method.build());
 
