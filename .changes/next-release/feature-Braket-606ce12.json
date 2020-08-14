@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Braket",
+    "description": "Fixing bug in our SDK model where device status and device type had been flipped."
+}
