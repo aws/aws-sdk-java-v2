@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS License Manager",
-    "description": "This release includes ability to enforce license assignment rules with EC2 Dedicated Hosts."
-}
