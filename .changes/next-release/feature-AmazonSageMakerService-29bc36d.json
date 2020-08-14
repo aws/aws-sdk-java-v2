@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "description": "Amazon SageMaker now supports 1) creating real-time inference endpoints using model container images from Docker registries in customers' VPC 2) AUC(Area under the curve) as AutoPilot objective metric"
+}
