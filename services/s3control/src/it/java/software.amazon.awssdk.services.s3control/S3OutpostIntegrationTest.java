@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3control;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -37,10 +38,10 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 public class S3OutpostIntegrationTest extends AwsIntegrationTestBase {
 
     private static final String ROLE_ARN = "arn:aws:iam::045140586512:role/SeaportBucketAPIsTestRole";
-    private static final String ACCESS_POINT_NAME = "sap-java-v2" + System.currentTimeMillis();
+    private static final String ACCESS_POINT_NAME = "outpost-java-v2" + System.currentTimeMillis();
     private static final String OUTPOST_ID = "op-0d79779cef3c30a40";
     private static final String ACCOUNT_ID = "045140586512";
-    private static final String BUCKET_NAME = "java-sdk-v2" + System.currentTimeMillis();
+    private static final String BUCKET_NAME = "outpost-java-sdk-v2" + System.currentTimeMillis();
     private static final String BUCKET_ARN = "arn:aws:s3-outposts:us-west-2:045140586512:outpost/op-0d79779cef3c30a40/bucket/" + BUCKET_NAME;
 
     private static StsClient stsClient;
@@ -105,9 +106,10 @@ public class S3OutpostIntegrationTest extends AwsIntegrationTestBase {
         PutBucketTaggingResponse putBucketTaggingResponse =
             s3ControlClient.putBucketTagging(b -> b.bucket(BUCKET_ARN).tagging(t -> t.tagSet(S3Tag.builder().key("test").value(
                 "tests").build())));
+        assertNotNull(putBucketTaggingResponse);
         GetBucketTaggingResponse bucketTagging = s3ControlClient.getBucketTagging(b -> b.bucket(BUCKET_ARN));
-
-        s3ControlClient.deleteBucketTagging(b -> b.bucket(BUCKET_ARN));
+        assertNotNull(bucketTagging);
+        assertNotNull(s3ControlClient.deleteBucketTagging(b -> b.bucket(BUCKET_ARN)));
     }
 
     @Test
@@ -115,31 +117,32 @@ public class S3OutpostIntegrationTest extends AwsIntegrationTestBase {
         String bucketPolicy = String.format("{\"Version\": \"2012-10-17\", \"Statement\": [{ \"Sid\": \"id-1\",\"Effect\": \"Allow\","
                               + "\"Principal\": {\"AWS\": \"arn:aws:iam::045140586512:root\"}, \"Action\": [ \"*:*\" ], "
                               + "\"Resource\": [\"%s\" ] } ]}", BUCKET_ARN);
-        s3ControlClient.putBucketPolicy(b -> b.bucket(BUCKET_ARN).policy(bucketPolicy));
-        s3ControlClient.getBucketPolicy(b -> b.bucket(BUCKET_ARN));
-        s3ControlClient.deleteBucketPolicy(b -> b.bucket(BUCKET_ARN));
+        assertNotNull(s3ControlClient.putBucketPolicy(b -> b.bucket(BUCKET_ARN).policy(bucketPolicy)));
+        assertNotNull(s3ControlClient.getBucketPolicy(b -> b.bucket(BUCKET_ARN)));
+        assertNotNull(s3ControlClient.deleteBucketPolicy(b -> b.bucket(BUCKET_ARN)));
     }
 
     @Test
     public void bucketLifecycleOperation() {
-        s3ControlClient.putBucketLifecycleConfiguration(b -> b.bucket(BUCKET_ARN)
+        assertNotNull(s3ControlClient.putBucketLifecycleConfiguration(b -> b.bucket(BUCKET_ARN)
                                                               .lifecycleConfiguration(l -> l.rules(r -> r.abortIncompleteMultipartUpload(a -> a.daysAfterInitiation(1))
-                                                                                                         .status(ExpirationStatus.ENABLED))));
-        s3ControlClient.getBucketLifecycleConfiguration(b -> b.bucket(BUCKET_ARN));
-        s3ControlClient.deleteBucketLifecycleConfiguration(b -> b.bucket(BUCKET_ARN));
+                                                                                                         .status(ExpirationStatus.ENABLED)))));
+        assertNotNull(s3ControlClient.getBucketLifecycleConfiguration(b -> b.bucket(BUCKET_ARN)));
+        assertNotNull(s3ControlClient.deleteBucketLifecycleConfiguration(b -> b.bucket(BUCKET_ARN)));
     }
 
     @Test
     public void accessPointOperation() {
 
-        s3ControlClient.listAccessPoints(b -> b.bucket(BUCKET_ARN).maxResults(1));
+        assertNotNull(s3ControlClient.listAccessPoints(b -> b.bucket(BUCKET_ARN).maxResults(1)));
 
         String policy = String.format("{\"Version\": \"2012-10-17\", \"Statement\": [{ \"Sid\": \"id-1\",\"Effect\": \"Allow\",\"Principal\":"
                                       + " {\"AWS\": \"arn:aws:iam::045140586512:root\"}, \"Action\": [ \"*:*\" ], \"Resource\": "
                                       + "[\"%s\" ] } ]}", accessPointArn);
 
-        s3ControlClient.putAccessPointPolicy(b -> b.name(accessPointArn).policy(policy));
-        s3ControlClient.getAccessPointPolicy(b -> b.name(accessPointArn));
-        s3ControlClient.deleteAccessPointPolicy(b -> b.name(accessPointArn));
+        assertNotNull(s3ControlClient.getAccessPoint(b -> b.name(accessPointArn)));
+        assertNotNull(s3ControlClient.putAccessPointPolicy(b -> b.name(accessPointArn).policy(policy)));
+        assertNotNull(s3ControlClient.getAccessPointPolicy(b -> b.name(accessPointArn)));
+        assertNotNull(s3ControlClient.deleteAccessPointPolicy(b -> b.name(accessPointArn)));
     }
 }

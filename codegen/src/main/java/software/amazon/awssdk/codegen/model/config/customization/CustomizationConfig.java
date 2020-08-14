@@ -168,7 +168,7 @@ public class CustomizationConfig {
     /**
      * Arnable fields used in s3 control
      */
-    private Map<String, S3ArnableField> s3ArnableFields;
+    private Map<String, S3ArnableFieldConfig> s3ArnableFields;
 
     private CustomizationConfig() {
     }
@@ -426,11 +426,11 @@ public class CustomizationConfig {
         this.enableEndpointDiscoveryMethodRequired = enableEndpointDiscoveryMethodRequired;
     }
 
-    public Map<String, S3ArnableField> getS3ArnableFields() {
+    public Map<String, S3ArnableFieldConfig> getS3ArnableFields() {
         return s3ArnableFields;
     }
 
-    public CustomizationConfig withS3ArnableFields(Map<String, S3ArnableField> s3ArnableFields) {
+    public CustomizationConfig withS3ArnableFields(Map<String, S3ArnableFieldConfig> s3ArnableFields) {
         this.s3ArnableFields = s3ArnableFields;
         return this;
     }

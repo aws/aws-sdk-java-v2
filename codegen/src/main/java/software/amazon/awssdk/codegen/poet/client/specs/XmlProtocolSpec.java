@@ -24,7 +24,7 @@ import com.squareup.javapoet.TypeName;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.codegen.model.config.customization.S3ArnableField;
+import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -142,11 +142,11 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
     private Optional<CodeBlock> s3ArnableFields(OperationModel opModel, IntermediateModel model) {
         CodeBlock.Builder codeBlock = CodeBlock.builder();
-        Map<String, S3ArnableField> s3ArnableFields = model.getCustomizationConfig().getS3ArnableFields();
+        Map<String, S3ArnableFieldConfig> s3ArnableFields = model.getCustomizationConfig().getS3ArnableFields();
         String shapeName = opModel.getInputShape().getShapeName();
         if (s3ArnableFields != null && s3ArnableFields.containsKey(shapeName)) {
-            S3ArnableField s3ArnableField = s3ArnableFields.get(shapeName);
-            codeBlock.add(".putAttribute($T.$N, $T.builder().arn(arn).build())",
+            S3ArnableFieldConfig s3ArnableField = s3ArnableFields.get(shapeName);
+            codeBlock.add(".putExecutionAttribute($T.$N, $T.builder().arn(arn).build())",
                           classNameFromFqcn(s3ArnableField.getExecutionAttributeKeyFqcn()),
                           "S3_ARNABLE_FIELD",
                           classNameFromFqcn(s3ArnableField.getExecutionAttributeValueFqcn()));
@@ -191,7 +191,8 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                     asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"),
                                     "responseHandler");
         s3ArnableFields(opModel, model).ifPresent(builder::add);
-        builder.add(".withInput($L) $L);", opModel.getInput().getVariableName(), opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
+        builder.add(".withInput($L) $L);", opModel.getInput().getVariableName(), opModel.hasStreamingOutput() ?
+                                                                                 ", asyncResponseTransformer" : "");
         builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
                              AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
         if (opModel.hasStreamingOutput()) {

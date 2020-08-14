@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Indicating a field that can be an ARN
  */
-public class S3ArnableField {
+public class S3ArnableFieldConfig {
     private String field;
 
     private String arnConverterFqcn;
@@ -55,7 +55,7 @@ public class S3ArnableField {
      * @param field The new field value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withField(String field) {
+    public S3ArnableFieldConfig withField(String field) {
         this.field = field;
         return this;
     }
@@ -73,7 +73,7 @@ public class S3ArnableField {
      * @param arnConverterFqcn The new arnConverterFqcn value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withArnConverterFqcn(String arnConverterFqcn) {
+    public S3ArnableFieldConfig withArnConverterFqcn(String arnConverterFqcn) {
         this.arnConverterFqcn = arnConverterFqcn;
         return this;
     }
@@ -88,7 +88,7 @@ public class S3ArnableField {
      * @param arnResourceFqcn The new arnResourceFqcn value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withArnResourceFqcn(String arnResourceFqcn) {
+    public S3ArnableFieldConfig withArnResourceFqcn(String arnResourceFqcn) {
         this.arnResourceFqcn = arnResourceFqcn;
         return this;
     }
@@ -103,7 +103,7 @@ public class S3ArnableField {
      * @param arnResourceSubstitutionGetter The new arnResourceSubstitutionGetter value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withArnResourceSubstitutionGetter(String arnResourceSubstitutionGetter) {
+    public S3ArnableFieldConfig withArnResourceSubstitutionGetter(String arnResourceSubstitutionGetter) {
         this.arnResourceSubstitutionGetter = arnResourceSubstitutionGetter;
         return this;
     }
@@ -118,14 +118,11 @@ public class S3ArnableField {
      * @param substitionSetterToGetter The new substitionSetterToGetter value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withSubstitionSetterToGetter(Map<String, String> substitionSetterToGetter) {
+    public S3ArnableFieldConfig withSubstitionSetterToGetter(Map<String, String> substitionSetterToGetter) {
         this.otherFieldsToPopulate = substitionSetterToGetter;
         return this;
     }
 
-    /**
-     * @return
-     */
     public String getBaseArnResourceFqcn() {
         return baseArnResourceFqcn;
     }
@@ -136,14 +133,11 @@ public class S3ArnableField {
      * @param baseArnResourceFqcn The new baseArnResourceFqcn value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withBaseArnResourceFqcn(String baseArnResourceFqcn) {
+    public S3ArnableFieldConfig withBaseArnResourceFqcn(String baseArnResourceFqcn) {
         this.baseArnResourceFqcn = baseArnResourceFqcn;
         return this;
     }
 
-    /**
-     * @return
-     */
     public String getExecutionAttributeKeyFqcn() {
         return executionAttributeKeyFqcn;
     }
@@ -154,14 +148,11 @@ public class S3ArnableField {
      * @param executionAttributeKeyFqcn The new executionAttributeKeyFqcn value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withExecutionAttributeKeyFqcn(String executionAttributeKeyFqcn) {
+    public S3ArnableFieldConfig withExecutionAttributeKeyFqcn(String executionAttributeKeyFqcn) {
         this.executionAttributeKeyFqcn = executionAttributeKeyFqcn;
         return this;
     }
 
-    /**
-     * @return
-     */
     public String getExecutionAttributeValueFqcn() {
         return executionAttributeValueFqcn;
     }
@@ -172,7 +163,7 @@ public class S3ArnableField {
      * @param executionAttributeValueFqcn The new executionAttributeValueFqcn value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withExecutionAttributeValueFqcn(String executionAttributeValueFqcn) {
+    public S3ArnableFieldConfig withExecutionAttributeValueFqcn(String executionAttributeValueFqcn) {
         this.executionAttributeValueFqcn = executionAttributeValueFqcn;
         return this;
     }
@@ -183,7 +174,7 @@ public class S3ArnableField {
      * @param otherFieldsToPopulate The new otherFieldsToPopulate value.
      * @return This object for method chaining.
      */
-    public S3ArnableField withOtherFieldsToPopulate(Map<String, String> otherFieldsToPopulate) {
+    public S3ArnableFieldConfig withOtherFieldsToPopulate(Map<String, String> otherFieldsToPopulate) {
         this.otherFieldsToPopulate = otherFieldsToPopulate;
         return this;
     }

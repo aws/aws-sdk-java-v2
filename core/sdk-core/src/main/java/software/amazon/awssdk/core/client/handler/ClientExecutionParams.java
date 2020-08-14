@@ -177,7 +177,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return this;
     }
 
-    public <T> ClientExecutionParams<InputT, OutputT> putAttribute(ExecutionAttribute<T> attribute, T value) {
+    public <T> ClientExecutionParams<InputT, OutputT> putExecutionAttribute(ExecutionAttribute<T> attribute, T value) {
         this.attributes.putAttribute(attribute, value);
         return this;
     }

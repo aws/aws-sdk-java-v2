@@ -16,13 +16,13 @@
 package software.amazon.awssdk.services.s3control.internal;
 
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
 
 /**
  * Indicating a field that can be an ARN
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class S3ArnableField {
     private final Arn arn;
 

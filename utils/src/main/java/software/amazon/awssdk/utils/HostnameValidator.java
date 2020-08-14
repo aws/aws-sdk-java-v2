@@ -17,7 +17,6 @@ package software.amazon.awssdk.utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
