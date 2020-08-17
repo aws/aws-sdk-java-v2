@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Certificate Manager Private Certificate Authority",
+    "description": "ACM Private CA is launching cross-account support. This allows customers to share their private CAs with other accounts, AWS Organizations, and organizational units to issue end-entity certificates."
+}
