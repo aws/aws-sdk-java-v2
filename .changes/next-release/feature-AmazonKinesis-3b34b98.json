@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis",
-    "description": "Introducing ShardFilter for ListShards API to filter the shards using a position in the stream, and ChildShards support for GetRecords and SubscribeToShard API to discover children shards on shard end"
-}

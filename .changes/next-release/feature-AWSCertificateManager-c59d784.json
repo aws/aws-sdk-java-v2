@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Certificate Manager",
-    "description": "ACM provides support for the new Private CA feature Cross-account CA sharing. ACM users can issue certificates signed by a private CA belonging to another account where the CA was shared with them."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "description": "Adds support for HTTP Desync Mitigation in Classic Load Balancers."
-}

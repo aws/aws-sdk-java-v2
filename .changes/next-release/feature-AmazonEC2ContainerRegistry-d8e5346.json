@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Registry",
-    "description": "This feature adds support for pushing and pulling Open Container Initiative (OCI) artifacts."
-}
