@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS RoboMaker",
+    "description": "This release introduces RoboMaker Simulation WorldForge, a capability that automatically generates one or more simulation worlds."
+}
