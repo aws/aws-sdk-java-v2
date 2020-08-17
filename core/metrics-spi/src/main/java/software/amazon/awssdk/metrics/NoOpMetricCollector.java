@@ -15,16 +15,12 @@
 
 package software.amazon.awssdk.metrics;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.internal.EmptyMetricCollection;
 
 /**
  * A metric collector that doesn't do anything.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
-@SdkPreviewApi
 @SdkPublicApi
 public final class NoOpMetricCollector implements MetricCollector {
     private static final NoOpMetricCollector INSTANCE = new NoOpMetricCollector();
