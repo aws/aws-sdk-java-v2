@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "description": "DataSync support for filters as input arguments to the ListTasks and ListLocations API calls."
-}

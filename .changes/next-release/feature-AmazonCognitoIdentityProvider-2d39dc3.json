@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "description": "Adding the option to use a service linked role to publish events to Pinpoint."
-}

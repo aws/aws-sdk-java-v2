@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SecurityHub",
-    "description": "New details for DynamoDB tables, Elastic IP addresses, IAM policies and users, RDS DB clusters and snapshots, and Secrets Manager secrets. Added details for AWS KMS keys and RDS DB instances."
-}

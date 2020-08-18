@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SSO Identity Store",
-    "description": "AWS Single Sign-On (SSO) Identity Store service provides an interface to retrieve all of your users and groups. It enables entitlement management per user or group for AWS SSO and other IDPs."
-}
