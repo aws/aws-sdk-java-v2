@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "description": "This release includes new APIs to allow customers to add or remove email addresses from their account-level suppression list in bulk."
+}
