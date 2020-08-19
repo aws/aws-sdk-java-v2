@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "description": "Added WORM, tape retention lock, and custom pool features for virtual tapes."
+}
