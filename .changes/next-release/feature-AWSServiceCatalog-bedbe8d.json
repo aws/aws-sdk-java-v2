@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog",
+    "description": "Enhance SearchProvisionedProducts API to allow queries using productName and provisioningArtifactName. Added lastProvisioningRecordId and lastSuccessfulRecordId to Read ProvisionedProduct APIs"
+}
