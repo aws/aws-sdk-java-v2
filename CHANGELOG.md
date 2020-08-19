@@ -1,3 +1,91 @@
+# __2.14.2__ __2020-08-19__
+## __AWS Lake Formation__
+  - ### Features
+    - Adding additional field in ListPermissions API response to return RAM resource share ARN if a resource were shared through AWS RAM service.
+
+## __AWS Organizations__
+  - ### Features
+    - Minor documentation updates for AWS Organizations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Enhance SearchProvisionedProducts API to allow queries using productName and provisioningArtifactName. Added lastProvisioningRecordId and lastSuccessfulRecordId to Read ProvisionedProduct APIs
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Added WORM, tape retention lock, and custom pool features for virtual tapes.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Amazon Interactive Video Service (IVS) now offers customers the ability to create private channels, allowing customers to restrict their streams by channel or viewer.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe and Amazon Transcribe Medical now enable you to identify different speakers in your real-time streams with speaker identification.
+
+# __2.14.1__ __2020-08-18__
+## __AWS CodeBuild__
+  - ### Features
+    - Documentation updates for codebuild
+
+## __AWS DataSync__
+  - ### Features
+    - DataSync support for filters as input arguments to the ListTasks and ListLocations API calls.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - AWS Single Sign-On (SSO) Identity Store service provides an interface to retrieve all of your users and groups. It enables entitlement management per user or group for AWS SSO and other IDPs.
+
+## __AWS SecurityHub__
+  - ### Features
+    - New details for DynamoDB tables, Elastic IP addresses, IAM policies and users, RDS DB clusters and snapshots, and Secrets Manager secrets. Added details for AWS KMS keys and RDS DB instances.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Adding the option to use a service linked role to publish events to Pinpoint.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release includes new APIs to allow customers to add or remove email addresses from their account-level suppression list in bulk.
+
+# __2.14.0__ __2020-08-17__
+## __AWS Certificate Manager__
+  - ### Features
+    - ACM provides support for the new Private CA feature Cross-account CA sharing. ACM users can issue certificates signed by a private CA belonging to another account where the CA was shared with them.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - ACM Private CA is launching cross-account support. This allows customers to share their private CAs with other accounts, AWS Organizations, and organizational units to issue end-entity certificates.
+
+## __AWS RoboMaker__
+  - ### Features
+    - This release introduces RoboMaker Simulation WorldForge, a capability that automatically generates one or more simulation worlds.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - The client-side metrics feature is out of developer preview and is now generaly available.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This feature adds support for pushing and pulling Open Container Initiative (OCI) artifacts.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Introducing ShardFilter for ListShards API to filter the shards using a position in the stream, and ChildShards support for GetRecords and SubscribeToShard API to discover children shards on shard end
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight now supports programmatic creation and management of analyses with new APIs.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds support for HTTP Desync Mitigation in Application Load Balancers.
+    - Adds support for HTTP Desync Mitigation in Classic Load Balancers.
+
 # __2.13.76__ __2020-08-14__
 ## __AWS License Manager__
   - ### Features

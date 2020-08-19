@@ -263,83 +263,186 @@ public class EndpointAddressInterceptorTest {
     }
 
     @Test
-    public void accesspointArn_withFipsRegionPrefix_useArnRegionEnabled_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> verifyAccesspointArn("http",
+    public void accesspointArn_withFipsRegionPrefix_noFipsInArn_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("us-east-1"),
+                             S3Configuration.builder(),
+                             Region.of("fips-us-east-1"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("us-east-1"),
+                             S3Configuration.builder(),
+                             Region.of("fips-us-east-1"));
+    }
+
+    @Test
+    public void accesspointArn_withFipsRegionPrefix_FipsInArn_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder(),
+                             Region.of("fips-us-east-1"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder(),
+                             Region.of("fips-us-east-1"));
+    }
+
+    @Test
+    public void accesspointArn_withFipsRegionPrefix_noFipsInArn_useArnRegionEnabled_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
                              "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                              "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
                              Region.of("us-east-1"),
                              S3Configuration.builder().useArnRegionEnabled(true),
-                             Region.of("fips-us-east-1")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
-        assertThatThrownBy(() -> verifyAccesspointArn("https",
+                             Region.of("fips-us-east-1"));
+        verifyAccesspointArn("https",
                              "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                              "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
                              Region.of("us-east-1"),
                              S3Configuration.builder().useArnRegionEnabled(true),
-                             Region.of("fips-us-east-1")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
+                             Region.of("fips-us-east-1"));
     }
 
+
     @Test
-    public void accesspointArn_withFipsRegionPrefix_shouldThrowIllegalArgumentException() {
+    public void accesspointArn_withFipsRegionPrefix_FipsInArn_useArnRegionEnabled_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder().useArnRegionEnabled(true),
+                             Region.of("fips-us-east-1"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder().useArnRegionEnabled(true),
+                             Region.of("fips-us-east-1"));
+    }
+
+
+
+    @Test
+    public void accesspointArn_withFipsRegionPrefix_ArnRegionNotMatches_shouldThrowIllegalArgumentException() {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
                                                       Region.of("us-east-1"),
                                                       S3Configuration.builder(),
-                                                      Region.of("fips-us-east-1")))
+                                                      Region.of("fips-us-gov-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
+            .hasMessageContaining("The region field of the ARN being passed as a bucket parameter to an S3 operation does not match the region the client was configured with.");
         assertThatThrownBy(() -> verifyAccesspointArn("https",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
                                                       Region.of("us-east-1"),
                                                       S3Configuration.builder(),
-                                                      Region.of("fips-us-east-1")))
+                                                      Region.of("fips-us-gov-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
+            .hasMessageContaining("The region field of the ARN being passed as a bucket parameter to an S3 operation does not match the region the client was configured with.");
     }
 
     @Test
-    public void accesspointArn_withFipsRegionSuffix_useArnRegionEnabled_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> verifyAccesspointArn("http",
-                                                      "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
-                                                      "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
-                                                      Region.of("us-east-1"),
-                                                      S3Configuration.builder().useArnRegionEnabled(true),
-                                                      Region.of("us-east-1-fips")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
-        assertThatThrownBy(() -> verifyAccesspointArn("https",
-                                                      "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
-                                                      "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
-                                                      Region.of("us-east-1"),
-                                                      S3Configuration.builder().useArnRegionEnabled(true),
-                                                      Region.of("us-east-1-fips")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
+    public void accesspointArn_withFipsRegionPrefix_noFipsInArn_DualstackEnabled_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.dualstack.fips-us-east-1.amazonaws.com",
+                             Region.of("us-east-1"),
+                             S3Configuration.builder().dualstackEnabled(true),
+                             Region.of("fips-us-east-1"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.dualstack.fips-us-east-1.amazonaws.com",
+                             Region.of("us-east-1"),
+                             S3Configuration.builder().dualstackEnabled(true),
+                             Region.of("fips-us-east-1"));
     }
 
     @Test
-    public void accesspointArn_withFipsRegionSuffix_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> verifyAccesspointArn("http",
-                                                      "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
-                                                      "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
-                                                      Region.of("us-east-1"),
-                                                      S3Configuration.builder(),
-                                                      Region.of("us-east-1-fips")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
-        assertThatThrownBy(() -> verifyAccesspointArn("https",
-                                                      "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
-                                                      "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
-                                                      Region.of("us-east-1"),
-                                                      S3Configuration.builder(),
-                                                      Region.of("us-east-1-fips")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
+    public void accesspointArn_withFipsRegionPrefix_FipsInArn_DualStackEnabled_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.dualstack.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder().dualstackEnabled(true),
+                             Region.of("fips-us-east-1"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.dualstack.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder().dualstackEnabled(true),
+                             Region.of("fips-us-east-1"));
+    }
+
+    @Test
+    public void accesspointArn_withFipsRegionSuffix_noFipsinArn_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("us-east-1"),
+                             S3Configuration.builder(),
+                             Region.of("us-east-1-fips"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("us-east-1"),
+                             S3Configuration.builder(),
+                             Region.of("us-east-1-fips"));
+    }
+
+    @Test
+    public void accesspointArn_noFipsRegionPrefix_FipsInArn_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder(),
+                             Region.of("us-east-1"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder(),
+                             Region.of("us-east-1"));
+    }
+
+    @Test
+    public void accesspointArn_noFipsRegionPrefix_FipsInArn_useArnRegionEnabled_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder().useArnRegionEnabled(true),
+                             Region.of("us-east-1"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder().useArnRegionEnabled(true),
+                             Region.of("us-east-1"));
+    }
+
+    @Test
+    public void accesspointArn_noFipsRegionPrefix_FipsInArn_useArnRegionEnabled_DualstackEnabled_shouldConvertEndpoint() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "http://foobar-12345678910.s3-accesspoint.dualstack.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder().useArnRegionEnabled(true).dualstackEnabled(true),
+                             Region.of("us-east-1"));
+        verifyAccesspointArn("https",
+                             "arn:aws:s3:fips-us-east-1:12345678910:accesspoint/foobar",
+                             "https://foobar-12345678910.s3-accesspoint.dualstack.fips-us-east-1.amazonaws.com",
+                             Region.of("fips-us-east-1"),
+                             S3Configuration.builder().useArnRegionEnabled(true).dualstackEnabled(true),
+                             Region.of("us-east-1"));
     }
 
     @Test

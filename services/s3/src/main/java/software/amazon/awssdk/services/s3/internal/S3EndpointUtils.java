@@ -106,12 +106,6 @@ public final class S3EndpointUtils {
         String arnRegion = resourceArn.region().orElseThrow(() -> new IllegalArgumentException(
             "An S3 access point ARN must have a region"));
 
-        if (isFipsRegion(region.toString())) {
-            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3"
-                                               + " operation if the S3 client has been configured with a FIPS"
-                                               + " enabled region.");
-        }
-
         if (serviceConfiguration != null && serviceConfiguration.accelerateModeEnabled()) {
             throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3 "
                                                + "operation if the S3 client has been configured with accelerate mode"
@@ -130,8 +124,9 @@ public final class S3EndpointUtils {
                                                + "override.");
         }
 
+        String trimmedArnRegion = removeFipsIfNeeded(arnRegion);
         if (serviceConfiguration == null || !serviceConfiguration.useArnRegionEnabled()) {
-            if (!region.id().equals(arnRegion)) {
+            if (!removeFipsIfNeeded(region.id()).equals(trimmedArnRegion)) {
                 throw new IllegalArgumentException(
                     String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
                                   + "does not match the region the client was configured with. To enable this "
@@ -160,6 +155,9 @@ public final class S3EndpointUtils {
 
         // DualstackEnabled considered false by default
         boolean dualstackEnabled = serviceConfiguration != null && serviceConfiguration.dualstackEnabled();
+        boolean fipsRegionProvided = isFipsRegionProvided(region.toString(), arnRegion,
+                                                          serviceConfiguration != null
+                                                          && serviceConfiguration.useArnRegionEnabled());
 
         URI accessPointUri =
             S3AccessPointBuilder.create()
@@ -167,10 +165,11 @@ public final class S3EndpointUtils {
                                 .accountId(
                                     s3EndpointResource.accountId().orElseThrow(() -> new IllegalArgumentException(
                                         "An S3 access point ARN must have an account ID")))
-                                .region(arnRegion)
+                                .region(trimmedArnRegion)
                                 .protocol(request.protocol())
                                 .domain(clientPartitionMetadata.dnsSuffix())
                                 .dualstackEnabled(dualstackEnabled)
+                                .fipsEnabled(fipsRegionProvided)
                                 .toUri();
 
         SdkHttpRequest httpRequest = request.toBuilder()
@@ -184,6 +183,28 @@ public final class S3EndpointUtils {
                                          .sdkHttpRequest(httpRequest)
                                          .signingRegionModification(Region.of(arnRegion))
                                          .build();
+    }
+
+    private static String removeFipsIfNeeded(String region) {
+        if (region.startsWith("fips-")) {
+            return region.replace("fips-", "");
+        }
+
+        if (region.endsWith("-fips")) {
+            return region.replace("-fips", "");
+        }
+        return region;
+    }
+
+    /**
+     * Returns whether a FIPS pseudo region is provided.
+     */
+    private static boolean isFipsRegionProvided(String clientRegion, String arnRegion, boolean useArnRegion) {
+        if (useArnRegion) {
+            return isFipsRegion(arnRegion);
+        }
+
+        return isFipsRegion(clientRegion);
     }
 
     /**
