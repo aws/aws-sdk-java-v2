@@ -360,8 +360,8 @@ public class Customer extends GenericRecord {
     public String getName() { return this.name; }
     public void setName(String name) { this.name = name;}
 
-    public String getRecord() { return this.record; }
-    public void setRecord(String record) { this.record = record;}
+    public GenericRecord getRecord() { return this.record; }
+    public void setRecord(GenericRecord record) { this.record = record;}
 }
 
 @DynamoDbBean
@@ -425,8 +425,8 @@ public class Customer {
     public void setName(String name) { this.name = name;}
 
     @DynamoDbFlatten(dynamoDbBeanClass = GenericRecord.class)
-    public String getRecord() { return this.record; }
-    public void setRecord(String record) { this.record = record;}
+    public GenericRecord getRecord() { return this.record; }
+    public void setRecord(GenericRecord record) { this.record = record;}
 }
 
 @DynamoDbBean

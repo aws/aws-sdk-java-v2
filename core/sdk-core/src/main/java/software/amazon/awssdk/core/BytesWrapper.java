@@ -36,23 +36,17 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public abstract class BytesWrapper {
-    private static final byte[] EMPTY_BYTES = new byte[0];
-
     private final byte[] bytes;
 
     // Needed for serialization
     @SdkInternalApi
     BytesWrapper() {
-        this(EMPTY_BYTES);
+        this(new byte[0]);
     }
 
     @SdkInternalApi
     BytesWrapper(byte[] bytes) {
         this.bytes = Validate.paramNotNull(bytes, "bytes");
-    }
-
-    final byte[] wrappedBytes() {
-        return bytes;
     }
 
     /**
@@ -68,6 +62,22 @@ public abstract class BytesWrapper {
      */
     public final byte[] asByteArray() {
         return Arrays.copyOf(bytes, bytes.length);
+    }
+
+    /**
+     * @return The output as a byte array. This <b>does not</b> create a copy of the underlying byte array. This introduces
+     * concurrency risks, allowing: (1) the caller to modify the byte array stored in this object implementation AND
+     * (2) the original creator of this object, if they created it using the unsafe method.
+     *
+     * <p>Consider using {@link #asByteBuffer()}, which is a safer method to avoid an additional array copy because it does not
+     * provide a way to modify the underlying buffer. As the method name implies, this is unsafe. If you're not sure, don't use
+     * this. The only guarantees given to the user of this method is that the SDK itself won't modify the underlying byte
+     * array.</p>
+     *
+     * @see #asByteBuffer() to prevent creating an additional array copy safely.
+     */
+    public final byte[] asByteArrayUnsafe() {
+        return bytes;
     }
 
     /**

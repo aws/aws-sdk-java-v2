@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.nio.netty.internal.utils;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-import io.netty.util.AttributeKey;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -30,18 +29,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public class OrderedWriteChannelHandlerContext extends DelegatingChannelHandlerContext {
-    private static final AttributeKey<Void> ORDERED =
-        NettyUtils.getOrCreateAttributeKey("aws.http.nio.netty.async.OrderedWriteChannelHandlerContext.ORDERED");
-
     private OrderedWriteChannelHandlerContext(ChannelHandlerContext delegate) {
         super(delegate);
-        delegate.channel().attr(ORDERED).set(null);
     }
 
     public static ChannelHandlerContext wrap(ChannelHandlerContext ctx) {
-        if (ctx.channel().hasAttr(ORDERED)) {
-            return ctx;
-        }
         return new OrderedWriteChannelHandlerContext(ctx);
     }
 

@@ -1,7 +1,7 @@
 {
   "version":"2.0",
   "metadata":{
-    "apiVersion":"2019-03-26",
+    "apiVersion":"2020-05-31",
     "endpointPrefix":"cloudfront",
     "globalEndpoint":"cloudfront.amazonaws.com",
     "protocol":"rest-xml",
@@ -9,14 +9,35 @@
     "serviceFullName":"Amazon CloudFront",
     "serviceId":"CloudFront",
     "signatureVersion":"v4",
-    "uid":"cloudfront-2019-03-26"
+    "uid":"cloudfront-2020-05-31"
   },
   "operations":{
-    "CreateCloudFrontOriginAccessIdentity":{
-      "name":"CreateCloudFrontOriginAccessIdentity2019_03_26",
+    "CreateCachePolicy":{
+      "name":"CreateCachePolicy2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/origin-access-identity/cloudfront",
+        "requestUri":"/2020-05-31/cache-policy",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateCachePolicyRequest"},
+      "output":{"shape":"CreateCachePolicyResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"InconsistentQuantities"},
+        {"shape":"InvalidArgument"},
+        {"shape":"CachePolicyAlreadyExists"},
+        {"shape":"TooManyCachePolicies"},
+        {"shape":"TooManyHeadersInCachePolicy"},
+        {"shape":"TooManyCookiesInCachePolicy"},
+        {"shape":"TooManyQueryStringsInCachePolicy"}
+      ],
+      "documentation":"<p>Creates a cache policy.</p> <p>After you create a cache policy, you can attach it to one or more cache behaviors. When it’s attached to a cache behavior, the cache policy determines the following:</p> <ul> <li> <p>The values that CloudFront includes in the <i>cache key</i>. These values can include HTTP headers, cookies, and URL query strings. CloudFront uses the cache key to find an object in its cache that it can return to the viewer.</p> </li> <li> <p>The default, minimum, and maximum time to live (TTL) values that you want objects to stay in the CloudFront cache.</p> </li> </ul> <p>The headers, cookies, and query strings that are included in the cache key are automatically included in requests that CloudFront sends to the origin. CloudFront sends a request when it can’t find an object in its cache that matches the request’s cache key. If you want to send values to the origin but <i>not</i> include them in the cache key, use <code>CreateOriginRequestPolicy</code>.</p> <p>For more information about cache policies, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html\">Controlling the cache key</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+    },
+    "CreateCloudFrontOriginAccessIdentity":{
+      "name":"CreateCloudFrontOriginAccessIdentity2020_05_31",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2020-05-31/origin-access-identity/cloudfront",
         "responseCode":201
       },
       "input":{"shape":"CreateCloudFrontOriginAccessIdentityRequest"},
@@ -31,10 +52,10 @@
       "documentation":"<p>Creates a new origin access identity. If you're using Amazon S3 for your origin, you can use an origin access identity to require users to access your content using a CloudFront URL instead of the Amazon S3 URL. For more information about how to use origin access identities, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html\">Serving Private Content through CloudFront</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
     },
     "CreateDistribution":{
-      "name":"CreateDistribution2019_03_26",
+      "name":"CreateDistribution2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/distribution",
+        "requestUri":"/2020-05-31/distribution",
         "responseCode":201
       },
       "input":{"shape":"CreateDistributionRequest"},
@@ -77,21 +98,26 @@
         {"shape":"TooManyQueryStringParameters"},
         {"shape":"InvalidQueryStringParameters"},
         {"shape":"TooManyDistributionsWithLambdaAssociations"},
+        {"shape":"TooManyDistributionsWithSingleFunctionARN"},
         {"shape":"TooManyLambdaFunctionAssociations"},
         {"shape":"InvalidLambdaFunctionAssociation"},
         {"shape":"InvalidOriginReadTimeout"},
         {"shape":"InvalidOriginKeepaliveTimeout"},
         {"shape":"NoSuchFieldLevelEncryptionConfig"},
         {"shape":"IllegalFieldLevelEncryptionConfigAssociationWithCacheBehavior"},
-        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"}
+        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"},
+        {"shape":"NoSuchCachePolicy"},
+        {"shape":"TooManyDistributionsAssociatedToCachePolicy"},
+        {"shape":"NoSuchOriginRequestPolicy"},
+        {"shape":"TooManyDistributionsAssociatedToOriginRequestPolicy"}
       ],
       "documentation":"<p>Creates a new web distribution. You create a CloudFront distribution to tell CloudFront where you want content to be delivered from, and the details about how to track and manage content delivery. Send a <code>POST</code> request to the <code>/<i>CloudFront API version</i>/distribution</code>/<code>distribution ID</code> resource.</p> <important> <p>When you update a distribution, there are more required fields than when you create a distribution. When you update your distribution by using <a href=\"https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_UpdateDistribution.html\">UpdateDistribution</a>, follow the steps included in the documentation to get the current configuration and then make your updates. This helps to make sure that you include all of the required fields. To view a summary, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-overview-required-fields.html\">Required Fields for Create Distribution and Update Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> </important>"
     },
     "CreateDistributionWithTags":{
-      "name":"CreateDistributionWithTags2019_03_26",
+      "name":"CreateDistributionWithTags2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/distribution?WithTags",
+        "requestUri":"/2020-05-31/distribution?WithTags",
         "responseCode":201
       },
       "input":{"shape":"CreateDistributionWithTagsRequest"},
@@ -135,21 +161,26 @@
         {"shape":"TooManyQueryStringParameters"},
         {"shape":"InvalidQueryStringParameters"},
         {"shape":"TooManyDistributionsWithLambdaAssociations"},
+        {"shape":"TooManyDistributionsWithSingleFunctionARN"},
         {"shape":"TooManyLambdaFunctionAssociations"},
         {"shape":"InvalidLambdaFunctionAssociation"},
         {"shape":"InvalidOriginReadTimeout"},
         {"shape":"InvalidOriginKeepaliveTimeout"},
         {"shape":"NoSuchFieldLevelEncryptionConfig"},
         {"shape":"IllegalFieldLevelEncryptionConfigAssociationWithCacheBehavior"},
-        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"}
+        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"},
+        {"shape":"NoSuchCachePolicy"},
+        {"shape":"TooManyDistributionsAssociatedToCachePolicy"},
+        {"shape":"NoSuchOriginRequestPolicy"},
+        {"shape":"TooManyDistributionsAssociatedToOriginRequestPolicy"}
       ],
       "documentation":"<p>Create a new distribution with tags.</p>"
     },
     "CreateFieldLevelEncryptionConfig":{
-      "name":"CreateFieldLevelEncryptionConfig2019_03_26",
+      "name":"CreateFieldLevelEncryptionConfig2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/field-level-encryption",
+        "requestUri":"/2020-05-31/field-level-encryption",
         "responseCode":201
       },
       "input":{"shape":"CreateFieldLevelEncryptionConfigRequest"},
@@ -167,10 +198,10 @@
       "documentation":"<p>Create a new field-level encryption configuration.</p>"
     },
     "CreateFieldLevelEncryptionProfile":{
-      "name":"CreateFieldLevelEncryptionProfile2019_03_26",
+      "name":"CreateFieldLevelEncryptionProfile2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/field-level-encryption-profile",
+        "requestUri":"/2020-05-31/field-level-encryption-profile",
         "responseCode":201
       },
       "input":{"shape":"CreateFieldLevelEncryptionProfileRequest"},
@@ -188,10 +219,10 @@
       "documentation":"<p>Create a field-level encryption profile.</p>"
     },
     "CreateInvalidation":{
-      "name":"CreateInvalidation2019_03_26",
+      "name":"CreateInvalidation2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/distribution/{DistributionId}/invalidation",
+        "requestUri":"/2020-05-31/distribution/{DistributionId}/invalidation",
         "responseCode":201
       },
       "input":{"shape":"CreateInvalidationRequest"},
@@ -207,11 +238,32 @@
       ],
       "documentation":"<p>Create a new invalidation. </p>"
     },
-    "CreatePublicKey":{
-      "name":"CreatePublicKey2019_03_26",
+    "CreateOriginRequestPolicy":{
+      "name":"CreateOriginRequestPolicy2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/public-key",
+        "requestUri":"/2020-05-31/origin-request-policy",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateOriginRequestPolicyRequest"},
+      "output":{"shape":"CreateOriginRequestPolicyResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"InconsistentQuantities"},
+        {"shape":"InvalidArgument"},
+        {"shape":"OriginRequestPolicyAlreadyExists"},
+        {"shape":"TooManyOriginRequestPolicies"},
+        {"shape":"TooManyHeadersInOriginRequestPolicy"},
+        {"shape":"TooManyCookiesInOriginRequestPolicy"},
+        {"shape":"TooManyQueryStringsInOriginRequestPolicy"}
+      ],
+      "documentation":"<p>Creates an origin request policy.</p> <p>After you create an origin request policy, you can attach it to one or more cache behaviors. When it’s attached to a cache behavior, the origin request policy determines the values that CloudFront includes in requests that it sends to the origin. Each request that CloudFront sends to the origin includes the following:</p> <ul> <li> <p>The request body and the URL path (without the domain name) from the viewer request.</p> </li> <li> <p>The headers that CloudFront automatically includes in every origin request, including <code>Host</code>, <code>User-Agent</code>, and <code>X-Amz-Cf-Id</code>.</p> </li> <li> <p>All HTTP headers, cookies, and URL query strings that are specified in the cache policy or the origin request policy. These can include items from the viewer request and, in the case of headers, additional ones that are added by CloudFront.</p> </li> </ul> <p>CloudFront sends a request when it can’t find a valid object in its cache that matches the request. If you want to send values to the origin and also include them in the cache key, use <code>CreateCachePolicy</code>.</p> <p>For more information about origin request policies, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html\">Controlling origin requests</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+    },
+    "CreatePublicKey":{
+      "name":"CreatePublicKey2020_05_31",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2020-05-31/public-key",
         "responseCode":201
       },
       "input":{"shape":"CreatePublicKeyRequest"},
@@ -224,10 +276,10 @@
       "documentation":"<p>Add a new public key to CloudFront to use, for example, for field-level encryption. You can add a maximum of 10 public keys with one AWS account.</p>"
     },
     "CreateStreamingDistribution":{
-      "name":"CreateStreamingDistribution2019_03_26",
+      "name":"CreateStreamingDistribution2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/streaming-distribution",
+        "requestUri":"/2020-05-31/streaming-distribution",
         "responseCode":201
       },
       "input":{"shape":"CreateStreamingDistributionRequest"},
@@ -249,10 +301,10 @@
       "documentation":"<p>Creates a new RTMP distribution. An RTMP distribution is similar to a web distribution, but an RTMP distribution streams media files using the Adobe Real-Time Messaging Protocol (RTMP) instead of serving files using HTTP. </p> <p>To create a new distribution, submit a <code>POST</code> request to the <i>CloudFront API version</i>/distribution resource. The request body must include a document with a <i>StreamingDistributionConfig</i> element. The response echoes the <code>StreamingDistributionConfig</code> element and returns other information about the RTMP distribution.</p> <p>To get the status of your request, use the <i>GET StreamingDistribution</i> API action. When the value of <code>Enabled</code> is <code>true</code> and the value of <code>Status</code> is <code>Deployed</code>, your distribution is ready. A distribution usually deploys in less than 15 minutes.</p> <p>For more information about web distributions, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-rtmp.html\">Working with RTMP Distributions</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <important> <p>Beginning with the 2012-05-05 version of the CloudFront API, we made substantial changes to the format of the XML document that you include in the request body when you create or update a web distribution or an RTMP distribution, and when you invalidate objects. With previous versions of the API, we discovered that it was too easy to accidentally delete one or more values for an element that accepts multiple values, for example, CNAMEs and trusted signers. Our changes for the 2012-05-05 release are intended to prevent these accidental deletions and to notify you when there's a mismatch between the number of values you say you're specifying in the <code>Quantity</code> element and the number of values specified.</p> </important>"
     },
     "CreateStreamingDistributionWithTags":{
-      "name":"CreateStreamingDistributionWithTags2019_03_26",
+      "name":"CreateStreamingDistributionWithTags2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/streaming-distribution?WithTags",
+        "requestUri":"/2020-05-31/streaming-distribution?WithTags",
         "responseCode":201
       },
       "input":{"shape":"CreateStreamingDistributionWithTagsRequest"},
@@ -274,11 +326,29 @@
       ],
       "documentation":"<p>Create a new streaming distribution with tags.</p>"
     },
-    "DeleteCloudFrontOriginAccessIdentity":{
-      "name":"DeleteCloudFrontOriginAccessIdentity2019_03_26",
+    "DeleteCachePolicy":{
+      "name":"DeleteCachePolicy2020_05_31",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2019-03-26/origin-access-identity/cloudfront/{Id}",
+        "requestUri":"/2020-05-31/cache-policy/{Id}",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteCachePolicyRequest"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchCachePolicy"},
+        {"shape":"PreconditionFailed"},
+        {"shape":"IllegalDelete"},
+        {"shape":"CachePolicyInUse"}
+      ],
+      "documentation":"<p>Deletes a cache policy.</p> <p>You cannot delete a cache policy if it’s attached to a cache behavior. First update your distributions to remove the cache policy from all cache behaviors, then delete the cache policy.</p> <p>To delete a cache policy, you must provide the policy’s identifier and version. To get these values, you can use <code>ListCachePolicies</code> or <code>GetCachePolicy</code>.</p>"
+    },
+    "DeleteCloudFrontOriginAccessIdentity":{
+      "name":"DeleteCloudFrontOriginAccessIdentity2020_05_31",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2020-05-31/origin-access-identity/cloudfront/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteCloudFrontOriginAccessIdentityRequest"},
@@ -292,10 +362,10 @@
       "documentation":"<p>Delete an origin access identity. </p>"
     },
     "DeleteDistribution":{
-      "name":"DeleteDistribution2019_03_26",
+      "name":"DeleteDistribution2020_05_31",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2019-03-26/distribution/{Id}",
+        "requestUri":"/2020-05-31/distribution/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteDistributionRequest"},
@@ -309,10 +379,10 @@
       "documentation":"<p>Delete a distribution. </p>"
     },
     "DeleteFieldLevelEncryptionConfig":{
-      "name":"DeleteFieldLevelEncryptionConfig2019_03_26",
+      "name":"DeleteFieldLevelEncryptionConfig2020_05_31",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2019-03-26/field-level-encryption/{Id}",
+        "requestUri":"/2020-05-31/field-level-encryption/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteFieldLevelEncryptionConfigRequest"},
@@ -326,10 +396,10 @@
       "documentation":"<p>Remove a field-level encryption configuration.</p>"
     },
     "DeleteFieldLevelEncryptionProfile":{
-      "name":"DeleteFieldLevelEncryptionProfile2019_03_26",
+      "name":"DeleteFieldLevelEncryptionProfile2020_05_31",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2019-03-26/field-level-encryption-profile/{Id}",
+        "requestUri":"/2020-05-31/field-level-encryption-profile/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteFieldLevelEncryptionProfileRequest"},
@@ -342,11 +412,29 @@
       ],
       "documentation":"<p>Remove a field-level encryption profile.</p>"
     },
-    "DeletePublicKey":{
-      "name":"DeletePublicKey2019_03_26",
+    "DeleteOriginRequestPolicy":{
+      "name":"DeleteOriginRequestPolicy2020_05_31",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2019-03-26/public-key/{Id}",
+        "requestUri":"/2020-05-31/origin-request-policy/{Id}",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteOriginRequestPolicyRequest"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchOriginRequestPolicy"},
+        {"shape":"PreconditionFailed"},
+        {"shape":"IllegalDelete"},
+        {"shape":"OriginRequestPolicyInUse"}
+      ],
+      "documentation":"<p>Deletes an origin request policy.</p> <p>You cannot delete an origin request policy if it’s attached to any cache behaviors. First update your distributions to remove the origin request policy from all cache behaviors, then delete the origin request policy.</p> <p>To delete an origin request policy, you must provide the policy’s identifier and version. To get the identifier, you can use <code>ListOriginRequestPolicies</code> or <code>GetOriginRequestPolicy</code>.</p>"
+    },
+    "DeletePublicKey":{
+      "name":"DeletePublicKey2020_05_31",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2020-05-31/public-key/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeletePublicKeyRequest"},
@@ -360,10 +448,10 @@
       "documentation":"<p>Remove a public key you previously added to CloudFront.</p>"
     },
     "DeleteStreamingDistribution":{
-      "name":"DeleteStreamingDistribution2019_03_26",
+      "name":"DeleteStreamingDistribution2020_05_31",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2019-03-26/streaming-distribution/{Id}",
+        "requestUri":"/2020-05-31/streaming-distribution/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteStreamingDistributionRequest"},
@@ -376,11 +464,39 @@
       ],
       "documentation":"<p>Delete a streaming distribution. To delete an RTMP distribution using the CloudFront API, perform the following steps.</p> <p> <b>To delete an RTMP distribution using the CloudFront API</b>:</p> <ol> <li> <p>Disable the RTMP distribution.</p> </li> <li> <p>Submit a <code>GET Streaming Distribution Config</code> request to get the current configuration and the <code>Etag</code> header for the distribution. </p> </li> <li> <p>Update the XML document that was returned in the response to your <code>GET Streaming Distribution Config</code> request to change the value of <code>Enabled</code> to <code>false</code>.</p> </li> <li> <p>Submit a <code>PUT Streaming Distribution Config</code> request to update the configuration for your distribution. In the request body, include the XML document that you updated in Step 3. Then set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GET Streaming Distribution Config</code> request in Step 2.</p> </li> <li> <p>Review the response to the <code>PUT Streaming Distribution Config</code> request to confirm that the distribution was successfully disabled.</p> </li> <li> <p>Submit a <code>GET Streaming Distribution Config</code> request to confirm that your changes have propagated. When propagation is complete, the value of <code>Status</code> is <code>Deployed</code>.</p> </li> <li> <p>Submit a <code>DELETE Streaming Distribution</code> request. Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GET Streaming Distribution Config</code> request in Step 2.</p> </li> <li> <p>Review the response to your <code>DELETE Streaming Distribution</code> request to confirm that the distribution was successfully deleted.</p> </li> </ol> <p>For information about deleting a distribution using the CloudFront console, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowToDeleteDistribution.html\">Deleting a Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
     },
-    "GetCloudFrontOriginAccessIdentity":{
-      "name":"GetCloudFrontOriginAccessIdentity2019_03_26",
+    "GetCachePolicy":{
+      "name":"GetCachePolicy2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/origin-access-identity/cloudfront/{Id}"
+        "requestUri":"/2020-05-31/cache-policy/{Id}"
+      },
+      "input":{"shape":"GetCachePolicyRequest"},
+      "output":{"shape":"GetCachePolicyResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchCachePolicy"}
+      ],
+      "documentation":"<p>Gets a cache policy, including the following metadata:</p> <ul> <li> <p>The policy’s identifier.</p> </li> <li> <p>The date and time when the policy was last modified.</p> </li> </ul> <p>To get a cache policy, you must provide the policy’s identifier. If the cache policy is attached to a distribution’s cache behavior, you can get the policy’s identifier using <code>ListDistributions</code> or <code>GetDistribution</code>. If the cache policy is not attached to a cache behavior, you can get the identifier using <code>ListCachePolicies</code>.</p>"
+    },
+    "GetCachePolicyConfig":{
+      "name":"GetCachePolicyConfig2020_05_31",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2020-05-31/cache-policy/{Id}/config"
+      },
+      "input":{"shape":"GetCachePolicyConfigRequest"},
+      "output":{"shape":"GetCachePolicyConfigResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchCachePolicy"}
+      ],
+      "documentation":"<p>Gets a cache policy configuration.</p> <p>To get a cache policy configuration, you must provide the policy’s identifier. If the cache policy is attached to a distribution’s cache behavior, you can get the policy’s identifier using <code>ListDistributions</code> or <code>GetDistribution</code>. If the cache policy is not attached to a cache behavior, you can get the identifier using <code>ListCachePolicies</code>.</p>"
+    },
+    "GetCloudFrontOriginAccessIdentity":{
+      "name":"GetCloudFrontOriginAccessIdentity2020_05_31",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2020-05-31/origin-access-identity/cloudfront/{Id}"
       },
       "input":{"shape":"GetCloudFrontOriginAccessIdentityRequest"},
       "output":{"shape":"GetCloudFrontOriginAccessIdentityResult"},
@@ -391,10 +507,10 @@
       "documentation":"<p>Get the information about an origin access identity. </p>"
     },
     "GetCloudFrontOriginAccessIdentityConfig":{
-      "name":"GetCloudFrontOriginAccessIdentityConfig2019_03_26",
+      "name":"GetCloudFrontOriginAccessIdentityConfig2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/origin-access-identity/cloudfront/{Id}/config"
+        "requestUri":"/2020-05-31/origin-access-identity/cloudfront/{Id}/config"
       },
       "input":{"shape":"GetCloudFrontOriginAccessIdentityConfigRequest"},
       "output":{"shape":"GetCloudFrontOriginAccessIdentityConfigResult"},
@@ -405,10 +521,10 @@
       "documentation":"<p>Get the configuration information about an origin access identity. </p>"
     },
     "GetDistribution":{
-      "name":"GetDistribution2019_03_26",
+      "name":"GetDistribution2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/distribution/{Id}"
+        "requestUri":"/2020-05-31/distribution/{Id}"
       },
       "input":{"shape":"GetDistributionRequest"},
       "output":{"shape":"GetDistributionResult"},
@@ -419,10 +535,10 @@
       "documentation":"<p>Get the information about a distribution.</p>"
     },
     "GetDistributionConfig":{
-      "name":"GetDistributionConfig2019_03_26",
+      "name":"GetDistributionConfig2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/distribution/{Id}/config"
+        "requestUri":"/2020-05-31/distribution/{Id}/config"
       },
       "input":{"shape":"GetDistributionConfigRequest"},
       "output":{"shape":"GetDistributionConfigResult"},
@@ -433,10 +549,10 @@
       "documentation":"<p>Get the configuration information about a distribution. </p>"
     },
     "GetFieldLevelEncryption":{
-      "name":"GetFieldLevelEncryption2019_03_26",
+      "name":"GetFieldLevelEncryption2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/field-level-encryption/{Id}"
+        "requestUri":"/2020-05-31/field-level-encryption/{Id}"
       },
       "input":{"shape":"GetFieldLevelEncryptionRequest"},
       "output":{"shape":"GetFieldLevelEncryptionResult"},
@@ -447,10 +563,10 @@
       "documentation":"<p>Get the field-level encryption configuration information.</p>"
     },
     "GetFieldLevelEncryptionConfig":{
-      "name":"GetFieldLevelEncryptionConfig2019_03_26",
+      "name":"GetFieldLevelEncryptionConfig2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/field-level-encryption/{Id}/config"
+        "requestUri":"/2020-05-31/field-level-encryption/{Id}/config"
       },
       "input":{"shape":"GetFieldLevelEncryptionConfigRequest"},
       "output":{"shape":"GetFieldLevelEncryptionConfigResult"},
@@ -461,10 +577,10 @@
       "documentation":"<p>Get the field-level encryption configuration information.</p>"
     },
     "GetFieldLevelEncryptionProfile":{
-      "name":"GetFieldLevelEncryptionProfile2019_03_26",
+      "name":"GetFieldLevelEncryptionProfile2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/field-level-encryption-profile/{Id}"
+        "requestUri":"/2020-05-31/field-level-encryption-profile/{Id}"
       },
       "input":{"shape":"GetFieldLevelEncryptionProfileRequest"},
       "output":{"shape":"GetFieldLevelEncryptionProfileResult"},
@@ -475,10 +591,10 @@
       "documentation":"<p>Get the field-level encryption profile information.</p>"
     },
     "GetFieldLevelEncryptionProfileConfig":{
-      "name":"GetFieldLevelEncryptionProfileConfig2019_03_26",
+      "name":"GetFieldLevelEncryptionProfileConfig2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/field-level-encryption-profile/{Id}/config"
+        "requestUri":"/2020-05-31/field-level-encryption-profile/{Id}/config"
       },
       "input":{"shape":"GetFieldLevelEncryptionProfileConfigRequest"},
       "output":{"shape":"GetFieldLevelEncryptionProfileConfigResult"},
@@ -489,10 +605,10 @@
       "documentation":"<p>Get the field-level encryption profile configuration information.</p>"
     },
     "GetInvalidation":{
-      "name":"GetInvalidation2019_03_26",
+      "name":"GetInvalidation2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/distribution/{DistributionId}/invalidation/{Id}"
+        "requestUri":"/2020-05-31/distribution/{DistributionId}/invalidation/{Id}"
       },
       "input":{"shape":"GetInvalidationRequest"},
       "output":{"shape":"GetInvalidationResult"},
@@ -503,11 +619,39 @@
       ],
       "documentation":"<p>Get the information about an invalidation. </p>"
     },
-    "GetPublicKey":{
-      "name":"GetPublicKey2019_03_26",
+    "GetOriginRequestPolicy":{
+      "name":"GetOriginRequestPolicy2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/public-key/{Id}"
+        "requestUri":"/2020-05-31/origin-request-policy/{Id}"
+      },
+      "input":{"shape":"GetOriginRequestPolicyRequest"},
+      "output":{"shape":"GetOriginRequestPolicyResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchOriginRequestPolicy"}
+      ],
+      "documentation":"<p>Gets an origin request policy, including the following metadata:</p> <ul> <li> <p>The policy’s identifier.</p> </li> <li> <p>The date and time when the policy was last modified.</p> </li> </ul> <p>To get an origin request policy, you must provide the policy’s identifier. If the origin request policy is attached to a distribution’s cache behavior, you can get the policy’s identifier using <code>ListDistributions</code> or <code>GetDistribution</code>. If the origin request policy is not attached to a cache behavior, you can get the identifier using <code>ListOriginRequestPolicies</code>.</p>"
+    },
+    "GetOriginRequestPolicyConfig":{
+      "name":"GetOriginRequestPolicyConfig2020_05_31",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2020-05-31/origin-request-policy/{Id}/config"
+      },
+      "input":{"shape":"GetOriginRequestPolicyConfigRequest"},
+      "output":{"shape":"GetOriginRequestPolicyConfigResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchOriginRequestPolicy"}
+      ],
+      "documentation":"<p>Gets an origin request policy configuration.</p> <p>To get an origin request policy configuration, you must provide the policy’s identifier. If the origin request policy is attached to a distribution’s cache behavior, you can get the policy’s identifier using <code>ListDistributions</code> or <code>GetDistribution</code>. If the origin request policy is not attached to a cache behavior, you can get the identifier using <code>ListOriginRequestPolicies</code>.</p>"
+    },
+    "GetPublicKey":{
+      "name":"GetPublicKey2020_05_31",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2020-05-31/public-key/{Id}"
       },
       "input":{"shape":"GetPublicKeyRequest"},
       "output":{"shape":"GetPublicKeyResult"},
@@ -518,10 +662,10 @@
       "documentation":"<p>Get the public key information.</p>"
     },
     "GetPublicKeyConfig":{
-      "name":"GetPublicKeyConfig2019_03_26",
+      "name":"GetPublicKeyConfig2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/public-key/{Id}/config"
+        "requestUri":"/2020-05-31/public-key/{Id}/config"
       },
       "input":{"shape":"GetPublicKeyConfigRequest"},
       "output":{"shape":"GetPublicKeyConfigResult"},
@@ -532,10 +676,10 @@
       "documentation":"<p>Return public key configuration informaation</p>"
     },
     "GetStreamingDistribution":{
-      "name":"GetStreamingDistribution2019_03_26",
+      "name":"GetStreamingDistribution2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/streaming-distribution/{Id}"
+        "requestUri":"/2020-05-31/streaming-distribution/{Id}"
       },
       "input":{"shape":"GetStreamingDistributionRequest"},
       "output":{"shape":"GetStreamingDistributionResult"},
@@ -546,10 +690,10 @@
       "documentation":"<p>Gets information about a specified RTMP distribution, including the distribution configuration.</p>"
     },
     "GetStreamingDistributionConfig":{
-      "name":"GetStreamingDistributionConfig2019_03_26",
+      "name":"GetStreamingDistributionConfig2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/streaming-distribution/{Id}/config"
+        "requestUri":"/2020-05-31/streaming-distribution/{Id}/config"
       },
       "input":{"shape":"GetStreamingDistributionConfigRequest"},
       "output":{"shape":"GetStreamingDistributionConfigResult"},
@@ -559,11 +703,26 @@
       ],
       "documentation":"<p>Get the configuration information about a streaming distribution. </p>"
     },
-    "ListCloudFrontOriginAccessIdentities":{
-      "name":"ListCloudFrontOriginAccessIdentities2019_03_26",
+    "ListCachePolicies":{
+      "name":"ListCachePolicies2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/origin-access-identity/cloudfront"
+        "requestUri":"/2020-05-31/cache-policy"
+      },
+      "input":{"shape":"ListCachePoliciesRequest"},
+      "output":{"shape":"ListCachePoliciesResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchCachePolicy"},
+        {"shape":"InvalidArgument"}
+      ],
+      "documentation":"<p>Gets a list of cache policies.</p> <p>You can optionally apply a filter to return only the managed policies created by AWS, or only the custom policies created in your AWS account.</p> <p>You can optionally specify the maximum number of items to receive in the response. If the total number of items in the list exceeds the maximum that you specify, or the default maximum, the response is paginated. To get the next page of items, send a subsequent request that specifies the <code>NextMarker</code> value from the current response as the <code>Marker</code> value in the subsequent request.</p>"
+    },
+    "ListCloudFrontOriginAccessIdentities":{
+      "name":"ListCloudFrontOriginAccessIdentities2020_05_31",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2020-05-31/origin-access-identity/cloudfront"
       },
       "input":{"shape":"ListCloudFrontOriginAccessIdentitiesRequest"},
       "output":{"shape":"ListCloudFrontOriginAccessIdentitiesResult"},
@@ -573,10 +732,10 @@
       "documentation":"<p>Lists origin access identities.</p>"
     },
     "ListDistributions":{
-      "name":"ListDistributions2019_03_26",
+      "name":"ListDistributions2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/distribution"
+        "requestUri":"/2020-05-31/distribution"
       },
       "input":{"shape":"ListDistributionsRequest"},
       "output":{"shape":"ListDistributionsResult"},
@@ -585,11 +744,41 @@
       ],
       "documentation":"<p>List CloudFront distributions.</p>"
     },
-    "ListDistributionsByWebACLId":{
-      "name":"ListDistributionsByWebACLId2019_03_26",
+    "ListDistributionsByCachePolicyId":{
+      "name":"ListDistributionsByCachePolicyId2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/distributionsByWebACLId/{WebACLId}"
+        "requestUri":"/2020-05-31/distributionsByCachePolicyId/{CachePolicyId}"
+      },
+      "input":{"shape":"ListDistributionsByCachePolicyIdRequest"},
+      "output":{"shape":"ListDistributionsByCachePolicyIdResult"},
+      "errors":[
+        {"shape":"NoSuchCachePolicy"},
+        {"shape":"InvalidArgument"},
+        {"shape":"AccessDenied"}
+      ],
+      "documentation":"<p>Gets a list of distribution IDs for distributions that have a cache behavior that’s associated with the specified cache policy.</p> <p>You can optionally specify the maximum number of items to receive in the response. If the total number of items in the list exceeds the maximum that you specify, or the default maximum, the response is paginated. To get the next page of items, send a subsequent request that specifies the <code>NextMarker</code> value from the current response as the <code>Marker</code> value in the subsequent request.</p>"
+    },
+    "ListDistributionsByOriginRequestPolicyId":{
+      "name":"ListDistributionsByOriginRequestPolicyId2020_05_31",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2020-05-31/distributionsByOriginRequestPolicyId/{OriginRequestPolicyId}"
+      },
+      "input":{"shape":"ListDistributionsByOriginRequestPolicyIdRequest"},
+      "output":{"shape":"ListDistributionsByOriginRequestPolicyIdResult"},
+      "errors":[
+        {"shape":"NoSuchOriginRequestPolicy"},
+        {"shape":"InvalidArgument"},
+        {"shape":"AccessDenied"}
+      ],
+      "documentation":"<p>Gets a list of distribution IDs for distributions that have a cache behavior that’s associated with the specified origin request policy.</p> <p>You can optionally specify the maximum number of items to receive in the response. If the total number of items in the list exceeds the maximum that you specify, or the default maximum, the response is paginated. To get the next page of items, send a subsequent request that specifies the <code>NextMarker</code> value from the current response as the <code>Marker</code> value in the subsequent request.</p>"
+    },
+    "ListDistributionsByWebACLId":{
+      "name":"ListDistributionsByWebACLId2020_05_31",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2020-05-31/distributionsByWebACLId/{WebACLId}"
       },
       "input":{"shape":"ListDistributionsByWebACLIdRequest"},
       "output":{"shape":"ListDistributionsByWebACLIdResult"},
@@ -600,10 +789,10 @@
       "documentation":"<p>List the distributions that are associated with a specified AWS WAF web ACL. </p>"
     },
     "ListFieldLevelEncryptionConfigs":{
-      "name":"ListFieldLevelEncryptionConfigs2019_03_26",
+      "name":"ListFieldLevelEncryptionConfigs2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/field-level-encryption"
+        "requestUri":"/2020-05-31/field-level-encryption"
       },
       "input":{"shape":"ListFieldLevelEncryptionConfigsRequest"},
       "output":{"shape":"ListFieldLevelEncryptionConfigsResult"},
@@ -613,10 +802,10 @@
       "documentation":"<p>List all field-level encryption configurations that have been created in CloudFront for this account.</p>"
     },
     "ListFieldLevelEncryptionProfiles":{
-      "name":"ListFieldLevelEncryptionProfiles2019_03_26",
+      "name":"ListFieldLevelEncryptionProfiles2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/field-level-encryption-profile"
+        "requestUri":"/2020-05-31/field-level-encryption-profile"
       },
       "input":{"shape":"ListFieldLevelEncryptionProfilesRequest"},
       "output":{"shape":"ListFieldLevelEncryptionProfilesResult"},
@@ -626,10 +815,10 @@
       "documentation":"<p>Request a list of field-level encryption profiles that have been created in CloudFront for this account.</p>"
     },
     "ListInvalidations":{
-      "name":"ListInvalidations2019_03_26",
+      "name":"ListInvalidations2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/distribution/{DistributionId}/invalidation"
+        "requestUri":"/2020-05-31/distribution/{DistributionId}/invalidation"
       },
       "input":{"shape":"ListInvalidationsRequest"},
       "output":{"shape":"ListInvalidationsResult"},
@@ -640,11 +829,26 @@
       ],
       "documentation":"<p>Lists invalidation batches. </p>"
     },
-    "ListPublicKeys":{
-      "name":"ListPublicKeys2019_03_26",
+    "ListOriginRequestPolicies":{
+      "name":"ListOriginRequestPolicies2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/public-key"
+        "requestUri":"/2020-05-31/origin-request-policy"
+      },
+      "input":{"shape":"ListOriginRequestPoliciesRequest"},
+      "output":{"shape":"ListOriginRequestPoliciesResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchOriginRequestPolicy"},
+        {"shape":"InvalidArgument"}
+      ],
+      "documentation":"<p>Gets a list of origin request policies.</p> <p>You can optionally apply a filter to return only the managed policies created by AWS, or only the custom policies created in your AWS account.</p> <p>You can optionally specify the maximum number of items to receive in the response. If the total number of items in the list exceeds the maximum that you specify, or the default maximum, the response is paginated. To get the next page of items, send a subsequent request that specifies the <code>NextMarker</code> value from the current response as the <code>Marker</code> value in the subsequent request.</p>"
+    },
+    "ListPublicKeys":{
+      "name":"ListPublicKeys2020_05_31",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2020-05-31/public-key"
       },
       "input":{"shape":"ListPublicKeysRequest"},
       "output":{"shape":"ListPublicKeysResult"},
@@ -654,10 +858,10 @@
       "documentation":"<p>List all public keys that have been added to CloudFront for this account.</p>"
     },
     "ListStreamingDistributions":{
-      "name":"ListStreamingDistributions2019_03_26",
+      "name":"ListStreamingDistributions2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/streaming-distribution"
+        "requestUri":"/2020-05-31/streaming-distribution"
       },
       "input":{"shape":"ListStreamingDistributionsRequest"},
       "output":{"shape":"ListStreamingDistributionsResult"},
@@ -667,10 +871,10 @@
       "documentation":"<p>List streaming distributions. </p>"
     },
     "ListTagsForResource":{
-      "name":"ListTagsForResource2019_03_26",
+      "name":"ListTagsForResource2020_05_31",
       "http":{
         "method":"GET",
-        "requestUri":"/2019-03-26/tagging"
+        "requestUri":"/2020-05-31/tagging"
       },
       "input":{"shape":"ListTagsForResourceRequest"},
       "output":{"shape":"ListTagsForResourceResult"},
@@ -683,10 +887,10 @@
       "documentation":"<p>List tags for a CloudFront resource.</p>"
     },
     "TagResource":{
-      "name":"TagResource2019_03_26",
+      "name":"TagResource2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/tagging?Operation=Tag",
+        "requestUri":"/2020-05-31/tagging?Operation=Tag",
         "responseCode":204
       },
       "input":{"shape":"TagResourceRequest"},
@@ -699,10 +903,10 @@
       "documentation":"<p>Add tags to a CloudFront resource.</p>"
     },
     "UntagResource":{
-      "name":"UntagResource2019_03_26",
+      "name":"UntagResource2020_05_31",
       "http":{
         "method":"POST",
-        "requestUri":"/2019-03-26/tagging?Operation=Untag",
+        "requestUri":"/2020-05-31/tagging?Operation=Untag",
         "responseCode":204
       },
       "input":{"shape":"UntagResourceRequest"},
@@ -714,11 +918,34 @@
       ],
       "documentation":"<p>Remove tags from a CloudFront resource.</p>"
     },
-    "UpdateCloudFrontOriginAccessIdentity":{
-      "name":"UpdateCloudFrontOriginAccessIdentity2019_03_26",
+    "UpdateCachePolicy":{
+      "name":"UpdateCachePolicy2020_05_31",
       "http":{
         "method":"PUT",
-        "requestUri":"/2019-03-26/origin-access-identity/cloudfront/{Id}/config"
+        "requestUri":"/2020-05-31/cache-policy/{Id}"
+      },
+      "input":{"shape":"UpdateCachePolicyRequest"},
+      "output":{"shape":"UpdateCachePolicyResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"IllegalUpdate"},
+        {"shape":"InconsistentQuantities"},
+        {"shape":"InvalidArgument"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchCachePolicy"},
+        {"shape":"PreconditionFailed"},
+        {"shape":"CachePolicyAlreadyExists"},
+        {"shape":"TooManyHeadersInCachePolicy"},
+        {"shape":"TooManyCookiesInCachePolicy"},
+        {"shape":"TooManyQueryStringsInCachePolicy"}
+      ],
+      "documentation":"<p>Updates a cache policy configuration.</p> <p>When you update a cache policy configuration, all the fields are updated with the values provided in the request. You cannot update some fields independent of others. To update a cache policy configuration:</p> <ol> <li> <p>Use <code>GetCachePolicyConfig</code> to get the current configuration.</p> </li> <li> <p>Locally modify the fields in the cache policy configuration that you want to update.</p> </li> <li> <p>Call <code>UpdateCachePolicy</code> by providing the entire cache policy configuration, including the fields that you modified and those that you didn’t.</p> </li> </ol>"
+    },
+    "UpdateCloudFrontOriginAccessIdentity":{
+      "name":"UpdateCloudFrontOriginAccessIdentity2020_05_31",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2020-05-31/origin-access-identity/cloudfront/{Id}/config"
       },
       "input":{"shape":"UpdateCloudFrontOriginAccessIdentityRequest"},
       "output":{"shape":"UpdateCloudFrontOriginAccessIdentityResult"},
@@ -735,10 +962,10 @@
       "documentation":"<p>Update an origin access identity. </p>"
     },
     "UpdateDistribution":{
-      "name":"UpdateDistribution2019_03_26",
+      "name":"UpdateDistribution2020_05_31",
       "http":{
         "method":"PUT",
-        "requestUri":"/2019-03-26/distribution/{Id}/config"
+        "requestUri":"/2020-05-31/distribution/{Id}/config"
       },
       "input":{"shape":"UpdateDistributionRequest"},
       "output":{"shape":"UpdateDistributionResult"},
@@ -780,21 +1007,26 @@
         {"shape":"TooManyQueryStringParameters"},
         {"shape":"InvalidQueryStringParameters"},
         {"shape":"TooManyDistributionsWithLambdaAssociations"},
+        {"shape":"TooManyDistributionsWithSingleFunctionARN"},
         {"shape":"TooManyLambdaFunctionAssociations"},
         {"shape":"InvalidLambdaFunctionAssociation"},
         {"shape":"InvalidOriginReadTimeout"},
         {"shape":"InvalidOriginKeepaliveTimeout"},
         {"shape":"NoSuchFieldLevelEncryptionConfig"},
         {"shape":"IllegalFieldLevelEncryptionConfigAssociationWithCacheBehavior"},
-        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"}
+        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"},
+        {"shape":"NoSuchCachePolicy"},
+        {"shape":"TooManyDistributionsAssociatedToCachePolicy"},
+        {"shape":"NoSuchOriginRequestPolicy"},
+        {"shape":"TooManyDistributionsAssociatedToOriginRequestPolicy"}
       ],
       "documentation":"<p>Updates the configuration for a web distribution. </p> <important> <p>When you update a distribution, there are more required fields than when you create a distribution. When you update your distribution by using this API action, follow the steps here to get the current configuration and then make your updates, to make sure that you include all of the required fields. To view a summary, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-overview-required-fields.html\">Required Fields for Create Distribution and Update Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> </important> <p>The update process includes getting the current distribution configuration, updating the XML document that is returned to make your changes, and then submitting an <code>UpdateDistribution</code> request to make the updates.</p> <p>For information about updating a distribution using the CloudFront console instead, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-creating-console.html\">Creating a Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p> <b>To update a web distribution using the CloudFront API</b> </p> <ol> <li> <p>Submit a <a href=\"https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_GetDistributionConfig.html\">GetDistributionConfig</a> request to get the current configuration and an <code>Etag</code> header for the distribution.</p> <note> <p>If you update the distribution again, you must get a new <code>Etag</code> header.</p> </note> </li> <li> <p>Update the XML document that was returned in the response to your <code>GetDistributionConfig</code> request to include your changes. </p> <important> <p>When you edit the XML file, be aware of the following:</p> <ul> <li> <p>You must strip out the ETag parameter that is returned.</p> </li> <li> <p>Additional fields are required when you update a distribution. There may be fields included in the XML file for features that you haven't configured for your distribution. This is expected and required to successfully update the distribution.</p> </li> <li> <p>You can't change the value of <code>CallerReference</code>. If you try to change this value, CloudFront returns an <code>IllegalUpdate</code> error. </p> </li> <li> <p>The new configuration replaces the existing configuration; the values that you specify in an <code>UpdateDistribution</code> request are not merged into your existing configuration. When you add, delete, or replace values in an element that allows multiple values (for example, <code>CNAME</code>), you must specify all of the values that you want to appear in the updated distribution. In addition, you must update the corresponding <code>Quantity</code> element.</p> </li> </ul> </important> </li> <li> <p>Submit an <code>UpdateDistribution</code> request to update the configuration for your distribution:</p> <ul> <li> <p>In the request body, include the XML document that you updated in Step 2. The request body must include an XML document with a <code>DistributionConfig</code> element.</p> </li> <li> <p>Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GetDistributionConfig</code> request in Step 1.</p> </li> </ul> </li> <li> <p>Review the response to the <code>UpdateDistribution</code> request to confirm that the configuration was successfully updated.</p> </li> <li> <p>Optional: Submit a <a href=\"https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_GetDistribution.html\">GetDistribution</a> request to confirm that your changes have propagated. When propagation is complete, the value of <code>Status</code> is <code>Deployed</code>.</p> </li> </ol>"
     },
     "UpdateFieldLevelEncryptionConfig":{
-      "name":"UpdateFieldLevelEncryptionConfig2019_03_26",
+      "name":"UpdateFieldLevelEncryptionConfig2020_05_31",
       "http":{
         "method":"PUT",
-        "requestUri":"/2019-03-26/field-level-encryption/{Id}/config"
+        "requestUri":"/2020-05-31/field-level-encryption/{Id}/config"
       },
       "input":{"shape":"UpdateFieldLevelEncryptionConfigRequest"},
       "output":{"shape":"UpdateFieldLevelEncryptionConfigResult"},
@@ -814,10 +1046,10 @@
       "documentation":"<p>Update a field-level encryption configuration. </p>"
     },
     "UpdateFieldLevelEncryptionProfile":{
-      "name":"UpdateFieldLevelEncryptionProfile2019_03_26",
+      "name":"UpdateFieldLevelEncryptionProfile2020_05_31",
       "http":{
         "method":"PUT",
-        "requestUri":"/2019-03-26/field-level-encryption-profile/{Id}/config"
+        "requestUri":"/2020-05-31/field-level-encryption-profile/{Id}/config"
       },
       "input":{"shape":"UpdateFieldLevelEncryptionProfileRequest"},
       "output":{"shape":"UpdateFieldLevelEncryptionProfileResult"},
@@ -837,11 +1069,34 @@
       ],
       "documentation":"<p>Update a field-level encryption profile. </p>"
     },
-    "UpdatePublicKey":{
-      "name":"UpdatePublicKey2019_03_26",
+    "UpdateOriginRequestPolicy":{
+      "name":"UpdateOriginRequestPolicy2020_05_31",
       "http":{
         "method":"PUT",
-        "requestUri":"/2019-03-26/public-key/{Id}/config"
+        "requestUri":"/2020-05-31/origin-request-policy/{Id}"
+      },
+      "input":{"shape":"UpdateOriginRequestPolicyRequest"},
+      "output":{"shape":"UpdateOriginRequestPolicyResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"IllegalUpdate"},
+        {"shape":"InconsistentQuantities"},
+        {"shape":"InvalidArgument"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchOriginRequestPolicy"},
+        {"shape":"PreconditionFailed"},
+        {"shape":"OriginRequestPolicyAlreadyExists"},
+        {"shape":"TooManyHeadersInOriginRequestPolicy"},
+        {"shape":"TooManyCookiesInOriginRequestPolicy"},
+        {"shape":"TooManyQueryStringsInOriginRequestPolicy"}
+      ],
+      "documentation":"<p>Updates an origin request policy configuration.</p> <p>When you update an origin request policy configuration, all the fields are updated with the values provided in the request. You cannot update some fields independent of others. To update an origin request policy configuration:</p> <ol> <li> <p>Use <code>GetOriginRequestPolicyConfig</code> to get the current configuration.</p> </li> <li> <p>Locally modify the fields in the origin request policy configuration that you want to update.</p> </li> <li> <p>Call <code>UpdateOriginRequestPolicy</code> by providing the entire origin request policy configuration, including the fields that you modified and those that you didn’t.</p> </li> </ol>"
+    },
+    "UpdatePublicKey":{
+      "name":"UpdatePublicKey2020_05_31",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2020-05-31/public-key/{Id}/config"
       },
       "input":{"shape":"UpdatePublicKeyRequest"},
       "output":{"shape":"UpdatePublicKeyResult"},
@@ -857,10 +1112,10 @@
       "documentation":"<p>Update public key information. Note that the only value you can change is the comment.</p>"
     },
     "UpdateStreamingDistribution":{
-      "name":"UpdateStreamingDistribution2019_03_26",
+      "name":"UpdateStreamingDistribution2020_05_31",
       "http":{
         "method":"PUT",
-        "requestUri":"/2019-03-26/streaming-distribution/{Id}/config"
+        "requestUri":"/2020-05-31/streaming-distribution/{Id}/config"
       },
       "input":{"shape":"UpdateStreamingDistributionRequest"},
       "output":{"shape":"UpdateStreamingDistributionResult"},
@@ -1006,10 +1261,8 @@
       "required":[
         "PathPattern",
         "TargetOriginId",
-        "ForwardedValues",
         "TrustedSigners",
-        "ViewerProtocolPolicy",
-        "MinTTL"
+        "ViewerProtocolPolicy"
       ],
       "members":{
         "PathPattern":{
@@ -1020,10 +1273,6 @@
           "shape":"string",
           "documentation":"<p>The value of <code>ID</code> for the origin that you want CloudFront to route requests to when they match this cache behavior.</p>"
         },
-        "ForwardedValues":{
-          "shape":"ForwardedValues",
-          "documentation":"<p>A complex type that specifies how CloudFront handles query strings, cookies, and HTTP headers.</p>"
-        },
         "TrustedSigners":{
           "shape":"TrustedSigners",
           "documentation":"<p>A complex type that specifies the AWS accounts, if any, that you want to allow to create signed URLs for private content.</p> <p>If you want to require signed URLs in requests for objects in the target origin that match the <code>PathPattern</code> for this cache behavior, specify <code>true</code> for <code>Enabled</code>, and specify the applicable values for <code>Quantity</code> and <code>Items</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html\">Serving Private Content with Signed URLs and Signed Cookies</a> in the <i>Amazon CloudFront Developer Guide</i>. </p> <p>If you don’t want to require signed URLs in requests for objects that match <code>PathPattern</code>, specify <code>false</code> for <code>Enabled</code> and <code>0</code> for <code>Quantity</code>. Omit <code>Items</code>.</p> <p>To add, change, or remove one or more trusted signers, change <code>Enabled</code> to <code>true</code> (if it’s currently <code>false</code>), change <code>Quantity</code> as applicable, and specify all of the trusted signers that you want to include in the updated distribution.</p>"
@@ -1032,22 +1281,10 @@
           "shape":"ViewerProtocolPolicy",
           "documentation":"<p>The protocol that viewers can use to access the files in the origin specified by <code>TargetOriginId</code> when a request matches the path pattern in <code>PathPattern</code>. You can specify the following options:</p> <ul> <li> <p> <code>allow-all</code>: Viewers can use HTTP or HTTPS.</p> </li> <li> <p> <code>redirect-to-https</code>: If a viewer submits an HTTP request, CloudFront returns an HTTP status code of 301 (Moved Permanently) to the viewer along with the HTTPS URL. The viewer then resubmits the request using the new URL. </p> </li> <li> <p> <code>https-only</code>: If a viewer sends an HTTP request, CloudFront returns an HTTP status code of 403 (Forbidden). </p> </li> </ul> <p>For more information about requiring the HTTPS protocol, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-https-viewers-to-cloudfront.html\">Requiring HTTPS Between Viewers and CloudFront</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <note> <p>The only way to guarantee that viewers retrieve an object that was fetched from the origin using HTTPS is never to use any other protocol to fetch the object. If you have recently changed from HTTP to HTTPS, we recommend that you clear your objects’ cache because cached objects are protocol agnostic. That means that an edge location will return an object from the cache regardless of whether the current request protocol matches the protocol used previously. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing Cache Expiration</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> </note>"
         },
-        "MinTTL":{
-          "shape":"long",
-          "documentation":"<p>The minimum amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\"> Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i> Amazon CloudFront Developer Guide</i>.</p> <p>You must specify <code>0</code> for <code>MinTTL</code> if you configure CloudFront to forward all headers to your origin (under <code>Headers</code>, if you specify <code>1</code> for <code>Quantity</code> and <code>*</code> for <code>Name</code>).</p>"
-        },
         "AllowedMethods":{"shape":"AllowedMethods"},
         "SmoothStreaming":{
           "shape":"boolean",
           "documentation":"<p>Indicates whether you want to distribute media files in the Microsoft Smooth Streaming format using the origin that is associated with this cache behavior. If so, specify <code>true</code>; if not, specify <code>false</code>. If you specify <code>true</code> for <code>SmoothStreaming</code>, you can still distribute other content using this cache behavior if the content matches the value of <code>PathPattern</code>. </p>"
-        },
-        "DefaultTTL":{
-          "shape":"long",
-          "documentation":"<p>The default amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. The value that you specify applies only when your origin does not add HTTP headers such as <code>Cache-Control max-age</code>, <code>Cache-Control s-maxage</code>, and <code>Expires</code> to objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
-        },
-        "MaxTTL":{
-          "shape":"long",
-          "documentation":"<p>The maximum amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. The value that you specify applies only when your origin adds HTTP headers such as <code>Cache-Control max-age</code>, <code>Cache-Control s-maxage</code>, and <code>Expires</code> to objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
         },
         "Compress":{
           "shape":"boolean",
@@ -1060,6 +1297,34 @@
         "FieldLevelEncryptionId":{
           "shape":"string",
           "documentation":"<p>The value of <code>ID</code> for the field-level encryption configuration that you want CloudFront to use for encrypting specific fields of data for this cache behavior.</p>"
+        },
+        "CachePolicyId":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier of the cache policy that is attached to this cache behavior. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+        },
+        "OriginRequestPolicyId":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier of the origin request policy that is attached to this cache behavior. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html\">Using the managed origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+        },
+        "ForwardedValues":{
+          "shape":"ForwardedValues",
+          "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/working-with-policies.html\">Working with policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to include values in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send values to the origin but not include them in the cache key, use an origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html\">Using the managed origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>A complex type that specifies how CloudFront handles query strings, cookies, and HTTP headers.</p>",
+          "deprecated":true
+        },
+        "MinTTL":{
+          "shape":"long",
+          "documentation":"<p>This field is deprecated. We recommend that you use the <code>MinTTL</code> field in a cache policy instead of this field. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>The minimum amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\"> Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i> Amazon CloudFront Developer Guide</i>.</p> <p>You must specify <code>0</code> for <code>MinTTL</code> if you configure CloudFront to forward all headers to your origin (under <code>Headers</code>, if you specify <code>1</code> for <code>Quantity</code> and <code>*</code> for <code>Name</code>).</p>",
+          "deprecated":true
+        },
+        "DefaultTTL":{
+          "shape":"long",
+          "documentation":"<p>This field is deprecated. We recommend that you use the <code>DefaultTTL</code> field in a cache policy instead of this field. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>The default amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. The value that you specify applies only when your origin does not add HTTP headers such as <code>Cache-Control max-age</code>, <code>Cache-Control s-maxage</code>, and <code>Expires</code> to objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+          "deprecated":true
+        },
+        "MaxTTL":{
+          "shape":"long",
+          "documentation":"<p>This field is deprecated. We recommend that you use the <code>MaxTTL</code> field in a cache policy instead of this field. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>The maximum amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. The value that you specify applies only when your origin adds HTTP headers such as <code>Cache-Control max-age</code>, <code>Cache-Control s-maxage</code>, and <code>Expires</code> to objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+          "deprecated":true
         }
       },
       "documentation":"<p>A complex type that describes how CloudFront processes requests.</p> <p>You must create at least as many cache behaviors (including the default cache behavior) as you have origins if you want CloudFront to serve objects from all of the origins. Each cache behavior specifies the one origin from which you want CloudFront to get objects. If you have two origins and only the default cache behavior, the default cache behavior will cause CloudFront to get objects from one of the origins, but the other origin is never used.</p> <p>For the current quota (formerly known as limit) on the number of cache behaviors that you can add to a distribution, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you don’t want to specify any cache behaviors, include only an empty <code>CacheBehaviors</code> element. Don’t include an empty <code>CacheBehavior</code> element because this is invalid.</p> <p>To delete all cache behaviors in an existing distribution, update the distribution configuration and include only an empty <code>CacheBehaviors</code> element.</p> <p>To add, change, or remove one or more cache behaviors, update the distribution configuration and specify all of the cache behaviors that you want to include in the updated distribution.</p> <p>For more information about cache behaviors, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesCacheBehavior\">Cache Behavior Settings</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
@@ -1085,6 +1350,203 @@
         }
       },
       "documentation":"<p>A complex type that contains zero or more <code>CacheBehavior</code> elements. </p>"
+    },
+    "CachePolicy":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "LastModifiedTime",
+        "CachePolicyConfig"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the cache policy.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time when the cache policy was last modified.</p>"
+        },
+        "CachePolicyConfig":{
+          "shape":"CachePolicyConfig",
+          "documentation":"<p>The cache policy configuration.</p>"
+        }
+      },
+      "documentation":"<p>A cache policy.</p> <p>When it’s attached to a cache behavior, the cache policy determines the following:</p> <ul> <li> <p>The values that CloudFront includes in the cache key. These values can include HTTP headers, cookies, and URL query strings. CloudFront uses the cache key to find an object in its cache that it can return to the viewer.</p> </li> <li> <p>The default, minimum, and maximum time to live (TTL) values that you want objects to stay in the CloudFront cache.</p> </li> </ul> <p>The headers, cookies, and query strings that are included in the cache key are automatically included in requests that CloudFront sends to the origin. CloudFront sends a request when it can’t find a valid object in its cache that matches the request’s cache key. If you want to send values to the origin but <i>not</i> include them in the cache key, use <code>OriginRequestPolicy</code>.</p>"
+    },
+    "CachePolicyAlreadyExists":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>A cache policy with this name already exists. You must provide a unique name. To modify an existing cache policy, use <code>UpdateCachePolicy</code>.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "CachePolicyConfig":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "MinTTL"
+      ],
+      "members":{
+        "Comment":{
+          "shape":"string",
+          "documentation":"<p>A comment to describe the cache policy.</p>"
+        },
+        "Name":{
+          "shape":"string",
+          "documentation":"<p>A unique name to identify the cache policy.</p>"
+        },
+        "DefaultTTL":{
+          "shape":"long",
+          "documentation":"<p>The default amount of time, in seconds, that you want objects to stay in the CloudFront cache before CloudFront sends another request to the origin to see if the object has been updated. CloudFront uses this value as the object’s time to live (TTL) only when the origin does <i>not</i> send <code>Cache-Control</code> or <code>Expires</code> headers with the object. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>The default value for this field is 86400 seconds (one day). If the value of <code>MinTTL</code> is more than 86400 seconds, then the default value for this field is the same as the value of <code>MinTTL</code>.</p>"
+        },
+        "MaxTTL":{
+          "shape":"long",
+          "documentation":"<p>The maximum amount of time, in seconds, that objects stay in the CloudFront cache before CloudFront sends another request to the origin to see if the object has been updated. CloudFront uses this value only when the origin sends <code>Cache-Control</code> or <code>Expires</code> headers with the object. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>The default value for this field is 31536000 seconds (one year). If the value of <code>MinTTL</code> or <code>DefaultTTL</code> is more than 31536000 seconds, then the default value for this field is the same as the value of <code>DefaultTTL</code>.</p>"
+        },
+        "MinTTL":{
+          "shape":"long",
+          "documentation":"<p>The minimum amount of time, in seconds, that you want objects to stay in the CloudFront cache before CloudFront sends another request to the origin to see if the object has been updated. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+        },
+        "ParametersInCacheKeyAndForwardedToOrigin":{
+          "shape":"ParametersInCacheKeyAndForwardedToOrigin",
+          "documentation":"<p>The HTTP headers, cookies, and URL query strings to include in the cache key. The values included in the cache key are automatically included in requests that CloudFront sends to the origin.</p>"
+        }
+      },
+      "documentation":"<p>A cache policy configuration.</p> <p>This configuration determines the following:</p> <ul> <li> <p>The values that CloudFront includes in the cache key. These values can include HTTP headers, cookies, and URL query strings. CloudFront uses the cache key to find an object in its cache that it can return to the viewer.</p> </li> <li> <p>The default, minimum, and maximum time to live (TTL) values that you want objects to stay in the CloudFront cache.</p> </li> </ul> <p>The headers, cookies, and query strings that are included in the cache key are automatically included in requests that CloudFront sends to the origin. CloudFront sends a request when it can’t find a valid object in its cache that matches the request’s cache key. If you want to send values to the origin but <i>not</i> include them in the cache key, use <code>OriginRequestPolicy</code>.</p>"
+    },
+    "CachePolicyCookieBehavior":{
+      "type":"string",
+      "enum":[
+        "none",
+        "whitelist",
+        "allExcept",
+        "all"
+      ]
+    },
+    "CachePolicyCookiesConfig":{
+      "type":"structure",
+      "required":["CookieBehavior"],
+      "members":{
+        "CookieBehavior":{
+          "shape":"CachePolicyCookieBehavior",
+          "documentation":"<p>Determines whether any cookies in viewer requests are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are:</p> <ul> <li> <p> <code>none</code> – Cookies in viewer requests are not included in the cache key and are not automatically included in requests that CloudFront sends to the origin. Even when this field is set to <code>none</code>, any cookies that are listed in an <code>OriginRequestPolicy</code> <i>are</i> included in origin requests.</p> </li> <li> <p> <code>whitelist</code> – The cookies in viewer requests that are listed in the <code>CookieNames</code> type are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p> </li> <li> <p> <code>allExcept</code> – All cookies in viewer requests that are <i> <b>not</b> </i> listed in the <code>CookieNames</code> type are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p> </li> <li> <p> <code>all</code> – All cookies in viewer requests are included in the cache key and are automatically included in requests that CloudFront sends to the origin.</p> </li> </ul>"
+        },
+        "Cookies":{"shape":"CookieNames"}
+      },
+      "documentation":"<p>An object that determines whether any cookies in viewer requests (and if so, which cookies) are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p>"
+    },
+    "CachePolicyHeaderBehavior":{
+      "type":"string",
+      "enum":[
+        "none",
+        "whitelist"
+      ]
+    },
+    "CachePolicyHeadersConfig":{
+      "type":"structure",
+      "required":["HeaderBehavior"],
+      "members":{
+        "HeaderBehavior":{
+          "shape":"CachePolicyHeaderBehavior",
+          "documentation":"<p>Determines whether any HTTP headers are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are:</p> <ul> <li> <p> <code>none</code> – HTTP headers are not included in the cache key and are not automatically included in requests that CloudFront sends to the origin. Even when this field is set to <code>none</code>, any headers that are listed in an <code>OriginRequestPolicy</code> <i>are</i> included in origin requests.</p> </li> <li> <p> <code>whitelist</code> – The HTTP headers that are listed in the <code>Headers</code> type are included in the cache key and are automatically included in requests that CloudFront sends to the origin.</p> </li> </ul>"
+        },
+        "Headers":{"shape":"Headers"}
+      },
+      "documentation":"<p>An object that determines whether any HTTP headers (and if so, which headers) are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p>"
+    },
+    "CachePolicyInUse":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>Cannot delete the cache policy because it is attached to one or more cache behaviors.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "CachePolicyList":{
+      "type":"structure",
+      "required":[
+        "MaxItems",
+        "Quantity"
+      ],
+      "members":{
+        "NextMarker":{
+          "shape":"string",
+          "documentation":"<p>If there are more items in the list than are in this response, this element is present. It contains the value that you should use in the <code>Marker</code> field of a subsequent request to continue listing cache policies where you left off.</p>"
+        },
+        "MaxItems":{
+          "shape":"integer",
+          "documentation":"<p>The maximum number of cache policies requested.</p>"
+        },
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The total number of cache policies returned in the response.</p>"
+        },
+        "Items":{
+          "shape":"CachePolicySummaryList",
+          "documentation":"<p>Contains the cache policies in the list.</p>"
+        }
+      },
+      "documentation":"<p>A list of cache policies.</p>"
+    },
+    "CachePolicyQueryStringBehavior":{
+      "type":"string",
+      "enum":[
+        "none",
+        "whitelist",
+        "allExcept",
+        "all"
+      ]
+    },
+    "CachePolicyQueryStringsConfig":{
+      "type":"structure",
+      "required":["QueryStringBehavior"],
+      "members":{
+        "QueryStringBehavior":{
+          "shape":"CachePolicyQueryStringBehavior",
+          "documentation":"<p>Determines whether any URL query strings in viewer requests are included in the cache key and automatically included in requests that CloudFront sends to the origin. Valid values are:</p> <ul> <li> <p> <code>none</code> – Query strings in viewer requests are not included in the cache key and are not automatically included in requests that CloudFront sends to the origin. Even when this field is set to <code>none</code>, any query strings that are listed in an <code>OriginRequestPolicy</code> <i>are</i> included in origin requests.</p> </li> <li> <p> <code>whitelist</code> – The query strings in viewer requests that are listed in the <code>QueryStringNames</code> type are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p> </li> <li> <p> <code>allExcept</code> – All query strings in viewer requests that are <i> <b>not</b> </i> listed in the <code>QueryStringNames</code> type are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p> </li> <li> <p> <code>all</code> – All query strings in viewer requests are included in the cache key and are automatically included in requests that CloudFront sends to the origin.</p> </li> </ul>"
+        },
+        "QueryStrings":{
+          "shape":"QueryStringNames",
+          "documentation":"<p>Contains the specific query strings in viewer requests that either <i> <b>are</b> </i> or <i> <b>are not</b> </i> included in the cache key and automatically included in requests that CloudFront sends to the origin. The behavior depends on whether the <code>QueryStringBehavior</code> field in the <code>CachePolicyQueryStringsConfig</code> type is set to <code>whitelist</code> (the listed query strings <i> <b>are</b> </i> included) or <code>allExcept</code> (the listed query strings <i> <b>are not</b> </i> included, but all other query strings are).</p>"
+        }
+      },
+      "documentation":"<p>An object that determines whether any URL query strings in viewer requests (and if so, which query strings) are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p>"
+    },
+    "CachePolicySummary":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "CachePolicy"
+      ],
+      "members":{
+        "Type":{
+          "shape":"CachePolicyType",
+          "documentation":"<p>The type of cache policy, either <code>managed</code> (created by AWS) or <code>custom</code> (created in this AWS account).</p>"
+        },
+        "CachePolicy":{
+          "shape":"CachePolicy",
+          "documentation":"<p>The cache policy.</p>"
+        }
+      },
+      "documentation":"<p>Contains a cache policy.</p>"
+    },
+    "CachePolicySummaryList":{
+      "type":"list",
+      "member":{
+        "shape":"CachePolicySummary",
+        "locationName":"CachePolicySummary"
+      }
+    },
+    "CachePolicyType":{
+      "type":"string",
+      "enum":[
+        "managed",
+        "custom"
+      ]
     },
     "CachedMethods":{
       "type":"structure",
@@ -1321,14 +1783,14 @@
       "members":{
         "Quantity":{
           "shape":"integer",
-          "documentation":"<p>The number of different cookies that you want CloudFront to forward to the origin for this cache behavior. The value must equal the number of items that are in the <code>Items</code> field.</p> <p>When you set <code>Forward = whitelist</code> (in the <code>CookiePreferences</code> object), this value must be <code>1</code> or higher.</p>"
+          "documentation":"<p>The number of cookie names in the <code>Items</code> list.</p>"
         },
         "Items":{
           "shape":"CookieNameList",
-          "documentation":"<p>A complex type that contains one <code>Name</code> element for each cookie that you want CloudFront to forward to the origin for this cache behavior. It must contain the same number of items that is specified in the <code>Quantity</code> field.</p> <p>When you set <code>Forward = whitelist</code> (in the <code>CookiePreferences</code> object), this field must contain at least one item.</p>"
+          "documentation":"<p>A list of cookie names.</p>"
         }
       },
-      "documentation":"<p>A complex type that specifies whether you want CloudFront to forward cookies to the origin and, if so, which ones. For more information about forwarding cookies to the origin, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html\"> Caching Content Based on Request Headers</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+      "documentation":"<p>Contains a list of cookie names.</p>"
     },
     "CookiePreference":{
       "type":"structure",
@@ -1336,14 +1798,49 @@
       "members":{
         "Forward":{
           "shape":"ItemSelection",
-          "documentation":"<p>Specifies which cookies to forward to the origin for this cache behavior: all, none, or the list of cookies specified in the <code>WhitelistedNames</code> complex type.</p> <p>Amazon S3 doesn't process cookies. When the cache behavior is forwarding requests to an Amazon S3 origin, specify none for the <code>Forward</code> element.</p>"
+          "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include cookies in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send cookies to the origin but not include them in the cache key, use origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>Specifies which cookies to forward to the origin for this cache behavior: all, none, or the list of cookies specified in the <code>WhitelistedNames</code> complex type.</p> <p>Amazon S3 doesn't process cookies. When the cache behavior is forwarding requests to an Amazon S3 origin, specify none for the <code>Forward</code> element.</p>"
         },
         "WhitelistedNames":{
           "shape":"CookieNames",
-          "documentation":"<p>Required if you specify <code>whitelist</code> for the value of <code>Forward</code>. A complex type that specifies how many different cookies you want CloudFront to forward to the origin for this cache behavior and, if you want to forward selected cookies, the names of those cookies.</p> <p>If you specify <code>all</code> or <code>none</code> for the value of <code>Forward</code>, omit <code>WhitelistedNames</code>. If you change the value of <code>Forward</code> from <code>whitelist</code> to <code>all</code> or <code>none</code> and you don't delete the <code>WhitelistedNames</code> element and its child elements, CloudFront deletes them automatically.</p> <p>For the current limit on the number of cookie names that you can whitelist for each cache behavior, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/xrefaws_service_limits.html#limits_cloudfront\"> CloudFront Limits</a> in the <i>AWS General Reference</i>.</p>"
+          "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include cookies in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send cookies to the origin but not include them in the cache key, use an origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>Required if you specify <code>whitelist</code> for the value of <code>Forward</code>. A complex type that specifies how many different cookies you want CloudFront to forward to the origin for this cache behavior and, if you want to forward selected cookies, the names of those cookies.</p> <p>If you specify <code>all</code> or <code>none</code> for the value of <code>Forward</code>, omit <code>WhitelistedNames</code>. If you change the value of <code>Forward</code> from <code>whitelist</code> to <code>all</code> or <code>none</code> and you don't delete the <code>WhitelistedNames</code> element and its child elements, CloudFront deletes them automatically.</p> <p>For the current limit on the number of cookie names that you can whitelist for each cache behavior, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/xrefaws_service_limits.html#limits_cloudfront\"> CloudFront Limits</a> in the <i>AWS General Reference</i>.</p>"
         }
       },
-      "documentation":"<p>A complex type that specifies whether you want CloudFront to forward cookies to the origin and, if so, which ones. For more information about forwarding cookies to the origin, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Cookies.html\">Caching Content Based on Cookies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+      "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include cookies in the cache key, use <code>CookiesConfig</code> in a cache policy. See <code>CreateCachePolicy</code>.</p> <p>If you want to send cookies to the origin but not include them in the cache key, use <code>CookiesConfig</code> in an origin request policy. See <code>CreateOriginRequestPolicy</code>.</p> <p>A complex type that specifies whether you want CloudFront to forward cookies to the origin and, if so, which ones. For more information about forwarding cookies to the origin, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Cookies.html\">Caching Content Based on Cookies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+    },
+    "CreateCachePolicyRequest":{
+      "type":"structure",
+      "required":["CachePolicyConfig"],
+      "members":{
+        "CachePolicyConfig":{
+          "shape":"CachePolicyConfig",
+          "documentation":"<p>A cache policy configuration.</p>",
+          "locationName":"CachePolicyConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
+        }
+      },
+      "payload":"CachePolicyConfig"
+    },
+    "CreateCachePolicyResult":{
+      "type":"structure",
+      "members":{
+        "CachePolicy":{
+          "shape":"CachePolicy",
+          "documentation":"<p>A cache policy.</p>"
+        },
+        "Location":{
+          "shape":"string",
+          "documentation":"<p>The fully qualified URI of the cache policy just created.</p>",
+          "location":"header",
+          "locationName":"Location"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the cache policy.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"CachePolicy"
     },
     "CreateCloudFrontOriginAccessIdentityRequest":{
       "type":"structure",
@@ -1353,7 +1850,7 @@
           "shape":"CloudFrontOriginAccessIdentityConfig",
           "documentation":"<p>The current configuration information for the identity.</p>",
           "locationName":"CloudFrontOriginAccessIdentityConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "documentation":"<p>The request to create a new origin access identity (OAI). An origin access identity is a special CloudFront user that you can associate with Amazon S3 origins, so that you can secure all or just some of your Amazon S3 content. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html\"> Restricting Access to Amazon S3 Content by Using an Origin Access Identity</a> in the <i>Amazon CloudFront Developer Guide</i>. </p>",
@@ -1390,7 +1887,7 @@
           "shape":"DistributionConfig",
           "documentation":"<p>The distribution's configuration information.</p>",
           "locationName":"DistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "documentation":"<p>The request to create a new distribution.</p>",
@@ -1427,7 +1924,7 @@
           "shape":"DistributionConfigWithTags",
           "documentation":"<p>The distribution's configuration information. </p>",
           "locationName":"DistributionConfigWithTags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "documentation":"<p>The request to create a new distribution with tags. </p>",
@@ -1464,7 +1961,7 @@
           "shape":"FieldLevelEncryptionConfig",
           "documentation":"<p>The request to create a new field-level encryption configuration.</p>",
           "locationName":"FieldLevelEncryptionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "payload":"FieldLevelEncryptionConfig"
@@ -1499,7 +1996,7 @@
           "shape":"FieldLevelEncryptionProfileConfig",
           "documentation":"<p>The request to create a field-level encryption profile.</p>",
           "locationName":"FieldLevelEncryptionProfileConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "payload":"FieldLevelEncryptionProfileConfig"
@@ -1543,7 +2040,7 @@
           "shape":"InvalidationBatch",
           "documentation":"<p>The batch information for the invalidation.</p>",
           "locationName":"InvalidationBatch",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "documentation":"<p>The request to create an invalidation.</p>",
@@ -1566,6 +2063,41 @@
       "documentation":"<p>The returned result of the corresponding request.</p>",
       "payload":"Invalidation"
     },
+    "CreateOriginRequestPolicyRequest":{
+      "type":"structure",
+      "required":["OriginRequestPolicyConfig"],
+      "members":{
+        "OriginRequestPolicyConfig":{
+          "shape":"OriginRequestPolicyConfig",
+          "documentation":"<p>An origin request policy configuration.</p>",
+          "locationName":"OriginRequestPolicyConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
+        }
+      },
+      "payload":"OriginRequestPolicyConfig"
+    },
+    "CreateOriginRequestPolicyResult":{
+      "type":"structure",
+      "members":{
+        "OriginRequestPolicy":{
+          "shape":"OriginRequestPolicy",
+          "documentation":"<p>An origin request policy.</p>"
+        },
+        "Location":{
+          "shape":"string",
+          "documentation":"<p>The fully qualified URI of the origin request policy just created.</p>",
+          "location":"header",
+          "locationName":"Location"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the origin request policy.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"OriginRequestPolicy"
+    },
     "CreatePublicKeyRequest":{
       "type":"structure",
       "required":["PublicKeyConfig"],
@@ -1574,7 +2106,7 @@
           "shape":"PublicKeyConfig",
           "documentation":"<p>The request to add a public key to CloudFront.</p>",
           "locationName":"PublicKeyConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "payload":"PublicKeyConfig"
@@ -1609,7 +2141,7 @@
           "shape":"StreamingDistributionConfig",
           "documentation":"<p>The streaming distribution's configuration information.</p>",
           "locationName":"StreamingDistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "documentation":"<p>The request to create a new streaming distribution.</p>",
@@ -1646,7 +2178,7 @@
           "shape":"StreamingDistributionConfigWithTags",
           "documentation":"<p> The streaming distribution's configuration information. </p>",
           "locationName":"StreamingDistributionConfigWithTags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "documentation":"<p>The request to create a new streaming distribution with tags.</p>",
@@ -1774,19 +2306,13 @@
       "type":"structure",
       "required":[
         "TargetOriginId",
-        "ForwardedValues",
         "TrustedSigners",
-        "ViewerProtocolPolicy",
-        "MinTTL"
+        "ViewerProtocolPolicy"
       ],
       "members":{
         "TargetOriginId":{
           "shape":"string",
           "documentation":"<p>The value of <code>ID</code> for the origin that you want CloudFront to route requests to when they use the default cache behavior.</p>"
-        },
-        "ForwardedValues":{
-          "shape":"ForwardedValues",
-          "documentation":"<p>A complex type that specifies how CloudFront handles query strings, cookies, and HTTP headers.</p>"
         },
         "TrustedSigners":{
           "shape":"TrustedSigners",
@@ -1796,22 +2322,10 @@
           "shape":"ViewerProtocolPolicy",
           "documentation":"<p>The protocol that viewers can use to access the files in the origin specified by <code>TargetOriginId</code> when a request matches the path pattern in <code>PathPattern</code>. You can specify the following options:</p> <ul> <li> <p> <code>allow-all</code>: Viewers can use HTTP or HTTPS.</p> </li> <li> <p> <code>redirect-to-https</code>: If a viewer submits an HTTP request, CloudFront returns an HTTP status code of 301 (Moved Permanently) to the viewer along with the HTTPS URL. The viewer then resubmits the request using the new URL.</p> </li> <li> <p> <code>https-only</code>: If a viewer sends an HTTP request, CloudFront returns an HTTP status code of 403 (Forbidden).</p> </li> </ul> <p>For more information about requiring the HTTPS protocol, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-https-viewers-to-cloudfront.html\">Requiring HTTPS Between Viewers and CloudFront</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <note> <p>The only way to guarantee that viewers retrieve an object that was fetched from the origin using HTTPS is never to use any other protocol to fetch the object. If you have recently changed from HTTP to HTTPS, we recommend that you clear your objects’ cache because cached objects are protocol agnostic. That means that an edge location will return an object from the cache regardless of whether the current request protocol matches the protocol used previously. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing Cache Expiration</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> </note>"
         },
-        "MinTTL":{
-          "shape":"long",
-          "documentation":"<p>The minimum amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>You must specify <code>0</code> for <code>MinTTL</code> if you configure CloudFront to forward all headers to your origin (under <code>Headers</code>, if you specify <code>1</code> for <code>Quantity</code> and <code>*</code> for <code>Name</code>).</p>"
-        },
         "AllowedMethods":{"shape":"AllowedMethods"},
         "SmoothStreaming":{
           "shape":"boolean",
           "documentation":"<p>Indicates whether you want to distribute media files in the Microsoft Smooth Streaming format using the origin that is associated with this cache behavior. If so, specify <code>true</code>; if not, specify <code>false</code>. If you specify <code>true</code> for <code>SmoothStreaming</code>, you can still distribute other content using this cache behavior if the content matches the value of <code>PathPattern</code>. </p>"
-        },
-        "DefaultTTL":{
-          "shape":"long",
-          "documentation":"<p>The default amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. The value that you specify applies only when your origin does not add HTTP headers such as <code>Cache-Control max-age</code>, <code>Cache-Control s-maxage</code>, and <code>Expires</code> to objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
-        },
-        "MaxTTL":{
-          "shape":"long",
-          "documentation":"<p>The maximum amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. The value that you specify applies only when your origin adds HTTP headers such as <code>Cache-Control max-age</code>, <code>Cache-Control s-maxage</code>, and <code>Expires</code> to objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
         },
         "Compress":{
           "shape":"boolean",
@@ -1824,9 +2338,55 @@
         "FieldLevelEncryptionId":{
           "shape":"string",
           "documentation":"<p>The value of <code>ID</code> for the field-level encryption configuration that you want CloudFront to use for encrypting specific fields of data for the default cache behavior.</p>"
+        },
+        "CachePolicyId":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier of the cache policy that is attached to the default cache behavior. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+        },
+        "OriginRequestPolicyId":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier of the origin request policy that is attached to the default cache behavior. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html\">Using the managed origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+        },
+        "ForwardedValues":{
+          "shape":"ForwardedValues",
+          "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/working-with-policies.html\">Working with policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to include values in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send values to the origin but not include them in the cache key, use an origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html\">Using the managed origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>A complex type that specifies how CloudFront handles query strings, cookies, and HTTP headers.</p>",
+          "deprecated":true
+        },
+        "MinTTL":{
+          "shape":"long",
+          "documentation":"<p>This field is deprecated. We recommend that you use the <code>MinTTL</code> field in a cache policy instead of this field. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>The minimum amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>You must specify <code>0</code> for <code>MinTTL</code> if you configure CloudFront to forward all headers to your origin (under <code>Headers</code>, if you specify <code>1</code> for <code>Quantity</code> and <code>*</code> for <code>Name</code>).</p>",
+          "deprecated":true
+        },
+        "DefaultTTL":{
+          "shape":"long",
+          "documentation":"<p>This field is deprecated. We recommend that you use the <code>DefaultTTL</code> field in a cache policy instead of this field. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>The default amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. The value that you specify applies only when your origin does not add HTTP headers such as <code>Cache-Control max-age</code>, <code>Cache-Control s-maxage</code>, and <code>Expires</code> to objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+          "deprecated":true
+        },
+        "MaxTTL":{
+          "shape":"long",
+          "documentation":"<p>This field is deprecated. We recommend that you use the <code>MaxTTL</code> field in a cache policy instead of this field. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html\">Using the managed cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>The maximum amount of time that you want objects to stay in CloudFront caches before CloudFront forwards another request to your origin to determine whether the object has been updated. The value that you specify applies only when your origin adds HTTP headers such as <code>Cache-Control max-age</code>, <code>Cache-Control s-maxage</code>, and <code>Expires</code> to objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html\">Managing How Long Content Stays in an Edge Cache (Expiration)</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+          "deprecated":true
         }
       },
       "documentation":"<p>A complex type that describes the default cache behavior if you don’t specify a <code>CacheBehavior</code> element or if request URLs don’t match any of the values of <code>PathPattern</code> in <code>CacheBehavior</code> elements. You must create exactly one default cache behavior.</p>"
+    },
+    "DeleteCachePolicyRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the cache policy that you are deleting. To get the identifier, you can use <code>ListCachePolicies</code>.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The version of the cache policy that you are deleting. The version is the cache policy’s <code>ETag</code> value, which you can get using <code>ListCachePolicies</code>, <code>GetCachePolicy</code>, or <code>GetCachePolicyConfig</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      }
     },
     "DeleteCloudFrontOriginAccessIdentityRequest":{
       "type":"structure",
@@ -1897,6 +2457,24 @@
         "IfMatch":{
           "shape":"string",
           "documentation":"<p>The value of the <code>ETag</code> header that you received when retrieving the profile to delete. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      }
+    },
+    "DeleteOriginRequestPolicyRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the origin request policy that you are deleting. To get the identifier, you can use <code>ListOriginRequestPolicies</code>.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The version of the origin request policy that you are deleting. The version is the origin request policy’s <code>ETag</code> value, which you can get using <code>ListOriginRequestPolicies</code>, <code>GetOriginRequestPolicy</code>, or <code>GetOriginRequestPolicyConfig</code>.</p>",
           "location":"header",
           "locationName":"If-Match"
         }
@@ -2098,6 +2676,49 @@
         }
       },
       "documentation":"<p>A distribution Configuration and a list of tags to be associated with the distribution.</p>"
+    },
+    "DistributionIdList":{
+      "type":"structure",
+      "required":[
+        "Marker",
+        "MaxItems",
+        "IsTruncated",
+        "Quantity"
+      ],
+      "members":{
+        "Marker":{
+          "shape":"string",
+          "documentation":"<p>The value provided in the <code>Marker</code> request field.</p>"
+        },
+        "NextMarker":{
+          "shape":"string",
+          "documentation":"<p>Contains the value that you should use in the <code>Marker</code> field of a subsequent request to continue listing distribution IDs where you left off.</p>"
+        },
+        "MaxItems":{
+          "shape":"integer",
+          "documentation":"<p>The maximum number of distribution IDs requested.</p>"
+        },
+        "IsTruncated":{
+          "shape":"boolean",
+          "documentation":"<p>A flag that indicates whether more distribution IDs remain to be listed. If your results were truncated, you can make a subsequent request using the <code>Marker</code> request field to retrieve more distribution IDs in the list.</p>"
+        },
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The total number of distribution IDs returned in the response.</p>"
+        },
+        "Items":{
+          "shape":"DistributionIdListSummary",
+          "documentation":"<p>Contains the distribution IDs in the list.</p>"
+        }
+      },
+      "documentation":"<p>A list of distribution IDs.</p>"
+    },
+    "DistributionIdListSummary":{
+      "type":"list",
+      "member":{
+        "shape":"string",
+        "locationName":"DistributionId"
+      }
     },
     "DistributionList":{
       "type":"structure",
@@ -2615,22 +3236,22 @@
       "members":{
         "QueryString":{
           "shape":"boolean",
-          "documentation":"<p>Indicates whether you want CloudFront to forward query strings to the origin that is associated with this cache behavior and cache based on the query string parameters. CloudFront behavior depends on the value of <code>QueryString</code> and on the values that you specify for <code>QueryStringCacheKeys</code>, if any:</p> <p>If you specify true for <code>QueryString</code> and you don't specify any values for <code>QueryStringCacheKeys</code>, CloudFront forwards all query string parameters to the origin and caches based on all query string parameters. Depending on how many query string parameters and values you have, this can adversely affect performance because CloudFront must forward more requests to the origin.</p> <p>If you specify true for <code>QueryString</code> and you specify one or more values for <code>QueryStringCacheKeys</code>, CloudFront forwards all query string parameters to the origin, but it only caches based on the query string parameters that you specify.</p> <p>If you specify false for <code>QueryString</code>, CloudFront doesn't forward any query string parameters to the origin, and doesn't cache based on query string parameters.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/QueryStringParameters.html\">Configuring CloudFront to Cache Based on Query String Parameters</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+          "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include query strings in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send query strings to the origin but not include them in the cache key, use an origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>Indicates whether you want CloudFront to forward query strings to the origin that is associated with this cache behavior and cache based on the query string parameters. CloudFront behavior depends on the value of <code>QueryString</code> and on the values that you specify for <code>QueryStringCacheKeys</code>, if any:</p> <p>If you specify true for <code>QueryString</code> and you don't specify any values for <code>QueryStringCacheKeys</code>, CloudFront forwards all query string parameters to the origin and caches based on all query string parameters. Depending on how many query string parameters and values you have, this can adversely affect performance because CloudFront must forward more requests to the origin.</p> <p>If you specify true for <code>QueryString</code> and you specify one or more values for <code>QueryStringCacheKeys</code>, CloudFront forwards all query string parameters to the origin, but it only caches based on the query string parameters that you specify.</p> <p>If you specify false for <code>QueryString</code>, CloudFront doesn't forward any query string parameters to the origin, and doesn't cache based on query string parameters.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/QueryStringParameters.html\">Configuring CloudFront to Cache Based on Query String Parameters</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
         },
         "Cookies":{
           "shape":"CookiePreference",
-          "documentation":"<p>A complex type that specifies whether you want CloudFront to forward cookies to the origin and, if so, which ones. For more information about forwarding cookies to the origin, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Cookies.html\">How CloudFront Forwards, Caches, and Logs Cookies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+          "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include cookies in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send cookies to the origin but not include them in the cache key, use an origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>A complex type that specifies whether you want CloudFront to forward cookies to the origin and, if so, which ones. For more information about forwarding cookies to the origin, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Cookies.html\">How CloudFront Forwards, Caches, and Logs Cookies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
         },
         "Headers":{
           "shape":"Headers",
-          "documentation":"<p>A complex type that specifies the <code>Headers</code>, if any, that you want CloudFront to forward to the origin for this cache behavior (whitelisted headers). For the headers that you specify, CloudFront also caches separate versions of a specified object that is based on the header values in viewer requests.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html\"> Caching Content Based on Request Headers</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+          "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include headers in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send headers to the origin but not include them in the cache key, use an origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>A complex type that specifies the <code>Headers</code>, if any, that you want CloudFront to forward to the origin for this cache behavior (whitelisted headers). For the headers that you specify, CloudFront also caches separate versions of a specified object that is based on the header values in viewer requests.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html\"> Caching Content Based on Request Headers</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
         },
         "QueryStringCacheKeys":{
           "shape":"QueryStringCacheKeys",
-          "documentation":"<p>A complex type that contains information about the query string parameters that you want CloudFront to use for caching for this cache behavior.</p>"
+          "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include query strings in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send query strings to the origin but not include them in the cache key, use an origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>A complex type that contains information about the query string parameters that you want CloudFront to use for caching for this cache behavior.</p>"
         }
       },
-      "documentation":"<p>A complex type that specifies how CloudFront handles query strings, cookies, and HTTP headers.</p>"
+      "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include values in the cache key, use a cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-key-create-cache-policy\">Creating cache policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>If you want to send values to the origin but not include them in the cache key, use an origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-origin-requests.html#origin-request-create-origin-request-policy\">Creating origin request policies</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>A complex type that specifies how CloudFront handles query strings, cookies, and HTTP headers.</p>"
     },
     "GeoRestriction":{
       "type":"structure",
@@ -2661,6 +3282,62 @@
         "whitelist",
         "none"
       ]
+    },
+    "GetCachePolicyConfigRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the cache policy. If the cache policy is attached to a distribution’s cache behavior, you can get the policy’s identifier using <code>ListDistributions</code> or <code>GetDistribution</code>. If the cache policy is not attached to a cache behavior, you can get the identifier using <code>ListCachePolicies</code>.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetCachePolicyConfigResult":{
+      "type":"structure",
+      "members":{
+        "CachePolicyConfig":{
+          "shape":"CachePolicyConfig",
+          "documentation":"<p>The cache policy configuration.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the cache policy.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"CachePolicyConfig"
+    },
+    "GetCachePolicyRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the cache policy. If the cache policy is attached to a distribution’s cache behavior, you can get the policy’s identifier using <code>ListDistributions</code> or <code>GetDistribution</code>. If the cache policy is not attached to a cache behavior, you can get the identifier using <code>ListCachePolicies</code>.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetCachePolicyResult":{
+      "type":"structure",
+      "members":{
+        "CachePolicy":{
+          "shape":"CachePolicy",
+          "documentation":"<p>The cache policy.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the cache policy.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"CachePolicy"
     },
     "GetCloudFrontOriginAccessIdentityConfigRequest":{
       "type":"structure",
@@ -2927,6 +3604,62 @@
       "documentation":"<p>The returned result of the corresponding request.</p>",
       "payload":"Invalidation"
     },
+    "GetOriginRequestPolicyConfigRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the origin request policy. If the origin request policy is attached to a distribution’s cache behavior, you can get the policy’s identifier using <code>ListDistributions</code> or <code>GetDistribution</code>. If the origin request policy is not attached to a cache behavior, you can get the identifier using <code>ListOriginRequestPolicies</code>.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetOriginRequestPolicyConfigResult":{
+      "type":"structure",
+      "members":{
+        "OriginRequestPolicyConfig":{
+          "shape":"OriginRequestPolicyConfig",
+          "documentation":"<p>The origin request policy configuration.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the origin request policy.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"OriginRequestPolicyConfig"
+    },
+    "GetOriginRequestPolicyRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the origin request policy. If the origin request policy is attached to a distribution’s cache behavior, you can get the policy’s identifier using <code>ListDistributions</code> or <code>GetDistribution</code>. If the origin request policy is not attached to a cache behavior, you can get the identifier using <code>ListOriginRequestPolicies</code>.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetOriginRequestPolicyResult":{
+      "type":"structure",
+      "members":{
+        "OriginRequestPolicy":{
+          "shape":"OriginRequestPolicy",
+          "documentation":"<p>The origin request policy.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the origin request policy.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"OriginRequestPolicy"
+    },
     "GetPublicKeyConfigRequest":{
       "type":"structure",
       "required":["Id"],
@@ -3056,14 +3789,14 @@
       "members":{
         "Quantity":{
           "shape":"integer",
-          "documentation":"<p>The number of different headers that you want CloudFront to base caching on for this cache behavior. You can configure each cache behavior in a web distribution to do one of the following:</p> <ul> <li> <p> <b>Forward all headers to your origin</b>: Specify <code>1</code> for <code>Quantity</code> and <code>*</code> for <code>Name</code>.</p> <important> <p>CloudFront doesn't cache the objects that are associated with this cache behavior. Instead, CloudFront sends every request to the origin. </p> </important> </li> <li> <p> <b>Forward a whitelist of headers you specify</b>: Specify the number of headers that you want CloudFront to base caching on. Then specify the header names in <code>Name</code> elements. CloudFront caches your objects based on the values in the specified headers.</p> </li> <li> <p> <b>Forward only the default headers</b>: Specify <code>0</code> for <code>Quantity</code> and omit <code>Items</code>. In this configuration, CloudFront doesn't cache based on the values in the request headers.</p> </li> </ul> <p>Regardless of which option you choose, CloudFront forwards headers to your origin based on whether the origin is an S3 bucket or a custom origin. See the following documentation:</p> <ul> <li> <p> <b>S3 bucket</b>: See <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorS3Origin.html#request-s3-removed-headers\">HTTP Request Headers That CloudFront Removes or Updates</a> </p> </li> <li> <p> <b>Custom origin</b>: See <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html#request-custom-headers-behavior\">HTTP Request Headers and CloudFront Behavior</a> </p> </li> </ul>"
+          "documentation":"<p>The number of header names in the <code>Items</code> list.</p>"
         },
         "Items":{
           "shape":"HeaderList",
-          "documentation":"<p>A list that contains one <code>Name</code> element for each header that you want CloudFront to use for caching in this cache behavior. If <code>Quantity</code> is <code>0</code>, omit <code>Items</code>.</p>"
+          "documentation":"<p>A list of HTTP header names.</p>"
         }
       },
-      "documentation":"<p>A complex type that specifies the request headers, if any, that you want CloudFront to base caching on for this cache behavior. </p> <p>For the headers that you specify, CloudFront caches separate versions of a specified object based on the header values in viewer requests. For example, suppose viewer requests for <code>logo.jpg</code> contain a custom <code>product</code> header that has a value of either <code>acme</code> or <code>apex</code>, and you configure CloudFront to cache your content based on values in the <code>product</code> header. CloudFront forwards the <code>product</code> header to the origin and caches the response from the origin once for each header value. For more information about caching based on header values, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html\">How CloudFront Forwards and Caches Headers</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+      "documentation":"<p>Contains a list of HTTP header names.</p>"
     },
     "HttpVersion":{
       "type":"string",
@@ -3080,6 +3813,15 @@
         "PENDING"
       ]
     },
+    "IllegalDelete":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>You cannot delete a managed policy.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "IllegalFieldLevelEncryptionConfigAssociationWithCacheBehavior":{
       "type":"structure",
       "members":{
@@ -3094,7 +3836,7 @@
       "members":{
         "Message":{"shape":"string"}
       },
-      "documentation":"<p>Origin and <code>CallerReference</code> cannot be updated. </p>",
+      "documentation":"<p>The update contains modifications that are not allowed.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -3166,7 +3908,7 @@
       "members":{
         "Message":{"shape":"string"}
       },
-      "documentation":"<p>The <code>If-Match</code> version is missing or not valid for the distribution.</p>",
+      "documentation":"<p>The <code>If-Match</code> version is missing or not valid.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -3470,7 +4212,7 @@
         },
         "EventType":{
           "shape":"EventType",
-          "documentation":"<p>Specifies the event type that triggers a Lambda function invocation. You can specify the following values:</p> <ul> <li> <p> <code>viewer-request</code>: The function executes when CloudFront receives a request from a viewer and before it checks to see whether the requested object is in the edge cache. </p> </li> <li> <p> <code>origin-request</code>: The function executes only when CloudFront forwards a request to your origin. When the requested object is in the edge cache, the function doesn't execute.</p> </li> <li> <p> <code>origin-response</code>: The function executes after CloudFront receives a response from the origin and before it caches the object in the response. When the requested object is in the edge cache, the function doesn't execute.</p> </li> <li> <p> <code>viewer-response</code>: The function executes before CloudFront returns the requested object to the viewer. The function executes regardless of whether the object was already in the edge cache.</p> <p>If the origin returns an HTTP status code other than HTTP 200 (OK), the function doesn't execute.</p> </li> </ul>"
+          "documentation":"<p>Specifies the event type that triggers a Lambda function invocation. You can specify the following values:</p> <ul> <li> <p> <code>viewer-request</code>: The function executes when CloudFront receives a request from a viewer and before it checks to see whether the requested object is in the edge cache. </p> </li> <li> <p> <code>origin-request</code>: The function executes only when CloudFront sends a request to your origin. When the requested object is in the edge cache, the function doesn't execute.</p> </li> <li> <p> <code>origin-response</code>: The function executes after CloudFront receives a response from the origin and before it caches the object in the response. When the requested object is in the edge cache, the function doesn't execute.</p> </li> <li> <p> <code>viewer-response</code>: The function executes before CloudFront returns the requested object to the viewer. The function executes regardless of whether the object was already in the edge cache.</p> <p>If the origin returns an HTTP status code other than HTTP 200 (OK), the function doesn't execute.</p> </li> </ul>"
         },
         "IncludeBody":{
           "shape":"boolean",
@@ -3501,6 +4243,39 @@
       },
       "documentation":"<p>A complex type that specifies a list of Lambda functions associations for a cache behavior.</p> <p>If you want to invoke one or more Lambda functions triggered by requests that match the <code>PathPattern</code> of the cache behavior, specify the applicable values for <code>Quantity</code> and <code>Items</code>. Note that there can be up to 4 <code>LambdaFunctionAssociation</code> items in this list (one for each possible value of <code>EventType</code>) and each <code>EventType</code> can be associated with the Lambda function only once.</p> <p>If you don't want to invoke any Lambda functions for the requests that match <code>PathPattern</code>, specify <code>0</code> for <code>Quantity</code> and omit <code>Items</code>. </p>"
     },
+    "ListCachePoliciesRequest":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"CachePolicyType",
+          "documentation":"<p>A filter to return only the specified kinds of cache policies. Valid values are:</p> <ul> <li> <p> <code>managed</code> – Returns only the managed policies created by AWS.</p> </li> <li> <p> <code>custom</code> – Returns only the custom policies created in your AWS account.</p> </li> </ul>",
+          "location":"querystring",
+          "locationName":"Type"
+        },
+        "Marker":{
+          "shape":"string",
+          "documentation":"<p>Use this field when paginating results to indicate where to begin in your list of cache policies. The response includes cache policies in the list that occur after the marker. To get the next page of the list, set this field’s value to the value of <code>NextMarker</code> from the current page’s response.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"string",
+          "documentation":"<p>The maximum number of cache policies that you want in the response.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "ListCachePoliciesResult":{
+      "type":"structure",
+      "members":{
+        "CachePolicyList":{
+          "shape":"CachePolicyList",
+          "documentation":"<p>A list of cache policies.</p>"
+        }
+      },
+      "payload":"CachePolicyList"
+    },
     "ListCloudFrontOriginAccessIdentitiesRequest":{
       "type":"structure",
       "members":{
@@ -3529,6 +4304,74 @@
       },
       "documentation":"<p>The returned result of the corresponding request. </p>",
       "payload":"CloudFrontOriginAccessIdentityList"
+    },
+    "ListDistributionsByCachePolicyIdRequest":{
+      "type":"structure",
+      "required":["CachePolicyId"],
+      "members":{
+        "Marker":{
+          "shape":"string",
+          "documentation":"<p>Use this field when paginating results to indicate where to begin in your list of distribution IDs. The response includes distribution IDs in the list that occur after the marker. To get the next page of the list, set this field’s value to the value of <code>NextMarker</code> from the current page’s response.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"string",
+          "documentation":"<p>The maximum number of distribution IDs that you want in the response.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        },
+        "CachePolicyId":{
+          "shape":"string",
+          "documentation":"<p>The ID of the cache policy whose associated distribution IDs you want to list.</p>",
+          "location":"uri",
+          "locationName":"CachePolicyId"
+        }
+      }
+    },
+    "ListDistributionsByCachePolicyIdResult":{
+      "type":"structure",
+      "members":{
+        "DistributionIdList":{
+          "shape":"DistributionIdList",
+          "documentation":"<p>A list of distribution IDs.</p>"
+        }
+      },
+      "payload":"DistributionIdList"
+    },
+    "ListDistributionsByOriginRequestPolicyIdRequest":{
+      "type":"structure",
+      "required":["OriginRequestPolicyId"],
+      "members":{
+        "Marker":{
+          "shape":"string",
+          "documentation":"<p>Use this field when paginating results to indicate where to begin in your list of distribution IDs. The response includes distribution IDs in the list that occur after the marker. To get the next page of the list, set this field’s value to the value of <code>NextMarker</code> from the current page’s response.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"string",
+          "documentation":"<p>The maximum number of distribution IDs that you want in the response.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        },
+        "OriginRequestPolicyId":{
+          "shape":"string",
+          "documentation":"<p>The ID of the origin request policy whose associated distribution IDs you want to list.</p>",
+          "location":"uri",
+          "locationName":"OriginRequestPolicyId"
+        }
+      }
+    },
+    "ListDistributionsByOriginRequestPolicyIdResult":{
+      "type":"structure",
+      "members":{
+        "DistributionIdList":{
+          "shape":"DistributionIdList",
+          "documentation":"<p>A list of distribution IDs.</p>"
+        }
+      },
+      "payload":"DistributionIdList"
     },
     "ListDistributionsByWebACLIdRequest":{
       "type":"structure",
@@ -3685,6 +4528,39 @@
       "documentation":"<p>The returned result of the corresponding request. </p>",
       "payload":"InvalidationList"
     },
+    "ListOriginRequestPoliciesRequest":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"OriginRequestPolicyType",
+          "documentation":"<p>A filter to return only the specified kinds of origin request policies. Valid values are:</p> <ul> <li> <p> <code>managed</code> – Returns only the managed policies created by AWS.</p> </li> <li> <p> <code>custom</code> – Returns only the custom policies created in your AWS account.</p> </li> </ul>",
+          "location":"querystring",
+          "locationName":"Type"
+        },
+        "Marker":{
+          "shape":"string",
+          "documentation":"<p>Use this field when paginating results to indicate where to begin in your list of origin request policies. The response includes origin request policies in the list that occur after the marker. To get the next page of the list, set this field’s value to the value of <code>NextMarker</code> from the current page’s response.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"string",
+          "documentation":"<p>The maximum number of origin request policies that you want in the response.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "ListOriginRequestPoliciesResult":{
+      "type":"structure",
+      "members":{
+        "OriginRequestPolicyList":{
+          "shape":"OriginRequestPolicyList",
+          "documentation":"<p>A list of origin request policies.</p>"
+        }
+      },
+      "payload":"OriginRequestPolicyList"
+    },
     "ListPublicKeysRequest":{
       "type":"structure",
       "members":{
@@ -3840,6 +4716,15 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "NoSuchCachePolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The cache policy does not exist.</p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
     "NoSuchCloudFrontOriginAccessIdentity":{
       "type":"structure",
       "members":{
@@ -3891,6 +4776,15 @@
         "Message":{"shape":"string"}
       },
       "documentation":"<p>No origin exists with the specified <code>Origin Id</code>. </p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
+    "NoSuchOriginRequestPolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The origin request policy does not exist.</p>",
       "error":{"httpStatusCode":404},
       "exception":true
     },
@@ -3972,7 +4866,7 @@
       "members":{
         "HeaderName":{
           "shape":"string",
-          "documentation":"<p>The name of a header that you want CloudFront to forward to your origin. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/forward-custom-headers.html\">Forwarding Custom Headers to Your Origin (Web Distributions Only)</a> in the <i> Amazon CloudFront Developer Guide</i>.</p>"
+          "documentation":"<p>The name of a header that you want CloudFront to send to your origin. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/forward-custom-headers.html\">Adding Custom Headers to Origin Requests</a> in the <i> Amazon CloudFront Developer Guide</i>.</p>"
         },
         "HeaderValue":{
           "shape":"string",
@@ -4100,6 +4994,201 @@
         "https-only"
       ]
     },
+    "OriginRequestPolicy":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "LastModifiedTime",
+        "OriginRequestPolicyConfig"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the origin request policy.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time when the origin request policy was last modified.</p>"
+        },
+        "OriginRequestPolicyConfig":{
+          "shape":"OriginRequestPolicyConfig",
+          "documentation":"<p>The origin request policy configuration.</p>"
+        }
+      },
+      "documentation":"<p>An origin request policy.</p> <p>When it’s attached to a cache behavior, the origin request policy determines the values that CloudFront includes in requests that it sends to the origin. Each request that CloudFront sends to the origin includes the following:</p> <ul> <li> <p>The request body and the URL path (without the domain name) from the viewer request.</p> </li> <li> <p>The headers that CloudFront automatically includes in every origin request, including <code>Host</code>, <code>User-Agent</code>, and <code>X-Amz-Cf-Id</code>.</p> </li> <li> <p>All HTTP headers, cookies, and URL query strings that are specified in the cache policy or the origin request policy. These can include items from the viewer request and, in the case of headers, additional ones that are added by CloudFront.</p> </li> </ul> <p>CloudFront sends a request when it can’t find an object in its cache that matches the request. If you want to send values to the origin and also include them in the cache key, use <code>CreateCachePolicy</code>.</p>"
+    },
+    "OriginRequestPolicyAlreadyExists":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>An origin request policy with this name already exists. You must provide a unique name. To modify an existing origin request policy, use <code>UpdateOriginRequestPolicy</code>.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "OriginRequestPolicyConfig":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "HeadersConfig",
+        "CookiesConfig",
+        "QueryStringsConfig"
+      ],
+      "members":{
+        "Comment":{
+          "shape":"string",
+          "documentation":"<p>A comment to describe the origin request policy.</p>"
+        },
+        "Name":{
+          "shape":"string",
+          "documentation":"<p>A unique name to identify the origin request policy.</p>"
+        },
+        "HeadersConfig":{
+          "shape":"OriginRequestPolicyHeadersConfig",
+          "documentation":"<p>The HTTP headers to include in origin requests. These can include headers from viewer requests and additional headers added by CloudFront.</p>"
+        },
+        "CookiesConfig":{
+          "shape":"OriginRequestPolicyCookiesConfig",
+          "documentation":"<p>The cookies from viewer requests to include in origin requests.</p>"
+        },
+        "QueryStringsConfig":{
+          "shape":"OriginRequestPolicyQueryStringsConfig",
+          "documentation":"<p>The URL query strings from viewer requests to include in origin requests.</p>"
+        }
+      },
+      "documentation":"<p>An origin request policy configuration.</p> <p>This configuration determines the values that CloudFront includes in requests that it sends to the origin. Each request that CloudFront sends to the origin includes the following:</p> <ul> <li> <p>The request body and the URL path (without the domain name) from the viewer request.</p> </li> <li> <p>The headers that CloudFront automatically includes in every origin request, including <code>Host</code>, <code>User-Agent</code>, and <code>X-Amz-Cf-Id</code>.</p> </li> <li> <p>All HTTP headers, cookies, and URL query strings that are specified in the cache policy or the origin request policy. These can include items from the viewer request and, in the case of headers, additional ones that are added by CloudFront.</p> </li> </ul> <p>CloudFront sends a request when it can’t find an object in its cache that matches the request. If you want to send values to the origin and also include them in the cache key, use <code>CreateCachePolicy</code>.</p>"
+    },
+    "OriginRequestPolicyCookieBehavior":{
+      "type":"string",
+      "enum":[
+        "none",
+        "whitelist",
+        "all"
+      ]
+    },
+    "OriginRequestPolicyCookiesConfig":{
+      "type":"structure",
+      "required":["CookieBehavior"],
+      "members":{
+        "CookieBehavior":{
+          "shape":"OriginRequestPolicyCookieBehavior",
+          "documentation":"<p>Determines whether cookies in viewer requests are included in requests that CloudFront sends to the origin. Valid values are:</p> <ul> <li> <p> <code>none</code> – Cookies in viewer requests are not included in requests that CloudFront sends to the origin. Even when this field is set to <code>none</code>, any cookies that are listed in a <code>CachePolicy</code> <i>are</i> included in origin requests.</p> </li> <li> <p> <code>whitelist</code> – The cookies in viewer requests that are listed in the <code>CookieNames</code> type are included in requests that CloudFront sends to the origin.</p> </li> <li> <p> <code>all</code> – All cookies in viewer requests are included in requests that CloudFront sends to the origin.</p> </li> </ul>"
+        },
+        "Cookies":{"shape":"CookieNames"}
+      },
+      "documentation":"<p>An object that determines whether any cookies in viewer requests (and if so, which cookies) are included in requests that CloudFront sends to the origin.</p>"
+    },
+    "OriginRequestPolicyHeaderBehavior":{
+      "type":"string",
+      "enum":[
+        "none",
+        "whitelist",
+        "allViewer",
+        "allViewerAndWhitelistCloudFront"
+      ]
+    },
+    "OriginRequestPolicyHeadersConfig":{
+      "type":"structure",
+      "required":["HeaderBehavior"],
+      "members":{
+        "HeaderBehavior":{
+          "shape":"OriginRequestPolicyHeaderBehavior",
+          "documentation":"<p>Determines whether any HTTP headers are included in requests that CloudFront sends to the origin. Valid values are:</p> <ul> <li> <p> <code>none</code> – HTTP headers are not included in requests that CloudFront sends to the origin. Even when this field is set to <code>none</code>, any headers that are listed in a <code>CachePolicy</code> <i>are</i> included in origin requests.</p> </li> <li> <p> <code>whitelist</code> – The HTTP headers that are listed in the <code>Headers</code> type are included in requests that CloudFront sends to the origin.</p> </li> <li> <p> <code>allViewer</code> – All HTTP headers in viewer requests are included in requests that CloudFront sends to the origin.</p> </li> <li> <p> <code>allViewerAndWhitelistCloudFront</code> – All HTTP headers in viewer requests and the additional CloudFront headers that are listed in the <code>Headers</code> type are included in requests that CloudFront sends to the origin. The additional headers are added by CloudFront.</p> </li> </ul>"
+        },
+        "Headers":{"shape":"Headers"}
+      },
+      "documentation":"<p>An object that determines whether any HTTP headers (and if so, which headers) are included in requests that CloudFront sends to the origin.</p>"
+    },
+    "OriginRequestPolicyInUse":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>Cannot delete the origin request policy because it is attached to one or more cache behaviors.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "OriginRequestPolicyList":{
+      "type":"structure",
+      "required":[
+        "MaxItems",
+        "Quantity"
+      ],
+      "members":{
+        "NextMarker":{
+          "shape":"string",
+          "documentation":"<p>If there are more items in the list than are in this response, this element is present. It contains the value that you should use in the <code>Marker</code> field of a subsequent request to continue listing origin request policies where you left off.</p>"
+        },
+        "MaxItems":{
+          "shape":"integer",
+          "documentation":"<p>The maximum number of origin request policies requested.</p>"
+        },
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The total number of origin request policies returned in the response.</p>"
+        },
+        "Items":{
+          "shape":"OriginRequestPolicySummaryList",
+          "documentation":"<p>Contains the origin request policies in the list.</p>"
+        }
+      },
+      "documentation":"<p>A list of origin request policies.</p>"
+    },
+    "OriginRequestPolicyQueryStringBehavior":{
+      "type":"string",
+      "enum":[
+        "none",
+        "whitelist",
+        "all"
+      ]
+    },
+    "OriginRequestPolicyQueryStringsConfig":{
+      "type":"structure",
+      "required":["QueryStringBehavior"],
+      "members":{
+        "QueryStringBehavior":{
+          "shape":"OriginRequestPolicyQueryStringBehavior",
+          "documentation":"<p>Determines whether any URL query strings in viewer requests are included in requests that CloudFront sends to the origin. Valid values are:</p> <ul> <li> <p> <code>none</code> – Query strings in viewer requests are not included in requests that CloudFront sends to the origin. Even when this field is set to <code>none</code>, any query strings that are listed in a <code>CachePolicy</code> <i>are</i> included in origin requests.</p> </li> <li> <p> <code>whitelist</code> – The query strings in viewer requests that are listed in the <code>QueryStringNames</code> type are included in requests that CloudFront sends to the origin.</p> </li> <li> <p> <code>all</code> – All query strings in viewer requests are included in requests that CloudFront sends to the origin.</p> </li> </ul>"
+        },
+        "QueryStrings":{
+          "shape":"QueryStringNames",
+          "documentation":"<p>Contains a list of the query strings in viewer requests that are included in requests that CloudFront sends to the origin.</p>"
+        }
+      },
+      "documentation":"<p>An object that determines whether any URL query strings in viewer requests (and if so, which query strings) are included in requests that CloudFront sends to the origin.</p>"
+    },
+    "OriginRequestPolicySummary":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "OriginRequestPolicy"
+      ],
+      "members":{
+        "Type":{
+          "shape":"OriginRequestPolicyType",
+          "documentation":"<p>The type of origin request policy, either <code>managed</code> (created by AWS) or <code>custom</code> (created in this AWS account).</p>"
+        },
+        "OriginRequestPolicy":{
+          "shape":"OriginRequestPolicy",
+          "documentation":"<p>The origin request policy.</p>"
+        }
+      },
+      "documentation":"<p>Contains an origin request policy.</p>"
+    },
+    "OriginRequestPolicySummaryList":{
+      "type":"list",
+      "member":{
+        "shape":"OriginRequestPolicySummary",
+        "locationName":"OriginRequestPolicySummary"
+      }
+    },
+    "OriginRequestPolicyType":{
+      "type":"string",
+      "enum":[
+        "managed",
+        "custom"
+      ]
+    },
     "OriginSslProtocols":{
       "type":"structure",
       "required":[
@@ -4135,6 +5224,34 @@
         }
       },
       "documentation":"<p>A complex type that contains information about origins and origin groups for this distribution. </p>"
+    },
+    "ParametersInCacheKeyAndForwardedToOrigin":{
+      "type":"structure",
+      "required":[
+        "EnableAcceptEncodingGzip",
+        "HeadersConfig",
+        "CookiesConfig",
+        "QueryStringsConfig"
+      ],
+      "members":{
+        "EnableAcceptEncodingGzip":{
+          "shape":"boolean",
+          "documentation":"<p>A flag that determines whether the <code>Accept-Encoding</code> HTTP header is included in the cache key and included in requests that CloudFront sends to the origin.</p> <p>If this field is <code>true</code> <i>and</i> the viewer request includes the <code>Accept-Encoding</code> header, then CloudFront normalizes the value of the viewer’s <code>Accept-Encoding</code> header to one of the following:</p> <ul> <li> <p> <code>Accept-Encoding: gzip</code> (if <code>gzip</code> is in the viewer’s <code>Accept-Encoding</code> header)</p> </li> <li> <p> <code>Accept-Encoding: identity</code> (if <code>gzip</code> is <i>not</i> in the viewer’s <code>Accept-Encoding</code> header)</p> </li> </ul> <p>CloudFront includes the normalized header in the cache key and includes it in requests that CloudFront sends to the origin.</p> <p>If this field is <code>false</code>, then CloudFront treats the <code>Accept-Encoding</code> header the same as any other HTTP header in the viewer request. By default, it’s not included in the cache key and it’s not included in origin requests. You can manually add <code>Accept-Encoding</code> to the headers whitelist like any other HTTP header.</p> <p>When this field is <code>true</code>, you should not whitelist the <code>Accept-Encoding</code> header in the cache policy or in an origin request policy attached to the same cache behavior.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html#cache-policy-compressed-objects\">Cache compressed objects</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+        },
+        "HeadersConfig":{
+          "shape":"CachePolicyHeadersConfig",
+          "documentation":"<p>An object that determines whether any HTTP headers (and if so, which headers) are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p>"
+        },
+        "CookiesConfig":{
+          "shape":"CachePolicyCookiesConfig",
+          "documentation":"<p>An object that determines whether any cookies in viewer requests (and if so, which cookies) are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p>"
+        },
+        "QueryStringsConfig":{
+          "shape":"CachePolicyQueryStringsConfig",
+          "documentation":"<p>An object that determines whether any URL query strings in viewer requests (and if so, which query strings) are included in the cache key and automatically included in requests that CloudFront sends to the origin.</p>"
+        }
+      },
+      "documentation":"<p>This object determines the values that CloudFront includes in the cache key. These values can include HTTP headers, cookies, and URL query strings. CloudFront uses the cache key to find an object in its cache that it can return to the viewer.</p> <p>The headers, cookies, and query strings that are included in the cache key are automatically included in requests that CloudFront sends to the origin. CloudFront sends a request when it can’t find an object in its cache that matches the request’s cache key. If you want to send values to the origin but <i>not</i> include them in the cache key, use <code>CreateOriginRequestPolicy</code>.</p>"
     },
     "PathList":{
       "type":"list",
@@ -4385,9 +5502,31 @@
           "documentation":"<p>A list that contains the query string parameters that you want CloudFront to use as a basis for caching for a cache behavior. If <code>Quantity</code> is 0, you can omit <code>Items</code>. </p>"
         }
       },
-      "documentation":"<p>A complex type that contains information about the query string parameters that you want CloudFront to use for caching for a cache behavior. </p>"
+      "documentation":"<p>This field is deprecated. We recommend that you use a cache policy or an origin request policy instead of this field.</p> <p>If you want to include query strings in the cache key, use <code>QueryStringsConfig</code> in a cache policy. See <code>CreateCachePolicy</code>.</p> <p>If you want to send query strings to the origin but not include them in the cache key, use <code>QueryStringsConfig</code> in an origin request policy. See <code>CreateOriginRequestPolicy</code>.</p> <p>A complex type that contains information about the query string parameters that you want CloudFront to use for caching for a cache behavior. </p>"
     },
     "QueryStringCacheKeysList":{
+      "type":"list",
+      "member":{
+        "shape":"string",
+        "locationName":"Name"
+      }
+    },
+    "QueryStringNames":{
+      "type":"structure",
+      "required":["Quantity"],
+      "members":{
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of query string names in the <code>Items</code> list.</p>"
+        },
+        "Items":{
+          "shape":"QueryStringNamesList",
+          "documentation":"<p>A list of query string names.</p>"
+        }
+      },
+      "documentation":"<p>Contains a list of query string names.</p>"
+    },
+    "QueryStringNamesList":{
       "type":"list",
       "member":{
         "shape":"string",
@@ -4824,7 +5963,7 @@
           "shape":"Tags",
           "documentation":"<p> A complex type that contains zero or more <code>Tag</code> elements.</p>",
           "locationName":"Tags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "documentation":"<p> The request to add tags to a CloudFront resource.</p>",
@@ -4855,6 +5994,15 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "TooManyCachePolicies":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>You have reached the maximum number of cache policies for this AWS account. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TooManyCertificates":{
       "type":"structure",
       "members":{
@@ -4882,6 +6030,24 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "TooManyCookiesInCachePolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The number of cookies in the cache policy exceeds the maximum. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyCookiesInOriginRequestPolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The number of cookies in the origin request policy exceeds the maximum. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TooManyDistributionCNAMEs":{
       "type":"structure",
       "members":{
@@ -4900,6 +6066,15 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "TooManyDistributionsAssociatedToCachePolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of distributions have been associated with the specified cache policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TooManyDistributionsAssociatedToFieldLevelEncryptionConfig":{
       "type":"structure",
       "members":{
@@ -4909,12 +6084,30 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "TooManyDistributionsAssociatedToOriginRequestPolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of distributions have been associated with the specified origin request policy. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TooManyDistributionsWithLambdaAssociations":{
       "type":"structure",
       "members":{
         "Message":{"shape":"string"}
       },
       "documentation":"<p>Processing your request would cause the maximum number of distributions with Lambda function associations per owner to be exceeded.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyDistributionsWithSingleFunctionARN":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of distributions have been associated with the specified Lambda function.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -4972,12 +6165,30 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "TooManyHeadersInCachePolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The number of headers in the cache policy exceeds the maximum. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TooManyHeadersInForwardedValues":{
       "type":"structure",
       "members":{
         "Message":{"shape":"string"}
       },
       "documentation":"<p>Your request contains too many headers in forwarded values.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyHeadersInOriginRequestPolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The number of headers in the origin request policy exceeds the maximum. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -5017,6 +6228,15 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "TooManyOriginRequestPolicies":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>You have reached the maximum number of origin request policies for this AWS account. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TooManyOrigins":{
       "type":"structure",
       "members":{
@@ -5041,6 +6261,24 @@
         "Message":{"shape":"string"}
       },
       "documentation":"<p>Your request contains too many query string parameters.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyQueryStringsInCachePolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The number of query strings in the cache policy exceeds the maximum. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyQueryStringsInOriginRequestPolicy":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The number of query strings in the origin request policy exceeds the maximum. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html\">Quotas</a> (formerly known as limits) in the <i>Amazon CloudFront Developer Guide</i>.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -5119,11 +6357,55 @@
           "shape":"TagKeys",
           "documentation":"<p> A complex type that contains zero or more <code>Tag</code> key elements.</p>",
           "locationName":"TagKeys",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         }
       },
       "documentation":"<p> The request to remove tags from a CloudFront resource.</p>",
       "payload":"TagKeys"
+    },
+    "UpdateCachePolicyRequest":{
+      "type":"structure",
+      "required":[
+        "CachePolicyConfig",
+        "Id"
+      ],
+      "members":{
+        "CachePolicyConfig":{
+          "shape":"CachePolicyConfig",
+          "documentation":"<p>A cache policy configuration.</p>",
+          "locationName":"CachePolicyConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
+        },
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the cache policy that you are updating. The identifier is returned in a cache behavior’s <code>CachePolicyId</code> field in the response to <code>GetDistributionConfig</code>.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The version of the cache policy that you are updating. The version is returned in the cache policy’s <code>ETag</code> field in the response to <code>GetCachePolicyConfig</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      },
+      "payload":"CachePolicyConfig"
+    },
+    "UpdateCachePolicyResult":{
+      "type":"structure",
+      "members":{
+        "CachePolicy":{
+          "shape":"CachePolicy",
+          "documentation":"<p>A cache policy.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the cache policy.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"CachePolicy"
     },
     "UpdateCloudFrontOriginAccessIdentityRequest":{
       "type":"structure",
@@ -5136,7 +6418,7 @@
           "shape":"CloudFrontOriginAccessIdentityConfig",
           "documentation":"<p>The identity's configuration information.</p>",
           "locationName":"CloudFrontOriginAccessIdentityConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         },
         "Id":{
           "shape":"string",
@@ -5182,7 +6464,7 @@
           "shape":"DistributionConfig",
           "documentation":"<p>The distribution's configuration information.</p>",
           "locationName":"DistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         },
         "Id":{
           "shape":"string",
@@ -5228,7 +6510,7 @@
           "shape":"FieldLevelEncryptionConfig",
           "documentation":"<p>Request to update a field-level encryption configuration. </p>",
           "locationName":"FieldLevelEncryptionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         },
         "Id":{
           "shape":"string",
@@ -5272,7 +6554,7 @@
           "shape":"FieldLevelEncryptionProfileConfig",
           "documentation":"<p>Request to update a field-level encryption profile. </p>",
           "locationName":"FieldLevelEncryptionProfileConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         },
         "Id":{
           "shape":"string",
@@ -5305,6 +6587,50 @@
       },
       "payload":"FieldLevelEncryptionProfile"
     },
+    "UpdateOriginRequestPolicyRequest":{
+      "type":"structure",
+      "required":[
+        "OriginRequestPolicyConfig",
+        "Id"
+      ],
+      "members":{
+        "OriginRequestPolicyConfig":{
+          "shape":"OriginRequestPolicyConfig",
+          "documentation":"<p>An origin request policy configuration.</p>",
+          "locationName":"OriginRequestPolicyConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
+        },
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique identifier for the origin request policy that you are updating. The identifier is returned in a cache behavior’s <code>OriginRequestPolicyId</code> field in the response to <code>GetDistributionConfig</code>.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The version of the origin request policy that you are updating. The version is returned in the origin request policy’s <code>ETag</code> field in the response to <code>GetOriginRequestPolicyConfig</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      },
+      "payload":"OriginRequestPolicyConfig"
+    },
+    "UpdateOriginRequestPolicyResult":{
+      "type":"structure",
+      "members":{
+        "OriginRequestPolicy":{
+          "shape":"OriginRequestPolicy",
+          "documentation":"<p>An origin request policy.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the origin request policy.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"OriginRequestPolicy"
+    },
     "UpdatePublicKeyRequest":{
       "type":"structure",
       "required":[
@@ -5316,7 +6642,7 @@
           "shape":"PublicKeyConfig",
           "documentation":"<p>Request to update public key information.</p>",
           "locationName":"PublicKeyConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         },
         "Id":{
           "shape":"string",
@@ -5360,7 +6686,7 @@
           "shape":"StreamingDistributionConfig",
           "documentation":"<p>The streaming distribution's configuration information.</p>",
           "locationName":"StreamingDistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2019-03-26/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2020-05-31/"}
         },
         "Id":{
           "shape":"string",

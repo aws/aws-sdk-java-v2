@@ -125,6 +125,10 @@
         "VocabularyFilterMatch":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether a word in the item matches a word in the vocabulary filter you've chosen for your real-time stream. If <code>true</code> then a word in the item matches your vocabulary filter.</p>"
+        },
+        "Speaker":{
+          "shape":"String",
+          "documentation":"<p>If speaker identification is enabled, shows the speakers identified in the real-time stream.</p>"
         }
       },
       "documentation":"<p>A word or phrase transcribed from the input audio.</p>"
@@ -236,7 +240,7 @@
         },
         "MediaEncoding":{
           "shape":"MediaEncoding",
-          "documentation":"<p>The encoding used for the input audio. </p>",
+          "documentation":"<p>The encoding used for the input audio. <code>pcm</code> is the only valid value.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-media-encoding"
         },
@@ -258,7 +262,7 @@
         },
         "VocabularyFilterName":{
           "shape":"VocabularyFilterName",
-          "documentation":"<p>The name of the vocabulary filter you've created that is unique to your AWS accountf. Provide the name in this field to successfully use it in a stream.</p>",
+          "documentation":"<p>The name of the vocabulary filter you've created that is unique to your AWS account. Provide the name in this field to successfully use it in a stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-name"
         },
@@ -267,6 +271,12 @@
           "documentation":"<p>The manner in which you use your vocabulary filter to filter words in your transcript. <code>Remove</code> removes filtered words from your transcription results. <code>Mask</code> masks those words with a <code>***</code> in your transcription results. <code>Tag</code> keeps the filtered words in your transcription results and tags them. The tag appears as <code>VocabularyFilterMatch</code> equal to <code>True</code> </p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-method"
+        },
+        "ShowSpeakerLabel":{
+          "shape":"Boolean",
+          "documentation":"<p>When <code>true</code>, enables speaker identification in your real-time stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-show-speaker-label"
         }
       },
       "payload":"AudioStream"
@@ -325,6 +335,12 @@
           "documentation":"<p>The vocabulary filtering method used in the real-time stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-method"
+        },
+        "ShowSpeakerLabel":{
+          "shape":"Boolean",
+          "documentation":"<p>Shows whether speaker identification was enabled in the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-show-speaker-label"
         }
       },
       "payload":"TranscriptResultStream"

@@ -55,7 +55,7 @@
         {"shape":"BadRequestException"},
         {"shape":"InternalServerErrorException"}
       ],
-      "documentation":"<p>Creates a single Amazon GuardDuty detector. A detector is a resource that represents the GuardDuty service. To start using GuardDuty, you must create a detector in each Region where you enable the service. You can have only one detector per account per Region.</p>"
+      "documentation":"<p>Creates a single Amazon GuardDuty detector. A detector is a resource that represents the GuardDuty service. To start using GuardDuty, you must create a detector in each Region where you enable the service. You can have only one detector per account per Region. All data sources are enabled in a new detector by default.</p>"
     },
     "CreateFilter":{
       "name":"CreateFilter",
@@ -100,7 +100,7 @@
         {"shape":"BadRequestException"},
         {"shape":"InternalServerErrorException"}
       ],
-      "documentation":"<p>Creates member accounts of the current AWS account by specifying a list of AWS account IDs. The current AWS account can then invite these members to manage GuardDuty in their accounts.</p>"
+      "documentation":"<p>Creates member accounts of the current AWS account by specifying a list of AWS account IDs. This step is a prerequisite for managing the associated member accounts either by invitation or through an organization.</p> <p>When using <code>Create Members</code> as an organizations delegated administrator this action will enable GuardDuty in the added member accounts, with the exception of the organization master account, which must enable GuardDuty prior to being added as a member.</p> <p>If you are adding accounts by invitation use this action after GuardDuty has been enabled in potential member accounts and before using <a href=\"https://docs.aws.amazon.com/guardduty/latest/APIReference/API_InviteMembers.html\"> <code>Invite Members</code> </a>.</p>"
     },
     "CreatePublishingDestination":{
       "name":"CreatePublishingDestination",
@@ -462,6 +462,21 @@
       ],
       "documentation":"<p>Provides the details for the GuardDuty master account associated with the current GuardDuty member account.</p>"
     },
+    "GetMemberDetectors":{
+      "name":"GetMemberDetectors",
+      "http":{
+        "method":"POST",
+        "requestUri":"/detector/{detectorId}/member/detector/get",
+        "responseCode":200
+      },
+      "input":{"shape":"GetMemberDetectorsRequest"},
+      "output":{"shape":"GetMemberDetectorsResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"InternalServerErrorException"}
+      ],
+      "documentation":"<p>Describes which data sources are enabled for the member account's detector.</p>"
+    },
     "GetMembers":{
       "name":"GetMembers",
       "http":{
@@ -491,6 +506,21 @@
         {"shape":"InternalServerErrorException"}
       ],
       "documentation":"<p>Retrieves the ThreatIntelSet that is specified by the ThreatIntelSet ID.</p>"
+    },
+    "GetUsageStatistics":{
+      "name":"GetUsageStatistics",
+      "http":{
+        "method":"POST",
+        "requestUri":"/detector/{detectorId}/usage/statistics",
+        "responseCode":200
+      },
+      "input":{"shape":"GetUsageStatisticsRequest"},
+      "output":{"shape":"GetUsageStatisticsResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"InternalServerErrorException"}
+      ],
+      "documentation":"<p>Lists Amazon GuardDuty usage statistics over the last 30 days for the specified detector ID. For newly enabled detectors or data sources the cost returned will include only the usage so far under 30 days, this may differ from the cost metrics in the console, which projects usage over 30 days to provide a monthly cost estimate. For more information see <a href=\"https://docs.aws.amazon.com/guardduty/latest/ug/monitoring_costs.html#usage-calculations\">Understanding How Usage Costs are Calculated</a>.</p>"
     },
     "InviteMembers":{
       "name":"InviteMembers",
@@ -791,6 +821,21 @@
         {"shape":"InternalServerErrorException"}
       ],
       "documentation":"<p>Updates the IPSet specified by the IPSet ID.</p>"
+    },
+    "UpdateMemberDetectors":{
+      "name":"UpdateMemberDetectors",
+      "http":{
+        "method":"POST",
+        "requestUri":"/detector/{detectorId}/member/detector/update",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateMemberDetectorsRequest"},
+      "output":{"shape":"UpdateMemberDetectorsResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"InternalServerErrorException"}
+      ],
+      "documentation":"<p>Contains information on member accounts to be updated.</p>"
     },
     "UpdateOrganizationConfiguration":{
       "name":"UpdateOrganizationConfiguration",
@@ -1176,6 +1221,18 @@
       "max":64,
       "min":0
     },
+    "CloudTrailConfigurationResult":{
+      "type":"structure",
+      "required":["Status"],
+      "members":{
+        "Status":{
+          "shape":"DataSourceStatus",
+          "documentation":"<p>Describes whether CloudTrail is enabled as a data source for the detector.</p>",
+          "locationName":"status"
+        }
+      },
+      "documentation":"<p>Contains information on the status of CloudTrail as a data source for the detector.</p>"
+    },
     "Condition":{
       "type":"structure",
       "members":{
@@ -1288,6 +1345,11 @@
           "shape":"FindingPublishingFrequency",
           "documentation":"<p>An enum value that specifies how frequently updated findings are exported.</p>",
           "locationName":"findingPublishingFrequency"
+        },
+        "DataSources":{
+          "shape":"DataSourceConfigurations",
+          "documentation":"<p>An object that describes which data sources will be enabled for the detector.</p>",
+          "locationName":"dataSources"
         },
         "Tags":{
           "shape":"TagMap",
@@ -1590,6 +1652,83 @@
       "key":{"shape":"String"},
       "value":{"shape":"Condition"}
     },
+    "DNSLogsConfigurationResult":{
+      "type":"structure",
+      "required":["Status"],
+      "members":{
+        "Status":{
+          "shape":"DataSourceStatus",
+          "documentation":"<p>Denotes whether DNS logs is enabled as a data source.</p>",
+          "locationName":"status"
+        }
+      },
+      "documentation":"<p>Contains information on the status of DNS logs as a data source.</p>"
+    },
+    "DataSource":{
+      "type":"string",
+      "enum":[
+        "FLOW_LOGS",
+        "CLOUD_TRAIL",
+        "DNS_LOGS",
+        "S3_LOGS"
+      ]
+    },
+    "DataSourceConfigurations":{
+      "type":"structure",
+      "members":{
+        "S3Logs":{
+          "shape":"S3LogsConfiguration",
+          "documentation":"<p>Describes whether S3 data event logs are enabled as a data source.</p>",
+          "locationName":"s3Logs"
+        }
+      },
+      "documentation":"<p>Contains information about which data sources are enabled.</p>"
+    },
+    "DataSourceConfigurationsResult":{
+      "type":"structure",
+      "required":[
+        "CloudTrail",
+        "DNSLogs",
+        "FlowLogs",
+        "S3Logs"
+      ],
+      "members":{
+        "CloudTrail":{
+          "shape":"CloudTrailConfigurationResult",
+          "documentation":"<p>An object that contains information on the status of CloudTrail as a data source.</p>",
+          "locationName":"cloudTrail"
+        },
+        "DNSLogs":{
+          "shape":"DNSLogsConfigurationResult",
+          "documentation":"<p>An object that contains information on the status of DNS logs as a data source.</p>",
+          "locationName":"dnsLogs"
+        },
+        "FlowLogs":{
+          "shape":"FlowLogsConfigurationResult",
+          "documentation":"<p>An object that contains information on the status of VPC flow logs as a data source.</p>",
+          "locationName":"flowLogs"
+        },
+        "S3Logs":{
+          "shape":"S3LogsConfigurationResult",
+          "documentation":"<p>An object that contains information on the status of S3 Data event logs as a data source.</p>",
+          "locationName":"s3Logs"
+        }
+      },
+      "documentation":"<p>Contains information on the status of data sources for the detector.</p>"
+    },
+    "DataSourceList":{
+      "type":"list",
+      "member":{"shape":"DataSource"}
+    },
+    "DataSourceStatus":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ],
+      "max":300,
+      "min":1
+    },
     "DeclineInvitationsRequest":{
       "type":"structure",
       "required":["AccountIds"],
@@ -1830,6 +1969,11 @@
           "shape":"Boolean",
           "documentation":"<p>Indicates whether the maximum number of allowed member accounts are already associated with the delegated administrator master account.</p>",
           "locationName":"memberAccountLimitReached"
+        },
+        "DataSources":{
+          "shape":"OrganizationDataSourceConfigurationsResult",
+          "documentation":"<p>An object that describes which data sources are enabled automatically for member accounts.</p>",
+          "locationName":"dataSources"
         }
       }
     },
@@ -2286,6 +2430,18 @@
       "max":50,
       "min":0
     },
+    "FlowLogsConfigurationResult":{
+      "type":"structure",
+      "required":["Status"],
+      "members":{
+        "Status":{
+          "shape":"DataSourceStatus",
+          "documentation":"<p>Denotes whether VPC flow logs is enabled as a data source.</p>",
+          "locationName":"status"
+        }
+      },
+      "documentation":"<p>Contains information on the status of VPC flow logs as a data source.</p>"
+    },
     "GeoLocation":{
       "type":"structure",
       "members":{
@@ -2345,6 +2501,11 @@
           "shape":"String",
           "documentation":"<p>The last-updated timestamp for the detector.</p>",
           "locationName":"updatedAt"
+        },
+        "DataSources":{
+          "shape":"DataSourceConfigurationsResult",
+          "documentation":"<p>An object that describes which data sources are enabled for the detector.</p>",
+          "locationName":"dataSources"
         },
         "Tags":{
           "shape":"TagMap",
@@ -2581,6 +2742,45 @@
         }
       }
     },
+    "GetMemberDetectorsRequest":{
+      "type":"structure",
+      "required":[
+        "DetectorId",
+        "AccountIds"
+      ],
+      "members":{
+        "DetectorId":{
+          "shape":"DetectorId",
+          "documentation":"<p>The detector ID for the master account.</p>",
+          "location":"uri",
+          "locationName":"detectorId"
+        },
+        "AccountIds":{
+          "shape":"AccountIds",
+          "documentation":"<p>The account ID of the member account.</p>",
+          "locationName":"accountIds"
+        }
+      }
+    },
+    "GetMemberDetectorsResponse":{
+      "type":"structure",
+      "required":[
+        "MemberDataSourceConfigurations",
+        "UnprocessedAccounts"
+      ],
+      "members":{
+        "MemberDataSourceConfigurations":{
+          "shape":"MemberDataSourceConfigurations",
+          "documentation":"<p>An object that describes which data sources are enabled for a member account.</p>",
+          "locationName":"members"
+        },
+        "UnprocessedAccounts":{
+          "shape":"UnprocessedAccounts",
+          "documentation":"<p>A list of member account IDs that were unable to be processed along with an explanation for why they were not processed.</p>",
+          "locationName":"unprocessedAccounts"
+        }
+      }
+    },
     "GetMembersRequest":{
       "type":"structure",
       "required":[
@@ -2674,6 +2874,62 @@
           "shape":"TagMap",
           "documentation":"<p>The tags of the threat list resource.</p>",
           "locationName":"tags"
+        }
+      }
+    },
+    "GetUsageStatisticsRequest":{
+      "type":"structure",
+      "required":[
+        "DetectorId",
+        "UsageStatisticType",
+        "UsageCriteria"
+      ],
+      "members":{
+        "DetectorId":{
+          "shape":"DetectorId",
+          "documentation":"<p>The ID of the detector that specifies the GuardDuty service whose usage statistics you want to retrieve.</p>",
+          "location":"uri",
+          "locationName":"detectorId"
+        },
+        "UsageStatisticType":{
+          "shape":"UsageStatisticType",
+          "documentation":"<p>The type of usage statistics to retrieve.</p>",
+          "locationName":"usageStatisticsType"
+        },
+        "UsageCriteria":{
+          "shape":"UsageCriteria",
+          "documentation":"<p>Represents the criteria used for querying usage.</p>",
+          "locationName":"usageCriteria"
+        },
+        "Unit":{
+          "shape":"String",
+          "documentation":"<p>The currency unit you would like to view your usage statistics in. Current valid values are USD.</p>",
+          "locationName":"unit"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return in the response.</p>",
+          "locationName":"maxResults"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>A token to use for paginating results that are returned in the response. Set the value of this parameter to null for the first request to a list action. For subsequent calls, use the NextToken value returned from the previous request to continue listing results after the first page.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
+    "GetUsageStatisticsResponse":{
+      "type":"structure",
+      "members":{
+        "UsageStatistics":{
+          "shape":"UsageStatistics",
+          "documentation":"<p>The usage statistics object. If a UsageStatisticType was provided, the objects representing other types will be null.</p>",
+          "locationName":"usageStatistics"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The pagination parameter to be used on the next list operation to retrieve more items.</p>",
+          "locationName":"nextToken"
         }
       }
     },
@@ -2839,12 +3095,12 @@
         },
         "DisableEmailNotification":{
           "shape":"Boolean",
-          "documentation":"<p>A Boolean value that specifies whether you want to disable email notification to the accounts that you’re inviting to GuardDuty as members.</p>",
+          "documentation":"<p>A Boolean value that specifies whether you want to disable email notification to the accounts that you are inviting to GuardDuty as members.</p>",
           "locationName":"disableEmailNotification"
         },
         "Message":{
           "shape":"String",
-          "documentation":"<p>The invitation message that you want to send to the accounts that you’re inviting to GuardDuty as members.</p>",
+          "documentation":"<p>The invitation message that you want to send to the accounts that you're inviting to GuardDuty as members.</p>",
           "locationName":"message"
         }
       }
@@ -3381,6 +3637,32 @@
       },
       "documentation":"<p>Contains information about the member account. </p>"
     },
+    "MemberDataSourceConfiguration":{
+      "type":"structure",
+      "required":[
+        "AccountId",
+        "DataSources"
+      ],
+      "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID for the member account.</p>",
+          "locationName":"accountId"
+        },
+        "DataSources":{
+          "shape":"DataSourceConfigurationsResult",
+          "documentation":"<p>Contains information on the status of data sources for the account.</p>",
+          "locationName":"dataSources"
+        }
+      },
+      "documentation":"<p>Contains information on which data sources are enabled for a member account.</p>"
+    },
+    "MemberDataSourceConfigurations":{
+      "type":"list",
+      "member":{"shape":"MemberDataSourceConfiguration"},
+      "max":50,
+      "min":1
+    },
     "Members":{
       "type":"list",
       "member":{"shape":"Member"},
@@ -3533,6 +3815,53 @@
         }
       },
       "documentation":"<p>Contains information about the ISP organization of the remote IP address.</p>"
+    },
+    "OrganizationDataSourceConfigurations":{
+      "type":"structure",
+      "members":{
+        "S3Logs":{
+          "shape":"OrganizationS3LogsConfiguration",
+          "documentation":"<p>Describes whether S3 data event logs are enabled for new members of the organization.</p>",
+          "locationName":"s3Logs"
+        }
+      },
+      "documentation":"<p>An object that contains information on which data sources will be configured to be automatically enabled for new members within the organization.</p>"
+    },
+    "OrganizationDataSourceConfigurationsResult":{
+      "type":"structure",
+      "required":["S3Logs"],
+      "members":{
+        "S3Logs":{
+          "shape":"OrganizationS3LogsConfigurationResult",
+          "documentation":"<p>Describes whether S3 data event logs are enabled as a data source.</p>",
+          "locationName":"s3Logs"
+        }
+      },
+      "documentation":"<p>An object that contains information on which data sources are automatically enabled for new members within the organization.</p>"
+    },
+    "OrganizationS3LogsConfiguration":{
+      "type":"structure",
+      "required":["AutoEnable"],
+      "members":{
+        "AutoEnable":{
+          "shape":"Boolean",
+          "documentation":"<p>A value that contains information on whether S3 data event logs will be enabled automatically as a data source for the organization.</p>",
+          "locationName":"autoEnable"
+        }
+      },
+      "documentation":"<p>Describes whether S3 data event logs will be automatically enabled for new members of the organization.</p>"
+    },
+    "OrganizationS3LogsConfigurationResult":{
+      "type":"structure",
+      "required":["AutoEnable"],
+      "members":{
+        "AutoEnable":{
+          "shape":"Boolean",
+          "documentation":"<p>A value that describes whether S3 data event logs are automatically enabled for new members of the organization.</p>",
+          "locationName":"autoEnable"
+        }
+      },
+      "documentation":"<p>The current configuration of S3 data event logs as a data source for the organization.</p>"
     },
     "Owner":{
       "type":"structure",
@@ -3742,6 +4071,10 @@
       },
       "documentation":"<p>Contains information about the AWS resource associated with the activity that prompted GuardDuty to generate a finding.</p>"
     },
+    "ResourceList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
     "S3BucketDetail":{
       "type":"structure",
       "members":{
@@ -3785,12 +4118,36 @@
           "documentation":"<p>Describes the public access policies that apply to the S3 bucket.</p>",
           "locationName":"publicAccess"
         }
-      }
+      },
+      "documentation":"<p>Contains information on the S3 bucket.</p>"
     },
     "S3BucketDetails":{
       "type":"list",
-      "member":{"shape":"S3BucketDetail"},
-      "documentation":"<p>Contains information on the S3 bucket.</p>"
+      "member":{"shape":"S3BucketDetail"}
+    },
+    "S3LogsConfiguration":{
+      "type":"structure",
+      "required":["Enable"],
+      "members":{
+        "Enable":{
+          "shape":"Boolean",
+          "documentation":"<p> The status of S3 data event logs as a data source.</p>",
+          "locationName":"enable"
+        }
+      },
+      "documentation":"<p>Describes whether S3 data event logs will be enabled as a data source.</p>"
+    },
+    "S3LogsConfigurationResult":{
+      "type":"structure",
+      "required":["Status"],
+      "members":{
+        "Status":{
+          "shape":"DataSourceStatus",
+          "documentation":"<p>A value that describes whether S3 data event logs are automatically enabled for new members of the organization.</p>",
+          "locationName":"status"
+        }
+      },
+      "documentation":"<p>Describes whether S3 data event logs will be enabled as a data source.</p>"
     },
     "SecurityGroup":{
       "type":"structure",
@@ -4073,6 +4430,22 @@
       "member":{"shape":"String"}
     },
     "Timestamp":{"type":"timestamp"},
+    "Total":{
+      "type":"structure",
+      "members":{
+        "Amount":{
+          "shape":"String",
+          "documentation":"<p>The total usage.</p>",
+          "locationName":"amount"
+        },
+        "Unit":{
+          "shape":"String",
+          "documentation":"<p>The currency unit that the amount is given in.</p>",
+          "locationName":"unit"
+        }
+      },
+      "documentation":"<p>Contains the total usage with the corresponding currency unit for that value.</p>"
+    },
     "UnarchiveFindingsRequest":{
       "type":"structure",
       "required":[
@@ -4169,6 +4542,11 @@
           "shape":"FindingPublishingFrequency",
           "documentation":"<p>An enum value that specifies how frequently findings are exported, such as to CloudWatch Events.</p>",
           "locationName":"findingPublishingFrequency"
+        },
+        "DataSources":{
+          "shape":"DataSourceConfigurations",
+          "documentation":"<p>An object that describes which data sources will be updated.</p>",
+          "locationName":"dataSources"
         }
       }
     },
@@ -4306,6 +4684,42 @@
       "members":{
       }
     },
+    "UpdateMemberDetectorsRequest":{
+      "type":"structure",
+      "required":[
+        "DetectorId",
+        "AccountIds"
+      ],
+      "members":{
+        "DetectorId":{
+          "shape":"DetectorId",
+          "documentation":"<p>The detector ID of the master account.</p>",
+          "location":"uri",
+          "locationName":"detectorId"
+        },
+        "AccountIds":{
+          "shape":"AccountIds",
+          "documentation":"<p>A list of member account IDs to be updated.</p>",
+          "locationName":"accountIds"
+        },
+        "DataSources":{
+          "shape":"DataSourceConfigurations",
+          "documentation":"<p>An object describes which data sources will be updated.</p>",
+          "locationName":"dataSources"
+        }
+      }
+    },
+    "UpdateMemberDetectorsResponse":{
+      "type":"structure",
+      "required":["UnprocessedAccounts"],
+      "members":{
+        "UnprocessedAccounts":{
+          "shape":"UnprocessedAccounts",
+          "documentation":"<p>A list of member account IDs that were unable to be processed along with an explanation for why they were not processed.</p>",
+          "locationName":"unprocessedAccounts"
+        }
+      }
+    },
     "UpdateOrganizationConfigurationRequest":{
       "type":"structure",
       "required":[
@@ -4323,6 +4737,11 @@
           "shape":"Boolean",
           "documentation":"<p>Indicates whether to automatically enable member accounts in the organization.</p>",
           "locationName":"autoEnable"
+        },
+        "DataSources":{
+          "shape":"OrganizationDataSourceConfigurations",
+          "documentation":"<p>An object describes which data sources will be updated.</p>",
+          "locationName":"dataSources"
         }
       }
     },
@@ -4402,6 +4821,123 @@
       "type":"structure",
       "members":{
       }
+    },
+    "UsageAccountResult":{
+      "type":"structure",
+      "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The Account ID that generated usage.</p>",
+          "locationName":"accountId"
+        },
+        "Total":{
+          "shape":"Total",
+          "documentation":"<p>Represents the total of usage for the Account ID.</p>",
+          "locationName":"total"
+        }
+      },
+      "documentation":"<p>Contains information on the total of usage based on account IDs.</p>"
+    },
+    "UsageAccountResultList":{
+      "type":"list",
+      "member":{"shape":"UsageAccountResult"}
+    },
+    "UsageCriteria":{
+      "type":"structure",
+      "required":["DataSources"],
+      "members":{
+        "AccountIds":{
+          "shape":"AccountIds",
+          "documentation":"<p>The account IDs to aggregate usage statistics from.</p>",
+          "locationName":"accountIds"
+        },
+        "DataSources":{
+          "shape":"DataSourceList",
+          "documentation":"<p>The data sources to aggregate usage statistics from.</p>",
+          "locationName":"dataSources"
+        },
+        "Resources":{
+          "shape":"ResourceList",
+          "documentation":"<p>The resources to aggregate usage statistics from. Only accepts exact resource names.</p>",
+          "locationName":"resources"
+        }
+      },
+      "documentation":"<p>Contains information about the criteria used to query usage statistics.</p>"
+    },
+    "UsageDataSourceResult":{
+      "type":"structure",
+      "members":{
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The data source type that generated usage.</p>",
+          "locationName":"dataSource"
+        },
+        "Total":{
+          "shape":"Total",
+          "documentation":"<p>Represents the total of usage for the specified data source.</p>",
+          "locationName":"total"
+        }
+      },
+      "documentation":"<p>Contains information on the result of usage based on data source type.</p>"
+    },
+    "UsageDataSourceResultList":{
+      "type":"list",
+      "member":{"shape":"UsageDataSourceResult"}
+    },
+    "UsageResourceResult":{
+      "type":"structure",
+      "members":{
+        "Resource":{
+          "shape":"String",
+          "documentation":"<p>The AWS resource that generated usage.</p>",
+          "locationName":"resource"
+        },
+        "Total":{
+          "shape":"Total",
+          "documentation":"<p>Represents the sum total of usage for the specified resource type.</p>",
+          "locationName":"total"
+        }
+      },
+      "documentation":"<p>Contains information on the sum of usage based on an AWS resource.</p>"
+    },
+    "UsageResourceResultList":{
+      "type":"list",
+      "member":{"shape":"UsageResourceResult"}
+    },
+    "UsageStatisticType":{
+      "type":"string",
+      "enum":[
+        "SUM_BY_ACCOUNT",
+        "SUM_BY_DATA_SOURCE",
+        "SUM_BY_RESOURCE",
+        "TOP_RESOURCES"
+      ]
+    },
+    "UsageStatistics":{
+      "type":"structure",
+      "members":{
+        "SumByAccount":{
+          "shape":"UsageAccountResultList",
+          "documentation":"<p>The usage statistic sum organized by account ID.</p>",
+          "locationName":"sumByAccount"
+        },
+        "SumByDataSource":{
+          "shape":"UsageDataSourceResultList",
+          "documentation":"<p>The usage statistic sum organized by on data source.</p>",
+          "locationName":"sumByDataSource"
+        },
+        "SumByResource":{
+          "shape":"UsageResourceResultList",
+          "documentation":"<p>The usage statistic sum organized by resource.</p>",
+          "locationName":"sumByResource"
+        },
+        "TopResources":{
+          "shape":"UsageResourceResultList",
+          "documentation":"<p>Lists the top 50 resources that have generated the most GuardDuty usage, in order from most to least expensive.</p>",
+          "locationName":"topResources"
+        }
+      },
+      "documentation":"<p>Contains the result of GuardDuty usage. If a UsageStatisticType is provided the result for other types will be null. </p>"
     }
   },
   "documentation":"<p>Amazon GuardDuty is a continuous security monitoring service that analyzes and processes the following data sources: VPC Flow Logs, AWS CloudTrail event logs, and DNS logs. It uses threat intelligence feeds (such as lists of malicious IPs and domains) and machine learning to identify unexpected, potentially unauthorized, and malicious activity within your AWS environment. This can include issues like escalations of privileges, uses of exposed credentials, or communication with malicious IPs, URLs, or domains. For example, GuardDuty can detect compromised EC2 instances that serve malware or mine bitcoin. </p> <p>GuardDuty also monitors AWS account access behavior for signs of compromise. Some examples of this are unauthorized infrastructure deployments such as EC2 instances deployed in a Region that has never been used, or unusual API calls like a password policy change to reduce password strength. </p> <p>GuardDuty informs you of the status of your AWS environment by producing security findings that you can view in the GuardDuty console or through Amazon CloudWatch events. For more information, see the <i> <a href=\"https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html\">Amazon GuardDuty User Guide</a> </i>. </p>"
