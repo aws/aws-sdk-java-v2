@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Lake Formation",
+    "description": "Adding additional field in ListPermissions API response to return RAM resource share ARN if a resource were shared through AWS RAM service."
+}
