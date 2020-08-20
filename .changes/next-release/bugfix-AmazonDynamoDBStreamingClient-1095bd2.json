@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Streaming Client",
+    "description": "Fix for CRC not working correctly for compressed responses"
+}
