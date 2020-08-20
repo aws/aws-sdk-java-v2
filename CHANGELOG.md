@@ -1,3 +1,20 @@
+# __2.14.3__ __2020-08-20__
+## __Amazon Chime__
+  - ### Features
+    - Documentation updates for chime
+
+## __Amazon DynamoDB Streaming Client__
+  - ### Bugfixes
+    - Fix for CRC not working correctly for compressed responses
+
+## __Amazon FSx__
+  - ### Features
+    - Documentation updates for Amazon FSx
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Customers can now create Amazon API Gateway HTTP APIs that route requests to AWS AppConfig, Amazon EventBridge, Amazon Kinesis Data Streams, Amazon SQS, and AWS Step Functions.
+
 # __2.14.2__ __2020-08-19__
 ## __AWS Lake Formation__
   - ### Features
