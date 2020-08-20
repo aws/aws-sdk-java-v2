@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "For JSON protocols, when unmarshalling a response, if a member is declared to be located in the URI, the member is treated as being located in the payload instead."
+}
