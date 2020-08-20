@@ -31,6 +31,7 @@
 
     <modules>
         <module>apache-client</module>
+        <module>apache-async-client</module>
         <module>netty-nio-client</module>
         <module>url-connection-client</module>
     </modules>
