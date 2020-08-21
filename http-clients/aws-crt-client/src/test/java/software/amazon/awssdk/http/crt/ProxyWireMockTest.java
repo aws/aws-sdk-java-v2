@@ -109,8 +109,8 @@ public class ProxyWireMockTest {
     public void proxyConfigured_httpGet() throws Throwable {
 
         CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
-        final AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
-        final AtomicReference<Throwable> error = new AtomicReference<>(null);
+        AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
+        AtomicReference<Throwable> error = new AtomicReference<>(null);
 
         Subscriber<ByteBuffer> subscriber = CrtHttpClientTestUtils.createDummySubscriber();
 

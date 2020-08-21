@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.Validate;
  * Implements the Subscriber<ByteBuffer> API to be be callable from AwsCrtAsyncHttpStreamAdapter.sendRequestBody()
  */
 @SdkInternalApi
-public class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
+public final class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(AwsCrtRequestBodySubscriber.class);
 
     private final int windowSize;
@@ -66,7 +66,7 @@ public class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onSubscribe(Subscription s) {
-        Validate.notNull(s, "Subscription should not be null");
+        Validate.paramNotNull(s, "s");
 
         boolean wasFirstSubscription = subscriptionRef.compareAndSet(null, s);
 
@@ -81,7 +81,7 @@ public class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
-        Validate.notNull(byteBuffer, "ByteBuffer should not be null");
+        Validate.paramNotNull(byteBuffer, "byteBuffer");
         queuedBuffers.add(byteBuffer);
         queuedByteCount.addAndGet(byteBuffer.remaining());
         requestDataIfNecessary();

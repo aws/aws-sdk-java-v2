@@ -38,7 +38,7 @@ import software.amazon.awssdk.utils.Validate;
  * Adapts an AWS Common Runtime Response Body stream from CrtHttpStreamHandler to a Publisher<ByteBuffer>
  */
 @SdkInternalApi
-public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
+public final class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(AwsCrtResponseBodyPublisher.class);
     private static final LongUnaryOperator DECREMENT_IF_GREATER_THAN_ZERO = x -> ((x > 0) ? (x - 1) : (x));
 
