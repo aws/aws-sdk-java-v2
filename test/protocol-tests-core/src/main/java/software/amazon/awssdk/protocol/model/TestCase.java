@@ -55,4 +55,9 @@ public class TestCase {
         this.then = then;
     }
 
+    @Override
+    public String toString() {
+        return description;
+    }
+
 }
