@@ -1,0 +1,5 @@
+{
+    "category": "Amazon STS", 
+    "type": "feature", 
+    "description": "Make the STSCredentialsProvider stale and prefetch times configurable so clients can control when session credentials are refreshed"
+}
