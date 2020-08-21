@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.Validate;
  * Implements the CrtHttpStreamHandler API and converts CRT callbacks into calls to SDK AsyncExecuteRequest methods
  */
 @SdkInternalApi
-public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, HttpRequestBodyStream {
+public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, HttpRequestBodyStream {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpStreamAdapter.class);
 
     private final HttpClientConnection connection;

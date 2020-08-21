@@ -127,7 +127,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
         stubFor(any(urlEqualTo("/")).willReturn(aResponse().withStatus(204).withHeader("foo", "bar")));
 
         CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
-        final AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
+        AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
 
         SdkAsyncHttpResponseHandler handler = new TestResponseHandler() {
             @Override
@@ -167,9 +167,9 @@ public class AwsCrtHttpClientSpiVerificationTest {
                                                            .withBody(body)));
 
         CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
-        final AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
+        AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
         Sha256BodySubscriber bodySha256Subscriber = new Sha256BodySubscriber();
-        final AtomicReference<Throwable> error = new AtomicReference<>(null);
+        AtomicReference<Throwable> error = new AtomicReference<>(null);
 
         SdkAsyncHttpResponseHandler handler = new SdkAsyncHttpResponseHandler() {
             @Override
@@ -208,8 +208,8 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
     private void makePutRequest(String path, byte[] reqBody, int expectedStatus) throws Exception {
         CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
-        final AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
-        final AtomicReference<Throwable> error = new AtomicReference<>(null);
+        AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
+        AtomicReference<Throwable> error = new AtomicReference<>(null);
 
         Subscriber<ByteBuffer> subscriber = CrtHttpClientTestUtils.createDummySubscriber();
 

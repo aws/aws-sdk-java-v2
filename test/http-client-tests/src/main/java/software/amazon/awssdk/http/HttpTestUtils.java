@@ -77,7 +77,7 @@ public class HttpTestUtils {
                 .request(SdkHttpFullRequest.builder()
                         .method(SdkHttpMethod.GET)
                         .protocol("https")
-                        .host("localhost")
+                        .host("127.0.0.1")
                         .port(serverPort)
                         .build())
                 .requestContentPublisher(new EmptyPublisher())
