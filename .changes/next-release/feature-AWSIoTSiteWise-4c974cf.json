@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT SiteWise",
+    "description": "Add traversalDirection to ListAssociatedAssetsRequest and add portal status to ListPortalsResponse"
+}
