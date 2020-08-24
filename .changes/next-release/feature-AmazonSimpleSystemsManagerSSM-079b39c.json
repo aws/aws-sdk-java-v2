@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "description": "Add string length constraints to OpsDataAttributeName and OpsFilterValue."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS X-Ray",
-    "description": "AWS X-Ray now supports tagging on sampling rules and groups."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka",
-    "description": "Add UpdateConfiguration and DeleteConfiguration operations."
-}
