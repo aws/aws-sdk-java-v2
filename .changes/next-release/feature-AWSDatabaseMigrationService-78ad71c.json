@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "description": "Added new endpoint settings to include columns with Null and Empty value when using Kinesis and Kafka as target. Added a new endpoint setting to set maximum message size when using Kafka as target."
+}
