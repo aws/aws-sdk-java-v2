@@ -45,7 +45,6 @@ class ModelClassGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        info("Emitting model classes");
         List<GeneratorTask> tasks = new ArrayList<>();
 
         tasks.add(new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new AwsServiceBaseRequestSpec(model)));

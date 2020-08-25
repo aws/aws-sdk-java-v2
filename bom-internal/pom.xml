@@ -42,7 +42,12 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.jr</groupId>
                 <artifactId>jackson-jr-objects</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jacksonjr.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jr</groupId>
+                <artifactId>jackson-jr-stree</artifactId>
+                <version>${jacksonjr.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>

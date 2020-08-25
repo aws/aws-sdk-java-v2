@@ -47,7 +47,7 @@ public final class PoetGeneratorTaskIntegrationTest {
         ClassSpec classSpec = dummyClass();
 
         PoetGeneratorTask sut = new PoetGeneratorTask(randomBaseDirectory, fileHeader, classSpec);
-        sut.execute();
+        sut.compute();
 
         String contents = new String(Files.readAllBytes(determineOutputFile(classSpec, randomBaseDirectory)));
         assertThat(contents, both(containsString(PACKAGE)).and(startsWith(fileHeader)));

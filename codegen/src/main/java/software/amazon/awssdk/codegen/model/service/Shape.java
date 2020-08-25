@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +49,7 @@ public class Shape {
 
     private Member mapValueType;
 
-    @JsonProperty(value = "error")
-    private ErrorTrait errorTrait;
+    private ErrorTrait error;
 
     private long min;
 
@@ -63,11 +61,9 @@ public class Shape {
 
     private boolean deprecated;
 
-    @JsonProperty(value = "eventstream")
-    private boolean isEventStream;
+    private boolean eventstream;
 
-    @JsonProperty(value = "event")
-    private boolean isEvent;
+    private boolean event;
 
     private String timestampFormat;
 
@@ -127,8 +123,14 @@ public class Shape {
         return enumValues;
     }
 
-    @JsonProperty(value = "enum")
     public void setEnumValues(List<String> enumValues) {
+        this.enumValues = enumValues;
+    }
+
+    /**
+     * The actual JSON value of "enumValues".
+     */
+    public void setEnum(List<String> enumValues) {
         this.enumValues = enumValues;
     }
 
@@ -160,26 +162,44 @@ public class Shape {
         return mapKeyType;
     }
 
-    @JsonProperty(value = "key")
     public void setMapKeyType(Member mapKeyType) {
         this.mapKeyType = mapKeyType;
+    }
+
+    /**
+     * The actual JSON name of "mapKeyType".
+     */
+    public void setKey(Member key) {
+        this.mapKeyType = key;
     }
 
     public Member getMapValueType() {
         return mapValueType;
     }
 
-    @JsonProperty(value = "value")
     public void setMapValueType(Member mapValueType) {
         this.mapValueType = mapValueType;
+    }
+
+    /**
+     * The actual JSON name of "mapValueType".
+     */
+    public void setValue(Member value) {
+        this.mapValueType = value;
     }
 
     public Member getListMember() {
         return listMember;
     }
 
-    @JsonProperty(value = "member")
     public void setListMember(Member listMember) {
+        this.listMember = listMember;
+    }
+
+    /**
+     * The actual JSON name of "listMember".
+     */
+    public void setMember(Member listMember) {
         this.listMember = listMember;
     }
 
@@ -223,12 +243,12 @@ public class Shape {
         this.wrapper = wrapper;
     }
 
-    public ErrorTrait getErrorTrait() {
-        return errorTrait;
+    public ErrorTrait getError() {
+        return error;
     }
 
-    public void setErrorTrait(ErrorTrait errorTrait) {
-        this.errorTrait = errorTrait;
+    public void setError(ErrorTrait error) {
+        this.error = error;
     }
 
     public boolean isDeprecated() {
@@ -239,20 +259,20 @@ public class Shape {
         this.deprecated = deprecated;
     }
 
-    public boolean isEventStream() {
-        return isEventStream;
+    public boolean isEventstream() {
+        return eventstream;
     }
 
-    public void setIsEventStream(boolean eventStream) {
-        isEventStream = eventStream;
+    public void setEventstream(boolean eventstream) {
+        this.eventstream = eventstream;
     }
 
     public boolean isEvent() {
-        return isEvent;
+        return event;
     }
 
-    public void setIsEvent(boolean event) {
-        isEvent = event;
+    public void setEvent(boolean event) {
+        this.event = event;
     }
 
     public String getTimestampFormat() {
