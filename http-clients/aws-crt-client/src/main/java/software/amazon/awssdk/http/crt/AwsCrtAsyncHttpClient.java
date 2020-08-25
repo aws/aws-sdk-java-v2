@@ -161,6 +161,15 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return new DefaultBuilder();
     }
 
+    /**
+     * Create a {@link AwsCrtAsyncHttpClient} client with the default configuration
+     *
+     * @return an {@link SdkAsyncHttpClient}
+     */
+    public static SdkAsyncHttpClient create() {
+        return new DefaultBuilder().build();
+    }
+
     @Override
     public String clientName() {
         return AWS_COMMON_RUNTIME;
@@ -356,16 +365,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder tlsCipherPreference(TlsCipherPreference tlsCipherPreference);
 
         /**
-         * The AWS CRT WindowSize to use for this HttpClient.
-         *
-         * For an http/1.1 connection, this represents  the number of unread bytes that can be buffered in the
-         * ResponseBodyPublisher before we stop reading from the underlying TCP socket and wait for the Subscriber
+         * Configures the number of unread bytes that can be buffered in the
+         * client before we stop reading from the underlying TCP socket and wait for the Subscriber
          * to read more data.
          *
-         * @param initialWindowSize The AWS Common Runtime WindowSize
+         * @param readBufferSize The number of bytes that can be buffered
          * @return The builder of the method chaining.
          */
-        Builder initialWindowSize(int initialWindowSize);
+        Builder readBufferSize(int readBufferSize);
 
         /**
          * The AWS CRT EventLoopGroup to use for this Client.
@@ -389,24 +396,30 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
 
         /**
-         * Sets the http monitoring options for all connections established by this client.
-         * @param monitoringOptions The http monitoring options to use
-         * @return The builder of the method chaining.
-         */
-        Builder monitoringOptions(HttpMonitoringOptions monitoringOptions);
-
-        /**
-         * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
-         */
-        Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
-      
-        /**
          * Sets the http proxy configuration to use for this client.
          *
          * @param proxyConfigurationBuilderConsumer The consumer of the proxy configuration builder object.
          * @return the builder for method chaining.
          */
         Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
+
+        /**
+         * Configure the health checks for for all connections established by this client.
+         *
+         * <p>
+         * eg: you can set a throughput threshold for the a connection to be considered healthy.
+         * If the connection falls below this threshold for a configurable amount of time,
+         * then the connection is considered unhealthy and will be shut down.
+         *
+         * @param monitoringOptions The http monitoring options to use
+         * @return The builder of the method chaining.
+         */
+        Builder connectionHealthChecksConfiguration(HttpMonitoringOptions monitoringOptions);
+
+        /**
+         * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
+         */
+        Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
     }
 
     /**
@@ -455,7 +468,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder initialWindowSize(int initialWindowSize) {
+        public Builder readBufferSize(int initialWindowSize) {
             Validate.isPositive(initialWindowSize, "initialWindowSize");
             this.initialWindowSize = initialWindowSize;
             return this;
@@ -480,7 +493,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder monitoringOptions(HttpMonitoringOptions monitoringOptions) {
+        public Builder connectionHealthChecksConfiguration(HttpMonitoringOptions monitoringOptions) {
             this.monitoringOptions = monitoringOptions;
             return this;
         }
