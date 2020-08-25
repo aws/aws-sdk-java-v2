@@ -159,7 +159,6 @@ final class ClientClassUtils {
         } else if (opModel.hasEventStreamInput()) {
             code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
                               opModel.getInput().getVariableName(), EventStreamAws4Signer.class);
-
         }
 
         return code.build();

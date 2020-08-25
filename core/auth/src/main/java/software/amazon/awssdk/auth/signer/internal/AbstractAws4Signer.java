@@ -61,6 +61,15 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     protected SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest request,
                                                 Aws4SignerRequestParams requestParams,
                                                 T signingParams) {
+        SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
+        String contentHash = calculateContentHash(mutableRequest, signingParams);
+        return doSign(mutableRequest.build(), requestParams, signingParams, contentHash);
+    }
+
+    protected SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest request,
+                                                Aws4SignerRequestParams requestParams,
+                                                T signingParams,
+                                                String contentSha256) {
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
@@ -71,7 +80,6 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         addHostHeader(mutableRequest);
         addDateHeader(mutableRequest, requestParams.getFormattedRequestSigningDateTime());
 
-        String contentSha256 = calculateContentHash(mutableRequest, signingParams);
         mutableRequest.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
                       .filter(h -> h.equals("required"))
                       .ifPresent(h -> mutableRequest.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, contentSha256));
