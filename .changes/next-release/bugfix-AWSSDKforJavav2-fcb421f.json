@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Fix a bug in the SDK where the contents of the `AsyncRequestBody` is not included in the AWS Signature Version 4 calculation, which is required for some streaming operations such as Glacier `UploadArchive' and ClouSearch Domain `UploadDocuments`."
+}
