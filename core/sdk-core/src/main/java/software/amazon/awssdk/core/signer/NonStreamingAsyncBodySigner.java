@@ -15,26 +15,26 @@
 
 package software.amazon.awssdk.core.signer;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
- * Interface for the signer used for signing the async requests.
+ * A signer capable of including the contents of the asynchronous body into the request calculation.
  */
 @SdkPublicApi
-@FunctionalInterface
-public interface AsyncRequestBodySigner {
+public interface NonStreamingAsyncBodySigner {
     /**
-     * Method that takes in an signed request and async request body provider,
-     * and returns a transformed version the request body provider.
+     * Sign the request, including the contents of the body into the signature calculation.
      *
-     * @param request             The signed request (with Authentication header)
-     * @param asyncRequestBody    Data publisher of the request body
-     * @param executionAttributes Contains the attributes required for signing the request
-     * @return The transformed request body provider (with singing operator)
+     * @param request The HTTP request.
+     * @param requestBody The body of the request.
+     * @param executionAttributes The execution attributes that contains information information used to sign the
+     *                            request.
+     * @return A future containing the signed request.
      */
-    AsyncRequestBody signAsyncRequestBody(SdkHttpFullRequest request, AsyncRequestBody asyncRequestBody,
-        ExecutionAttributes executionAttributes);
+    CompletableFuture<SdkHttpFullRequest> signWithBody(SdkHttpFullRequest request, AsyncRequestBody requestBody,
+                                                       ExecutionAttributes executionAttributes);
 }

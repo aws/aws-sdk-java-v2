@@ -60,7 +60,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class MakeAsyncHttpRequestStage<OutputT>
-    implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
+    implements RequestPipeline<CompletableFuture<SdkHttpFullRequest>, CompletableFuture<Response<OutputT>>> {
 
     private static final Logger log = Logger.loggerFor(MakeAsyncHttpRequestStage.class);
 
@@ -81,9 +81,23 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     }
 
     @Override
-    public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request,
-                                                        RequestExecutionContext context) throws Exception {
-        return executeHttpRequest(request, context);
+    public CompletableFuture<Response<OutputT>> execute(CompletableFuture<SdkHttpFullRequest> requestFuture,
+                                                        RequestExecutionContext context) {
+        CompletableFuture<Response<OutputT>> toReturn = new CompletableFuture<>();
+
+        requestFuture.thenAccept(request -> {
+            CompletableFuture<Response<OutputT>> executeFuture = executeHttpRequest(request, context);
+            CompletableFutureUtils.forwardExceptionTo(toReturn, executeFuture);
+            executeFuture.whenComplete((r, t) -> {
+                if (t != null) {
+                    toReturn.completeExceptionally(t);
+                } else {
+                    toReturn.complete(r);
+                }
+            });
+        });
+
+        return CompletableFutureUtils.forwardExceptionTo(toReturn, requestFuture);
     }
 
     private static final class WrappedErrorForwardingResponseHandler<T>
@@ -130,6 +144,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context) {
+
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
 
         // Wrap the response handler in a layer that will notify the newly created responseFuture when the onError event

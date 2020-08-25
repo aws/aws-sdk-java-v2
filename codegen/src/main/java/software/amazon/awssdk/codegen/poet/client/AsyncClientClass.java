@@ -41,6 +41,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.NonStreamingAsyncBodyAws4Signer;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
@@ -49,7 +50,9 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
@@ -119,7 +122,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
 
-        if (model.containsRequestSigners() || model.containsRequestEventStreams()) {
+        if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
             classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
         }
 
@@ -213,9 +216,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
         builder.addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
                              CoreMetric.class, "OPERATION_NAME", opModel.getOperationName());
 
-        builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-               .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
-               .addCode(protocolSpec.responseHandler(model, opModel));
+        if (model.getMetadata().getProtocol() != Protocol.API_GATEWAY && shouldUseAsyncWithBodySigner(opModel)) {
+            builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
+        } else {
+            builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
+        }
+
+        builder.addCode(ClientClassUtils.addEndpointTraitCode(opModel))
+                .addCode(protocolSpec.responseHandler(model, opModel));
         protocolSpec.errorResponseHandler(opModel).ifPresent(builder::addCode);
         builder.addCode(eventToByteBufferPublisher(opModel));
 
@@ -359,5 +367,30 @@ public final class AsyncClientClass extends AsyncClientInterface {
         methodBuilder.addStatement("return $N", publishersName);
 
         return methodBuilder.build();
+    }
+
+    private boolean shouldUseAsyncWithBodySigner(OperationModel opModel) {
+        if (opModel.getInputShape().getRequestSignerClassFqcn() != null) {
+            return false;
+        }
+
+        AuthType authTypeForOperation = opModel.getAuthType();
+
+        if (authTypeForOperation == AuthType.IAM) {
+            authTypeForOperation = model.getMetadata().getAuthType();
+        }
+
+        return authTypeForOperation == AuthType.V4 && opModel.hasStreamingInput();
+    }
+
+    private CodeBlock applyAsyncWithBodyV4SignerOverride(OperationModel opModel) {
+        return CodeBlock.builder().addStatement("$1L = applySignerOverride($1L, $2T.create())",
+                opModel.getInput().getVariableName(), NonStreamingAsyncBodyAws4Signer.class)
+                .build();
+    }
+
+    private boolean hasStreamingV4AuthOperations() {
+        return model.getOperations().values().stream()
+                .anyMatch(this::shouldUseAsyncWithBodySigner);
     }
 }
