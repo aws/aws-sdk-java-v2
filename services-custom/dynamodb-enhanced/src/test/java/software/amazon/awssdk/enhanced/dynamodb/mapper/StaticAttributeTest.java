@@ -215,7 +215,7 @@ public class StaticAttributeTest {
                                                                          .attributeConverter(attributeConverter)
                                                                          .build();
 
-        ResolvedStaticAttribute<SimpleItem> resolvedAttribute =
+        ResolvedStaticAttribute<SimpleItem, ?> resolvedAttribute =
             staticAttribute.resolve(AttributeConverterProvider.defaultProvider());
 
         Function<SimpleItem, AttributeValue> attributeValueFunction = resolvedAttribute.attributeGetterMethod();

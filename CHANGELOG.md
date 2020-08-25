@@ -2182,6 +2182,11 @@
     - Documentation updates for RDS: creating read replicas is now supported for SQL Server DB instances
 
 # __2.11.7__ __2020-04-01__
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Added support for exposing attribute accessor and converters. 
+
 ## __AWS IoT__
   - ### Features
     - This release introduces Dimensions for AWS IoT Device Defender. Dimensions can be used in Security Profiles to collect and monitor fine-grained metrics.
@@ -2193,6 +2198,7 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated service endpoint metadata.
+
 
 # __2.11.6__ __2020-03-31__
 ## __AWS Elemental MediaStore__
