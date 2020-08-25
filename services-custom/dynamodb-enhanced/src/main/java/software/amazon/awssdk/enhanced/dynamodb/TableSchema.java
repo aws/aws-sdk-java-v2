@@ -103,6 +103,16 @@ public interface TableSchema<T> {
     AttributeValue attributeValue(T item, String key);
 
     /**
+     * Converts a single attribute value using the converter for given attribute of the modelled object.
+     *
+     * @param value The value to be converted.
+     * @param key The attribute name describing which attribute's converter to use.
+     * @return A single {@link AttributeValue} representing the value as it was an attribute of given name in the model
+     * object or null if the value is null.
+     */
+    AttributeValue convertAttributeValue(Object value, String key);
+
+    /**
      * Returns the object that describes the structure of the table being modelled by the mapper. This includes
      * information such as the table name, index keys and attribute tags.
      * @return A {@link TableMetadata} object that contains structural information about the table being modelled.

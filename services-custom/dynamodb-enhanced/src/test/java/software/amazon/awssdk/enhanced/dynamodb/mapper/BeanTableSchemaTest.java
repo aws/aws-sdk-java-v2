@@ -420,6 +420,12 @@ public class BeanTableSchemaTest {
     }
 
     @Test
+    public void convertAttributeValue_returnsValue() {
+        BeanTableSchema<SimpleBean> beanTableSchema = BeanTableSchema.create(SimpleBean.class);
+        assertThat(beanTableSchema.convertAttributeValue(123, "integerAttribute"), is(numberValue(123)));
+    }
+
+    @Test
     public void enumBean_invalidEnum() {
         BeanTableSchema<EnumBean> beanTableSchema = BeanTableSchema.create(EnumBean.class);
 
