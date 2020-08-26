@@ -1,0 +1,5 @@
+{
+    "description": "Code Generator test failures on Windows systems were fixed.", 
+    "type": "bugfix", 
+    "category": "AWS SDK for Java v2"
+}
