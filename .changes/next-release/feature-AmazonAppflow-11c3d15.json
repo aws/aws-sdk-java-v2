@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Appflow",
-    "description": "Amazon AppFlow is a fully managed integration service that securely transfers data between AWS services and SaaS applications. This update releases the first version of Amazon AppFlow APIs and SDK."
-}

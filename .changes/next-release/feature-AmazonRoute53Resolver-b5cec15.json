@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Route 53 Resolver",
-    "description": "Route 53 Resolver adds support for resolver query logs"
-}
