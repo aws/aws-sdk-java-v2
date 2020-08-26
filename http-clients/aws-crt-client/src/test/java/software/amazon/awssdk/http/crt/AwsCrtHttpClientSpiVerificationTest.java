@@ -30,6 +30,7 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -77,9 +78,11 @@ public class AwsCrtHttpClientSpiVerificationTest {
         hostResolver = new HostResolver(eventLoopGroup);
 
         client = AwsCrtAsyncHttpClient.builder()
-                .eventLoopGroup(eventLoopGroup)
-                .hostResolver(hostResolver)
-                .build();
+                                      .eventLoopGroup(eventLoopGroup)
+                                      .hostResolver(hostResolver)
+                                      .connectionHealthChecksConfiguration(b -> b.minThroughputInBytesPerSecond(4068L)
+                                                                                 .allowableThroughputFailureInterval(Duration.ofSeconds(3)))
+                                      .build();
     }
 
     @After
