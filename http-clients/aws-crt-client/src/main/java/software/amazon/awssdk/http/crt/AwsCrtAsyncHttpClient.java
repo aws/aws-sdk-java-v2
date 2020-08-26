@@ -105,11 +105,23 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
             this.initialWindowSize = builder.initialWindowSize;
             this.maxConnectionsPerEndpoint = maxConns;
-            this.monitoringOptions = builder.monitoringOptions;
+            this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthChecksConfiguration);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
 
             this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
         }
+    }
+
+    private HttpMonitoringOptions revolveHttpMonitoringOptions(ConnectionHealthChecksConfiguration config) {
+        if (config == null) {
+            return null;
+        }
+
+        HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
+        httpMonitoringOptions.setMinThroughputBytesPerSecond(config.minThroughputInBytesPerSecond());
+        int seconds = (int) config.allowableThroughputFailureInterval().getSeconds();
+        httpMonitoringOptions.setAllowableThroughputFailureIntervalSeconds(seconds);
+        return httpMonitoringOptions;
     }
 
     private HttpProxyOptions buildProxyOptions(ProxyConfiguration proxyConfiguration) {
@@ -411,10 +423,25 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * If the connection falls below this threshold for a configurable amount of time,
          * then the connection is considered unhealthy and will be shut down.
          *
-         * @param monitoringOptions The http monitoring options to use
+         * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
          */
-        Builder connectionHealthChecksConfiguration(HttpMonitoringOptions monitoringOptions);
+        Builder connectionHealthChecksConfiguration(ConnectionHealthChecksConfiguration healthChecksConfiguration);
+
+        /**
+         * A convenience method to configure the health checks for for all connections established by this client.
+         *
+         * <p>
+         * eg: you can set a throughput threshold for the a connection to be considered healthy.
+         * If the connection falls below this threshold for a configurable amount of time,
+         * then the connection is considered unhealthy and will be shut down.
+         *
+         * @param healthChecksConfigurationBuilder The health checks config builder to use
+         * @return The builder of the method chaining.
+         * @see #connectionHealthChecksConfiguration(ConnectionHealthChecksConfiguration)
+         */
+        Builder connectionHealthChecksConfiguration(Consumer<ConnectionHealthChecksConfiguration.Builder>
+                                                        healthChecksConfigurationBuilder);
 
         /**
          * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
@@ -433,7 +460,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private EventLoopGroup eventLoopGroup;
         private HostResolver hostResolver;
         private ProxyConfiguration proxyConfiguration;
-        private HttpMonitoringOptions monitoringOptions;
+        private ConnectionHealthChecksConfiguration connectionHealthChecksConfiguration;
 
         private DefaultBuilder() {
         }
@@ -493,9 +520,17 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder connectionHealthChecksConfiguration(HttpMonitoringOptions monitoringOptions) {
-            this.monitoringOptions = monitoringOptions;
+        public Builder connectionHealthChecksConfiguration(ConnectionHealthChecksConfiguration monitoringOptions) {
+            this.connectionHealthChecksConfiguration = monitoringOptions;
             return this;
+        }
+
+        @Override
+        public Builder connectionHealthChecksConfiguration(Consumer<ConnectionHealthChecksConfiguration.Builder>
+                                                                       configurationBuilder) {
+            ConnectionHealthChecksConfiguration.Builder builder = ConnectionHealthChecksConfiguration.builder();
+            configurationBuilder.accept(builder);
+            return connectionHealthChecksConfiguration(builder.build());
         }
 
         @Override
