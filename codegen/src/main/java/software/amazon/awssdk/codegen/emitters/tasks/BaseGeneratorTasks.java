@@ -16,9 +16,8 @@
 package software.amazon.awssdk.codegen.emitters.tasks;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ForkJoinTask;
 import org.slf4j.Logger;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
@@ -27,8 +26,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 
-public abstract class BaseGeneratorTasks implements Iterable<GeneratorTask> {
-
+public abstract class BaseGeneratorTasks extends GeneratorTask {
     protected final String baseDirectory;
     protected final String testDirectory;
     protected final IntermediateModel model;
@@ -66,12 +64,13 @@ public abstract class BaseGeneratorTasks implements Iterable<GeneratorTask> {
     protected abstract List<GeneratorTask> createTasks() throws Exception;
 
     @Override
-    public Iterator<GeneratorTask> iterator() {
+    protected void compute() {
         try {
             if (hasTasks()) {
-                return createTasks().iterator();
-            } else {
-                return Collections.emptyIterator();
+                String taskName = getClass().getSimpleName();
+                log.info("Starting " + taskName + "...");
+                ForkJoinTask.invokeAll(createTasks());
+                log.info("  Completed " + taskName + ".");
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

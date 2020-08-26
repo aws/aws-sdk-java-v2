@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.Writer;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 
-public final class PoetGeneratorTask implements GeneratorTask {
+public final class PoetGeneratorTask extends GeneratorTask {
 
     private final Writer writer;
     private final ClassSpec classSpec;
@@ -35,9 +35,10 @@ public final class PoetGeneratorTask implements GeneratorTask {
     }
 
     @Override
-    public void execute() {
+    public void compute() {
         try {
-            writer.write(fileHeader + "\n");
+            writer.write(fileHeader);
+            writer.write("\n");
             buildJavaFile(classSpec).writeTo(writer);
             writer.flush();
         } catch (IOException e) {

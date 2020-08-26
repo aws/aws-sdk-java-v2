@@ -41,8 +41,6 @@ class EventStreamGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        info("Emitting event stream classes");
-
         String fileHeader = model.getFileHeader();
         String modelDirectory = params.getPathProvider().getModelDirectory();
         return model.getOperations().values().stream()
