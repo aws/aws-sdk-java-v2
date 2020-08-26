@@ -29,9 +29,6 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
-/**
- * TODO: Before launch, we should iterate on the performance of this collector, because it's currently very naive.
- */
 @SdkInternalApi
 public final class DefaultMetricCollector implements MetricCollector {
     private static final Logger log = Logger.loggerFor(DefaultMetricCollector.class);

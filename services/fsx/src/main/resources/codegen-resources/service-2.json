@@ -48,7 +48,7 @@
         {"shape":"ServiceLimitExceeded"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Creates a backup of an existing Amazon FSx file system. Creating regular backups for your file system is a best practice, enabling you to restore a file system from a backup if an issue arises with the original file system.</p> <p>For Amazon FSx for Lustre file systems, you can create a backup only for file systems with the following configuration:</p> <ul> <li> <p>a Persistent deployment type</p> </li> <li> <p>is <i>not</i> linked to an Amazon S3 data respository.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/lustre-backups.html\">https://docs.aws.amazon.com/fsx/latest/LustreGuide/lustre-backups.html</a>.</p> <p>If a backup with the specified client request token exists, and the parameters match, this operation returns the description of the existing backup. If a backup specified client request token exists, and the parameters don't match, this operation returns <code>IncompatibleParameterError</code>. If a backup with the specified client request token doesn't exist, <code>CreateBackup</code> does the following: </p> <ul> <li> <p>Creates a new Amazon FSx backup with an assigned ID, and an initial lifecycle state of <code>CREATING</code>.</p> </li> <li> <p>Returns the description of the backup.</p> </li> </ul> <p>By using the idempotent operation, you can retry a <code>CreateBackup</code> operation without the risk of creating an extra backup. This approach can be useful when an initial call fails in a way that makes it unclear whether a backup was created. If you use the same client request token and the initial call created a backup, the operation returns a successful result because all the parameters are the same.</p> <p>The <code>CreateBackup</code> operation returns while the backup's lifecycle state is still <code>CREATING</code>. You can check the backup creation status by calling the <a>DescribeBackups</a> operation, which returns the backup state along with other information.</p>",
+      "documentation":"<p>Creates a backup of an existing Amazon FSx file system. Creating regular backups for your file system is a best practice, enabling you to restore a file system from a backup if an issue arises with the original file system.</p> <p>For Amazon FSx for Lustre file systems, you can create a backup only for file systems with the following configuration:</p> <ul> <li> <p>a Persistent deployment type</p> </li> <li> <p>is <i>not</i> linked to a data respository.</p> </li> </ul> <p>For more information about backing up Amazon FSx for Lustre file systems, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/using-backups-fsx.html\">Working with FSx for Lustre backups</a>.</p> <p>For more information about backing up Amazon FSx for Lustre file systems, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/using-backups.html\">Working with FSx for Windows backups</a>.</p> <p>If a backup with the specified client request token exists, and the parameters match, this operation returns the description of the existing backup. If a backup specified client request token exists, and the parameters don't match, this operation returns <code>IncompatibleParameterError</code>. If a backup with the specified client request token doesn't exist, <code>CreateBackup</code> does the following: </p> <ul> <li> <p>Creates a new Amazon FSx backup with an assigned ID, and an initial lifecycle state of <code>CREATING</code>.</p> </li> <li> <p>Returns the description of the backup.</p> </li> </ul> <p>By using the idempotent operation, you can retry a <code>CreateBackup</code> operation without the risk of creating an extra backup. This approach can be useful when an initial call fails in a way that makes it unclear whether a backup was created. If you use the same client request token and the initial call created a backup, the operation returns a successful result because all the parameters are the same.</p> <p>The <code>CreateBackup</code> operation returns while the backup's lifecycle state is still <code>CREATING</code>. You can check the backup creation status by calling the <a>DescribeBackups</a> operation, which returns the backup state along with other information.</p>",
       "idempotent":true
     },
     "CreateDataRepositoryTask":{
@@ -268,7 +268,7 @@
         {"shape":"MissingFileSystemConfiguration"},
         {"shape":"ServiceLimitExceeded"}
       ],
-      "documentation":"<p>Use this operation to update the configuration of an existing Amazon FSx file system. For an Amazon FSx for Lustre file system, you can update only the WeeklyMaintenanceStartTime. For an Amazon for Windows File Server file system, you can update the following properties:</p> <ul> <li> <p>AutomaticBackupRetentionDays</p> </li> <li> <p>DailyAutomaticBackupStartTime</p> </li> <li> <p>SelfManagedActiveDirectoryConfiguration</p> </li> <li> <p>StorageCapacity</p> </li> <li> <p>ThroughputCapacity</p> </li> <li> <p>WeeklyMaintenanceStartTime</p> </li> </ul> <p>You can update multiple properties in a single request.</p>"
+      "documentation":"<p>Use this operation to update the configuration of an existing Amazon FSx file system. You can update multiple properties in a single request.</p> <p>For Amazon FSx for Windows File Server file systems, you can update the following properties:</p> <ul> <li> <p>AutomaticBackupRetentionDays</p> </li> <li> <p>DailyAutomaticBackupStartTime</p> </li> <li> <p>SelfManagedActiveDirectoryConfiguration</p> </li> <li> <p>StorageCapacity</p> </li> <li> <p>ThroughputCapacity</p> </li> <li> <p>WeeklyMaintenanceStartTime</p> </li> </ul> <p>For Amazon FSx for Lustre file systems, you can update the following properties:</p> <ul> <li> <p>AutoImportPolicy</p> </li> <li> <p>AutomaticBackupRetentionDays</p> </li> <li> <p>DailyAutomaticBackupStartTime</p> </li> <li> <p>WeeklyMaintenanceStartTime</p> </li> </ul>"
     }
   },
   "shapes":{
@@ -379,10 +379,18 @@
       "min":3,
       "pattern":"^[^\\u0000\\u0085\\u2028\\u2029\\r\\n]{3,4357}$"
     },
+    "AutoImportPolicyType":{
+      "type":"string",
+      "enum":[
+        "NONE",
+        "NEW",
+        "NEW_CHANGED"
+      ]
+    },
     "AutomaticBackupRetentionDays":{
       "type":"integer",
-      "documentation":"<p>The number of days to retain automatic backups. Setting this to 0 disables automatic backups. You can retain automatic backups for a maximum of 35 days. The default is 0.</p>",
-      "max":35,
+      "documentation":"<p>The number of days to retain automatic backups. Setting this to 0 disables automatic backups. You can retain automatic backups for a maximum of 90 days. The default is 0.</p>",
+      "max":90,
       "min":0
     },
     "Backup":{
@@ -401,7 +409,7 @@
         },
         "Lifecycle":{
           "shape":"BackupLifecycle",
-          "documentation":"<p>The lifecycle status of the backup.</p>"
+          "documentation":"<p>The lifecycle status of the backup.</p> <ul> <li> <p> <code>AVAILABLE</code> - The backup is fully available.</p> </li> <li> <p> <code>CREATING</code> - FSx is creating the backup.</p> </li> <li> <p> <code>TRANSFERRING</code> - For Lustre file systems only; FSx is transferring the backup to S3.</p> </li> <li> <p> <code>DELETED</code> - The backup was deleted is no longer available.</p> </li> <li> <p> <code>FAILED</code> - Amazon FSx could not complete the backup.</p> </li> </ul>"
         },
         "FailureDetails":{
           "shape":"BackupFailureDetails",
@@ -409,7 +417,7 @@
         },
         "Type":{
           "shape":"BackupType",
-          "documentation":"<p>The type of the backup.</p>"
+          "documentation":"<p>The type of the file system backup.</p>"
         },
         "ProgressPercent":{"shape":"ProgressPercent"},
         "CreationTime":{
@@ -418,7 +426,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The ID of the AWS Key Management Service (AWS KMS) key used to encrypt this backup of the Amazon FSx for Windows file system's data at rest. Amazon FSx for Lustre does not support KMS encryption.</p>"
+          "documentation":"<p>The ID of the AWS Key Management Service (AWS KMS) key used to encrypt the backup of the Amazon FSx file system's data at rest. </p>"
         },
         "ResourceARN":{
           "shape":"ResourceARN",
@@ -472,10 +480,11 @@
     },
     "BackupLifecycle":{
       "type":"string",
-      "documentation":"<p>The lifecycle status of the backup.</p>",
+      "documentation":"<p>The lifecycle status of the backup.</p> <ul> <li> <p> <code>AVAILABLE</code> - The backup is fully available.</p> </li> <li> <p> <code>CREATING</code> - FSx is creating the new user-intiated backup</p> </li> <li> <p> <code>TRANSFERRING</code> - For user-initiated backups on Lustre file systems only; FSx is backing up the file system.</p> </li> <li> <p> <code>DELETED</code> - The backup was deleted is no longer available.</p> </li> <li> <p> <code>FAILED</code> - Amazon FSx could not complete the backup.</p> </li> </ul>",
       "enum":[
         "AVAILABLE",
         "CREATING",
+        "TRANSFERRING",
         "DELETED",
         "FAILED"
       ]
@@ -511,7 +520,7 @@
     "Backups":{
       "type":"list",
       "member":{"shape":"Backup"},
-      "documentation":"<p>A list of backups.</p>",
+      "documentation":"<p>A list of file system backups.</p>",
       "max":50
     },
     "BadRequest":{
@@ -586,12 +595,12 @@
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
-          "documentation":"<p>A string of up to 64 ASCII characters that Amazon FSx uses to ensure idempotent creation. This string is automatically filled on your behalf when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.</p>",
+          "documentation":"<p>(Optional) A string of up to 64 ASCII characters that Amazon FSx uses to ensure idempotent creation. This string is automatically filled on your behalf when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.</p>",
           "idempotencyToken":true
         },
         "Tags":{
           "shape":"Tags",
-          "documentation":"<p>The tags to apply to the backup at backup creation. The key value of the <code>Name</code> tag appears in the console as the backup name. If you have set <code>CopyTagsToBackups</code> to true, and you specify one or more tags using the <code>CreateBackup</code> action, no existing tags on the file system are copied from the file system to the backup.</p>"
+          "documentation":"<p>(Optional) The tags to apply to the backup at backup creation. The key value of the <code>Name</code> tag appears in the console as the backup name. If you have set <code>CopyTagsToBackups</code> to true, and you specify one or more tags using the <code>CreateBackup</code> action, no existing file system tags are copied from the file system to the backup.</p>"
         }
       },
       "documentation":"<p>The request object for the <code>CreateBackup</code> operation.</p>"
@@ -695,7 +704,7 @@
       "members":{
         "WeeklyMaintenanceStartTime":{
           "shape":"WeeklyTime",
-          "documentation":"<p>The preferred start time to perform weekly maintenance, formatted d:HH:MM in the UTC time zone, where d is the weekday number, from 1 through 7, beginning with Monday and ending with Sunday.</p>"
+          "documentation":"<p>(Optional) The preferred start time to perform weekly maintenance, formatted d:HH:MM in the UTC time zone, where d is the weekday number, from 1 through 7, beginning with Monday and ending with Sunday.</p>"
         },
         "ImportPath":{
           "shape":"ArchivePath",
@@ -711,17 +720,25 @@
         },
         "DeploymentType":{
           "shape":"LustreDeploymentType",
-          "documentation":"<p> Choose <code>SCRATCH_1</code> and <code>SCRATCH_2</code> deployment types when you need temporary storage and shorter-term processing of data. The <code>SCRATCH_2</code> deployment type provides in-transit encryption of data and higher burst throughput capacity than <code>SCRATCH_1</code>.</p> <note> <p>This option can only be set for for PERSISTENT_1 deployments types.</p> </note> <p>Choose <code>PERSISTENT_1</code> deployment type for longer-term storage and workloads and encryption of data in transit. To learn more about deployment types, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/lustre-deployment-types.html\"> FSx for Lustre Deployment Options</a>.</p> <p>Encryption of data in-transit is automatically enabled when you access a <code>SCRATCH_2</code> or <code>PERSISTENT_1</code> file system from Amazon EC2 instances that <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/data- protection.html\">support this feature</a>. (Default = <code>SCRATCH_1</code>) </p> <p>Encryption of data in-transit for <code>SCRATCH_2</code> and <code>PERSISTENT_1</code> deployment types is supported when accessed from supported instance types in supported AWS Regions. To learn more, <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/encryption-in-transit-fsxl.html\">Encrypting Data in Transit</a>.</p>"
+          "documentation":"<p> Choose <code>SCRATCH_1</code> and <code>SCRATCH_2</code> deployment types when you need temporary storage and shorter-term processing of data. The <code>SCRATCH_2</code> deployment type provides in-transit encryption of data and higher burst throughput capacity than <code>SCRATCH_1</code>.</p> <p>Choose <code>PERSISTENT_1</code> deployment type for longer-term storage and workloads and encryption of data in transit. To learn more about deployment types, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/lustre-deployment-types.html\"> FSx for Lustre Deployment Options</a>.</p> <p>Encryption of data in-transit is automatically enabled when you access a <code>SCRATCH_2</code> or <code>PERSISTENT_1</code> file system from Amazon EC2 instances that <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/data- protection.html\">support this feature</a>. (Default = <code>SCRATCH_1</code>) </p> <p>Encryption of data in-transit for <code>SCRATCH_2</code> and <code>PERSISTENT_1</code> deployment types is supported when accessed from supported instance types in supported AWS Regions. To learn more, <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/encryption-in-transit-fsxl.html\">Encrypting Data in Transit</a>.</p>"
+        },
+        "AutoImportPolicy":{
+          "shape":"AutoImportPolicyType",
+          "documentation":"<p> (Optional) When you create your file system, your existing S3 objects appear as file and directory listings. Use this property to choose how Amazon FSx keeps your file and directory listings up to date as you add or modify objects in your linked S3 bucket. <code>AutoImportPolicy</code> can have the following values:</p> <ul> <li> <p> <code>NONE</code> - (Default) AutoImport is off. Amazon FSx only updates file and directory listings from the linked S3 bucket when the file system is created. FSx does not update file and directory listings for any new or changed objects after choosing this option.</p> </li> <li> <p> <code>NEW</code> - AutoImport is on. Amazon FSx automatically imports directory listings of any new objects added to the linked S3 bucket that do not currently exist in the FSx file system. </p> </li> <li> <p> <code>NEW_CHANGED</code> - AutoImport is on. Amazon FSx automatically imports file and directory listings of any new objects added to the S3 bucket and any existing objects that are changed in the S3 bucket after you choose this option. </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/autoimport-data-repo.html\">Automatically import updates from your S3 bucket</a>.</p>"
         },
         "PerUnitStorageThroughput":{
           "shape":"PerUnitStorageThroughput",
-          "documentation":"<p> Required for the <code>PERSISTENT_1</code> deployment type, describes the amount of read and write throughput for each 1 tebibyte of storage, in MB/s/TiB. File system throughput capacity is calculated by multiplying ﬁle system storage capacity (TiB) by the PerUnitStorageThroughput (MB/s/TiB). For a 2.4 TiB ﬁle system, provisioning 50 MB/s/TiB of PerUnitStorageThroughput yields 117 MB/s of ﬁle system throughput. You pay for the amount of throughput that you provision. </p> <p>Valid values are 50, 100, 200.</p>"
+          "documentation":"<p> Required for the <code>PERSISTENT_1</code> deployment type, describes the amount of read and write throughput for each 1 tebibyte of storage, in MB/s/TiB. File system throughput capacity is calculated by multiplying ﬁle system storage capacity (TiB) by the PerUnitStorageThroughput (MB/s/TiB). For a 2.4 TiB ﬁle system, provisioning 50 MB/s/TiB of PerUnitStorageThroughput yields 120 MB/s of ﬁle system throughput. You pay for the amount of throughput that you provision. </p> <p>Valid values for SSD storage: 50, 100, 200. Valid values for HDD storage: 12, 40.</p>"
         },
         "DailyAutomaticBackupStartTime":{"shape":"DailyTime"},
         "AutomaticBackupRetentionDays":{"shape":"AutomaticBackupRetentionDays"},
         "CopyTagsToBackups":{
           "shape":"Flag",
-          "documentation":"<p>A boolean flag indicating whether tags for the file system should be copied to backups. This value defaults to false. If it's set to true, all tags for the file system are copied to all automatic and user-initiated backups where the user doesn't specify tags. If this value is true, and you specify one or more tags, only the specified tags are copied to backups. If you specify one or more tags when creating a user-initiated backup, no tags are copied from the file system, regardless of this value.</p>"
+          "documentation":"<p>(Optional) Not available to use with file systems that are linked to a data repository. A boolean flag indicating whether tags for the file system should be copied to backups. The default value is false. If it's set to true, all file system tags are copied to all automatic and user-initiated backups when the user doesn't specify any backup-specific tags. If this value is true, and you specify one or more backup tags, only the specified tags are copied to backups. If you specify one or more tags when creating a user-initiated backup, no tags are copied from the file system, regardless of this value.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/using-backups-fsx.html\">Working with backups</a>.</p>"
+        },
+        "DriveCacheType":{
+          "shape":"DriveCacheType",
+          "documentation":"<p>The type of drive cache used by PERSISTENT_1 file systems that are provisioned with HDD storage devices. This parameter is required when storage type is HDD. Set to <code>READ</code>, improve the performance for frequently accessed files and allows 20% of the total storage capacity of the file system to be cached. </p> <p>This parameter is required when <code>StorageType</code> is set to HDD.</p>"
         }
       },
       "documentation":"<p>The Lustre configuration for the file system being created. </p>"
@@ -745,11 +762,11 @@
         },
         "StorageCapacity":{
           "shape":"StorageCapacity",
-          "documentation":"<p>Sets the storage capacity of the file system that you're creating.</p> <p>For Lustre file systems:</p> <ul> <li> <p>For <code>SCRATCH_2</code> and <code>PERSISTENT_1</code> deployment types, valid values are 1.2, 2.4, and increments of 2.4 TiB.</p> </li> <li> <p>For <code>SCRATCH_1</code> deployment type, valid values are 1.2, 2.4, and increments of 3.6 TiB.</p> </li> </ul> <p>For Windows file systems:</p> <ul> <li> <p>If <code>StorageType=SSD</code>, valid values are 32 GiB - 65,536 GiB (64 TiB).</p> </li> <li> <p>If <code>StorageType=HDD</code>, valid values are 2000 GiB - 65,536 GiB (64 TiB).</p> </li> </ul>"
+          "documentation":"<p>Sets the storage capacity of the file system that you're creating.</p> <p>For Lustre file systems:</p> <ul> <li> <p>For <code>SCRATCH_2</code> and <code>PERSISTENT_1 SSD</code> deployment types, valid values are 1200 GiB, 2400 GiB, and increments of 2400 GiB.</p> </li> <li> <p>For <code>PERSISTENT HDD</code> file systems, valid values are increments of 6000 GiB for 12 MB/s/TiB file systems and increments of 1800 GiB for 40 MB/s/TiB file systems.</p> </li> <li> <p>For <code>SCRATCH_1</code> deployment type, valid values are 1200 GiB, 2400 GiB, and increments of 3600 GiB.</p> </li> </ul> <p>For Windows file systems:</p> <ul> <li> <p>If <code>StorageType=SSD</code>, valid values are 32 GiB - 65,536 GiB (64 TiB).</p> </li> <li> <p>If <code>StorageType=HDD</code>, valid values are 2000 GiB - 65,536 GiB (64 TiB).</p> </li> </ul>"
         },
         "StorageType":{
           "shape":"StorageType",
-          "documentation":"<p>Sets the storage type for the Amazon FSx for Windows file system you're creating. Valid values are <code>SSD</code> and <code>HDD</code>.</p> <ul> <li> <p>Set to <code>SSD</code> to use solid state drive storage. SSD is supported on all Windows deployment types.</p> </li> <li> <p>Set to <code>HDD</code> to use hard disk drive storage. HDD is supported on <code>SINGLE_AZ_2</code> and <code>MULTI_AZ_1</code> Windows file system deployment types. </p> </li> </ul> <p> Default value is <code>SSD</code>. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/optimize-fsx-costs.html#storage-type-options\"> Storage Type Options</a> in the <i>Amazon FSx for Windows User Guide</i>. </p>"
+          "documentation":"<p>Sets the storage type for the file system you're creating. Valid values are <code>SSD</code> and <code>HDD</code>.</p> <ul> <li> <p>Set to <code>SSD</code> to use solid state drive storage. SSD is supported on all Windows and Lustre deployment types.</p> </li> <li> <p>Set to <code>HDD</code> to use hard disk drive storage. HDD is supported on <code>SINGLE_AZ_2</code> and <code>MULTI_AZ_1</code> Windows file system deployment types, and on <code>PERSISTENT</code> Lustre file system deployment types. </p> </li> </ul> <p> Default value is <code>SSD</code>. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/optimize-fsx-costs.html#storage-type-options\"> Storage Type Options</a> in the <i>Amazon FSx for Windows User Guide</i> and <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html#storage-options\">Multiple Storage Options</a> in the <i>Amazon FSx for Lustre User Guide</i>. </p>"
         },
         "SubnetIds":{
           "shape":"SubnetIds",
@@ -813,7 +830,7 @@
         },
         "AutomaticBackupRetentionDays":{
           "shape":"AutomaticBackupRetentionDays",
-          "documentation":"<p>The number of days to retain automatic backups. The default is to retain backups for 7 days. Setting this value to 0 disables the creation of automatic backups. The maximum retention period for backups is 35 days.</p>"
+          "documentation":"<p>The number of days to retain automatic backups. The default is to retain backups for 7 days. Setting this value to 0 disables the creation of automatic backups. The maximum retention period for backups is 90 days.</p>"
         },
         "CopyTagsToBackups":{
           "shape":"Flag",
@@ -843,6 +860,10 @@
     "DataRepositoryConfiguration":{
       "type":"structure",
       "members":{
+        "Lifecycle":{
+          "shape":"DataRepositoryLifecycle",
+          "documentation":"<p>Describes the state of the file system's S3 durable data repository, if it is configured with an S3 repository. The lifecycle can have the following values:</p> <ul> <li> <p> <code>CREATING</code> - The data repository configuration between the FSx file system and the linked S3 data repository is being created. The data repository is unavailable.</p> </li> <li> <p> <code>AVAILABLE</code> - The data repository is available for use.</p> </li> <li> <p> <code>MISCONFIGURED</code> - Amazon FSx cannot automatically import updates from the S3 bucket until the data repository configuration is corrected. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/troubleshooting.html#troubleshooting-misconfigured-data-repository\">Troubleshooting a Misconfigured linked S3 bucket</a>. </p> </li> <li> <p> <code>UPDATING</code> - The data repository is undergoing a customer initiated update and availability may be impacted.</p> </li> </ul>"
+        },
         "ImportPath":{
           "shape":"ArchivePath",
           "documentation":"<p>The import path to the Amazon S3 bucket (and optional prefix) that you're using as the data repository for your FSx for Lustre file system, for example <code>s3://import-bucket/optional-prefix</code>. If a prefix is specified after the Amazon S3 bucket name, only object keys with that prefix are loaded into the file system.</p>"
@@ -854,9 +875,31 @@
         "ImportedFileChunkSize":{
           "shape":"Megabytes",
           "documentation":"<p>For files imported from a data repository, this value determines the stripe count and maximum amount of data per file (in MiB) stored on a single physical disk. The maximum number of disks that a single file can be striped across is limited by the total number of disks that make up the file system.</p> <p>The default chunk size is 1,024 MiB (1 GiB) and can go as high as 512,000 MiB (500 GiB). Amazon S3 objects have a maximum size of 5 TB.</p>"
-        }
+        },
+        "AutoImportPolicy":{
+          "shape":"AutoImportPolicyType",
+          "documentation":"<p>Describes the file system's linked S3 data repository's <code>AutoImportPolicy</code>. The AutoImportPolicy configures how Amazon FSx keeps your file and directory listings up to date as you add or modify objects in your linked S3 bucket. <code>AutoImportPolicy</code> can have the following values:</p> <ul> <li> <p> <code>NONE</code> - (Default) AutoImport is off. Amazon FSx only updates file and directory listings from the linked S3 bucket when the file system is created. FSx does not update file and directory listings for any new or changed objects after choosing this option.</p> </li> <li> <p> <code>NEW</code> - AutoImport is on. Amazon FSx automatically imports directory listings of any new objects added to the linked S3 bucket that do not currently exist in the FSx file system. </p> </li> <li> <p> <code>NEW_CHANGED</code> - AutoImport is on. Amazon FSx automatically imports file and directory listings of any new objects added to the S3 bucket and any existing objects that are changed in the S3 bucket after you choose this option. </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/autoimport-data-repo.html\">Automatically import updates from your S3 bucket</a>.</p>"
+        },
+        "FailureDetails":{"shape":"DataRepositoryFailureDetails"}
       },
       "documentation":"<p>The data repository configuration object for Lustre file systems returned in the response of the <code>CreateFileSystem</code> operation.</p>"
+    },
+    "DataRepositoryFailureDetails":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>Provides detailed information about the data respository if its <code>Lifecycle</code> is set to <code>MISCONFIGURED</code>.</p>"
+    },
+    "DataRepositoryLifecycle":{
+      "type":"string",
+      "enum":[
+        "CREATING",
+        "AVAILABLE",
+        "MISCONFIGURED",
+        "UPDATING",
+        "DELETING"
+      ]
     },
     "DataRepositoryTask":{
       "type":"structure",
@@ -1267,6 +1310,13 @@
       "max":2,
       "min":1
     },
+    "DriveCacheType":{
+      "type":"string",
+      "enum":[
+        "NONE",
+        "READ"
+      ]
+    },
     "EndTime":{"type":"timestamp"},
     "ErrorMessage":{
       "type":"string",
@@ -1592,7 +1642,7 @@
         },
         "PerUnitStorageThroughput":{
           "shape":"PerUnitStorageThroughput",
-          "documentation":"<p> Per unit storage throughput represents the megabytes per second of read or write throughput per 1 tebibyte of storage provisioned. File system throughput capacity is equal to Storage capacity (TiB) * PerUnitStorageThroughput (MB/s/TiB). This option is only valid for <code>PERSISTENT_1</code> deployment types. Valid values are 50, 100, 200. </p>"
+          "documentation":"<p> Per unit storage throughput represents the megabytes per second of read or write throughput per 1 tebibyte of storage provisioned. File system throughput capacity is equal to Storage capacity (TiB) * PerUnitStorageThroughput (MB/s/TiB). This option is only valid for <code>PERSISTENT_1</code> deployment types. </p> <p>Valid values for SSD storage: 50, 100, 200. Valid values for HDD storage: 12, 40. </p>"
         },
         "MountName":{
           "shape":"LustreFileSystemMountName",
@@ -1603,6 +1653,10 @@
         "CopyTagsToBackups":{
           "shape":"Flag",
           "documentation":"<p>A boolean flag indicating whether tags on the file system should be copied to backups. If it's set to true, all tags on the file system are copied to all automatic backups and any user-initiated backups where the user doesn't specify any tags. If this value is true, and you specify one or more tags, only the specified tags are copied to backups. If you specify one or more tags when creating a user-initiated backup, no tags are copied from the file system, regardless of this value. (Default = false)</p>"
+        },
+        "DriveCacheType":{
+          "shape":"DriveCacheType",
+          "documentation":"<p>The type of drive cache used by PERSISTENT_1 file systems that are provisioned with HDD storage devices. This parameter is required when storage type is HDD. Set to <code>READ</code>, improve the performance for frequently accessed files and allows 20% of the total storage capacity of the file system to be cached. </p> <p>This parameter is required when <code>StorageType</code> is set to HDD.</p>"
         }
       },
       "documentation":"<p>The configuration for the Amazon FSx for Lustre file system.</p>"
@@ -1685,7 +1739,7 @@
     "PerUnitStorageThroughput":{
       "type":"integer",
       "max":200,
-      "min":50
+      "min":12
     },
     "ProgressPercent":{
       "type":"integer",
@@ -1892,6 +1946,10 @@
     "SucceededCount":{"type":"long"},
     "Tag":{
       "type":"structure",
+      "required":[
+        "Key",
+        "Value"
+      ],
       "members":{
         "Key":{
           "shape":"TagKey",
@@ -2005,10 +2063,14 @@
       "members":{
         "WeeklyMaintenanceStartTime":{
           "shape":"WeeklyTime",
-          "documentation":"<p>The preferred start time to perform weekly maintenance, formatted d:HH:MM in the UTC time zone. d is the weekday number, from 1 through 7, beginning with Monday and ending with Sunday.</p>"
+          "documentation":"<p>(Optional) The preferred start time to perform weekly maintenance, formatted d:HH:MM in the UTC time zone. d is the weekday number, from 1 through 7, beginning with Monday and ending with Sunday.</p>"
         },
         "DailyAutomaticBackupStartTime":{"shape":"DailyTime"},
-        "AutomaticBackupRetentionDays":{"shape":"AutomaticBackupRetentionDays"}
+        "AutomaticBackupRetentionDays":{"shape":"AutomaticBackupRetentionDays"},
+        "AutoImportPolicy":{
+          "shape":"AutoImportPolicyType",
+          "documentation":"<p> (Optional) When you create your file system, your existing S3 objects appear as file and directory listings. Use this property to choose how Amazon FSx keeps your file and directory listing up to date as you add or modify objects in your linked S3 bucket. <code>AutoImportPolicy</code> can have the following values:</p> <ul> <li> <p> <code>NONE</code> - (Default) AutoImport is off. Amazon FSx only updates file and directory listings from the linked S3 bucket when the file system is created. FSx does not update the file and directory listing for any new or changed objects after choosing this option.</p> </li> <li> <p> <code>NEW</code> - AutoImport is on. Amazon FSx automatically imports directory listings of any new objects added to the linked S3 bucket that do not currently exist in the FSx file system. </p> </li> <li> <p> <code>NEW_CHANGED</code> - AutoImport is on. Amazon FSx automatically imports file and directory listings of any new objects added to the S3 bucket and any existing objects that are changed in the S3 bucket after you choose this option. </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/autoimport-data-repo.html\">Automatically import updates from your S3 bucket</a>.</p>"
+        }
       },
       "documentation":"<p>The configuration object for Amazon FSx for Lustre file systems used in the <code>UpdateFileSystem</code> operation.</p>"
     },
@@ -2060,7 +2122,7 @@
         },
         "AutomaticBackupRetentionDays":{
           "shape":"AutomaticBackupRetentionDays",
-          "documentation":"<p>The number of days to retain automatic daily backups. Setting this to zero (0) disables automatic daily backups. You can retain automatic daily backups for a maximum of 35 days. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/using-backups.html#automatic-backups\">Working with Automatic Daily Backups</a>.</p>"
+          "documentation":"<p>The number of days to retain automatic daily backups. Setting this to zero (0) disables automatic daily backups. You can retain automatic daily backups for a maximum of 90 days. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/using-backups.html#automatic-backups\">Working with Automatic Daily Backups</a>.</p>"
         },
         "ThroughputCapacity":{
           "shape":"MegabytesPerSecond",
@@ -2137,7 +2199,7 @@
         },
         "AutomaticBackupRetentionDays":{
           "shape":"AutomaticBackupRetentionDays",
-          "documentation":"<p>The number of days to retain automatic backups. Setting this to 0 disables automatic backups. You can retain automatic backups for a maximum of 35 days.</p>"
+          "documentation":"<p>The number of days to retain automatic backups. Setting this to 0 disables automatic backups. You can retain automatic backups for a maximum of 90 days.</p>"
         },
         "CopyTagsToBackups":{
           "shape":"Flag",

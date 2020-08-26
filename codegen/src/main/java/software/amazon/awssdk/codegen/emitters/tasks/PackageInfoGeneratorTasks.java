@@ -45,7 +45,6 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
                           + "package %s;",
                           metadata.getDocumentation(),
                           metadata.getFullClientPackageName());
-        info("Emitting package info file");
         return Collections.singletonList(new SimpleGeneratorTask(baseDirectory,
                                                                  "package-info.java",
                                                                  model.getFileHeader(),

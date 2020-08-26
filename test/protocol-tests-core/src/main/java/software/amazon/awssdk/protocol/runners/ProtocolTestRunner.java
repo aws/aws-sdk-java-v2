@@ -60,19 +60,23 @@ public final class ProtocolTestRunner {
 
     public void runTests(List<TestCase> tests) throws Exception {
         for (TestCase testCase : tests) {
-            log.info("Running test: {}", testCase.getDescription());
-            switch (testCase.getWhen().getAction()) {
-                case MARSHALL:
-                    marshallingTestRunner.runTest(testCase);
-                    break;
-                case UNMARSHALL:
-                    unmarshallingTestRunner.runTest(testCase);
-                    break;
-                default:
-                    throw new IllegalArgumentException(
-                            "Unsupported action " + testCase.getWhen().getAction());
-            }
+            runTest(testCase);
         }
         clientReflector.close();
+    }
+
+    public void runTest(TestCase testCase) throws Exception {
+        log.info("Running test: {}", testCase.getDescription());
+        switch (testCase.getWhen().getAction()) {
+            case MARSHALL:
+                marshallingTestRunner.runTest(testCase);
+                break;
+            case UNMARSHALL:
+                unmarshallingTestRunner.runTest(testCase);
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        "Unsupported action " + testCase.getWhen().getAction());
+        }
     }
 }

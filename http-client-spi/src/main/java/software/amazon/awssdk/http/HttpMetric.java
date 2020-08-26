@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
@@ -24,10 +23,7 @@ import software.amazon.awssdk.metrics.SdkMetric;
 /**
  * Metrics collected by HTTP clients for HTTP/1 and HTTP/2 operations. See {@link Http2Metric} for metrics that are only available
  * on HTTP/2 operations.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
-@SdkPreviewApi
 @SdkPublicApi
 public final class HttpMetric {
     /**

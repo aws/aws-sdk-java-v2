@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class ExceptionModel {
 
     private String exceptionName;
@@ -25,9 +23,10 @@ public class ExceptionModel {
 
     private Integer httpStatusCode;
 
-    public ExceptionModel(
-            @JsonProperty("exceptionName") String exceptionName) {
-        super();
+    public ExceptionModel() {
+    }
+
+    public ExceptionModel(String exceptionName) {
         this.exceptionName = exceptionName;
     }
 

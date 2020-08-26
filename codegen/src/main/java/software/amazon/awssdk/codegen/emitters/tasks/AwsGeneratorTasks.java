@@ -15,32 +15,16 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import java.util.Iterator;
-import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
-import software.amazon.awssdk.codegen.utils.CompositeIterable;
 
 /**
  * Generator tasks for AWS style clients.
  */
-public class AwsGeneratorTasks implements Iterable<GeneratorTask> {
-    private final Iterable<GeneratorTask> tasks;
-
+public class AwsGeneratorTasks extends CompositeGeneratorTask {
     public AwsGeneratorTasks(GeneratorTaskParams params) {
-        this.tasks = new CompositeIterable<>(new CommonGeneratorTasks(params),
-                                             createAwsTasks(params));
-
-    }
-
-    private Iterable<GeneratorTask> createAwsTasks(GeneratorTaskParams params) {
-        // TODO Move AsyncClientGeneratorTasks to common generic tasks (mostly CommonGeneratorTasks class)
-        return new CompositeIterable<>(new AsyncClientGeneratorTasks(params),
-                                       new PaginatorsGeneratorTasks(params),
-                                       new EventStreamGeneratorTasks(params));
-    }
-
-    @Override
-    public Iterator<GeneratorTask> iterator() {
-        return tasks.iterator();
+        super(new CommonGeneratorTasks(params),
+              new AsyncClientGeneratorTasks(params),
+              new PaginatorsGeneratorTasks(params),
+              new EventStreamGeneratorTasks(params));
     }
 }

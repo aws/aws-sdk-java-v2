@@ -297,7 +297,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private void collectPoolMetric(MetricCollector metricCollector) {
         HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
-        if (cm instanceof PoolingHttpClientConnectionManager) {
+        if (cm instanceof PoolingHttpClientConnectionManager && !(metricCollector instanceof NoOpMetricCollector)) {
             PoolingHttpClientConnectionManager poolingCm = (PoolingHttpClientConnectionManager) cm;
             PoolStats totalStats = poolingCm.getTotalStats();
             metricCollector.reportMetric(MAX_CONCURRENCY, totalStats.getMax());

@@ -25,6 +25,7 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyClientH1NonTlsBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
@@ -77,6 +78,8 @@ public class BenchmarkRunner {
             EnhancedClientQueryV1MapperComparisonBenchmark.class.getSimpleName()
     );
 
+    private static final List<String> METRIC_BENCHMARKS = Arrays.asList(MetricsEnabledBenchmark.class.getSimpleName());
+
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
 
     private final List<String> benchmarksToRun;
@@ -93,7 +96,9 @@ public class BenchmarkRunner {
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
         benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
         benchmarksToRun.addAll(COLD_START_BENCHMARKS);
-        benchmarksToRun.addAll(MAPPER_BENCHMARKS);
+
+        log.info(() -> "Skipping tests, to reduce benchmark times: \n" + MAPPER_BENCHMARKS + "\n" + METRIC_BENCHMARKS);
+
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
 

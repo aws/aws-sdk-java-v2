@@ -15,33 +15,18 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import java.util.Iterator;
-import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
-import software.amazon.awssdk.codegen.utils.CompositeIterable;
 
 /**
  * Common generator tasks.
  */
-class CommonGeneratorTasks implements Iterable<GeneratorTask> {
-
-    private final Iterable<GeneratorTask> tasks;
-
+class CommonGeneratorTasks extends CompositeGeneratorTask {
     CommonGeneratorTasks(GeneratorTaskParams params) {
-        this.tasks = createTasks(params);
-    }
-
-    private Iterable<GeneratorTask> createTasks(GeneratorTaskParams params) {
-        return new CompositeIterable<>(new CommonClientGeneratorTasks(params),
-                                       new SyncClientGeneratorTasks(params),
-                                       new MarshallerGeneratorTasks(params),
-                                       new ModelClassGeneratorTasks(params),
-                                       new PackageInfoGeneratorTasks(params),
-                                       new BaseExceptionClassGeneratorTasks(params));
-    }
-
-    @Override
-    public Iterator<GeneratorTask> iterator() {
-        return tasks.iterator();
+        super(new CommonClientGeneratorTasks(params),
+              new SyncClientGeneratorTasks(params),
+              new MarshallerGeneratorTasks(params),
+              new ModelClassGeneratorTasks(params),
+              new PackageInfoGeneratorTasks(params),
+              new BaseExceptionClassGeneratorTasks(params));
     }
 }

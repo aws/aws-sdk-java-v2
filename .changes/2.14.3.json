@@ -1,0 +1,26 @@
+{
+    "version": "2.14.3",
+    "date": "2020-08-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "description": "Documentation updates for Amazon FSx"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "description": "Documentation updates for chime"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "description": "Customers can now create Amazon API Gateway HTTP APIs that route requests to AWS AppConfig, Amazon EventBridge, Amazon Kinesis Data Streams, Amazon SQS, and AWS Step Functions."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Streaming Client",
+            "description": "Fix for CRC not working correctly for compressed responses"
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "version": "2.13.72",
+    "date": "2020-08-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Remove CoIP Auto-Assign feature references."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Savings Plans",
+            "description": "Updates to the list of services supported by this API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "Starting today, you can further control orchestration of your ETL workloads in AWS Glue by specifying the maximum number of concurrent runs for a Glue workflow."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

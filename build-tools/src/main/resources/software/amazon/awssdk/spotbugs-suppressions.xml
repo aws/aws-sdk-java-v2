@@ -16,6 +16,20 @@
 
 <FindBugsFilter>
 
+    <!-- Ignore Java "Serializable" problems in the code generator. -->
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.codegen.*"/>
+        <Bug pattern="SE_BAD_FIELD,SE_NO_SERIALVERSIONID,SE_BAD_FIELD_STORE"/>
+    </Match>
+
+
+    <!-- Ignore "confusing name" problems that result of needing to match the inconsistent naming in
+    the service model. -->
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.codegen\.model.*"/>
+        <Bug pattern="NM_CONFUSING"/>
+    </Match>
+
     <Match>
         <!-- PZLA_PREFER_ZERO_LENGTH_ARRAYS: This rule causes many false positives, because sometimes we want to return
              null for arrays. -->
@@ -30,6 +44,13 @@
             <Class name="software.amazon.awssdk.protocols.json.JsonContent" />
         </Or>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Explicitly an unsafe option that the customer must opt into. -->
+        <Class name="software.amazon.awssdk.core.BytesWrapper" />
+        <Method name="asByteArrayUnsafe" />
+        <Bug pattern="EI_EXPOSE_REP" />
     </Match>
 
     <!-- Delegate closes input stream. -->
