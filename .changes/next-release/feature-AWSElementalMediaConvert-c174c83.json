@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "description": "AWS Elemental MediaConvert SDK has added support for WebM DASH outputs as well as H.264 4:2:2 10-bit output in MOV and MP4."
+}
