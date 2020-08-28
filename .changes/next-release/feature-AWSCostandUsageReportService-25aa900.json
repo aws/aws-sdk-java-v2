@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cost and Usage Report Service",
+    "description": "This release add MONTHLY as the new supported TimeUnit for ReportDefinition."
+}
