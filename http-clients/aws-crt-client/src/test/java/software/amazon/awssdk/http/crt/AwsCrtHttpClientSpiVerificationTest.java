@@ -74,12 +74,8 @@ public class AwsCrtHttpClientSpiVerificationTest {
         CrtResource.waitForNoResources();
 
         int numThreads = Runtime.getRuntime().availableProcessors();
-        eventLoopGroup = new EventLoopGroup(numThreads);
-        hostResolver = new HostResolver(eventLoopGroup);
 
         client = AwsCrtAsyncHttpClient.builder()
-                                      .eventLoopGroup(eventLoopGroup)
-                                      .hostResolver(hostResolver)
                                       .connectionHealthChecksConfiguration(b -> b.minThroughputInBytesPerSecond(4068L)
                                                                                  .allowableThroughputFailureInterval(Duration.ofSeconds(3)))
                                       .build();
@@ -88,8 +84,6 @@ public class AwsCrtHttpClientSpiVerificationTest {
     @After
     public void tearDown() {
         client.close();
-        hostResolver.close();
-        eventLoopGroup.close();
         CrtResource.waitForNoResources();
     }
 

@@ -17,8 +17,6 @@ package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.SdkAsyncHttpClientH1TestSuite;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -30,15 +28,8 @@ public class H1ServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
 
     @Override
     protected SdkAsyncHttpClient setupClient() {
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        try (EventLoopGroup eventLoopGroup = new EventLoopGroup(numThreads);
-             HostResolver hostResolver = new HostResolver(eventLoopGroup)) {
-
-            return AwsCrtAsyncHttpClient.builder()
-                                        .eventLoopGroup(eventLoopGroup)
-                                        .hostResolver(hostResolver)
-                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
-        }
+        return AwsCrtAsyncHttpClient.builder()
+                                    .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
 
 }

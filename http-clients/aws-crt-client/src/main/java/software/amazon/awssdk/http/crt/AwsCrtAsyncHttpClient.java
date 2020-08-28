@@ -52,6 +52,8 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.internal.AwsCrtAsyncHttpStreamAdapter;
+import software.amazon.awssdk.http.crt.internal.SharedResourcesManager;
+import software.amazon.awssdk.http.crt.internal.SharedResourcesManager.SharedCrtResources;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -89,27 +91,51 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.isPositive(maxConns, "maxConns");
         Validate.notNull(builder.cipherPreference, "cipherPreference");
         Validate.isPositive(builder.initialWindowSize, "initialWindowSize");
-        Validate.notNull(builder.eventLoopGroup, "eventLoopGroup");
-        Validate.notNull(builder.hostResolver, "hostResolver");
 
-        try (ClientBootstrap clientBootstrap = new ClientBootstrap(builder.eventLoopGroup, builder.hostResolver);
-             SocketOptions clientSocketOptions = new SocketOptions();
-             TlsContextOptions clientTlsContextOptions = TlsContextOptions.createDefaultClient() // NOSONAR
-                     .withCipherPreference(builder.cipherPreference)
-                     .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
-             TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions)) {
+        ClientBootstrap clientBootstrap = resolveClientBootstrap(builder);
+        SocketOptions clientSocketOptions = new SocketOptions();
+        boolean verifyPeer = !config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES);
 
-            this.bootstrap = registerOwnedResource(clientBootstrap);
-            this.socketOptions = registerOwnedResource(clientSocketOptions);
-            this.tlsContext = registerOwnedResource(clientTlsContext);
+        TlsContextOptions clientTlsContextOptions =
+            TlsContextOptions.createDefaultClient()
+                             .withCipherPreference(builder.cipherPreference)
+                             .withVerifyPeer(verifyPeer);
+        TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions);
 
-            this.initialWindowSize = builder.initialWindowSize;
-            this.maxConnectionsPerEndpoint = maxConns;
-            this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthChecksConfiguration);
-            this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
+        this.bootstrap = registerOwnedResource(clientBootstrap);
+        this.socketOptions = registerOwnedResource(clientSocketOptions);
+        this.tlsContext = registerOwnedResource(clientTlsContext);
+        registerOwnedResource(clientTlsContextOptions);
 
-            this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
+        this.initialWindowSize = builder.initialWindowSize;
+        this.maxConnectionsPerEndpoint = maxConns;
+        this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthChecksConfiguration);
+        this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
+
+        this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
+    }
+
+    private ClientBootstrap resolveClientBootstrap(DefaultBuilder builder) {
+        Validate.isTrue(builder.eventLoopGroup == null || builder.eventLoopGroupBuilder == null,
+                        "The eventLoopGroup and the eventLoopGroupFactory can't both be configured.");
+
+        if (builder.eventLoopGroup != null) {
+            EventLoopGroup eventLoopGroup = builder.eventLoopGroup.eventLoopGroup();
+            HostResolver hostResolver = registerOwnedResource(new HostResolver(eventLoopGroup));
+            return new ClientBootstrap(eventLoopGroup, hostResolver);
         }
+
+        if (builder.eventLoopGroupBuilder != null) {
+            EventLoopGroup customizedEventLoopGroup =
+                registerOwnedResource(builder.eventLoopGroupBuilder.build().eventLoopGroup());
+            HostResolver hostResolver = registerOwnedResource(new HostResolver(customizedEventLoopGroup));
+            return new ClientBootstrap(customizedEventLoopGroup, hostResolver);
+        }
+
+        SharedCrtResources sharedCrtResources = SharedResourcesManager.sharedCrtResource();
+        registerOwnedResource(sharedCrtResources.referenceCountingCrtResource());
+        return new ClientBootstrap(sharedCrtResources.eventLoopGroup(),
+                                   sharedCrtResources.hostResolver());
     }
 
     private HttpMonitoringOptions revolveHttpMonitoringOptions(ConnectionHealthChecksConfiguration config) {
@@ -158,7 +184,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      */
     private <T extends CrtResource> T registerOwnedResource(T subresource) {
         if (subresource != null) {
-            subresource.addRef();
             ownedSubResources.push(subresource);
         }
         return subresource;
@@ -387,18 +412,42 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder readBufferSize(int readBufferSize);
 
         /**
-         * The AWS CRT EventLoopGroup to use for this Client.
-         * @param eventLoopGroup The AWS CRT EventLoopGroup to use for this client.
-         * @return The builder of the method chaining.
+         * Sets the {@link SdkEventLoopGroup} to use for the {@link AwsCrtAsyncHttpClient}. This event loop group may be shared
+         * across multiple HTTP clients for better resource and thread utilization. The preferred way to create
+         * an {@link EventLoopGroup} is by using the {@link SdkEventLoopGroup#builder()} method which will choose the
+         * optimal implementation per the platform.
+         *
+         * <p>The {@link EventLoopGroup} <b>MUST</b> be closed by the caller when it is ready to
+         * be disposed. The SDK will not close the {@link EventLoopGroup} when the HTTP client is closed. See
+         * {@link EventLoopGroup#close()} ()} to properly close the event loop group.</p>
+         *
+         * <p>This configuration method is only recommended when you wish to share an {@link EventLoopGroup}
+         * with multiple clients. If you do not need to share the group it is recommended to use
+         * {@link #eventLoopGroupBuilder(SdkEventLoopGroup.Builder)} as the SDK will handle its cleanup when
+         * the HTTP client is closed.</p>
+         *
+         * @param eventLoopGroup Netty {@link SdkEventLoopGroup} to use.
+         * @return This builder for method chaining.
+         * @see SdkEventLoopGroup
          */
-        Builder eventLoopGroup(EventLoopGroup eventLoopGroup);
+        Builder eventLoopGroup(SdkEventLoopGroup eventLoopGroup);
 
         /**
-         * The AWS CRT HostResolver to use for this Client.
-         * @param hostResolver The AWS CRT HostResolver to use for this client.
-         * @return The builder of the method chaining.
+         * Sets the {@link SdkEventLoopGroup.Builder} which will be used to create the {@link SdkEventLoopGroup} for
+         * {@link AwsCrtAsyncHttpClient}. This allows for custom configuration of the Netty {@link EventLoopGroup}.
+         *
+         * <p>The {@link EventLoopGroup} created by the builder is managed by the SDK and will be shutdown
+         * when the HTTP client is closed.</p>
+         *
+         * <p>This is the preferred configuration method when you just want to customize the {@link EventLoopGroup}
+         * but not share it across multiple HTTP clients. If you do wish to share an {@link EventLoopGroup}, see
+         * {@link #eventLoopGroup(SdkEventLoopGroup)}</p>
+         *
+         * @param eventLoopGroupBuilder {@link SdkEventLoopGroup.Builder} to use.
+         * @return This builder for method chaining.
+         * @see SdkEventLoopGroup.Builder
          */
-        Builder hostResolver(HostResolver hostResolver);
+        Builder eventLoopGroupBuilder(SdkEventLoopGroup.Builder eventLoopGroupBuilder);
 
         /**
          * Sets the http proxy configuration to use for this client.
@@ -457,8 +506,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
         private int initialWindowSize = DEFAULT_STREAM_WINDOW_SIZE;
-        private EventLoopGroup eventLoopGroup;
-        private HostResolver hostResolver;
+        private SdkEventLoopGroup eventLoopGroup;
+        private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
         private ProxyConfiguration proxyConfiguration;
         private ConnectionHealthChecksConfiguration connectionHealthChecksConfiguration;
 
@@ -502,14 +551,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder eventLoopGroup(EventLoopGroup eventLoopGroup) {
+        public Builder eventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
             this.eventLoopGroup = eventLoopGroup;
             return this;
         }
 
         @Override
-        public Builder hostResolver(HostResolver hostResolver) {
-            this.hostResolver = hostResolver;
+        public Builder eventLoopGroupBuilder(SdkEventLoopGroup.Builder eventLoopGroupBuilder) {
+            this.eventLoopGroupBuilder = eventLoopGroupBuilder;
             return this;
         }
 

@@ -34,8 +34,6 @@ public class AwsCrtClientKmsIntegrationTest {
     private static String KEY_ALIAS = "alias/aws-sdk-java-v2-integ-test";
     private static Region REGION = Region.US_EAST_1;
     private static List<SdkAsyncHttpClient> awsCrtHttpClients = new ArrayList<>();
-    private static EventLoopGroup eventLoopGroup;
-    private static HostResolver hostResolver;
 
     @Before
     public void setup() {
@@ -47,14 +45,7 @@ public class AwsCrtClientKmsIntegrationTest {
                 continue;
             }
 
-            int numThreads = 1;
-            eventLoopGroup = new EventLoopGroup(numThreads);
-            hostResolver = new HostResolver(eventLoopGroup);
-
-            SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                    .eventLoopGroup(eventLoopGroup)
-                    .hostResolver(hostResolver)
-                    .build();
+            SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.create();
 
             awsCrtHttpClients.add(awsCrtHttpClient);
         }
@@ -63,8 +54,6 @@ public class AwsCrtClientKmsIntegrationTest {
 
     @After
     public void tearDown() {
-        hostResolver.close();
-        eventLoopGroup.close();
         CrtResource.waitForNoResources();
     }
 

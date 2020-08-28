@@ -52,8 +52,6 @@ public class AwsCrtClientS3IntegrationTest {
 
     private static Region REGION = Region.US_EAST_1;
 
-    private static EventLoopGroup eventLoopGroup;
-    private static HostResolver hostResolver;
     private static SdkAsyncHttpClient crtClient;
 
     private static S3AsyncClient s3;
@@ -62,13 +60,7 @@ public class AwsCrtClientS3IntegrationTest {
     public void setup() {
         CrtResource.waitForNoResources();
 
-        int numThreads = 4;
-        eventLoopGroup = new EventLoopGroup(numThreads);
-        hostResolver = new HostResolver(eventLoopGroup);
-
         crtClient = AwsCrtAsyncHttpClient.builder()
-                .eventLoopGroup(eventLoopGroup)
-                .hostResolver(hostResolver)
                 .build();
 
         s3 = S3AsyncClient.builder()
@@ -82,8 +74,6 @@ public class AwsCrtClientS3IntegrationTest {
     public void tearDown() {
         s3.close();
         crtClient.close();
-        hostResolver.close();
-        eventLoopGroup.close();
         CrtResource.waitForNoResources();
     }
 

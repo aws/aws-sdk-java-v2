@@ -16,6 +16,8 @@
 package software.amazon.awssdk.http;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static software.amazon.awssdk.utils.StringUtils.isBlank;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.reactivex.Flowable;
@@ -23,11 +25,19 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
 public class HttpTestUtils {
     private HttpTestUtils() {
@@ -84,5 +94,44 @@ public class HttpTestUtils {
                 .build();
 
         return client.execute(req);
+    }
+
+    public static SdkHttpContentPublisher createProvider(String body) {
+        Stream<ByteBuffer> chunks = splitStringBySize(body).stream()
+                                                           .map(chunk -> ByteBuffer.wrap(chunk.getBytes(UTF_8)));
+        return new SdkHttpContentPublisher() {
+
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of((long) body.length());
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                s.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        chunks.forEach(s::onNext);
+                        s.onComplete();
+                    }
+
+                    @Override
+                    public void cancel() {
+
+                    }
+                });
+            }
+        };
+    }
+
+    private static Collection<String> splitStringBySize(String str) {
+        if (isBlank(str)) {
+            return Collections.emptyList();
+        }
+        ArrayList<String> split = new ArrayList<>();
+        for (int i = 0; i <= str.length() / 1000; i++) {
+            split.add(str.substring(i * 1000, Math.min((i + 1) * 1000, str.length())));
+        }
+        return split;
     }
 }

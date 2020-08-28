@@ -99,10 +99,8 @@ public class AwsCrtClientCallingPatternIntegrationTest {
     private boolean testWithNewClient(int eventLoopSize, int numberOfRequests) {
 
         try (EventLoopGroup eventLoopGroup = new EventLoopGroup(eventLoopSize);
-             HostResolver hostResolver = new HostResolver(eventLoopGroup);
              SdkAsyncHttpClient newAwsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                .eventLoopGroup(eventLoopGroup)
-                .hostResolver(hostResolver)
+                .eventLoopGroup(SdkEventLoopGroup.create(eventLoopGroup))
                 .build()) {
             try (KmsAsyncClient newAsyncKMSClient = KmsAsyncClient.builder()
                     .region(REGION)
@@ -163,11 +161,9 @@ public class AwsCrtClientCallingPatternIntegrationTest {
                     .build();
 
             EventLoopGroup eventLoopGroup = new EventLoopGroup(eventLoopSize);
-            HostResolver hostResolver = new HostResolver(eventLoopGroup);
 
             SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                    .eventLoopGroup(eventLoopGroup)
-                    .hostResolver(hostResolver)
+                    .eventLoopGroup(SdkEventLoopGroup.create(eventLoopGroup))
                     .buildWithDefaults(attributes);
 
             KmsAsyncClient sharedAsyncKMSClient = KmsAsyncClient.builder()
@@ -203,7 +199,6 @@ public class AwsCrtClientCallingPatternIntegrationTest {
             awsCrtHttpClient.close();
             Assert.assertFalse(failed.get());
 
-            hostResolver.close();
             eventLoopGroup.close();
 
             CrtResource.waitForNoResources();
