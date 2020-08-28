@@ -165,13 +165,6 @@ public class CustomizationConfig {
      */
     private boolean enableEndpointDiscoveryMethodRequired = false;
 
-    /**
-     * Allow a customer to set an endpoint override AND bypass endpoint discovery on their client even when endpoint discovery
-     * enabled is true and endpoint discovery is required for an operation. This customization should almost never be "true"
-     * because it creates a confusing customer experience.
-     */
-    private boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations = false;
-
     private CustomizationConfig() {
     }
 
@@ -426,15 +419,5 @@ public class CustomizationConfig {
 
     public void setEnableEndpointDiscoveryMethodRequired(boolean enableEndpointDiscoveryMethodRequired) {
         this.enableEndpointDiscoveryMethodRequired = enableEndpointDiscoveryMethodRequired;
-    }
-
-    public boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations() {
-        return allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
-    }
-
-    public void setAllowEndpointOverrideForEndpointDiscoveryRequiredOperations(
-        boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations) {
-        this.allowEndpointOverrideForEndpointDiscoveryRequiredOperations =
-            allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
     }
 }

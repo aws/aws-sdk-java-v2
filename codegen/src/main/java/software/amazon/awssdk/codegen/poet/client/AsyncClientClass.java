@@ -166,17 +166,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  EndpointDiscoveryRefreshCache.class,
                                  poetExtensions.getClientClass(model.getNamingStrategy().getServiceName() +
                                                                "AsyncEndpointDiscoveryCacheLoader"));
-
-            if (model.getCustomizationConfig().allowEndpointOverrideForEndpointDiscoveryRequiredOperations()) {
-                builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == "
-                                        + "Boolean.TRUE)");
-                builder.addStatement("log.warn($S)",
-                                     "Endpoint discovery is enabled for this client, and an endpoint override was also "
-                                     + "specified. This will disable endpoint discovery for methods that require it, instead "
-                                     + "using the specified endpoint override. This may or may not be what you intended.");
-                builder.endControlFlow();
-            }
-
             builder.endControlFlow();
         }
 
@@ -231,37 +220,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
         builder.addCode(eventToByteBufferPublisher(opModel));
 
         if (opModel.getEndpointDiscovery() != null) {
-            builder.addStatement("boolean endpointDiscoveryEnabled = "
-                                 + "clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)");
-            builder.addStatement("boolean endpointOverridden = "
-                                 + "clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE");
-
-            if (opModel.getEndpointDiscovery().isRequired()) {
-                if (!model.getCustomizationConfig().allowEndpointOverrideForEndpointDiscoveryRequiredOperations()) {
-                    builder.beginControlFlow("if (endpointOverridden)");
-                    builder.addStatement("throw new $T($S)", IllegalStateException.class,
-                                         "This operation requires endpoint discovery, but an endpoint override was specified "
-                                         + "when the client was created. This is not supported.");
-                    builder.endControlFlow();
-
-                    builder.beginControlFlow("if (!endpointDiscoveryEnabled)");
-                    builder.addStatement("throw new $T($S)", IllegalStateException.class,
-                                         "This operation requires endpoint discovery, but endpoint discovery was disabled on the "
-                                         + "client.");
-                    builder.endControlFlow();
-                } else {
-                    builder.beginControlFlow("if (endpointOverridden)");
-                    builder.addStatement("endpointDiscoveryEnabled = false");
-                    builder.nextControlFlow("else if (!endpointDiscoveryEnabled)");
-                    builder.addStatement("throw new $T($S)", IllegalStateException.class,
-                                         "This operation requires endpoint discovery to be enabled, or for you to specify an "
-                                         + "endpoint override when the client is created.");
-                    builder.endControlFlow();
-                }
-            }
-
             builder.addStatement("$T cachedEndpoint = null", URI.class);
-            builder.beginControlFlow("if (endpointDiscoveryEnabled)");
+            builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED))");
             builder.addStatement("\n\nString key = clientConfiguration.option($T.CREDENTIALS_PROVIDER).resolveCredentials()" +
                                  ".accessKeyId()", AwsClientOption.class);
             builder.addStatement("EndpointDiscoveryRequest endpointDiscoveryRequest = $T.builder().required($L)" +
