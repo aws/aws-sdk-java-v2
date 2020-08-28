@@ -38,7 +38,6 @@ import software.amazon.awssdk.services.endpointdiscoverytest.transform.DescribeE
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryIdentifiersRequiredRequestMarshaller;
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryOptionalRequestMarshaller;
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryRequiredRequestMarshaller;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Internal implementation of {@link EndpointDiscoveryTestClient}.
@@ -48,8 +47,6 @@ import software.amazon.awssdk.utils.Logger;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestClient {
-    private static final Logger log = Logger.loggerFor(DefaultEndpointDiscoveryTestClient.class);
-
     private final SyncClientHandler clientHandler;
 
     private final AwsJsonProtocolFactory protocolFactory;
@@ -142,18 +139,8 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
-        boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
-        boolean endpointOverridden = clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE;
-        if (endpointOverridden) {
-            throw new IllegalStateException(
-                "This operation requires endpoint discovery, but an endpoint override was specified when the client was created. This is not supported.");
-        }
-        if (!endpointDiscoveryEnabled) {
-            throw new IllegalStateException(
-                "This operation requires endpoint discovery, but endpoint discovery was disabled on the client.");
-        }
         URI cachedEndpoint = null;
-        if (endpointDiscoveryEnabled) {
+        if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
 
             String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
@@ -204,10 +191,8 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
-        boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
-        boolean endpointOverridden = clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE;
         URI cachedEndpoint = null;
-        if (endpointDiscoveryEnabled) {
+        if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
 
             String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(false)
@@ -257,18 +242,8 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
-        boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
-        boolean endpointOverridden = clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE;
-        if (endpointOverridden) {
-            throw new IllegalStateException(
-                "This operation requires endpoint discovery, but an endpoint override was specified when the client was created. This is not supported.");
-        }
-        if (!endpointDiscoveryEnabled) {
-            throw new IllegalStateException(
-                "This operation requires endpoint discovery, but endpoint discovery was disabled on the client.");
-        }
         URI cachedEndpoint = null;
-        if (endpointDiscoveryEnabled) {
+        if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
 
             String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)

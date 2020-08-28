@@ -36,7 +36,6 @@ import software.amazon.awssdk.services.query.transform.APostOperationRequestMars
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Internal implementation of {@link QueryClient}.
@@ -46,8 +45,6 @@ import software.amazon.awssdk.utils.Logger;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultQueryClient implements QueryClient {
-    private static final Logger log = Logger.loggerFor(DefaultQueryClient.class);
-
     private final SyncClientHandler clientHandler;
 
     private final AwsQueryProtocolFactory protocolFactory;
