@@ -1,3 +1,45 @@
+# __2.14.7__ __2020-08-28__
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - This release add MONTHLY as the new supported TimeUnit for ReportDefinition.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - You can now manage CloudFront's additional, real-time metrics with the CloudFront API.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Amazon EMR adds support for ICMP, port -1, in Block Public Access Exceptions and API access for EMR Notebooks execution. You can now non-interactively execute EMR Notebooks and pass input parameters.
+
+## __Amazon Route 53__
+  - ### Features
+    - Documentation updates for Route 53
+
+# __2.14.6__ __2020-08-27__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for WebM DASH outputs as well as H.264 4:2:2 10-bit output in MOV and MP4.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introduces support to initiate Internet Key Exchange (IKE) negotiations for VPN connections from AWS. A user can now send the initial IKE message to their Customer Gateway (CGW) from VPN endpoints.
+
+## __Amazon GameLift__
+  - ### Features
+    - GameLift FleetIQ as a standalone feature is now generally available. FleetIQ makes low-cost Spot instances viable for game hosting. Use GameLift FleetIQ with your EC2 Auto Scaling groups.
+
+## __Amazon Redshift__
+  - ### Features
+    - Documentation updates for Amazon Redshift.
+
 # __2.14.5__ __2020-08-26__
 ## __AWS SDK for Java v2__
   - ### Features
