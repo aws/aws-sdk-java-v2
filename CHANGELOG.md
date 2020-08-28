@@ -1,3 +1,24 @@
+# __2.14.7__ __2020-08-28__
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - This release add MONTHLY as the new supported TimeUnit for ReportDefinition.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - You can now manage CloudFront's additional, real-time metrics with the CloudFront API.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Amazon EMR adds support for ICMP, port -1, in Block Public Access Exceptions and API access for EMR Notebooks execution. You can now non-interactively execute EMR Notebooks and pass input parameters.
+
+## __Amazon Route 53__
+  - ### Features
+    - Documentation updates for Route 53
+
 # __2.14.6__ __2020-08-27__
 ## __AWS Elemental MediaConvert__
   - ### Features

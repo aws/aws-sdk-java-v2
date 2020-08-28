@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "description": "You can now manage CloudFront's additional, real-time metrics with the CloudFront API."
-}
