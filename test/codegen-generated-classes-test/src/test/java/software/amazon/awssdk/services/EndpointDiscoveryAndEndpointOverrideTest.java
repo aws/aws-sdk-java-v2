@@ -15,11 +15,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.endpointdiscoveryrequiredtest.EndpointDiscoveryRequiredTestAsyncClient;
 import software.amazon.awssdk.services.endpointdiscoveryrequiredtest.EndpointDiscoveryRequiredTestClient;
 import software.amazon.awssdk.services.endpointdiscoveryrequiredwithcustomizationtest.EndpointDiscoveryRequiredWithCustomizationTestAsyncClient;
@@ -167,9 +169,10 @@ public class EndpointDiscoveryAndEndpointOverrideTest {
         return Arrays.asList(syncCase, asyncCase);
     }
 
-    private static <T> T createClient(SdkClientBuilder<?, T> clientBuilder,
+    private static <T> T createClient(AwsClientBuilder<?, T> clientBuilder,
                                       boolean endpointOverridden) {
-        return clientBuilder.applyMutation(c -> addEndpointOverride(c, endpointOverridden))
+        return clientBuilder.region(Region.US_WEST_2)
+                            .applyMutation(c -> addEndpointOverride(c, endpointOverridden))
                             .overrideConfiguration(c -> c.retryPolicy(p -> p.numRetries(0))
                                                          .addExecutionInterceptor(new EndpointCapturingInterceptor()))
                             .build();
