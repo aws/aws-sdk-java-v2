@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "description": "CloudFront now supports real-time logging for CloudFront distributions. CloudFront real-time logs are more detailed, configurable, and are available in real time."
-}
