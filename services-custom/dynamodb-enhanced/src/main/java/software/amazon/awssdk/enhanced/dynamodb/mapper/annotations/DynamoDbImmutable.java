@@ -23,11 +23,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 
 /**
  * Class level annotation that identifies this class as being a DynamoDb mappable entity. Any class used to initialize
- * a {@link BeanTableSchema} must have this annotation. If a class is used as an attribute type within another
+ * a {@link ImmutableTableSchema} must have this annotation. If a class is used as an attribute type within another
  * annotated DynamoDb class, either as a document or flattened with the {@link DynamoDbFlatten} annotation, it will also
  * require this annotation to work automatically without an explicit {@link AttributeConverter}.
  * <p>
@@ -56,7 +56,12 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @SdkPublicApi
-public @interface DynamoDbBean {
+public @interface DynamoDbImmutable {
     Class<? extends AttributeConverterProvider>[] converterProviders()
             default { DefaultAttributeConverterProvider.class };
+
+    /**
+     * The builder class that can be used to construct instances of the annotated immutable class
+     */
+    Class<?> builder();
 }

@@ -15,10 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -38,111 +34,103 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutableInfo;
+import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutableIntrospector;
+import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutablePropertyDescriptor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ObjectConstructor;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ObjectGetterMethod;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticGetterMethod;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 
 /**
- * Implementation of {@link TableSchema} that builds a table schema based on properties and annotations of a bean
- * class. Example:
+ * Implementation of {@link TableSchema} that builds a table schema based on properties and annotations of an immutable
+ * class with an associated builder class. Example:
  * <pre>
  * <code>
- * {@literal @}DynamoDbBean
+ * {@literal @}DynamoDbImmutable(builder = Customer.Builder.class)
  * public class Customer {
- *     private String accountId;
- *     private int subId;            // primitive types are supported
- *     private String name;
- *     private Instant createdDate;
- *
  *     {@literal @}DynamoDbPartitionKey
- *     public String getAccountId() { return this.accountId; }
- *     public void setAccountId(String accountId) { this.accountId = accountId; }
+ *     public String accountId() { ... }
  *
  *     {@literal @}DynamoDbSortKey
- *     public int getSubId() { return this.subId; }
- *     public void setSubId(int subId) { this.subId = subId; }
+ *     public int subId() { ... }
  *
  *     // Defines a GSI (customers_by_name) with a partition key of 'name'
  *     {@literal @}DynamoDbSecondaryPartitionKey(indexNames = "customers_by_name")
- *     public String getName() { return this.name; }
- *     public void setName(String name) { this.name = name; }
+ *     public String name() { ... }
  *
  *     // Defines an LSI (customers_by_date) with a sort key of 'createdDate' and also declares the
  *     // same attribute as a sort key for the GSI named 'customers_by_name'
  *     {@literal @}DynamoDbSecondarySortKey(indexNames = {"customers_by_date", "customers_by_name"})
- *     public Instant getCreatedDate() { return this.createdDate; }
- *     public void setCreatedDate(Instant createdDate) { this.createdDate = createdDate; }
+ *     public Instant createdDate() { ... }
+ *
+ *     // Not required to be an inner-class, but builders often are
+ *     public static final class Builder {
+ *         public Builder accountId(String accountId) { ... };
+ *         public Builder subId(int subId) { ... };
+ *         public Builder name(String name) { ... };
+ *         public Builder createdDate(Instant createdDate) { ... };
+ *
+ *         public Customer build() { ... };
+ *     }
  * }
  *
  * </pre>
- *
  * @param <T> The type of object that this {@link TableSchema} maps to.
  */
 @SdkPublicApi
-public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableSchema<T>> {
+public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticImmutableTableSchema<T, ?>> {
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
 
-    private BeanTableSchema(StaticTableSchema<T> staticTableSchema) {
-        super(staticTableSchema);
+    private ImmutableTableSchema(StaticImmutableTableSchema<T, ?> wrappedTableSchema) {
+        super(wrappedTableSchema);
     }
 
-    /**
-     * Scans a bean class and builds a {@link BeanTableSchema} from it that can be used with the
-     * {@link DynamoDbEnhancedClient}.
-     * @param beanClass The bean class to build the table schema from.
-     * @param <T> The bean class type.
-     * @return An initialized {@link BeanTableSchema}
-     */
-    public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
-        return new BeanTableSchema<>(createStaticTableSchema(beanClass));
+    public static <T> ImmutableTableSchema<T> create(Class<T> immutableClass) {
+        return new ImmutableTableSchema<>(createStaticImmutableTableSchema(immutableClass));
     }
 
-    private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass) {
-        DynamoDbBean dynamoDbBean = beanClass.getAnnotation(DynamoDbBean.class);
+    private static <T> StaticImmutableTableSchema<T, ?> createStaticImmutableTableSchema(Class<T> immutableClass) {
+        ImmutableInfo<T> immutableInfo = ImmutableIntrospector.getImmutableInfo(immutableClass);
+        Class<?> builderClass = immutableInfo.builderClass();
+        return createStaticImmutableTableSchema(immutableClass, builderClass, immutableInfo);
+    }
 
-        if (dynamoDbBean == null) {
-            throw new IllegalArgumentException("A DynamoDb bean class must be annotated with @DynamoDbBean");
-        }
+    private static <T, B> StaticImmutableTableSchema<T, B>  createStaticImmutableTableSchema(
+        Class<T> immutableClass, Class<B> builderClass, ImmutableInfo<T> immutableInfo) {
 
-        BeanInfo beanInfo;
+        Supplier<B> newBuilderSupplier = newObjectSupplier(immutableInfo, builderClass);
+        Function<B, T> buildFunction = ObjectGetterMethod.create(builderClass, immutableInfo.buildMethod());
 
-        try {
-            beanInfo = Introspector.getBeanInfo(beanClass);
-        } catch (IntrospectionException e) {
-            throw new IllegalArgumentException(e);
-        }
+        StaticImmutableTableSchema.Builder<T, B> builder =
+            StaticImmutableTableSchema.builder(immutableClass, builderClass)
+                                      .newItemBuilder(newBuilderSupplier, buildFunction);
 
-        Supplier<T> newObjectSupplier = newObjectSupplierForClass(beanClass);
+        builder.attributeConverterProviders(
+            createConverterProvidersFromAnnotation(immutableClass.getAnnotation(DynamoDbImmutable.class)));
 
-        StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
-                                                                .newItemSupplier(newObjectSupplier);
+        List<ImmutableAttribute<T, B, ?>> attributes = new ArrayList<>();
 
-        builder.attributeConverterProviders(createConverterProvidersFromAnnotation(dynamoDbBean));
-
-        List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
-
-        Arrays.stream(beanInfo.getPropertyDescriptors())
-              .filter(BeanTableSchema::isMappableProperty)
+        immutableInfo.propertyDescriptors()
               .forEach(propertyDescriptor -> {
                   DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
                   if (dynamoDbFlatten != null) {
-                      builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
-                                      getterForProperty(propertyDescriptor, beanClass),
-                                      setterForProperty(propertyDescriptor, beanClass));
+                      builder.flatten(TableSchema.fromClass(propertyDescriptor.getter().getReturnType()),
+                                      getterForProperty(propertyDescriptor, immutableClass),
+                                      setterForProperty(propertyDescriptor, builderClass));
                   } else {
-                      StaticAttribute.Builder<T, ?> attributeBuilder =
-                          staticAttributeBuilder(propertyDescriptor, beanClass);
+                      ImmutableAttribute.Builder<T, B, ?> attributeBuilder =
+                          immutableAttributeBuilder(propertyDescriptor, immutableClass, builderClass);
 
                       Optional<AttributeConverter> attributeConverter =
                               createAttributeConverterFromAnnotation(propertyDescriptor);
@@ -158,23 +146,25 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         return builder.build();
     }
 
-    private static List<AttributeConverterProvider> createConverterProvidersFromAnnotation(DynamoDbBean dynamoDbBean) {
-        Class<? extends AttributeConverterProvider>[] providerClasses = dynamoDbBean.converterProviders();
+    private static List<AttributeConverterProvider> createConverterProvidersFromAnnotation(
+        DynamoDbImmutable dynamoDbImmutable) {
+
+        Class<? extends AttributeConverterProvider>[] providerClasses = dynamoDbImmutable.converterProviders();
 
         return Arrays.stream(providerClasses)
                 .map(c -> (AttributeConverterProvider) newObjectSupplierForClass(c).get())
                 .collect(Collectors.toList());
     }
 
-    private static <T> StaticAttribute.Builder<T, ?> staticAttributeBuilder(PropertyDescriptor propertyDescriptor,
-                                                                            Class<T> beanClass) {
+    private static <T, B> ImmutableAttribute.Builder<T, B, ?> immutableAttributeBuilder(
+        ImmutablePropertyDescriptor propertyDescriptor, Class<T> immutableClass, Class<B> builderClass) {
 
-        Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
+        Type propertyType = propertyDescriptor.getter().getGenericReturnType();
         EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType);
-        return StaticAttribute.builder(beanClass, propertyTypeToken)
-                              .name(attributeNameForProperty(propertyDescriptor))
-                              .getter(getterForProperty(propertyDescriptor, beanClass))
-                              .setter(setterForProperty(propertyDescriptor, beanClass));
+        return ImmutableAttribute.builder(immutableClass, builderClass, propertyTypeToken)
+                                 .name(attributeNameForProperty(propertyDescriptor))
+                                 .getter(getterForProperty(propertyDescriptor, immutableClass))
+                                 .setter(setterForProperty(propertyDescriptor, builderClass));
     }
 
     /**
@@ -220,7 +210,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
     }
 
     private static Optional<AttributeConverter> createAttributeConverterFromAnnotation(
-            PropertyDescriptor propertyDescriptor) {
+            ImmutablePropertyDescriptor propertyDescriptor) {
         DynamoDbConvertedBy attributeConverterBean =
                 getPropertyAnnotation(propertyDescriptor, DynamoDbConvertedBy.class);
         Optional<Class<?>> optionalClass = Optional.ofNullable(attributeConverterBean)
@@ -234,8 +224,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      * an annotation tag based on a standard named static method
      * of the class that tag has been annotated with passing in the original property annotation as an argument.
      */
-    private static void addTagsToAttribute(StaticAttribute.Builder<?, ?> attributeBuilder,
-                                           PropertyDescriptor propertyDescriptor) {
+    private static void addTagsToAttribute(ImmutableAttribute.Builder<?, ?, ?> attributeBuilder,
+                                           ImmutablePropertyDescriptor propertyDescriptor) {
 
         propertyAnnotations(propertyDescriptor).forEach(annotation -> {
             BeanTableSchemaAttributeTag beanTableSchemaAttributeTag =
@@ -276,46 +266,49 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         });
     }
 
+    private static <T, R> Supplier<R> newObjectSupplier(ImmutableInfo<T> immutableInfo, Class<R> builderClass) {
+        if (immutableInfo.staticBuilderMethod().isPresent()) {
+            return StaticGetterMethod.create(immutableInfo.staticBuilderMethod().get());
+        }
+
+        return newObjectSupplierForClass(builderClass);
+    }
+
     private static <R> Supplier<R> newObjectSupplierForClass(Class<R> clazz) {
         try {
             return ObjectConstructor.create(clazz, clazz.getConstructor());
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException(
-                String.format("Class '%s' appears to have no default constructor thus cannot be used with the " +
-                                  "BeanTableSchema", clazz), e);
+                String.format("Builder class '%s' appears to have no default constructor thus cannot be used with " +
+                                  "the ImmutableTableSchema", clazz), e);
         }
     }
 
-    private static <T, R> Function<T, R> getterForProperty(PropertyDescriptor propertyDescriptor, Class<T> beanClass) {
-        Method readMethod = propertyDescriptor.getReadMethod();
-        return BeanAttributeGetter.create(beanClass, readMethod);
+    private static <T, R> Function<T, R> getterForProperty(ImmutablePropertyDescriptor propertyDescriptor,
+                                                           Class<T> immutableClass) {
+        Method readMethod = propertyDescriptor.getter();
+        return BeanAttributeGetter.create(immutableClass, readMethod);
     }
 
-    private static <T, R> BiConsumer<T, R> setterForProperty(PropertyDescriptor propertyDescriptor,
-                                                             Class<T> beanClass) {
-        Method writeMethod = propertyDescriptor.getWriteMethod();
-        return BeanAttributeSetter.create(beanClass, writeMethod);
+    private static <T, R> BiConsumer<T, R> setterForProperty(ImmutablePropertyDescriptor propertyDescriptor,
+                                                             Class<T> builderClass) {
+        Method writeMethod = propertyDescriptor.setter();
+        return BeanAttributeSetter.create(builderClass, writeMethod);
     }
 
-    private static String attributeNameForProperty(PropertyDescriptor propertyDescriptor) {
+    private static String attributeNameForProperty(ImmutablePropertyDescriptor propertyDescriptor) {
         DynamoDbAttribute dynamoDbAttribute = getPropertyAnnotation(propertyDescriptor, DynamoDbAttribute.class);
         if (dynamoDbAttribute != null) {
             return dynamoDbAttribute.value();
         }
 
-        return propertyDescriptor.getName();
+        return propertyDescriptor.name();
     }
 
-    private static boolean isMappableProperty(PropertyDescriptor propertyDescriptor) {
-        return propertyDescriptor.getReadMethod() != null
-            && propertyDescriptor.getWriteMethod() != null
-            && getPropertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) == null;
-    }
-
-    private static <R extends Annotation> R getPropertyAnnotation(PropertyDescriptor propertyDescriptor,
+    private static <R extends Annotation> R getPropertyAnnotation(ImmutablePropertyDescriptor propertyDescriptor,
                                                                   Class<R> annotationType) {
-        R getterAnnotation = propertyDescriptor.getReadMethod().getAnnotation(annotationType);
-        R setterAnnotation = propertyDescriptor.getWriteMethod().getAnnotation(annotationType);
+        R getterAnnotation = propertyDescriptor.getter().getAnnotation(annotationType);
+        R setterAnnotation = propertyDescriptor.setter().getAnnotation(annotationType);
 
         if (getterAnnotation != null) {
             return getterAnnotation;
@@ -324,9 +317,9 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         return setterAnnotation;
     }
 
-    private static List<? extends Annotation> propertyAnnotations(PropertyDescriptor propertyDescriptor) {
-        return Stream.concat(Arrays.stream(propertyDescriptor.getReadMethod().getAnnotations()),
-                             Arrays.stream(propertyDescriptor.getWriteMethod().getAnnotations()))
+    private static List<? extends Annotation> propertyAnnotations(ImmutablePropertyDescriptor propertyDescriptor) {
+        return Stream.concat(Arrays.stream(propertyDescriptor.getter().getAnnotations()),
+                             Arrays.stream(propertyDescriptor.setter().getAnnotations()))
                      .collect(Collectors.toList());
     }
 }

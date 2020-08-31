@@ -17,13 +17,20 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleImmutable;
 
 public class TableSchemaTest {
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void builder_constructsStaticTableSchemaBuilder() {
@@ -35,5 +42,32 @@ public class TableSchemaTest {
     public void fromBean_constructsBeanTableSchema() {
         BeanTableSchema<SimpleBean> beanBeanTableSchema = TableSchema.fromBean(SimpleBean.class);
         assertThat(beanBeanTableSchema).isNotNull();
+    }
+
+    @Test
+    public void fromImmutable_constructsImmutableTableSchema() {
+        ImmutableTableSchema<SimpleImmutable> immutableTableSchema =
+            TableSchema.fromImmutableClass(SimpleImmutable.class);
+
+        assertThat(immutableTableSchema).isNotNull();
+    }
+
+    @Test
+    public void fromClass_constructsBeanTableSchema() {
+        TableSchema<SimpleBean> tableSchema = TableSchema.fromClass(SimpleBean.class);
+        assertThat(tableSchema).isInstanceOf(BeanTableSchema.class);
+    }
+
+    @Test
+    public void fromClass_constructsImmutableTableSchema() {
+        TableSchema<SimpleImmutable> tableSchema = TableSchema.fromClass(SimpleImmutable.class);
+        assertThat(tableSchema).isInstanceOf(ImmutableTableSchema.class);
+    }
+
+    @Test
+    public void fromClass_invalidClassThrowsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("InvalidBean");
+        TableSchema.fromClass(InvalidBean.class);
     }
 }
