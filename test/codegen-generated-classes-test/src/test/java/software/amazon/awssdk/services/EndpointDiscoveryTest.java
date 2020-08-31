@@ -34,6 +34,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryFailedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestAsyncClient;
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestClient;
@@ -55,6 +56,8 @@ public class EndpointDiscoveryTest {
                                             .region(Region.US_EAST_1)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .endpointDiscoveryEnabled(true)
+                                            .overrideConfiguration(c -> c.putAdvancedOption(
+                                                SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE, false))
                                             .build();
 
         asyncClient = EndpointDiscoveryTestAsyncClient.builder()
@@ -62,6 +65,8 @@ public class EndpointDiscoveryTest {
                                                       .region(Region.US_EAST_1)
                                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                                       .endpointDiscoveryEnabled(true)
+                                                      .overrideConfiguration(c -> c.putAdvancedOption(
+                                                          SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE, false))
                                                       .build();
     }
 
@@ -69,8 +74,7 @@ public class EndpointDiscoveryTest {
     public void syncRequiredOperation_EmptyEndpointDiscoveryResponse_CausesEndpointDiscoveryFailedException() {
         stubEmptyResponse();
         assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {}))
-            .isInstanceOf(EndpointDiscoveryFailedException.class)
-            .hasCauseInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(EndpointDiscoveryFailedException.class);
     }
 
     @Test
@@ -93,8 +97,7 @@ public class EndpointDiscoveryTest {
     public void asyncRequiredOperation_NonRetryableEndpointDiscoveryResponse_CausesEndpointDiscoveryFailedException() {
         stubDescribeEndpointsResponse(404);
         assertAsyncRequiredOperationCallThrowable()
-            .isInstanceOf(EndpointDiscoveryFailedException.class)
-            .hasCauseInstanceOf(EndpointDiscoveryTestException.class);
+            .isInstanceOf(EndpointDiscoveryFailedException.class);
     }
 
     @Test
