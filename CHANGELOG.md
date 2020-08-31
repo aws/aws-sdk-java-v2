@@ -1,3 +1,24 @@
+# __2.14.8__ __2020-08-31__
+## __AWS Backup__
+  - ### Features
+    - Documentation updates for Cryo
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront now supports real-time logging for CloudFront distributions. CloudFront real-time logs are more detailed, configurable, and are available in real time.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 and Spot Fleet now support modification of launch template configs for a running fleet enabling instance type, instance weight, AZ, and AMI updates without losing the current fleet ID.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation updates for SQS.
+
 # __2.14.7__ __2020-08-28__
 ## __AWS Cost and Usage Report Service__
   - ### Features
