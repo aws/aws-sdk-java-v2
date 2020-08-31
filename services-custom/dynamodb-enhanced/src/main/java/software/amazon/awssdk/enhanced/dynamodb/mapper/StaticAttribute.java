@@ -15,11 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -27,9 +23,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ResolvedStaticAttribute;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticAttributeType;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * A class that represents an attribute that can be read from and written to an mapped item. A {@link StaticTableSchema}
@@ -60,20 +53,10 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class StaticAttribute<T, R> {
-    private final String name;
-    private final Function<T, R> getter;
-    private final BiConsumer<T, R> setter;
-    private final Collection<StaticAttributeTag> tags;
-    private final EnhancedType<R> type;
-    private final AttributeConverter<R> attributeConverter;
+    private final ImmutableAttribute<T, T, R> delegateAttribute;
 
     private StaticAttribute(Builder<T, R> builder) {
-        this.name = Validate.paramNotNull(builder.name, "name");
-        this.getter = Validate.paramNotNull(builder.getter, "getter");
-        this.setter = Validate.paramNotNull(builder.setter, "setter");
-        this.tags = builder.tags == null ? Collections.emptyList() : Collections.unmodifiableCollection(builder.tags);
-        this.type = Validate.paramNotNull(builder.type, "type");
-        this.attributeConverter = builder.attributeConverter;
+        this.delegateAttribute = builder.delegateBuilder.build();
     }
 
     /**
@@ -83,7 +66,7 @@ public final class StaticAttribute<T, R> {
      * @return A new typed builder for an attribute.
      */
     public static <T, R> Builder<T, R> builder(Class<T> itemClass, EnhancedType<R> attributeType) {
-        return new Builder<>(attributeType);
+        return new Builder<>(itemClass, attributeType);
     }
 
     /**
@@ -93,42 +76,42 @@ public final class StaticAttribute<T, R> {
      * @return A new typed builder for an attribute.
      */
     public static <T, R> Builder<T, R> builder(Class<T> itemClass, Class<R> attributeClass) {
-        return new Builder<>(EnhancedType.of(attributeClass));
+        return new Builder<>(itemClass, EnhancedType.of(attributeClass));
     }
 
     /**
      * The name of this attribute
      */
     public String name() {
-        return this.name;
+        return this.delegateAttribute.name();
     }
 
     /**
      * A function that can get the value of this attribute from a modelled item it composes.
      */
     public Function<T, R> getter() {
-        return this.getter;
+        return this.delegateAttribute.getter();
     }
 
     /**
      * A function that can set the value of this attribute on a modelled item it composes.
      */
     public BiConsumer<T, R> setter() {
-        return this.setter;
+        return this.delegateAttribute.setter();
     }
 
     /**
      * A collection of {@link StaticAttributeTag} associated with this attribute.
      */
     public Collection<StaticAttributeTag> tags() {
-        return this.tags;
+        return this.delegateAttribute.tags();
     }
 
     /**
      * A {@link EnhancedType} that represents the type of the value this attribute stores.
      */
     public EnhancedType<R> type() {
-        return this.type;
+        return this.delegateAttribute.type();
     }
 
     /**
@@ -137,28 +120,18 @@ public final class StaticAttribute<T, R> {
      * @see Builder#attributeConverter
      */
     public AttributeConverter<R> attributeConverter() {
-        return this.attributeConverter;
+        return this.delegateAttribute.attributeConverter();
     }
 
     /**
      * Converts an instance of this class to a {@link Builder} that can be used to modify and reconstruct it.
      */
     public Builder<T, R> toBuilder() {
-        return new Builder<T, R>(this.type).name(this.name)
-                                           .getter(this.getter)
-                                           .setter(this.setter)
-                                           .tags(this.tags)
-                                           .attributeConverter(this.attributeConverter);
+        return new Builder<>(this.delegateAttribute.toBuilder());
     }
 
-
-    ResolvedStaticAttribute<T> resolve(AttributeConverterProvider attributeConverterProvider) {
-        return ResolvedStaticAttribute.create(this,
-                                              StaticAttributeType.create(converterFrom(attributeConverterProvider)));
-    }
-
-    private AttributeConverter<R> converterFrom(AttributeConverterProvider attributeConverterProvider) {
-        return (attributeConverter != null) ? attributeConverter : attributeConverterProvider.converterFor(type);
+    ImmutableAttribute<T, T, R> toImmutableAttribute() {
+        return this.delegateAttribute;
     }
 
     /**
@@ -167,22 +140,21 @@ public final class StaticAttribute<T, R> {
      * @param <R> the class that the value of this attribute converts to.
      */
     public static final class Builder<T, R> {
-        private final EnhancedType<R> type;
-        private String name;
-        private Function<T, R> getter;
-        private BiConsumer<T, R> setter;
-        private List<StaticAttributeTag> tags;
-        private AttributeConverter<R> attributeConverter;
+        private final ImmutableAttribute.Builder<T, T, R> delegateBuilder;
 
-        private Builder(EnhancedType<R> type) {
-            this.type = type;
+        private Builder(Class<T> itemClass, EnhancedType<R> type) {
+            this.delegateBuilder = ImmutableAttribute.builder(itemClass, itemClass, type);
+        }
+
+        private Builder(ImmutableAttribute.Builder<T, T, R> delegateBuilder) {
+            this.delegateBuilder = delegateBuilder;
         }
 
         /**
          * The name of this attribute
          */
         public Builder<T, R> name(String name) {
-            this.name = name;
+            this.delegateBuilder.name(name);
             return this;
         }
 
@@ -190,7 +162,7 @@ public final class StaticAttribute<T, R> {
          * A function that can get the value of this attribute from a modelled item it composes.
          */
         public Builder<T, R> getter(Function<T, R> getter) {
-            this.getter = getter;
+            this.delegateBuilder.getter(getter);
             return this;
         }
 
@@ -198,7 +170,7 @@ public final class StaticAttribute<T, R> {
          * A function that can set the value of this attribute on a modelled item it composes.
          */
         public Builder<T, R> setter(BiConsumer<T, R> setter) {
-            this.setter = setter;
+            this.delegateBuilder.setter(setter);
             return this;
         }
 
@@ -206,7 +178,7 @@ public final class StaticAttribute<T, R> {
          * A collection of {@link StaticAttributeTag} associated with this attribute. Overwrites any existing tags.
          */
         public Builder<T, R> tags(Collection<StaticAttributeTag> tags) {
-            this.tags = new ArrayList<>(tags);
+            this.delegateBuilder.tags(tags);
             return this;
         }
 
@@ -214,7 +186,7 @@ public final class StaticAttribute<T, R> {
          * A collection of {@link StaticAttributeTag} associated with this attribute. Overwrites any existing tags.
          */
         public Builder<T, R> tags(StaticAttributeTag... tags) {
-            this.tags = Arrays.asList(tags);
+            this.delegateBuilder.tags(tags);
             return this;
         }
 
@@ -222,11 +194,7 @@ public final class StaticAttribute<T, R> {
          * Associates a single {@link StaticAttributeTag} with this attribute. Adds to any existing tags.
          */
         public Builder<T, R> addTag(StaticAttributeTag tag) {
-            if (this.tags == null) {
-                this.tags = new ArrayList<>();
-            }
-
-            this.tags.add(tag);
+            this.delegateBuilder.addTag(tag);
             return this;
         }
 
@@ -236,7 +204,7 @@ public final class StaticAttribute<T, R> {
          * {@link AttributeConverterProvider}.
          */
         public Builder<T, R> attributeConverter(AttributeConverter<R> attributeConverter) {
-            this.attributeConverter = attributeConverter;
+            this.delegateBuilder.attributeConverter(attributeConverter);
             return this;
         }
 
