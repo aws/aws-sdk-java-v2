@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "description": "Added a PatchSummary object for security findings. The PatchSummary object provides details about the patch compliance status of an instance."
+}
