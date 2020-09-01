@@ -15,30 +15,21 @@
 
 package software.amazon.awssdk.http.crt;
 
-import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
-import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
-import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
-import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
@@ -46,17 +37,15 @@ import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
-import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.crt.internal.AwsCrtAsyncHttpStreamAdapter;
+import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
+import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * An implementation of {@link SdkAsyncHttpClient} that uses the AWS Common Runtime (CRT) Http Client to communicate with
@@ -79,7 +68,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final HttpProxyOptions proxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
-    private final int initialWindowSize;
+    private final int readBufferSize;
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
@@ -88,7 +77,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         Validate.isPositive(maxConns, "maxConns");
         Validate.notNull(builder.cipherPreference, "cipherPreference");
-        Validate.isPositive(builder.initialWindowSize, "initialWindowSize");
+        Validate.isPositive(builder.readBufferSize, "readBufferSize");
         Validate.notNull(builder.eventLoopGroup, "eventLoopGroup");
         Validate.notNull(builder.hostResolver, "hostResolver");
 
@@ -102,12 +91,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.bootstrap = registerOwnedResource(clientBootstrap);
             this.socketOptions = registerOwnedResource(clientSocketOptions);
             this.tlsContext = registerOwnedResource(clientTlsContext);
-
-            this.initialWindowSize = builder.initialWindowSize;
+            this.readBufferSize = builder.readBufferSize;
             this.maxConnectionsPerEndpoint = maxConns;
             this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthChecksConfiguration);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
-
             this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
         }
     }
@@ -164,11 +151,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return subresource;
     }
 
-    private static URI toUri(SdkHttpRequest sdkRequest) {
-        return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(), sdkRequest.port(),
-                null, null, null));
-    }
-
     public static Builder builder() {
         return new DefaultBuilder();
     }
@@ -195,7 +177,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withSocketOptions(socketOptions)
                 .withTlsContext(tlsContext)
                 .withUri(uri)
-                .withWindowSize(initialWindowSize)
+                .withWindowSize(readBufferSize)
                 .withMaxConnections(maxConnectionsPerEndpoint)
                 .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
@@ -232,60 +214,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
     }
 
-    private List<HttpHeader> createHttpHeaderList(URI uri, AsyncExecuteRequest asyncRequest) {
-        SdkHttpRequest sdkRequest = asyncRequest.request();
-        // worst case we may add 3 more headers here
-        List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.headers().size() + 3);
-
-        // Set Host Header if needed
-        if (isNullOrEmpty(sdkRequest.headers().get(Header.HOST))) {
-            crtHeaderList.add(new HttpHeader(Header.HOST, uri.getHost()));
-        }
-
-        // Add Connection Keep Alive Header to reuse this Http Connection as long as possible
-        if (isNullOrEmpty(sdkRequest.headers().get(Header.CONNECTION))) {
-            crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
-        }
-
-        // Set Content-Length if needed
-        Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
-        if (isNullOrEmpty(sdkRequest.headers().get(Header.CONTENT_LENGTH)) && contentLength.isPresent()) {
-            crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
-        }
-
-        // Add the rest of the Headers
-        for (Map.Entry<String, List<String>> headerList: sdkRequest.headers().entrySet()) {
-            for (String val: headerList.getValue()) {
-                HttpHeader h = new HttpHeader(headerList.getKey(), val);
-                crtHeaderList.add(h);
-            }
-        }
-
-        return crtHeaderList;
-    }
-
-    private HttpHeader[] asArray(List<HttpHeader> crtHeaderList) {
-        return crtHeaderList.toArray(new HttpHeader[0]);
-    }
-
-    private HttpRequest toCrtRequest(URI uri, AsyncExecuteRequest asyncRequest, AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter) {
-        SdkHttpRequest sdkRequest = asyncRequest.request();
-
-        String method = sdkRequest.method().name();
-        String encodedPath = sdkRequest.encodedPath();
-        if (encodedPath == null || encodedPath.length() == 0) {
-            encodedPath = "/";
-        }
-
-        String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(sdkRequest.rawQueryParameters())
-                .map(value -> "?" + value)
-                .orElse("");
-
-        HttpHeader[] crtHeaderArray = asArray(createHttpHeaderList(uri, asyncRequest));
-
-        return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtToSdkAdapter);
-    }
-
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest asyncRequest) {
 
@@ -293,8 +221,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         paramNotNull(asyncRequest.request(), "SdkHttpRequest");
         paramNotNull(asyncRequest.requestContentPublisher(), "RequestContentPublisher");
         paramNotNull(asyncRequest.responseHandler(), "ResponseHandler");
-
-        URI uri = toUri(asyncRequest.request());
 
         /*
          * See the note on getOrCreateConnectionPool()
@@ -306,38 +232,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(uri)) {
-            CompletableFuture<Void> requestFuture = new CompletableFuture<>();
-            // When a Connection is ready from the Connection Pool, schedule the Request on the connection
-            crtConnPool.acquireConnection()
-                    .whenComplete((crtConn, throwable) -> {
-                        // If we didn't get a connection for some reason, fail the request
-                        if (throwable != null) {
-                            try {
-                                asyncRequest.responseHandler().onError(throwable);
-                            } catch (Exception e) {
-                                log.warn(() -> "Exception while handling error", e);
-                            }
-                            requestFuture.completeExceptionally(new IOException(
-                                    "Crt exception while acquiring connection", throwable));
-                            return;
-                        }
-                        AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
-                                new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, initialWindowSize);
-                        HttpRequest crtRequest = toCrtRequest(uri, asyncRequest, crtToSdkAdapter);
-                        // Submit the Request on this Connection
-                        invokeSafely(() -> {
-                            try {
-                                crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate();
-                            } catch (IllegalStateException | CrtRuntimeException e) {
-                                log.error(() -> "Exception occurred when making the request", e);
-                                requestFuture.completeExceptionally(
-                                    new IOException("Exception throw while submitting request to CRT http connection", e));
-                            }
-                        });
-                    });
+        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(asyncRequest.request().getUri())) {
+            CrtRequestContext context = CrtRequestContext.builder()
+                                                         .crtConnPool(crtConnPool)
+                                                         .readBufferSize(readBufferSize)
+                                                         .request(asyncRequest)
+                                                         .build();
 
-            return requestFuture;
+            return new CrtRequestExecutor().execute(context);
         }
     }
 
@@ -456,7 +358,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
-        private int initialWindowSize = DEFAULT_STREAM_WINDOW_SIZE;
+        private int readBufferSize = DEFAULT_STREAM_WINDOW_SIZE;
         private EventLoopGroup eventLoopGroup;
         private HostResolver hostResolver;
         private ProxyConfiguration proxyConfiguration;
@@ -495,9 +397,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder readBufferSize(int initialWindowSize) {
-            Validate.isPositive(initialWindowSize, "initialWindowSize");
-            this.initialWindowSize = initialWindowSize;
+        public Builder readBufferSize(int readBufferSize) {
+            Validate.isPositive(readBufferSize, "readBufferSize");
+            this.readBufferSize = readBufferSize;
             return this;
         }
 

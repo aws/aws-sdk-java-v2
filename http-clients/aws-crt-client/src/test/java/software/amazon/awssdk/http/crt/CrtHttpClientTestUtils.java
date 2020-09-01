@@ -61,7 +61,7 @@ public class CrtHttpClientTestUtils {
         };
     }
 
-    static SdkHttpFullRequest createRequest(URI endpoint) {
+    public static SdkHttpFullRequest createRequest(URI endpoint) {
         return createRequest(endpoint, "/", null, SdkHttpMethod.GET, emptyMap());
     }
 
