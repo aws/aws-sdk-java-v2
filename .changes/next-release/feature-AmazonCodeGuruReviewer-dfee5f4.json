@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CodeGuru Reviewer",
+    "description": "Add support for repository analysis based code reviews"
+}
