@@ -30,6 +30,7 @@ import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
@@ -41,7 +42,7 @@ public final class CrtRequestExecutor {
     private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
 
     public CompletableFuture<Void> execute(CrtRequestContext executionContext) {
-        CompletableFuture<Void> requestFuture = new CompletableFuture<>();
+        CompletableFuture<Void> requestFuture = createExecutionFuture(executionContext.sdkRequest());
 
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
         CompletableFuture<HttpClientConnection> httpClientConnectionCompletableFuture =
@@ -75,6 +76,27 @@ public final class CrtRequestExecutor {
         });
 
         return requestFuture;
+    }
+
+    /**
+     * Convenience method to create the execution future and set up the cancellation logic.
+     *
+     * @return The created execution future.
+     */
+    private CompletableFuture<Void> createExecutionFuture(AsyncExecuteRequest request) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        future.whenComplete((r, t) -> {
+            if (t == null) {
+                return;
+            }
+            //TODO: Aborting request once it's supported in CRT
+            if (future.isCancelled()) {
+                request.responseHandler().onError(new SdkCancellationException("The request was cancelled"));
+            }
+        });
+
+        return future;
     }
 
     private void handleFailure(Throwable cause,
