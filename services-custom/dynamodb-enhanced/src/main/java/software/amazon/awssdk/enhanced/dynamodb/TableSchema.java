@@ -16,10 +16,15 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -31,7 +36,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 @SdkPublicApi
 public interface TableSchema<T> {
-
     /**
      * Returns a builder for the {@link StaticTableSchema} implementation of this interface which allows all attributes,
      * tags and table structure to be directly declared in the builder.
@@ -44,6 +48,21 @@ public interface TableSchema<T> {
     }
 
     /**
+     * Returns a builder for the {@link StaticImmutableTableSchema} implementation of this interface which allows all
+     * attributes, tags and table structure to be directly declared in the builder.
+     * @param immutableItemClass The class of the immutable item this {@link TableSchema} will map records to.
+     * @param immutableBuilderClass The class that can be used to construct immutable items this {@link TableSchema}
+     *                              maps records to.
+     * @param <T> The type of the immutable item this {@link TableSchema} will map records to.
+     * @param <B> The type of the builder used by this {@link TableSchema} to construct immutable items with.
+     * @return A newly initialized {@link StaticImmutableTableSchema.Builder}
+     */
+    static <T, B> StaticImmutableTableSchema.Builder<T, B> builder(Class<T> immutableItemClass,
+                                                                   Class<B> immutableBuilderClass) {
+        return StaticImmutableTableSchema.builder(immutableItemClass, immutableBuilderClass);
+    }
+
+    /**
      * Scans a bean class that has been annotated with DynamoDb bean annotations and then returns a
      * {@link BeanTableSchema} implementation of this interface that can map records to and from items of that bean
      * class.
@@ -53,6 +72,44 @@ public interface TableSchema<T> {
      */
     static <T> BeanTableSchema<T> fromBean(Class<T> beanClass) {
         return BeanTableSchema.create(beanClass);
+    }
+
+    /**
+     * Scans an immutable class that has been annotated with DynamoDb immutable annotations and then returns a
+     * {@link ImmutableTableSchema} implementation of this interface that can map records to and from items of that
+     * immutable class.
+     *
+     * @param immutableClass The immutable class this {@link TableSchema} will map records to.
+     * @param <T> The type of the item this {@link TableSchema} will map records to.
+     * @return An initialized {@link ImmutableTableSchema}.
+     */
+    static <T> ImmutableTableSchema<T> fromImmutableClass(Class<T> immutableClass) {
+        return ImmutableTableSchema.create(immutableClass);
+    }
+
+    /**
+     * Scans a class that has been annotated with DynamoDb enhanced client annotations and then returns an appropriate
+     * {@link TableSchema} implementation that can map records to and from items of that class. Currently supported
+     * top level annotations (see documentation on those classes for more information on how to use them):
+     * <p>
+     * {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean}<br>
+     * {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable}
+     *
+     * @param annotatedClass A class that has been annotated with DynamoDb enhanced client annotations.
+     * @param <T> The type of the item this {@link TableSchema} will map records to.
+     * @return An initialized {@link TableSchema}
+     */
+    static <T> TableSchema<T> fromClass(Class<T> annotatedClass) {
+        if (annotatedClass.getAnnotation(DynamoDbImmutable.class) != null) {
+            return fromImmutableClass(annotatedClass);
+        }
+
+        if (annotatedClass.getAnnotation(DynamoDbBean.class) != null) {
+            return fromBean(annotatedClass);
+        }
+
+        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. [class = " +
+                                               "\"" + annotatedClass + "\"]");
     }
 
     /**
@@ -96,11 +153,11 @@ public interface TableSchema<T> {
      * Returns a single attribute value from the modelled object.
      *
      * @param item The modelled Java object to extract the attribute from.
-     * @param key The attribute name describing which attribute to extract.
+     * @param attributeName The attribute name describing which attribute to extract.
      * @return A single {@link AttributeValue} representing the requested modelled attribute in the model object or
      * null if the attribute has not been set with a value in the modelled object.
      */
-    AttributeValue attributeValue(T item, String key);
+    AttributeValue attributeValue(T item, String attributeName);
 
     /**
      * Returns the object that describes the structure of the table being modelled by the mapper. This includes
@@ -115,4 +172,19 @@ public interface TableSchema<T> {
      * @return The {@link EnhancedType} of the modelled item this TableSchema maps to.
      */
     EnhancedType<T> itemType();
+
+    /**
+     * Returns a complete list of attribute names that are mapped by this {@link TableSchema}
+     */
+    List<String> attributeNames();
+
+    /**
+     * A boolean value that represents whether this {@link TableSchema} is abstract which means that it cannot be used
+     * to directly create records as it is lacking required structural elements to map to a table, such as a primary
+     * key, but can be referred to and embedded by other schemata.
+     *
+     * @return true if it is abstract, and therefore cannot be used directly to create records but can be referred to
+     * by other schemata, and false if it is concrete and may be used to map records directly.
+     */
+    boolean isAbstract();
 }

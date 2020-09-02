@@ -133,6 +133,15 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return new DefaultBuilder();
     }
 
+    /**
+     * Create a {@link ApacheHttpClient} with the default properties
+     *
+     * @return an {@link ApacheHttpClient}
+     */
+    public static SdkHttpClient create() {
+        return new DefaultBuilder().build();
+    }
+
     private ConnectionManagerAwareHttpClient createClient(ApacheHttpClient.DefaultBuilder configuration,
                                                           AttributeMap standardOptions) {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();

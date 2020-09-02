@@ -20,10 +20,10 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatt
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @DynamoDbBean
-public class FlattenedBean {
+public class FlattenedImmutableBean {
     private String id;
     private String attribute1;
-    private AbstractBean abstractBean;
+    private AbstractImmutable abstractImmutable;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -40,11 +40,11 @@ public class FlattenedBean {
         this.attribute1 = attribute1;
     }
 
-    @DynamoDbFlatten(dynamoDbBeanClass = AbstractBean.class)
-    public AbstractBean getAbstractBean() {
-        return abstractBean;
+    @DynamoDbFlatten
+    public AbstractImmutable getAbstractImmutable() {
+        return abstractImmutable;
     }
-    public void setAbstractBean(AbstractBean abstractBean) {
-        this.abstractBean = abstractBean;
+    public void setAbstractImmutable(AbstractImmutable abstractImmutable) {
+        this.abstractImmutable = abstractImmutable;
     }
 }

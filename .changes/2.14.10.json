@@ -1,0 +1,26 @@
+{
+    "version": "2.14.10",
+    "date": "2020-09-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "description": "This release of the Amazon Macie API introduces additional statistics for the size and count of Amazon S3 objects that Macie can analyze as part of a classification job."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release adds a new transit gateway attachment state and resource type."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "description": "Support for mapping to and from immutable Java objects using ImmutableTableSchema and StaticImmutableTableSchema."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

@@ -1,3 +1,20 @@
+# __2.14.10__ __2020-09-02__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new transit gateway attachment state and resource type.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API introduces additional statistics for the size and count of Amazon S3 objects that Macie can analyze as part of a classification job.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Support for mapping to and from immutable Java objects using ImmutableTableSchema and StaticImmutableTableSchema.
+
 # __2.14.9__ __2020-09-01__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
