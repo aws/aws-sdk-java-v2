@@ -34,7 +34,6 @@ public final class RecordingResponseHandler implements SdkAsyncHttpResponseHandl
 
     @Override
     public void onHeaders(SdkHttpResponse response) {
-        System.out.println("received response");
         responses.add(response);
     }
 
