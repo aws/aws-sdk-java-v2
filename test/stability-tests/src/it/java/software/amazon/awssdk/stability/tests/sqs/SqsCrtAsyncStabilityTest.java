@@ -44,23 +44,16 @@ public class SqsCrtAsyncStabilityTest extends SqsBaseStabilityTest {
 
     @BeforeAll
     public static void setup() {
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        try (EventLoopGroup eventLoopGroup = new EventLoopGroup(numThreads);
-             HostResolver hostResolver = new HostResolver(eventLoopGroup)) {
+        SdkAsyncHttpClient.Builder crtClientBuilder = AwsCrtAsyncHttpClient.builder()
+                                                                           .connectionMaxIdleTime(Duration.ofSeconds(5));
 
-            SdkAsyncHttpClient.Builder crtClientBuilder = AwsCrtAsyncHttpClient.builder()
-                    .eventLoopGroup(eventLoopGroup)
-                    .hostResolver(hostResolver)
-                    .connectionMaxIdleTime(Duration.ofSeconds(5));
-
-            sqsAsyncClient = SqsAsyncClient.builder()
-                    .httpClientBuilder(crtClientBuilder)
-                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                    .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
-                            // Retry at test level
-                            .retryPolicy(RetryPolicy.none()))
-                    .build();
-        }
+        sqsAsyncClient = SqsAsyncClient.builder()
+                                       .httpClientBuilder(crtClientBuilder)
+                                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                       .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
+                                                                    // Retry at test level
+                                                                    .retryPolicy(RetryPolicy.none()))
+                                       .build();
 
         queueName = "sqscrtasyncstabilitytests" + System.currentTimeMillis();
         queueUrl = setup(sqsAsyncClient, queueName);

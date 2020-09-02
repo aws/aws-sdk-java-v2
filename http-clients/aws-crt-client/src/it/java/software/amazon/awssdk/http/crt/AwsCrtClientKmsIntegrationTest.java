@@ -52,8 +52,6 @@ public class AwsCrtClientKmsIntegrationTest {
             hostResolver = new HostResolver(eventLoopGroup);
 
             SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                    .eventLoopGroup(eventLoopGroup)
-                    .hostResolver(hostResolver)
                     .build();
 
             awsCrtHttpClients.add(awsCrtHttpClient);

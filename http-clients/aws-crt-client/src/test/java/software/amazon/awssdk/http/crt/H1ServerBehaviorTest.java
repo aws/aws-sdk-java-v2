@@ -30,15 +30,8 @@ public class H1ServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
 
     @Override
     protected SdkAsyncHttpClient setupClient() {
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        try (EventLoopGroup eventLoopGroup = new EventLoopGroup(numThreads);
-             HostResolver hostResolver = new HostResolver(eventLoopGroup)) {
-
-            return AwsCrtAsyncHttpClient.builder()
-                                        .eventLoopGroup(eventLoopGroup)
-                                        .hostResolver(hostResolver)
-                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
-        }
+        return AwsCrtAsyncHttpClient.builder()
+                                    .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
 
 }
