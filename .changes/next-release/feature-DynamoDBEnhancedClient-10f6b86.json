@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "DynamoDB Enhanced Client",
-    "description": "Support for mapping to and from immutable Java objects using ImmutableTableSchema and StaticImmutableTableSchema."
-}

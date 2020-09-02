@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Macie 2",
-    "description": "This release of the Amazon Macie API introduces additional statistics for the size and count of Amazon S3 objects that Macie can analyze as part of a classification job."
-}
