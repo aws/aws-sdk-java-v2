@@ -41,24 +41,16 @@ public class CloudWatchCrtAsyncStabilityTest extends CloudWatchBaseStabilityTest
     @BeforeAll
     public static void setup() {
         namespace = "CloudWatchCrtAsyncStabilityTest" + System.currentTimeMillis();
+        SdkAsyncHttpClient.Builder crtClientBuilder = AwsCrtAsyncHttpClient.builder()
+                                                                           .connectionMaxIdleTime(Duration.ofSeconds(5));
 
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        try (EventLoopGroup eventLoopGroup = new EventLoopGroup(numThreads);
-            HostResolver hostResolver = new HostResolver(eventLoopGroup)) {
-
-            SdkAsyncHttpClient.Builder crtClientBuilder = AwsCrtAsyncHttpClient.builder()
-                    .eventLoopGroup(eventLoopGroup)
-                    .hostResolver(hostResolver)
-                    .connectionMaxIdleTime(Duration.ofSeconds(5));
-
-            cloudWatchAsyncClient = CloudWatchAsyncClient.builder()
-                    .httpClientBuilder(crtClientBuilder)
-                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                    .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
-                            // Retry at test level
-                            .retryPolicy(RetryPolicy.none()))
-                    .build();
-        }
+        cloudWatchAsyncClient = CloudWatchAsyncClient.builder()
+                                                     .httpClientBuilder(crtClientBuilder)
+                                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                     .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
+                                                                                  // Retry at test level
+                                                                                  .retryPolicy(RetryPolicy.none()))
+                                                     .build();
     }
 
     @AfterAll

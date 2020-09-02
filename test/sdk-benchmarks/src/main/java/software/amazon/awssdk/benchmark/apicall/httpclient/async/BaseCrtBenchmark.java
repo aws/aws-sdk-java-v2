@@ -30,8 +30,6 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockServer;
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
@@ -46,25 +44,17 @@ public abstract class BaseCrtBenchmark implements SdkHttpClientBenchmark {
     private MockServer mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
     private ProtocolRestJsonAsyncClient client;
-    private EventLoopGroup eventLoopGroup;
-    private HostResolver hostResolver;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         mockServer = new MockServer();
         mockServer.start();
 
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        eventLoopGroup = new EventLoopGroup(numThreads);
-        hostResolver = new HostResolver(eventLoopGroup);
-
         AttributeMap trustAllCerts = AttributeMap.builder()
                 .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, Boolean.TRUE)
                 .build();
 
         sdkHttpClient = AwsCrtAsyncHttpClient.builder()
-                .eventLoopGroup(this.eventLoopGroup)
-                .hostResolver(this.hostResolver)
                 .buildWithDefaults(trustAllCerts);
 
         client = ProtocolRestJsonAsyncClient.builder()
@@ -81,8 +71,6 @@ public abstract class BaseCrtBenchmark implements SdkHttpClientBenchmark {
         mockServer.stop();
         client.close();
         sdkHttpClient.close();
-        hostResolver.close();
-        eventLoopGroup.close();
     }
 
     @Override

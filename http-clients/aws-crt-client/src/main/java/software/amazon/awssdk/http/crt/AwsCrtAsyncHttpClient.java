@@ -31,8 +31,6 @@ import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
@@ -78,10 +76,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.isPositive(maxConns, "maxConns");
         Validate.notNull(builder.cipherPreference, "cipherPreference");
         Validate.isPositive(builder.readBufferSize, "readBufferSize");
-        Validate.notNull(builder.eventLoopGroup, "eventLoopGroup");
-        Validate.notNull(builder.hostResolver, "hostResolver");
 
-        try (ClientBootstrap clientBootstrap = new ClientBootstrap(builder.eventLoopGroup, builder.hostResolver);
+        try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
              SocketOptions clientSocketOptions = new SocketOptions();
              TlsContextOptions clientTlsContextOptions = TlsContextOptions.createDefaultClient() // NOSONAR
                      .withCipherPreference(builder.cipherPreference)
@@ -289,20 +285,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder readBufferSize(int readBufferSize);
 
         /**
-         * The AWS CRT EventLoopGroup to use for this Client.
-         * @param eventLoopGroup The AWS CRT EventLoopGroup to use for this client.
-         * @return The builder of the method chaining.
-         */
-        Builder eventLoopGroup(EventLoopGroup eventLoopGroup);
-
-        /**
-         * The AWS CRT HostResolver to use for this Client.
-         * @param hostResolver The AWS CRT HostResolver to use for this client.
-         * @return The builder of the method chaining.
-         */
-        Builder hostResolver(HostResolver hostResolver);
-
-        /**
          * Sets the http proxy configuration to use for this client.
          * @param proxyConfiguration The http proxy configuration to use
          * @return The builder of the method chaining.
@@ -359,8 +341,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
         private int readBufferSize = DEFAULT_STREAM_WINDOW_SIZE;
-        private EventLoopGroup eventLoopGroup;
-        private HostResolver hostResolver;
         private ProxyConfiguration proxyConfiguration;
         private ConnectionHealthChecksConfiguration connectionHealthChecksConfiguration;
 
@@ -400,18 +380,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         public Builder readBufferSize(int readBufferSize) {
             Validate.isPositive(readBufferSize, "readBufferSize");
             this.readBufferSize = readBufferSize;
-            return this;
-        }
-
-        @Override
-        public Builder eventLoopGroup(EventLoopGroup eventLoopGroup) {
-            this.eventLoopGroup = eventLoopGroup;
-            return this;
-        }
-
-        @Override
-        public Builder hostResolver(HostResolver hostResolver) {
-            this.hostResolver = hostResolver;
             return this;
         }
 

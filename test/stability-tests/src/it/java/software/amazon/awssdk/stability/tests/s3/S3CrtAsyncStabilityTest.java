@@ -18,18 +18,10 @@ public class S3CrtAsyncStabilityTest extends S3BaseStabilityTest {
     private static String bucketName = "s3crtasyncstabilitytests" + System.currentTimeMillis();
 
     private static S3AsyncClient s3CrtClient;
-    private static EventLoopGroup eventLoopGroup;
-    private static HostResolver hostResolver;
 
     static {
-
         int numThreads = Runtime.getRuntime().availableProcessors();
-        eventLoopGroup = new EventLoopGroup(numThreads);
-        hostResolver = new HostResolver(eventLoopGroup);
-
         SdkAsyncHttpClient.Builder httpClientBuilder = AwsCrtAsyncHttpClient.builder()
-                .eventLoopGroup(eventLoopGroup)
-                .hostResolver(hostResolver)
                 .connectionMaxIdleTime(Duration.ofSeconds(5));
 
         s3CrtClient = S3AsyncClient.builder()

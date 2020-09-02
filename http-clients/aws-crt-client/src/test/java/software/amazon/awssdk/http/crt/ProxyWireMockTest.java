@@ -48,9 +48,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 public class ProxyWireMockTest {
     private SdkAsyncHttpClient client;
 
-    private EventLoopGroup eventLoopGroup;
-    private HostResolver hostResolver;
-
     private ProxyConfiguration proxyCfg;
 
     private WireMockServer mockProxy = new WireMockServer(new WireMockConfiguration()
@@ -75,14 +72,7 @@ public class ProxyWireMockTest {
                 .port(mockProxy.port())
                 .build();
 
-
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        eventLoopGroup = new EventLoopGroup(numThreads);
-        hostResolver = new HostResolver(eventLoopGroup);
-
         client = AwsCrtAsyncHttpClient.builder()
-                .eventLoopGroup(eventLoopGroup)
-                .hostResolver(hostResolver)
                 .proxyConfiguration(proxyCfg)
                 .build();
     }
@@ -92,8 +82,8 @@ public class ProxyWireMockTest {
         mockServer.stop();
         mockProxy.stop();
         client.close();
-        eventLoopGroup.close();
-        hostResolver.close();
+        EventLoopGroup.closeStaticDefault();
+        HostResolver.closeStaticDefault();
         CrtResource.waitForNoResources();
     }
 

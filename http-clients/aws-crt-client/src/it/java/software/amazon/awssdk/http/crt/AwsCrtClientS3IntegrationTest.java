@@ -62,14 +62,7 @@ public class AwsCrtClientS3IntegrationTest {
     public void setup() {
         CrtResource.waitForNoResources();
 
-        int numThreads = 4;
-        eventLoopGroup = new EventLoopGroup(numThreads);
-        hostResolver = new HostResolver(eventLoopGroup);
-
-        crtClient = AwsCrtAsyncHttpClient.builder()
-                .eventLoopGroup(eventLoopGroup)
-                .hostResolver(hostResolver)
-                .build();
+        crtClient = AwsCrtAsyncHttpClient.create();
 
         s3 = S3AsyncClient.builder()
                 .region(REGION)
