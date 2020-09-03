@@ -73,24 +73,9 @@ public final class ArnHandler {
             return handleOutpostArn(request, (S3OutpostResource) parentS3Resource, isFipsEnabled, configuration,
                                     executionAttributes);
         } else {
-            return handleOtherArns(request, arnRegion, isFipsEnabled, configuration);
+            throw new IllegalArgumentException("Parent resource invalid, outpost resource expected.");
         }
-    }
 
-    /**
-     * Handle non-outpost ARNs. Currently support S3 control bucket ARN and S3 Access Point ARN
-     */
-    private SdkHttpRequest handleOtherArns(SdkHttpRequest request, String region, boolean isFipsEnabled,
-                                           S3ControlConfiguration configuration) {
-        String accountId = request.firstMatchingHeader(X_AMZ_ACCOUNT_ID).orElseThrow(() -> new IllegalArgumentException(
-            "AccountId is missing"));
-        String dualStackSegment = Boolean.TRUE.equals(isDualstackEnabled(configuration)) ? ".dualstack" : "";
-        String fipsSegment = isFipsEnabled ? "fips-" : "";
-
-        String host = String.format("%s.s3-control%s.%s%s.%s", accountId, dualStackSegment, fipsSegment, region,
-                                    PartitionMetadata.of(Region.of(region)).dnsSuffix());
-
-        return request.toBuilder().host(host).build();
     }
 
     private SdkHttpRequest handleOutpostArn(SdkHttpRequest request,

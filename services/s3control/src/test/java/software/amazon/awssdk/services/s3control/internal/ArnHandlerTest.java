@@ -63,17 +63,6 @@ public class ArnHandlerTest {
     }
 
     @Test
-    public void bucketArn_shouldResolveHost() {
-        Arn arn = Arn.fromString("arn:aws:s3:us-west-2:123456789012:bucket:mybucket");
-        SdkHttpRequest modifiedRequest = arnHandler.resolveHostForArn(request, configuration, arn, executionAttributes);
-
-        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME), is("s3-control"));
-        assertThat(modifiedRequest.host(), is("123456789012.s3-control.us-west-2.amazonaws.com"));
-        assertThat(modifiedRequest.headers().get("x-amz-account-id").get(0), is(ACCOUNT_ID));
-        assertThat(modifiedRequest.headers().containsKey("x-amz-outpost-id"), is(false));
-    }
-
-    @Test
     public void outpostBucketArn_shouldResolveHost() {
         Arn arn = Arn.fromString("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:bucket:mybucket");
         SdkHttpRequest modifiedRequest = arnHandler.resolveHostForArn(request, configuration, arn, executionAttributes);
@@ -93,91 +82,6 @@ public class ArnHandlerTest {
         assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME), is("s3-outposts"));
         assertThat(modifiedRequest.headers().get("x-amz-outpost-id").get(0), is("op-01234567890123456"));
         assertThat(modifiedRequest.headers().get("x-amz-account-id").get(0), is(ACCOUNT_ID));
-    }
-
-    @Test
-    public void accessPointArn_shouldResolveHost() {
-        Arn arn = Arn.fromString("arn:aws:s3:us-west-2:123456789012:accesspoint:myendpoint");
-        SdkHttpRequest modifiedRequest = arnHandler.resolveHostForArn(request, configuration, arn, executionAttributes);
-
-        assertThat(modifiedRequest.host(), is("123456789012.s3-control.us-west-2.amazonaws.com"));
-        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME), is("s3-control"));
-        assertThat(modifiedRequest.headers().containsKey("x-amz-outpost-id"), is(false));
-        assertThat(modifiedRequest.headers().get("x-amz-account-id").get(0), is(ACCOUNT_ID));
-    }
-
-    @Test
-    public void arnWithDifferentRegion_useArnRegionEnabled_shouldResolveHost() {
-        Arn arn = Arn.fromString("arn:aws:s3:us-east-1:123456789012:bucket:mybucket");
-        S3ControlConfiguration useArnRegionEnabledConfig = configuration.toBuilder().useArnRegionEnabled(true).build();
-        SdkHttpRequest modifiedRequest = arnHandler.resolveHostForArn(request, useArnRegionEnabledConfig, arn, executionAttributes);
-
-        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME), is("s3-control"));
-        assertThat(modifiedRequest.host(), is("123456789012.s3-control.us-east-1.amazonaws.com"));
-        assertThat(modifiedRequest.headers().containsKey("x-amz-outpost-id"), is(false));
-        assertThat(modifiedRequest.headers().get("x-amz-account-id").get(0), is(ACCOUNT_ID));
-    }
-
-    @Test
-    public void accessPointArn_dualstackEnabled_shouldResolveHost() {
-        Arn arn = Arn.fromString("arn:aws:s3:us-west-2:123456789012:accesspoint:myendpoint");
-        SdkHttpRequest modifiedRequest = arnHandler.resolveHostForArn(request, enableDualstack(), arn, executionAttributes);
-
-        assertThat(modifiedRequest.host(), is("123456789012.s3-control.dualstack.us-west-2.amazonaws.com"));
-        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME), is("s3-control"));
-        assertThat(modifiedRequest.headers().containsKey("x-amz-outpost-id"), is(false));
-        assertThat(modifiedRequest.headers().get("x-amz-account-id").get(0), is(ACCOUNT_ID));
-    }
-
-    @Test
-    public void bucketArn_dualstackEnabled_shouldResolveHost() {
-        Arn arn = Arn.fromString("arn:aws:s3:us-west-2:123456789012:bucket:mybucket");
-        SdkHttpRequest modifiedRequest = arnHandler.resolveHostForArn(request, enableDualstack(), arn, executionAttributes);
-
-        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME), is("s3-control"));
-        assertThat(modifiedRequest.host(), is("123456789012.s3-control.dualstack.us-west-2.amazonaws.com"));
-        assertThat(modifiedRequest.headers().containsKey("x-amz-outpost-id"), is(false));
-        assertThat(modifiedRequest.headers().get("x-amz-account-id").get(0), is(ACCOUNT_ID));
-    }
-
-    @Test
-    public void accessPointArn_fipsEnabled_shouldResolveHost() {
-        Arn arn = Arn.fromString("arn:aws:s3:us-west-2:123456789012:accesspoint:myendpoint");
-        SdkHttpRequest modifiedRequest = arnHandler.resolveHostForArn(request, enableFips(), arn, executionAttributes);
-
-        assertThat(modifiedRequest.host(), is("123456789012.s3-control.fips-us-west-2.amazonaws.com"));
-        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME), is("s3-control"));
-        assertThat(modifiedRequest.headers().containsKey("x-amz-outpost-id"), is(false));
-        assertThat(modifiedRequest.headers().get("x-amz-account-id").get(0), is(ACCOUNT_ID));
-    }
-
-    @Test
-    public void bucketArn_fipsEnabled_shouldResolveHost() {
-        Arn arn = Arn.fromString("arn:aws:s3:us-west-2:123456789012:bucket:mybucket");
-        SdkHttpRequest modifiedRequest = arnHandler.resolveHostForArn(request, enableFips(), arn, executionAttributes);
-
-        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME), is("s3-control"));
-        assertThat(modifiedRequest.host(), is("123456789012.s3-control.fips-us-west-2.amazonaws.com"));
-        assertThat(modifiedRequest.headers().containsKey("x-amz-outpost-id"), is(false));
-        assertThat(modifiedRequest.headers().get("x-amz-account-id").get(0), is(ACCOUNT_ID));
-    }
-
-    @Test
-    public void arnWithDifferentRegion_shouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("does not match the region");
-
-        Arn arn = Arn.fromString("arn:aws:s3:us-east-1-2:123456789012:bucket:mybucket");
-        arnHandler.resolveHostForArn(request, configuration, arn, executionAttributes);
-    }
-
-    @Test
-    public void arnWithDifferentPartition_shouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("does not match the partition");
-
-        Arn arn = Arn.fromString("arn:aws-cn:s3:cn-east-1-2:123456789012:bucket:mybucket");
-        arnHandler.resolveHostForArn(request, configuration, arn, executionAttributes);
     }
 
     @Test
