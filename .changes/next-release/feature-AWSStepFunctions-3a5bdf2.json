@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "description": "This release of the AWS Step Functions SDK introduces support for payloads up to 256KB for Standard and Express workflows"
+}
