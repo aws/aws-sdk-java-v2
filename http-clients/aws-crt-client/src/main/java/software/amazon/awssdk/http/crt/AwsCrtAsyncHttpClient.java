@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
@@ -50,8 +51,11 @@ import software.amazon.awssdk.utils.Validate;
  * Http Web Services. This client is asynchronous and uses non-blocking IO.
  *
  * <p>This can be created via {@link #builder()}</p>
+ *
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpClient.class);
 

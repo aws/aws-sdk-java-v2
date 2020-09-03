@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.crt;
 
 import java.util.Objects;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -26,8 +27,11 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * the {@link AwsCrtAsyncHttpClient}.
  *
  * @see AwsCrtAsyncHttpClient.Builder#proxyConfiguration(ProxyConfiguration)
+ *
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
     private final String scheme;
     private final String host;
