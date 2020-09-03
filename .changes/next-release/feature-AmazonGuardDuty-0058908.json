@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "description": "GuardDuty findings triggered by failed events now include the error code name within the AwsApiCallAction section."
+}
