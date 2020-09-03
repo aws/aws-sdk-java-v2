@@ -16,14 +16,18 @@
 package software.amazon.awssdk.http.crt;
 
 import java.time.Duration;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * Configuration that defines health checks for for all connections established by
  * the{@link ConnectionHealthChecksConfiguration}.
+ *
+ * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class ConnectionHealthChecksConfiguration {
     private final long minThroughputInBytesPerSecond;
     private final Duration allowableThroughputFailureInterval;
