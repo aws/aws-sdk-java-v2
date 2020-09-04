@@ -15,26 +15,18 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import java.util.Iterator;
+import java.util.concurrent.ForkJoinTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
-import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
-import software.amazon.awssdk.codegen.utils.CompositeIterable;
 
-/**
- * Generator tasks for API Gateway style clients.
- */
-public class ApiGatewayGeneratorTasks implements Iterable<GeneratorTask> {
+public abstract class CompositeGeneratorTask extends GeneratorTask {
+    private final GeneratorTask[] tasks;
 
-    private final Iterable<GeneratorTask> tasks;
-
-    public ApiGatewayGeneratorTasks(GeneratorTaskParams params) {
-        // TODO add authorizers back when we get around to apig
-        this.tasks = new CompositeIterable<>(new CommonGeneratorTasks(params));
+    protected CompositeGeneratorTask(GeneratorTask... tasks) {
+        this.tasks = tasks;
     }
 
     @Override
-    public Iterator<GeneratorTask> iterator() {
-        return tasks.iterator();
+    protected void compute() {
+        ForkJoinTask.invokeAll(tasks);
     }
-
 }

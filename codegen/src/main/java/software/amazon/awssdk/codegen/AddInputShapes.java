@@ -79,7 +79,7 @@ final class AddInputShapes extends AddShapes implements IntermediateModelShapePr
         shapeModel.setType(ShapeType.Request.getValue());
         shapeModel.setMarshaller(
                 createInputShapeMarshaller(getServiceModel().getMetadata(), operation));
-        shapeModel.setEndpointDiscovery(operation.getEndpointDiscovery());
+        shapeModel.setEndpointDiscovery(operation.getEndpointdiscovery());
 
         return shapeModel;
     }

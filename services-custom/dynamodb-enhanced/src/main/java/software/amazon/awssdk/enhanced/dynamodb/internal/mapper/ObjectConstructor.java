@@ -23,13 +23,13 @@ import software.amazon.awssdk.utils.Validate;
 @FunctionalInterface
 @SdkInternalApi
 @SuppressWarnings("unchecked")
-public interface BeanConstructor<BeanT> extends Supplier<BeanT> {
-    static <BeanT> BeanConstructor<BeanT> create(Class<BeanT> beanClass, Constructor<BeanT> noArgsConstructor) {
+public interface ObjectConstructor<BeanT> extends Supplier<BeanT> {
+    static <BeanT> ObjectConstructor<BeanT> create(Class<BeanT> beanClass, Constructor<BeanT> noArgsConstructor) {
         Validate.isTrue(noArgsConstructor.getParameterCount() == 0,
                         "%s has no default constructor.",
                         beanClass);
 
-        return LambdaToMethodBridgeBuilder.create(BeanConstructor.class)
+        return LambdaToMethodBridgeBuilder.create(ObjectConstructor.class)
                                           .lambdaMethodName("get")
                                           .runtimeLambdaSignature(Object.class)
                                           .compileTimeLambdaSignature(beanClass)

@@ -27,7 +27,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,18 +40,17 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanConstructor;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ObjectConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 
 /**
  * Implementation of {@link TableSchema} that builds a table schema based on properties and annotations of a bean
@@ -60,53 +58,42 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * <pre>
  * <code>
  * {@literal @}DynamoDbBean
- * public class CustomerAccount {
- *     private String unencryptedBillingKey;
+ * public class Customer {
+ *     private String accountId;
+ *     private int subId;            // primitive types are supported
+ *     private String name;
+ *     private Instant createdDate;
  *
  *     {@literal @}DynamoDbPartitionKey
- *     {@literal @}DynamoDbSecondarySortKey(indexName = "accounts_by_customer")
- *     public String accountId;
+ *     public String getAccountId() { return this.accountId; }
+ *     public void setAccountId(String accountId) { this.accountId = accountId; }
  *
  *     {@literal @}DynamoDbSortKey
- *     {@literal @}DynamoDbSecondaryPartitionKey(indexName = "accounts_by_customer")
- *     public String customerId;
+ *     public int getSubId() { return this.subId; }
+ *     public void setSubId(int subId) { this.subId = subId; }
  *
- *     {@literal @}DynamoDbAttribute("account_status")
- *     public CustomerAccountStatus status;
+ *     // Defines a GSI (customers_by_name) with a partition key of 'name'
+ *     {@literal @}DynamoDbSecondaryPartitionKey(indexNames = "customers_by_name")
+ *     public String getName() { return this.name; }
+ *     public void setName(String name) { this.name = name; }
  *
- *     {@literal @}DynamoDbFlatten(dynamoDbBeanClass = Customer.class)
- *     public Customer customer;
- *
- *     public Instant createdOn;
- *
- *     // All public fields must be opted out to not participate in mapping
- *     {@literal @}DynamoDbIgnore
- *     public String internalKey;
- *
- *     public enum CustomerAccountStatus {
- *         ACTIVE,
- *         CLOSED
- *     }
+ *     // Defines an LSI (customers_by_date) with a sort key of 'createdDate' and also declares the
+ *     // same attribute as a sort key for the GSI named 'customers_by_name'
+ *     {@literal @}DynamoDbSecondarySortKey(indexNames = {"customers_by_date", "customers_by_name"})
+ *     public Instant getCreatedDate() { return this.createdDate; }
+ *     public void setCreatedDate(Instant createdDate) { this.createdDate = createdDate; }
  * }
- * </code>
- * {@literal @}DynamoDbBean
- * public class Customer {
- *     public String name;
  *
- *     {@literal public List<String> address;}
- * }
- * }
  * </pre>
+ *
  * @param <T> The type of object that this {@link TableSchema} maps to.
  */
 @SdkPublicApi
-public final class BeanTableSchema<T> implements TableSchema<T> {
+public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableSchema<T>> {
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
 
-    private final StaticTableSchema<T> wrappedTableSchema;
-
     private BeanTableSchema(StaticTableSchema<T> staticTableSchema) {
-        this.wrappedTableSchema = staticTableSchema;
+        super(staticTableSchema);
     }
 
     /**
@@ -118,60 +105,6 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
      */
     public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
         return new BeanTableSchema<>(createStaticTableSchema(beanClass));
-    }
-
-    /**
-     * {@inheritDoc}
-     * @param attributeMap A map of String to {@link AttributeValue} that contains all the raw attributes to map.
-     */
-    @Override
-    public T mapToItem(Map<String, AttributeValue> attributeMap) {
-        return wrappedTableSchema.mapToItem(attributeMap);
-    }
-
-    /**
-     * {@inheritDoc}
-     * @param item The modelled Java object to convert into a map of attributes.
-     * @param ignoreNulls If set to true; any null values in the Java object will not be added to the output map.
-     *                    If set to false; null values in the Java object will be added as {@link AttributeValue} of
-     *                    type 'nul' to the output map.
-     */
-    @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        return wrappedTableSchema.itemToMap(item, ignoreNulls);
-    }
-
-    /**
-     * {@inheritDoc}
-     * @param item The modelled Java object to extract the map of attributes from.
-     * @param attributes A collection of attribute names to extract into the output map.
-     */
-    @Override
-    public Map<String, AttributeValue> itemToMap(T item, Collection<String> attributes) {
-        return wrappedTableSchema.itemToMap(item, attributes);
-    }
-
-    /**
-     * {@inheritDoc}
-     * @param item The modelled Java object to extract the attribute from.
-     * @param key The attribute name describing which attribute to extract.
-     */
-    @Override
-    public AttributeValue attributeValue(T item, String key) {
-        return wrappedTableSchema.attributeValue(item, key);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TableMetadata tableMetadata() {
-        return wrappedTableSchema.tableMetadata();
-    }
-
-    @Override
-    public EnhancedType<T> itemType() {
-        return wrappedTableSchema.itemType();
     }
 
     private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass) {
@@ -204,7 +137,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
                   DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
                   if (dynamoDbFlatten != null) {
-                      builder.flatten(createStaticTableSchema(dynamoDbFlatten.dynamoDbBeanClass()),
+                      builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
                                       getterForProperty(propertyDescriptor, beanClass),
                                       setterForProperty(propertyDescriptor, beanClass));
                   } else {
@@ -247,7 +180,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
     /**
      * Converts a {@link Type} to an {@link EnhancedType}. Usually {@link EnhancedType#of} is capable of doing this all
      * by itself, but for the BeanTableSchema we want to detect if a parameterized class is being passed without a
-     * converter that is actually a {@link DynamoDbBean} in which case we want to capture its schema and add it to the
+     * converter that is actually another annotated class in which case we want to capture its schema and add it to the
      * EnhancedType. Unfortunately this means we have to duplicate some of the recursive Type parsing that
      * EnhancedClient otherwise does all by itself.
      */
@@ -276,9 +209,10 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         }
 
         if (clazz != null) {
-            if (clazz.getAnnotation(DynamoDbBean.class) != null) {
+            if (clazz.getAnnotation(DynamoDbImmutable.class) != null
+                || clazz.getAnnotation(DynamoDbBean.class) != null) {
                 return EnhancedType.documentOf((Class<Object>) clazz,
-                                               (TableSchema<Object>) createStaticTableSchema(clazz));
+                                               (TableSchema<Object>) TableSchema.fromClass(clazz));
             }
         }
 
@@ -344,7 +278,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
 
     private static <R> Supplier<R> newObjectSupplierForClass(Class<R> clazz) {
         try {
-            return BeanConstructor.create(clazz, clazz.getConstructor());
+            return ObjectConstructor.create(clazz, clazz.getConstructor());
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException(
                 String.format("Class '%s' appears to have no default constructor thus cannot be used with the " +

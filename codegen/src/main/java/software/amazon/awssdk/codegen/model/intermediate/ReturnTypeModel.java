@@ -15,15 +15,16 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class ReturnTypeModel {
 
     private String returnType;
 
     private String documentation;
 
-    public ReturnTypeModel(@JsonProperty("returnType") String returnType) {
+    public ReturnTypeModel() {
+    }
+
+    public ReturnTypeModel(String returnType) {
         setReturnType(returnType);
     }
 

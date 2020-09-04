@@ -80,7 +80,7 @@ abstract class AddShapes {
         shapeModel.setRequired(shape.getRequired());
         shapeModel.setDeprecated(shape.isDeprecated());
         shapeModel.setWrapper(shape.isWrapper());
-        shapeModel.withIsEventStream(shape.isEventStream());
+        shapeModel.withIsEventStream(shape.isEventstream());
         shapeModel.withIsEvent(shape.isEvent());
         shapeModel.withXmlNamespace(shape.getXmlNamespace());
 
@@ -170,7 +170,7 @@ abstract class AddShapes {
                    .withSetterModel(new VariableModel(variableName, variableType, variableDeclarationType))
                    .withGetterModel(new ReturnTypeModel(variableType))
                    .withTimestampFormat(resolveTimestampFormat(c2jMemberDefinition, shape))
-                   .withJsonValue(c2jMemberDefinition.getJsonValue());
+                   .withJsonValue(c2jMemberDefinition.getJsonvalue());
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
         memberModel.setSensitive(isSensitiveShapeOrContainer(c2jMemberDefinition, allC2jShapes));
@@ -183,9 +183,9 @@ abstract class AddShapes {
                 .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName, parentShape, shape))
                 .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName, parentShape, shape));
         memberModel.setIdempotencyToken(c2jMemberDefinition.isIdempotencyToken());
-        memberModel.setEventPayload(c2jMemberDefinition.isEventPayload());
-        memberModel.setEventHeader(c2jMemberDefinition.isEventHeader());
-        memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointDiscoveryId());
+        memberModel.setEventPayload(c2jMemberDefinition.isEventpayload());
+        memberModel.setEventHeader(c2jMemberDefinition.isEventheader());
+        memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointdiscoveryid());
         memberModel.setXmlAttribute(c2jMemberDefinition.isXmlAttribute());
 
         // Pass the xmlNameSpace from the member reference

@@ -37,7 +37,6 @@ public class AsyncClientGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        info("Emitting Async client classes");
         List<GeneratorTask> generatorTasks = new ArrayList<>();
         generatorTasks.add(createClientClassTask());
         generatorTasks.add(createClientBuilderTask());

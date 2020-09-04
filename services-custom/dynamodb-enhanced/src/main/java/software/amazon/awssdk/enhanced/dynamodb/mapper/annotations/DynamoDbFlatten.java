@@ -30,5 +30,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @Retention(RetentionPolicy.RUNTIME)
 @SdkPublicApi
 public @interface DynamoDbFlatten {
-    Class<?> dynamoDbBeanClass();
+    /**
+     * @deprecated This is no longer used, the class type of the attribute will be used instead.
+     */
+    @Deprecated
+    Class<?> dynamoDbBeanClass() default Object.class;
 }

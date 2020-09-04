@@ -33,7 +33,6 @@ public class CommonClientGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        info("Emitting common client classes");
         return Arrays.asList(createBaseBuilderTask(),
                              createBaseBuilderInterfaceTask());
     }
