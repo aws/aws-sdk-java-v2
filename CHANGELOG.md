@@ -1,3 +1,56 @@
+# __2.14.4__ __2020-08-24__
+## __AWS Database Migration Service__
+  - ### Features
+    - Added new endpoint settings to include columns with Null and Empty value when using Kinesis and Kafka as target. Added a new endpoint setting to set maximum message size when using Kafka as target.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Add traversalDirection to ListAssociatedAssetsRequest and add portal status to ListPortalsResponse
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - For JSON protocols, when unmarshalling a response, if a member is declared to be located in the URI, the member is treated as being located in the payload instead.
+
+## __AWS X-Ray__
+  - ### Features
+    - AWS X-Ray now supports tagging on sampling rules and groups.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Documentation updates for CloudWatch Logs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release enables customers to use VPC prefix lists in their transit gateway route tables, and it adds support for Provisioned IOPS SSD (io2) EBS volumes.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add string length constraints to OpsDataAttributeName and OpsFilterValue.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Add UpdateConfiguration and DeleteConfiguration operations.
+
+# __2.14.3__ __2020-08-20__
+## __Amazon Chime__
+  - ### Features
+    - Documentation updates for chime
+
+## __Amazon DynamoDB Streaming Client__
+  - ### Bugfixes
+    - Fix for CRC not working correctly for compressed responses
+
+## __Amazon FSx__
+  - ### Features
+    - Documentation updates for Amazon FSx
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Customers can now create Amazon API Gateway HTTP APIs that route requests to AWS AppConfig, Amazon EventBridge, Amazon Kinesis Data Streams, Amazon SQS, and AWS Step Functions.
+
 # __2.14.2__ __2020-08-19__
 ## __AWS Lake Formation__
   - ### Features
