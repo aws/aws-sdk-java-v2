@@ -26,9 +26,8 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
-import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyClientH1NonTlsBenchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
-import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.ApacheHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.UrlConnectionHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.Ec2ProtocolBenchmark;
@@ -55,9 +54,8 @@ public class BenchmarkRunner {
         QueryProtocolBenchmark.class.getSimpleName(), XmlProtocolBenchmark.class.getSimpleName());
 
     private static final List<String> ASYNC_BENCHMARKS = Arrays.asList(
-        NettyHttpClientH2Benchmark.class.getSimpleName(),
-        NettyHttpClientH1Benchmark.class.getSimpleName(),
-        NettyClientH1NonTlsBenchmark.class.getSimpleName());
+        AwsCrtClientBenchmark.class.getSimpleName(),
+        NettyHttpClientH1Benchmark.class.getSimpleName());
 
     private static final List<String> SYNC_BENCHMARKS = Arrays.asList(
         ApacheHttpClientBenchmark.class.getSimpleName(),
@@ -92,10 +90,10 @@ public class BenchmarkRunner {
 
     public static void main(String... args) throws RunnerException, JsonProcessingException {
         List<String> benchmarksToRun = new ArrayList<>();
-        benchmarksToRun.addAll(SYNC_BENCHMARKS);
+        //benchmarksToRun.addAll(SYNC_BENCHMARKS);
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
-        benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
-        benchmarksToRun.addAll(COLD_START_BENCHMARKS);
+        //benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
+        //benchmarksToRun.addAll(COLD_START_BENCHMARKS);
 
         log.info(() -> "Skipping tests, to reduce benchmark times: \n" + MAPPER_BENCHMARKS + "\n" + METRIC_BENCHMARKS);
 
