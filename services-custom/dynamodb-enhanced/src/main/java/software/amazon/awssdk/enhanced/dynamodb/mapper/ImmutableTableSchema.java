@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutableInfo;
@@ -41,6 +42,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutableIntr
 import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutablePropertyDescriptor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchemaCache;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ObjectConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ObjectGetterMethod;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticGetterMethod;
@@ -95,18 +98,62 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
         super(wrappedTableSchema);
     }
 
+    /**
+     * Scans an immutable class and builds an {@link ImmutableTableSchema} from it that can be used with the
+     * {@link DynamoDbEnhancedClient}.
+     * @param immutableClass The annotated immutable class to build the table schema from.
+     * @param <T> The immutable class type.
+     * @return An initialized {@link ImmutableTableSchema}
+     */
     public static <T> ImmutableTableSchema<T> create(Class<T> immutableClass) {
-        return new ImmutableTableSchema<>(createStaticImmutableTableSchema(immutableClass));
+        return create(immutableClass, new MetaTableSchemaCache());
     }
 
-    private static <T> StaticImmutableTableSchema<T, ?> createStaticImmutableTableSchema(Class<T> immutableClass) {
+    private static <T> ImmutableTableSchema<T> create(Class<T> immutableClass,
+                                                      MetaTableSchemaCache metaTableSchemaCache) {
+        // Fetch or create a new reference to this yet-to-be-created TableSchema in the cache
+        MetaTableSchema<T> metaTableSchema = metaTableSchemaCache.getOrCreate(immutableClass);
+
+        ImmutableTableSchema<T> newTableSchema =
+            new ImmutableTableSchema<>(createStaticImmutableTableSchema(immutableClass, metaTableSchemaCache));
+        metaTableSchema.initialize(newTableSchema);
+        return newTableSchema;
+    }
+
+    // Called when creating an immutable TableSchema recursively. Utilizes the MetaTableSchema cache to stop infinite
+    // recursion
+    static <T> TableSchema<T> recursiveCreate(Class<T> immutableClass, MetaTableSchemaCache metaTableSchemaCache) {
+        Optional<MetaTableSchema<T>> metaTableSchema = metaTableSchemaCache.get(immutableClass);
+
+        // If we get a cache hit...
+        if (metaTableSchema.isPresent()) {
+            // Either: use the cached concrete TableSchema if we have one
+            if (metaTableSchema.get().isInitialized()) {
+                return metaTableSchema.get().concreteTableSchema();
+            }
+
+            // Or: return the uninitialized MetaTableSchema as this must be a recursive reference and it will be
+            // initialized later as the chain completes
+            return metaTableSchema.get();
+        }
+
+        // Otherwise: cache doesn't know about this class; create a new one from scratch
+        return create(immutableClass, metaTableSchemaCache);
+
+    }
+
+    private static <T> StaticImmutableTableSchema<T, ?> createStaticImmutableTableSchema(
+            Class<T> immutableClass, MetaTableSchemaCache metaTableSchemaCache) {
         ImmutableInfo<T> immutableInfo = ImmutableIntrospector.getImmutableInfo(immutableClass);
         Class<?> builderClass = immutableInfo.builderClass();
-        return createStaticImmutableTableSchema(immutableClass, builderClass, immutableInfo);
+        return createStaticImmutableTableSchema(immutableClass, builderClass, immutableInfo, metaTableSchemaCache);
     }
 
     private static <T, B> StaticImmutableTableSchema<T, B>  createStaticImmutableTableSchema(
-        Class<T> immutableClass, Class<B> builderClass, ImmutableInfo<T> immutableInfo) {
+        Class<T> immutableClass,
+        Class<B> builderClass,
+        ImmutableInfo<T> immutableInfo,
+        MetaTableSchemaCache metaTableSchemaCache) {
 
         Supplier<B> newBuilderSupplier = newObjectSupplier(immutableInfo, builderClass);
         Function<B, T> buildFunction = ObjectGetterMethod.create(builderClass, immutableInfo.buildMethod());
@@ -130,7 +177,10 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
                                       setterForProperty(propertyDescriptor, builderClass));
                   } else {
                       ImmutableAttribute.Builder<T, B, ?> attributeBuilder =
-                          immutableAttributeBuilder(propertyDescriptor, immutableClass, builderClass);
+                          immutableAttributeBuilder(propertyDescriptor,
+                                                    immutableClass,
+                                                    builderClass,
+                                                    metaTableSchemaCache);
 
                       Optional<AttributeConverter> attributeConverter =
                               createAttributeConverterFromAnnotation(propertyDescriptor);
@@ -157,10 +207,12 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
     }
 
     private static <T, B> ImmutableAttribute.Builder<T, B, ?> immutableAttributeBuilder(
-        ImmutablePropertyDescriptor propertyDescriptor, Class<T> immutableClass, Class<B> builderClass) {
+        ImmutablePropertyDescriptor propertyDescriptor,
+        Class<T> immutableClass, Class<B> builderClass,
+        MetaTableSchemaCache metaTableSchemaCache) {
 
         Type propertyType = propertyDescriptor.getter().getGenericReturnType();
-        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType);
+        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType, metaTableSchemaCache);
         return ImmutableAttribute.builder(immutableClass, builderClass, propertyTypeToken)
                                  .name(attributeNameForProperty(propertyDescriptor))
                                  .getter(getterForProperty(propertyDescriptor, immutableClass))
@@ -169,13 +221,13 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
 
     /**
      * Converts a {@link Type} to an {@link EnhancedType}. Usually {@link EnhancedType#of} is capable of doing this all
-     * by itself, but for the BeanTableSchema we want to detect if a parameterized class is being passed without a
+     * by itself, but for the ImmutableTableSchema we want to detect if a parameterized class is being passed without a
      * converter that is actually another annotated class in which case we want to capture its schema and add it to the
      * EnhancedType. Unfortunately this means we have to duplicate some of the recursive Type parsing that
      * EnhancedClient otherwise does all by itself.
      */
     @SuppressWarnings("unchecked")
-    private static EnhancedType<?> convertTypeToEnhancedType(Type type) {
+    private static EnhancedType<?> convertTypeToEnhancedType(Type type, MetaTableSchemaCache metaTableSchemaCache) {
         Class<?> clazz = null;
 
         if (type instanceof ParameterizedType) {
@@ -183,12 +235,14 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
             Type rawType = parameterizedType.getRawType();
 
             if (List.class.equals(rawType)) {
-                return EnhancedType.listOf(convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0]));
+                return EnhancedType.listOf(convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0],
+                                                                     metaTableSchemaCache));
             }
 
             if (Map.class.equals(rawType)) {
                 return EnhancedType.mapOf(EnhancedType.of(parameterizedType.getActualTypeArguments()[0]),
-                                          convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[1]));
+                                          convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[1],
+                                                                    metaTableSchemaCache));
             }
 
             if (rawType instanceof Class) {
@@ -199,10 +253,14 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
         }
 
         if (clazz != null) {
-            if (clazz.getAnnotation(DynamoDbImmutable.class) != null
-                || clazz.getAnnotation(DynamoDbBean.class) != null) {
-                return EnhancedType.documentOf((Class<Object>) clazz,
-                                               (TableSchema<Object>) TableSchema.fromClass(clazz));
+            if (clazz.getAnnotation(DynamoDbImmutable.class) != null) {
+                return EnhancedType.documentOf(
+                    (Class<Object>) clazz,
+                    (TableSchema<Object>) ImmutableTableSchema.recursiveCreate(clazz, metaTableSchemaCache));
+            } else if (clazz.getAnnotation(DynamoDbBean.class) != null) {
+                return EnhancedType.documentOf(
+                    (Class<Object>) clazz,
+                    (TableSchema<Object>) BeanTableSchema.recursiveCreate(clazz, metaTableSchemaCache));
             }
         }
 
