@@ -27,8 +27,6 @@ public enum S3ControlResourceType {
 
     BUCKET("bucket"),
 
-    ACCESS_POINT("accesspoint"),
-
     OUTPOST("outpost");
 
     private final String value;

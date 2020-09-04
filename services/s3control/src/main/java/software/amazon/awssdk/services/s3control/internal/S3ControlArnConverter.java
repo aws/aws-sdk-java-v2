@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3control.internal;
 
 
 import static software.amazon.awssdk.services.s3.internal.resource.S3ArnUtils.parseOutpostArn;
-import static software.amazon.awssdk.services.s3.internal.resource.S3ArnUtils.parseS3AccessPointArn;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
@@ -58,16 +57,13 @@ public final class S3ControlArnConverter implements ArnConverter<S3Resource> {
             throw new IllegalArgumentException("Unknown ARN type '" + arn.resource().resourceType() + "'");
         }
 
-        switch (s3ResourceType) {
-            case BUCKET:
-                return parseBucketArn(arn);
-            case ACCESS_POINT:
-                return parseS3AccessPointArn(arn);
+        switch(s3ResourceType) {
             case OUTPOST:
                 return parseS3OutpostArn(arn);
             default:
                 throw new IllegalArgumentException("Unknown ARN type '" + arn.resource().resourceType() + "'");
         }
+
     }
 
     private S3Resource parseS3OutpostArn(Arn arn) {
@@ -112,12 +108,4 @@ public final class S3ControlArnConverter implements ArnConverter<S3Resource> {
         }
     }
 
-    private S3Resource parseBucketArn(Arn arn) {
-        return S3ControlBucketResource.builder()
-                                      .partition(arn.partition())
-                                      .region(arn.region().orElse(null))
-                                      .accountId(arn.accountId().orElse(null))
-                                      .bucketName(arn.resource().resource())
-                                      .build();
-    }
 }

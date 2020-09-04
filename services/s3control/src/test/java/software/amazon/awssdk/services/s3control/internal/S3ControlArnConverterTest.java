@@ -37,26 +37,6 @@ public class S3ControlArnConverterTest {
     public ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void parseArn_s3ControlBucketArn() {
-        S3Resource resource = ARN_PARSER.convertArn(Arn.builder()
-                                                       .partition("aws")
-                                                       .service("s3")
-                                                       .region("us-east-1")
-                                                       .accountId("123456789012")
-                                                       .resource("bucket/myBucket")
-                                                       .build());
-
-        assertThat(resource, instanceOf(S3ControlBucketResource.class));
-
-        S3ControlBucketResource bucketResource = (S3ControlBucketResource) resource;
-        assertThat(bucketResource.bucketName(), is("myBucket"));
-        assertThat(bucketResource.accountId(), is(Optional.of("123456789012")));
-        assertThat(bucketResource.partition(), is(Optional.of("aws")));
-        assertThat(bucketResource.region(), is(Optional.of("us-east-1")));
-        assertThat(bucketResource.type(), is(S3ControlResourceType.BUCKET.toString()));
-    }
-
-    @Test
     public void parseArn_outpostBucketArn() {
         S3Resource resource = ARN_PARSER.convertArn(Arn.builder()
                                                        .partition("aws")
@@ -103,26 +83,6 @@ public class S3ControlArnConverterTest {
         assertThat(outpostResource.accountId(), is(Optional.of("123456789012")));
         assertThat(outpostResource.partition(), is(Optional.of("aws")));
         assertThat(outpostResource.region(), is(Optional.of("us-east-1")));
-    }
-
-    @Test
-    public void parseArn_s3AccessPointArn() {
-        S3Resource resource = ARN_PARSER.convertArn(Arn.builder()
-                                                       .partition("aws")
-                                                       .service("s3")
-                                                       .region("us-east-1")
-                                                       .accountId("123456789012")
-                                                       .resource("accesspoint:accesspoint-name")
-                                                       .build());
-
-        assertThat(resource, instanceOf(S3AccessPointResource.class));
-
-        S3AccessPointResource s3AccessPointResource = (S3AccessPointResource) resource;
-        assertThat(s3AccessPointResource.accessPointName(), is("accesspoint-name"));
-        assertThat(s3AccessPointResource.accountId(), is(Optional.of("123456789012")));
-        assertThat(s3AccessPointResource.partition(), is(Optional.of("aws")));
-        assertThat(s3AccessPointResource.region(), is(Optional.of("us-east-1")));
-        assertThat(s3AccessPointResource.type(), is(S3ControlResourceType.ACCESS_POINT.toString()));
     }
 
     @Test
@@ -177,30 +137,6 @@ public class S3ControlArnConverterTest {
                                  .region("us-east-1")
                                  .accountId("123456789012")
                                  .resource("unknown:foobar")
-                                 .build());
-    }
-
-    @Test
-    public void parseArn_bucketArn_noName() {
-        exception.expect(IllegalArgumentException.class);
-        ARN_PARSER.convertArn(Arn.builder()
-                                 .partition("aws")
-                                 .service("s3")
-                                 .region("us-east-1")
-                                 .accountId("123456789012")
-                                 .resource("bucket:")
-                                 .build());
-    }
-
-    @Test
-    public void parseArn_accessPoint_noName() {
-        exception.expect(IllegalArgumentException.class);
-        ARN_PARSER.convertArn(Arn.builder()
-                                 .partition("aws")
-                                 .service("s3")
-                                 .region("us-east-1")
-                                 .accountId("123456789012")
-                                 .resource("accesspoint:")
                                  .build());
     }
 
