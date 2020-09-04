@@ -22,16 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -52,14 +50,12 @@ public class AwsCrtClientS3IntegrationTest {
 
     private static Region REGION = Region.US_EAST_1;
 
-    private static EventLoopGroup eventLoopGroup;
-    private static HostResolver hostResolver;
     private static SdkAsyncHttpClient crtClient;
 
     private static S3AsyncClient s3;
 
-    @Before
-    public void setup() {
+    @BeforeClass
+    public static void setup() {
         CrtResource.waitForNoResources();
 
         crtClient = AwsCrtAsyncHttpClient.create();
@@ -71,12 +67,10 @@ public class AwsCrtClientS3IntegrationTest {
                 .build();
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         s3.close();
         crtClient.close();
-        hostResolver.close();
-        eventLoopGroup.close();
         CrtResource.waitForNoResources();
     }
 
