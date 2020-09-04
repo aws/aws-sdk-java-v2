@@ -1,5 +1,5 @@
 {
-    "category": "AWS Common Runtime Http Client", 
+    "category": "AWS Common Runtime HTTP Client",
     "type": "feature", 
-    "description": "Add initial support for the AWS Common Runtime (CRT) Http Client."
+    "description": "This release includes the preview release of the AWS Common Runtime HTTP client for the AWS SDK for Java v2. The code can be found in the `aws-crt-client` module. See our post over at the [AWS Developer Blog](https://aws.amazon.com/blogs/developer/category/developer-tools/aws-sdk-for-java/) for additional information."
 }
