@@ -1,0 +1,26 @@
+{
+    "version": "2.14.12",
+    "date": "2020-09-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS X-Ray",
+            "description": "Enhancing CreateGroup, UpdateGroup, GetGroup and GetGroups APIs to support configuring X-Ray Insights"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "description": "Adding support for Microsoft Office 2016 and Microsoft Office 2019 in BYOL Images"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Documentation-only updates for AWS Systems Manager"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
