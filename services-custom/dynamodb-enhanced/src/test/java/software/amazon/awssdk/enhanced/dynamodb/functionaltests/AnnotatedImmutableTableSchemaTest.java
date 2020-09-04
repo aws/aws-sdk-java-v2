@@ -43,7 +43,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
     @Test
     public void simpleItem_putAndGet() {
         TableSchema<ImmutableFakeItem> tableSchema =
-            TableSchema.fromImmutableClass(ImmutableFakeItem.class);
+            TableSchema.fromClass(ImmutableFakeItem.class);
 
         DynamoDbTable<ImmutableFakeItem> mappedTable =
             enhancedClient.table(getConcreteTableName(TABLE_NAME), tableSchema);

@@ -43,6 +43,8 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchemaCache;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ObjectConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
@@ -104,10 +106,43 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      * @return An initialized {@link BeanTableSchema}
      */
     public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
-        return new BeanTableSchema<>(createStaticTableSchema(beanClass));
+        return create(beanClass, new MetaTableSchemaCache());
     }
 
-    private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass) {
+    private static <T> BeanTableSchema<T> create(Class<T> beanClass, MetaTableSchemaCache metaTableSchemaCache) {
+        // Fetch or create a new reference to this yet-to-be-created TableSchema in the cache
+        MetaTableSchema<T> metaTableSchema = metaTableSchemaCache.getOrCreate(beanClass);
+
+        BeanTableSchema<T> newTableSchema =
+            new BeanTableSchema<>(createStaticTableSchema(beanClass, metaTableSchemaCache));
+        metaTableSchema.initialize(newTableSchema);
+        return newTableSchema;
+    }
+
+    // Called when creating an immutable TableSchema recursively. Utilizes the MetaTableSchema cache to stop infinite
+    // recursion
+    static <T> TableSchema<T> recursiveCreate(Class<T> beanClass, MetaTableSchemaCache metaTableSchemaCache) {
+        Optional<MetaTableSchema<T>> metaTableSchema = metaTableSchemaCache.get(beanClass);
+
+        // If we get a cache hit...
+        if (metaTableSchema.isPresent()) {
+            // Either: use the cached concrete TableSchema if we have one
+            if (metaTableSchema.get().isInitialized()) {
+                return metaTableSchema.get().concreteTableSchema();
+            }
+
+            // Or: return the uninitialized MetaTableSchema as this must be a recursive reference and it will be
+            // initialized later as the chain completes
+            return metaTableSchema.get();
+        }
+
+        // Otherwise: cache doesn't know about this class; create a new one from scratch
+        return create(beanClass);
+
+    }
+
+    private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass,
+                                                                    MetaTableSchemaCache metaTableSchemaCache) {
         DynamoDbBean dynamoDbBean = beanClass.getAnnotation(DynamoDbBean.class);
 
         if (dynamoDbBean == null) {
@@ -142,7 +177,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                       setterForProperty(propertyDescriptor, beanClass));
                   } else {
                       StaticAttribute.Builder<T, ?> attributeBuilder =
-                          staticAttributeBuilder(propertyDescriptor, beanClass);
+                          staticAttributeBuilder(propertyDescriptor, beanClass, metaTableSchemaCache);
 
                       Optional<AttributeConverter> attributeConverter =
                               createAttributeConverterFromAnnotation(propertyDescriptor);
@@ -167,10 +202,11 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
     }
 
     private static <T> StaticAttribute.Builder<T, ?> staticAttributeBuilder(PropertyDescriptor propertyDescriptor,
-                                                                            Class<T> beanClass) {
+                                                                            Class<T> beanClass,
+                                                                            MetaTableSchemaCache metaTableSchemaCache) {
 
         Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
-        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType);
+        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType, metaTableSchemaCache);
         return StaticAttribute.builder(beanClass, propertyTypeToken)
                               .name(attributeNameForProperty(propertyDescriptor))
                               .getter(getterForProperty(propertyDescriptor, beanClass))
@@ -185,7 +221,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      * EnhancedClient otherwise does all by itself.
      */
     @SuppressWarnings("unchecked")
-    private static EnhancedType<?> convertTypeToEnhancedType(Type type) {
+    private static EnhancedType<?> convertTypeToEnhancedType(Type type, MetaTableSchemaCache metaTableSchemaCache) {
         Class<?> clazz = null;
 
         if (type instanceof ParameterizedType) {
@@ -193,12 +229,14 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
             Type rawType = parameterizedType.getRawType();
 
             if (List.class.equals(rawType)) {
-                return EnhancedType.listOf(convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0]));
+                return EnhancedType.listOf(convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0],
+                                                                     metaTableSchemaCache));
             }
 
             if (Map.class.equals(rawType)) {
                 return EnhancedType.mapOf(EnhancedType.of(parameterizedType.getActualTypeArguments()[0]),
-                                          convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[1]));
+                                          convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[1],
+                                                                    metaTableSchemaCache));
             }
 
             if (rawType instanceof Class) {
@@ -209,10 +247,14 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         }
 
         if (clazz != null) {
-            if (clazz.getAnnotation(DynamoDbImmutable.class) != null
-                || clazz.getAnnotation(DynamoDbBean.class) != null) {
-                return EnhancedType.documentOf((Class<Object>) clazz,
-                                               (TableSchema<Object>) TableSchema.fromClass(clazz));
+            if (clazz.getAnnotation(DynamoDbImmutable.class) != null) {
+                return EnhancedType.documentOf(
+                    (Class<Object>) clazz,
+                    (TableSchema<Object>) ImmutableTableSchema.recursiveCreate(clazz, metaTableSchemaCache));
+            } else if (clazz.getAnnotation(DynamoDbBean.class) != null) {
+                return EnhancedType.documentOf(
+                    (Class<Object>) clazz,
+                    (TableSchema<Object>) BeanTableSchema.recursiveCreate(clazz, metaTableSchemaCache));
             }
         }
 
