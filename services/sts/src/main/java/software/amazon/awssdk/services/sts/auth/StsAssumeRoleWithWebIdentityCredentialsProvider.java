@@ -120,5 +120,10 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCr
             return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().applyMutation(assumeRoleWithWebIdentityRequest)
                                                                   .build());
         }
+
+        @Override
+        public StsAssumeRoleWithWebIdentityCredentialsProvider build() {
+            return super.build();
+        }
     }
 }
