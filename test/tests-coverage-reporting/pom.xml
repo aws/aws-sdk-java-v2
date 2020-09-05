@@ -103,6 +103,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <artifactId>aws-crt-client</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}-PREVIEW</version>
+        </dependency>
+        <dependency>
             <artifactId>url-connection-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>

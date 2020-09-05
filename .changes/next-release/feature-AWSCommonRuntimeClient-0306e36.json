@@ -1,0 +1,5 @@
+{
+    "category": "AWS Common Runtime HTTP Client",
+    "type": "feature", 
+    "description": "This release includes the preview release of the AWS Common Runtime HTTP client for the AWS SDK for Java v2. The code can be found in the `aws-crt-client` module."
+}
