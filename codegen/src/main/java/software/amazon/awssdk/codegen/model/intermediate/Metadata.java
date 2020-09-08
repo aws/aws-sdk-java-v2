@@ -67,6 +67,8 @@ public class Metadata {
 
     private String authPolicyPackageName;
 
+    private String waitersPackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -662,4 +664,17 @@ public class Metadata {
         setServiceId(serviceId);
         return this;
     }
+
+    public String getWaitersPackageName() {
+        return waitersPackageName;
+    }
+
+    public void setWaitersPackageName(String waitersPackageName) {
+        this.waitersPackageName = waitersPackageName;
+    }
+
+    public String getFullWaitersPackageName() {
+        return joinPackageNames(rootPackageName, getWaitersPackageName());
+    }
+
 }

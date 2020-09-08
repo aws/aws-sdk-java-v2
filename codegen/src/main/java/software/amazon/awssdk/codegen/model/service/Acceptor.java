@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 
 public class Acceptor {
 
@@ -25,7 +25,7 @@ public class Acceptor {
 
     private String state;
 
-    private JsonNode expected;
+    private JrsValue expected;
 
     public Acceptor() {
     }
@@ -54,11 +54,11 @@ public class Acceptor {
         this.argument = argument;
     }
 
-    public JsonNode getExpected() {
+    public JrsValue getExpected() {
         return expected;
     }
 
-    public void setExpected(JsonNode expected) {
+    public void setExpected(JrsValue expected) {
         this.expected = expected;
     }
 
