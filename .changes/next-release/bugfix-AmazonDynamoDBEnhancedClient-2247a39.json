@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "description": "Fix for stack overflow caused by using self-referencing DynamoDB annotated classes."
-}

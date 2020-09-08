@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonApiGatewayV2",
-    "description": "You can now secure HTTP APIs using Lambda authorizers and IAM authorizers. These options enable you to make flexible auth decisions using a Lambda function, or using IAM policies, respectively."
-}

@@ -1,0 +1,41 @@
+{
+    "version": "2.14.13",
+    "date": "2020-09-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "description": "Amazon Lex supports en-AU locale"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Common Runtime HTTP Client",
+            "description": "This release includes the preview release of the AWS Common Runtime HTTP client for the AWS SDK for Java v2. The code can be found in the `aws-crt-client` module."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "Adds tagging support for QuickSight customization resources. A user can now specify a list of tags when creating a customization resource and use a customization ARN in QuickSight's tagging APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "description": "You can now secure HTTP APIs using Lambda authorizers and IAM authorizers. These options enable you to make flexible auth decisions using a Lambda function, or using IAM policies, respectively."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "description": "AWS CodeBuild - Support keyword search for test cases in DecribeTestCases API . Allow deletion of reports in the report group, before deletion of report group using the deleteReports flag."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "description": "Fix for stack overflow caused by using self-referencing DynamoDB annotated classes."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "description": "Adds support for Application Load Balancers on Outposts."
+        }
+    ]
+}
