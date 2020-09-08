@@ -678,9 +678,7 @@ public class Metadata {
         return this;
     }
 
-
     public String getFullWaitersPackageName() {
         return joinPackageNames(rootPackageName, getWaitersPackageName());
     }
-
 }
