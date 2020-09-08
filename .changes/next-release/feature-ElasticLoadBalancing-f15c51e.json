@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "description": "Adds support for Application Load Balancers on Outposts."
+}
