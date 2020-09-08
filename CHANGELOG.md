@@ -1,3 +1,32 @@
+# __2.14.13__ __2020-09-08__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild - Support keyword search for test cases in DecribeTestCases API . Allow deletion of reports in the report group, before deletion of report group using the deleteReports flag.
+
+## __AWS Common Runtime HTTP Client__
+  - ### Features
+    - This release includes the preview release of the AWS Common Runtime HTTP client for the AWS SDK for Java v2. The code can be found in the `aws-crt-client` module.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix for stack overflow caused by using self-referencing DynamoDB annotated classes.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Amazon Lex supports en-AU locale
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds tagging support for QuickSight customization resources. A user can now specify a list of tags when creating a customization resource and use a customization ARN in QuickSight's tagging APIs.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - You can now secure HTTP APIs using Lambda authorizers and IAM authorizers. These options enable you to make flexible auth decisions using a Lambda function, or using IAM policies, respectively.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds support for Application Load Balancers on Outposts.
+
 # __2.14.12__ __2020-09-04__
 ## __AWS SDK for Java v2__
   - ### Features

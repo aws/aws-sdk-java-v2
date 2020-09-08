@@ -104,5 +104,10 @@ public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProv
         public Builder refreshRequest(Consumer<GetFederationTokenRequest.Builder> getFederationTokenRequest) {
             return refreshRequest(GetFederationTokenRequest.builder().applyMutation(getFederationTokenRequest).build());
         }
+
+        @Override
+        public StsGetFederationTokenCredentialsProvider build() {
+            return super.build();
+        }
     }
 }

@@ -180,4 +180,22 @@
             <Confidence value="1"/>
         </Not>
     </Match>
+
+    <Match>
+        <Package name="~software.amazon.awssdk.http.*"/>
+        <Bug pattern="URF_UNREAD_FIELD, RV_RETURN_VALUE_IGNORED"/>
+    </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.internal.AwsCrtResponseBodyPublisher" />
+        <Method name="subscribe"/>
+        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
+    </Match>
+
+    <!-- on some java versions, the try-with-resources byte code is getting flagged by this -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient" />
+        <Method name="execute"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
 </FindBugsFilter>
