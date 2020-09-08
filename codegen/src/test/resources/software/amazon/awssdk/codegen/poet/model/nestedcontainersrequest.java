@@ -34,6 +34,7 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
                                                                             ToCopyableBuilder<NestedContainersRequest.Builder, NestedContainersRequest> {
     private static final SdkField<List<List<String>>> LIST_OF_LIST_OF_STRINGS_FIELD = SdkField
         .<List<List<String>>> builder(MarshallingType.LIST)
+        .memberName("ListOfListOfStrings")
         .getter(getter(NestedContainersRequest::listOfListOfStrings))
         .setter(setter(Builder::listOfListOfStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfListOfStrings").build(),
@@ -56,6 +57,7 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
 
     private static final SdkField<List<List<List<String>>>> LIST_OF_LIST_OF_LIST_OF_STRINGS_FIELD = SdkField
         .<List<List<List<String>>>> builder(MarshallingType.LIST)
+        .memberName("ListOfListOfListOfStrings")
         .getter(getter(NestedContainersRequest::listOfListOfListOfStrings))
         .setter(setter(Builder::listOfListOfListOfStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfListOfListOfStrings").build(),
@@ -92,6 +94,7 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
 
     private static final SdkField<Map<String, List<List<String>>>> MAP_OF_STRING_TO_LIST_OF_LIST_OF_STRINGS_FIELD = SdkField
         .<Map<String, List<List<String>>>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToListOfListOfStrings")
         .getter(getter(NestedContainersRequest::mapOfStringToListOfListOfStrings))
         .setter(setter(Builder::mapOfStringToListOfListOfStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToListOfListOfStrings")

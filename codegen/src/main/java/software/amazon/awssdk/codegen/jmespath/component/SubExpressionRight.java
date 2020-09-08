@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.jmespath.component;
 
+import software.amazon.awssdk.codegen.jmespath.parser.JmesPathVisitor;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -108,8 +109,7 @@ public class SubExpressionRight {
         return wildcardExpression;
     }
 
-
-    public void visit(Visitor visitor) {
+    public void visit(JmesPathVisitor visitor) {
         if (isIdentifier()) {
             visitor.visitIdentifier(asIdentifier());
         } else if (isMultiSelectList()) {
@@ -122,23 +122,6 @@ public class SubExpressionRight {
             visitor.visitWildcardExpression(asWildcardExpression());
         } else {
             throw new IllegalStateException();
-        }
-    }
-
-    interface Visitor {
-        default void visitIdentifier(String identifier) {
-        }
-
-        default void visitMultiSelectList(MultiSelectList multiSelectList) {
-        }
-
-        default void visitMultiSelectHash(MultiSelectHash multiSelectHash) {
-        }
-
-        default void visitFunctionExpression(FunctionExpression functionExpression) {
-        }
-
-        default void visitWildcardExpression(WildcardExpression wildcardExpression) {
         }
     }
 }

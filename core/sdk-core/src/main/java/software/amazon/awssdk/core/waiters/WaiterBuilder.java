@@ -35,7 +35,7 @@ public interface WaiterBuilder<T, B> {
      * @param waiterAcceptors the waiter acceptors
      * @return a reference to this object so that method calls can be chained together.
      */
-    B acceptors(List<WaiterAcceptor<T>> waiterAcceptors);
+    B acceptors(List<WaiterAcceptor<? super T>> waiterAcceptors);
 
     /**
      * Adds a {@link WaiterAcceptor} to the end of the ordered waiterAcceptors list.
@@ -47,7 +47,7 @@ public interface WaiterBuilder<T, B> {
      * @param waiterAcceptors the waiter acceptors
      * @return a reference to this object so that method calls can be chained together.
      */
-    B addAcceptor(WaiterAcceptor<T> waiterAcceptors);
+    B addAcceptor(WaiterAcceptor<? super T> waiterAcceptors);
 
     /**
      * Defines a {@link PollingStrategy} to use when polling a resource

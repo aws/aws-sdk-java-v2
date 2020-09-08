@@ -38,7 +38,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
     private final PollingStrategy pollingStrategy;
     private final ScheduledExecutorService executorService;
-    private final List<WaiterAcceptor<T>> waiterAcceptors;
+    private final List<WaiterAcceptor<? super T>> waiterAcceptors;
     private final AsyncWaiterExecutor<T> handler;
 
     private DefaultAsyncWaiter(DefaultBuilder<T> builder) {
@@ -58,7 +58,7 @@ public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
     }
 
     public static final class DefaultBuilder<T> implements Builder<T> {
-        private List<WaiterAcceptor<T>> waiterAcceptors = new ArrayList<>();
+        private List<WaiterAcceptor<? super T>> waiterAcceptors = new ArrayList<>();
         private ScheduledExecutorService scheduledExecutorService;
         private PollingStrategy pollingStrategy;
 
@@ -72,7 +72,7 @@ public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
         }
 
         @Override
-        public Builder<T> acceptors(List<WaiterAcceptor<T>> waiterAcceptors) {
+        public Builder<T> acceptors(List<WaiterAcceptor<? super T>> waiterAcceptors) {
             this.waiterAcceptors = new ArrayList<>(waiterAcceptors);
             return this;
         }
@@ -84,7 +84,7 @@ public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
         }
 
         @Override
-        public Builder<T> addAcceptor(WaiterAcceptor<T> waiterAcceptor) {
+        public Builder<T> addAcceptor(WaiterAcceptor<? super T> waiterAcceptor) {
             waiterAcceptors.add(waiterAcceptor);
             return this;
         }

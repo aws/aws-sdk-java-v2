@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.jmespath.component;
 
 
+import software.amazon.awssdk.codegen.jmespath.parser.JmesPathVisitor;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -62,21 +63,13 @@ public class FunctionArg {
         return expressionType;
     }
 
-    public void visit(Visitor visitor) {
+    public void visit(JmesPathVisitor visitor) {
         if (isExpression()) {
             visitor.visitExpression(asExpression());
         } else if (isExpressionType()) {
             visitor.visitExpressionType(asExpressionType());
         } else {
             throw new IllegalStateException();
-        }
-    }
-
-    interface Visitor {
-        default void visitExpression(Expression expression) {
-        }
-
-        default void visitExpressionType(ExpressionType expressionType) {
         }
     }
 }

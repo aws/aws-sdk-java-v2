@@ -39,7 +39,7 @@ public final class WaiterExecutor<T> {
     private final WaiterExecutorHelper<T> executorHelper;
 
     public WaiterExecutor(PollingStrategy pollingStrategy,
-                          List<WaiterAcceptor<T>> waiterAcceptors) {
+                          List<WaiterAcceptor<? super T>> waiterAcceptors) {
         Validate.paramNotNull(pollingStrategy, "pollingStrategy");
         Validate.paramNotNull(waiterAcceptors, "waiterAcceptors");
         this.executorHelper = new WaiterExecutorHelper<>(waiterAcceptors, pollingStrategy);
@@ -65,7 +65,7 @@ public final class WaiterExecutor<T> {
                                        Either<T, Throwable> responseOrException,
                                        int attemptNumber,
                                        long startTime) {
-        Optional<WaiterAcceptor<T>> waiterAcceptor = executorHelper.firstWaiterAcceptorIfMatched(responseOrException);
+        Optional<WaiterAcceptor<? super T>> waiterAcceptor = executorHelper.firstWaiterAcceptorIfMatched(responseOrException);
 
         if (waiterAcceptor.isPresent()) {
             WaiterState state = waiterAcceptor.get().waiterState();
