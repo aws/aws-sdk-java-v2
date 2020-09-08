@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.jmespath.component;
 
+import software.amazon.awssdk.codegen.jmespath.parser.JmesPathVisitor;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -89,7 +90,7 @@ public class BracketSpecifier {
         return bracketSpecifierWithQuestionMark;
     }
 
-    public void visit(Visitor visitor) {
+    public void visit(JmesPathVisitor visitor) {
         if (isBracketSpecifierWithContents()) {
             visitor.visitBracketSpecifierWithContents(asBracketSpecifierWithContents());
         } else if (isBracketSpecifierWithoutContents()) {
@@ -98,17 +99,6 @@ public class BracketSpecifier {
             visitor.visitBracketSpecifierWithQuestionMark(asBracketSpecifierWithQuestionMark());
         } else {
             throw new IllegalStateException();
-        }
-    }
-
-    public interface Visitor {
-        default void visitBracketSpecifierWithContents(BracketSpecifierWithContents bracketSpecifierWithContents) {
-        }
-
-        default void visitBracketSpecifierWithoutContents(BracketSpecifierWithoutContents bracketSpecifierWithContents) {
-        }
-
-        default void visitBracketSpecifierWithQuestionMark(BracketSpecifierWithQuestionMark bracketSpecifierWithContents) {
         }
     }
 }

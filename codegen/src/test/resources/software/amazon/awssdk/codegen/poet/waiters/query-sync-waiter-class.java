@@ -1,15 +1,21 @@
 package software.amazon.awssdk.services.query.waiters;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.PollingStrategy;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
+import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.core.waiters.WaitersRuntime;
 import software.amazon.awssdk.services.query.QueryClient;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
@@ -41,13 +47,32 @@ final class DefaultQueryWaiter implements QueryWaiter {
                                                                                                         .maxAttempts(40).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))).build()
                                                                                        : builder.pollingStrategy;
         this.postOperationSuccessWaiter = Waiter.builder(APostOperationResponse.class)
-                                                .pollingStrategy(postOperationSuccessStrategy)
-                                                .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(ignore -> true)).build();
+                                                .pollingStrategy(postOperationSuccessStrategy).acceptors(postOperationSuccessWaiterAcceptors()).build();
+    }
+
+    private static String errorCode(Throwable error) {
+        if (error instanceof AwsServiceException) {
+            return ((AwsServiceException) error).awsErrorDetails().errorCode();
+        }
+        return null;
     }
 
     @Override
     public WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(APostOperationRequest aPostOperationRequest) {
         return postOperationSuccessWaiter.run(() -> client.aPostOperation(aPostOperationRequest));
+    }
+
+    private static List<WaiterAcceptor<? super APostOperationResponse>> postOperationSuccessWaiterAcceptors() {
+        List<WaiterAcceptor<? super APostOperationResponse>> result = new ArrayList<>();
+        result.add(new WaitersRuntime.ResponseStatusAcceptor(200, WaiterState.SUCCESS));
+        result.add(new WaitersRuntime.ResponseStatusAcceptor(404, WaiterState.RETRY));
+        result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
+            WaitersRuntime.Value input = new WaitersRuntime.Value(response);
+            List<Object> resultValues = input.field("foo").field("bar").values();
+            return !resultValues.isEmpty() && resultValues.stream().anyMatch(v -> Objects.equals(v, "baz"));
+        }));
+        result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
+        return result;
     }
 
     @Override

@@ -213,13 +213,13 @@ public abstract class BaseWaiterTest {
     public abstract BiFunction<Integer, TestWaiterConfiguration, WaiterResponse<String>> successOnExceptionWaiterOperation();
 
     class TestWaiterConfiguration implements WaiterBuilder<String, TestWaiterConfiguration> {
-        private List<WaiterAcceptor<String>> waiterAcceptors = new ArrayList<>();
+        private List<WaiterAcceptor<? super String>> waiterAcceptors = new ArrayList<>();
         private PollingStrategy pollingStrategy;
 
         /**
          * @return
          */
-        public List<WaiterAcceptor<String>> getWaiterAcceptors() {
+        public List<WaiterAcceptor<? super String>> getWaiterAcceptors() {
             return waiterAcceptors;
         }
 
@@ -231,13 +231,13 @@ public abstract class BaseWaiterTest {
         }
 
         @Override
-        public TestWaiterConfiguration acceptors(List<WaiterAcceptor<String>> waiterAcceptors) {
+        public TestWaiterConfiguration acceptors(List<WaiterAcceptor<? super String>> waiterAcceptors) {
             this.waiterAcceptors = waiterAcceptors;
             return this;
         }
 
         @Override
-        public TestWaiterConfiguration addAcceptor(WaiterAcceptor<String> waiterAcceptor) {
+        public TestWaiterConfiguration addAcceptor(WaiterAcceptor<? super String> waiterAcceptor) {
             waiterAcceptors.add(waiterAcceptor);
             return this;
         }

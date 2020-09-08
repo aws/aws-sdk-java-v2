@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.Validate;
 @ThreadSafe
 public final class DefaultWaiter<T> implements Waiter<T> {
     private final PollingStrategy pollingStrategy;
-    private final List<WaiterAcceptor<T>> waiterAcceptors;
+    private final List<WaiterAcceptor<? super T>> waiterAcceptors;
 
     private DefaultWaiter(DefaultBuilder<T> builder) {
         this.pollingStrategy = Validate.paramNotNull(builder.pollingStrategy, "pollingStrategy");
@@ -53,14 +53,14 @@ public final class DefaultWaiter<T> implements Waiter<T> {
     }
 
     public static final class DefaultBuilder<T> implements Builder<T> {
-        private List<WaiterAcceptor<T>> waiterAcceptors = new ArrayList<>();
+        private List<WaiterAcceptor<? super T>> waiterAcceptors = new ArrayList<>();
         private PollingStrategy pollingStrategy;
 
         private DefaultBuilder() {
         }
 
         @Override
-        public Builder<T> acceptors(List<WaiterAcceptor<T>> waiterAcceptors) {
+        public Builder<T> acceptors(List<WaiterAcceptor<? super T>> waiterAcceptors) {
             this.waiterAcceptors = new ArrayList<>(waiterAcceptors);
             return this;
         }
@@ -72,7 +72,7 @@ public final class DefaultWaiter<T> implements Waiter<T> {
         }
 
         @Override
-        public Builder<T> addAcceptor(WaiterAcceptor<T> waiterAcceptor) {
+        public Builder<T> addAcceptor(WaiterAcceptor<? super T> waiterAcceptor) {
             waiterAcceptors.add(waiterAcceptor);
             return this;
         }

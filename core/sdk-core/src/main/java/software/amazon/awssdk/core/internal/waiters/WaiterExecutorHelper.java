@@ -32,10 +32,10 @@ import software.amazon.awssdk.utils.Either;
  */
 @SdkInternalApi
 public final class WaiterExecutorHelper<T> {
-    private final List<WaiterAcceptor<T>> waiterAcceptors;
+    private final List<WaiterAcceptor<? super T>> waiterAcceptors;
     private final PollingStrategy pollingStrategy;
 
-    public WaiterExecutorHelper(List<WaiterAcceptor<T>> waiterAcceptors, PollingStrategy pollingStrategy) {
+    public WaiterExecutorHelper(List<WaiterAcceptor<? super T>> waiterAcceptors, PollingStrategy pollingStrategy) {
         this.waiterAcceptors = waiterAcceptors;
         this.pollingStrategy = pollingStrategy;
     }
@@ -47,7 +47,7 @@ public final class WaiterExecutorHelper<T> {
         );
     }
 
-    public Optional<WaiterAcceptor<T>> firstWaiterAcceptorIfMatched(Either<T, Throwable> responseOrException) {
+    public Optional<WaiterAcceptor<? super T>> firstWaiterAcceptorIfMatched(Either<T, Throwable> responseOrException) {
         return responseOrException.map(this::responseMatches, this::exceptionMatches);
     }
 
@@ -92,18 +92,18 @@ public final class WaiterExecutorHelper<T> {
                                            + "waiter acceptors", t));
     }
 
-    public SdkClientException waiterFailureException(WaiterAcceptor<T> acceptor) {
+    public SdkClientException waiterFailureException(WaiterAcceptor<? super T> acceptor) {
         return SdkClientException.create(acceptor.message().orElse("A waiter acceptor was matched and transitioned "
                                                                    + "the waiter to failure state"));
     }
 
-    private Optional<WaiterAcceptor<T>> responseMatches(T response) {
+    private Optional<WaiterAcceptor<? super T>> responseMatches(T response) {
         return waiterAcceptors.stream()
                               .filter(acceptor -> acceptor.matches(response))
                               .findFirst();
     }
 
-    private Optional<WaiterAcceptor<T>> exceptionMatches(Throwable exception) {
+    private Optional<WaiterAcceptor<? super T>> exceptionMatches(Throwable exception) {
         return waiterAcceptors.stream()
                               .filter(acceptor -> acceptor.matches(exception))
                               .findFirst();

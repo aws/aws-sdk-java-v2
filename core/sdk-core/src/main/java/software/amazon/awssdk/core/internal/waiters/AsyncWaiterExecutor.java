@@ -46,12 +46,12 @@ public final class AsyncWaiterExecutor<T> {
     private final WaiterExecutorHelper<T> executorHelper;
 
     public AsyncWaiterExecutor(PollingStrategy pollingStrategy,
-                               List<WaiterAcceptor<T>> waiterAcceptors,
+                               List<WaiterAcceptor<? super T>> waiterAcceptors,
                                ScheduledExecutorService executorService) {
         this.pollingStrategy = Validate.paramNotNull(pollingStrategy, "pollingStrategy");
         Validate.paramNotNull(waiterAcceptors, "waiterAcceptors");
         this.executorService = Validate.paramNotNull(executorService, "executorService");
-        this.executorHelper = new WaiterExecutorHelper<>(waiterAcceptors, pollingStrategy);
+        this.executorHelper = new WaiterExecutorHelper<T>(waiterAcceptors, pollingStrategy);
     }
 
     /**
@@ -78,10 +78,11 @@ public final class AsyncWaiterExecutor<T> {
         asyncPollingFunction.get().whenComplete((response, exception) -> {
             Either<T, Throwable> responseOrException = exception == null ? Either.left(response) : Either.right(exception);
 
-            Optional<WaiterAcceptor<T>> optionalWaiterAcceptor = executorHelper.firstWaiterAcceptorIfMatched(responseOrException);
+            Optional<WaiterAcceptor<? super T>> optionalWaiterAcceptor =
+                executorHelper.firstWaiterAcceptorIfMatched(responseOrException);
 
             if (optionalWaiterAcceptor.isPresent()) {
-                WaiterAcceptor<T> acceptor = optionalWaiterAcceptor.get();
+                WaiterAcceptor<? super T> acceptor = optionalWaiterAcceptor.get();
                 WaiterState state = acceptor.waiterState();
                 switch (state) {
                     case SUCCESS:

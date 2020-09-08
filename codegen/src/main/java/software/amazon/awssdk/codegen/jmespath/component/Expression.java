@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.jmespath.component;
 
+import software.amazon.awssdk.codegen.jmespath.parser.JmesPathVisitor;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -297,7 +298,7 @@ public class Expression {
         return currentNode;
     }
 
-    public void visit(Visitor visitor) {
+    public void visit(JmesPathVisitor visitor) {
         if (isSubExpression()) {
             visitor.visitSubExpression(asSubExpression());
         } else if (isSubExpression()) {
@@ -334,59 +335,6 @@ public class Expression {
             visitor.visitCurrentNode(asCurrentNode());
         } else {
             throw new IllegalStateException();
-        }
-    }
-
-    public interface Visitor {
-        default void visitExpression(Expression expression) {
-        }
-
-        default void visitSubExpression(SubExpression subExpression) {
-        }
-
-        default void visitIndexExpression(IndexExpression indexExpression) {
-        }
-
-        default void visitComparatorExpression(ComparatorExpression comparatorExpression) {
-        }
-
-        default void visitOrExpression(OrExpression orExpression) {
-        }
-
-        default void visitIdentifier(String identifier) {
-        }
-
-        default void visitAndExpression(AndExpression andExpression) {
-        }
-
-        default void visitNotExpression(NotExpression notExpression) {
-        }
-
-        default void visitParenExpression(ParenExpression parenExpression) {
-        }
-
-        default void visitWildcardExpression(WildcardExpression star) {
-        }
-
-        default void visitMultiSelectList(MultiSelectList multiSelectList) {
-        }
-
-        default void visitMultiSelectHash(MultiSelectHash multiSelectHash) {
-        }
-
-        default void visitLiteral(Literal literal) {
-        }
-
-        default void visitFunctionExpression(FunctionExpression functionExpression) {
-        }
-
-        default void visitPipeExpression(PipeExpression pipeExpression) {
-        }
-
-        default void visitRawString(String rawString) {
-        }
-
-        default void visitCurrentNode(CurrentNode currentNode) {
         }
     }
 }

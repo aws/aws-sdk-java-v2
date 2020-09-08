@@ -26,6 +26,7 @@ public final class XmlNamespaceMember implements SdkPojo, Serializable,
                                                  ToCopyableBuilder<XmlNamespaceMember.Builder, XmlNamespaceMember> {
     private static final SdkField<String> TYPE_FIELD = SdkField
         .<String> builder(MarshallingType.STRING)
+        .memberName("Type")
         .getter(getter(XmlNamespaceMember::type))
         .setter(setter(Builder::type))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("foo:type")
@@ -33,6 +34,7 @@ public final class XmlNamespaceMember implements SdkPojo, Serializable,
 
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField
         .<String> builder(MarshallingType.STRING)
+        .memberName("stringMember")
         .getter(getter(XmlNamespaceMember::stringMember))
         .setter(setter(Builder::stringMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("stringMember")
