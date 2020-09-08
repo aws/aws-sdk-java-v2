@@ -119,5 +119,10 @@ public final class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentia
         public Builder refreshRequest(Consumer<AssumeRoleWithSamlRequest.Builder> assumeRoleWithSamlRequest) {
             return refreshRequest(AssumeRoleWithSamlRequest.builder().applyMutation(assumeRoleWithSamlRequest).build());
         }
+
+        @Override
+        public StsAssumeRoleWithSamlCredentialsProvider build() {
+            return super.build();
+        }
     }
 }

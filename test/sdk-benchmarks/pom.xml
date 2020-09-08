@@ -200,6 +200,12 @@
              <groupId>org.eclipse.jetty.http2</groupId>
              <artifactId>http2-hpack</artifactId>
          </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-crt-client</artifactId>
+            <version>${awsjavasdk.version}-PREVIEW</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
