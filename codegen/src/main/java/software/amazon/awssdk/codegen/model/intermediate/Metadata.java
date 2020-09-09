@@ -673,6 +673,12 @@ public class Metadata {
         this.waitersPackageName = waitersPackageName;
     }
 
+    public Metadata withWaitersPackageName(String waitersPackageName) {
+        setWaitersPackageName(waitersPackageName);
+        return this;
+    }
+
+
     public String getFullWaitersPackageName() {
         return joinPackageNames(rootPackageName, getWaitersPackageName());
     }

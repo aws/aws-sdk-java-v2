@@ -163,6 +163,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getWaitersPackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_WAITERS_PATTERN);
+    }
+
+    @Override
     public String getSmokeTestPackageName(String serviceName) {
 
         return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
