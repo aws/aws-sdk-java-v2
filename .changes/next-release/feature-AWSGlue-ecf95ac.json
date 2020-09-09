@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "Adding support for partitionIndexes to improve GetPartitions performance."
+}
