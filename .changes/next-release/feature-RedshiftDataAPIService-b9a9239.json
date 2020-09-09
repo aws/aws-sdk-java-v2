@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Data API Service",
-    "description": "The Amazon Redshift Data API is generally available. This release enables querying Amazon Redshift data and listing various database objects."
-}

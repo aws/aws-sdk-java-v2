@@ -1,3 +1,20 @@
+# __2.14.14__ __2020-09-09__
+## __AWS Glue__
+  - ### Features
+    - Adding support for partitionIndexes to improve GetPartitions performance.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Kinesis Data Analytics is adding new AUTOSCALING application status for applications during auto scaling and also adding FlinkRunConfigurationDescription in the ApplicationDetails.
+
+## __Redshift Data API Service__
+  - ### Features
+    - The Amazon Redshift Data API is generally available. This release enables querying Amazon Redshift data and listing various database objects.
+
 # __2.14.13__ __2020-09-08__
 ## __AWS CodeBuild__
   - ### Features
