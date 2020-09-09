@@ -76,6 +76,15 @@ public class PoetExtensions {
         return ClassName.get(model.getMetadata().getFullPaginatorsPackageName(), operationName + "Iterable");
     }
 
+    public ClassName getSyncWaiterInterface() {
+        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), model.getMetadata().getServiceName() + "Waiter");
+    }
+
+    public ClassName getAsyncWaiterInterface() {
+        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), model.getMetadata().getServiceName() +
+                                                                              "AsyncWaiter");
+    }
+
     /**
      * @param operationName Name of the operation
      * @return A Poet {@link ClassName} for the response type of a async paginated operation in the base service package.

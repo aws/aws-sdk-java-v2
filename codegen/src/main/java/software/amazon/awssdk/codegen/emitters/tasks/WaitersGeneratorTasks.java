@@ -15,18 +15,13 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
-
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
-import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
-import software.amazon.awssdk.codegen.poet.waiters.WaitersClassSpec;
+import software.amazon.awssdk.codegen.poet.waiters.AsyncWaiterInterfaceSpec;
+import software.amazon.awssdk.codegen.poet.waiters.WaiterInterfaceSpec;
 
 public class WaitersGeneratorTasks extends BaseGeneratorTasks {
 
@@ -43,22 +38,24 @@ public class WaitersGeneratorTasks extends BaseGeneratorTasks {
     }
 
     @Override
-    protected List<GeneratorTask> createTasks() throws Exception {
-        return model.getWaiters().entrySet().stream()
-                    .flatMap(safeFunction(this::createSyncAndAsyncTasks))
-                    .collect(Collectors.toList());
+    protected List<GeneratorTask> createTasks() {
+        List<GeneratorTask> generatorTasks = new ArrayList<>();
+        generatorTasks.addAll(createSyncTasks());
+        generatorTasks.addAll(createAsyncTasks());
+        return generatorTasks;
     }
 
-    private Stream<GeneratorTask> createSyncAndAsyncTasks(Map.Entry<String, WaiterDefinition> entry) throws IOException {
-        return Stream.of(createSyncTask(entry), createAsyncTask(entry));
+    private List<GeneratorTask> createSyncTasks() {
+        List<GeneratorTask> syncTasks = new ArrayList<>();
+        syncTasks.add(new PoetGeneratorTask(waitersClassDir, model.getFileHeader(),
+                                            new WaiterInterfaceSpec(model)));
+        return syncTasks;
     }
 
-    private GeneratorTask createSyncTask(Map.Entry<String, WaiterDefinition> entry) throws IOException {
-        return new PoetGeneratorTask(waitersClassDir, model.getFileHeader(),
-                                     new WaitersClassSpec(model, entry.getKey(), entry.getValue()));
-    }
-
-    private GeneratorTask createAsyncTask(Map.Entry<String, WaiterDefinition> entry) throws IOException {
-        throw new UnsupportedOperationException();
+    private List<GeneratorTask> createAsyncTasks() {
+        List<GeneratorTask> asyncTasks = new ArrayList<>();
+        asyncTasks.add(new PoetGeneratorTask(waitersClassDir, model.getFileHeader(),
+                                             new AsyncWaiterInterfaceSpec(model)));
+        return asyncTasks;
     }
 }

@@ -131,7 +131,7 @@ public abstract class BaseWaiterTest {
     public void successOnResponse_maxWaitTime() {
         TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
             .pollingStrategy(p -> p.maxAttempts(5)
-                                   .maxWaitTime(Duration.ofSeconds(4))
+                                   .maxWaitTime(Duration.ofSeconds(2))
                                    .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))))
             .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
             .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true));
@@ -139,7 +139,7 @@ public abstract class BaseWaiterTest {
         long start = System.currentTimeMillis();
         assertThatThrownBy(() -> successOnResponseWaiterOperation().apply(5, waiterConfig)).hasMessageContaining("has exceeded the max wait time");
         long end = System.currentTimeMillis();
-        assertThat((end - start)).isBetween(3000L, 4000L);
+        assertThat((end - start)).isBetween(1000L, 3000L);
     }
 
     @Test
