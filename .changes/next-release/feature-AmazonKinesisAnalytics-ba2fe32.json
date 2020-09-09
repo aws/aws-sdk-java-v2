@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Analytics",
+    "description": "Kinesis Data Analytics is adding new AUTOSCALING application status for applications during auto scaling and also adding FlinkRunConfigurationDescription in the ApplicationDetails."
+}
