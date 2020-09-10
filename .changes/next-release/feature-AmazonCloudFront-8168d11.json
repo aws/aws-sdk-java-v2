@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "description": "Cloudfront adds support for Brotli. You can enable brotli caching and compression support by enabling it in your Cache Policy."
-}

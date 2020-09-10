@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Single Sign-On Admin",
-    "description": "This is an initial release of AWS Single Sign-On (SSO) Access Management APIs. This release adds support for SSO operations which could be used for managing access to AWS accounts."
-}
