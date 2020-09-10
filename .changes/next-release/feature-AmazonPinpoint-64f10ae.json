@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint",
+    "description": "Update SMS message model description to clearly indicate that the MediaUrl field is reserved for future use and is not supported by Pinpoint as of today."
+}
