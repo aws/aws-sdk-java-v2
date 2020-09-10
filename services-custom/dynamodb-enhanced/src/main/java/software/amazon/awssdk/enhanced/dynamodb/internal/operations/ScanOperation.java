@@ -56,6 +56,12 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
         return new ScanOperation<>(request);
     }
 
+    private static boolean isAttributeToProjectAnExpression(final String attr,
+                                                            final Map<String, String> projectExpressionNamesMap) {
+        return projectExpressionNamesMap != null
+                && projectExpressionNamesMap.keySet().stream().filter(key -> attr.contains(key)).findAny().isPresent();
+    }
+
     @Override
     public ScanRequest generateRequest(TableSchema<T> tableSchema,
                                        OperationContext operationContext,
@@ -73,12 +79,21 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
             List<String> placeholders = new ArrayList<>();
             Map<String, String> projectionPlaceholders = new HashMap<>();
             this.request.attributesToProject().forEach(attr -> {
-                String placeholder = PROJECTION_EXPRESSION_KEY_MAPPER.apply(attr);
-                placeholders.add(placeholder);
-                projectionPlaceholders.put(placeholder, attr);
+                if (isAttributeToProjectAnExpression(attr, request.attributesToProjectExpressionNames())) {
+                    placeholders.add(attr);
+                } else {
+                    String placeholder = PROJECTION_EXPRESSION_KEY_MAPPER.apply(attr);
+                    placeholders.add(placeholder);
+                    projectionPlaceholders.put(placeholder, attr);
+                }
             });
             projectionExpression = String.join(",", placeholders);
-            expressionNames = Expression.joinNames(expressionNames, projectionPlaceholders);
+            if (!projectionPlaceholders.isEmpty()) {
+                expressionNames = Expression.joinNames(expressionNames, projectionPlaceholders);
+            }
+            if (this.request.attributesToProjectExpressionNames() != null) {
+                expressionNames = Expression.joinNames(expressionNames, this.request.attributesToProjectExpressionNames());
+            }
         }
 
         ScanRequest.Builder scanRequest = ScanRequest.builder()

@@ -41,6 +41,7 @@ public final class ScanEnhancedRequest {
     private final Boolean consistentRead;
     private final Expression filterExpression;
     private final List<String> attributesToProject;
+    private final Map<String, String> attributesToProjectExpressionNames;
 
     private ScanEnhancedRequest(Builder builder) {
         this.exclusiveStartKey = builder.exclusiveStartKey;
@@ -50,6 +51,8 @@ public final class ScanEnhancedRequest {
         this.attributesToProject = builder.attributesToProject != null
                 ? Collections.unmodifiableList(builder.attributesToProject)
                 : null;
+        this.attributesToProjectExpressionNames = builder.attributesToProjectExpressionNames;
+
     }
 
     /**
@@ -67,7 +70,9 @@ public final class ScanEnhancedRequest {
                         .limit(limit)
                         .consistentRead(consistentRead)
                         .filterExpression(filterExpression)
-                        .attributesToProject(attributesToProject);
+                        .attributesToProject(attributesToProject)
+                        .attributesToProjectExpressionNames(attributesToProjectExpressionNames);
+
     }
 
     /**
@@ -105,6 +110,13 @@ public final class ScanEnhancedRequest {
         return attributesToProject;
     }
 
+    /**
+     * Returns the Map of the name expressions used in defining expression for attributesToProject.
+     */
+    public Map<String, String> attributesToProjectExpressionNames() {
+        return attributesToProjectExpressionNames;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -132,6 +144,11 @@ public final class ScanEnhancedRequest {
         ) {
             return false;
         }
+        if (attributesToProjectExpressionNames != null
+                ? ! attributesToProjectExpressionNames.equals(scan.attributesToProjectExpressionNames)
+                : scan.attributesToProjectExpressionNames != null) {
+            return false;
+        }
         return filterExpression != null ? filterExpression.equals(scan.filterExpression) : scan.filterExpression == null;
     }
 
@@ -142,6 +159,7 @@ public final class ScanEnhancedRequest {
         result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
+        result = 31 * result + (attributesToProjectExpressionNames != null ? attributesToProjectExpressionNames.hashCode() : 0);
         return result;
     }
 
@@ -154,6 +172,7 @@ public final class ScanEnhancedRequest {
         private Boolean consistentRead;
         private Expression filterExpression;
         private List<String> attributesToProject;
+        private Map<String, String> attributesToProjectExpressionNames;
 
         private Builder() {
         }
@@ -281,6 +300,35 @@ public final class ScanEnhancedRequest {
                 attributesToProject = new ArrayList<>();
             }
             attributesToProject.add(attributeToProject);
+            return this;
+        }
+
+        /**
+
+         * <p>
+         * Adds Attributes Name expression if there are expressions used in addAttributeToProject.
+         * </p>
+         * <p>
+         * Used while trying to access Nested attributes via attributesToProject.
+         * When we want to project a Nested Attribute the "."(DOT) is not recognized directly in the attributesToProject.
+         * Thus we need to supply the attributesToProject as expression Values like "#ParentAttrib.#InnerAttrib"
+         * as attributesToProject.
+         * Then in expressionAttributeNames supply the the corresponding attribute Name map.
+         * </p>
+         * <p>
+         * One or more substitution tokens for attribute names in an expression.
+         * For more information, see <a href=
+         *         "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ExpressionAttributeNames.html
+         *         #Expressions.ExpressionAttributeNames.NestedAttributes
+         *         >NestedAttributes</a> in the <i>Amazon DynamoDB Developer Guide</i>.
+         * </p>
+         * @param attributesToProjectExpressionNames Map of the expressions used if expressions used addAttributeToProject.
+         * @return a builder of this type
+         */
+        public ScanEnhancedRequest.Builder attributesToProjectExpressionNames(Map<String,
+                String> attributesToProjectExpressionNames) {
+            this.attributesToProjectExpressionNames = attributesToProjectExpressionNames != null
+                    ? new HashMap<>(attributesToProjectExpressionNames) : null;
             return this;
         }
 
