@@ -1,3 +1,12 @@
+# __2.14.16__ __2020-09-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Adds API support for WorkSpaces Cross-Region Redirection feature.
+
 # __2.14.15__ __2020-09-10__
 ## __AWS Single Sign-On Admin__
   - ### Features
