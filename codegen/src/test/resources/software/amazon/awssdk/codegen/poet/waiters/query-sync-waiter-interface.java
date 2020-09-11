@@ -7,6 +7,7 @@ import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.services.query.QueryClient;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Waiter utility class that polls a resource until a desired state is reached or until it is determined that the
@@ -14,7 +15,7 @@ import software.amazon.awssdk.services.query.model.APostOperationResponse;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public interface QueryWaiter {
+public interface QueryWaiter extends SdkAutoCloseable {
     /**
      * Polls {@link QueryClient#aPostOperation} API until the desired condition {@code PostOperationSuccess} is met, or
      * until it is determined that the resource will never enter into the desired state
@@ -33,8 +34,8 @@ public interface QueryWaiter {
      *
      * @return a builder
      */
-    static void builder() {
-        throw new UnsupportedOperationException();
+    static Builder builder() {
+        return DefaultQueryWaiter.builder();
     }
 
     interface Builder {
@@ -48,7 +49,10 @@ public interface QueryWaiter {
         Builder pollingStrategy(PollingStrategy pollingStrategy);
 
         /**
-         * Defines the {@link QueryClient} to use when polling a resource
+         * Sets a custom {@link QueryClient} that will be used to pool the resource
+         * <p>
+         * This SDK client must be closed by the caller when it is ready to be disposed. The SDK will not close the
+         * client when the waiter is closed
          *
          * @param client
          *        the client to send the request

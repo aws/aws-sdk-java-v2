@@ -20,36 +20,27 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 
-public final class WaiterInterfaceSpec extends BaseWaiterInterfaceSpec {
+public class WaiterClassSpec extends BaseWaiterClassSpec {
 
-    private final IntermediateModel model;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
     private final String modelPackage;
+    private final ClassName clientClassName;
 
-    public WaiterInterfaceSpec(IntermediateModel model) {
-        super(model);
+    public WaiterClassSpec(IntermediateModel model) {
+        super(model, ClassName.get(Waiter.class));
         this.modelPackage = model.getMetadata().getFullModelPackageName();
-        this.model = model;
         this.poetExtensions = new PoetExtensions(model);
-        this.className = poetExtensions.getSyncWaiterInterface();
-    }
-
-    @Override
-    protected ClassName waiterImplName() {
-        return poetExtensions.getSyncWaiterClass();
+        this.className = poetExtensions.getSyncWaiterClass();
+        this.clientClassName = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
     }
 
     @Override
     protected ClassName clientClassName() {
-        return poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
-    }
-
-    @Override
-    public ClassName className() {
-        return className;
+        return clientClassName;
     }
 
     @Override
@@ -58,5 +49,15 @@ public final class WaiterInterfaceSpec extends BaseWaiterInterfaceSpec {
 
         return ParameterizedTypeName.get(ClassName.get(WaiterResponse.class),
                                          pojoResponse);
+    }
+
+    @Override
+    protected ClassName interfaceClassName() {
+        return poetExtensions.getSyncWaiterInterface();
+    }
+
+    @Override
+    public ClassName className() {
+        return className;
     }
 }

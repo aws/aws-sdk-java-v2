@@ -35,6 +35,7 @@ import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.waiters.PollingStrategy;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Base class contains shared logic used in both sync waiter and async waiter interfaces.
@@ -56,10 +57,12 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
         TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className());
         result.addAnnotation(SdkPublicApi.class);
         result.addMethods(waiterOperations());
+        result.addSuperinterface(SdkAutoCloseable.class);
         result.addMethod(MethodSpec.methodBuilder("builder")
                                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                                    .addJavadoc(WaiterDocs.waiterBuilderMethodJavadoc(className()))
-                                   .addStatement("throw new $T()", UnsupportedOperationException.class)
+                                   .returns(className().nestedClass("Builder"))
+                                   .addStatement("return $T.builder()", waiterImplName())
                                    .build());
         result.addJavadoc(WaiterDocs.waiterInterfaceJavadoc());
 
@@ -67,9 +70,15 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
         return result.build();
     }
 
+    protected abstract ClassName waiterImplName();
+
     protected abstract ClassName clientClassName();
 
     protected abstract ParameterizedTypeName getWaiterResponseType(OperationModel operationModel);
+
+    protected void additionalBuilderTypeSpecModification(TypeSpec.Builder type) {
+        // no-op
+    }
 
     /**
      * @return List generated of traditional (request/response) methods for all operations.
@@ -117,10 +126,11 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
     }
 
     private TypeSpec builderInterface() {
-        return TypeSpec.interfaceBuilder("Builder")
-                       .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                       .addMethods(builderMethods())
-                       .build();
+        TypeSpec.Builder builder = TypeSpec.interfaceBuilder("Builder")
+                                           .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        additionalBuilderTypeSpecModification(builder);
+        builder.addMethods(builderMethods());
+        return builder.build();
     }
 
     private List<MethodSpec> builderMethods() {

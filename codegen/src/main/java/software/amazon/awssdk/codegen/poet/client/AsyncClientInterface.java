@@ -92,6 +92,10 @@ public class AsyncClientInterface implements ClassSpec {
             result.addMethod(utilitiesMethod());
         }
 
+        if (model.hasWaiters()) {
+            result.addMethod(waiterMethod());
+        }
+
         return result.build();
     }
 
@@ -440,6 +444,15 @@ public class AsyncClientInterface implements ClassSpec {
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .addJavadoc("Creates an instance of {@link $T} object with the "
                                      + "configuration set on this client.", returnType)
+                         .build();
+    }
+
+    private MethodSpec waiterMethod() {
+        return MethodSpec.methodBuilder("waiter")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .returns(poetExtensions.getAsyncWaiterInterface())
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .addJavadoc("Creates an instance of {@link $T} object", poetExtensions.getAsyncWaiterInterface())
                          .build();
     }
 }
