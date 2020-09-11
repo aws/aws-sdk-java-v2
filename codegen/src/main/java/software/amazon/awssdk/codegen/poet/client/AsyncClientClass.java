@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static com.squareup.javapoet.TypeSpec.Builder;
 import static java.util.Collections.singletonList;
+import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
@@ -35,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import org.reactivestreams.Publisher;
@@ -132,6 +134,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
+        if (model.hasWaiters()) {
+            classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
+                                                   .addModifiers(PRIVATE, FINAL)
+                                                   .build());
+            classBuilder.addMethod(waiterImplMethod());
+        }
+
         return classBuilder.build();
     }
 
@@ -167,6 +176,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  poetExtensions.getClientClass(model.getNamingStrategy().getServiceName() +
                                                                "AsyncEndpointDiscoveryCacheLoader"));
             builder.endControlFlow();
+        }
+
+        if (model.hasWaiters()) {
+            builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
+                                 SdkClientOption.class);
         }
 
         return builder.build();
@@ -323,6 +337,17 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addStatement("return $T.create($L)",
                                        returnType,
                                        String.join(",", config.getCreateMethodParams()))
+                         .build();
+    }
+
+    private MethodSpec waiterImplMethod() {
+        return MethodSpec.methodBuilder("waiter")
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .addStatement("return $T.builder().client(this)"
+                                       + ".executorService(executorService).build()",
+                                       poetExtensions.getAsyncWaiterInterface())
+                         .returns(poetExtensions.getAsyncWaiterInterface())
                          .build();
     }
 

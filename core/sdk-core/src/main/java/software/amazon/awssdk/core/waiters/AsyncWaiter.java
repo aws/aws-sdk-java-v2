@@ -59,8 +59,7 @@ public interface AsyncWaiter<T> {
     interface Builder<T> extends WaiterBuilder<T, Builder<T>> {
 
         /**
-         * Defines the {@link ScheduledExecutorService} used to schedule async polling attempts
-         * Only required if you are calling {@link AsyncWaiter#runAsync(Supplier)}
+         * Defines the {@link ScheduledExecutorService} used to schedule async polling attempts.
          *
          * @param scheduledExecutorService the schedule executor service
          * @return a reference to this object so that method calls can be chained together.

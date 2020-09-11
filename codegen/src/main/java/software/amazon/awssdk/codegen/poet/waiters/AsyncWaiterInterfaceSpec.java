@@ -16,8 +16,13 @@
 package software.amazon.awssdk.codegen.poet.waiters;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeSpec;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.docs.WaiterDocs;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -39,6 +44,11 @@ public final class AsyncWaiterInterfaceSpec extends BaseWaiterInterfaceSpec {
     }
 
     @Override
+    protected ClassName waiterImplName() {
+        return poetExtensions.getAsyncWaiterClass();
+    }
+
+    @Override
     protected ClassName clientClassName() {
         return poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
     }
@@ -55,5 +65,15 @@ public final class AsyncWaiterInterfaceSpec extends BaseWaiterInterfaceSpec {
 
         return ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                                          waiterResponse);
+    }
+
+    @Override
+    protected void additionalBuilderTypeSpecModification(TypeSpec.Builder type) {
+        type.addMethod(MethodSpec.methodBuilder("executorService")
+                                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                 .addParameter(ClassName.get(ScheduledExecutorService.class), "executorService")
+                                 .addJavadoc(WaiterDocs.waiterBuilderScheduledExecutorServiceJavadoc())
+                                 .returns(className().nestedClass("Builder"))
+                                 .build());
     }
 }

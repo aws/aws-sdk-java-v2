@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.docs;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.core.waiters.PollingStrategy;
@@ -73,9 +74,26 @@ public final class WaiterDocs {
                         .build();
     }
 
+    public static CodeBlock waiterBuilderScheduledExecutorServiceJavadoc() {
+        String javadocs = new DocumentationBuilder()
+            .description("Sets a custom {@link $T} that will be used to schedule async polling attempts \n "
+                         + "<p> This executorService must be closed by the caller when it is ready to be disposed. The"
+                         + " SDK will not close the executorService when the waiter is closed")
+            .param("executorService", "the executorService to set")
+            .returns("a reference to this object so that method calls can be chained together.")
+            .build();
+
+        return CodeBlock.builder()
+                        .add(javadocs, ClassName.get(ScheduledExecutorService.class))
+                        .build();
+    }
+
     public static CodeBlock waiterBuilderClientJavadoc(ClassName className) {
         String javadocs = new DocumentationBuilder()
             .description("Defines the {@link $T} to use when polling a resource")
+            .description("Sets a custom {@link $T} that will be used to pool the resource \n "
+                         + "<p> This SDK client must be closed by the caller when it is ready to be disposed. The"
+                         + " SDK will not close the client when the waiter is closed")
             .param("client", "the client to send the request")
             .returns("a reference to this object so that method calls can be chained together.")
             .build();

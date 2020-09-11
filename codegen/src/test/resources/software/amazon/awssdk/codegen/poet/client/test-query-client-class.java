@@ -36,6 +36,7 @@ import software.amazon.awssdk.services.query.transform.APostOperationRequestMars
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
+import software.amazon.awssdk.services.query.waiters.QueryWaiter;
 
 /**
  * Internal implementation of {@link QueryClient}.
@@ -296,5 +297,10 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public void close() {
         clientHandler.close();
+    }
+
+    @Override
+    public QueryWaiter waiter() {
+        return QueryWaiter.builder().client(this).build();
     }
 }

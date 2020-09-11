@@ -51,4 +51,16 @@ public class WaitersClassSpecTest {
         ClassSpec waiterInterface = new WaiterInterfaceSpec(ClientTestModels.queryServiceModels());
         assertThat(waiterInterface, generatesTo("query-sync-waiter-interface.java"));
     }
+
+    @Test
+    public void asyncWaiterImpl() throws Exception {
+        ClassSpec asyncWaiterInterfaceSpec = new AsyncWaiterClassSpec(ClientTestModels.queryServiceModels());
+        assertThat(asyncWaiterInterfaceSpec, generatesTo("query-async-waiter-class.java"));
+    }
+
+    @Test
+    public void syncWaiterImpl() throws Exception {
+        ClassSpec waiterInterface = new WaiterClassSpec(ClientTestModels.queryServiceModels());
+        assertThat(waiterInterface, generatesTo("query-sync-waiter-class.java"));
+    }
 }

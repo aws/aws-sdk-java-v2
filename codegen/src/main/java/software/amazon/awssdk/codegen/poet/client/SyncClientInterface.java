@@ -90,9 +90,12 @@ public final class SyncClientInterface implements ClassSpec {
             result.addMethod(utilitiesMethod());
         }
 
+        if (model.hasWaiters()) {
+            result.addMethod(waiterMethod());
+        }
+
         return result.build();
     }
-
 
     @Override
     public ClassName className() {
@@ -454,6 +457,15 @@ public final class SyncClientInterface implements ClassSpec {
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .addJavadoc("Creates an instance of {@link $T} object with the "
                                      + "configuration set on this client.", returnType)
+                         .build();
+    }
+
+    private MethodSpec waiterMethod() {
+        return MethodSpec.methodBuilder("waiter")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .returns(poetExtensions.getSyncWaiterInterface())
+                         .addJavadoc("Creates an instance of {@link $T} object", poetExtensions.getSyncWaiterInterface())
                          .build();
     }
 }

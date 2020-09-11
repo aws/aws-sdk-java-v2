@@ -5,6 +5,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.services.query.transform.APostOperationRequestMars
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
+import software.amazon.awssdk.services.query.waiters.QueryAsyncWaiter;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
@@ -59,10 +61,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final ScheduledExecutorService executorService;
+
     protected DefaultQueryAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init();
+        this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
     @Override
@@ -343,5 +348,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    @Override
+    public QueryAsyncWaiter waiter() {
+        return QueryAsyncWaiter.builder().client(this).executorService(executorService).build();
     }
 }

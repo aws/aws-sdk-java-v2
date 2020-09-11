@@ -116,6 +116,10 @@ public class SyncClientClass implements ClassSpec {
         model.getEndpointOperation().ifPresent(
             o -> classBuilder.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
 
+        if (model.hasWaiters()) {
+            classBuilder.addMethod(waiterMethod());
+        }
+
         return classBuilder.build();
     }
 
@@ -319,5 +323,15 @@ public class SyncClientClass implements ClassSpec {
         methodBuilder.addStatement("return $N", publishersName);
 
         return methodBuilder.build();
+    }
+
+    private MethodSpec waiterMethod() {
+        return MethodSpec.methodBuilder("waiter")
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .addStatement("return $T.builder().client(this).build()",
+                                       poetExtensions.getSyncWaiterInterface())
+                         .returns(poetExtensions.getSyncWaiterInterface())
+                         .build();
     }
 }

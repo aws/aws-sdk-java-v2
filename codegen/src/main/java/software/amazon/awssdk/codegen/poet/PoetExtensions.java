@@ -80,8 +80,18 @@ public class PoetExtensions {
         return ClassName.get(model.getMetadata().getFullWaitersPackageName(), model.getMetadata().getServiceName() + "Waiter");
     }
 
+    public ClassName getSyncWaiterClass() {
+        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), "Default" + model.getMetadata().getServiceName() +
+                                                                              "Waiter");
+    }
+
     public ClassName getAsyncWaiterInterface() {
         return ClassName.get(model.getMetadata().getFullWaitersPackageName(), model.getMetadata().getServiceName() +
+                                                                              "AsyncWaiter");
+    }
+
+    public ClassName getAsyncWaiterClass() {
+        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), "Default" + model.getMetadata().getServiceName() +
                                                                               "AsyncWaiter");
     }
 
