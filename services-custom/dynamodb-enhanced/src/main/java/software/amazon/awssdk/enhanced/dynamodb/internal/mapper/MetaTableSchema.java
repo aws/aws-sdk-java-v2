@@ -25,7 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * An implementation of {@link TableSchema> that can be instantiated as an uninitialized reference and then lazily
+ * An implementation of {@link TableSchema} that can be instantiated as an uninitialized reference and then lazily
  * initialized later with a concrete {@link TableSchema} at which point it will behave as the real object.
  * <p>
  * This allows an immutable {@link TableSchema} to be declared and used in a self-referential recursive way within its
