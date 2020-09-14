@@ -1,3 +1,27 @@
+# __2.14.17__ __2020-09-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix a bug in the SDK where the contents of the `AsyncRequestBody` is not included in the AWS Signature Version 4 calculation, which is required for some streaming operations such as Glacier `UploadArchive' and ClouSearch Domain `UploadDocuments`.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release of the AWS Step Functions SDK introduces support for AWS X-Ray.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Updated API documentation and added paginators for DescribeCertificates, DescribeDBClusterParameterGroups, DescribeDBClusterParameters, DescribeDBClusterSnapshots and DescribePendingMaintenanceActions
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for the T4G instance family to the EC2 ModifyDefaultCreditSpecification and GetDefaultCreditSpecification APIs.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - Introducing support for Hyperledger Fabric 1.4. When using framework version 1.4, the state database may optionally be specified when creating peer nodes (defaults to CouchDB).
+
 # __2.14.16__ __2020-09-11__
 ## __AWS SDK for Java v2__
   - ### Features

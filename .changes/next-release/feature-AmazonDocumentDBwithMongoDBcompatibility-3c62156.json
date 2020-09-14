@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DocumentDB with MongoDB compatibility",
-    "description": "Updated API documentation and added paginators for DescribeCertificates, DescribeDBClusterParameterGroups, DescribeDBClusterParameters, DescribeDBClusterSnapshots and DescribePendingMaintenanceActions"
-}
