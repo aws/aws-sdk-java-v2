@@ -15,14 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
@@ -32,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
+import software.amazon.awssdk.enhanced.dynamodb.internal.ProjectionExpressionConvertor;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -42,9 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 @SdkInternalApi
 public class QueryOperation<T> implements PaginatedTableOperation<T, QueryRequest, QueryResponse>,
-                                          PaginatedIndexOperation<T, QueryRequest, QueryResponse> {
-
-    private static final UnaryOperator<String> PROJECTION_EXPRESSION_KEY_MAPPER = k -> "#AMZN_MAPPED_" + cleanAttributeName(k);
+        PaginatedIndexOperation<T, QueryRequest, QueryResponse> {
 
     private final QueryEnhancedRequest request;
 
@@ -69,18 +62,13 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
             expressionNames = Expression.joinNames(expressionNames, this.request.filterExpression().expressionNames());
         }
 
-        String projectionExpression = null;
-        if (this.request.attributesToProject() != null) {
-            List<String> placeholders = new ArrayList<>();
-            Map<String, String> projectionPlaceholders = new HashMap<>();
-            this.request.attributesToProject().forEach(attr -> {
-                String placeholder = PROJECTION_EXPRESSION_KEY_MAPPER.apply(attr);
-                placeholders.add(placeholder);
-                projectionPlaceholders.put(placeholder, attr);
-            });
-            projectionExpression = String.join(",", placeholders);
-            expressionNames = Expression.joinNames(expressionNames, projectionPlaceholders);
+        ProjectionExpressionConvertor attributeToProject =
+                ProjectionExpressionConvertor.create(this.request.nestedAttributesToProject());
+        Map<String, String> projectionNameMap = attributeToProject.convertToExpressionMap();
+        if (!projectionNameMap.isEmpty()) {
+            expressionNames = Expression.joinNames(expressionNames, projectionNameMap);
         }
+        String projectionExpression = attributeToProject.convertToProjectionExpression().orElse(null);
 
         QueryRequest.Builder queryRequest = QueryRequest.builder()
                                                         .tableName(operationContext.tableName())
