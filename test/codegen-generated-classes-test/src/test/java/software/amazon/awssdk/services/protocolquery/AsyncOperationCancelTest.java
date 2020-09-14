@@ -63,7 +63,7 @@ public class AsyncOperationCancelTest {
     }
 
     @Test
-    public void testNonStreamingOperation() {
+    public void testNonStreamingOperation() throws InterruptedException {
         CompletableFuture<AllTypesResponse> responseFuture = client.allTypes(r -> {
         });
         responseFuture.cancel(true);
