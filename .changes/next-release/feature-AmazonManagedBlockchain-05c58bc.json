@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Blockchain",
+    "description": "Introducing support for Hyperledger Fabric 1.4. When using framework version 1.4, the state database may optionally be specified when creating peer nodes (defaults to CouchDB)."
+}
