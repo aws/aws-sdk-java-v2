@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 
 @SdkInternalApi
-public class CrtHttpUtils {
+public final class CrtHttpUtils {
 
     private static final String HOST_HEADER = "Host";
     private static final int READ_BUFFER_SIZE = 4096;
@@ -83,7 +83,7 @@ public class CrtHttpUtils {
             }
         }
 
-        return crtHeaderList.toArray(new HttpHeader[crtHeaderList.size()]);
+        return crtHeaderList.toArray(new HttpHeader[0]);
     }
 
 
@@ -99,22 +99,21 @@ public class CrtHttpUtils {
 
         @Override
         public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
-            if (providerStream == null) {
-                if (!createNewStream()) {
-                    return true;
-                }
-            }
-
             int read = 0;
-            int toRead = min(READ_BUFFER_SIZE, bodyBytesOut.remaining());
-            try {
-                read = providerStream.read(readBuffer, 0, toRead);
-            } catch (IOException ioe) {
-                return true;
-            }
 
-            if (read > 0) {
-                bodyBytesOut.put(readBuffer, 0, read);
+            try {
+                if (providerStream == null) {
+                    createNewStream();
+                }
+
+                int toRead = min(READ_BUFFER_SIZE, bodyBytesOut.remaining());
+                read = providerStream.read(readBuffer, 0, toRead);
+
+                if (read > 0) {
+                    bodyBytesOut.put(readBuffer, 0, read);
+                }
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
             }
 
             return read < 0;
@@ -122,21 +121,21 @@ public class CrtHttpUtils {
 
         @Override
         public boolean resetPosition() {
-            return createNewStream();
+            try {
+                createNewStream();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+
+            return true;
         }
 
-        private boolean createNewStream() {
-            try {
-                if (providerStream != null) {
-                    providerStream.close();
-                }
-            } catch (IOException ioe) {
-                return false;
+        private void createNewStream() throws IOException {
+            if (providerStream != null) {
+                providerStream.close();
             }
 
             providerStream = provider.newStream();
-
-            return true;
         }
     }
 

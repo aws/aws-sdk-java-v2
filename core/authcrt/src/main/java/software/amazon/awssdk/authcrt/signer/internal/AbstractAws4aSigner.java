@@ -29,9 +29,13 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 public abstract class AbstractAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPresignerParams>
         implements Signer, Presigner {
 
-    public abstract SdkHttpFullRequest doSign(SdkHttpFullRequest request, Aws4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams);
+    public abstract SdkHttpFullRequest doSign(SdkHttpFullRequest request,
+                                              Aws4aSignerParams signingParams,
+                                              Aws4aSignerRequestParams requestSigningParams);
 
-    public abstract SdkHttpFullRequest doPresign(SdkHttpFullRequest request, Aws4aPresignerParams signingParams, Aws4aSignerRequestParams requestSigningParams);
+    public abstract SdkHttpFullRequest doPresign(SdkHttpFullRequest request,
+                                                 Aws4aPresignerParams signingParams,
+                                                 Aws4aSignerRequestParams requestSigningParams);
 
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
@@ -77,7 +81,9 @@ public abstract class AbstractAws4aSigner<T extends Aws4aSignerParams, U extends
         return paramsBuilder;
     }
 
-    protected Aws4aSignerRequestParams buildRequestSigningParams(SdkHttpFullRequest request, ExecutionAttributes executionAttributes, Aws4aSignerParams signingParams) {
+    protected Aws4aSignerRequestParams buildRequestSigningParams(SdkHttpFullRequest request,
+                                                                 ExecutionAttributes executionAttributes,
+                                                                 Aws4aSignerParams signingParams) {
         return new Aws4aSignerRequestParams(signingParams);
     }
 }

@@ -15,14 +15,16 @@
 
 package software.amazon.awssdk.authcrt.signer;
 
+import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.authcrt.signer.internal.BaseCrtAws4aSigner;
 import software.amazon.awssdk.authcrt.signer.params.Aws4aPresignerParams;
 import software.amazon.awssdk.authcrt.signer.params.Aws4aSignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 
-import java.time.Clock;
-
+/**
+ * Signer implementation that signs requests with the asymmetric AWS4 (aws4a) signing protocol.
+ */
 @SdkPublicApi
 public final class Aws4aSigner extends BaseCrtAws4aSigner<Aws4aSignerParams, Aws4aPresignerParams> {
 

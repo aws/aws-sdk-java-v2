@@ -26,13 +26,19 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-
+/**
+ * AWS4a signer implementation for AWS S3
+ */
 @SdkPublicApi
 public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws4aPresignerParams> {
 
     private AwsS3V4aSigner() {
     }
 
+    /**
+     * Creates a new AwsS3V4aSigner instance
+     * @return a new AwsS3V4aSigner instance
+     */
     public static AwsS3V4aSigner create() {
         return new AwsS3V4aSigner();
     }
@@ -40,7 +46,8 @@ public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
         AwsS3V4aSignerParams signingParams = buildSignerParams(executionAttributes);
-        Aws4aSignerRequestParams requestSigningParams = buildRequestSigningParams(request, executionAttributes, signingParams);
+        Aws4aSignerRequestParams requestSigningParams = buildRequestSigningParams(
+                request, executionAttributes, signingParams);
 
         try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams, requestSigningParams)) {
             return signWithCrt(request, signingConfig);
@@ -48,7 +55,8 @@ public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws
     }
 
     private AwsS3V4aSignerParams buildSignerParams(ExecutionAttributes executionAttributes) {
-        AwsS3V4aSignerParams.Builder signingParams = extractSignerParams(AwsS3V4aSignerParams.builder(), executionAttributes);
+        AwsS3V4aSignerParams.Builder signingParams = extractSignerParams(
+                AwsS3V4aSignerParams.builder(), executionAttributes);
 
         Optional.ofNullable(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING))
                 .ifPresent(signingParams::enablePayloadSigning);
@@ -57,16 +65,16 @@ public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws
 
     }
 
-    protected AwsSigningConfig createCrtSigningConfig(AwsS3V4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+    protected AwsSigningConfig createCrtSigningConfig(AwsS3V4aSignerParams signingParams,
+                                                      Aws4aSignerRequestParams requestSigningParams) {
         AwsSigningConfig signingConfig = new AwsSigningConfig();
 
         fillInCrtSigningConfig(signingConfig, signingParams, requestSigningParams);
 
         if (signingParams.enablePayloadSigning()) {
-            signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValueType.PAYLOAD);
             signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         } else {
-            signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValueType.UNSIGNED_PAYLOAD);
+            signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
             signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
         }
 

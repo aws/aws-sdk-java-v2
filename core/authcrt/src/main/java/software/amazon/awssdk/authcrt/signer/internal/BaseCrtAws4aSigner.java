@@ -16,6 +16,7 @@
 package software.amazon.awssdk.authcrt.signer.internal;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -37,7 +38,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 @SdkInternalApi
 public class BaseCrtAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPresignerParams> extends AbstractAws4aSigner<T, U> {
 
-    private static Charset UTF8 = Charset.forName("UTF-8");
+    private static Charset UTF8 = StandardCharsets.UTF_8;
 
     protected SdkHttpFullRequest signWithCrt(SdkHttpFullRequest request, AwsSigningConfig signingConfig) {
         HttpRequest crtRequest = CrtHttpUtils.createCrtRequest(SigningUtils.sanitizeSdkRequestForCrtSigning(request));
@@ -54,20 +55,26 @@ public class BaseCrtAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPres
     }
 
     @Override
-    public SdkHttpFullRequest doSign(SdkHttpFullRequest request, Aws4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+    public SdkHttpFullRequest doSign(SdkHttpFullRequest request,
+                                     Aws4aSignerParams signingParams,
+                                     Aws4aSignerRequestParams requestSigningParams) {
         try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams, requestSigningParams)) {
             return signWithCrt(request, signingConfig);
         }
     }
 
     @Override
-    public SdkHttpFullRequest doPresign(SdkHttpFullRequest request, Aws4aPresignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+    public SdkHttpFullRequest doPresign(SdkHttpFullRequest request,
+                                        Aws4aPresignerParams signingParams,
+                                        Aws4aSignerRequestParams requestSigningParams) {
         try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams, requestSigningParams)) {
             return signWithCrt(request, signingConfig);
         }
     }
 
-    protected void fillInCrtSigningConfig(AwsSigningConfig signingConfig, Aws4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+    protected void fillInCrtSigningConfig(AwsSigningConfig signingConfig,
+                                          Aws4aSignerParams signingParams,
+                                          Aws4aSignerRequestParams requestSigningParams) {
         AwsCredentials sdkCredentials = SigningUtils.sanitizeCredentials(signingParams.awsCredentials());
         byte[] sessionToken = null;
         if (sdkCredentials instanceof AwsSessionCredentials) {
@@ -83,14 +90,15 @@ public class BaseCrtAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPres
         signingConfig.setTime(requestSigningParams.getSigningClock().instant().toEpochMilli());
         signingConfig.setUseDoubleUriEncode(signingParams.doubleUrlEncode());
         signingConfig.setShouldNormalizeUriPath(true);
-        signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValueType.PAYLOAD);
         signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
     }
 
-    protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig, Aws4aPresignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+    protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig,
+                                             Aws4aPresignerParams signingParams,
+                                             Aws4aSignerRequestParams requestSigningParams) {
         fillInCrtSigningConfig(signingConfig, signingParams, requestSigningParams);
 
-        long expirationInSeconds = 0;
+        long expirationInSeconds;
         Optional<Instant> expirationTime = signingParams.expirationTime();
         if (expirationTime == null || !expirationTime.isPresent()) {
             expirationInSeconds = SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS;
@@ -104,7 +112,8 @@ public class BaseCrtAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPres
     }
 
     @SdkTestInternalApi
-    public AwsSigningConfig createCrtSigningConfig(Aws4aSignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+    public AwsSigningConfig createCrtSigningConfig(Aws4aSignerParams signingParams,
+                                                   Aws4aSignerRequestParams requestSigningParams) {
         AwsSigningConfig signingConfig = new AwsSigningConfig();
 
         fillInCrtSigningConfig(signingConfig, signingParams, requestSigningParams);
@@ -114,7 +123,8 @@ public class BaseCrtAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPres
     }
 
     @SdkTestInternalApi
-    public AwsSigningConfig createCrtSigningConfig(Aws4aPresignerParams signingParams, Aws4aSignerRequestParams requestSigningParams) {
+    public AwsSigningConfig createCrtSigningConfig(Aws4aPresignerParams signingParams,
+                                                   Aws4aSignerRequestParams requestSigningParams) {
         AwsSigningConfig signingConfig = new AwsSigningConfig();
 
         fillInCrtPresigningConfig(signingConfig, signingParams, requestSigningParams);

@@ -17,7 +17,6 @@ package software.amazon.awssdk.authcrt.signer.params;
 
 import java.time.Clock;
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.utils.Validate;
