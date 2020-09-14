@@ -28,11 +28,18 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 @SdkPublicApi
 public final class Aws4aSigner extends BaseCrtAws4aSigner<Aws4aSignerParams, Aws4aPresignerParams> {
 
+    /**
+     * Attribute allowing the user to inject a clock that will be used for the signing timestamp
+     */
     public static final ExecutionAttribute<Clock> SIGNING_CLOCK = new ExecutionAttribute<>("SigningClock");
 
     private Aws4aSigner() {
     }
 
+    /**
+     * Creates an instance of an Aws Sigv4a signer
+     * @return an instance of an Aws Sigv4a signer
+     */
     public static Aws4aSigner create() {
         return new Aws4aSigner();
     }

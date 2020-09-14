@@ -16,6 +16,7 @@
 package software.amazon.awssdk.authcrt.signer.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.authcrt.signer.Aws4aSigner;
 import software.amazon.awssdk.authcrt.signer.params.Aws4aPresignerParams;
@@ -29,14 +30,22 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 public abstract class AbstractAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPresignerParams>
         implements Signer, Presigner {
 
+    @SdkTestInternalApi
     public abstract SdkHttpFullRequest doSign(SdkHttpFullRequest request,
                                               Aws4aSignerParams signingParams,
                                               Aws4aSignerRequestParams requestSigningParams);
 
+    @SdkTestInternalApi
     public abstract SdkHttpFullRequest doPresign(SdkHttpFullRequest request,
                                                  Aws4aPresignerParams signingParams,
                                                  Aws4aSignerRequestParams requestSigningParams);
 
+    /**
+     * Creates an Aws Sigv4a signed http request from an unsigned http request via header-based signing.
+     * @param request The request to sign
+     * @param executionAttributes Contains the attributes required for signing the request
+     * @return a sigv4a-signed request
+     */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
         Aws4aSignerParams signingParams = extractSignerParams(T.builder(), executionAttributes)
@@ -46,6 +55,12 @@ public abstract class AbstractAws4aSigner<T extends Aws4aSignerParams, U extends
         return doSign(request, signingParams, requestSigningParams);
     }
 
+    /**
+     * Creates an Aws Sigv4a signed http request from an unsigned http request via query param signing.
+     * @param request The request to presign
+     * @param executionAttributes Contains the attributes required for pre signing the request
+     * @return a sigv4a-signed request
+     */
     @Override
     public SdkHttpFullRequest presign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
         Aws4aPresignerParams signingParams = extractPresignerParams(U.builder(), executionAttributes)

@@ -27,7 +27,7 @@ import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
- * AWS4a signer implementation for AWS S3
+ * s3-specific signer implementation that signs requests with the asymmetric AWS4 (aws4a) signing protocol.
  */
 @SdkPublicApi
 public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws4aPresignerParams> {
@@ -42,7 +42,7 @@ public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws
     public static AwsS3V4aSigner create() {
         return new AwsS3V4aSigner();
     }
-
+    
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
         AwsS3V4aSignerParams signingParams = buildSignerParams(executionAttributes);
