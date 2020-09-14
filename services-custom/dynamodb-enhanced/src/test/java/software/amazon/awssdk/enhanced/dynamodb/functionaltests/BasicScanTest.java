@@ -15,32 +15,24 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttributeRecord;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedTestRecord;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
@@ -103,19 +95,45 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
                  .mapToObj(i -> new Record().setId("id-value").setSort(i))
                  .collect(Collectors.toList());
 
+    private static final List<NestedTestRecord> NESTED_TEST_RECORDS =
+            IntStream.range(0, 10)
+                    .mapToObj(i -> {
+                        final NestedTestRecord nestedTestRecord = new NestedTestRecord();
+                        nestedTestRecord.setOuterAttribOne("id-value-" + i);
+                        nestedTestRecord.setSort(i);
+                        final InnerAttributeRecord innerAttributeRecord = new InnerAttributeRecord();
+                        innerAttributeRecord.setAttribOne("attribOne-"+i);
+                        innerAttributeRecord.setAttribTwo(i);
+                        nestedTestRecord.setInnerAttributeRecord(innerAttributeRecord);
+                        nestedTestRecord.setDotVariable("v"+i);
+                        return nestedTestRecord;
+                    })
+                    .collect(Collectors.toList());
+
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())
                                                                           .build();
 
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
+    private DynamoDbTable<NestedTestRecord> mappedNestedTable = enhancedClient.table(getConcreteTableName("nested-table-name"),
+            TableSchema.fromClass(NestedTestRecord.class));
+
+
     private void insertRecords() {
         RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
     }
 
+    private void insertNestedRecords() {
+        NESTED_TEST_RECORDS.forEach(nestedTestRecord -> mappedNestedTable.putItem(r -> r.item(nestedTestRecord)));
+    }
+
+
     @Before
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        mappedNestedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+
     }
 
     @After
@@ -123,6 +141,9 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name"))
                                                           .build());
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                .tableName(getConcreteTableName("nested-table-name"))
+                .build());
     }
 
     @Test
@@ -291,5 +312,323 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         result.put("id", stringValue("id-value"));
         result.put("sort", numberValue(sort));
         return Collections.unmodifiableMap(result);
+    }
+    @Test
+    public void scanAllRecordsWithFilterAndNestedProjectionSingleAttribute() {
+        insertNestedRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addNestedAttributesToProject(
+                                        NestedAttributeName.create(Arrays.asList("innerAttributeRecord","attribOne")))
+                                .build()
+                ).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        Collections.sort(page.items(), (item1, item2) ->
+                item1.getInnerAttributeRecord().getAttribOne()
+                        .compareTo(item2.getInnerAttributeRecord().getAttribOne()));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(nullValue()));
+        assertThat(firstRecord.getSort(), is(nullValue()));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-3"));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(nullValue()));
+
+        //Attribute repeated with new and old attributeToProject
+        results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addNestedAttributesToProject(NestedAttributeName.create("sort"))
+                                .addAttributeToProject("sort")
+                                .build()
+                ).iterator();
+        assertThat(results.hasNext(), is(true));
+        page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        Collections.sort(page.items(), (item1, item2) ->
+                item1.getSort()
+                        .compareTo(item2.getSort()));
+        firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(nullValue()));
+        assertThat(firstRecord.getSort(), is(3));
+        assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
+        assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
+
+        results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addNestedAttributeToProject(
+                                        NestedAttributeName.create(Arrays.asList("innerAttributeRecord","attribOne")))
+                                .build()
+                ).iterator();
+        assertThat(results.hasNext(), is(true));
+        page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        Collections.sort(page.items(), (item1, item2) ->
+                item1.getInnerAttributeRecord().getAttribOne()
+                        .compareTo(item2.getInnerAttributeRecord().getAttribOne()));
+        firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(nullValue()));
+        assertThat(firstRecord.getSort(), is(nullValue()));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-3"));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecordsWithFilterAndNestedProjectionMultipleAttribute() {
+        insertNestedRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+        final ScanEnhancedRequest build = ScanEnhancedRequest.builder()
+                .filterExpression(expression)
+                .addAttributeToProject("outerAttribOne")
+                .addNestedAttributesToProject(Arrays.asList(NestedAttributeName.builder().elements("innerAttributeRecord")
+                        .addElement("attribOne").build()))
+                .addNestedAttributeToProject(NestedAttributeName.builder()
+                        .elements(Arrays.asList("innerAttributeRecord", "attribTwo")).build())
+                .build();
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.scan(
+                        build
+                ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        Collections.sort(page.items(), (item1, item2) ->
+                item1.getInnerAttributeRecord().getAttribOne()
+                        .compareTo(item2.getInnerAttributeRecord().getAttribOne()));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is("id-value-3"));
+        assertThat(firstRecord.getSort(), is(nullValue()));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-3"));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(3));
+
+    }
+
+    @Test
+    public void scanAllRecordsWithNonExistigKeyName() {
+        insertNestedRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addNestedAttributesToProject(NestedAttributeName.builder().addElement("nonExistent").build())
+                                .build()
+                ).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord, is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecordsWithDotInAttributeKeyName() {
+        insertNestedRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addNestedAttributesToProject(NestedAttributeName
+                                        .create("test.com")).build()
+                ).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        Collections.sort(page.items(), (item1, item2) ->
+                item1.getDotVariable()
+                        .compareTo(item2.getDotVariable()));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(nullValue()));
+        assertThat(firstRecord.getSort(), is(nullValue()));
+        assertThat(firstRecord.getDotVariable(), is("v3"));
+        assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
+        assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecordsWithSameNamesRepeated() {
+        //Attribute repeated with new and old attributeToProject
+        insertNestedRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+        Iterator<Page<NestedTestRecord> >results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addNestedAttributesToProject(NestedAttributeName.builder().elements("sort").build())
+                                .addAttributeToProject("sort")
+                                .build()
+                ).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        Collections.sort(page.items(), (item1, item2) ->
+                item1.getSort()
+                        .compareTo(item2.getSort()));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(nullValue()));
+        assertThat(firstRecord.getSort(), is(3));
+        assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
+        assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecordsWithEmptyList() {
+        //Attribute repeated with new and old attributeToProject
+        insertNestedRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+        Iterator<Page<NestedTestRecord> >results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addNestedAttributesToProject(new ArrayList<>())
+                                .build()
+                ).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        Collections.sort(page.items(), (item1, item2) ->
+                item1.getSort()
+                        .compareTo(item2.getSort()));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is("id-value-3"));
+        assertThat(firstRecord.getSort(), is(3));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(3));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-3"));
+    }
+
+    @Test
+    public void scanAllRecordsWithNullAttributesToProject() {
+        //Attribute repeated with new and old attributeToProject
+        insertNestedRecords();
+        List<String> backwardCompatibilityNull = null;
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+        Iterator<Page<NestedTestRecord> >results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .attributesToProject("test.com")
+                                .attributesToProject(backwardCompatibilityNull)
+                                .build()
+                ).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(3));
+        Collections.sort(page.items(), (item1, item2) ->
+                item1.getSort()
+                        .compareTo(item2.getSort()));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is("id-value-3"));
+        assertThat(firstRecord.getSort(), is(3));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(3));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-3"));
+    }
+
+    @Test
+    public void scanAllRecordsWithNestedProjectionNameEmptyNameMap() {
+        insertNestedRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                .expression("#sort >= :min_value AND #sort <= :max_value")
+                .expressionValues(expressionValues)
+                .putExpressionName("#sort", "sort")
+                .build();
+
+        final Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addNestedAttributesToProject(NestedAttributeName.builder().elements("").build()).build()
+                ).iterator();
+
+        assertThatExceptionOfType(Exception.class).isThrownBy(() -> { final boolean b = results.hasNext();
+        Page<NestedTestRecord> next = results.next(); }).withMessageContaining("ExpressionAttributeNames contains invalid value");
+
+        final Iterator<Page<NestedTestRecord>> resultsAttributeToProject =
+                mappedNestedTable.scan(
+                        ScanEnhancedRequest.builder()
+                                .filterExpression(expression)
+                                .addAttributeToProject("").build()
+                ).iterator();
+
+        assertThatExceptionOfType(Exception.class).isThrownBy(() -> {
+            final boolean b = resultsAttributeToProject.hasNext();
+            Page<NestedTestRecord> next = resultsAttributeToProject.next();
+        });
     }
 }
