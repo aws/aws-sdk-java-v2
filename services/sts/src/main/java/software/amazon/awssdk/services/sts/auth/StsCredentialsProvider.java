@@ -73,8 +73,8 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     }
 
     /**
-     * Update the expiring session credentials by calling STS. Invoked by {@link CachedSupplier} when the credentials are close to
-     * expiring.
+     * Update the expiring session credentials by calling STS. Invoked by {@link CachedSupplier} when the credentials
+     * are close to expiring.
      */
     private RefreshResult<SessionCredentialsHolder> updateSessionCredentials() {
         SessionCredentialsHolder credentials = new SessionCredentialsHolder(getUpdatedCredentials(stsClient));
@@ -97,15 +97,16 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     }
 
     /**
-     * The amount of time, relative to STS token expiration, that the cached credentials are considered stale and should no longer be used.
-     * All threads will block until the value is updated.
+     * The amount of time, relative to STS token expiration, that the cached credentials are considered stale and
+     * should no longer be used. All threads will block until the value is updated.
      */
     public Duration staleTime() {
         return staleTime;
     }
 
     /**
-     * The amount of time, relative to STS token expiration, that the cached credentials are considered close to stale and should be updated.
+     * The amount of time, relative to STS token expiration, that the cached credentials are considered close to stale
+     * and should be updated.
      */
     public Duration prefetchTime() {
         return prefetchTime;
@@ -133,8 +134,8 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         }
 
         /**
-         * Configure the {@link StsClient} to use when calling STS to update the session. This client should not be shut down
-         * as long as this credentials provider is in use.
+         * Configure the {@link StsClient} to use when calling STS to update the session. This client should not be shut
+         * down as long as this credentials provider is in use.
          *
          * @param stsClient The STS client to use for communication with STS.
          * @return This object for chained calls.
@@ -146,8 +147,9 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         }
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true, threads are
-         * less likely to block when credentials are loaded, but additional resources are used to maintain the provider.
+         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
+         * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
+         * the provider.
          *
          * <p>By default, this is disabled.</p>
          */
@@ -158,8 +160,8 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         }
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered stale and should no longer be used.
-         * All threads will block until the value is updated.
+         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
+         * stale and should no longer be used. All threads will block until the value is updated.
          *
          * <p>By default, this is 1 minute.</p>
          */
@@ -170,8 +172,8 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         }
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered close to stale and should be updated.
-         * See {@link #asyncCredentialUpdateEnabled}.
+         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
+         * close to stale and should be updated. See {@link #asyncCredentialUpdateEnabled}.
          *
          * <p>By default, this is 5 minutes.</p>
          */
