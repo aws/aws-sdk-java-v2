@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaLive",
+    "description": "AWS Elemental MediaLive now supports CDI (Cloud Digital Interface) inputs which enable uncompressed video from applications on Elastic Cloud Compute (EC2), AWS Media Services, and from AWS partners"
+}
