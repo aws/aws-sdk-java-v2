@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Managed Streaming for Kafka",
+    "description": "Added new API's to support SASL SCRAM Authentication with MSK Clusters."
+}
