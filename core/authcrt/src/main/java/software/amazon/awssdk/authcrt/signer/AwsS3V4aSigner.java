@@ -49,10 +49,10 @@ public class AwsS3V4aSigner extends AbstractAws4aSigner {
         Optional<Boolean> signPayload = Optional.ofNullable(executionAttributes.getAttribute(
                 S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
         if (signPayload == null || !signPayload.isPresent() || signPayload.get() == false) {
-            signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
-        } else {
             signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
             signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        } else {
+            signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         }
     }
 }
