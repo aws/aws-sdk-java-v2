@@ -18,10 +18,7 @@ package software.amazon.awssdk.authcrt.signer;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
-import software.amazon.awssdk.authcrt.signer.internal.Aws4aSignerRequestParams;
-import software.amazon.awssdk.authcrt.signer.internal.BaseCrtAws4aSigner;
-import software.amazon.awssdk.authcrt.signer.params.Aws4aPresignerParams;
-import software.amazon.awssdk.authcrt.signer.params.AwsS3V4aSignerParams;
+import software.amazon.awssdk.authcrt.signer.internal.AbstractAws4aSigner;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -30,7 +27,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * s3-specific signer implementation that signs requests with the asymmetric AWS4 (aws4a) signing protocol.
  */
 @SdkPublicApi
-public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws4aPresignerParams> {
+public class AwsS3V4aSigner extends AbstractAws4aSigner {
 
     private AwsS3V4aSigner() {
     }
@@ -42,45 +39,20 @@ public class AwsS3V4aSigner extends BaseCrtAws4aSigner<AwsS3V4aSignerParams, Aws
     public static AwsS3V4aSigner create() {
         return new AwsS3V4aSigner();
     }
-    
+
     @Override
-    public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        AwsS3V4aSignerParams signingParams = buildSignerParams(executionAttributes);
-        Aws4aSignerRequestParams requestSigningParams = buildRequestSigningParams(
-                request, executionAttributes, signingParams);
+    protected void fillInCrtSigningConfig(AwsSigningConfig signingConfig,
+                                          SdkHttpFullRequest request,
+                                          ExecutionAttributes executionAttributes) {
+        super.fillInCrtSigningConfig(signingConfig, request, executionAttributes);
 
-        try (AwsSigningConfig signingConfig = createCrtSigningConfig(signingParams, requestSigningParams)) {
-            return signWithCrt(request, signingConfig);
-        }
-    }
-
-    private AwsS3V4aSignerParams buildSignerParams(ExecutionAttributes executionAttributes) {
-        AwsS3V4aSignerParams.Builder signingParams = extractSignerParams(
-                AwsS3V4aSignerParams.builder(), executionAttributes);
-
-        Optional.ofNullable(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING))
-                .ifPresent(signingParams::enablePayloadSigning);
-
-        return signingParams.build();
-
-    }
-
-    protected AwsSigningConfig createCrtSigningConfig(AwsS3V4aSignerParams signingParams,
-                                                      Aws4aSignerRequestParams requestSigningParams) {
-        AwsSigningConfig signingConfig = new AwsSigningConfig();
-
-        fillInCrtSigningConfig(signingConfig, signingParams, requestSigningParams);
-
-        if (signingParams.enablePayloadSigning()) {
+        Optional<Boolean> signPayload = Optional.ofNullable(executionAttributes.getAttribute(
+                S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
+        if (signPayload == null || !signPayload.isPresent() || signPayload.get() == false) {
             signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         } else {
             signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
             signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
         }
-
-        signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
-
-        return signingConfig;
     }
-
 }

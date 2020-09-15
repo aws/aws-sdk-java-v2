@@ -15,30 +15,130 @@
 
 package software.amazon.awssdk.authcrt.signer.internal;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.authcrt.signer.Aws4aSigner;
-import software.amazon.awssdk.authcrt.signer.params.Aws4aPresignerParams;
-import software.amazon.awssdk.authcrt.signer.params.Aws4aSignerParams;
+import software.amazon.awssdk.auth.signer.internal.SignerConstant;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.crt.auth.credentials.Credentials;
+import software.amazon.awssdk.crt.auth.signing.AwsSigner;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkInternalApi
-public abstract class AbstractAws4aSigner<T extends Aws4aSignerParams, U extends Aws4aPresignerParams>
-        implements Signer, Presigner {
+public abstract class AbstractAws4aSigner implements Signer, Presigner {
+
+    /**
+     * Attribute allowing the user to inject a clock that will be used for the signing timestamp
+     */
+    public static final ExecutionAttribute<Clock> SIGNING_CLOCK = new ExecutionAttribute<>("SigningClock");
+
+    private static final Boolean DEFAULT_DOUBLE_URL_ENCODE = Boolean.TRUE;
+    private static Charset UTF8 = StandardCharsets.UTF_8;
+
+    private Credentials buildCredentials(ExecutionAttributes executionAttributes) {
+        AwsCredentials sdkCredentials = SigningUtils.sanitizeCredentials(
+                executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS));
+        byte[] sessionToken = null;
+        if (sdkCredentials instanceof AwsSessionCredentials) {
+            AwsSessionCredentials sessionCreds = (AwsSessionCredentials) sdkCredentials;
+            sessionToken = sessionCreds.sessionToken().getBytes(UTF8);
+        }
+
+        return new Credentials(sdkCredentials.accessKeyId().getBytes(UTF8),
+                sdkCredentials.secretAccessKey().getBytes(UTF8), sessionToken);
+    }
+
+    protected Clock getSigningClock(ExecutionAttributes executionAttributes) {
+        Clock clock = executionAttributes.getAttribute(AbstractAws4aSigner.SIGNING_CLOCK);
+        if (clock != null) {
+            return clock;
+        }
+
+        Clock baseClock = Clock.systemUTC();
+        Optional<Integer> timeOffset = Optional.ofNullable(executionAttributes.getAttribute(
+                AwsSignerExecutionAttribute.TIME_OFFSET));
+        return timeOffset
+                .map(offset -> Clock.offset(baseClock, Duration.ofSeconds(-offset)))
+                .orElse(baseClock);
+    }
+
+    protected void fillInCrtSigningConfig(AwsSigningConfig signingConfig,
+                                          SdkHttpFullRequest request,
+                                          ExecutionAttributes executionAttributes) {
+        signingConfig.setCredentials(buildCredentials(executionAttributes));
+        signingConfig.setService(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME));
+        signingConfig.setRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION)
+                .toString()); // Temporary, real solution TBD with Lemmy integration
+
+        signingConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        signingConfig.setShouldNormalizeUriPath(true);
+        signingConfig.setTime(getSigningClock(executionAttributes).instant().toEpochMilli());
+
+        if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE) != null) {
+            signingConfig.setUseDoubleUriEncode(executionAttributes
+                    .getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
+        } else {
+            signingConfig.setUseDoubleUriEncode(DEFAULT_DOUBLE_URL_ENCODE);
+        }
+
+        signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
+    }
+
+    protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig,
+                                          SdkHttpFullRequest request,
+                                          ExecutionAttributes executionAttributes) {
+
+        fillInCrtSigningConfig(signingConfig, request, executionAttributes);
+
+        long expirationInSeconds;
+        Optional<Instant> expirationTime = Optional.ofNullable(executionAttributes
+                .getAttribute(AwsSignerExecutionAttribute.PRESIGNER_EXPIRATION));
+        if (expirationTime == null || !expirationTime.isPresent()) {
+            expirationInSeconds = SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS;
+        } else {
+            Instant start = getSigningClock(executionAttributes).instant();
+            Instant end = expirationTime.get();
+            expirationInSeconds = Math.max(0, Duration.between(start, end).getSeconds());
+        }
+
+        signingConfig.setExpirationInSeconds(expirationInSeconds);
+    }
 
     @SdkTestInternalApi
-    public abstract SdkHttpFullRequest doSign(SdkHttpFullRequest request,
-                                              Aws4aSignerParams signingParams,
-                                              Aws4aSignerRequestParams requestSigningParams);
+    public AwsSigningConfig createCrtSigningConfig(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+        AwsSigningConfig signingConfig = new AwsSigningConfig();
+
+        fillInCrtSigningConfig(signingConfig, request, executionAttributes);
+        signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
+
+        return signingConfig;
+    }
 
     @SdkTestInternalApi
-    public abstract SdkHttpFullRequest doPresign(SdkHttpFullRequest request,
-                                                 Aws4aPresignerParams signingParams,
-                                                 Aws4aSignerRequestParams requestSigningParams);
+    public AwsSigningConfig createCrtPreSigningConfig(SdkHttpFullRequest request,
+                                                      ExecutionAttributes executionAttributes) {
+        AwsSigningConfig signingConfig = new AwsSigningConfig();
+
+        fillInCrtPresigningConfig(signingConfig, request, executionAttributes);
+        signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
+
+        return signingConfig;
+    }
 
     /**
      * Creates an Aws Sigv4a signed http request from an unsigned http request via header-based signing.
@@ -48,11 +148,8 @@ public abstract class AbstractAws4aSigner<T extends Aws4aSignerParams, U extends
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        Aws4aSignerParams signingParams = extractSignerParams(T.builder(), executionAttributes)
-                .build();
-        Aws4aSignerRequestParams requestSigningParams = new Aws4aSignerRequestParams(signingParams);
-
-        return doSign(request, signingParams, requestSigningParams);
+        AwsSigningConfig signingConfig = createCrtSigningConfig(request, executionAttributes);
+        return signWithCrt(request, signingConfig);
     }
 
     /**
@@ -63,42 +160,23 @@ public abstract class AbstractAws4aSigner<T extends Aws4aSignerParams, U extends
      */
     @Override
     public SdkHttpFullRequest presign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        Aws4aPresignerParams signingParams = extractPresignerParams(U.builder(), executionAttributes)
-                .build();
-        Aws4aSignerRequestParams requestSigningParams = new Aws4aSignerRequestParams(signingParams);
-
-        return doPresign(request, signingParams, requestSigningParams);
+        AwsSigningConfig signingConfig = createCrtPreSigningConfig(request, executionAttributes);
+        return signWithCrt(request, signingConfig);
     }
 
-    protected <B extends Aws4aSignerParams.Builder> B extractSignerParams(B paramsBuilder,
-                                                                          ExecutionAttributes executionAttributes) {
-        paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))
-                .signingName(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME))
-                .signingRegionSet(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION)
-                        .toString())  // Temporary, real solution TBD with Lemmy integration
-                .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET))
-                .signingClockOverride(executionAttributes.getAttribute(Aws4aSigner.SIGNING_CLOCK));
-
-        if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE) != null) {
-            paramsBuilder.doubleUrlEncode(executionAttributes
-                    .getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
+    private SdkHttpFullRequest signWithCrt(SdkHttpFullRequest request, AwsSigningConfig signingConfig) {
+        HttpRequest crtRequest = CrtHttpUtils.createCrtRequest(SigningUtils.sanitizeSdkRequestForCrtSigning(request));
+        CompletableFuture<HttpRequest> future = AwsSigner.signRequest(crtRequest, signingConfig);
+        try {
+            HttpRequest signedRequest = future.get();
+            return CrtHttpUtils.createSignedSdkRequest(request, signedRequest);
+        } catch (Exception e) {
+            throw SdkClientException.builder()
+                    .message("Unable to sign request: " + e.getMessage())
+                    .cause(e)
+                    .build();
         }
-
-        return paramsBuilder;
     }
 
-    protected <B extends Aws4aPresignerParams.Builder> B extractPresignerParams(
-            B paramsBuilder, ExecutionAttributes executionAttributes) {
-        paramsBuilder = extractSignerParams(paramsBuilder, executionAttributes);
-        paramsBuilder.expirationTime(executionAttributes
-                .getAttribute(AwsSignerExecutionAttribute.PRESIGNER_EXPIRATION));
 
-        return paramsBuilder;
-    }
-
-    protected Aws4aSignerRequestParams buildRequestSigningParams(SdkHttpFullRequest request,
-                                                                 ExecutionAttributes executionAttributes,
-                                                                 Aws4aSignerParams signingParams) {
-        return new Aws4aSignerRequestParams(signingParams);
-    }
 }
