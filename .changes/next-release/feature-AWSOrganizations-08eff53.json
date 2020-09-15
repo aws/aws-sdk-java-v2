@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "description": "AWS Organizations now enables you to add tags to the AWS accounts, organizational units, organization root, and policies in your organization."
-}

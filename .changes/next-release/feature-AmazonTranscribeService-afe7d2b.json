@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "description": "Amazon Transcribe now supports automatic language identification, which enables you to transcribe audio files without needing to know the language in advance."
-}
