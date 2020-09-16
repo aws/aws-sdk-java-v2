@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.autoscaling.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.services.autoscaling.model.LifecycleState.IN_SERVICE;
@@ -68,7 +69,7 @@ public class AutoScalingWaiterTest {
                                                                                      i -> i.lifecycleState(IN_SERVICE)))
                                              .build();
 
-        when(client.describeAutoScalingGroups(request)).thenReturn(response1, response2);
+        when(client.describeAutoScalingGroups(any(DescribeAutoScalingGroupsRequest.class))).thenReturn(response1, response2);
 
         AutoScalingWaiter waiter = AutoScalingWaiter.builder()
                                                     .pollingStrategy(PollingStrategy.builder()

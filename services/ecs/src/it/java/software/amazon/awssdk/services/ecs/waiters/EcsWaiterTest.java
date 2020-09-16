@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.ecs.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,7 +58,7 @@ public class EcsWaiterTest {
                                                     .runningCount(2))
                                     .build();
 
-        when(client.describeServices(request)).thenReturn(response1, response2);
+        when(client.describeServices(any(DescribeServicesRequest.class))).thenReturn(response1, response2);
 
         EcsWaiter waiter = EcsWaiter.builder()
                                     .pollingStrategy(PollingStrategy.builder()
