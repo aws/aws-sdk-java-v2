@@ -29,6 +29,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -37,11 +38,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.emitters.tasks.WaitersRuntimeGeneratorTask;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -49,7 +52,9 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.Acceptor;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.PollingStrategy;
@@ -62,11 +67,14 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * Base class containing common logic shared between the sync waiter class and the async waiter class
  */
 public abstract class BaseWaiterClassSpec implements ClassSpec {
+
+    private static final String WAITERS_USER_AGENT = "waiter";
     private final IntermediateModel model;
     private final String modelPackage;
     private final Map<String, WaiterDefinition> waiters;
     private final ClassName waiterClassName;
     private final JmesPathAcceptorGenerator jmesPathAcceptorGenerator;
+    private final PoetExtensions poetExtensions;
 
     public BaseWaiterClassSpec(IntermediateModel model, ClassName waiterClassName) {
         this.model = model;
@@ -74,6 +82,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         this.waiters = model.getWaiters();
         this.waiterClassName = waiterClassName;
         this.jmesPathAcceptorGenerator = new JmesPathAcceptorGenerator(waitersRuntimeClass());
+        this.poetExtensions = new PoetExtensions(model);
     }
 
     @Override
@@ -105,6 +114,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                                             .build());
 
         typeSpecBuilder.addType(builder());
+        typeSpecBuilder.addMethod(applyWaitersUserAgentMethod(poetExtensions, model));
         return typeSpecBuilder.build();
     }
 
@@ -277,7 +287,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             .addParameter(requestType, opModel.getInput().getVariableName())
             .addModifiers(PUBLIC)
             .addAnnotation(Override.class)
-            .addStatement("return $L.$L(() -> client.$N($N))",
+            .addStatement("return $L.$L(() -> client.$N(applyWaitersUserAgent($N)))",
                           waiterFieldName(waiterMethodName),
                           waiterClassName.simpleName().equals("Waiter") ? "run" : "runAsync",
                           lowercaseFirstChar(waiterDefinition.getValue().getOperation()),
@@ -324,6 +334,40 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
     private MethodSpec.Builder methodSignatureWithReturnType(String waiterMethodName, OperationModel opModel) {
         return MethodSpec.methodBuilder(getWaiterMethodName(waiterMethodName))
                          .returns(getWaiterResponseType(opModel));
+    }
+
+    static MethodSpec applyWaitersUserAgentMethod(PoetExtensions poetExtensions, IntermediateModel model) {
+
+        TypeVariableName typeVariableName =
+            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
+
+        ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
+            .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
+
+        CodeBlock codeBlock = CodeBlock.builder()
+                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().version"
+                                                     + "($S).name($S).build())",
+                                                     parameterizedTypeName, ApiName.class,
+                                                     WAITERS_USER_AGENT,
+                                                     "hll")
+                                       .addStatement("$T overrideConfiguration =\n"
+                                                     + "            request.overrideConfiguration().map(c -> c.toBuilder()"
+                                                     + ".applyMutation"
+                                                     + "(userAgentApplier).build())\n"
+                                                     + "            .orElse((AwsRequestOverrideConfiguration.builder()"
+                                                     + ".applyMutation"
+                                                     + "(userAgentApplier).build()))", AwsRequestOverrideConfiguration.class)
+                                       .addStatement("return (T) request.toBuilder().overrideConfiguration"
+                                                     + "(overrideConfiguration).build()")
+                                       .build();
+
+        return MethodSpec.methodBuilder("applyWaitersUserAgent")
+                         .addModifiers(Modifier.PRIVATE)
+                         .addParameter(typeVariableName, "request")
+                         .addTypeVariable(typeVariableName)
+                         .addCode(codeBlock)
+                         .returns(typeVariableName)
+                         .build();
     }
 
     private String getWaiterMethodName(String waiterMethodName) {

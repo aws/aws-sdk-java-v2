@@ -7,10 +7,13 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
@@ -21,6 +24,7 @@ import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
+import software.amazon.awssdk.services.query.model.QueryRequest;
 import software.amazon.awssdk.services.query.waiters.internal.WaitersRuntime;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -77,7 +81,7 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
     @Override
     public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
         APostOperationRequest aPostOperationRequest) {
-        return postOperationSuccessWaiter.runAsync(() -> client.aPostOperation(aPostOperationRequest));
+        return postOperationSuccessWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)));
     }
 
     private static List<WaiterAcceptor<? super APostOperationResponse>> postOperationSuccessWaiterAcceptors() {
@@ -100,6 +104,15 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
 
     public static QueryAsyncWaiter.Builder builder() {
         return new DefaultBuilder();
+    }
+
+    private <T extends QueryRequest> T applyWaitersUserAgent(T request) {
+        Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
+                                                                                                      .version("waiter").name("hll").build());
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
     public static final class DefaultBuilder implements QueryAsyncWaiter.Builder {
