@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "description": "This release adds support for contact flows and routing profiles. For details, see the Release Notes in the Amazon Connect Administrator Guide."
+}
