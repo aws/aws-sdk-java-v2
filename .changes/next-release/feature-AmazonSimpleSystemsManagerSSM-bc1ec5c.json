@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "The ComplianceItemEntry Status description was updated to address Windows patches that aren't applicable."
+}
