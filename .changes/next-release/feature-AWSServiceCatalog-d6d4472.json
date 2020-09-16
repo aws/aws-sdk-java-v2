@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog",
+    "description": "Enhance DescribeProvisionedProduct API to allow useProvisionedProduct Name as Input, so customer can provide ProvisionedProduct Name instead of ProvisionedProduct Id to describe a ProvisionedProduct."
+}
