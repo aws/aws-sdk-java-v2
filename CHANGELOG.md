@@ -1,3 +1,32 @@
+# __2.14.19__ __2020-09-16__
+## __AWS Greengrass__
+  - ### Features
+    - This release includes the ability to set run-time configuration for a Greengrass core. The Telemetry feature, also included in this release, can be configured via run-time configuration per core.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Enhance DescribeProvisionedProduct API to allow useProvisionedProduct Name as Input, so customer can provide ProvisionedProduct Name instead of ProvisionedProduct Id to describe a ProvisionedProduct.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for contact flows and routing profiles. For details, see the Release Notes in the Amazon Connect Administrator Guide.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Customers can now provide multiple schedules within a single Data Lifecycle Manager (DLM) policy. Each schedule supports tagging, Fast Snapshot Restore (FSR) and cross region copy individually.
+
+## __Amazon STS__
+  - ### Features
+    - Make the STSCredentialsProvider stale and prefetch times configurable so clients can control when session credentials are refreshed
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - The ComplianceItemEntry Status description was updated to address Windows patches that aren't applicable.
+
 # __2.14.18__ __2020-09-15__
 ## __AWS Budgets__
   - ### Features
