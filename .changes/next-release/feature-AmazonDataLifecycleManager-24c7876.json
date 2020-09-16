@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Data Lifecycle Manager",
+    "description": "Customers can now provide multiple schedules within a single Data Lifecycle Manager (DLM) policy. Each schedule supports tagging, Fast Snapshot Restore (FSR) and cross region copy individually."
+}
