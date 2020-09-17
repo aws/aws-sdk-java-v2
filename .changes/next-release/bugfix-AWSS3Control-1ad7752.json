@@ -1,0 +1,5 @@
+{
+    "category": "AWS S3 Control", 
+    "type": "bugfix", 
+    "description": "Changes document error root definition for XML based errors to same as AWS S3, so that errors are fully parsed."
+}
