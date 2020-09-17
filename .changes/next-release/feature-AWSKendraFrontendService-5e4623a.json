@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWSKendraFrontendService",
+    "description": "Amazon Kendra now supports additional file formats and metadata for FAQs."
+}
