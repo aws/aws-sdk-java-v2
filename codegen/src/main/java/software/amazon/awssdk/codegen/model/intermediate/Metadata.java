@@ -681,4 +681,8 @@ public class Metadata {
     public String getFullWaitersPackageName() {
         return joinPackageNames(rootPackageName, getWaitersPackageName());
     }
+
+    public String getFullWaitersInternalPackageName() {
+        return joinPackageNames(getFullWaitersPackageName(), "internal");
+    }
 }

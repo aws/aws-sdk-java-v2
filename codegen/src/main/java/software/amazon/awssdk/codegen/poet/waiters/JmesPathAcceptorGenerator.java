@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.waiters;
 
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsValue;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -47,7 +48,6 @@ import software.amazon.awssdk.codegen.jmespath.component.WildcardExpression;
 import software.amazon.awssdk.codegen.jmespath.parser.JmesPathParser;
 import software.amazon.awssdk.codegen.jmespath.parser.JmesPathVisitor;
 import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.waiters.WaitersRuntime;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -57,14 +57,17 @@ import software.amazon.awssdk.utils.Validate;
  * this interpreter make heavy use of the {@link WaitersRuntime}.
  */
 public class JmesPathAcceptorGenerator {
-    private JmesPathAcceptorGenerator() {
+    private final ClassName waitersRuntimeClass;
+
+    public JmesPathAcceptorGenerator(ClassName waitersRuntimeClass) {
+        this.waitersRuntimeClass = waitersRuntimeClass;
     }
 
     /**
      * Interpret the provided expression into a java statement that executes against the provided input value. This inputValue
      * should be a JMESPath Value in scope.
      */
-    public static CodeBlock interpret(String expression, String inputValue) {
+    public CodeBlock interpret(String expression, String inputValue) {
         CodeBlock.Builder codeBlock = CodeBlock.builder();
         Visitor visitor = new Visitor(codeBlock, inputValue);
         JmesPathParser.parse(expression).visit(visitor);
@@ -74,7 +77,7 @@ public class JmesPathAcceptorGenerator {
     /**
      * An implementation of {@link JmesPathVisitor} used by {@link #interpret(String, String)}.
      */
-    private static class Visitor implements JmesPathVisitor {
+    private class Visitor implements JmesPathVisitor {
         private final CodeBlock.Builder codeBlock;
         private final Deque<String> variables = new ArrayDeque<>();
         private int variableIndex = 0;
@@ -278,7 +281,7 @@ public class JmesPathAcceptorGenerator {
 
         @Override
         public void visitNumber(int input) {
-            codeBlock.add(".constant($L)", WaitersRuntime.Value.class, input);
+            codeBlock.add(".constant($L)", waitersRuntimeClass.nestedClass("Value"), input);
         }
 
         /**

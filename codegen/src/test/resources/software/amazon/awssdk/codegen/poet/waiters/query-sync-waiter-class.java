@@ -15,10 +15,10 @@ import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.core.waiters.WaiterState;
-import software.amazon.awssdk.core.waiters.WaitersRuntime;
 import software.amazon.awssdk.services.query.QueryClient;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
+import software.amazon.awssdk.services.query.waiters.internal.WaitersRuntime;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 

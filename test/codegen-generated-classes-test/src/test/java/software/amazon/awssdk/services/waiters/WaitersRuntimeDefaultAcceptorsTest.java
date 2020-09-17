@@ -13,13 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.waiters;
+package software.amazon.awssdk.services.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.services.restjsonwithwaiters.waiters.internal.WaitersRuntime;
 
 /**
  * Verify the accuracy of {@link WaitersRuntime#DEFAULT_ACCEPTORS}.

@@ -43,6 +43,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.codegen.emitters.tasks.WaitersRuntimeGeneratorTask;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.Acceptor;
@@ -54,7 +55,6 @@ import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.PollingStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterState;
-import software.amazon.awssdk.core.waiters.WaitersRuntime;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -62,17 +62,18 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * Base class containing common logic shared between the sync waiter class and the async waiter class
  */
 public abstract class BaseWaiterClassSpec implements ClassSpec {
-
     private final IntermediateModel model;
     private final String modelPackage;
     private final Map<String, WaiterDefinition> waiters;
     private final ClassName waiterClassName;
+    private final JmesPathAcceptorGenerator jmesPathAcceptorGenerator;
 
     public BaseWaiterClassSpec(IntermediateModel model, ClassName waiterClassName) {
         this.model = model;
         this.modelPackage = model.getMetadata().getFullModelPackageName();
         this.waiters = model.getWaiters();
         this.waiterClassName = waiterClassName;
+        this.jmesPathAcceptorGenerator = new JmesPathAcceptorGenerator(waitersRuntimeClass());
     }
 
     @Override
@@ -305,7 +306,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                            .addCode(");");
         }
 
-        acceptorsMethod.addStatement("result.addAll($T.DEFAULT_ACCEPTORS)", WaitersRuntime.class);
+        acceptorsMethod.addStatement("result.addAll($T.DEFAULT_ACCEPTORS)", waitersRuntimeClass());
 
         acceptorsMethod.addStatement("return result");
 
@@ -378,8 +379,8 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             case "status":
                 // Note: Ignores the result we've built so far because this uses a special acceptor implementation.
                 int expected = Integer.parseInt(acceptor.getExpected().asText());
-                return CodeBlock.of("new $T($L, $T.$L)", WaitersRuntime.ResponseStatusAcceptor.class, expected,
-                                    WaiterState.class, waiterState(acceptor));
+                return CodeBlock.of("new $T($L, $T.$L)", waitersRuntimeClass().nestedClass("ResponseStatusAcceptor"),
+                                    expected, WaiterState.class, waiterState(acceptor));
             case "error":
                 result.add("OnExceptionAcceptor(");
                 result.add(errorAcceptorBody(acceptor));
@@ -410,9 +411,9 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
         return CodeBlock.builder()
                         .add("response -> {")
-                        .add("$1T input = new $1T(response);", WaitersRuntime.Value.class)
+                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
                         .add("return $T.equals(", Objects.class)
-                        .add(JmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
+                        .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                         .add(".value(), " + expectedType + ");", expected)
                         .add("}")
                         .build();
@@ -423,9 +424,9 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
         return CodeBlock.builder()
                         .add("response -> {")
-                        .add("$1T input = new $1T(response);", WaitersRuntime.Value.class)
+                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
                         .add("$T<$T> resultValues = ", List.class, Object.class)
-                        .add(JmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
+                        .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                         .add(".values();")
                         .add("return !resultValues.isEmpty() && "
                              + "resultValues.stream().allMatch(v -> $T.equals(v, " + expectedType + "));",
@@ -439,9 +440,9 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
         return CodeBlock.builder()
                         .add("response -> {")
-                        .add("$1T input = new $1T(response);", WaitersRuntime.Value.class)
+                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
                         .add("$T<$T> resultValues = ", List.class, Object.class)
-                        .add(JmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
+                        .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                         .add(".values();")
                         .add("return !resultValues.isEmpty() && "
                              + "resultValues.stream().anyMatch(v -> $T.equals(v, " + expectedType + "));",
@@ -466,5 +467,10 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                          .addCode("}")
                          .addCode("return null;")
                          .build();
+    }
+
+    private ClassName waitersRuntimeClass() {
+        return ClassName.get(model.getMetadata().getFullWaitersInternalPackageName(),
+                             WaitersRuntimeGeneratorTask.RUNTIME_CLASS_NAME);
     }
 }

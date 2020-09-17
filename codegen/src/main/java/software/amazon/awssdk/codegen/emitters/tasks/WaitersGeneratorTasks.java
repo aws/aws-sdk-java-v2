@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
@@ -25,13 +26,13 @@ import software.amazon.awssdk.codegen.poet.waiters.AsyncWaiterInterfaceSpec;
 import software.amazon.awssdk.codegen.poet.waiters.WaiterClassSpec;
 import software.amazon.awssdk.codegen.poet.waiters.WaiterInterfaceSpec;
 
+@SdkInternalApi
 public class WaitersGeneratorTasks extends BaseGeneratorTasks {
-
-    private final String waitersClassDir;
+    private final GeneratorTaskParams generatorTaskParams;
 
     public WaitersGeneratorTasks(GeneratorTaskParams dependencies) {
         super(dependencies);
-        this.waitersClassDir = dependencies.getPathProvider().getWaitersDirectory();
+        this.generatorTaskParams = dependencies;
     }
 
     @Override
@@ -44,24 +45,29 @@ public class WaitersGeneratorTasks extends BaseGeneratorTasks {
         List<GeneratorTask> generatorTasks = new ArrayList<>();
         generatorTasks.addAll(createSyncTasks());
         generatorTasks.addAll(createAsyncTasks());
+        generatorTasks.add(new WaitersRuntimeGeneratorTask(generatorTaskParams));
         return generatorTasks;
     }
 
     private List<GeneratorTask> createSyncTasks() {
         List<GeneratorTask> syncTasks = new ArrayList<>();
-        syncTasks.add(new PoetGeneratorTask(waitersClassDir, model.getFileHeader(),
+        syncTasks.add(new PoetGeneratorTask(waitersClassDir(), model.getFileHeader(),
                                             new WaiterInterfaceSpec(model)));
-        syncTasks.add(new PoetGeneratorTask(waitersClassDir, model.getFileHeader(),
+        syncTasks.add(new PoetGeneratorTask(waitersClassDir(), model.getFileHeader(),
                                             new WaiterClassSpec(model)));
         return syncTasks;
     }
 
     private List<GeneratorTask> createAsyncTasks() {
         List<GeneratorTask> asyncTasks = new ArrayList<>();
-        asyncTasks.add(new PoetGeneratorTask(waitersClassDir, model.getFileHeader(),
+        asyncTasks.add(new PoetGeneratorTask(waitersClassDir(), model.getFileHeader(),
                                              new AsyncWaiterInterfaceSpec(model)));
-        asyncTasks.add(new PoetGeneratorTask(waitersClassDir, model.getFileHeader(),
+        asyncTasks.add(new PoetGeneratorTask(waitersClassDir(), model.getFileHeader(),
                                              new AsyncWaiterClassSpec(model)));
         return asyncTasks;
+    }
+
+    private String waitersClassDir() {
+        return generatorTaskParams.getPathProvider().getWaitersDirectory();
     }
 }
