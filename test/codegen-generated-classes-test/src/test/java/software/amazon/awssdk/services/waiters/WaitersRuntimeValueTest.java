@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.waiters;
+package software.amazon.awssdk.services.waiters;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
-import software.amazon.awssdk.core.waiters.WaitersRuntime.Value;
+import software.amazon.awssdk.services.restjsonwithwaiters.waiters.internal.WaitersRuntime.Value;
 import software.amazon.awssdk.utils.Pair;
 
 public class WaitersRuntimeValueTest {

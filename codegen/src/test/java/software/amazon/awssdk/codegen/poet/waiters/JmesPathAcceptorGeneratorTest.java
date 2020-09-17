@@ -18,12 +18,18 @@ package software.amazon.awssdk.codegen.poet.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.squareup.javapoet.ClassName;
+import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.codegen.jmespath.component.Comparator;
-import software.amazon.awssdk.codegen.jmespath.component.Expression;
-import software.amazon.awssdk.codegen.jmespath.parser.JmesPathParser;
 
 public class JmesPathAcceptorGeneratorTest {
+    private JmesPathAcceptorGenerator acceptorGenerator;
+
+    @Before
+    public void setup() {
+        acceptorGenerator = new JmesPathAcceptorGenerator(ClassName.get("software.amazon.awssdk.codegen", "WaitersRuntime"));
+    }
+
     @Test
     public void testAutoScalingComplexExpression() {
         testConversion("contains(AutoScalingGroups[].[length(Instances[?LifecycleState=='InService']) >= MinSize][], `false`)",
@@ -294,8 +300,8 @@ public class JmesPathAcceptorGeneratorTest {
         testConversion("foo[-10]", "input.field(\"foo\").index(-10)");
     }
 
-    private static void testConversion(String jmesPathString, String expectedCode) {
-        assertThat(JmesPathAcceptorGenerator.interpret(jmesPathString, "input").toString()).isEqualTo((expectedCode));
+    private void testConversion(String jmesPathString, String expectedCode) {
+        assertThat(acceptorGenerator.interpret(jmesPathString, "input").toString()).isEqualTo((expectedCode));
     }
 
 }

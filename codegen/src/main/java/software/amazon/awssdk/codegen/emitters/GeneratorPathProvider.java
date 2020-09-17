@@ -64,4 +64,8 @@ public class GeneratorPathProvider {
     public String getWaitersDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullWaitersPackageName());
     }
+
+    public String getWaitersInternalDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullWaitersInternalPackageName());
+    }
 }

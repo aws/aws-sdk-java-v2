@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.waiters;
+package software.amazon.awssdk.services.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,9 +23,10 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.waiters.WaitersRuntime.ResponseStatusAcceptor;
+import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.services.restjsonwithwaiters.waiters.internal.WaitersRuntime.ResponseStatusAcceptor;
 
 /**
  * Verify the accuracy of {@link ResponseStatusAcceptor}.
