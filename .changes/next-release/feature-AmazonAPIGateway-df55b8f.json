@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon API Gateway",
-    "description": "Adds support for mutual TLS authentication for public regional REST Apis"
-}

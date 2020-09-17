@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonApiGatewayV2",
-    "description": "Adds support for mutual TLS authentication and disableAPIExecuteEndpoint for public regional HTTP Apis"
-}

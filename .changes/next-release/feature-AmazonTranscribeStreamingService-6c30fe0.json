@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Streaming Service",
-    "description": "Amazon Transcribe now supports channel identification in real-time streaming, which enables you to transcribe multi-channel streaming audio."
-}
