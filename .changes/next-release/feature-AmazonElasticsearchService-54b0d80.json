@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elasticsearch Service",
+    "description": "Adds support for data plane audit logging in Amazon Elasticsearch Service."
+}
