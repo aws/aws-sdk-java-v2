@@ -15,6 +15,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -172,6 +174,7 @@ public class EndpointDiscoveryAndEndpointOverrideTest {
     private static <T> T createClient(AwsClientBuilder<?, T> clientBuilder,
                                       boolean endpointOverridden) {
         return clientBuilder.region(Region.US_WEST_2)
+                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                             .applyMutation(c -> addEndpointOverride(c, endpointOverridden))
                             .overrideConfiguration(c -> c.retryPolicy(p -> p.numRetries(0))
                                                          .addExecutionInterceptor(new EndpointCapturingInterceptor()))
