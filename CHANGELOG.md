@@ -7,10 +7,6 @@
   - ### Features
     - AWS Elemental MediaLive now supports batch operations, which allow users to start, stop, and delete multiple MediaLive resources with a single request.
 
-## __AWS S3 Control__
-  - ### Bugfixes
-    - Changes document error root definition for XML based errors to same as AWS S3, so that errors are fully parsed.
-
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated service endpoint metadata.
