@@ -10,7 +10,7 @@ env:
 notifications:
   email:
     - github-awsforjava@amazon.com
-script: mvn -q install
+script: mvn install -pl :codegen-generated-classes-test -am
 
 after_success:
     - bash <(curl -s https://codecov.io/bash) -F unittests
