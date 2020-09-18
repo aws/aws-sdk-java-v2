@@ -83,9 +83,11 @@ public class EndpointDiscoveryAndEndpointOverrideTest {
             testCase.callClient();
             Assert.fail();
         } catch (Throwable e) {
+            e.printStackTrace();
             // Unwrap async exceptions so that they can be tested the same as async ones.
             if (e instanceof CompletionException) {
                 e = e.getCause();
+                e.printStackTrace();
             }
 
             if (testCase.expectedPaths.length > 0) {
