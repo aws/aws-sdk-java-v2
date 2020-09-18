@@ -18,11 +18,6 @@
             "description": "New integration with the GitHub provider type."
         },
         {
-            "type": "bugfix",
-            "category": "AWS S3 Control",
-            "description": "Changes document error root definition for XML based errors to same as AWS S3, so that errors are fully parsed."
-        },
-        {
             "type": "feature",
             "category": "AWS SDK for Java v2",
             "description": "Updated service endpoint metadata."
