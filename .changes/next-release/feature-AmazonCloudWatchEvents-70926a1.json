@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Events",
+    "description": "Add support for Redshift Data API Targets"
+}
