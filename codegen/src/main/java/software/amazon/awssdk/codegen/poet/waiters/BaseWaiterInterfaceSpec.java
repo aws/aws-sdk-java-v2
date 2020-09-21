@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
@@ -93,8 +94,8 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
 
     private Stream<MethodSpec> waiterOperations(Map.Entry<String, WaiterDefinition> waiterDefinition) {
         List<MethodSpec> methods = new ArrayList<>();
-
         methods.add(waiterOperation(waiterDefinition));
+        methods.add(waiterConsumerBuilderOperation(waiterDefinition));
         return methods.stream();
     }
 
@@ -109,6 +110,31 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
             .addParameter(requestType, opModel.getInput().getVariableName())
             .addJavadoc(javadoc);
         return unsupportedOperation(builder).build();
+    }
+
+    private MethodSpec waiterConsumerBuilderOperation(Map.Entry<String, WaiterDefinition> waiterDefinition) {
+        String waiterMethodName = waiterDefinition.getKey();
+        OperationModel opModel = model.getOperation(waiterDefinition.getValue().getOperation());
+        ClassName requestClass = ClassName.get(modelPackage,
+                                            opModel.getInput().getVariableType());
+
+        ParameterizedTypeName requestType = ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                                                                      requestClass.nestedClass("Builder"));
+        CodeBlock javadoc = WaiterDocs.waiterOperationConsumerBuilderJavadoc(
+            clientClassName(), requestClass, waiterDefinition, opModel);
+
+        String inputVariable = opModel.getInput().getVariableName();
+        MethodSpec.Builder builder = methodSignatureWithReturnType(waiterMethodName, opModel)
+            .addParameter(requestType, inputVariable)
+            .addJavadoc(javadoc);
+
+        builder.addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+               .addStatement("return $L($T.builder().applyMutation($L).build())",
+                             getWaiterMethodName(waiterMethodName),
+                             requestClass,
+                             inputVariable);
+
+        return builder.build();
     }
 
     private MethodSpec.Builder methodSignatureWithReturnType(String waiterMethodName, OperationModel opModel) {
@@ -139,6 +165,19 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
                                      .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                      .addParameter(ClassName.get(PollingStrategy.class), "pollingStrategy")
                                      .addJavadoc(WaiterDocs.waiterBuilderPollingStrategy())
+                                     .returns(className().nestedClass("Builder"))
+                                     .build());
+        ParameterizedTypeName parameterizedTypeName =
+            ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                                      ClassName.get(PollingStrategy.class).nestedClass("Builder"));
+        builderMethods.add(MethodSpec.methodBuilder("pollingStrategy")
+                                     .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                                     .addParameter(parameterizedTypeName, "pollingStrategy")
+                                     .addJavadoc(WaiterDocs.waiterBuilderPollingStrategyConsumerBuilder())
+                                     .addStatement("$T.Builder builder = $T.builder()",
+                                                   PollingStrategy.class, PollingStrategy.class)
+                                     .addStatement("pollingStrategy.accept(builder)")
+                                     .addStatement("return pollingStrategy(builder.build())")
                                      .returns(className().nestedClass("Builder"))
                                      .build());
         builderMethods.add(MethodSpec.methodBuilder("client")

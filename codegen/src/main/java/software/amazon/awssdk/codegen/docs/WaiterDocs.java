@@ -51,6 +51,29 @@ public final class WaiterDocs {
 
     }
 
+    public static CodeBlock waiterOperationConsumerBuilderJavadoc(ClassName clientClassName,
+                                                                  ClassName requestClassName,
+                                                                  Map.Entry<String, WaiterDefinition> waiterDefinition,
+                                                                  OperationModel operationModel) {
+        String javadocs = new DocumentationBuilder().description("Polls {@link $T#$N} API until the desired condition "
+                                                                 + "{@code $N} is met, "
+                                                                 + "or until it is determined that the resource will never "
+                                                                 + "enter into the desired state. \n "
+                                                                 + "<p>This is a convenience method to create an instance of "
+                                                                 + "the request builder without the need "
+                                                                 + "to create one manually using {@link $T.builder()} ")
+                                                    .param(operationModel.getInput().getVariableName(), "the request to be used"
+                                                                                                        + " for polling")
+                                                    .returns("WaiterResponse containing either a response or an exception that "
+                                                             + "has matched with the waiter success condition")
+                                                    .build();
+        return CodeBlock.builder()
+                        .add(javadocs, clientClassName, operationModel.getMethodName(), waiterDefinition.getKey(),
+                             requestClassName)
+                        .build();
+
+    }
+
     public static CodeBlock waiterBuilderMethodJavadoc(ClassName className) {
         String javadocs = new DocumentationBuilder()
             .description("Create a builder that can be used to configure and create a {@link $T}.")
@@ -71,6 +94,21 @@ public final class WaiterDocs {
 
         return CodeBlock.builder()
                         .add(javadocs, ClassName.get(PollingStrategy.class))
+                        .build();
+    }
+
+    public static CodeBlock waiterBuilderPollingStrategyConsumerBuilder() {
+        String javadocs = new DocumentationBuilder()
+            .description("This is a convenient method to pass the configuration of the {@link $T} without the need to "
+                         + "create an instance manually via {@link $T.builder()}")
+            .param("pollingStrategy", "the polling strategy to set")
+            .see("#pollingStrategy(PollingStrategy)")
+            .returns("a reference to this object so that method calls can be chained together.")
+            .build();
+
+        return CodeBlock.builder()
+                        .add(javadocs, ClassName.get(PollingStrategy.class),
+                             ClassName.get(PollingStrategy.class))
                         .build();
     }
 
