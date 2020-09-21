@@ -1,3 +1,53 @@
+# __2.14.21__ __2020-09-18__
+## __AWS CodeStar connections__
+  - ### Features
+    - New integration with the GitHub provider type.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports batch operations, which allow users to start, stop, and delete multiple MediaLive resources with a single request.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Documentation updates for AWS SSO APIs.
+
+# __2.14.20__ __2020-09-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports additional file formats and metadata for FAQs.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Adds support for mutual TLS authentication for public regional REST Apis
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation updates for CloudFront
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports detecting Personally Identifiable Information (PII) entities in a document.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adds support for data plane audit logging in Amazon Elasticsearch Service.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe now supports channel identification in real-time streaming, which enables you to transcribe multi-channel streaming audio.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Adds support for mutual TLS authentication and disableAPIExecuteEndpoint for public regional HTTP Apis
+
 # __2.14.19__ __2020-09-16__
 ## __AWS Greengrass__
   - ### Features

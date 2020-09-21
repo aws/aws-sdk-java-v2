@@ -172,6 +172,14 @@
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 
+    <!-- See SpotBugs bug: https://github.com/spotbugs/spotbugs/issues/600, https://github.com/spotbugs/spotbugs/issues/756 -->
+    <Match>
+        <Class name="software.amazon.awssdk.codegen.emitters.CodeWriter"/>
+        <Method name="flush"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+
     <!-- If we're not sure about the RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT, skip the warning. -->
     <Match>
         <Package name="~software.amazon.awssdk.http.nio.netty.*"/>
