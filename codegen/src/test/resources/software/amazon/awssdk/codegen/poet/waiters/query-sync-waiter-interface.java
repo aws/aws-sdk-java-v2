@@ -56,6 +56,15 @@ public interface QueryWaiter extends SdkAutoCloseable {
         return DefaultQueryWaiter.builder();
     }
 
+    /**
+     * Create an instance of {@link QueryWaiter} with the default configuration
+     *
+     * @return an instance of {@link QueryWaiter}
+     */
+    static QueryWaiter create() {
+        return DefaultQueryWaiter.builder().build();
+    }
+
     interface Builder {
         /**
          * Defines a {@link PollingStrategy} to use when polling a resource
