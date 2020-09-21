@@ -18,6 +18,7 @@ package software.amazon.awssdk.http;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.security.Security;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -76,5 +77,27 @@ public class FileStoreTlsKeyManagersProviderTest extends ClientTlsAuthTestBase {
     public void passwordIncorrect_returnsNull() {
         FileStoreTlsKeyManagersProvider provider = FileStoreTlsKeyManagersProvider.create(clientKeyStore, CLIENT_STORE_TYPE, "not correct password");
         assertThat(provider.keyManagers()).isNull();
+    }
+
+    @Test
+    public void customKmfAlgorithmSetInProperty_usesAlgorithm() {
+        FileStoreTlsKeyManagersProvider beforePropSetProvider = FileStoreTlsKeyManagersProvider.create(clientKeyStore,
+                CLIENT_STORE_TYPE, STORE_PASSWORD);
+
+        assertThat(beforePropSetProvider.keyManagers()).isNotNull();
+
+        String property = "ssl.KeyManagerFactory.algorithm";
+        String previousValue = Security.getProperty(property);
+        Security.setProperty(property, "some-bogus-value");
+        try {
+            FileStoreTlsKeyManagersProvider afterPropSetProvider = FileStoreTlsKeyManagersProvider.create(
+            clientKeyStore, CLIENT_STORE_TYPE, STORE_PASSWORD);
+            // This would otherwise be non-null if using the right algorithm,
+            // i.e. not setting the algorithm property will cause the assertion
+            // to fail
+            assertThat(afterPropSetProvider.keyManagers()).isNull();
+        } finally {
+            Security.setProperty(property, previousValue);
+        }
     }
 }

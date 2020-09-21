@@ -17,6 +17,7 @@ package software.amazon.awssdk.http;
 
 import java.nio.file.Path;
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.internal.http.AbstractFileStoreTlsKeyManagersProvider;
 import software.amazon.awssdk.utils.Logger;
@@ -25,6 +26,9 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Implementation of {@link FileStoreTlsKeyManagersProvider} that loads a the
  * key store from a file.
+ * <p>
+ * This uses {@link KeyManagerFactory#getDefaultAlgorithm()} to determine the
+ * {@code KeyManagerFactory} algorithm to use.
  */
 @SdkPublicApi
 public final class FileStoreTlsKeyManagersProvider extends AbstractFileStoreTlsKeyManagersProvider {
