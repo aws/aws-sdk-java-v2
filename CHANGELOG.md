@@ -1,3 +1,36 @@
+# __2.14.22__ __2020-09-21__
+## __AWS Glue__
+  - ### Features
+    - Adding support to update multiple partitions of a table in a single request
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release supports IAM mode for SiteWise Monitor portals
+
+## __AWS Resource Groups__
+  - ### Features
+    - Documentation updates and corrections for Resource Groups API Reference and SDKs.
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Documentation updates for the Resource Groups Tagging API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Add support for Redshift Data API Targets
+
+## __Amazon EventBridge__
+  - ### Features
+    - Add support for Redshift Data API Targets
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for the RDS DescribeExportTasks API
+
 # __2.14.21__ __2020-09-18__
 ## __AWS CodeStar connections__
   - ### Features
