@@ -59,6 +59,15 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
         return DefaultQueryAsyncWaiter.builder();
     }
 
+    /**
+     * Create an instance of {@link QueryAsyncWaiter} with the default configuration
+     *
+     * @return an instance of {@link QueryAsyncWaiter}
+     */
+    static QueryAsyncWaiter create() {
+        return DefaultQueryAsyncWaiter.builder().build();
+    }
+
     interface Builder {
         /**
          * Sets a custom {@link ScheduledExecutorService} that will be used to schedule async polling attempts

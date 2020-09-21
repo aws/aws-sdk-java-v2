@@ -85,6 +85,17 @@ public final class WaiterDocs {
                         .build();
     }
 
+    public static CodeBlock waiterCreateMethodJavadoc(ClassName className) {
+        String javadocs = new DocumentationBuilder()
+            .description("Create an instance of {@link $T} with the default configuration")
+            .returns("an instance of {@link $T}")
+            .build();
+
+        return CodeBlock.builder()
+                        .add(javadocs, className, className)
+                        .build();
+    }
+
     public static CodeBlock waiterBuilderPollingStrategy() {
         String javadocs = new DocumentationBuilder()
             .description("Defines a {@link $T} to use when polling a resource")
