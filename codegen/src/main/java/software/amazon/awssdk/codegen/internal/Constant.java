@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.internal;
 
+import java.nio.file.Path;
+
 public final class Constant {
 
     public static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
@@ -26,6 +28,18 @@ public final class Constant {
 
     public static final String SYNC_CLIENT_INTERFACE_NAME_PATTERN = "%sClient";
     public static final String SYNC_CLIENT_CLASS_NAME_PATTERN = "Default%sClient";
+
+    /**
+     * Name of the source {@link Path}-typed formal method parameters of streaming input operations.
+     */
+    public static final String SYNC_CLIENT_SOURCE_PATH_PARAM_NAME = "sourcePath";
+
+    /**
+     * Name of the destination {@link Path}-typed formal method parameters of streaming output
+     * operations.
+     */
+    public static final String SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME = "destinationPath";
+
     public static final String SYNC_BUILDER_INTERFACE_NAME_PATTERN = "%sClientBuilder";
     public static final String SYNC_BUILDER_CLASS_NAME_PATTERN = "Default%sClientBuilder";
 
