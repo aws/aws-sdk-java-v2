@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "description": "This release supports IAM mode for SiteWise Monitor portals"
-}

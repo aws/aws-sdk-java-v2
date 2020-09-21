@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge",
-    "description": "Add support for Redshift Data API Targets"
-}
