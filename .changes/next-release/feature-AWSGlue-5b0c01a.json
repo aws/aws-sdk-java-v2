@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "Adding support to update multiple partitions of a table in a single request"
+}
