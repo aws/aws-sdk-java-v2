@@ -7,6 +7,13 @@ phases:
 
   build:
     commands:
+      - |
+        if [ ! -z "$INTEGRATION_TEST_ROLE_ARN" ]; then
+          ASSUME_ROLE_OUTPUT=`aws sts assume-role --role-arn "$INTEGRATION_TEST_ROLE_ARN" --role-session-name "integration-tests" --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' --output text`
+          AWS_ACCESS_KEY_ID=`echo $ASSUME_ROLE_OUTPUT | cut -f1`
+          AWS_SECRET_ACCESS_KEY=`echo $ASSUME_ROLE_OUTPUT | cut -f2`
+          AWS_SESSION_TOKEN=`echo $ASSUME_ROLE_OUTPUT | cut -f3`
+        fi
       - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
