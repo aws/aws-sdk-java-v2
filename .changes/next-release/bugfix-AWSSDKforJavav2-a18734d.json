@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "description": "This change makes the `FileStoreTlsKeyManagersProvider` and `SystemPropertyTlsKeyManagersProvider` respect the `ssl.KeyManagerFactory.algorithm` when instantiating the `KeyManagerFactory` rather than always using the hardcoded value of `SunX509`."
-}

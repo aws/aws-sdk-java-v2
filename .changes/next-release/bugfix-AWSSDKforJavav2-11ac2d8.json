@@ -1,5 +1,0 @@
-{
-    "description": "Formal parameter names of sychronous streaming methods were aligned with their javadocs.", 
-    "type": "bugfix", 
-    "category": "AWS SDK for Java v2"
-}

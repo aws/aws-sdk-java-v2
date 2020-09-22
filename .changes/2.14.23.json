@@ -1,0 +1,36 @@
+{
+    "version": "2.14.23",
+    "date": "2020-09-22",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Formal parameter names of sychronous streaming methods were aligned with their javadocs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Streams",
+            "description": "Documentation updates for streams.dynamodb"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "description": "Lex now supports es-US locales"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "This change makes the `FileStoreTlsKeyManagersProvider` and `SystemPropertyTlsKeyManagersProvider` respect the `ssl.KeyManagerFactory.algorithm` when instantiating the `KeyManagerFactory` rather than always using the hardcoded value of `SunX509`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "description": "Adding support for Mailbox Export APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "description": "Amazon Comprehend integrates with Amazon SageMaker GroundTruth to allow its customers to annotate their datasets using GroundTruth and train their models using Comprehend Custom APIs."
+        }
+    ]
+}
