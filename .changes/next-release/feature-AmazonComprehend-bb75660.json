@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Comprehend",
+    "description": "Amazon Comprehend integrates with Amazon SageMaker GroundTruth to allow its customers to annotate their datasets using GroundTruth and train their models using Comprehend Custom APIs."
+}
