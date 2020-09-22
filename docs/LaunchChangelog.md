@@ -449,6 +449,10 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 
 1. An SQS client may no longer access SQS queues in regions different than the one with which the client was configured.
 
+## 4.4. RDS Changes
+
+1. The class`RdsIamAuthTokenGenerator` has been replaced with `RdsUtilities#generateAuthenticationToken`.
+
 # 5. Profile File Changes
 
 The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more closely emulate that used by the AWS CLI.
