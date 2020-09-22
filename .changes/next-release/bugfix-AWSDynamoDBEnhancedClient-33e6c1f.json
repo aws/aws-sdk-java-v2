@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "AWS DynamoDB Enhanced Client",
+    "description": "Fixed incorrect 'duplicate key' error triggered when flattening a TableSchema that has key tags and more than one attribute."
+}
