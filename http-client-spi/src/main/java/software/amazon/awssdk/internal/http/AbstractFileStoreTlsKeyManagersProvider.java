@@ -32,6 +32,9 @@ import software.amazon.awssdk.http.TlsKeyManagersProvider;
 /**
  * Abstract {@link TlsKeyManagersProvider} that loads the key store from a
  * a given file path.
+ * <p>
+ * This uses {@link KeyManagerFactory#getDefaultAlgorithm()} to determine the
+ * {@code KeyManagerFactory} algorithm to use.
  */
 @SdkInternalApi
 public abstract class AbstractFileStoreTlsKeyManagersProvider implements TlsKeyManagersProvider {
@@ -39,7 +42,7 @@ public abstract class AbstractFileStoreTlsKeyManagersProvider implements TlsKeyM
     protected final KeyManager[] createKeyManagers(Path storePath, String storeType, char[] password)
             throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
         KeyStore ks = createKeyStore(storePath, storeType, password);
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(ks, password);
         return kmf.getKeyManagers();
     }
