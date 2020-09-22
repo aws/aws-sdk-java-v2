@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS RDS",
+    "contributor": "abrooksv",
+    "description": "Add the ability to generate IAM auth tokens for RDS using `RdsUtilities`"
+}
