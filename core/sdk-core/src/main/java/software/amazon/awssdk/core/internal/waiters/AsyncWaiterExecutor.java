@@ -29,7 +29,6 @@ import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.utils.Either;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -40,25 +39,21 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 @ThreadSafe
 public final class AsyncWaiterExecutor<T> {
-    private static final Logger log = Logger.loggerFor(AsyncWaiterExecutor.class);
-    private final PollingStrategy pollingStrategy;
     private final ScheduledExecutorService executorService;
     private final WaiterExecutorHelper<T> executorHelper;
 
     public AsyncWaiterExecutor(PollingStrategy pollingStrategy,
                                List<WaiterAcceptor<? super T>> waiterAcceptors,
                                ScheduledExecutorService executorService) {
-        this.pollingStrategy = Validate.paramNotNull(pollingStrategy, "pollingStrategy");
         Validate.paramNotNull(waiterAcceptors, "waiterAcceptors");
         this.executorService = Validate.paramNotNull(executorService, "executorService");
-        this.executorHelper = new WaiterExecutorHelper<T>(waiterAcceptors, pollingStrategy);
+        this.executorHelper = new WaiterExecutorHelper<>(waiterAcceptors, pollingStrategy);
     }
 
     /**
      * Execute the provided async polling function
      */
     CompletableFuture<WaiterResponse<T>> execute(Supplier<CompletableFuture<T>> asyncPollingFunction) {
-        log.info(() -> "starting to execute");
         CompletableFuture<WaiterResponse<T>> future = new CompletableFuture<>();
         doExecute(asyncPollingFunction, future, 0, System.currentTimeMillis());
         return future;

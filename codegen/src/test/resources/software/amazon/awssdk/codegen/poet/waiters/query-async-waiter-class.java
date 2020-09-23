@@ -56,7 +56,7 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
             this.client = builder.client;
         }
         if (builder.executorService == null) {
-            this.executorService = Executors.newScheduledThreadPool(5,
+            this.executorService = Executors.newScheduledThreadPool(1,
                                                                     new ThreadFactoryBuilder().threadNamePrefix("waiters-ScheduledExecutor").build());
             attributeMapBuilder.put(SCHEDULED_EXECUTOR_SERVICE_ATTRIBUTE, this.executorService);
         } else {

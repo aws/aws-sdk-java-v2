@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.waiters.DefaultAsyncWaiter;
 
 /**
- * Waiter utility class that waits for a resource to transition to the desired state asynchrounsly
+ * Waiter utility class that waits for a resource to transition to the desired state asynchronously
  *
  * @param <T> the type of the resource returned from the polling function
  */

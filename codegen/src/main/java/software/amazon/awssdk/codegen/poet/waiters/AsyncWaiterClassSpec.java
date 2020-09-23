@@ -84,7 +84,7 @@ public class AsyncWaiterClassSpec extends BaseWaiterClassSpec {
     @Override
     protected void additionalConstructorInitialization(MethodSpec.Builder method) {
         method.beginControlFlow("if (builder.executorService == null)")
-              .addStatement("this.executorService = $T.newScheduledThreadPool(5, new $T().threadNamePrefix"
+              .addStatement("this.executorService = $T.newScheduledThreadPool(1, new $T().threadNamePrefix"
                             + "($S).build())",
                             Executors.class,
                             ThreadFactoryBuilder.class,
