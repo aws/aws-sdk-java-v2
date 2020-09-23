@@ -24,7 +24,6 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.core.waiters.WaiterState;
@@ -42,12 +41,12 @@ public final class AsyncWaiterExecutor<T> {
     private final ScheduledExecutorService executorService;
     private final WaiterExecutorHelper<T> executorHelper;
 
-    public AsyncWaiterExecutor(PollingStrategy pollingStrategy,
+    public AsyncWaiterExecutor(WaiterConfiguration configuration,
                                List<WaiterAcceptor<? super T>> waiterAcceptors,
                                ScheduledExecutorService executorService) {
         Validate.paramNotNull(waiterAcceptors, "waiterAcceptors");
         this.executorService = Validate.paramNotNull(executorService, "executorService");
-        this.executorHelper = new WaiterExecutorHelper<>(waiterAcceptors, pollingStrategy);
+        this.executorHelper = new WaiterExecutorHelper<>(waiterAcceptors, configuration);
     }
 
     /**

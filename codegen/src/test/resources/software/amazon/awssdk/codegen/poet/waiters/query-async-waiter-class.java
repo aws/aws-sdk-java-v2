@@ -17,8 +17,8 @@ import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
@@ -63,11 +63,11 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
             this.executorService = builder.executorService;
         }
         managedResources = attributeMapBuilder.build();
-        PollingStrategy postOperationSuccessStrategy = builder.pollingStrategy == null ? PollingStrategy.builder()
-                                                                                                        .maxAttempts(40).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))).build()
-                                                                                       : builder.pollingStrategy;
+        WaiterOverrideConfiguration postOperationSuccessStrategy = builder.overrideConfiguration == null ? WaiterOverrideConfiguration
+            .builder().maxAttempts(40).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))).build()
+                                                                                                         : builder.overrideConfiguration;
         this.postOperationSuccessWaiter = AsyncWaiter.builder(APostOperationResponse.class)
-                                                     .pollingStrategy(postOperationSuccessStrategy).acceptors(postOperationSuccessWaiterAcceptors())
+                                                     .overrideConfiguration(postOperationSuccessStrategy).acceptors(postOperationSuccessWaiterAcceptors())
                                                      .scheduledExecutorService(executorService).build();
     }
 
@@ -118,7 +118,7 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
     public static final class DefaultBuilder implements QueryAsyncWaiter.Builder {
         private QueryAsyncClient client;
 
-        private PollingStrategy pollingStrategy;
+        private WaiterOverrideConfiguration overrideConfiguration;
 
         private ScheduledExecutorService executorService;
 
@@ -126,14 +126,14 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
         }
 
         @Override
-        public QueryAsyncWaiter.Builder executorService(ScheduledExecutorService executorService) {
+        public QueryAsyncWaiter.Builder scheduledExecutorService(ScheduledExecutorService executorService) {
             this.executorService = executorService;
             return this;
         }
 
         @Override
-        public QueryAsyncWaiter.Builder pollingStrategy(PollingStrategy pollingStrategy) {
-            this.pollingStrategy = pollingStrategy;
+        public QueryAsyncWaiter.Builder overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
             return this;
         }
 

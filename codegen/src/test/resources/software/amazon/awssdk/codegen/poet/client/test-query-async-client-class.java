@@ -352,6 +352,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     @Override
     public QueryAsyncWaiter waiter() {
-        return QueryAsyncWaiter.builder().client(this).executorService(executorService).build();
+        return QueryAsyncWaiter.builder().client(this).scheduledExecutorService(executorService).build();
     }
 }

@@ -31,7 +31,7 @@ public class AsyncWaiterTest extends BaseWaiterTest {
     @Override
     public BiFunction<Integer, TestWaiterConfiguration, WaiterResponse<String>> successOnResponseWaiterOperation() {
         return (count, waiterConfiguration) -> AsyncWaiter.builder(String.class)
-                                                          .pollingStrategy(waiterConfiguration.getPollingStrategy())
+                                                          .overrideConfiguration(waiterConfiguration.getPollingStrategy())
                                                           .acceptors(waiterConfiguration.getWaiterAcceptors())
                                                           .scheduledExecutorService(executorService)
                                                           .build()
@@ -41,7 +41,7 @@ public class AsyncWaiterTest extends BaseWaiterTest {
     @Override
     public BiFunction<Integer, TestWaiterConfiguration, WaiterResponse<String>> successOnExceptionWaiterOperation() {
         return (count, waiterConfiguration) -> AsyncWaiter.builder(String.class)
-                                                          .pollingStrategy(waiterConfiguration.getPollingStrategy())
+                                                          .overrideConfiguration(waiterConfiguration.getPollingStrategy())
                                                           .acceptors(waiterConfiguration.getWaiterAcceptors())
                                                           .scheduledExecutorService(executorService)
                                                           .build()
@@ -51,7 +51,7 @@ public class AsyncWaiterTest extends BaseWaiterTest {
     @Test
     public void missingScheduledExecutor_shouldThrowException() {
         assertThatThrownBy(() -> AsyncWaiter.builder(String.class)
-                                            .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                            .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                             .build()
                                             .runAsync(() -> null))
             .hasMessageContaining("executorService");
@@ -60,7 +60,7 @@ public class AsyncWaiterTest extends BaseWaiterTest {
     @Test
     public void concurrentWaiterOperations_shouldBeThreadSafe() {
         AsyncWaiter<String> waiter = AsyncWaiter.builder(String.class)
-                                                .pollingStrategy(p -> p.maxAttempts(4).backoffStrategy(BackoffStrategy.none()))
+                                                .overrideConfiguration(p -> p.maxAttempts(4).backoffStrategy(BackoffStrategy.none()))
                                                 .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
                                                 .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true))
                                                 .scheduledExecutorService(executorService)

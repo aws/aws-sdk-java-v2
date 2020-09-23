@@ -21,11 +21,10 @@ import java.util.List;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Default implementation of the generic {@link Waiter}.
@@ -34,18 +33,19 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 @ThreadSafe
 public final class DefaultWaiter<T> implements Waiter<T> {
-    private final PollingStrategy pollingStrategy;
+    private final WaiterConfiguration waiterConfiguration;
     private final List<WaiterAcceptor<? super T>> waiterAcceptors;
+    private final WaiterExecutor<T> waiterExecutor;
 
     private DefaultWaiter(DefaultBuilder<T> builder) {
-        this.pollingStrategy = Validate.paramNotNull(builder.pollingStrategy, "pollingStrategy");
+        this.waiterConfiguration = new WaiterConfiguration(builder.overrideConfiguration);
         this.waiterAcceptors = Collections.unmodifiableList(builder.waiterAcceptors);
+        this.waiterExecutor = new WaiterExecutor<>(waiterConfiguration, waiterAcceptors);
     }
 
     @Override
     public WaiterResponse<T> run(Supplier<T> pollingFunction) {
-        WaiterExecutor<T> handler = new WaiterExecutor<>(pollingStrategy, waiterAcceptors);
-        return handler.execute(pollingFunction);
+        return waiterExecutor.execute(pollingFunction);
     }
 
     public static <T> Builder<T> builder() {
@@ -54,7 +54,7 @@ public final class DefaultWaiter<T> implements Waiter<T> {
 
     public static final class DefaultBuilder<T> implements Builder<T> {
         private List<WaiterAcceptor<? super T>> waiterAcceptors = new ArrayList<>();
-        private PollingStrategy pollingStrategy;
+        private WaiterOverrideConfiguration overrideConfiguration;
 
         private DefaultBuilder() {
         }
@@ -66,8 +66,8 @@ public final class DefaultWaiter<T> implements Waiter<T> {
         }
 
         @Override
-        public Builder<T> pollingStrategy(PollingStrategy pollingStrategy) {
-            this.pollingStrategy = pollingStrategy;
+        public Builder<T> overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
             return this;
         }
 

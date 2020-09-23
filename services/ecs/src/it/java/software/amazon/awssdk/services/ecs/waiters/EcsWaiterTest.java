@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.Deployment;
@@ -61,15 +61,15 @@ public class EcsWaiterTest {
         when(client.describeServices(any(DescribeServicesRequest.class))).thenReturn(response1, response2);
 
         EcsWaiter waiter = EcsWaiter.builder()
-                                    .pollingStrategy(PollingStrategy.builder()
-                                                                    .maxAttempts(3)
-                                                                    .backoffStrategy(BackoffStrategy.none())
-                                                                    .build())
+                                    .overrideConfiguration(WaiterOverrideConfiguration.builder()
+                                                                                .maxAttempts(3)
+                                                                                .backoffStrategy(BackoffStrategy.none())
+                                                                                .build())
                                     .client(client)
                                     .build();
 
         WaiterResponse<DescribeServicesResponse> response = waiter.waitUntilServicesStable(request);
         assertThat(response.attemptsExecuted()).isEqualTo(2);
-        assertThat(response.responseOrException().response()).hasValueSatisfying(r -> assertThat(r).isEqualTo(response2));
+        assertThat(response.matched().response()).hasValueSatisfying(r -> assertThat(r).isEqualTo(response2));
     }
 }

@@ -28,7 +28,7 @@ public interface WaiterResponse<T> {
     /**
      * @return the ResponseOrException union received that has matched with the waiter success condition
      */
-    ResponseOrException<T> responseOrException();
+    ResponseOrException<T> matched();
 
     /**
      * @return the number of attempts executed

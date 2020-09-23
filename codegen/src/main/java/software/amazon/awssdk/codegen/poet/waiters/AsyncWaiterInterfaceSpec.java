@@ -69,7 +69,7 @@ public final class AsyncWaiterInterfaceSpec extends BaseWaiterInterfaceSpec {
 
     @Override
     protected void additionalBuilderTypeSpecModification(TypeSpec.Builder type) {
-        type.addMethod(MethodSpec.methodBuilder("executorService")
+        type.addMethod(MethodSpec.methodBuilder("scheduledExecutorService")
                                  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                  .addParameter(ClassName.get(ScheduledExecutorService.class), "executorService")
                                  .addJavadoc(WaiterDocs.waiterBuilderScheduledExecutorServiceJavadoc())

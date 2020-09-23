@@ -345,7 +345,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
                          .addStatement("return $T.builder().client(this)"
-                                       + ".executorService(executorService).build()",
+                                       + ".scheduledExecutorService(executorService).build()",
                                        poetExtensions.getAsyncWaiterInterface())
                          .returns(poetExtensions.getAsyncWaiterInterface())
                          .build();

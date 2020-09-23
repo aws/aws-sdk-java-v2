@@ -48,25 +48,19 @@ public abstract class BaseWaiterTest {
     }
 
     @Test
-    public void missingPollingStrategy_shouldThrowException() {
-        assertThatThrownBy(() ->Waiter.builder(String.class)
-              .build()).hasMessageContaining("pollingStrategy");
-    }
-
-    @Test
     public void successOnResponse_matchSuccessInFirstAttempt_shouldReturnResponse() {
         TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-            .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+            .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
             .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)));
         WaiterResponse<String> response = successOnResponseWaiterOperation().apply(1, waiterConfig);
-        assertThat(response.responseOrException().response()).contains(SUCCESS_STATE_MESSAGE);
+        assertThat(response.matched().response()).contains(SUCCESS_STATE_MESSAGE);
         assertThat(response.attemptsExecuted()).isEqualTo(1);
     }
 
     @Test
     public void successOnResponse_matchError_shouldThrowException() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.errorOnResponseAcceptor(s -> s.equals(NON_SUCCESS_STATE_MESSAGE)));
 
         assertThatThrownBy(() -> successOnResponseWaiterOperation().apply(2, waiterConfig)).hasMessageContaining("transitioned the waiter to failure state");
@@ -75,19 +69,19 @@ public abstract class BaseWaiterTest {
     @Test
     public void successOnResponse_matchSuccessInSecondAttempt_shouldReturnResponse() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
                                       .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true));
 
         WaiterResponse<String> response = successOnResponseWaiterOperation().apply(2, waiterConfig);
-        assertThat(response.responseOrException().response()).contains(SUCCESS_STATE_MESSAGE);
+        assertThat(response.matched().response()).contains(SUCCESS_STATE_MESSAGE);
         assertThat(response.attemptsExecuted()).isEqualTo(2);
     }
 
     @Test
     public void successOnResponse_noMatch_shouldReturnResponse() {
         TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-            .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+            .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
             .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)));
 
         assertThatThrownBy(() -> successOnResponseWaiterOperation().apply(2, waiterConfig)).hasMessageContaining("No acceptor was matched for the response");
@@ -96,7 +90,7 @@ public abstract class BaseWaiterTest {
     @Test
     public void successOnResponse_noMatchExceedsMaxAttempts_shouldRetryThreeTimesAndThrowException() {
         TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-            .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+            .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
             .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
             .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true));
 
@@ -106,7 +100,7 @@ public abstract class BaseWaiterTest {
     @Test
     public void successOnResponse_multipleMatchingAcceptors_firstTakesPrecedence() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.errorOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
                                       .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)));
 
@@ -116,7 +110,7 @@ public abstract class BaseWaiterTest {
     @Test
     public void successOnResponse_fixedBackOffStrategy() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(5).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))))
+                                      .overrideConfiguration(p -> p.maxAttempts(5).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))))
                                       .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
                                       .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true));
 
@@ -128,11 +122,11 @@ public abstract class BaseWaiterTest {
     }
 
     @Test
-    public void successOnResponse_maxWaitTime() {
+    public void successOnResponse_waitTimeout() {
         TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-            .pollingStrategy(p -> p.maxAttempts(5)
-                                   .maxWaitTime(Duration.ofSeconds(2))
-                                   .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))))
+            .overrideConfiguration(p -> p.maxAttempts(5)
+                                         .waitTimeout(Duration.ofSeconds(2))
+                                         .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))))
             .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
             .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true));
 
@@ -145,30 +139,30 @@ public abstract class BaseWaiterTest {
     @Test
     public void successOnException_matchSuccessInFirstAttempt_shouldReturnException() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.successOnExceptionAcceptor(s -> s.getMessage().contains(SUCCESS_STATE_MESSAGE)));
 
         WaiterResponse<String> response = successOnExceptionWaiterOperation().apply(1, waiterConfig);
-        assertThat(response.responseOrException().exception().get()).hasMessageContaining(SUCCESS_STATE_MESSAGE);
+        assertThat(response.matched().exception().get()).hasMessageContaining(SUCCESS_STATE_MESSAGE);
         assertThat(response.attemptsExecuted()).isEqualTo(1);
     }
 
     @Test
     public void successOnException_hasRetryAcceptorMatchSuccessInSecondAttempt_shouldReturnException() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.successOnExceptionAcceptor(s -> s.getMessage().contains(SUCCESS_STATE_MESSAGE)))
                                       .addAcceptor(WaiterAcceptor.retryOnExceptionAcceptor(s -> s.getMessage().contains(NON_SUCCESS_STATE_MESSAGE)));
 
         WaiterResponse<String> response = successOnExceptionWaiterOperation().apply(2, waiterConfig);
-        assertThat(response.responseOrException().exception().get()).hasMessageContaining(SUCCESS_STATE_MESSAGE);
+        assertThat(response.matched().exception().get()).hasMessageContaining(SUCCESS_STATE_MESSAGE);
         assertThat(response.attemptsExecuted()).isEqualTo(2);
     }
 
     @Test
     public void successOnException_unexpectedExceptionAndNoRetryAcceptor_shouldThrowException() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.successOnExceptionAcceptor(s -> s.getMessage().contains(SUCCESS_STATE_MESSAGE)));
         assertThatThrownBy(() -> successOnExceptionWaiterOperation().apply(2, waiterConfig)).hasMessageContaining("did not match");
     }
@@ -176,7 +170,7 @@ public abstract class BaseWaiterTest {
     @Test
     public void successOnException_matchError_shouldThrowException() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.successOnExceptionAcceptor(s -> s.getMessage().contains(SUCCESS_STATE_MESSAGE)))
                                       .addAcceptor(WaiterAcceptor.errorOnExceptionAcceptor(s -> s.getMessage().contains(NON_SUCCESS_STATE_MESSAGE)));
         assertThatThrownBy(() -> successOnExceptionWaiterOperation().apply(2, waiterConfig)).hasMessageContaining("transitioned the waiter to failure state");
@@ -185,19 +179,19 @@ public abstract class BaseWaiterTest {
     @Test
     public void successOnException_multipleMatchingAcceptors_firstTakesPrecedence() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.successOnExceptionAcceptor(s -> s.getMessage().contains(SUCCESS_STATE_MESSAGE)))
                                       .addAcceptor(WaiterAcceptor.errorOnExceptionAcceptor(s -> s.getMessage().contains(SUCCESS_STATE_MESSAGE)));
 
         WaiterResponse<String> response = successOnExceptionWaiterOperation().apply(1, waiterConfig);
-        assertThat(response.responseOrException().exception().get()).hasMessageContaining(SUCCESS_STATE_MESSAGE);
+        assertThat(response.matched().exception().get()).hasMessageContaining(SUCCESS_STATE_MESSAGE);
         assertThat(response.attemptsExecuted()).isEqualTo(1);
     }
 
     @Test
     public void successOnException_fixedBackOffStrategy() {
        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
-                                      .pollingStrategy(p -> p.maxAttempts(5).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))))
+                                      .overrideConfiguration(p -> p.maxAttempts(5).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))))
                                       .addAcceptor(WaiterAcceptor.retryOnExceptionAcceptor(s -> s.getMessage().equals(NON_SUCCESS_STATE_MESSAGE)))
                                       .addAcceptor(WaiterAcceptor.successOnExceptionAcceptor(s -> s.getMessage().equals(SUCCESS_STATE_MESSAGE)));
 
@@ -214,7 +208,7 @@ public abstract class BaseWaiterTest {
 
     class TestWaiterConfiguration implements WaiterBuilder<String, TestWaiterConfiguration> {
         private List<WaiterAcceptor<? super String>> waiterAcceptors = new ArrayList<>();
-        private PollingStrategy pollingStrategy;
+        private WaiterOverrideConfiguration overrideConfiguration;
 
         /**
          * @return
@@ -226,8 +220,8 @@ public abstract class BaseWaiterTest {
         /**
          * @return
          */
-        public PollingStrategy getPollingStrategy() {
-            return pollingStrategy;
+        public WaiterOverrideConfiguration getPollingStrategy() {
+            return overrideConfiguration;
         }
 
         @Override
@@ -243,8 +237,8 @@ public abstract class BaseWaiterTest {
         }
 
         @Override
-        public TestWaiterConfiguration pollingStrategy(PollingStrategy pollingStrategy) {
-            this.pollingStrategy = pollingStrategy;
+        public TestWaiterConfiguration overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
             return this;
         }
     }

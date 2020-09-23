@@ -35,7 +35,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -167,23 +167,23 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
 
     private List<MethodSpec> builderMethods() {
         List<MethodSpec> builderMethods = new ArrayList<>();
-        builderMethods.add(MethodSpec.methodBuilder("pollingStrategy")
+        builderMethods.add(MethodSpec.methodBuilder("overrideConfiguration")
                                      .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                     .addParameter(ClassName.get(PollingStrategy.class), "pollingStrategy")
+                                     .addParameter(ClassName.get(WaiterOverrideConfiguration.class), "overrideConfiguration")
                                      .addJavadoc(WaiterDocs.waiterBuilderPollingStrategy())
                                      .returns(className().nestedClass("Builder"))
                                      .build());
         ParameterizedTypeName parameterizedTypeName =
             ParameterizedTypeName.get(ClassName.get(Consumer.class),
-                                      ClassName.get(PollingStrategy.class).nestedClass("Builder"));
-        builderMethods.add(MethodSpec.methodBuilder("pollingStrategy")
+                                      ClassName.get(WaiterOverrideConfiguration.class).nestedClass("Builder"));
+        builderMethods.add(MethodSpec.methodBuilder("overrideConfiguration")
                                      .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
-                                     .addParameter(parameterizedTypeName, "pollingStrategy")
+                                     .addParameter(parameterizedTypeName, "overrideConfiguration")
                                      .addJavadoc(WaiterDocs.waiterBuilderPollingStrategyConsumerBuilder())
                                      .addStatement("$T.Builder builder = $T.builder()",
-                                                   PollingStrategy.class, PollingStrategy.class)
-                                     .addStatement("pollingStrategy.accept(builder)")
-                                     .addStatement("return pollingStrategy(builder.build())")
+                                                   WaiterOverrideConfiguration.class, WaiterOverrideConfiguration.class)
+                                     .addStatement("overrideConfiguration.accept(builder)")
+                                     .addStatement("return overrideConfiguration(builder.build())")
                                      .returns(className().nestedClass("Builder"))
                                      .build());
         builderMethods.add(MethodSpec.methodBuilder("client")

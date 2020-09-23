@@ -51,7 +51,7 @@ public class WaiterResourceTest {
     public void closeAsyncWaiter_customizedClientAndExecutorServiceProvided_shouldNotClose() {
         RestJsonWithWaitersAsyncWaiter waiter = RestJsonWithWaitersAsyncWaiter.builder()
                                                                               .client(asyncClient)
-                                                                              .executorService(executorService)
+                                                                              .scheduledExecutorService(executorService)
                                                                               .build();
 
         waiter.close();
