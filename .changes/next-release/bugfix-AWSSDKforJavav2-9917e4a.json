@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Fixed an issue with XML services, where the service responding with no payload would treat the payload as empty. Now, empty payloads will properly be populated within the XML response as \"null\"."
+}
