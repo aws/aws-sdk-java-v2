@@ -1,3 +1,24 @@
+# __2.14.24__ __2020-09-23__
+## __AWS Backup__
+  - ### Features
+    - This release allows customers to enable or disable advanced backup settings in backup plan. As part of this feature AWS Backup added support for Windows VSS backup option for EC2 resources.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release provides access to Cost Anomaly Detection Public Preview APIs. Cost Anomaly Detection finds cost anomalies based on your historical cost and usage using Machine Learning models.
+
+## __AWS DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed incorrect 'duplicate key' error triggered when flattening a TableSchema that has key tags and more than one attribute.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added Sheet information to DescribeDashboard, DescribeTemplate and DescribeAnalysis API response.
+
+## __Amazon Translate__
+  - ### Features
+    - Improvements to DeleteTerminology API.
+
 # __2.14.23__ __2020-09-22__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
