@@ -188,9 +188,10 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
 
                         mutableAttributeNames.add(attributeName);
                         mutableFlattenedMappers.put(attributeName, flattenedMapper);
-                        tableMetadataBuilder.mergeWith(flattenedMapper.getOtherItemTableSchema().tableMetadata());
                     }
                 );
+
+                tableMetadataBuilder.mergeWith(flattenedMapper.getOtherItemTableSchema().tableMetadata());
             }
         );
 
