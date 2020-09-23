@@ -21,7 +21,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.utils.Either;
@@ -33,11 +33,16 @@ import software.amazon.awssdk.utils.Either;
 @SdkInternalApi
 public final class WaiterExecutorHelper<T> {
     private final List<WaiterAcceptor<? super T>> waiterAcceptors;
-    private final PollingStrategy pollingStrategy;
+    private final BackoffStrategy backoffStrategy;
+    private final Duration waitTimeout;
+    private final int maxAttempts;
 
-    public WaiterExecutorHelper(List<WaiterAcceptor<? super T>> waiterAcceptors, PollingStrategy pollingStrategy) {
+    public WaiterExecutorHelper(List<WaiterAcceptor<? super T>> waiterAcceptors,
+                                WaiterConfiguration configuration) {
         this.waiterAcceptors = waiterAcceptors;
-        this.pollingStrategy = pollingStrategy;
+        this.backoffStrategy = configuration.backoffStrategy();
+        this.waitTimeout = configuration.waitTimeout();
+        this.maxAttempts = configuration.maxAttempts();
     }
 
     public WaiterResponse<T> createWaiterResponse(Either<T, Throwable> responseOrException, int attempts) {
@@ -52,34 +57,32 @@ public final class WaiterExecutorHelper<T> {
     }
 
     public long computeNextDelayInMills(int attemptNumber) {
-        return pollingStrategy.backoffStrategy()
-                              .computeDelayBeforeNextRetry(RetryPolicyContext.builder()
+        return backoffStrategy.computeDelayBeforeNextRetry(RetryPolicyContext.builder()
                                                                              .retriesAttempted(attemptNumber)
                                                                              .build())
                               .toMillis();
     }
 
     public boolean exceedsMaxWaitTime(long startTime, long nextDelayInMills) {
-        Duration maxWaitTime = pollingStrategy.maxWaitTime();
-        if (maxWaitTime == null) {
+        if (waitTimeout == null) {
             return false;
         }
 
         long elapsedTime = System.currentTimeMillis() - startTime;
-        return elapsedTime + nextDelayInMills > maxWaitTime.toMillis();
+        return elapsedTime + nextDelayInMills > waitTimeout.toMillis();
     }
 
     public Either<Long, SdkClientException> nextDelayOrUnretryableException(int attemptNumber, long startTime) {
-        if (attemptNumber >= pollingStrategy.maxAttempts()) {
+        if (attemptNumber >= maxAttempts) {
             return Either.right(SdkClientException.create("The waiter has exceeded the max retry attempts: " +
-                                                          pollingStrategy.maxAttempts()));
+                                                          maxAttempts));
         }
 
         long nextDelay = computeNextDelayInMills(attemptNumber);
         if (exceedsMaxWaitTime(startTime, nextDelay)) {
             return Either.right(SdkClientException.create("The waiter has exceeded the max wait time or the "
                                                           + "next retry will exceed the max wait time + " +
-                                                          pollingStrategy.maxWaitTime()));
+                                                          waitTimeout));
         }
 
         return Either.left(nextDelay);

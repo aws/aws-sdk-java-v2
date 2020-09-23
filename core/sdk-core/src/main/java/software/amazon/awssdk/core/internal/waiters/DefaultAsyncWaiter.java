@@ -24,10 +24,9 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Default implementation of the generic {@link AsyncWaiter}.
@@ -36,16 +35,15 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 @ThreadSafe
 public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
-    private final PollingStrategy pollingStrategy;
     private final ScheduledExecutorService executorService;
     private final List<WaiterAcceptor<? super T>> waiterAcceptors;
     private final AsyncWaiterExecutor<T> handler;
 
     private DefaultAsyncWaiter(DefaultBuilder<T> builder) {
         this.executorService = builder.scheduledExecutorService;
-        this.pollingStrategy = Validate.paramNotNull(builder.pollingStrategy, "pollingStrategy");
+        WaiterConfiguration configuration = new WaiterConfiguration(builder.overrideConfiguration);
         this.waiterAcceptors = Collections.unmodifiableList(builder.waiterAcceptors);
-        this.handler = new AsyncWaiterExecutor<>(pollingStrategy, waiterAcceptors, executorService);
+        this.handler = new AsyncWaiterExecutor<>(configuration, waiterAcceptors, executorService);
     }
 
     @Override
@@ -60,7 +58,7 @@ public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
     public static final class DefaultBuilder<T> implements Builder<T> {
         private List<WaiterAcceptor<? super T>> waiterAcceptors = new ArrayList<>();
         private ScheduledExecutorService scheduledExecutorService;
-        private PollingStrategy pollingStrategy;
+        private WaiterOverrideConfiguration overrideConfiguration;
 
         private DefaultBuilder() {
         }
@@ -78,8 +76,8 @@ public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
         }
 
         @Override
-        public Builder<T> pollingStrategy(PollingStrategy pollingStrategy) {
-            this.pollingStrategy = pollingStrategy;
+        public Builder<T> overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
             return this;
         }
 

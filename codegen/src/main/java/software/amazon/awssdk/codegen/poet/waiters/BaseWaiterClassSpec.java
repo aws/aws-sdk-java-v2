@@ -57,8 +57,8 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -177,15 +177,15 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         String waiterKey = waiterDefinition.getKey();
         String waiterName = lowercaseFirstChar(waiterKey);
         WaiterDefinition waiter = waiterDefinition.getValue();
-        String pollingStrategyVarName = waiterName + "Strategy";
+        String overrideConfigurationVarName = waiterName + "Strategy";
         OperationModel opModel = operationModel(waiter);
         CodeBlock.Builder codeBlockBuilder = CodeBlock
             .builder()
-            .addStatement("$T $N = builder.pollingStrategy == null ? $T.builder().maxAttempts($L)"
-                          + ".backoffStrategy($T.create($T.ofSeconds($L))).build() : builder.pollingStrategy",
-                          PollingStrategy.class,
-                          pollingStrategyVarName,
-                          PollingStrategy.class,
+            .addStatement("$T $N = builder.overrideConfiguration == null ? $T.builder().maxAttempts($L)"
+                          + ".backoffStrategy($T.create($T.ofSeconds($L))).build() : builder.overrideConfiguration",
+                          WaiterOverrideConfiguration.class,
+                          overrideConfigurationVarName,
+                          WaiterOverrideConfiguration.class,
                           waiter.getMaxAttempts(),
                           FixedDelayBackoffStrategy.class,
                           Duration.class,
@@ -193,11 +193,11 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
 
         String waiterFieldName = waiterFieldName(waiterKey);
-        codeBlockBuilder.add("this.$L = $T.builder($T.class).pollingStrategy($L).acceptors($LAcceptors())",
+        codeBlockBuilder.add("this.$L = $T.builder($T.class).overrideConfiguration($L).acceptors($LAcceptors())",
                              waiterFieldName,
                              waiterClassName,
                              ClassName.get(modelPackage, opModel.getReturnType().getReturnType()),
-                             pollingStrategyVarName,
+                             overrideConfigurationVarName,
                              waiterFieldName);
 
         additionalWaiterConfig().ifPresent(codeBlockBuilder::add);
@@ -226,7 +226,8 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                                            .addModifiers(PUBLIC, STATIC, FINAL)
                                            .addSuperinterface(interfaceClassName().nestedClass("Builder"))
                                            .addField(clientClassName(), "client", PRIVATE)
-                                           .addField(ClassName.get(PollingStrategy.class), "pollingStrategy", PRIVATE);
+                                           .addField(ClassName.get(WaiterOverrideConfiguration.class),
+                                                     "overrideConfiguration", PRIVATE);
 
         additionalBuilderTypeSpecModification(builder);
         builder.addMethods(builderMethods());
@@ -238,11 +239,11 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private List<MethodSpec> builderMethods() {
         List<MethodSpec> methods = new ArrayList<>();
-        methods.add(MethodSpec.methodBuilder("pollingStrategy")
+        methods.add(MethodSpec.methodBuilder("overrideConfiguration")
                               .addModifiers(Modifier.PUBLIC)
                               .addAnnotation(Override.class)
-                              .addParameter(ClassName.get(PollingStrategy.class), "pollingStrategy")
-                              .addStatement("this.pollingStrategy = pollingStrategy")
+                              .addParameter(ClassName.get(WaiterOverrideConfiguration.class), "overrideConfiguration")
+                              .addStatement("this.overrideConfiguration = overrideConfiguration")
                               .addStatement("return this")
                               .returns(interfaceClassName().nestedClass("Builder"))
                               .build());

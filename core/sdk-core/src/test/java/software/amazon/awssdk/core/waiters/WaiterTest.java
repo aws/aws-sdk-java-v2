@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.waiters;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -41,21 +40,21 @@ public class WaiterTest extends BaseWaiterTest {
     @Override
     public BiFunction<Integer, TestWaiterConfiguration, WaiterResponse<String>> successOnResponseWaiterOperation() {
         return (count, waiterConfiguration) -> Waiter.builder(String.class)
-                                                     .pollingStrategy(waiterConfiguration.getPollingStrategy())
+                                                     .overrideConfiguration(waiterConfiguration.getPollingStrategy())
                                                      .acceptors(waiterConfiguration.getWaiterAcceptors()).build().run(new ReturnResponseResource(count));
     }
 
     @Override
     public BiFunction<Integer, TestWaiterConfiguration, WaiterResponse<String>> successOnExceptionWaiterOperation() {
         return (count, waiterConfiguration) -> Waiter.builder(String.class)
-                                                     .pollingStrategy(waiterConfiguration.getPollingStrategy())
+                                                     .overrideConfiguration(waiterConfiguration.getPollingStrategy())
                                                      .acceptors(waiterConfiguration.getWaiterAcceptors()).build().run(new ThrowExceptionResource(count));
     }
 
     @Test
     public void concurrentWaiterOperations_shouldBeThreadSafe() {
         Waiter<String> waiter = Waiter.builder(String.class)
-                                      .pollingStrategy(p -> p.maxAttempts(4).backoffStrategy(BackoffStrategy.none()))
+                                      .overrideConfiguration(p -> p.maxAttempts(4).backoffStrategy(BackoffStrategy.none()))
                                       .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
                                       .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true))
                                       .build();

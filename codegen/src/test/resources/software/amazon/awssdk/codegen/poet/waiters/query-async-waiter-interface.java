@@ -5,7 +5,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
@@ -79,30 +79,31 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
          *        the executorService to set
          * @return a reference to this object so that method calls can be chained together.
          */
-        Builder executorService(ScheduledExecutorService executorService);
+        Builder scheduledExecutorService(ScheduledExecutorService executorService);
 
         /**
-         * Defines a {@link PollingStrategy} to use when polling a resource
+         * Defines overrides to the default SDK waiter configuration that should be used for waiters created from this
+         * builder
          *
-         * @param pollingStrategy
-         *        the polling strategy to set
+         * @param overrideConfiguration
+         *        the override configuration to set
          * @return a reference to this object so that method calls can be chained together.
          */
-        Builder pollingStrategy(PollingStrategy pollingStrategy);
+        Builder overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration);
 
         /**
-         * This is a convenient method to pass the configuration of the {@link PollingStrategy} without the need to
-         * create an instance manually via {@link PollingStrategy.builder()}
+         * This is a convenient method to pass the override configuration without the need to create an instance
+         * manually via {@link WaiterOverrideConfiguration.builder()}
          *
-         * @param pollingStrategy
-         *        the polling strategy to set
+         * @param overrideConfiguration
+         *        The consumer that will configure the overrideConfiguration
          * @return a reference to this object so that method calls can be chained together.
-         * @see #pollingStrategy(PollingStrategy)
+         * @see #overrideConfiguration(WaiterOverrideConfiguration)
          */
-        default Builder pollingStrategy(Consumer<PollingStrategy.Builder> pollingStrategy) {
-            PollingStrategy.Builder builder = PollingStrategy.builder();
-            pollingStrategy.accept(builder);
-            return pollingStrategy(builder.build());
+        default Builder overrideConfiguration(Consumer<WaiterOverrideConfiguration.Builder> overrideConfiguration) {
+            WaiterOverrideConfiguration.Builder builder = WaiterOverrideConfiguration.builder();
+            overrideConfiguration.accept(builder);
+            return overrideConfiguration(builder.build());
         }
 
         /**

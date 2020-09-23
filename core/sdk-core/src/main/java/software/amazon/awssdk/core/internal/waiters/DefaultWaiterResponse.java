@@ -47,7 +47,7 @@ public final class DefaultWaiterResponse<T> implements WaiterResponse<T> {
     }
 
     @Override
-    public ResponseOrException<T> responseOrException() {
+    public ResponseOrException<T> matched() {
         return result != null ? ResponseOrException.response(result) : ResponseOrException.exception(exception);
     }
 
@@ -89,7 +89,7 @@ public final class DefaultWaiterResponse<T> implements WaiterResponse<T> {
         ToString toString = ToString.builder("DefaultWaiterResponse")
                                     .add("attemptsExecuted", attemptsExecuted);
 
-        responseOrException().apply(r -> toString.add("response", r), e -> toString.add("exception", e.getMessage()));
+        matched().apply(r -> toString.add("response", r), e -> toString.add("exception", e.getMessage()));
         return toString.build();
     }
 

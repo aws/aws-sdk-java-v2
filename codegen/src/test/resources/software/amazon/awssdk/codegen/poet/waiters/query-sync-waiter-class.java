@@ -13,9 +13,9 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.services.query.QueryClient;
@@ -47,11 +47,11 @@ final class DefaultQueryWaiter implements QueryWaiter {
             this.client = builder.client;
         }
         managedResources = attributeMapBuilder.build();
-        PollingStrategy postOperationSuccessStrategy = builder.pollingStrategy == null ? PollingStrategy.builder()
-                                                                                                        .maxAttempts(40).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))).build()
-                                                                                       : builder.pollingStrategy;
+        WaiterOverrideConfiguration postOperationSuccessStrategy = builder.overrideConfiguration == null ? WaiterOverrideConfiguration
+            .builder().maxAttempts(40).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))).build()
+                                                                                                         : builder.overrideConfiguration;
         this.postOperationSuccessWaiter = Waiter.builder(APostOperationResponse.class)
-                                                .pollingStrategy(postOperationSuccessStrategy).acceptors(postOperationSuccessWaiterAcceptors()).build();
+                                                .overrideConfiguration(postOperationSuccessStrategy).acceptors(postOperationSuccessWaiterAcceptors()).build();
     }
 
     private static String errorCode(Throwable error) {
@@ -100,14 +100,14 @@ final class DefaultQueryWaiter implements QueryWaiter {
     public static final class DefaultBuilder implements QueryWaiter.Builder {
         private QueryClient client;
 
-        private PollingStrategy pollingStrategy;
+        private WaiterOverrideConfiguration overrideConfiguration;
 
         private DefaultBuilder() {
         }
 
         @Override
-        public QueryWaiter.Builder pollingStrategy(PollingStrategy pollingStrategy) {
-            this.pollingStrategy = pollingStrategy;
+        public QueryWaiter.Builder overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
             return this;
         }
 

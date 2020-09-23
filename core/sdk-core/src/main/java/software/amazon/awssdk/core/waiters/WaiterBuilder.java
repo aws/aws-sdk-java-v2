@@ -50,23 +50,24 @@ public interface WaiterBuilder<T, B> {
     B addAcceptor(WaiterAcceptor<? super T> waiterAcceptors);
 
     /**
-     * Defines a {@link PollingStrategy} to use when polling a resource
+     * Defines overrides to the default SDK waiter configuration that should be used
+     * for waiters created by this builder.
      *
-     * @param pollingStrategy the polling strategy to use
+     * @param overrideConfiguration the override configuration
      * @return a reference to this object so that method calls can be chained together.
      */
-    B pollingStrategy(PollingStrategy pollingStrategy);
+    B overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration);
 
     /**
-     * Defines a {@link PollingStrategy} to use when polling a resource
+     * Defines a {@link WaiterOverrideConfiguration} to use when polling a resource
      *
-     * @param pollingStrategy the polling strategy to use
+     * @param overrideConfiguration the polling strategy to use
      * @return a reference to this object so that method calls can be chained together.
      */
-    default B pollingStrategy(Consumer<PollingStrategy.Builder> pollingStrategy) {
-        PollingStrategy.Builder builder = PollingStrategy.builder();
-        pollingStrategy.accept(builder);
-        return pollingStrategy(builder.build());
+    default B overrideConfiguration(Consumer<WaiterOverrideConfiguration.Builder> overrideConfiguration) {
+        WaiterOverrideConfiguration.Builder builder = WaiterOverrideConfiguration.builder();
+        overrideConfiguration.accept(builder);
+        return overrideConfiguration(builder.build());
     }
 
 }

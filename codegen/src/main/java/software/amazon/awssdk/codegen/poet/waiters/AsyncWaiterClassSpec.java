@@ -111,7 +111,7 @@ public class AsyncWaiterClassSpec extends BaseWaiterClassSpec {
     @Override
     protected void additionalBuilderTypeSpecModification(TypeSpec.Builder type) {
         type.addField(ClassName.get(ScheduledExecutorService.class), "executorService", PRIVATE);
-        type.addMethod(MethodSpec.methodBuilder("executorService")
+        type.addMethod(MethodSpec.methodBuilder("scheduledExecutorService")
                                  .addModifiers(Modifier.PUBLIC)
                                  .addAnnotation(Override.class)
                                  .addParameter(ClassName.get(ScheduledExecutorService.class), "executorService")

@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
+import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 
 public final class WaiterDocs {
 
@@ -98,28 +98,28 @@ public final class WaiterDocs {
 
     public static CodeBlock waiterBuilderPollingStrategy() {
         String javadocs = new DocumentationBuilder()
-            .description("Defines a {@link $T} to use when polling a resource")
-            .param("pollingStrategy", "the polling strategy to set")
+            .description("Defines overrides to the default SDK waiter configuration that should be used for waiters created "
+                         + "from this builder")
+            .param("overrideConfiguration", "the override configuration to set")
             .returns("a reference to this object so that method calls can be chained together.")
             .build();
 
         return CodeBlock.builder()
-                        .add(javadocs, ClassName.get(PollingStrategy.class))
+                        .add(javadocs)
                         .build();
     }
 
     public static CodeBlock waiterBuilderPollingStrategyConsumerBuilder() {
         String javadocs = new DocumentationBuilder()
-            .description("This is a convenient method to pass the configuration of the {@link $T} without the need to "
+            .description("This is a convenient method to pass the override configuration without the need to "
                          + "create an instance manually via {@link $T.builder()}")
-            .param("pollingStrategy", "the polling strategy to set")
-            .see("#pollingStrategy(PollingStrategy)")
+            .param("overrideConfiguration", "The consumer that will configure the overrideConfiguration")
+            .see("#overrideConfiguration(WaiterOverrideConfiguration)")
             .returns("a reference to this object so that method calls can be chained together.")
             .build();
 
         return CodeBlock.builder()
-                        .add(javadocs, ClassName.get(PollingStrategy.class),
-                             ClassName.get(PollingStrategy.class))
+                        .add(javadocs, ClassName.get(WaiterOverrideConfiguration.class))
                         .build();
     }
 
