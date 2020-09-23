@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "description": "Added Sheet information to DescribeDashboard, DescribeTemplate and DescribeAnalysis API response."
+}
