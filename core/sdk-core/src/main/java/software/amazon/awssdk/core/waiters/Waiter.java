@@ -31,7 +31,7 @@ public interface Waiter<T> {
      * It returns when the resource enters into a desired state or
      * it is determined that the resource will never enter into the desired state.
      *
-     * @param pollingFunction Represents the input of a <code>DescribeTable</code> operation.
+     * @param pollingFunction the polling function
      * @return the response
      */
     WaiterResponse<T> run(Supplier<T> pollingFunction);

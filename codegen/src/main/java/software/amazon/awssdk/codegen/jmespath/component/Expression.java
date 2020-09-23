@@ -301,8 +301,6 @@ public class Expression {
     public void visit(JmesPathVisitor visitor) {
         if (isSubExpression()) {
             visitor.visitSubExpression(asSubExpression());
-        } else if (isSubExpression()) {
-            visitor.visitSubExpression(asSubExpression());
         } else if (isIndexExpression()) {
             visitor.visitIndexExpression(asIndexExpression());
         } else if (isComparatorExpression()) {
