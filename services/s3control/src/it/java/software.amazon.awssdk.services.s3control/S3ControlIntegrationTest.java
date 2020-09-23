@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.s3control.model.DeletePublicAccessBlockRequest;
 import software.amazon.awssdk.services.s3control.model.GetPublicAccessBlockResponse;
+import software.amazon.awssdk.services.s3control.model.InvalidRequestException;
 import software.amazon.awssdk.services.s3control.model.NoSuchPublicAccessBlockConfigurationException;
 import software.amazon.awssdk.services.s3control.model.PutPublicAccessBlockResponse;
 import software.amazon.awssdk.services.s3control.model.S3ControlException;
@@ -87,6 +88,30 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
             fail("Expected exception");
         } catch (S3ControlException e) {
             assertEquals("AccessDenied", e.awsErrorDetails().errorCode());
+            assertNotNull(e.requestId());
+        }
+    }
+
+    @Test
+    public void describeJob_NotFound() {
+        try {
+            client.describeJob(r -> r.accountId(accountId).jobId("jobid"));
+            fail("Expected exception");
+        } catch (InvalidRequestException e) {
+            assertEquals("InvalidRequest", e.awsErrorDetails().errorCode());
+            assertEquals("Job not found", e.awsErrorDetails().errorMessage());
+            assertNotNull(e.requestId());
+        }
+    }
+
+    @Test
+    public void listJobs_IncorrectStatus() {
+        try {
+            client.listJobs(r -> r.jobStatusesWithStrings("TEST").accountId(accountId));
+            fail("Expected exception");
+        } catch (InvalidRequestException e) {
+            assertEquals("InvalidRequest", e.awsErrorDetails().errorCode());
+            assertEquals("Request invalid", e.awsErrorDetails().errorMessage());
             assertNotNull(e.requestId());
         }
     }

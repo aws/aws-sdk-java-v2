@@ -1,0 +1,5 @@
+{
+    "category": "AWS S3 Control", 
+    "type": "bugfix", 
+    "description": "Adds support for parsing errors with a top level error root XML structure such as InvalidRequest errors"
+}
