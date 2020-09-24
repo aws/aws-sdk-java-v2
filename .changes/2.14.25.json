@@ -1,0 +1,51 @@
+{
+    "version": "2.14.25",
+    "date": "2020-09-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "description": "Amazon EKS now supports configuring your cluster's service CIDR during cluster creation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Amplify",
+            "description": "Allow Oauth Token in CreateApp call to be a maximum of 1000 characters instead of 100"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed an issue where successful JSON service responses were required to include a payload (fixes NullPointerException originating from JsonProtocolUnmarshaller)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Savings Plans",
+            "description": "Introducing Queued SavingsPlans that will enable customers to queue their purchase request of Savings Plans for future dates."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "description": "Amazon Transcribe now supports WebM, OGG, AMR and AMR-WB as input formats. You can also specify an output key as a location within your S3 buckets to store the output of your transcription jobs."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed an issue with XML services, where the service responding with no payload would treat the payload as empty. Now, empty payloads will properly be populated within the XML response as \"null\"."
+        },
+        {
+            "type": "feature",
+            "category": "Synthetics",
+            "description": "AWS Synthetics now supports AWS X-Ray Active Tracing feature. RunConfig is now an optional parameter with timeout updated from (60 - 900 seconds) to (3 - 840 seconds)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "description": "AWS Textract now supports output results for asynchronous jobs to customer specified s3 bucket."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
