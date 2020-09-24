@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify",
+    "description": "Allow Oauth Token in CreateApp call to be a maximum of 1000 characters instead of 100"
+}
