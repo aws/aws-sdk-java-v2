@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "description": "Amazon EKS now supports configuring your cluster's service CIDR during cluster creation."
+}
