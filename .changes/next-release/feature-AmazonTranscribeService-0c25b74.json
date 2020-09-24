@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "description": "Amazon Transcribe now supports WebM, OGG, AMR and AMR-WB as input formats. You can also specify an output key as a location within your S3 buckets to store the output of your transcription jobs."
-}

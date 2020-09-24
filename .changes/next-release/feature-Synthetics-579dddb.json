@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Synthetics",
-    "description": "AWS Synthetics now supports AWS X-Ray Active Tracing feature. RunConfig is now an optional parameter with timeout updated from (60 - 900 seconds) to (3 - 840 seconds)."
-}

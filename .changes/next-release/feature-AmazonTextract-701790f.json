@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Textract",
-    "description": "AWS Textract now supports output results for asynchronous jobs to customer specified s3 bucket."
-}

@@ -1,3 +1,36 @@
+# __2.14.25__ __2020-09-24__
+## __AWS Amplify__
+  - ### Features
+    - Allow Oauth Token in CreateApp call to be a maximum of 1000 characters instead of 100
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where successful JSON service responses were required to include a payload (fixes NullPointerException originating from JsonProtocolUnmarshaller).
+    - Fixed an issue with XML services, where the service responding with no payload would treat the payload as empty. Now, empty payloads will properly be populated within the XML response as "null".
+
+## __AWS Savings Plans__
+  - ### Features
+    - Introducing Queued SavingsPlans that will enable customers to queue their purchase request of Savings Plans for future dates.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Amazon EKS now supports configuring your cluster's service CIDR during cluster creation.
+
+## __Amazon Textract__
+  - ### Features
+    - AWS Textract now supports output results for asynchronous jobs to customer specified s3 bucket.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports WebM, OGG, AMR and AMR-WB as input formats. You can also specify an output key as a location within your S3 buckets to store the output of your transcription jobs.
+
+## __Synthetics__
+  - ### Features
+    - AWS Synthetics now supports AWS X-Ray Active Tracing feature. RunConfig is now an optional parameter with timeout updated from (60 - 900 seconds) to (3 - 840 seconds).
+
 # __2.14.24__ __2020-09-23__
 ## __AWS Backup__
   - ### Features
