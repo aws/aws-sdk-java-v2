@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Savings Plans",
+    "description": "Introducing Queued SavingsPlans that will enable customers to queue their purchase request of Savings Plans for future dates."
+}
