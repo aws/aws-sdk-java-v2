@@ -33,17 +33,7 @@ public final class WaitersRuntime {
     }
 
     private static List<WaiterAcceptor<Object>> defaultAcceptors() {
-        return Arrays.asList(throwOnUnmatchedExceptionWaiter(), retryOnUnmatchedResponseWaiter());
-    }
-
-    private static WaiterAcceptor<Object> throwOnUnmatchedExceptionWaiter() {
-        return WaiterAcceptor.errorOnExceptionAcceptor(t -> {
-            if (t instanceof RuntimeException) {
-                throw (RuntimeException) t;
-            }
-
-            throw SdkClientException.create("Encountered unexpected exception.", t);
-        });
+        return Collections.singletonList(retryOnUnmatchedResponseWaiter());
     }
 
     private static WaiterAcceptor<Object> retryOnUnmatchedResponseWaiter() {
@@ -502,7 +492,8 @@ public final class WaitersRuntime {
 
         @Override
         public boolean matches(SdkResponse response) {
-            return response.sdkHttpResponse().statusCode() == statusCode;
+            return response.sdkHttpResponse() != null &&
+                   response.sdkHttpResponse().statusCode() == statusCode;
         }
 
         @Override

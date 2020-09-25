@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Default implementation of the generic {@link Waiter}.
@@ -46,6 +47,13 @@ public final class DefaultWaiter<T> implements Waiter<T> {
     @Override
     public WaiterResponse<T> run(Supplier<T> pollingFunction) {
         return waiterExecutor.execute(pollingFunction);
+    }
+
+    @Override
+    public WaiterResponse<T> run(Supplier<T> pollingFunction, WaiterOverrideConfiguration overrideConfiguration) {
+        Validate.paramNotNull(overrideConfiguration, "overrideConfiguration");
+        return new WaiterExecutor<>(new WaiterConfiguration(overrideConfiguration),
+                                    waiterAcceptors).execute(pollingFunction);
     }
 
     public static <T> Builder<T> builder() {

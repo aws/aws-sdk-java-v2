@@ -51,6 +51,13 @@ public final class DefaultAsyncWaiter<T> implements AsyncWaiter<T> {
         return handler.execute(asyncPollingFunction);
     }
 
+    @Override
+    public CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction,
+                                                         WaiterOverrideConfiguration overrideConfig) {
+        return new AsyncWaiterExecutor<>(new WaiterConfiguration(overrideConfig), waiterAcceptors, executorService)
+            .execute(asyncPollingFunction);
+    }
+
     public static <T> Builder<T> builder() {
         return new DefaultBuilder<>();
     }

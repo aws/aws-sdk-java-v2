@@ -15,6 +15,11 @@
           "state": "retry",
           "matcher": "status",
           "expected": 404
+        },
+        {
+          "state": "failure",
+          "matcher": "status",
+          "expected": 500
         }
       ]
     }

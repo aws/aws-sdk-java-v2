@@ -27,20 +27,6 @@ import software.amazon.awssdk.services.restjsonwithwaiters.waiters.internal.Wait
  * Verify the accuracy of {@link WaitersRuntime#DEFAULT_ACCEPTORS}.
  */
 public class WaitersRuntimeDefaultAcceptorsTest {
-    @Test
-    public void defaultAcceptorsFailOnRuntimeExceptionThrowsException() {
-        RuntimeException runtimeException = new RuntimeException();
-        assertThatThrownBy(() -> WaitersRuntime.DEFAULT_ACCEPTORS.forEach(acceptor -> acceptor.matches(runtimeException)))
-            .isEqualTo(runtimeException);
-    }
-
-    @Test
-    public void defaultAcceptorsFailOnThrowableThrowsSdkException() {
-        Throwable throwable = new Throwable();
-        assertThatThrownBy(() -> WaitersRuntime.DEFAULT_ACCEPTORS.forEach(acceptor -> acceptor.matches(throwable)))
-            .isInstanceOf(SdkException.class)
-            .hasCause(throwable);
-    }
 
     @Test
     public void defaultAcceptorsRetryOnUnrecognizedResponse() {

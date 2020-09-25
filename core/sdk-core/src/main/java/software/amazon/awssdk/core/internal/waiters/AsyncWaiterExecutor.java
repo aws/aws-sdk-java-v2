@@ -70,29 +70,33 @@ public final class AsyncWaiterExecutor<T> {
                                          int attemptNumber,
                                          long startTime) {
         asyncPollingFunction.get().whenComplete((response, exception) -> {
-            Either<T, Throwable> responseOrException = exception == null ? Either.left(response) : Either.right(exception);
+            try {
+                Either<T, Throwable> responseOrException = exception == null ? Either.left(response) : Either.right(exception);
 
-            Optional<WaiterAcceptor<? super T>> optionalWaiterAcceptor =
-                executorHelper.firstWaiterAcceptorIfMatched(responseOrException);
+                Optional<WaiterAcceptor<? super T>> optionalWaiterAcceptor =
+                    executorHelper.firstWaiterAcceptorIfMatched(responseOrException);
 
-            if (optionalWaiterAcceptor.isPresent()) {
-                WaiterAcceptor<? super T> acceptor = optionalWaiterAcceptor.get();
-                WaiterState state = acceptor.waiterState();
-                switch (state) {
-                    case SUCCESS:
-                        future.complete(executorHelper.createWaiterResponse(responseOrException, attemptNumber));
-                        break;
-                    case RETRY:
-                        maybeRetry(asyncPollingFunction, future, attemptNumber, startTime);
-                        break;
-                    case FAILURE:
-                        future.completeExceptionally(executorHelper.waiterFailureException(acceptor));
-                        break;
-                    default:
-                        future.completeExceptionally(new UnsupportedOperationException());
+                if (optionalWaiterAcceptor.isPresent()) {
+                    WaiterAcceptor<? super T> acceptor = optionalWaiterAcceptor.get();
+                    WaiterState state = acceptor.waiterState();
+                    switch (state) {
+                        case SUCCESS:
+                            future.complete(executorHelper.createWaiterResponse(responseOrException, attemptNumber));
+                            break;
+                        case RETRY:
+                            maybeRetry(asyncPollingFunction, future, attemptNumber, startTime);
+                            break;
+                        case FAILURE:
+                            future.completeExceptionally(executorHelper.waiterFailureException(acceptor));
+                            break;
+                        default:
+                            future.completeExceptionally(new UnsupportedOperationException());
+                    }
+                } else {
+                    future.completeExceptionally(executorHelper.noneMatchException(responseOrException));
                 }
-            } else {
-                future.completeExceptionally(executorHelper.noneMatchException(responseOrException));
+            } catch (Throwable t) {
+                future.completeExceptionally(SdkClientException.create("Encountered unexpected exception.", t));
             }
         });
     }

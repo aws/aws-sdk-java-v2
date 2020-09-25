@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -68,6 +69,18 @@ public class WaiterTest extends BaseWaiterTest {
 
         assertThat(waiterResponse1.join().attemptsExecuted()).isEqualTo(2);
         assertThat(waiterResponse2.join().attemptsExecuted()).isEqualTo(3);
+    }
+
+    @Test
+    public void requestOverrideConfig_shouldTakePrecedence() {
+        Waiter<String> waiter = Waiter.builder(String.class)
+                                      .overrideConfiguration(p -> p.maxAttempts(4).backoffStrategy(BackoffStrategy.none()))
+                                      .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
+                                      .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true))
+                                      .build();
+
+        assertThatThrownBy(() -> waiter.run(new ReturnResponseResource(2), o -> o.maxAttempts(1)))
+            .hasMessageContaining("exceeded the max retry attempts: 1");
     }
 
     private static final class ReturnResponseResource implements Supplier<String> {

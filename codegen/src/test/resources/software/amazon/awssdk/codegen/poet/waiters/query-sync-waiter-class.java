@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -12,6 +13,7 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
@@ -47,11 +49,9 @@ final class DefaultQueryWaiter implements QueryWaiter {
             this.client = builder.client;
         }
         managedResources = attributeMapBuilder.build();
-        WaiterOverrideConfiguration postOperationSuccessStrategy = builder.overrideConfiguration == null ? WaiterOverrideConfiguration
-            .builder().maxAttempts(40).backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1))).build()
-                                                                                                         : builder.overrideConfiguration;
         this.postOperationSuccessWaiter = Waiter.builder(APostOperationResponse.class)
-                                                .overrideConfiguration(postOperationSuccessStrategy).acceptors(postOperationSuccessWaiterAcceptors()).build();
+                                                .acceptors(postOperationSuccessWaiterAcceptors())
+                                                .overrideConfiguration(postOperationSuccessWaiterConfig(builder.overrideConfiguration)).build();
     }
 
     private static String errorCode(Throwable error) {
@@ -66,6 +66,13 @@ final class DefaultQueryWaiter implements QueryWaiter {
         return postOperationSuccessWaiter.run(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)));
     }
 
+    @Override
+    public WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(APostOperationRequest aPostOperationRequest,
+                                                                                WaiterOverrideConfiguration overrideConfig) {
+        return postOperationSuccessWaiter.run(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)),
+                                              postOperationSuccessWaiterConfig(overrideConfig));
+    }
+
     private static List<WaiterAcceptor<? super APostOperationResponse>> postOperationSuccessWaiterAcceptors() {
         List<WaiterAcceptor<? super APostOperationResponse>> result = new ArrayList<>();
         result.add(new WaitersRuntime.ResponseStatusAcceptor(200, WaiterState.SUCCESS));
@@ -77,6 +84,16 @@ final class DefaultQueryWaiter implements QueryWaiter {
         }));
         result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
         return result;
+    }
+
+    private static WaiterOverrideConfiguration postOperationSuccessWaiterConfig(WaiterOverrideConfiguration overrideConfig) {
+        Optional<WaiterOverrideConfiguration> optionalOverrideConfig = Optional.ofNullable(overrideConfig);
+        int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(40);
+        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategy).orElse(
+            FixedDelayBackoffStrategy.create(Duration.ofSeconds(1)));
+        Duration waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
+        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy(backoffStrategy)
+                                          .waitTimeout(waitTimeout).build();
     }
 
     @Override

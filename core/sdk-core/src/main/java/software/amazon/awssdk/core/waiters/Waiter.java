@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.waiters;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.waiters.DefaultWaiter;
@@ -32,9 +33,38 @@ public interface Waiter<T> {
      * it is determined that the resource will never enter into the desired state.
      *
      * @param pollingFunction the polling function
-     * @return the response
+     * @return the {@link WaiterResponse} containing either a response or an exception that has matched with the
+     * waiter success condition
      */
-    WaiterResponse<T> run(Supplier<T> pollingFunction);
+    default WaiterResponse<T> run(Supplier<T> pollingFunction) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * It returns when the resource enters into a desired state or
+     * it is determined that the resource will never enter into the desired state.
+     *
+     * @param pollingFunction the polling function
+     * @param overrideConfig per request override configuration
+     * @return the {@link WaiterResponse} containing either a response or an exception that has matched with the
+     * waiter success condition
+     */
+    default WaiterResponse<T> run(Supplier<T> pollingFunction, WaiterOverrideConfiguration overrideConfig) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * It returns when the resource enters into a desired state or
+     * it is determined that the resource will never enter into the desired state.
+     *
+     * @param pollingFunction the polling function
+     * @param overrideConfig The consumer that will configure the per request override configuration for waiters
+     * @return the {@link WaiterResponse} containing either a response or an exception that has matched with the
+     * waiter success condition
+     */
+    default WaiterResponse<T> run(Supplier<T> pollingFunction, Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+        return run(pollingFunction, WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+    }
 
     /**
      * Creates a newly initialized builder for the waiter object.

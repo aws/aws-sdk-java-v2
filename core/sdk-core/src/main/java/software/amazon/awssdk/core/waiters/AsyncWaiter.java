@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.waiters;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.waiters.DefaultAsyncWaiter;
@@ -31,15 +32,41 @@ import software.amazon.awssdk.core.internal.waiters.DefaultAsyncWaiter;
 public interface AsyncWaiter<T> {
 
     /**
-     * Runs the provided polling function. It completes when the resource enters into a desired state or
-     * it is determined that the resource will never enter into the desired state.
+     * Runs the provided polling function. It completes successfully when the resource enters into a desired state or
+     * exceptionally when it is determined that the resource will never enter into the desired state.
      *
      * @param asyncPollingFunction the polling function to trigger
-     * @return A CompletableFuture containing the result of the DescribeTable operation returned by the service. It completes
-     * successfully when the resource enters into a desired state or it completes exceptionally when it is determined that the
-     * resource will never enter into the desired state.
+     * @return A {@link CompletableFuture} containing the {@link WaiterResponse}
      */
-    CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction);
+    default CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Runs the provided polling function. It completes successfully when the resource enters into a desired state or
+     * exceptionally when it is determined that the resource will never enter into the desired state.
+     *
+     * @param asyncPollingFunction the polling function to trigger
+     *  @param overrideConfig per request override configuration
+     * @return A {@link CompletableFuture} containing the {@link WaiterResponse}
+     */
+    default CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction,
+                                                          WaiterOverrideConfiguration overrideConfig) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Runs the provided polling function. It completes successfully when the resource enters into a desired state or
+     * exceptionally when it is determined that the resource will never enter into the desired state.
+     *
+     * @param asyncPollingFunction the polling function to trigger
+     * @param overrideConfig The consumer that will configure the per request override configuration for waiters
+     * @return A {@link CompletableFuture} containing the {@link WaiterResponse}
+     */
+    default CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction,
+                                                          Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+        return runAsync(asyncPollingFunction, WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+    }
 
     /**
      * Creates a newly initialized builder for the waiter object.

@@ -66,7 +66,9 @@ public final class WaiterDocs {
                                                                  + "<p>This is a convenience method to create an instance of "
                                                                  + "the request builder without the need "
                                                                  + "to create one manually using {@link $T.builder()} ")
-                                                    .param(operationModel.getInput().getVariableName(), "the request to be used"
+                                                    .param(operationModel.getInput().getVariableName(), "The consumer that will"
+                                                                                                        + " configure the "
+                                                                                                        + "request to be used"
                                                                                                         + " for polling")
                                                     .returns(clientClassName.simpleName().contains("Async") ?
                                                              "CompletableFuture of the WaiterResponse containing either a "
@@ -79,7 +81,6 @@ public final class WaiterDocs {
                         .add(javadocs, clientClassName, operationModel.getMethodName(), waiterDefinition.getKey(),
                              requestClassName)
                         .build();
-
     }
 
     public static CodeBlock waiterBuilderMethodJavadoc(ClassName className) {
@@ -168,6 +169,51 @@ public final class WaiterDocs {
 
         return CodeBlock.builder()
                         .add(javadocs, className, className)
+                        .build();
+    }
+
+    public static CodeBlock waiterOperationWithOverrideConfigConsumerBuilder(ClassName clientClassName,
+                                                                             ClassName requestClassName,
+                                                                             Map.Entry<String, WaiterDefinition> waiterDefinition,
+                                                                             OperationModel opModel) {
+        String javadocs = new DocumentationBuilder().description("Polls {@link $T#$N} API until the desired condition "
+                                                                 + "{@code $N} is met, "
+                                                                 + "or until it is determined that the resource will never "
+                                                                 + "enter into the desired state. \n "
+                                                                 + "<p>This is a convenience method to create an instance of "
+                                                                 + "the request builder and instance of the override config "
+                                                                 + "builder")
+                                                    .param(opModel.getInput().getVariableName(),
+                                                           "The consumer that will configure the request to be used for polling")
+                                                    .param("overrideConfig",
+                                                           "The consumer that will configure the per request override "
+                                                           + "configuration for waiters")
+                                                    .returns("WaiterResponse containing either a response or an exception that "
+                                                             + "has matched with the waiter success condition")
+                                                    .build();
+        return CodeBlock.builder()
+                        .add(javadocs, clientClassName, opModel.getMethodName(), waiterDefinition.getKey())
+                        .build();
+
+    }
+
+    public static CodeBlock waiterOperationWithOverrideConfig(ClassName clientClassName,
+                                                              Map.Entry<String, WaiterDefinition> waiterDefinition,
+                                                              OperationModel opModel) {
+        String javadocs = new DocumentationBuilder().description("Polls {@link $T#$N} API until the desired condition "
+                                                                 + "{@code $N} is met, "
+                                                                 + "or until it is determined that the resource will never "
+                                                                 + "enter into the desired state")
+                                                    .param(opModel.getInput().getVariableName(), "The request to be"
+                                                                                                 + " used"
+                                                                                                 + " for polling")
+                                                    .param("overrideConfig", "Per request "
+                                                                             + "override configuration for waiters")
+                                                    .returns("WaiterResponse containing either a response or an exception that "
+                                                             + "has matched with the waiter success condition")
+                                                    .build();
+        return CodeBlock.builder()
+                        .add(javadocs, clientClassName, opModel.getMethodName(), waiterDefinition.getKey())
                         .build();
     }
 }

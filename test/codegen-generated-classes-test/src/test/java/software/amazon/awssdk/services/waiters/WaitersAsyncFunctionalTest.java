@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -28,6 +29,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
@@ -37,6 +39,8 @@ import software.amazon.awssdk.services.restjsonwithwaiters.RestJsonWithWaitersAs
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesResponse;
 import software.amazon.awssdk.services.restjsonwithwaiters.waiters.RestJsonWithWaitersAsyncWaiter;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 public class WaitersAsyncFunctionalTest {
 
@@ -97,29 +101,88 @@ public class WaitersAsyncFunctionalTest {
 
     @Test
     public void allTypeOperationRetry_withAsyncWaiter_shouldReturnResponseAfterException() throws ExecutionException, InterruptedException {
-        AllTypesResponse response1 = (AllTypesResponse) AllTypesResponse.builder()
-                                                                        .sdkHttpResponse(SdkHttpResponse.builder()
-                                                                                                        .statusCode(404)
-                                                                                                        .build())
-                                                                        .build();
         AllTypesResponse response2 = (AllTypesResponse) AllTypesResponse.builder()
                                                                         .sdkHttpResponse(SdkHttpResponse.builder()
                                                                                                         .statusCode(200)
                                                                                                         .build())
                                                                         .build();
 
-        CompletableFuture<AllTypesResponse> serviceFuture1 = new CompletableFuture<>();
+        CompletableFuture<AllTypesResponse> serviceFuture1 =
+            CompletableFutureUtils.failedFuture(SdkServiceException.builder().statusCode(404).build());
         CompletableFuture<AllTypesResponse> serviceFuture2 = new CompletableFuture<>();
 
         when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(serviceFuture1, serviceFuture2);
 
         CompletableFuture<WaiterResponse<AllTypesResponse>> responseFuture = asyncWaiter.waitUntilAllTypesSuccess(AllTypesRequest.builder().build());
 
-        serviceFuture1.complete(response1);
         serviceFuture2.complete(response2);
 
         assertThat(responseFuture.get().attemptsExecuted()).isEqualTo(2);
         assertThat(responseFuture.get().matched().response()).hasValueSatisfying(r -> assertThat(r).isEqualTo(response2));
+    }
+
+    @Test
+    public void requestOverrideConfig_shouldTakePrecedence() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                        .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                        .statusCode(200)
+                                                                                                        .build())
+                                                                        .build();
+
+        CompletableFuture<AllTypesResponse> serviceFuture1 = CompletableFutureUtils.failedFuture(SdkServiceException.builder().statusCode(404).build());
+        CompletableFuture<AllTypesResponse> serviceFuture2 =  CompletableFuture.completedFuture(response);
+
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(serviceFuture1, serviceFuture2);
+
+        assertThatThrownBy(() ->
+            asyncWaiter.waitUntilAllTypesSuccess(b -> b.build(), o -> o.maxAttempts(1)).join())
+            .hasMessageContaining("exceeded the max retry attempts").hasCauseInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void unexpectedException_shouldNotRetry() {
+        CompletableFuture<AllTypesResponse> failedFuture = CompletableFutureUtils.failedFuture(new RuntimeException(""));
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(failedFuture);
+
+        assertThatThrownBy(() -> asyncWaiter.waitUntilAllTypesSuccess(b -> b.build()).join())
+            .hasMessageContaining("An exception was thrown and did not match any waiter acceptors")
+            .hasCauseInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void unexpectedResponse_shouldRetry() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                    .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                    .statusCode(200)
+                                                                                                    .build()).build();
+        CompletableFuture<AllTypesResponse> future1 =
+            CompletableFuture.completedFuture((AllTypesResponse) AllTypesResponse.builder()
+                                                                                 .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                                 .statusCode(202)
+                                                                                                                 .build()).build());
+
+        CompletableFuture<AllTypesResponse> future2 =
+            CompletableFuture.completedFuture(response);
+
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(future1, future2);
+
+        WaiterResponse<AllTypesResponse> waiterResponse = asyncWaiter.waitUntilAllTypesSuccess(b -> b.build()).join();
+        assertThat(waiterResponse.attemptsExecuted()).isEqualTo(2);
+        assertThat(waiterResponse.matched().response()).hasValueSatisfying(r -> assertThat(r).isEqualTo(response));
+    }
+
+    @Test
+    public void failureResponse_shouldThrowException() {
+        CompletableFuture<AllTypesResponse> future =
+            CompletableFuture.completedFuture((AllTypesResponse) AllTypesResponse.builder()
+                                                                                 .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                                 .statusCode(500)
+                                                                                                                 .build())
+                                                                                 .build());
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(future);
+        assertThatThrownBy(() -> asyncWaiter.waitUntilAllTypesSuccess(SdkBuilder::build).join())
+            .hasMessageContaining("transitioned the waiter to failure state")
+            .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test
