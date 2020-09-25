@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "description": "Support custom logging, executionRole, secrets, and linuxParameters (initProcessEnabled, maxSwap, swappiness, sharedMemorySize, and tmpfs). Also, add new context keys for awslogs."
+}
