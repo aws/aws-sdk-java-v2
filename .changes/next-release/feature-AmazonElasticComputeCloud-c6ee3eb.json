@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "This release supports returning additional information about local gateway resources, such as the local gateway route table."
-}

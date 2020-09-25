@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Fraud Detector",
-    "description": "Increased maximum length of eventVariables values for GetEventPrediction from 256 to 1024."
-}
