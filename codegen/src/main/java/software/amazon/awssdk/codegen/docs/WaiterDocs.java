@@ -42,8 +42,12 @@ public final class WaiterDocs {
                                                                  + "enter into the desired state")
                                                     .param(operationModel.getInput().getVariableName(), "the request to be used"
                                                                                                         + " for polling")
-                                                    .returns("WaiterResponse containing either a response or an exception that "
-                                                             + "has matched with the waiter success condition")
+                                                    .returns(className.simpleName().contains("Async") ?
+                                                             "CompletableFuture of the WaiterResponse containing either a "
+                                                             + "response or an exception that has matched with the waiter "
+                                                             + "success condition"
+                                                             : "WaiterResponse containing either a response or an exception that"
+                                                             + " has matched with the waiter success condition")
                                                     .build();
         return CodeBlock.builder()
                         .add(javadocs, className, operationModel.getMethodName(), waiterDefinition.getKey())
@@ -64,8 +68,12 @@ public final class WaiterDocs {
                                                                  + "to create one manually using {@link $T.builder()} ")
                                                     .param(operationModel.getInput().getVariableName(), "the request to be used"
                                                                                                         + " for polling")
-                                                    .returns("WaiterResponse containing either a response or an exception that "
-                                                             + "has matched with the waiter success condition")
+                                                    .returns(clientClassName.simpleName().contains("Async") ?
+                                                             "CompletableFuture of the WaiterResponse containing either a "
+                                                             + "response or an exception that has matched with the waiter "
+                                                             + "success condition"
+                                                             : "WaiterResponse containing either a response or an exception that"
+                                                             + " has matched with the waiter success condition")
                                                     .build();
         return CodeBlock.builder()
                         .add(javadocs, clientClassName, operationModel.getMethodName(), waiterDefinition.getKey(),

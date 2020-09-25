@@ -22,8 +22,8 @@ import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Configuration values for the {@link Waiter}. All values are optional, and not specifying them
- * will use the default values.
+ * Configuration values for the {@link Waiter}. All values are optional, and the default values will be used
+ * if they are not specified.
  */
 @SdkPublicApi
 public final class WaiterOverrideConfiguration {
