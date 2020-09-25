@@ -25,7 +25,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *
      * @param aPostOperationRequest
      *        the request to be used for polling
-     * @return WaiterResponse containing either a response or an exception that has matched with the waiter success
+     * @return CompletableFuture of the WaiterResponse containing either a response or an exception that has matched with the waiter success
      *         condition
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
@@ -42,7 +42,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *
      * @param aPostOperationRequest
      *        the request to be used for polling
-     * @return WaiterResponse containing either a response or an exception that has matched with the waiter success
+     * @return CompletableFuture of the WaiterResponse containing either a response or an exception that has matched with the waiter success
      *         condition
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
