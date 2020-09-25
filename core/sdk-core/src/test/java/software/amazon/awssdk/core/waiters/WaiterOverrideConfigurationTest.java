@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Duration;
 import org.junit.Test;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 
 public class WaiterOverrideConfigurationTest {
 
@@ -56,5 +57,19 @@ public class WaiterOverrideConfigurationTest {
         assertThatThrownBy(() -> WaiterOverrideConfiguration.builder()
                                                             .maxAttempts(-10)
                                                             .build()).hasMessageContaining("must be positive");
+    }
+
+    @Test
+    public void toBuilder_shouldGenerateSameBuilder() {
+        WaiterOverrideConfiguration overrideConfiguration =
+            WaiterOverrideConfiguration.builder()
+                                       .waitTimeout(Duration.ofSeconds(2))
+                                       .maxAttempts(10)
+                                       .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofSeconds(1)))
+                                       .build();
+
+        WaiterOverrideConfiguration config = overrideConfiguration.toBuilder().build();
+        assertThat(overrideConfiguration).isEqualTo(config);
+        assertThat(overrideConfiguration.hashCode()).isEqualTo(config.hashCode());
     }
 }

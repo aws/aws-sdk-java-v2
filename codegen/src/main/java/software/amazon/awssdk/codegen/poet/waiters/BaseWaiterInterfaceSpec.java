@@ -102,6 +102,8 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(waiterOperation(waiterDefinition));
         methods.add(waiterConsumerBuilderOperation(waiterDefinition));
+        methods.add(waiterOperationWithOverrideConfig(waiterDefinition));
+        methods.add(waiterConsumerBuilderOperationWithOverrideConfig(waiterDefinition));
         return methods.stream();
     }
 
@@ -116,6 +118,54 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
             .addParameter(requestType, opModel.getInput().getVariableName())
             .addJavadoc(javadoc);
         return unsupportedOperation(builder).build();
+    }
+
+    private MethodSpec waiterOperationWithOverrideConfig(Map.Entry<String, WaiterDefinition> waiterDefinition) {
+        String waiterMethodName = waiterDefinition.getKey();
+        OperationModel opModel = model.getOperation(waiterDefinition.getValue().getOperation());
+        ClassName requestClass = ClassName.get(modelPackage,
+                                               opModel.getInput().getVariableType());
+        CodeBlock javadoc = WaiterDocs.waiterOperationWithOverrideConfig(
+            clientClassName(), waiterDefinition, opModel);
+
+        MethodSpec.Builder builder = methodSignatureWithReturnType(waiterMethodName, opModel)
+            .addParameter(requestClass, opModel.getInput().getVariableName())
+            .addParameter(ClassName.get(WaiterOverrideConfiguration.class), "overrideConfig")
+            .addJavadoc(javadoc);
+        return unsupportedOperation(builder).build();
+    }
+
+    private MethodSpec waiterConsumerBuilderOperationWithOverrideConfig(Map.Entry<String, WaiterDefinition> waiterDefinition) {
+        String waiterMethodName = waiterDefinition.getKey();
+        OperationModel opModel = model.getOperation(waiterDefinition.getValue().getOperation());
+        ClassName requestClass = ClassName.get(modelPackage,
+                                               opModel.getInput().getVariableType());
+        ParameterizedTypeName requestType = ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                                                                      requestClass.nestedClass("Builder"));
+        ParameterizedTypeName overrideConfigType =
+            ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                                      ClassName.get(WaiterOverrideConfiguration.class).nestedClass("Builder"));
+
+        CodeBlock javadoc = WaiterDocs.waiterOperationWithOverrideConfigConsumerBuilder(
+            clientClassName(), requestClass, waiterDefinition, opModel);
+
+        String inputVariable = opModel.getInput().getVariableName();
+
+        MethodSpec.Builder builder = methodSignatureWithReturnType(waiterMethodName, opModel)
+            .addParameter(requestType, inputVariable)
+            .addParameter(overrideConfigType, "overrideConfig")
+            .addJavadoc(javadoc);
+
+        builder.addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+               .addStatement("return $L($T.builder().applyMutation($L).build(),"
+                             + "$T.builder().applyMutation($L).build())",
+                             getWaiterMethodName(waiterMethodName),
+                             requestClass,
+                             inputVariable,
+                             ClassName.get(WaiterOverrideConfiguration.class),
+                             "overrideConfig");
+
+        return builder.build();
     }
 
     private MethodSpec waiterConsumerBuilderOperation(Map.Entry<String, WaiterDefinition> waiterDefinition) {

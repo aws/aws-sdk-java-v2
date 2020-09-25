@@ -77,6 +77,20 @@ public class AsyncWaiterTest extends BaseWaiterTest {
         assertThat(waiterResponse2.join().attemptsExecuted()).isEqualTo(3);
     }
 
+    @Test
+    public void requestOverrideConfig_shouldTakePrecedence() {
+        AsyncWaiter<String> waiter = AsyncWaiter.builder(String.class)
+                                                .overrideConfiguration(p -> p.maxAttempts(4).backoffStrategy(BackoffStrategy.none()))
+                                                .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(s -> s.equals(SUCCESS_STATE_MESSAGE)))
+                                                .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(i -> true))
+                                                .scheduledExecutorService(executorService)
+                                                .build();
+
+        assertThatThrownBy(() ->
+                               waiter.runAsync(new ReturnResponseResource(2), o -> o.maxAttempts(1))
+                           .join()).hasMessageContaining("exceeded the max retry attempts: 1");
+    }
+
     private static final class ReturnResponseResource implements Supplier<CompletableFuture<String>> {
         private final int successAttemptIndex;
         private int count;

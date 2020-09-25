@@ -74,8 +74,7 @@ public final class WaiterExecutor<T> {
                 case RETRY:
                     return maybeRetry(pollingFunction, attemptNumber, startTime);
                 case FAILURE:
-                    throw SdkClientException.create("A waiter acceptor was matched and transitioned the waiter "
-                                                    + "to failure state.");
+                    throw executorHelper.waiterFailureException(waiterAcceptor.get());
                 default:
                     throw new UnsupportedOperationException();
             }

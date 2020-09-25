@@ -16,17 +16,22 @@
 package software.amazon.awssdk.core.waiters;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Configuration values for the {@link Waiter}. All values are optional, and the default values will be used
  * if they are not specified.
  */
 @SdkPublicApi
-public final class WaiterOverrideConfiguration {
+public final class WaiterOverrideConfiguration implements ToCopyableBuilder<WaiterOverrideConfiguration.Builder,
+    WaiterOverrideConfiguration> {
 
     private final Integer maxAttempts;
     private final BackoffStrategy backoffStrategy;
@@ -64,7 +69,52 @@ public final class WaiterOverrideConfiguration {
         return Optional.ofNullable(waitTimeout);
     }
 
-    public static final class Builder {
+    @Override
+    public Builder toBuilder() {
+        return new Builder().maxAttempts(maxAttempts)
+                            .backoffStrategy(backoffStrategy)
+                            .waitTimeout(waitTimeout);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        WaiterOverrideConfiguration that = (WaiterOverrideConfiguration) o;
+
+        if (!Objects.equals(maxAttempts, that.maxAttempts)) {
+            return false;
+        }
+        if (!Objects.equals(backoffStrategy, that.backoffStrategy)) {
+            return false;
+        }
+        return Objects.equals(waitTimeout, that.waitTimeout);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = maxAttempts != null ? maxAttempts.hashCode() : 0;
+        result = 31 * result + (backoffStrategy != null ? backoffStrategy.hashCode() : 0);
+        result = 31 * result + (waitTimeout != null ? waitTimeout.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("WaiterOverrideConfiguration")
+                       .add("maxAttempts", maxAttempts)
+                       .add("waitTimeout", waitTimeout)
+                       .add("backoffStrategy", backoffStrategy)
+                       .build();
+    }
+
+    public static final class Builder implements CopyableBuilder<WaiterOverrideConfiguration.Builder,
+        WaiterOverrideConfiguration> {
         private BackoffStrategy backoffStrategy;
         private Integer maxAttempts;
         private Duration waitTimeout;

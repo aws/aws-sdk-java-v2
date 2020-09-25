@@ -56,6 +56,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
@@ -102,6 +103,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         typeSpecBuilder.addMethod(staticErrorCodeMethod());
         typeSpecBuilder.addMethods(waiterOperations());
         typeSpecBuilder.addMethods(waiterAcceptorInitializers());
+        typeSpecBuilder.addMethods(waiterConfigInitializers());
         typeSpecBuilder.addFields(waitersFields());
         additionalTypeSpecModification(typeSpecBuilder);
 
@@ -173,31 +175,55 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         return ctor.build();
     }
 
+    private List<MethodSpec> waiterConfigInitializers() {
+        List<MethodSpec> initializers = new ArrayList<>();
+        waiters.forEach((k, v) -> initializers.add(waiterConfigInitializer(k, v)));
+        return initializers;
+    }
+
+    private MethodSpec waiterConfigInitializer(String waiterKey, WaiterDefinition waiterDefinition) {
+        ClassName overrideConfig = ClassName.get(WaiterOverrideConfiguration.class);
+        MethodSpec.Builder configMethod =
+            MethodSpec.methodBuilder(waiterFieldName(waiterKey) + "Config")
+                      .addModifiers(PRIVATE, STATIC)
+                      .addParameter(overrideConfig, "overrideConfig")
+                      .returns(overrideConfig);
+
+        configMethod.addStatement("$T<$T> optionalOverrideConfig = Optional.ofNullable(overrideConfig)",
+                                  Optional.class,
+                                  WaiterOverrideConfiguration.class);
+        configMethod.addStatement("int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts)"
+                                  + ".orElse($L)",
+                                  waiterDefinition.getMaxAttempts());
+        configMethod.addStatement("$T backoffStrategy = optionalOverrideConfig."
+                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategy).orElse($T.create($T.ofSeconds($L)))",
+                                  BackoffStrategy.class,
+                                  FixedDelayBackoffStrategy.class,
+                                  Duration.class,
+                                  waiterDefinition.getDelay());
+        configMethod.addStatement("$T waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout)"
+                                  + ".orElse(null)",
+                                  Duration.class);
+
+        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy"
+                                  + "(backoffStrategy).waitTimeout(waitTimeout).build()");
+        return configMethod.build();
+    }
+
     private CodeBlock waiterFieldInitialization(Map.Entry<String, WaiterDefinition> waiterDefinition) {
         String waiterKey = waiterDefinition.getKey();
-        String waiterName = lowercaseFirstChar(waiterKey);
         WaiterDefinition waiter = waiterDefinition.getValue();
-        String overrideConfigurationVarName = waiterName + "Strategy";
         OperationModel opModel = operationModel(waiter);
         CodeBlock.Builder codeBlockBuilder = CodeBlock
-            .builder()
-            .addStatement("$T $N = builder.overrideConfiguration == null ? $T.builder().maxAttempts($L)"
-                          + ".backoffStrategy($T.create($T.ofSeconds($L))).build() : builder.overrideConfiguration",
-                          WaiterOverrideConfiguration.class,
-                          overrideConfigurationVarName,
-                          WaiterOverrideConfiguration.class,
-                          waiter.getMaxAttempts(),
-                          FixedDelayBackoffStrategy.class,
-                          Duration.class,
-                          waiter.getDelay());
-
+            .builder();
 
         String waiterFieldName = waiterFieldName(waiterKey);
-        codeBlockBuilder.add("this.$L = $T.builder($T.class).overrideConfiguration($L).acceptors($LAcceptors())",
+        codeBlockBuilder.add("this.$L = $T.builder($T.class)"
+                             + ".acceptors($LAcceptors()).overrideConfiguration($LConfig(builder.overrideConfiguration))",
                              waiterFieldName,
                              waiterClassName,
                              ClassName.get(modelPackage, opModel.getReturnType().getReturnType()),
-                             overrideConfigurationVarName,
+                             waiterFieldName,
                              waiterFieldName);
 
         additionalWaiterConfig().ifPresent(codeBlockBuilder::add);
@@ -275,7 +301,31 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
     private Stream<MethodSpec> waiterOperations(Map.Entry<String, WaiterDefinition> waiterDefinition) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(waiterOperation(waiterDefinition));
+        methods.add(waiterOperationWithOverrideConfig(waiterDefinition));
         return methods.stream();
+    }
+
+    private MethodSpec waiterOperationWithOverrideConfig(Map.Entry<String, WaiterDefinition> waiterDefinition) {
+        String waiterMethodName = waiterDefinition.getKey();
+        OperationModel opModel = operationModel(waiterDefinition.getValue());
+
+        ClassName overrideConfig = ClassName.get(WaiterOverrideConfiguration.class);
+        ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+
+        String waiterFieldName = waiterFieldName(waiterDefinition.getKey());
+        MethodSpec.Builder builder = methodSignatureWithReturnType(waiterMethodName, opModel)
+            .addParameter(requestType, opModel.getInput().getVariableName())
+            .addParameter(overrideConfig, "overrideConfig")
+            .addModifiers(PUBLIC)
+            .addAnnotation(Override.class)
+            .addStatement("return $L.$L(() -> client.$N(applyWaitersUserAgent($N)), $LConfig(overrideConfig))",
+                          waiterFieldName,
+                          waiterClassName.simpleName().equals("Waiter") ? "run" : "runAsync",
+                          lowercaseFirstChar(waiterDefinition.getValue().getOperation()),
+                          opModel.getInput().getVariableName(),
+                          waiterFieldName);
+
+        return builder.build();
     }
 
     private MethodSpec waiterOperation(Map.Entry<String, WaiterDefinition> waiterDefinition) {

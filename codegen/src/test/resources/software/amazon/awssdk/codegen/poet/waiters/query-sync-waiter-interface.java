@@ -38,13 +38,50 @@ public interface QueryWaiter extends SdkAutoCloseable {
      * using {@link APostOperationRequest.builder()}
      *
      * @param aPostOperationRequest
-     *        the request to be used for polling
+     *        The consumer that will configure the request to be used for polling
      * @return WaiterResponse containing either a response or an exception that has matched with the waiter success
      *         condition
      */
     default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(
         Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
+    }
+
+    /**
+     * Polls {@link QueryClient#aPostOperation} API until the desired condition {@code PostOperationSuccess} is met, or
+     * until it is determined that the resource will never enter into the desired state
+     *
+     * @param aPostOperationRequest
+     *        The request to be used for polling
+     * @param overrideConfig
+     *        Per request override configuration for waiters
+     * @return WaiterResponse containing either a response or an exception that has matched with the waiter success
+     *         condition
+     */
+    default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(APostOperationRequest aPostOperationRequest,
+                                                                                 WaiterOverrideConfiguration overrideConfig) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Polls {@link QueryClient#aPostOperation} API until the desired condition {@code PostOperationSuccess} is met, or
+     * until it is determined that the resource will never enter into the desired state.
+     * <p>
+     * This is a convenience method to create an instance of the request builder and instance of the override config
+     * builder
+     *
+     * @param aPostOperationRequest
+     *        The consumer that will configure the request to be used for polling
+     * @param overrideConfig
+     *        The consumer that will configure the per request override configuration for waiters
+     * @return WaiterResponse containing either a response or an exception that has matched with the waiter success
+     *         condition
+     */
+    default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(
+        Consumer<APostOperationRequest.Builder> aPostOperationRequest,
+        Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+        return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build(),
+                                             WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
     }
 
     /**

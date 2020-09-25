@@ -36,6 +36,7 @@ import software.amazon.awssdk.services.restjsonwithwaiters.RestJsonWithWaitersCl
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesResponse;
 import software.amazon.awssdk.services.restjsonwithwaiters.waiters.RestJsonWithWaitersWaiter;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 public class WaitersSyncFunctionalTest {
 
@@ -77,7 +78,7 @@ public class WaitersSyncFunctionalTest {
     }
 
     @Test
-    public void allTypeOperationFailed_withSyncWaiter_shouldReturnException() {
+    public void allTypeOperationFailed_withSyncWaiter_shouldThrowException() {
         when(client.allTypes(any(AllTypesRequest.class))).thenThrow(SdkServiceException.builder().statusCode(200).build());
 
         WaiterResponse<AllTypesResponse> waiterResponse = waiter.waitUntilAllTypesSuccess(AllTypesRequest.builder().build());
@@ -88,9 +89,63 @@ public class WaitersSyncFunctionalTest {
 
     @Test
     public void allTypeOperationRetry_withSyncWaiter_shouldReturnResponseAfterException() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(SdkServiceException.builder().statusCode(404).build())
+                                                         .thenReturn(response);
+
+        WaiterResponse<AllTypesResponse> waiterResponse = waiter.waitUntilAllTypesSuccess(AllTypesRequest.builder().build());
+
+        assertThat(waiterResponse.attemptsExecuted()).isEqualTo(2);
+        assertThat(waiterResponse.matched().response()).hasValueSatisfying(r -> assertThat(r).isEqualTo(response));
+    }
+
+    @Test
+    public void allTypeOperationRetryMoreThanMaxAttempts_withSyncWaiter_shouldThrowException() {
+        SdkServiceException exception = SdkServiceException.builder().statusCode(404).build();
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(exception)
+                                                         .thenThrow(exception)
+                                                         .thenThrow(exception)
+                                                         .thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(AllTypesRequest.builder().build()))
+            .isInstanceOf(SdkClientException.class).hasMessageContaining("exceeded the max retry attempts");
+    }
+
+    @Test
+    public void requestOverrideConfig_shouldTakePrecedence() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                        .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                        .statusCode(200)
+                                                                                                        .build())
+                                                                        .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(SdkServiceException.builder().statusCode(404).build())
+                                                         .thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(b -> b.build(), o -> o.maxAttempts(1)))
+            .isInstanceOf(SdkClientException.class).hasMessageContaining("exceeded the max retry attempts");
+    }
+
+    @Test
+    public void unexpectedException_shouldNotRetry() {
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(new RuntimeException("blah"));
+
+        assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(b -> b.build()))
+            .hasMessageContaining("An exception was thrown and did not match any waiter acceptors")
+            .isInstanceOf(SdkClientException.class);
+    }
+    
+    @Test
+    public void unexpectedResponse_shouldRetry() {
         AllTypesResponse response1 = (AllTypesResponse) AllTypesResponse.builder()
                                                                         .sdkHttpResponse(SdkHttpResponse.builder()
-                                                                                                        .statusCode(404)
+                                                                                                        .statusCode(202)
                                                                                                         .build())
                                                                         .build();
         AllTypesResponse response2 = (AllTypesResponse) AllTypesResponse.builder()
@@ -98,8 +153,6 @@ public class WaitersSyncFunctionalTest {
                                                                                                         .statusCode(200)
                                                                                                         .build())
                                                                         .build();
-
-
         when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response1, response2);
 
         WaiterResponse<AllTypesResponse> waiterResponse = waiter.waitUntilAllTypesSuccess(AllTypesRequest.builder().build());
@@ -109,19 +162,16 @@ public class WaitersSyncFunctionalTest {
     }
 
     @Test
-    public void allTypeOperationRetryMoreThanMaxAttempts_withSyncWaiter_shouldThrowException() {
-        AllTypesResponse response1 = (AllTypesResponse) AllTypesResponse.builder()
+    public void failureResponse_shouldThrowException() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
                                                                         .sdkHttpResponse(SdkHttpResponse.builder()
-                                                                                                        .statusCode(404)
+                                                                                                        .statusCode(500)
                                                                                                         .build())
                                                                         .build();
-        AllTypesResponse response2 = (AllTypesResponse) AllTypesResponse.builder()
-                                                                        .sdkHttpResponse(SdkHttpResponse.builder()
-                                                                                                        .statusCode(200)
-                                                                                                        .build())
-                                                                        .build();
-        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response1, response1, response1, response2);
-        assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(AllTypesRequest.builder().build())).isInstanceOf(SdkClientException.class);
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(SdkBuilder::build))
+            .hasMessageContaining("A waiter acceptor was matched and transitioned the waiter to failure state")
+            .isInstanceOf(SdkClientException.class);
     }
 
     @Test
