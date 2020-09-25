@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "description": "Make the delivery-s3-bucket as an optional parameter for conformance packs and organizational conformance packs"
+}
