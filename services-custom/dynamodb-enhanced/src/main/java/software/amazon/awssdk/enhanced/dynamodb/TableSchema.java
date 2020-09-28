@@ -39,6 +39,7 @@ public interface TableSchema<T> {
     /**
      * Returns a builder for the {@link StaticTableSchema} implementation of this interface which allows all attributes,
      * tags and table structure to be directly declared in the builder.
+     *
      * @param itemClass The class of the item this {@link TableSchema} will map records to.
      * @param <T> The type of the item this {@link TableSchema} will map records to.
      * @return A newly initialized {@link StaticTableSchema.Builder}.
@@ -50,6 +51,7 @@ public interface TableSchema<T> {
     /**
      * Returns a builder for the {@link StaticImmutableTableSchema} implementation of this interface which allows all
      * attributes, tags and table structure to be directly declared in the builder.
+     *
      * @param immutableItemClass The class of the immutable item this {@link TableSchema} will map records to.
      * @param immutableBuilderClass The class that can be used to construct immutable items this {@link TableSchema}
      *                              maps records to.
@@ -66,6 +68,10 @@ public interface TableSchema<T> {
      * Scans a bean class that has been annotated with DynamoDb bean annotations and then returns a
      * {@link BeanTableSchema} implementation of this interface that can map records to and from items of that bean
      * class.
+     *
+     * Creating a {@link BeanTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
+     * usually done once at application startup.
+     *
      * @param beanClass The bean class this {@link TableSchema} will map records to.
      * @param <T> The type of the item this {@link TableSchema} will map records to.
      * @return An initialized {@link BeanTableSchema}.
@@ -78,6 +84,9 @@ public interface TableSchema<T> {
      * Scans an immutable class that has been annotated with DynamoDb immutable annotations and then returns a
      * {@link ImmutableTableSchema} implementation of this interface that can map records to and from items of that
      * immutable class.
+     *
+     * Creating a {@link ImmutableTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
+     * usually done once at application startup.
      *
      * @param immutableClass The immutable class this {@link TableSchema} will map records to.
      * @param <T> The type of the item this {@link TableSchema} will map records to.
@@ -94,6 +103,9 @@ public interface TableSchema<T> {
      * <p>
      * {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean}<br>
      * {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable}
+     *
+     * This is a moderately expensive operation, and should be performed sparingly. This is usually done once at
+     * application startup.
      *
      * @param annotatedClass A class that has been annotated with DynamoDb enhanced client annotations.
      * @param <T> The type of the item this {@link TableSchema} will map records to.
