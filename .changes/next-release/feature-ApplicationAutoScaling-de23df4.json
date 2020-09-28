@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Application Auto Scaling",
+    "description": "This release extends Application Auto Scaling support to AWS Comprehend Entity Recognizer endpoint, allowing automatic updates to provisioned Inference Units to maintain targeted utilization level."
+}
