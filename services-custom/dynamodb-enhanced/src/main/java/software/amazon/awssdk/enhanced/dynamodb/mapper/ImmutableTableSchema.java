@@ -86,8 +86,11 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmut
  *         public Customer build() { ... };
  *     }
  * }
- *
  * </pre>
+ *
+ * Creating an {@link ImmutableTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
+ * usually done once at application startup.
+ *
  * @param <T> The type of object that this {@link TableSchema} maps to.
  */
 @SdkPublicApi
@@ -101,6 +104,10 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
     /**
      * Scans an immutable class and builds an {@link ImmutableTableSchema} from it that can be used with the
      * {@link DynamoDbEnhancedClient}.
+     *
+     * Creating an {@link ImmutableTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
+     * usually done once at application startup.
+     *
      * @param immutableClass The annotated immutable class to build the table schema from.
      * @param <T> The immutable class type.
      * @return An initialized {@link ImmutableTableSchema}
