@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "description": "This release adds the InsufficientAvailableIPsInSubnetFault error for RDS Proxy."
-}
