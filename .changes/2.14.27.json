@@ -1,0 +1,16 @@
+{
+    "version": "2.14.27",
+    "date": "2020-09-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "description": "This release extends Application Auto Scaling support to AWS Comprehend Entity Recognizer endpoint, allowing automatic updates to provisioned Inference Units to maintain targeted utilization level."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "This release adds the InsufficientAvailableIPsInSubnetFault error for RDS Proxy."
+        }
+    ]
+}
