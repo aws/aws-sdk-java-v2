@@ -36,6 +36,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
+import software.amazon.awssdk.codegen.docs.WaiterDocs;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -452,7 +453,7 @@ public class AsyncClientInterface implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                          .returns(poetExtensions.getAsyncWaiterInterface())
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
-                         .addJavadoc("Creates an instance of {@link $T} object", poetExtensions.getAsyncWaiterInterface())
+                         .addJavadoc(WaiterDocs.waiterMethodInClient(poetExtensions.getAsyncWaiterInterface()))
                          .build();
     }
 }

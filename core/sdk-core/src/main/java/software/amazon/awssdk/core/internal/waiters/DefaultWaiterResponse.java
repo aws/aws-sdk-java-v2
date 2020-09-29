@@ -31,6 +31,7 @@ public final class DefaultWaiterResponse<T> implements WaiterResponse<T> {
     private final T result;
     private final Throwable exception;
     private final int attemptsExecuted;
+    private final ResponseOrException<T> matched;
 
     private DefaultWaiterResponse(Builder<T> builder) {
         mutuallyExclusive("response and exception are mutually exclusive, set only one on the Builder",
@@ -39,8 +40,10 @@ public final class DefaultWaiterResponse<T> implements WaiterResponse<T> {
         this.exception = builder.exception;
         this.attemptsExecuted = Validate.paramNotNull(builder.attemptsExecuted, "attemptsExecuted");
         Validate.isPositive(builder.attemptsExecuted, "attemptsExecuted");
+        matched = result != null ?
+                  ResponseOrException.response(result) :
+                  ResponseOrException.exception(exception);
     }
-
 
     public static <T> Builder<T> builder() {
         return new Builder<>();
@@ -48,7 +51,7 @@ public final class DefaultWaiterResponse<T> implements WaiterResponse<T> {
 
     @Override
     public ResponseOrException<T> matched() {
-        return result != null ? ResponseOrException.response(result) : ResponseOrException.exception(exception);
+        return matched;
     }
 
     @Override
@@ -89,7 +92,9 @@ public final class DefaultWaiterResponse<T> implements WaiterResponse<T> {
         ToString toString = ToString.builder("DefaultWaiterResponse")
                                     .add("attemptsExecuted", attemptsExecuted);
 
-        matched().apply(r -> toString.add("response", r), e -> toString.add("exception", e.getMessage()));
+        matched.response().ifPresent(r -> toString.add("response", result));
+        matched.exception().ifPresent(r -> toString.add("exception", exception));
+
         return toString.build();
     }
 

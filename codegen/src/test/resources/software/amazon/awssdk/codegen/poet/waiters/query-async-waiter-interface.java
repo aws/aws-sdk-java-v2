@@ -25,8 +25,9 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *
      * @param aPostOperationRequest
      *        the request to be used for polling
-     * @return CompletableFuture of the WaiterResponse containing either a response or an exception that has matched
-     *         with the waiter success condition
+     * @return CompletableFuture containing the WaiterResponse. It completes successfully when the resource enters into
+     *         a desired state or exceptionally when it is determined that the resource will never enter into the
+     *         desired state.
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
         APostOperationRequest aPostOperationRequest) {
@@ -38,7 +39,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      * met, or until it is determined that the resource will never enter into the desired state.
      * <p>
      * This is a convenience method to create an instance of the request builder without the need to create one manually
-     * using {@link APostOperationRequest.builder()}
+     * using {@link APostOperationRequest#builder()}
      *
      * @param aPostOperationRequest
      *        The consumer that will configure the request to be used for polling
@@ -97,7 +98,11 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
     }
 
     /**
-     * Create an instance of {@link QueryAsyncWaiter} with the default configuration
+     * Create an instance of {@link QueryAsyncWaiter} with the default configuration.
+     * <p>
+     * <b>A default {@link QueryAsyncClient} will be created to poll resources. It is recommended to share a single
+     * instance of the waiter created via this method. If it is not desirable to share a waiter instance, invoke
+     * {@link #close()} to release the resources once the waiter is not needed.</b>
      *
      * @return an instance of {@link QueryAsyncWaiter}
      */
@@ -130,7 +135,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
 
         /**
          * This is a convenient method to pass the override configuration without the need to create an instance
-         * manually via {@link WaiterOverrideConfiguration.builder()}
+         * manually via {@link WaiterOverrideConfiguration#builder()}
          *
          * @param overrideConfiguration
          *        The consumer that will configure the overrideConfiguration
@@ -144,7 +149,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
         }
 
         /**
-         * Sets a custom {@link QueryAsyncClient} that will be used to pool the resource
+         * Sets a custom {@link QueryAsyncClient} that will be used to poll the resource
          * <p>
          * This SDK client must be closed by the caller when it is ready to be disposed. The SDK will not close the
          * client when the waiter is closed

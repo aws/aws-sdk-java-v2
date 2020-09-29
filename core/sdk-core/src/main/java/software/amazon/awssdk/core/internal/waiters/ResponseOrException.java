@@ -16,74 +16,53 @@
 package software.amazon.awssdk.core.internal.waiters;
 
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Represents a value that can be either a response or a Throwable
  *
  * @param <R> response type
  */
-@SdkProtectedApi
+@SdkPublicApi
 public final class ResponseOrException<R> {
 
     private final Optional<R> response;
     private final Optional<Throwable> exception;
 
-    private ResponseOrException(Optional<R> l, Optional<Throwable> r) {
-        response = l;
-        exception = r;
+    private ResponseOrException(Optional<R> response, Optional<Throwable> exception) {
+        this.response = response;
+        this.exception = exception;
     }
 
     /**
-     * Maps the Either to a type and returns the resolved value (which may be from the left or the right value).
-     *
-     * @param lFunc Function that maps the left value if present.
-     * @param rFunc Function that maps the right value if present.
-     * @param <T>   Type that both the left and right should be mapped to.
-     * @return Mapped value from either lFunc or rFunc depending on which value is present.
+     * @return the optional response that has matched with the waiter success condition
      */
-    public <T> T map(
-            Function<? super R, ? extends T> lFunc,
-            Function<? super Throwable, ? extends T> rFunc) {
-        return response.<T>map(lFunc).orElseGet(() -> exception.map(rFunc).get());
-    }
-
     public Optional<R> response() {
         return response;
     }
 
+    /**
+     * @return the optional exception that has matched with the waiter success condition
+     */
     public Optional<Throwable> exception() {
         return exception;
     }
 
     /**
-     * Apply the consumers to the left or the right value depending on which is present.
+     * Create a new ResponseOrException with the response
      *
-     * @param lFunc Consumer of left value, invoked if left value is present.
-     * @param rFunc Consumer of right value, invoked if right value is present.
-     */
-    public void apply(Consumer<? super R> lFunc, Consumer<? super Throwable> rFunc) {
-        response.ifPresent(lFunc);
-        exception.ifPresent(rFunc);
-    }
-
-    /**
-     * Create a new Either with the left type.
-     *
-     * @param value Left value
-     * @param <R>   Left type
+     * @param value response
+     * @param <R> Response type
      */
     public static <R> ResponseOrException<R> response(R value) {
         return new ResponseOrException<>(Optional.of(value), Optional.empty());
     }
 
     /**
-     * Create a new Either with the right type.
+     * Create a new ResponseOrException with the exception
      *
-     * @param value Right value
-     * @param <R>   Left type
+     * @param value exception
+     * @param <R> Response type
      */
     public static <R> ResponseOrException<R> exception(Throwable value) {
         return new ResponseOrException<>(Optional.empty(), Optional.of(value));

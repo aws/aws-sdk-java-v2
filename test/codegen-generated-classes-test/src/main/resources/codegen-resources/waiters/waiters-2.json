@@ -17,6 +17,11 @@
           "expected": 404
         },
         {
+          "matcher": "error",
+          "expected": "EmptyModeledException",
+          "state": "failure"
+        },
+        {
           "state": "failure",
           "matcher": "status",
           "expected": 500
