@@ -251,6 +251,7 @@
         <module>redshiftdata</module>
         <module>ssoadmin</module>
         <module>timestreamwrite</module>
+        <module>timestreamquery</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
