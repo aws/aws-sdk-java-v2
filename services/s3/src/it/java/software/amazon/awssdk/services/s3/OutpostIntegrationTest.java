@@ -20,27 +20,19 @@ import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_P
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.internal.resource.S3OutpostAccessPointBuilder;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 
-/**
- * To run the test, change line 84 in {@link S3OutpostAccessPointBuilder#toUri()}
- * to String uriString = String.format("%s://%s-%s.%s.beta.%s.seaport.aws.a2z.com", protocol, accessPointName, accountId, outpostId, region);
- *
- * //TODO: change to use prod endpoint when it's ready
- */
 public class OutpostIntegrationTest {
     private static final String ROLE_ARN = "arn:aws:iam::586467309111:role/SeaportTestingRole";
-    private static final String BUCKET_ARN = "arn:aws:s3-outposts:us-east-1:586467309111:outpost/ec2-internal/accesspoint/sdk-integration";
-    private static final String KEY = "java-sdk-v1-outposts";
+    private static final String BUCKET_ARN = "arn:aws:s3-outposts:us-west-2:586467309111:outpost/ec2/accesspoint/zjiazhenap0917";
+    private static final String KEY = "java-sdk-v2-outposts";
     public static final byte[] BYTES = "helloworld".getBytes();
 
     private static StsClient securityTokenService;
@@ -81,7 +73,6 @@ public class OutpostIntegrationTest {
     }
 
     @Test
-    @Ignore("Temporary integ test to make sure there's no regression during development")
     public void sync() {
         PutObjectResponse putObjectResult = s3Client.putObject(b -> b.bucket(BUCKET_ARN).key(KEY), RequestBody.fromBytes(
             BYTES));
@@ -89,7 +80,6 @@ public class OutpostIntegrationTest {
     }
 
     @Test
-    @Ignore("Temporary integ test to make sure there's no regression during development")
     public void async() {
         PutObjectResponse putObjectResult = s3AsyncClient.putObject(b -> b.bucket(BUCKET_ARN).key(KEY), AsyncRequestBody.fromBytes(
             BYTES)).join();
