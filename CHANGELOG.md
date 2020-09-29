@@ -1,3 +1,32 @@
+# __2.14.28__ __2020-09-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Update TagResource API documentation to include Contact Flows and Routing Profiles as supported resources.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Client to Client routing for AWS Client VPN.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Simple update to description of ComplianceItemStatus.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - (New Service) Amazon Timestream is a fast, scalable, fully managed, purpose-built time series database that makes it easy to store and analyze trillions of time series data points per day.
+
+## __Amazon Timestream Write__
+  - ### Features
+    - (New Service) Amazon Timestream is a fast, scalable, fully managed, purpose-built time series database that makes it easy to store and analyze trillions of time series data points per day.
+
+## __Schemas__
+  - ### Features
+    - Added support for schemas of type JSONSchemaDraft4. Added ExportSchema API that converts schemas in AWS Events registry and Discovered schemas from OpenApi3 to JSONSchemaDraft4.
+
 # __2.14.27__ __2020-09-28__
 ## __Amazon Relational Database Service__
   - ### Features
