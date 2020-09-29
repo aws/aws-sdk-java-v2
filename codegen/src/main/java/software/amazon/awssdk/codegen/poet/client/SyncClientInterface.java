@@ -36,6 +36,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
+import software.amazon.awssdk.codegen.docs.WaiterDocs;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -465,7 +466,7 @@ public final class SyncClientInterface implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .returns(poetExtensions.getSyncWaiterInterface())
-                         .addJavadoc("Creates an instance of {@link $T} object", poetExtensions.getSyncWaiterInterface())
+                         .addJavadoc(WaiterDocs.waiterMethodInClient(poetExtensions.getSyncWaiterInterface()))
                          .build();
     }
 }

@@ -29,6 +29,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.restjsonwithwaiters.RestJsonWithWaitersAsyncClient;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesResponse;
+import software.amazon.awssdk.services.restjsonwithwaiters.model.EmptyModeledException;
 import software.amazon.awssdk.services.restjsonwithwaiters.waiters.RestJsonWithWaitersAsyncWaiter;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -180,6 +182,18 @@ public class WaitersAsyncFunctionalTest {
                                                                                                                  .build())
                                                                                  .build());
         when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(future);
+        assertThatThrownBy(() -> asyncWaiter.waitUntilAllTypesSuccess(SdkBuilder::build).join())
+            .hasMessageContaining("transitioned the waiter to failure state")
+            .hasCauseInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void failureException_shouldThrowException() {
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(CompletableFutureUtils.failedFuture(EmptyModeledException.builder()
+                                                                                                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                                                                                                   .errorCode("EmptyModeledException")
+                                                                                                                                                                   .build())
+                                                                                                                                   .build()));
         assertThatThrownBy(() -> asyncWaiter.waitUntilAllTypesSuccess(SdkBuilder::build).join())
             .hasMessageContaining("transitioned the waiter to failure state")
             .hasCauseInstanceOf(SdkClientException.class);

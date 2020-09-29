@@ -67,7 +67,8 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
                                    .build());
         result.addMethod(MethodSpec.methodBuilder("create")
                                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                                   .addJavadoc(WaiterDocs.waiterCreateMethodJavadoc(className()))
+                                   .addJavadoc(WaiterDocs.waiterCreateMethodJavadoc(className(),
+                                                                                    clientClassName()))
                                    .returns(className())
                                    .addStatement("return $T.builder().build()", waiterImplName())
                                    .build());

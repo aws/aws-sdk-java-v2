@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.restjsonwithwaiters.RestJsonWithWaitersClient;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesResponse;
+import software.amazon.awssdk.services.restjsonwithwaiters.model.EmptyModeledException;
 import software.amazon.awssdk.services.restjsonwithwaiters.waiters.RestJsonWithWaitersWaiter;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -140,7 +142,19 @@ public class WaitersSyncFunctionalTest {
             .hasMessageContaining("An exception was thrown and did not match any waiter acceptors")
             .isInstanceOf(SdkClientException.class);
     }
-    
+
+    @Test
+    public void failureException_shouldThrowException() {
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(EmptyModeledException.builder()
+                                                                                         .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                                                         .errorCode("EmptyModeledException")
+                                                                                                                         .build())
+                                                                                         .build());
+        assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(SdkBuilder::build))
+            .hasMessageContaining("transitioned the waiter to failure state")
+            .isInstanceOf(SdkClientException.class);
+    }
+
     @Test
     public void unexpectedResponse_shouldRetry() {
         AllTypesResponse response1 = (AllTypesResponse) AllTypesResponse.builder()

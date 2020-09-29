@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -29,9 +30,11 @@ import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbAsyncWaiter;
 import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
@@ -69,6 +72,13 @@ public class WaitersIntegrationTest extends DynamoDBTestBase {
     public static void cleanUp() {
         dynamo.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
 
+        WaiterResponse<DescribeTableResponse> waiterResponse =
+            dynamo.waiter().waitUntilTableNotExists(b -> b.tableName(TABLE_NAME));
+
+        assertThat(waiterResponse.matched().response()).isEmpty();
+        assertThat(waiterResponse.matched().exception()).hasValueSatisfying(
+            new Condition<>(t -> t instanceof ResourceNotFoundException, "ResourceNotFoundException"));
+
         dynamo.close();
         dynamoAsync.close();
     }
@@ -80,19 +90,20 @@ public class WaitersIntegrationTest extends DynamoDBTestBase {
             DescribeTableRequest.builder().tableName(TABLE_NAME).build());
 
         assertThat(response.attemptsExecuted()).isGreaterThanOrEqualTo(1);
-        assertThat(response.matched().response().get().table().tableName()).isEqualTo(TABLE_NAME);
+        assertThat(response.matched().response()).hasValueSatisfying(b -> assertThat(b.table().tableName()).isEqualTo(TABLE_NAME));
+        assertThat(response.matched().exception()).isEmpty();
     }
 
     @Test
-    public void checkTableExist_withAsyncWaiter() throws ExecutionException, InterruptedException {
+    public void checkTableExist_withAsyncWaiter() {
         DynamoDbAsyncWaiter asyncWaiter = dynamoAsync.waiter();
         CompletableFuture<WaiterResponse<DescribeTableResponse>> responseFuture = asyncWaiter.waitUntilTableExists(
             DescribeTableRequest.builder().tableName(TABLE_NAME).build());
 
-        responseFuture.join();
+        WaiterResponse<DescribeTableResponse> response = responseFuture.join();
 
-        assertThat(responseFuture.get().attemptsExecuted()).isGreaterThanOrEqualTo(1);
-        assertThat(responseFuture.get().matched().response().get().table().tableName()).isEqualTo(TABLE_NAME);
+        assertThat(response.attemptsExecuted()).isGreaterThanOrEqualTo(1);
+        assertThat(response.matched().response()).hasValueSatisfying(b -> assertThat(b.table().tableName()).isEqualTo(TABLE_NAME));
+        assertThat(response.matched().exception()).isEmpty();
     }
-
 }
