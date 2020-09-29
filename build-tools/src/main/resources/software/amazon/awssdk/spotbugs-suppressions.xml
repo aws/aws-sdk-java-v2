@@ -172,6 +172,14 @@
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 
+    <!-- See SpotBugs bug: https://github.com/spotbugs/spotbugs/issues/600, https://github.com/spotbugs/spotbugs/issues/756 -->
+    <Match>
+        <Class name="software.amazon.awssdk.codegen.emitters.CodeWriter"/>
+        <Method name="flush"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+
     <!-- If we're not sure about the RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT, skip the warning. -->
     <Match>
         <Package name="~software.amazon.awssdk.http.nio.netty.*"/>
@@ -184,5 +192,23 @@
     <Match>
         <Class name="software.amazon.awssdk.core.internal.waiters.ResponseOrException"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+    </Match>
+
+    <Match>
+        <Package name="~software.amazon.awssdk.http.*"/>
+        <Bug pattern="URF_UNREAD_FIELD, RV_RETURN_VALUE_IGNORED"/>
+    </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.internal.AwsCrtResponseBodyPublisher" />
+        <Method name="subscribe"/>
+        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
+    </Match>
+
+    <!-- on some java versions, the try-with-resources byte code is getting flagged by this -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient" />
+        <Method name="execute"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 </FindBugsFilter>

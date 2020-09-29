@@ -1,0 +1,46 @@
+{
+    "version": "2.14.22",
+    "date": "2020-09-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups",
+            "description": "Documentation updates and corrections for Resource Groups API Reference and SDKs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "description": "Add support for Redshift Data API Targets"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "description": "This release supports IAM mode for SiteWise Monitor portals"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "description": "Documentation updates for the Resource Groups Tagging API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "Adding support to update multiple partitions of a table in a single request"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Documentation updates for the RDS DescribeExportTasks API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "description": "Add support for Redshift Data API Targets"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

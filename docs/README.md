@@ -11,7 +11,7 @@
 
 ## SDK Development
 
-- [Contribution Guide](../Contributing.md) - How to contribute to the
+- [Contribution Guide](../CONTRIBUTING.md) - How to contribute to the
   SDK.
 - [Design](design/README.md) - Documents summarizing: (1) design
   decisions and standards of the SDK, (2) design for new features, and

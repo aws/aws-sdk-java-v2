@@ -17,11 +17,14 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
+import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME;
+import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_SOURCE_PATH_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.AsyncClientInterface.STREAMING_TYPE_VARIABLE;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -342,17 +345,21 @@ public final class SyncClientInterface implements ClassSpec {
      * @return Simple method for streaming input operations to read data from a file.
      */
     private MethodSpec uploadFromFileSimpleMethod(OperationModel opModel, TypeName responseType, ClassName requestType) {
-        return MethodSpec.methodBuilder(opModel.getMethodName())
+        String methodName = opModel.getMethodName();
+        ParameterSpec inputVarParam = ParameterSpec.builder(requestType, opModel.getInput().getVariableName()).build();
+        ParameterSpec srcPathParam = ParameterSpec.builder(ClassName.get(Path.class),
+                                                              SYNC_CLIENT_SOURCE_PATH_PARAM_NAME).build();
+        return MethodSpec.methodBuilder(methodName)
                          .returns(responseType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
-                         .addParameter(requestType, opModel.getInput().getVariableName())
-                         .addParameter(ClassName.get(Path.class), "filePath")
+                         .addParameter(inputVarParam)
+                         .addParameter(srcPathParam)
                          .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.FILE))
                          .addExceptions(getExceptionClasses(model, opModel))
-                         .addStatement("return $L($L, $T.fromFile($L))", opModel.getMethodName(),
-                                       opModel.getInput().getVariableName(),
+                         .addStatement("return $L($N, $T.fromFile($N))", methodName,
+                                       inputVarParam,
                                        ClassName.get(RequestBody.class),
-                                       "filePath")
+                                       srcPathParam)
                          .build();
     }
 
@@ -394,17 +401,21 @@ public final class SyncClientInterface implements ClassSpec {
      * @return Simple method for streaming output operations to write response content to a file.
      */
     private MethodSpec downloadToFileSimpleMethod(OperationModel opModel, TypeName responseType, ClassName requestType) {
-        return MethodSpec.methodBuilder(opModel.getMethodName())
+        String methodName = opModel.getMethodName();
+        ParameterSpec inputVarParam = ParameterSpec.builder(requestType, opModel.getInput().getVariableName()).build();
+        ParameterSpec dstFileParam =
+            ParameterSpec.builder(ClassName.get(Path.class), SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME).build();
+        return MethodSpec.methodBuilder(methodName)
                          .returns(responseType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
-                         .addParameter(requestType, opModel.getInput().getVariableName())
-                         .addParameter(ClassName.get(Path.class), "filePath")
+                         .addParameter(inputVarParam)
+                         .addParameter(dstFileParam)
                          .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.FILE))
                          .addExceptions(getExceptionClasses(model, opModel))
-                         .addStatement("return $L($L, $T.toFile($L))", opModel.getMethodName(),
-                                       opModel.getInput().getVariableName(),
+                         .addStatement("return $L($N, $T.toFile($N))", methodName,
+                                       inputVarParam,
                                        ClassName.get(ResponseTransformer.class),
-                                       "filePath")
+                                       dstFileParam)
                          .build();
     }
 
@@ -415,19 +426,25 @@ public final class SyncClientInterface implements ClassSpec {
     private MethodSpec streamingInputOutputFileSimpleMethod(OperationModel opModel,
                                                             TypeName responseType,
                                                             ClassName requestType) {
-        return MethodSpec.methodBuilder(opModel.getMethodName())
+        String methodName = opModel.getMethodName();
+        ParameterSpec inputVarParam = ParameterSpec.builder(requestType, opModel.getInput().getVariableName()).build();
+        ParameterSpec srcFileParam = ParameterSpec.builder(ClassName.get(Path.class), SYNC_CLIENT_SOURCE_PATH_PARAM_NAME).build();
+        ParameterSpec dstFileParam =
+            ParameterSpec.builder(ClassName.get(Path.class), SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME).build();
+        return MethodSpec.methodBuilder(methodName)
                          .returns(responseType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
-                         .addParameter(requestType, opModel.getInput().getVariableName())
-                         .addParameter(ClassName.get(Path.class), "sourcePath")
-                         .addParameter(ClassName.get(Path.class), "destinationPath")
+                         .addParameter(inputVarParam)
+                         .addParameter(srcFileParam)
+                         .addParameter(dstFileParam)
                          .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.FILE))
                          .addExceptions(getExceptionClasses(model, opModel))
-                         .addStatement("return $L($L, $T.fromFile(sourcePath), $T.toFile(destinationPath))",
-                                       opModel.getMethodName(),
-                                       opModel.getInput().getVariableName(),
-                                       ClassName.get(RequestBody.class),
-                                       ClassName.get(ResponseTransformer.class))
+                         .addStatement("return $L($N, $T.fromFile($N), $T.toFile($N))",
+                                       methodName,
+                                       inputVarParam,
+                                       ClassName.get(RequestBody.class), srcFileParam,
+                                       ClassName.get(ResponseTransformer.class),
+                                       dstFileParam)
                          .build();
     }
 

@@ -17,36 +17,36 @@ package software.amazon.awssdk.codegen.model.intermediate;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.codegen.TestStringUtils.toPlatformLfs;
 
 import org.junit.Test;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
-
 
 public class DocumentationBuilderTest {
 
     @Test
     public void javadocFormattedCorrectly() {
         String docs = new DocumentationBuilder()
-                .description("Some service docs")
-                .param("paramOne", "param one docs")
-                .param("paramTwo", "param two docs")
-                .returns("This returns something")
-                .syncThrows("FooException", "Thrown when foo happens")
-                .syncThrows("BarException", "Thrown when bar happens")
-                .tag("sample", "FooService.FooOperation")
-                .see("this thing")
-                .see("this other thing")
-                .build();
-        assertThat(docs).isEqualTo("Some service docs\n" +
-                                   "\n" +
-                                   "@param paramOne param one docs\n" +
-                                   "@param paramTwo param two docs\n" +
-                                   "@return This returns something\n" +
-                                   "@throws FooException Thrown when foo happens\n" +
-                                   "@throws BarException Thrown when bar happens\n" +
-                                   "@sample FooService.FooOperation\n" +
-                                   "@see this thing\n" +
-                                   "@see this other thing\n");
+            .description("Some service docs")
+            .param("paramOne", "param one docs")
+            .param("paramTwo", "param two docs")
+            .returns("This returns something")
+            .syncThrows("FooException", "Thrown when foo happens")
+            .syncThrows("BarException", "Thrown when bar happens")
+            .tag("sample", "FooService.FooOperation")
+            .see("this thing")
+            .see("this other thing")
+            .build();
+        assertThat(docs).isEqualTo(toPlatformLfs("Some service docs\n" +
+                                                 "\n" +
+                                                 "@param paramOne param one docs\n" +
+                                                 "@param paramTwo param two docs\n" +
+                                                 "@return This returns something\n" +
+                                                 "@throws FooException Thrown when foo happens\n" +
+                                                 "@throws BarException Thrown when bar happens\n" +
+                                                 "@sample FooService.FooOperation\n" +
+                                                 "@see this thing\n" +
+                                                 "@see this other thing\n"));
     }
 
     /**
@@ -57,55 +57,55 @@ public class DocumentationBuilderTest {
     @Test
     public void asyncReturns_FormatsExceptionsInUnorderedList() {
         String docs = new DocumentationBuilder()
-                .description("Some service docs")
-                .param("paramOne", "param one docs")
-                .returns("CompletableFuture of success")
-                .asyncThrows("FooException", "Foo docs")
-                .asyncThrows("BarException", "Bar docs")
-                .build();
-        assertThat(docs).isEqualTo("Some service docs\n" +
-                                   "\n" +
-                                   "@param paramOne param one docs\n" +
-                                   "@return CompletableFuture of success<br/>\n" +
-                                   "The CompletableFuture returned by this method can be completed exceptionally with the following exceptions.\n" +
-                                   "<ul>\n" +
-                                   "<li>FooException Foo docs</li>\n" +
-                                   "<li>BarException Bar docs</li>\n" +
-                                   "</ul>\n");
+            .description("Some service docs")
+            .param("paramOne", "param one docs")
+            .returns("CompletableFuture of success")
+            .asyncThrows("FooException", "Foo docs")
+            .asyncThrows("BarException", "Bar docs")
+            .build();
+        assertThat(docs).isEqualTo(toPlatformLfs("Some service docs\n" +
+                                                 "\n" +
+                                                 "@param paramOne param one docs\n" +
+                                                 "@return CompletableFuture of success<br/>\n" +
+                                                 "The CompletableFuture returned by this method can be completed exceptionally with the following exceptions.\n" +
+                                                 "<ul>\n" +
+                                                 "<li>FooException Foo docs</li>\n" +
+                                                 "<li>BarException Bar docs</li>\n" +
+                                                 "</ul>\n"));
 
     }
 
     @Test
     public void asyncReturnsWithoutDocsForSuccessReturn_FormatsExceptionsInUnorderedList() {
         String docs = new DocumentationBuilder()
-                .description("Some service docs")
-                .param("paramOne", "param one docs")
-                .asyncThrows("FooException", "Foo docs")
-                .asyncThrows("BarException", "Bar docs")
-                .build();
-        assertThat(docs).isEqualTo("Some service docs\n" +
-                                   "\n" +
-                                   "@param paramOne param one docs\n" +
-                                   "@return A CompletableFuture indicating when result will be completed.<br/>\n" +
-                                   "The CompletableFuture returned by this method can be completed exceptionally with the following exceptions.\n" +
-                                   "<ul>\n" +
-                                   "<li>FooException Foo docs</li>\n" +
-                                   "<li>BarException Bar docs</li>\n" +
-                                   "</ul>\n");
+            .description("Some service docs")
+            .param("paramOne", "param one docs")
+            .asyncThrows("FooException", "Foo docs")
+            .asyncThrows("BarException", "Bar docs")
+            .build();
+        assertThat(docs).isEqualTo(toPlatformLfs("Some service docs\n" +
+                                                 "\n" +
+                                                 "@param paramOne param one docs\n" +
+                                                 "@return A CompletableFuture indicating when result will be completed.<br/>\n" +
+                                                 "The CompletableFuture returned by this method can be completed exceptionally with the following exceptions.\n" +
+                                                 "<ul>\n" +
+                                                 "<li>FooException Foo docs</li>\n" +
+                                                 "<li>BarException Bar docs</li>\n" +
+                                                 "</ul>\n"));
     }
 
     @Test
     public void missingValuesAreNotPresent() {
         String docs = new DocumentationBuilder()
-                .description("Some service docs")
-                .build();
-        assertThat(docs).isEqualTo("Some service docs\n\n");
+            .description("Some service docs")
+            .build();
+        assertThat(docs).isEqualTo(toPlatformLfs("Some service docs\n\n"));
     }
 
     @Test
     public void allValuesMissing_ProducesEmptyDocString() {
         String docs = new DocumentationBuilder()
-                .build();
+            .build();
         assertThat(docs).isEqualTo("");
     }
 

@@ -249,10 +249,10 @@ public class StabilityTestRunner {
             log.error(() -> "An exception was thrown ", t);
             if (cause instanceof SdkServiceException) {
                 exceptionCounter.addServiceException();
-            } else if (isIOException(cause)) {
+            } else if (isIOExceptionOrHasIOCause(cause)) {
                 exceptionCounter.addIoException();
             } else if (cause instanceof SdkClientException) {
-                if (isIOException(cause.getCause())) {
+                if (isIOExceptionOrHasIOCause(cause.getCause())) {
                     exceptionCounter.addIoException();
                 } else {
                     exceptionCounter.addClientException();
@@ -264,8 +264,8 @@ public class StabilityTestRunner {
         });
     }
 
-    private static boolean isIOException(Throwable throwable) {
-        return throwable.getClass().isAssignableFrom(IOException.class);
+    private static boolean isIOExceptionOrHasIOCause(Throwable throwable) {
+        return throwable instanceof IOException || throwable.getCause() instanceof IOException;
     }
 
     private TestResult generateTestResult(int totalRequestNumber, String testName, ExceptionCounter exceptionCounter,

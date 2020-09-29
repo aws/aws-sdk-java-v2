@@ -37,5 +37,4 @@ public interface AsyncRequestBodySigner {
      */
     AsyncRequestBody signAsyncRequestBody(SdkHttpFullRequest request, AsyncRequestBody asyncRequestBody,
         ExecutionAttributes executionAttributes);
-
 }

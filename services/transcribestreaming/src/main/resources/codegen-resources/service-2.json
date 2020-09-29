@@ -173,6 +173,10 @@
       "max":48000,
       "min":8000
     },
+    "NumberOfChannels":{
+      "type":"integer",
+      "min":2
+    },
     "RequestId":{"type":"string"},
     "Result":{
       "type":"structure",
@@ -196,6 +200,10 @@
         "Alternatives":{
           "shape":"AlternativeList",
           "documentation":"<p>A list of possible transcriptions for the audio. Each alternative typically contains one <code>item</code> that contains the result of the transcription.</p>"
+        },
+        "ChannelId":{
+          "shape":"String",
+          "documentation":"<p>When channel identification is enabled, Amazon Transcribe transcribes the speech from each audio channel separately.</p> <p>You can use <code>ChannelId</code> to retrieve the transcription results for a single channel in your audio stream.</p>"
         }
       },
       "documentation":"<p>The result of transcribing a portion of the input audio stream. </p>"
@@ -215,6 +223,8 @@
     },
     "SessionId":{
       "type":"string",
+      "max":36,
+      "min":36,
       "pattern":"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
     },
     "StartStreamTranscriptionRequest":{
@@ -277,6 +287,18 @@
           "documentation":"<p>When <code>true</code>, enables speaker identification in your real-time stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-show-speaker-label"
+        },
+        "EnableChannelIdentification":{
+          "shape":"Boolean",
+          "documentation":"<p>When <code>true</code>, instructs Amazon Transcribe to process each audio channel separately and then merge the transcription output of each channel into a single transcription.</p> <p>Amazon Transcribe also produces a transcription of each item. An item includes the start time, end time, and any alternative transcriptions.</p> <p>You can't set both <code>ShowSpeakerLabel</code> and <code>EnableChannelIdentification</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-enable-channel-identification"
+        },
+        "NumberOfChannels":{
+          "shape":"NumberOfChannels",
+          "documentation":"<p>The number of channels that are in your audio stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-number-of-channels"
         }
       },
       "payload":"AudioStream"
@@ -341,6 +363,18 @@
           "documentation":"<p>Shows whether speaker identification was enabled in the stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-show-speaker-label"
+        },
+        "EnableChannelIdentification":{
+          "shape":"Boolean",
+          "documentation":"<p>Shows whether channel identification has been enabled in the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-enable-channel-identification"
+        },
+        "NumberOfChannels":{
+          "shape":"NumberOfChannels",
+          "documentation":"<p>The number of channels identified in the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-number-of-channels"
         }
       },
       "payload":"TranscriptResultStream"

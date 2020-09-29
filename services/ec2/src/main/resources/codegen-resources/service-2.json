@@ -464,7 +464,7 @@
       },
       "input":{"shape":"CreateCustomerGatewayRequest"},
       "output":{"shape":"CreateCustomerGatewayResult"},
-      "documentation":"<p>Provides information to AWS about your VPN customer gateway device. The customer gateway is the appliance at your end of the VPN connection. (The device on the AWS side of the VPN connection is the virtual private gateway.) You must provide the Internet-routable IP address of the customer gateway's external interface. The IP address must be static and can be behind a device performing network address translation (NAT).</p> <p>For devices that use Border Gateway Protocol (BGP), you can also provide the device's BGP Autonomous System Number (ASN). You can use an existing ASN assigned to your network. If you don't have an ASN already, you can use a private ASN (in the 64512 - 65534 range).</p> <note> <p>Amazon EC2 supports all 2-byte ASN numbers in the range of 1 - 65534, with the exception of 7224, which is reserved in the <code>us-east-1</code> Region, and 9059, which is reserved in the <code>eu-west-1</code> Region.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p> <important> <p>To create more than one customer gateway with the same VPN type, IP address, and BGP ASN, specify a unique device name for each customer gateway. Identical requests return information about the existing customer gateway and do not create new customer gateways.</p> </important>"
+      "documentation":"<p>Provides information to AWS about your VPN customer gateway device. The customer gateway is the appliance at your end of the VPN connection. (The device on the AWS side of the VPN connection is the virtual private gateway.) You must provide the internet-routable IP address of the customer gateway's external interface. The IP address must be static and can be behind a device performing network address translation (NAT).</p> <p>For devices that use Border Gateway Protocol (BGP), you can also provide the device's BGP Autonomous System Number (ASN). You can use an existing ASN assigned to your network. If you don't have an ASN already, you can use a private ASN (in the 64512 - 65534 range).</p> <note> <p>Amazon EC2 supports all 4-byte ASN numbers in the range of 1 - 2147483647, with the exception of the following:</p> <ul> <li> <p>7224 - reserved in the <code>us-east-1</code> Region</p> </li> <li> <p>9059 - reserved in the <code>eu-west-1</code> Region</p> </li> <li> <p>17943 - reserved in the <code>ap-southeast-1</code> Region</p> </li> <li> <p>10124 - reserved in the <code>ap-northeast-1</code> Region</p> </li> </ul> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p> <important> <p>To create more than one customer gateway with the same VPN type, IP address, and BGP ASN, specify a unique device name for each customer gateway. Identical requests return information about the existing customer gateway and do not create new customer gateways.</p> </important>"
     },
     "CreateDefaultSubnet":{
       "name":"CreateDefaultSubnet",
@@ -3594,6 +3594,16 @@
       "input":{"shape":"ModifyVpnConnectionRequest"},
       "output":{"shape":"ModifyVpnConnectionResult"},
       "documentation":"<p>Modifies the customer gateway or the target gateway of an AWS Site-to-Site VPN connection. To modify the target gateway, the following migration options are available:</p> <ul> <li> <p>An existing virtual private gateway to a new virtual private gateway</p> </li> <li> <p>An existing virtual private gateway to a transit gateway</p> </li> <li> <p>An existing transit gateway to a new transit gateway</p> </li> <li> <p>An existing transit gateway to a virtual private gateway</p> </li> </ul> <p>Before you perform the migration to the new gateway, you must configure the new gateway. Use <a>CreateVpnGateway</a> to create a virtual private gateway, or <a>CreateTransitGateway</a> to create a transit gateway.</p> <p>This step is required when you migrate from a virtual private gateway with static routes to a transit gateway. </p> <p>You must delete the static routes before you migrate to the new gateway.</p> <p>Keep a copy of the static route before you delete it. You will need to add back these routes to the transit gateway after the VPN connection migration is complete.</p> <p>After you migrate to the new gateway, you might need to modify your VPC route table. Use <a>CreateRoute</a> and <a>DeleteRoute</a> to make the changes described in <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/modify-vpn-target.html#step-update-routing\">VPN Gateway Target Modification Required VPC Route Table Updates</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p> <p> When the new gateway is a transit gateway, modify the transit gateway route table to allow traffic between the VPC and the AWS Site-to-Site VPN connection. Use <a>CreateTransitGatewayRoute</a> to add the routes.</p> <p> If you deleted VPN static routes, you must add the static routes to the transit gateway route table.</p> <p>After you perform this operation, the AWS VPN endpoint's IP addresses on the AWS side and the tunnel options remain intact. Your AWS Site-to-Site VPN connection will be temporarily unavailable for a brief period while we provision the new endpoints.</p>"
+    },
+    "ModifyVpnConnectionOptions":{
+      "name":"ModifyVpnConnectionOptions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyVpnConnectionOptionsRequest"},
+      "output":{"shape":"ModifyVpnConnectionOptionsResult"},
+      "documentation":"<p>Modifies the connection options for your Site-to-Site VPN VPN connection.</p> <p>When you modify the VPN connection options, the VPN endpoint IP addresses on the AWS side do not change, and the tunnel options do not change. Your VPN connection will be temporarily unavailable for a brief period while the VPN connection is updated.</p>"
     },
     "ModifyVpnTunnelCertificate":{
       "name":"ModifyVpnTunnelCertificate",
@@ -16114,7 +16124,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>association.state</code> - The state of the association (<code>associating</code> | <code>associated</code> | <code>disassociating</code>).</p> </li> <li> <p> <code>association.transit-gateway-route-table-id</code> - The ID of the route table for the transit gateway.</p> </li> <li> <p> <code>resource-id</code> - The ID of the resource.</p> </li> <li> <p> <code>resource-owner-id</code> - The ID of the AWS account that owns the resource.</p> </li> <li> <p> <code>resource-type</code> - The resource type (<code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>tgw-peering</code>).</p> </li> <li> <p> <code>state</code> - The state of the attachment (<code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>).</p> </li> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> <li> <p> <code>transit-gateway-owner-id</code> - The ID of the AWS account that owns the transit gateway.</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>association.state</code> - The state of the association (<code>associating</code> | <code>associated</code> | <code>disassociating</code>).</p> </li> <li> <p> <code>association.transit-gateway-route-table-id</code> - The ID of the route table for the transit gateway.</p> </li> <li> <p> <code>resource-id</code> - The ID of the resource.</p> </li> <li> <p> <code>resource-owner-id</code> - The ID of the AWS account that owns the resource.</p> </li> <li> <p> <code>resource-type</code> - The resource type. Valid values are <code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>peering</code>.</p> </li> <li> <p> <code>state</code> - The state of the attachment. Valid values are <code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>failing</code> | <code>initiatingRequest</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>.</p> </li> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> <li> <p> <code>transit-gateway-owner-id</code> - The ID of the AWS account that owns the transit gateway.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -16196,7 +16206,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the transit gateway attachment.</p> </li> <li> <p> <code>local-owner-id</code> - The ID of your AWS account.</p> </li> <li> <p> <code>remote-owner-id</code> - The ID of the AWS account in the remote Region that owns the transit gateway.</p> </li> <li> <p> <code>state</code> - The state of the peering attachment (<code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>).</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the transit gateway attachment.</p> </li> <li> <p> <code>local-owner-id</code> - The ID of your AWS account.</p> </li> <li> <p> <code>remote-owner-id</code> - The ID of the AWS account in the remote Region that owns the transit gateway.</p> </li> <li> <p> <code>state</code> - The state of the peering attachment. Valid values are <code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>failing</code> | <code>initiatingRequest</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>).</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -16237,7 +16247,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>default-association-route-table</code> - Indicates whether this is the default association route table for the transit gateway (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>default-propagation-route-table</code> - Indicates whether this is the default propagation route table for the transit gateway (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>state</code> - The state of the attachment (<code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>).</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> <li> <p> <code>transit-gateway-route-table-id</code> - The ID of the transit gateway route table.</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>default-association-route-table</code> - Indicates whether this is the default association route table for the transit gateway (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>default-propagation-route-table</code> - Indicates whether this is the default propagation route table for the transit gateway (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>state</code> - The state of the route table (<code>available</code> | <code>deleting</code> | <code>deleted</code> | <code>pending</code>).</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> <li> <p> <code>transit-gateway-route-table-id</code> - The ID of the transit gateway route table.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -16278,7 +16288,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>state</code> - The state of the attachment (<code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>).</p> </li> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> <li> <p> <code>vpc-id</code> - The ID of the VPC.</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>state</code> - The state of the attachment. Valid values are <code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>failing</code> | <code>initiatingRequest</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>.</p> </li> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> <li> <p> <code>vpc-id</code> - The ID of the VPC.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -16319,7 +16329,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>options.propagation-default-route-table-id</code> - The ID of the default propagation route table.</p> </li> <li> <p> <code>options.amazon-side-asn</code> - The private ASN for the Amazon side of a BGP session.</p> </li> <li> <p> <code>options.association-default-route-table-id</code> - The ID of the default association route table.</p> </li> <li> <p> <code>options.auto-accept-shared-attachments</code> - Indicates whether there is automatic acceptance of attachment requests (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>options.default-route-table-association</code> - Indicates whether resource attachments are automatically associated with the default association route table (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>options.default-route-table-propagation</code> - Indicates whether resource attachments automatically propagate routes to the default propagation route table (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>options.dns-support</code> - Indicates whether DNS support is enabled (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>options.vpn-ecmp-support</code> - Indicates whether Equal Cost Multipath Protocol support is enabled (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>owner-id</code> - The ID of the AWS account that owns the transit gateway.</p> </li> <li> <p> <code>state</code> - The state of the attachment (<code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>).</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>options.propagation-default-route-table-id</code> - The ID of the default propagation route table.</p> </li> <li> <p> <code>options.amazon-side-asn</code> - The private ASN for the Amazon side of a BGP session.</p> </li> <li> <p> <code>options.association-default-route-table-id</code> - The ID of the default association route table.</p> </li> <li> <p> <code>options.auto-accept-shared-attachments</code> - Indicates whether there is automatic acceptance of attachment requests (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>options.default-route-table-association</code> - Indicates whether resource attachments are automatically associated with the default association route table (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>options.default-route-table-propagation</code> - Indicates whether resource attachments automatically propagate routes to the default propagation route table (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>options.dns-support</code> - Indicates whether DNS support is enabled (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>options.vpn-ecmp-support</code> - Indicates whether Equal Cost Multipath Protocol support is enabled (<code>enable</code> | <code>disable</code>).</p> </li> <li> <p> <code>owner-id</code> - The ID of the AWS account that owns the transit gateway.</p> </li> <li> <p> <code>state</code> - The state of the transit gateway (<code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>modifying</code> | <code>pending</code>).</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of the transit gateway.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -19156,7 +19166,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>attachment.transit-gateway-attachment-id</code> - The id of the transit gateway attachment.</p> </li> <li> <p> <code>attachment.resource-id</code> - The resource id of the transit gateway attachment.</p> </li> <li> <p> <code>route-search.exact-match</code> - The exact match of the specified filter.</p> </li> <li> <p> <code>route-search.longest-prefix-match</code> - The longest prefix that matches the route.</p> </li> <li> <p> <code>route-search.subnet-of-match</code> - The routes with a subnet that match the specified CIDR filter.</p> </li> <li> <p> <code>route-search.supernet-of-match</code> - The routes with a CIDR that encompass the CIDR filter. For example, if you have 10.0.1.0/29 and 10.0.1.0/31 routes in your route table and you specify supernet-of-match as 10.0.1.0/30, then the result returns 10.0.1.0/29.</p> </li> <li> <p> <code>state</code> - The state of the attachment (<code>available</code> | <code>deleted</code> | <code>deleting</code> | <code>failed</code> | <code>modifying</code> | <code>pendingAcceptance</code> | <code>pending</code> | <code>rollingBack</code> | <code>rejected</code> | <code>rejecting</code>).</p> </li> <li> <p> <code>transit-gateway-route-destination-cidr-block</code> - The CIDR range.</p> </li> <li> <p> <code>type</code> - The type of route (<code>active</code> | <code>blackhole</code>).</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>attachment.transit-gateway-attachment-id</code> - The id of the transit gateway attachment.</p> </li> <li> <p> <code>attachment.resource-id</code> - The resource id of the transit gateway attachment.</p> </li> <li> <p> <code>route-search.exact-match</code> - The exact match of the specified filter.</p> </li> <li> <p> <code>route-search.longest-prefix-match</code> - The longest prefix that matches the route.</p> </li> <li> <p> <code>route-search.subnet-of-match</code> - The routes with a subnet that match the specified CIDR filter.</p> </li> <li> <p> <code>route-search.supernet-of-match</code> - The routes with a CIDR that encompass the CIDR filter. For example, if you have 10.0.1.0/29 and 10.0.1.0/31 routes in your route table and you specify supernet-of-match as 10.0.1.0/30, then the result returns 10.0.1.0/29.</p> </li> <li> <p> <code>state</code> - The state of the route (<code>active</code> | <code>blackhole</code>).</p> </li> <li> <p> <code>transit-gateway-route-destination-cidr-block</code> - The CIDR range.</p> </li> <li> <p> <code>type</code> - The type of route (<code>propagated</code> | <code>static</code>).</p> </li> </ul>",
           "locationName":"Filter"
         },
         "S3Bucket":{
@@ -20616,7 +20626,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>attachment.resource-id</code> - The ID of the resource for the attachment.</p> </li> <li> <p> <code>attachment.resource-type</code> - The type of resource for the attachment (<code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>tgw-peering</code>).</p> </li> <li> <p> <code>attachment.transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> <li> <p> <code>is-blackhole</code> - Whether traffic matching the route is blocked (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>prefix-list-id</code> - The ID of the prefix list.</p> </li> <li> <p> <code>prefix-list-owner-id</code> - The ID of the owner of the prefix list.</p> </li> <li> <p> <code>state</code> - The state of the prefix list reference (<code>pending</code> | <code>available</code> | <code>modifying</code> | <code>deleting</code>).</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>attachment.resource-id</code> - The ID of the resource for the attachment.</p> </li> <li> <p> <code>attachment.resource-type</code> - The type of resource for the attachment. Valid values are <code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>peering</code>.</p> </li> <li> <p> <code>attachment.transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> <li> <p> <code>is-blackhole</code> - Whether traffic matching the route is blocked (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>prefix-list-id</code> - The ID of the prefix list.</p> </li> <li> <p> <code>prefix-list-owner-id</code> - The ID of the owner of the prefix list.</p> </li> <li> <p> <code>state</code> - The state of the prefix list reference (<code>pending</code> | <code>available</code> | <code>modifying</code> | <code>deleting</code>).</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -20658,7 +20668,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>resource-id</code> - The ID of the resource.</p> </li> <li> <p> <code>resource-type</code> - The resource type (<code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>tgw-peering</code>).</p> </li> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>resource-id</code> - The ID of the resource.</p> </li> <li> <p> <code>resource-type</code> - The resource type. Valid values are <code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>peering</code>.</p> </li> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -20700,7 +20710,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>resource-id</code> - The ID of the resource.</p> </li> <li> <p> <code>resource-type</code> - The resource type (<code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>tgw-peering</code>).</p> </li> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>resource-id</code> - The ID of the resource.</p> </li> <li> <p> <code>resource-type</code> - The resource type. Valid values are <code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>peering</code>.</p> </li> <li> <p> <code>transit-gateway-attachment-id</code> - The ID of the attachment.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -23682,6 +23692,13 @@
         "t3a.large",
         "t3a.xlarge",
         "t3a.2xlarge",
+        "t4g.nano",
+        "t4g.micro",
+        "t4g.small",
+        "t4g.medium",
+        "t4g.large",
+        "t4g.xlarge",
+        "t4g.2xlarge",
         "m1.small",
         "m1.medium",
         "m1.large",
@@ -25855,7 +25872,7 @@
         },
         "OwnerId":{
           "shape":"String",
-          "documentation":"<p>The ID of the AWS account ID that owns the local gateway.</p>",
+          "documentation":"<p>The AWS account ID that owns the local gateway.</p>",
           "locationName":"ownerId"
         },
         "State":{
@@ -25911,6 +25928,16 @@
           "shape":"LocalGatewayRoutetableId",
           "documentation":"<p>The ID of the local gateway route table.</p>",
           "locationName":"localGatewayRouteTableId"
+        },
+        "LocalGatewayRouteTableArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the local gateway route table.</p>",
+          "locationName":"localGatewayRouteTableArn"
+        },
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The AWS account ID that owns the local gateway route.</p>",
+          "locationName":"ownerId"
         }
       },
       "documentation":"<p>Describes a route for a local gateway route table.</p>"
@@ -25940,6 +25967,11 @@
           "documentation":"<p>The ID of the local gateway route table.</p>",
           "locationName":"localGatewayRouteTableId"
         },
+        "LocalGatewayRouteTableArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the local gateway route table.</p>",
+          "locationName":"localGatewayRouteTableArn"
+        },
         "LocalGatewayId":{
           "shape":"LocalGatewayId",
           "documentation":"<p>The ID of the local gateway.</p>",
@@ -25949,6 +25981,11 @@
           "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Outpost.</p>",
           "locationName":"outpostArn"
+        },
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The AWS account ID that owns the local gateway route table.</p>",
+          "locationName":"ownerId"
         },
         "State":{
           "shape":"String",
@@ -26000,6 +26037,16 @@
           "documentation":"<p>The ID of the local gateway route table.</p>",
           "locationName":"localGatewayRouteTableId"
         },
+        "LocalGatewayRouteTableArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the local gateway route table for the virtual interface group.</p>",
+          "locationName":"localGatewayRouteTableArn"
+        },
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The AWS account ID that owns the local gateway virtual interface group association.</p>",
+          "locationName":"ownerId"
+        },
         "State":{
           "shape":"String",
           "documentation":"<p>The state of the association.</p>",
@@ -26041,6 +26088,11 @@
           "documentation":"<p>The ID of the local gateway route table.</p>",
           "locationName":"localGatewayRouteTableId"
         },
+        "LocalGatewayRouteTableArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the local gateway route table for the association.</p>",
+          "locationName":"localGatewayRouteTableArn"
+        },
         "LocalGatewayId":{
           "shape":"String",
           "documentation":"<p>The ID of the local gateway.</p>",
@@ -26050,6 +26102,11 @@
           "shape":"String",
           "documentation":"<p>The ID of the VPC.</p>",
           "locationName":"vpcId"
+        },
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The AWS account ID that owns the local gateway route table for the association.</p>",
+          "locationName":"ownerId"
         },
         "State":{
           "shape":"String",
@@ -26507,6 +26564,11 @@
         "ExcessCapacityTerminationPolicy":{
           "shape":"FleetExcessCapacityTerminationPolicy",
           "documentation":"<p>Indicates whether running instances should be terminated if the total target capacity of the EC2 Fleet is decreased below the current size of the EC2 Fleet.</p>"
+        },
+        "LaunchTemplateConfigs":{
+          "shape":"FleetLaunchTemplateConfigListRequest",
+          "documentation":"<p>The launch template and overrides.</p>",
+          "locationName":"LaunchTemplateConfig"
         },
         "FleetId":{
           "shape":"FleetId",
@@ -27194,6 +27256,11 @@
           "documentation":"<p>Indicates whether running Spot Instances should be terminated if the target capacity of the Spot Fleet request is decreased below the current size of the Spot Fleet.</p>",
           "locationName":"excessCapacityTerminationPolicy"
         },
+        "LaunchTemplateConfigs":{
+          "shape":"LaunchTemplateConfigList",
+          "documentation":"<p>The launch template and overrides. You can only use this parameter if you specified a launch template (<code>LaunchTemplateConfigs</code>) in your Spot Fleet request. If you specified <code>LaunchSpecifications</code> in your Spot Fleet request, then omit this parameter.</p>",
+          "locationName":"LaunchTemplateConfig"
+        },
         "SpotFleetRequestId":{
           "shape":"SpotFleetRequestId",
           "documentation":"<p>The ID of the Spot Fleet request.</p>",
@@ -27874,6 +27941,45 @@
         }
       }
     },
+    "ModifyVpnConnectionOptionsRequest":{
+      "type":"structure",
+      "required":["VpnConnectionId"],
+      "members":{
+        "VpnConnectionId":{
+          "shape":"VpnConnectionId",
+          "documentation":"<p>The ID of the Site-to-Site VPN VPN connection. </p>"
+        },
+        "LocalIpv4NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv4 CIDR on the customer gateway (on-premises) side of the VPN connection.</p> <p>Default: <code>0.0.0.0/0</code> </p>"
+        },
+        "RemoteIpv4NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv4 CIDR on the AWS side of the VPN connection.</p> <p>Default: <code>0.0.0.0/0</code> </p>"
+        },
+        "LocalIpv6NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv6 CIDR on the customer gateway (on-premises) side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
+        },
+        "RemoteIpv6NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv6 CIDR on the AWS side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "ModifyVpnConnectionOptionsResult":{
+      "type":"structure",
+      "members":{
+        "VpnConnection":{
+          "shape":"VpnConnection",
+          "locationName":"vpnConnection"
+        }
+      }
+    },
     "ModifyVpnConnectionRequest":{
       "type":"structure",
       "required":["VpnConnectionId"],
@@ -28013,6 +28119,10 @@
           "shape":"Integer",
           "documentation":"<p>The number of seconds after which a DPD timeout occurs.</p> <p>Constraints: A value between 0 and 30.</p> <p>Default: <code>30</code> </p>"
         },
+        "DPDTimeoutAction":{
+          "shape":"String",
+          "documentation":"<p>The action to take after DPD timeout occurs. Specify <code>restart</code> to restart the IKE initiation. Specify <code>clear</code> to end the IKE session.</p> <p>Valid Values: <code>clear</code> | <code>none</code> | <code>restart</code> </p> <p>Default: <code>clear</code> </p>"
+        },
         "Phase1EncryptionAlgorithms":{
           "shape":"Phase1EncryptionAlgorithmsRequestList",
           "documentation":"<p>One or more encryption algorithms that are permitted for the VPN tunnel for phase 1 IKE negotiations.</p> <p>Valid values: <code>AES128</code> | <code>AES256</code> | <code>AES128-GCM-16</code> | <code>AES256-GCM-16</code> </p>",
@@ -28047,6 +28157,10 @@
           "shape":"IKEVersionsRequestList",
           "documentation":"<p>The IKE versions that are permitted for the VPN tunnel.</p> <p>Valid values: <code>ikev1</code> | <code>ikev2</code> </p>",
           "locationName":"IKEVersion"
+        },
+        "StartupAction":{
+          "shape":"String",
+          "documentation":"<p>The action to take when the establishing the tunnel for the VPN connection. By default, your customer gateway device must initiate the IKE negotiation and bring up the tunnel. Specify <code>start</code> for AWS to initiate the IKE negotiation.</p> <p>Valid Values: <code>add</code> | <code>start</code> </p> <p>Default: <code>add</code> </p>"
         }
       },
       "documentation":"<p>The AWS Site-to-Site VPN tunnel options to modify.</p>"
@@ -32132,6 +32246,7 @@
         "customer-gateway",
         "dedicated-host",
         "dhcp-options",
+        "egress-only-internet-gateway",
         "elastic-ip",
         "elastic-gpu",
         "export-image-task",
@@ -33647,7 +33762,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>attachment.transit-gateway-attachment-id</code>- The id of the transit gateway attachment.</p> </li> <li> <p> <code>attachment.resource-id</code> - The resource id of the transit gateway attachment.</p> </li> <li> <p> <code>attachment.resource-type</code> - The attachment resource type (<code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>tgw-peering</code>).</p> </li> <li> <p> <code>prefix-list-id</code> - The ID of the prefix list.</p> </li> <li> <p> <code>route-search.exact-match</code> - The exact match of the specified filter.</p> </li> <li> <p> <code>route-search.longest-prefix-match</code> - The longest prefix that matches the route.</p> </li> <li> <p> <code>route-search.subnet-of-match</code> - The routes with a subnet that match the specified CIDR filter.</p> </li> <li> <p> <code>route-search.supernet-of-match</code> - The routes with a CIDR that encompass the CIDR filter. For example, if you have 10.0.1.0/29 and 10.0.1.0/31 routes in your route table and you specify supernet-of-match as 10.0.1.0/30, then the result returns 10.0.1.0/29.</p> </li> <li> <p> <code>state</code> - The state of the route (<code>active</code> | <code>blackhole</code>).</p> </li> <li> <p> <code>type</code> - The type of route (<code>propagated</code> | <code>static</code>).</p> </li> </ul>",
+          "documentation":"<p>One or more filters. The possible values are:</p> <ul> <li> <p> <code>attachment.transit-gateway-attachment-id</code>- The id of the transit gateway attachment.</p> </li> <li> <p> <code>attachment.resource-id</code> - The resource id of the transit gateway attachment.</p> </li> <li> <p> <code>attachment.resource-type</code> - The attachment resource type. Valid values are <code>vpc</code> | <code>vpn</code> | <code>direct-connect-gateway</code> | <code>peering</code>.</p> </li> <li> <p> <code>prefix-list-id</code> - The ID of the prefix list.</p> </li> <li> <p> <code>route-search.exact-match</code> - The exact match of the specified filter.</p> </li> <li> <p> <code>route-search.longest-prefix-match</code> - The longest prefix that matches the route.</p> </li> <li> <p> <code>route-search.subnet-of-match</code> - The routes with a subnet that match the specified CIDR filter.</p> </li> <li> <p> <code>route-search.supernet-of-match</code> - The routes with a CIDR that encompass the CIDR filter. For example, if you have 10.0.1.0/29 and 10.0.1.0/31 routes in your route table and you specify supernet-of-match as 10.0.1.0/30, then the result returns 10.0.1.0/29.</p> </li> <li> <p> <code>state</code> - The state of the route (<code>active</code> | <code>blackhole</code>).</p> </li> <li> <p> <code>type</code> - The type of route (<code>propagated</code> | <code>static</code>).</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -36310,7 +36425,7 @@
         },
         "ResourceType":{
           "shape":"TransitGatewayAttachmentResourceType",
-          "documentation":"<p>The resource type.</p>",
+          "documentation":"<p>The resource type. Note that the <code>tgw-peering</code> resource type has been deprecated.</p>",
           "locationName":"resourceType"
         },
         "State":{
@@ -36355,7 +36470,7 @@
         },
         "ResourceType":{
           "shape":"TransitGatewayAttachmentResourceType",
-          "documentation":"<p>The resource type.</p>",
+          "documentation":"<p>The resource type. Note that the <code>tgw-peering</code> resource type has been deprecated.</p>",
           "locationName":"resourceType"
         },
         "ResourceId":{
@@ -36365,7 +36480,7 @@
         },
         "State":{
           "shape":"TransitGatewayAttachmentState",
-          "documentation":"<p>The attachment state.</p>",
+          "documentation":"<p>The attachment state. Note that the <code>initiating</code> state has been deprecated.</p>",
           "locationName":"state"
         },
         "Association":{
@@ -36443,6 +36558,7 @@
         "vpc",
         "vpn",
         "direct-connect-gateway",
+        "peering",
         "tgw-peering"
       ]
     },
@@ -36450,6 +36566,7 @@
       "type":"string",
       "enum":[
         "initiating",
+        "initiatingRequest",
         "pendingAcceptance",
         "rollingBack",
         "pending",
@@ -36841,7 +36958,7 @@
         },
         "State":{
           "shape":"TransitGatewayAttachmentState",
-          "documentation":"<p>The state of the transit gateway peering attachment.</p>",
+          "documentation":"<p>The state of the transit gateway peering attachment. Note that the <code>initiating</code> state has been deprecated.</p>",
           "locationName":"state"
         },
         "CreationTime":{
@@ -36874,7 +36991,7 @@
         },
         "ResourceType":{
           "shape":"TransitGatewayAttachmentResourceType",
-          "documentation":"<p>The resource type.</p>",
+          "documentation":"<p>The resource type. Note that the <code>tgw-peering</code> resource type has been deprecated.</p>",
           "locationName":"resourceType"
         },
         "ResourceId":{
@@ -36952,7 +37069,7 @@
         },
         "ResourceType":{
           "shape":"TransitGatewayAttachmentResourceType",
-          "documentation":"<p>The resource type.</p>",
+          "documentation":"<p>The resource type. Note that the <code>tgw-peering</code> resource type has been deprecated.</p>",
           "locationName":"resourceType"
         },
         "TransitGatewayRouteTableId":{
@@ -37057,7 +37174,7 @@
         },
         "ResourceType":{
           "shape":"TransitGatewayAttachmentResourceType",
-          "documentation":"<p>The resource type.</p>",
+          "documentation":"<p>The resource type. Note that the <code>tgw-peering</code> resource type has been deprecated. </p>",
           "locationName":"resourceType"
         }
       },
@@ -37143,7 +37260,7 @@
         },
         "ResourceType":{
           "shape":"TransitGatewayAttachmentResourceType",
-          "documentation":"<p>The resource type.</p>",
+          "documentation":"<p>The resource type. Note that the <code>tgw-peering</code> resource type has been deprecated.</p>",
           "locationName":"resourceType"
         },
         "State":{
@@ -37191,7 +37308,7 @@
         },
         "ResourceType":{
           "shape":"TransitGatewayAttachmentResourceType",
-          "documentation":"<p>The type of resource.</p>",
+          "documentation":"<p>The type of resource. Note that the <code>tgw-peering</code> resource type has been deprecated.</p>",
           "locationName":"resourceType"
         },
         "State":{
@@ -37267,7 +37384,7 @@
         },
         "State":{
           "shape":"TransitGatewayAttachmentState",
-          "documentation":"<p>The state of the VPC attachment.</p>",
+          "documentation":"<p>The state of the VPC attachment. Note that the <code>initiating</code> state has been deprecated.</p>",
           "locationName":"state"
         },
         "SubnetIds":{
@@ -37383,6 +37500,11 @@
           "documentation":"<p>The number of seconds after which a DPD timeout occurs.</p>",
           "locationName":"dpdTimeoutSeconds"
         },
+        "DpdTimeoutAction":{
+          "shape":"String",
+          "documentation":"<p>The action to take after a DPD timeout occurs.</p>",
+          "locationName":"dpdTimeoutAction"
+        },
         "Phase1EncryptionAlgorithms":{
           "shape":"Phase1EncryptionAlgorithmsList",
           "documentation":"<p>The permitted encryption algorithms for the VPN tunnel for phase 1 IKE negotiations.</p>",
@@ -37417,6 +37539,11 @@
           "shape":"IKEVersionsList",
           "documentation":"<p>The IKE versions that are permitted for the VPN tunnel.</p>",
           "locationName":"ikeVersionSet"
+        },
+        "StartupAction":{
+          "shape":"String",
+          "documentation":"<p>The action to take when the establishing the VPN tunnels for a VPN connection.</p>",
+          "locationName":"startupAction"
         }
       },
       "documentation":"<p>The VPN tunnel options.</p>"
@@ -37487,7 +37614,8 @@
       "enum":[
         "t2",
         "t3",
-        "t3a"
+        "t3a",
+        "t4g"
       ]
     },
     "UnmonitorInstancesRequest":{
@@ -39075,6 +39203,26 @@
           "documentation":"<p>Indicates whether the VPN connection uses static routes only. Static routes must be used for devices that don't support BGP.</p>",
           "locationName":"staticRoutesOnly"
         },
+        "LocalIpv4NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv4 CIDR on the customer gateway (on-premises) side of the VPN connection.</p>",
+          "locationName":"localIpv4NetworkCidr"
+        },
+        "RemoteIpv4NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv4 CIDR on the AWS side of the VPN connection.</p>",
+          "locationName":"remoteIpv4NetworkCidr"
+        },
+        "LocalIpv6NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv6 CIDR on the customer gateway (on-premises) side of the VPN connection.</p>",
+          "locationName":"localIpv6NetworkCidr"
+        },
+        "RemoteIpv6NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv6 CIDR on the AWS side of the VPN connection.</p>",
+          "locationName":"remoteIpv6NetworkCidr"
+        },
         "TunnelInsideIpVersion":{
           "shape":"TunnelInsideIpVersion",
           "documentation":"<p>Indicates whether the VPN tunnels process IPv4 or IPv6 traffic.</p>",
@@ -39107,6 +39255,22 @@
         "TunnelOptions":{
           "shape":"VpnTunnelOptionsSpecificationsList",
           "documentation":"<p>The tunnel options for the VPN connection.</p>"
+        },
+        "LocalIpv4NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv4 CIDR on the customer gateway (on-premises) side of the VPN connection.</p> <p>Default: <code>0.0.0.0/0</code> </p>"
+        },
+        "RemoteIpv4NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv4 CIDR on the AWS side of the VPN connection.</p> <p>Default: <code>0.0.0.0/0</code> </p>"
+        },
+        "LocalIpv6NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv6 CIDR on the customer gateway (on-premises) side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
+        },
+        "RemoteIpv6NetworkCidr":{
+          "shape":"String",
+          "documentation":"<p>The IPv6 CIDR on the AWS side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
         }
       },
       "documentation":"<p>Describes VPN connection options.</p>"
@@ -39258,6 +39422,10 @@
           "shape":"Integer",
           "documentation":"<p>The number of seconds after which a DPD timeout occurs.</p> <p>Constraints: A value between 0 and 30.</p> <p>Default: <code>30</code> </p>"
         },
+        "DPDTimeoutAction":{
+          "shape":"String",
+          "documentation":"<p>The action to take after DPD timeout occurs. Specify <code>restart</code> to restart the IKE initiation. Specify <code>clear</code> to end the IKE session.</p> <p>Valid Values: <code>clear</code> | <code>none</code> | <code>restart</code> </p> <p>Default: <code>clear</code> </p>"
+        },
         "Phase1EncryptionAlgorithms":{
           "shape":"Phase1EncryptionAlgorithmsRequestList",
           "documentation":"<p>One or more encryption algorithms that are permitted for the VPN tunnel for phase 1 IKE negotiations.</p> <p>Valid values: <code>AES128</code> | <code>AES256</code> | <code>AES128-GCM-16</code> | <code>AES256-GCM-16</code> </p>",
@@ -39292,6 +39460,10 @@
           "shape":"IKEVersionsRequestList",
           "documentation":"<p>The IKE versions that are permitted for the VPN tunnel.</p> <p>Valid values: <code>ikev1</code> | <code>ikev2</code> </p>",
           "locationName":"IKEVersion"
+        },
+        "StartupAction":{
+          "shape":"String",
+          "documentation":"<p>The action to take when the establishing the tunnel for the VPN connection. By default, your customer gateway device must initiate the IKE negotiation and bring up the tunnel. Specify <code>start</code> for AWS to initiate the IKE negotiation.</p> <p>Valid Values: <code>add</code> | <code>start</code> </p> <p>Default: <code>add</code> </p>"
         }
       },
       "documentation":"<p>The tunnel options for a single VPN tunnel.</p>"

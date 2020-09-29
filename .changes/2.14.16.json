@@ -1,0 +1,16 @@
+{
+    "version": "2.14.16",
+    "date": "2020-09-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "description": "Adds API support for WorkSpaces Cross-Region Redirection feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
