@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "description": "Update TagResource API documentation to include Contact Flows and Routing Profiles as supported resources."
-}
