@@ -850,9 +850,9 @@ public interface JsonClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOperationResponse streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, Path filePath) throws AwsServiceException,
+            StreamingInputOperationRequest streamingInputOperationRequest, Path sourcePath) throws AwsServiceException,
                                                                                                  SdkClientException, JsonException {
-        return streamingInputOperation(streamingInputOperationRequest, RequestBody.fromFile(filePath));
+        return streamingInputOperation(streamingInputOperationRequest, RequestBody.fromFile(sourcePath));
     }
 
     /**
@@ -884,10 +884,10 @@ public interface JsonClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOperationResponse streamingInputOperation(
-            Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path filePath)
+            Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path sourcePath)
             throws AwsServiceException, SdkClientException, JsonException {
         return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest)
-                                                                     .build(), filePath);
+                                                                     .build(), sourcePath);
     }
 
     /**
@@ -1143,9 +1143,9 @@ public interface JsonClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingOutputOperationResponse streamingOutputOperation(
-            StreamingOutputOperationRequest streamingOutputOperationRequest, Path filePath) throws AwsServiceException,
+            StreamingOutputOperationRequest streamingOutputOperationRequest, Path destinationPath) throws AwsServiceException,
                                                                                                    SdkClientException, JsonException {
-        return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toFile(filePath));
+        return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toFile(destinationPath));
     }
 
     /**
@@ -1176,10 +1176,10 @@ public interface JsonClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingOutputOperationResponse streamingOutputOperation(
-            Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path filePath)
+            Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path destinationPath)
             throws AwsServiceException, SdkClientException, JsonException {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
-                                                                       .build(), filePath);
+                                                                       .build(), destinationPath);
     }
 
     /**

@@ -15,15 +15,11 @@
 
 package software.amazon.awssdk.metrics;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A container associating a metric and its value.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
-@SdkPreviewApi
 @SdkPublicApi
 public interface MetricRecord<T> {
     /**

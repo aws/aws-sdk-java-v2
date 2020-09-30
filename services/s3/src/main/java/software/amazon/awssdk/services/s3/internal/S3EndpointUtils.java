@@ -115,8 +115,11 @@ public final class S3EndpointUtils {
                                   "An ARN was passed as a bucket parameter to an S3 operation, however it does not "
                                   + "appear to be a valid S3 access point ARN.");
 
-        URI accessPointUri = getUriForAccessPointResource(request, serviceConfiguration, arnRegion, clientPartitionMetadata,
-                                                          s3EndpointResource);
+        URI accessPointUri = getUriForAccessPointResource(request,
+                                                          serviceConfiguration,
+                                                          arnRegion,
+                                                          clientPartitionMetadata,
+                                                          s3EndpointResource, region);
         SdkHttpRequest httpRequest = request.toBuilder()
                                             .protocol(accessPointUri.getScheme())
                                             .host(accessPointUri.getHost())
@@ -140,10 +143,15 @@ public final class S3EndpointUtils {
                                                     S3Configuration serviceConfiguration,
                                                     String arnRegion,
                                                     PartitionMetadata clientPartitionMetadata,
-                                                    S3AccessPointResource s3EndpointResource) {
+                                                    S3AccessPointResource s3EndpointResource,
+                                                    Region region) {
 
         // DualstackEnabled considered false by default
         boolean dualstackEnabled = serviceConfiguration != null && serviceConfiguration.dualstackEnabled();
+        boolean fipsRegionProvided = isFipsRegionProvided(region.toString(), arnRegion,
+                                                          serviceConfiguration != null
+                                                          && serviceConfiguration.useArnRegionEnabled());
+
         String accountId = s3EndpointResource.accountId().orElseThrow(() -> new IllegalArgumentException(
             "An S3 access point ARN must have an account ID"));
         String accessPointName = s3EndpointResource.accessPointName();
@@ -153,6 +161,12 @@ public final class S3EndpointUtils {
             if (dualstackEnabled) {
                 throw new IllegalArgumentException("An Outpost Access Point ARN cannot be passed as a bucket parameter to an S3 "
                                                    + "operation if the S3 client has been configured with dualstack");
+            }
+
+            if (isFipsRegion(region.toString())) {
+                throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3"
+                                                   + " operation if the S3 client has been configured with a FIPS"
+                                                   + " enabled region.");
             }
 
             S3OutpostResource parentResource = (S3OutpostResource) s3EndpointResource.parentS3Resource().get();
@@ -168,7 +182,8 @@ public final class S3EndpointUtils {
         return S3AccessPointBuilder.create()
                                    .accessPointName(accessPointName)
                                    .accountId(accountId)
-                                   .region(arnRegion)
+                                   .fipsEnabled(fipsRegionProvided)
+                                   .region(removeFipsIfNeeded(arnRegion))
                                    .protocol(request.protocol())
                                    .domain(clientPartitionMetadata.dnsSuffix())
                                    .dualstackEnabled(dualstackEnabled)
@@ -181,12 +196,6 @@ public final class S3EndpointUtils {
                                                 S3Resource s3Resource) {
         String arnRegion = s3Resource.region().orElseThrow(() -> new IllegalArgumentException(
             "An S3 access point ARN must have a region"));
-
-        if (isFipsRegion(region.toString())) {
-            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3"
-                                               + " operation if the S3 client has been configured with a FIPS"
-                                               + " enabled region.");
-        }
 
         if (serviceConfiguration != null && serviceConfiguration.accelerateModeEnabled()) {
             throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3 "
@@ -206,8 +215,9 @@ public final class S3EndpointUtils {
                                                + "override.");
         }
 
+        String trimmedArnRegion = removeFipsIfNeeded(arnRegion);
         if (serviceConfiguration == null || !serviceConfiguration.useArnRegionEnabled()) {
-            if (!region.id().equals(arnRegion)) {
+            if (!removeFipsIfNeeded(region.id()).equals(trimmedArnRegion)) {
                 throw new IllegalArgumentException(
                     String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
                                   + "does not match the region the client was configured with. To enable this "
@@ -229,6 +239,28 @@ public final class S3EndpointUtils {
                               clientPartition));
         }
         return arnRegion;
+    }
+
+    private static String removeFipsIfNeeded(String region) {
+        if (region.startsWith("fips-")) {
+            return region.replace("fips-", "");
+        }
+
+        if (region.endsWith("-fips")) {
+            return region.replace("-fips", "");
+        }
+        return region;
+    }
+
+    /**
+     * Returns whether a FIPS pseudo region is provided.
+     */
+    private static boolean isFipsRegionProvided(String clientRegion, String arnRegion, boolean useArnRegion) {
+        if (useArnRegion) {
+            return isFipsRegion(arnRegion);
+        }
+
+        return isFipsRegion(clientRegion);
     }
 
     /**

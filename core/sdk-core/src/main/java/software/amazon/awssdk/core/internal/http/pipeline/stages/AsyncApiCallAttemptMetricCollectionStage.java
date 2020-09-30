@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.Retryable
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Wrapper pipeline that initializes and tracks the API call attempt metric collection. This wrapper and any wrapped
@@ -52,14 +53,14 @@ public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements 
         reportBackoffDelay(context);
 
         CompletableFuture<Response<OutputT>> executeFuture = wrapped.execute(input, context);
-
-        executeFuture.whenComplete((r, t) -> {
+        CompletableFuture<Response<OutputT>> metricsCollectedFuture = executeFuture.whenComplete((r, t) -> {
             if (t == null) {
                 collectHttpMetrics(apiCallAttemptMetrics, r.httpResponse());
             }
         });
+        CompletableFutureUtils.forwardExceptionTo(metricsCollectedFuture, executeFuture);
 
-        return executeFuture;
+        return metricsCollectedFuture;
     }
 
     private void reportBackoffDelay(RequestExecutionContext context) {

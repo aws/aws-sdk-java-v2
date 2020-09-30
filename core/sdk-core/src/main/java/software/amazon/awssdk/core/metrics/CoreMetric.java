@@ -16,17 +16,12 @@
 package software.amazon.awssdk.core.metrics;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 
-/**
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
- */
-@SdkPreviewApi
 @SdkPublicApi
 public final class CoreMetric {
     /**
@@ -58,7 +53,7 @@ public final class CoreMetric {
     /**
      * The duration of the API call. This includes all call attempts made.
      *
-     * <p>{@code API_CALL_DURATION = CREDENTIALS_FETCH_DURATION + MARSHALLING_DURATION + SUM_ALL(BACKOFF_DELAY_DURATION) +
+     * <p>{@code API_CALL_DURATION ~= CREDENTIALS_FETCH_DURATION + MARSHALLING_DURATION + SUM_ALL(BACKOFF_DELAY_DURATION) +
      * SUM_ALL(SIGNING_DURATION) + SUM_ALL(SERVICE_CALL_DURATION) + SUM_ALL(UNMARSHALLING_DURATION)}
      */
     public static final SdkMetric<Duration> API_CALL_DURATION =

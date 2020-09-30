@@ -192,7 +192,7 @@
         {"shape":"OperationNotSupportedException"},
         {"shape":"InvalidStateException"}
       ],
-      "documentation":"<p>Shares the specified portfolio with the specified account or organization node. Shares to an organization node can only be created by the master account of an organization or by a delegated administrator. You can share portfolios to an organization, an organizational unit, or a specific account.</p> <p>Note that if a delegated admin is de-registered, they can no longer create portfolio shares.</p> <p> <code>AWSOrganizationsAccess</code> must be enabled in order to create a portfolio share to an organization node.</p>"
+      "documentation":"<p>Shares the specified portfolio with the specified account or organization node. Shares to an organization node can only be created by the master account of an organization or by a delegated administrator. You can share portfolios to an organization, an organizational unit, or a specific account.</p> <p>Note that if a delegated admin is de-registered, they can no longer create portfolio shares.</p> <p> <code>AWSOrganizationsAccess</code> must be enabled in order to create a portfolio share to an organization node.</p> <p>You can't share a shared resource. This includes portfolios that contain a shared product.</p>"
     },
     "CreateProduct":{
       "name":"CreateProduct",
@@ -493,7 +493,8 @@
       "input":{"shape":"DescribeProvisionedProductInput"},
       "output":{"shape":"DescribeProvisionedProductOutput"},
       "errors":[
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"}
       ],
       "documentation":"<p>Gets information about the specified provisioned product.</p>"
     },
@@ -2457,7 +2458,6 @@
     },
     "DescribeProvisionedProductInput":{
       "type":"structure",
-      "required":["Id"],
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
@@ -2465,9 +2465,14 @@
         },
         "Id":{
           "shape":"Id",
-          "documentation":"<p>The provisioned product identifier.</p>"
+          "documentation":"<p>The provisioned product identifier. You must provide the name or ID, but not both.</p> <p>If you do not provide a name or ID, or you provide both name and ID, an <code>InvalidParametersException</code> will occur.</p>"
+        },
+        "Name":{
+          "shape":"ProvisionedProductName",
+          "documentation":"<p>The name of the provisioned product. You must provide the name or ID, but not both.</p> <p>If you do not provide a name or ID, or you provide both name and ID, an <code>InvalidParametersException</code> will occur.</p>"
         }
-      }
+      },
+      "documentation":"DescribeProvisionedProductAPI input structure. AcceptLanguage - [Optional] The language code for localization. Id - [Optional] The provisioned product identifier. Name - [Optional] Another provisioned product identifier. Customers must provide either Id or Name."
     },
     "DescribeProvisionedProductOutput":{
       "type":"structure",
@@ -2569,10 +2574,6 @@
     },
     "DescribeProvisioningParametersInput":{
       "type":"structure",
-      "required":[
-        "ProductId",
-        "ProvisioningArtifactId"
-      ],
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
@@ -2580,15 +2581,27 @@
         },
         "ProductId":{
           "shape":"Id",
-          "documentation":"<p>The product identifier.</p>"
+          "documentation":"<p>The product identifier. You must provide the product name or ID, but not both.</p>"
+        },
+        "ProductName":{
+          "shape":"ProductViewName",
+          "documentation":"<p>The name of the product. You must provide the name or ID, but not both.</p>"
         },
         "ProvisioningArtifactId":{
           "shape":"Id",
-          "documentation":"<p>The identifier of the provisioning artifact.</p>"
+          "documentation":"<p>The identifier of the provisioning artifact. You must provide the name or ID, but not both.</p>"
+        },
+        "ProvisioningArtifactName":{
+          "shape":"ProvisioningArtifactName",
+          "documentation":"<p>The name of the provisioning artifact. You must provide the name or ID, but not both.</p>"
         },
         "PathId":{
           "shape":"Id",
-          "documentation":"<p>The path identifier of the product. This value is optional if the product has a default path, and required if the product has more than one path. To list the paths for a product, use <a>ListLaunchPaths</a>.</p>"
+          "documentation":"<p>The path identifier of the product. This value is optional if the product has a default path, and required if the product has more than one path. To list the paths for a product, use <a>ListLaunchPaths</a>. You must provide the name or ID, but not both.</p>"
+        },
+        "PathName":{
+          "shape":"PortfolioDisplayName",
+          "documentation":"<p>The name of the path. You must provide the name or ID, but not both.</p>"
         }
       }
     },
@@ -2614,6 +2627,10 @@
         "ProvisioningArtifactPreferences":{
           "shape":"ProvisioningArtifactPreferences",
           "documentation":"<p>An object that contains information about preferences, such as regions and accounts, for the provisioning artifact.</p>"
+        },
+        "ProvisioningArtifactOutputs":{
+          "shape":"ProvisioningArtifactOutputs",
+          "documentation":"<p>The output of the provisioning artifact.</p>"
         }
       }
     },
@@ -3863,6 +3880,10 @@
       "type":"list",
       "member":{"shape":"OrganizationNode"}
     },
+    "OutputDescription":{
+      "type":"string",
+      "max":1024
+    },
     "OutputKey":{"type":"string"},
     "OutputValue":{"type":"string"},
     "PageSize":{
@@ -4163,8 +4184,6 @@
     "ProvisionProductInput":{
       "type":"structure",
       "required":[
-        "ProductId",
-        "ProvisioningArtifactId",
         "ProvisionedProductName",
         "ProvisionToken"
       ],
@@ -4175,15 +4194,27 @@
         },
         "ProductId":{
           "shape":"Id",
-          "documentation":"<p>The product identifier.</p>"
+          "documentation":"<p>The product identifier. You must provide the name or ID, but not both.</p>"
+        },
+        "ProductName":{
+          "shape":"ProductViewName",
+          "documentation":"<p>The name of the product. You must provide the name or ID, but not both.</p>"
         },
         "ProvisioningArtifactId":{
           "shape":"Id",
-          "documentation":"<p>The identifier of the provisioning artifact.</p>"
+          "documentation":"<p>The identifier of the provisioning artifact. You must provide the name or ID, but not both.</p>"
+        },
+        "ProvisioningArtifactName":{
+          "shape":"ProvisioningArtifactName",
+          "documentation":"<p>The name of the provisioning artifact. You must provide the name or ID, but not both.</p>"
         },
         "PathId":{
           "shape":"Id",
-          "documentation":"<p>The path identifier of the product. This value is optional if the product has a default path, and required if the product has more than one path. To list the paths for a product, use <a>ListLaunchPaths</a>.</p>"
+          "documentation":"<p>The path identifier of the product. This value is optional if the product has a default path, and required if the product has more than one path. To list the paths for a product, use <a>ListLaunchPaths</a>. You must provide the name or ID, but not both.</p>"
+        },
+        "PathName":{
+          "shape":"PortfolioDisplayName",
+          "documentation":"<p>The name of the path. You must provide the name or ID, but not both.</p>"
         },
         "ProvisionedProductName":{
           "shape":"ProvisionedProductName",
@@ -4260,6 +4291,14 @@
           "shape":"Id",
           "documentation":"<p>The record identifier of the last request performed on this provisioned product.</p>"
         },
+        "LastProvisioningRecordId":{
+          "shape":"Id",
+          "documentation":"<p>The record identifier of the last request performed on this provisioned product of the following types:</p> <ul> <li> <p> ProvisionedProduct </p> </li> <li> <p> UpdateProvisionedProduct </p> </li> <li> <p> ExecuteProvisionedProductPlan </p> </li> <li> <p> TerminateProvisionedProduct </p> </li> </ul>"
+        },
+        "LastSuccessfulProvisioningRecordId":{
+          "shape":"Id",
+          "documentation":"<p>The record identifier of the last successful request performed on this provisioned product of the following types:</p> <ul> <li> <p> ProvisionedProduct </p> </li> <li> <p> UpdateProvisionedProduct </p> </li> <li> <p> ExecuteProvisionedProductPlan </p> </li> <li> <p> TerminateProvisionedProduct </p> </li> </ul>"
+        },
         "Tags":{
           "shape":"Tags",
           "documentation":"<p>One or more tags.</p>"
@@ -4272,9 +4311,17 @@
           "shape":"Id",
           "documentation":"<p>The product identifier.</p>"
         },
+        "ProductName":{
+          "shape":"ProductViewName",
+          "documentation":"<p>The name of the product.</p>"
+        },
         "ProvisioningArtifactId":{
           "shape":"Id",
           "documentation":"<p>The identifier of the provisioning artifact.</p>"
+        },
+        "ProvisioningArtifactName":{
+          "shape":"ProvisioningArtifactName",
+          "documentation":"<p>The name of the provisioning artifact.</p>"
         },
         "UserArn":{
           "shape":"UserArn",
@@ -4329,6 +4376,14 @@
         "LastRecordId":{
           "shape":"LastRequestId",
           "documentation":"<p>The record identifier of the last request performed on this provisioned product.</p>"
+        },
+        "LastProvisioningRecordId":{
+          "shape":"Id",
+          "documentation":"<p>The record identifier of the last request performed on this provisioned product of the following types:</p> <ul> <li> <p> ProvisionedProduct </p> </li> <li> <p> UpdateProvisionedProduct </p> </li> <li> <p> ExecuteProvisionedProductPlan </p> </li> <li> <p> TerminateProvisionedProduct </p> </li> </ul>"
+        },
+        "LastSuccessfulProvisioningRecordId":{
+          "shape":"Id",
+          "documentation":"<p>The record identifier of the last successful request performed on this provisioned product of the following types:</p> <ul> <li> <p> ProvisionedProduct </p> </li> <li> <p> UpdateProvisionedProduct </p> </li> <li> <p> ExecuteProvisionedProductPlan </p> </li> <li> <p> TerminateProvisionedProduct </p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -4596,6 +4651,31 @@
     "ProvisioningArtifactName":{
       "type":"string",
       "max":8192
+    },
+    "ProvisioningArtifactOutput":{
+      "type":"structure",
+      "members":{
+        "Key":{
+          "shape":"ProvisioningArtifactOutputKey",
+          "documentation":"<p>The provisioning artifact output key.</p>"
+        },
+        "Description":{
+          "shape":"OutputDescription",
+          "documentation":"<p>Description of the provisioning artifact output key.</p>"
+        }
+      },
+      "documentation":"<p>Provisioning artifact output.</p>"
+    },
+    "ProvisioningArtifactOutputKey":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[a-zA-Z0-9]*"
+    },
+    "ProvisioningArtifactOutputs":{
+      "type":"list",
+      "member":{"shape":"ProvisioningArtifactOutput"},
+      "max":60
     },
     "ProvisioningArtifactParameter":{
       "type":"structure",
@@ -5263,7 +5343,7 @@
         },
         "Filters":{
           "shape":"ProvisionedProductFilters",
-          "documentation":"<p>The search filters.</p> <p>When the key is <code>SearchQuery</code>, the searchable fields are <code>arn</code>, <code>createdTime</code>, <code>id</code>, <code>lastRecordId</code>, <code>idempotencyToken</code>, <code>name</code>, <code>physicalId</code>, <code>productId</code>, <code>provisioningArtifact</code>, <code>type</code>, <code>status</code>, <code>tags</code>, <code>userArn</code>, and <code>userArnSession</code>.</p> <p>Example: <code>\"SearchQuery\":[\"status:AVAILABLE\"]</code> </p>"
+          "documentation":"<p>The search filters.</p> <p>When the key is <code>SearchQuery</code>, the searchable fields are <code>arn</code>, <code>createdTime</code>, <code>id</code>, <code>lastRecordId</code>, <code>idempotencyToken</code>, <code>name</code>, <code>physicalId</code>, <code>productId</code>, <code>provisioningArtifact</code>, <code>type</code>, <code>status</code>, <code>tags</code>, <code>userArn</code>, <code>userArnSession</code>, <code>lastProvisioningRecordId</code>, <code>lastSuccessfulProvisioningRecordId</code>, <code>productName</code>, and <code>provisioningArtifactName</code>.</p> <p>Example: <code>\"SearchQuery\":[\"status:AVAILABLE\"]</code> </p>"
         },
         "SortBy":{
           "shape":"SortField",
@@ -5892,19 +5972,31 @@
         },
         "ProvisionedProductId":{
           "shape":"Id",
-          "documentation":"<p>The identifier of the provisioned product. You cannot specify both <code>ProvisionedProductName</code> and <code>ProvisionedProductId</code>.</p>"
+          "documentation":"<p>The identifier of the provisioned product. You must provide the name or ID, but not both.</p>"
         },
         "ProductId":{
           "shape":"Id",
-          "documentation":"<p>The identifier of the product.</p>"
+          "documentation":"<p>The identifier of the product. You must provide the name or ID, but not both.</p>"
+        },
+        "ProductName":{
+          "shape":"ProductViewName",
+          "documentation":"<p>The name of the product. You must provide the name or ID, but not both.</p>"
         },
         "ProvisioningArtifactId":{
           "shape":"Id",
           "documentation":"<p>The identifier of the provisioning artifact.</p>"
         },
+        "ProvisioningArtifactName":{
+          "shape":"ProvisioningArtifactName",
+          "documentation":"<p>The name of the provisioning artifact. You must provide the name or ID, but not both.</p>"
+        },
         "PathId":{
           "shape":"Id",
-          "documentation":"<p>The new path identifier. This value is optional if the product has a default path, and required if the product has more than one path.</p>"
+          "documentation":"<p>The path identifier. This value is optional if the product has a default path, and required if the product has more than one path. You must provide the name or ID, but not both.</p>"
+        },
+        "PathName":{
+          "shape":"PortfolioDisplayName",
+          "documentation":"<p>The name of the path. You must provide the name or ID, but not both.</p>"
         },
         "ProvisioningParameters":{
           "shape":"UpdateProvisioningParameters",

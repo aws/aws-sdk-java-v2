@@ -60,6 +60,8 @@ import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.utils.Logger;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
@@ -86,6 +88,7 @@ public class SyncClientClass implements ClassSpec {
                                         .addSuperinterface(interfaceClass)
                                         .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
                                                     interfaceClass)
+                                        .addField(logger())
                                         .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
                                         .addField(protocolSpec.protocolFactory(model))
                                         .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
@@ -117,6 +120,12 @@ public class SyncClientClass implements ClassSpec {
             o -> classBuilder.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
 
         return classBuilder.build();
+    }
+
+    private FieldSpec logger() {
+        return FieldSpec.builder(Logger.class, "log", PRIVATE, STATIC, FINAL)
+                        .initializer("$T.loggerFor($T.class)", Logger.class, className)
+                        .build();
     }
 
     private MethodSpec nameMethod() {
@@ -154,6 +163,17 @@ public class SyncClientClass implements ClassSpec {
                                  EndpointDiscoveryRefreshCache.class,
                                  poetExtensions.getClientClass(model.getNamingStrategy().getServiceName() +
                                                                "EndpointDiscoveryCacheLoader"));
+
+            if (model.getCustomizationConfig().allowEndpointOverrideForEndpointDiscoveryRequiredOperations()) {
+                builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == "
+                                         + "Boolean.TRUE)");
+                builder.addStatement("log.warn(() -> $S)",
+                                     "Endpoint discovery is enabled for this client, and an endpoint override was also "
+                                     + "specified. This will disable endpoint discovery for methods that require it, instead "
+                                     + "using the specified endpoint override. This may or may not be what you intended.");
+                builder.endControlFlow();
+            }
+
             builder.endControlFlow();
         }
 
@@ -180,8 +200,37 @@ public class SyncClientClass implements ClassSpec {
         protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);
 
         if (opModel.getEndpointDiscovery() != null) {
+            method.addStatement("boolean endpointDiscoveryEnabled = "
+                                + "clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)");
+            method.addStatement("boolean endpointOverridden = "
+                                + "clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE");
+
+            if (opModel.getEndpointDiscovery().isRequired()) {
+                if (!model.getCustomizationConfig().allowEndpointOverrideForEndpointDiscoveryRequiredOperations()) {
+                    method.beginControlFlow("if (endpointOverridden)");
+                    method.addStatement("throw new $T($S)", IllegalStateException.class,
+                                        "This operation requires endpoint discovery, but an endpoint override was specified "
+                                        + "when the client was created. This is not supported.");
+                    method.endControlFlow();
+
+                    method.beginControlFlow("if (!endpointDiscoveryEnabled)");
+                    method.addStatement("throw new $T($S)", IllegalStateException.class,
+                                        "This operation requires endpoint discovery, but endpoint discovery was disabled on the "
+                                        + "client.");
+                    method.endControlFlow();
+                } else {
+                    method.beginControlFlow("if (endpointOverridden)");
+                    method.addStatement("endpointDiscoveryEnabled = false");
+                    method.nextControlFlow("else if (!endpointDiscoveryEnabled)");
+                    method.addStatement("throw new $T($S)", IllegalStateException.class,
+                                        "This operation requires endpoint discovery to be enabled, or for you to specify an "
+                                        + "endpoint override when the client is created.");
+                    method.endControlFlow();
+                }
+            }
+
             method.addStatement("$T cachedEndpoint = null", URI.class);
-            method.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED))");
+            method.beginControlFlow("if (endpointDiscoveryEnabled)");
             method.addStatement("\n\nString key = clientConfiguration.option($T.CREDENTIALS_PROVIDER)." +
                                 "resolveCredentials().accessKeyId()", AwsClientOption.class);
             method.addStatement("EndpointDiscoveryRequest endpointDiscoveryRequest = $T.builder().required($L)" +
@@ -194,37 +243,28 @@ public class SyncClientClass implements ClassSpec {
             method.endControlFlow();
         }
 
-        String metricCollectorName = "apiCallMetricCollector";
+        method.addStatement("$T<$T> metricPublishers = "
+                            + "resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
+                            List.class,
+                            MetricPublisher.class,
+                            opModel.getInput().getVariableName())
+              .addStatement("$1T apiCallMetricCollector = metricPublishers.isEmpty() ? $2T.create() : $1T.create($3S)",
+                            MetricCollector.class, NoOpMetricCollector.class, "ApiCall");
 
-        method.addStatement("$1T $2N = $1T.create($3S)",
-                MetricCollector.class, metricCollectorName, "ApiCall");
+        method.beginControlFlow("try")
+                .addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
+                              CoreMetric.class, "SERVICE_ID", model.getMetadata().getServiceId())
+                .addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
+                              CoreMetric.class, "OPERATION_NAME", opModel.getOperationName());
 
-        String publishersName = "metricPublishers";
+        addS3ArnableFieldCode(opModel, model).ifPresent(method::addCode);
+        method.addCode(ClientClassUtils.addEndpointTraitCode(opModel));
 
-        MethodSpec.Builder methodBuilder = method.beginControlFlow("try")
-                                                 .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName,
-                                                               CoreMetric.class,
-                                                               "SERVICE_ID",
-                                                               model.getMetadata().getServiceId())
-                                                 .addStatement("$N.reportMetric($T.$L, $S)", metricCollectorName,
-                                                               CoreMetric.class,
-                                                               "OPERATION_NAME",
-                                                               opModel.getOperationName());
-
-        addS3ArnableFieldCode(opModel, model).ifPresent(methodBuilder::addCode);
-        methodBuilder.addCode(ClientClassUtils.addEndpointTraitCode(opModel));
-
-        methodBuilder.addCode(protocolSpec.executionHandler(opModel))
-                     .endControlFlow()
-                     .beginControlFlow("finally")
-                     .addStatement("$T<$T> $N = resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse"
-                                   + "(null))",
-                                   List.class,
-                                   MetricPublisher.class,
-                                   publishersName,
-                                   opModel.getInput().getVariableName())
-                     .addStatement("$N.forEach(p -> p.publish($N.collect()))", publishersName, metricCollectorName)
-                     .endControlFlow();
+        method.addCode(protocolSpec.executionHandler(opModel))
+              .endControlFlow()
+              .beginControlFlow("finally")
+              .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
+              .endControlFlow();
 
         methods.add(method.build());
 

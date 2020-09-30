@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -357,26 +356,19 @@ public abstract class RequestOverrideConfiguration {
          * Sets the metric publishers for publishing the metrics collected for this request. This list supersedes
          * the metric publisher set on the client.
          *
-         * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
-         *
          * @param metricPublisher The list metric publisher for this request.
          * @return This object for method chaining.
          */
-        @SdkPreviewApi
         B metricPublishers(List<MetricPublisher> metricPublisher);
 
         /**
          * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics
          * for this request.
          *
-         * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
-         *
          * @param metricPublisher The metric publisher to add.
          */
-        @SdkPreviewApi
         B addMetricPublisher(MetricPublisher metricPublisher);
 
-        @SdkPreviewApi
         List<MetricPublisher> metricPublishers();
 
         /**

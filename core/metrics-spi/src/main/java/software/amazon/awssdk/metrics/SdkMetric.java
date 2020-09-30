@@ -16,7 +16,6 @@
 package software.amazon.awssdk.metrics;
 
 import java.util.Set;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.internal.DefaultSdkMetric;
 
@@ -24,10 +23,7 @@ import software.amazon.awssdk.metrics.internal.DefaultSdkMetric;
  * A specific SDK metric.
  *
  * @param <T> The type for values of this metric.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
-@SdkPreviewApi
 @SdkPublicApi
 public interface SdkMetric<T> {
 
@@ -50,16 +46,6 @@ public interface SdkMetric<T> {
      * @return The class of the value associated with this metric.
      */
     Class<T> valueClass();
-
-    /**
-     * Cast the given object to the value class associated with this event.
-     *
-     * @param o The object.
-     * @return The cast object.
-     * @throws ClassCastException If {@code o} is not an instance of type {@code
-     * T}.
-     */
-    T convertValue(Object o);
 
     /**
      * Create a new metric.

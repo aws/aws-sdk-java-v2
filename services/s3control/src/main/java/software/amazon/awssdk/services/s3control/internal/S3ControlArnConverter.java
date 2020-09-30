@@ -57,7 +57,7 @@ public final class S3ControlArnConverter implements ArnConverter<S3Resource> {
             throw new IllegalArgumentException("Unknown ARN type '" + arn.resource().resourceType() + "'");
         }
 
-        switch(s3ResourceType) {
+        switch (s3ResourceType) {
             case OUTPOST:
                 return parseS3OutpostArn(arn);
             default:

@@ -1,0 +1,41 @@
+{
+    "version": "2.14.26",
+    "date": "2020-09-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "description": "Documentation updates for docdb"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "description": "Make the delivery-s3-bucket as an optional parameter for conformance packs and organizational conformance packs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "description": "Increased maximum length of eventVariables values for GetEventPrediction from 256 to 1024."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "description": "Support custom logging, executionRole, secrets, and linuxParameters (initProcessEnabled, maxSwap, swappiness, sharedMemorySize, and tmpfs). Also, add new context keys for awslogs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release supports returning additional information about local gateway resources, such as the local gateway route table."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "description": "Documentation update for AssumeRole error"
+        }
+    ]
+}

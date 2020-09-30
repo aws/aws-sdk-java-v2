@@ -161,7 +161,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
-
         CodeBlock.Builder codeBlock = CodeBlock
             .builder()
             .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
@@ -268,9 +267,13 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     asyncResponseTransformerVariable(isStreaming, isRestJson, opModel));
         String whenComplete = whenCompleteBody(opModel, customerResponseHandler);
         if (!whenComplete.isEmpty()) {
+            String whenCompletedFutureName = "whenCompleted";
             builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
                                  AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
-            builder.add("executeFuture$L;", whenComplete);
+            builder.addStatement("$T<$T> $N = $N$L", CompletableFuture.class, executeFutureValueType,
+                    whenCompletedFutureName, "executeFuture", whenComplete);
+            builder.addStatement("executeFuture = $T.forwardExceptionTo($N, executeFuture)",
+                    CompletableFutureUtils.class, whenCompletedFutureName);
         }
         if (opModel.hasEventStreamOutput()) {
             builder.addStatement("return $T.forwardExceptionTo(future, executeFuture)", CompletableFutureUtils.class);

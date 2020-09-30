@@ -101,7 +101,8 @@
         "method":"GET",
         "requestUri":"/2016-03-11/membersInQueryParams?StaticQueryParam=foo"
       },
-      "input":{"shape":"MembersInQueryParamsInput"}
+      "input":{"shape":"MembersInQueryParamsInput"},
+      "output":{"shape":"MembersInQueryParamsInput"}
     },
     "MultiLocationOperation":{
       "name":"MultiLocationOperation",
@@ -109,7 +110,8 @@
         "method":"POST",
         "requestUri":"/2016-03-11/multiLocationOperation/{PathParam}"
       },
-      "input":{"shape":"MultiLocationOperationInput"}
+      "input":{"shape":"MultiLocationOperationInput"},
+      "output":{"shape":"MultiLocationOperationInput"}
     },
     "NestedContainers":{
       "name":"NestedContainers",

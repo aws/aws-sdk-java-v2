@@ -19,7 +19,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERR
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
-import static software.amazon.awssdk.http.nio.netty.TestUtils.sendGetRequest;
+import static software.amazon.awssdk.http.HttpTestUtils.sendGetRequest;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;

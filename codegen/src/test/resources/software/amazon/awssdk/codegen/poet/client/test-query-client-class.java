@@ -19,6 +19,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.services.query.transform.APostOperationRequestMars
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Internal implementation of {@link QueryClient}.
@@ -44,6 +46,8 @@ import software.amazon.awssdk.services.query.transform.StreamingOutputOperationR
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultQueryClient implements QueryClient {
+    private static final Logger log = Logger.loggerFor(DefaultQueryClient.class);
+
     private final SyncClientHandler clientHandler;
 
     private final AwsQueryProtocolFactory protocolFactory;
@@ -89,7 +93,10 @@ final class DefaultQueryClient implements QueryClient {
                 .createResponseHandler(APostOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
+                .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
@@ -102,8 +109,6 @@ final class DefaultQueryClient implements QueryClient {
                     .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
-            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
-                    .overrideConfiguration().orElse(null));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
@@ -137,7 +142,10 @@ final class DefaultQueryClient implements QueryClient {
                 .createResponseHandler(APostOperationWithOutputResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
+                .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
@@ -149,8 +157,6 @@ final class DefaultQueryClient implements QueryClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
-            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
-                    .overrideConfiguration().orElse(null));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
@@ -190,7 +196,10 @@ final class DefaultQueryClient implements QueryClient {
                 .createResponseHandler(StreamingInputOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
+                .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
@@ -208,8 +217,6 @@ final class DefaultQueryClient implements QueryClient {
                                             .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                             .requestBody(requestBody).build()));
         } finally {
-            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
-                    .overrideConfiguration().orElse(null));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }
@@ -246,7 +253,10 @@ final class DefaultQueryClient implements QueryClient {
                 .createResponseHandler(StreamingOutputOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
-        MetricCollector apiCallMetricCollector = MetricCollector.create("ApiCall");
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
+                .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
@@ -258,8 +268,6 @@ final class DefaultQueryClient implements QueryClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
-            List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
-                    .overrideConfiguration().orElse(null));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
     }

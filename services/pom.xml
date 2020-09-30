@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.13.54</version>
+        <version>2.14.28</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -244,6 +244,14 @@
         <module>macie2</module>
         <module>codeartifact</module>
         <module>honeycode</module>
+        <module>ivs</module>
+        <module>braket</module>
+        <module>identitystore</module>
+        <module>appflow</module>
+        <module>redshiftdata</module>
+        <module>ssoadmin</module>
+        <module>timestreamwrite</module>
+        <module>timestreamquery</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

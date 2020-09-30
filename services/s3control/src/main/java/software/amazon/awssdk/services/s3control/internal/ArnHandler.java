@@ -19,7 +19,6 @@ import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SER
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.S3_OUTPOSTS;
-import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.X_AMZ_ACCOUNT_ID;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isDualstackEnabled;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsEnabledInClientConfig;
 import static software.amazon.awssdk.services.s3control.internal.HandlerUtils.isFipsRegionProvided;

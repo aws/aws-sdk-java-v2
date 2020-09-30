@@ -20,7 +20,6 @@ import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SU
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.removeFromEnd;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ import software.amazon.awssdk.utils.StringUtils;
 
 public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
-    private final String c2jName;
+    private String c2jName;
     // shapeName might be later modified by the customization.
     private String shapeName;
     // the local variable name inside marshaller/unmarshaller implementation
@@ -69,7 +68,10 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     private XmlNamespace xmlNamespace;
 
-    public ShapeModel(@JsonProperty("c2jName") String c2jName) {
+    public ShapeModel() {
+    }
+
+    public ShapeModel(String c2jName) {
         this.c2jName = c2jName;
     }
 
@@ -94,9 +96,15 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         return c2jName;
     }
 
+    public void setC2jName(String c2jName) {
+        this.c2jName = c2jName;
+    }
+
     public String getType() {
         return type;
     }
+
+
 
     @JsonIgnore
     public void setType(ShapeType shapeType) {

@@ -23,6 +23,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public final class XmlProtocolSpec extends QueryProtocolSpec {
 
@@ -195,12 +197,18 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                                                  ", asyncResponseTransformer" : "");
         builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
                              AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
+
+        String whenCompleteFutureName = "whenCompleteFuture";
+        builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                executeFutureValueType), whenCompleteFutureName);
         if (opModel.hasStreamingOutput()) {
-            builder.add("executeFuture$L;", streamingOutputWhenComplete("asyncResponseTransformer"));
+            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName,
+                    streamingOutputWhenComplete("asyncResponseTransformer"));
         } else {
-            builder.add("executeFuture$L;", publishMetricsWhenComplete());
+            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName, publishMetricsWhenComplete());
         }
-        builder.addStatement("return executeFuture");
+        builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
+                whenCompleteFutureName);
         return builder.build();
     }
 

@@ -97,12 +97,6 @@
     "BlobType":{"type":"blob"},
     "Boolean":{"type":"boolean"},
     "Double":{"type":"double"},
-    "EmptyModeledException":{
-      "type":"structure",
-      "members":{
-      },
-      "exception":true
-    },
     "FlattenedListOfStrings":{
       "type":"list",
       "member":{"shape":"String"},

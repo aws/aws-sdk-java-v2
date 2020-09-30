@@ -133,6 +133,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     public static final SdkClientOption<List<MetricPublisher>> METRIC_PUBLISHERS =
             new SdkClientOption<>(new UnsafeValueType(List.class));
 
+    /**
+     * Option to specify if the default signer has been overridden on the client.
+     */
+    public static final SdkClientOption<Boolean> SIGNER_OVERRIDDEN = new SdkClientOption<>(Boolean.class);
+
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);
     }

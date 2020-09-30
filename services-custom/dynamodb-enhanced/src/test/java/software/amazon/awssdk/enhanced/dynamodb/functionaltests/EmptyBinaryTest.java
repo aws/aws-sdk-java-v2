@@ -78,7 +78,7 @@ public class EmptyBinaryTest {
         }
     }
 
-    private static final TableSchema<TestBean> TABLE_SCHEMA = TableSchema.fromBean(TestBean.class);
+    private static final TableSchema<TestBean> TABLE_SCHEMA = TableSchema.fromClass(TestBean.class);
 
     @Before
     public void initializeTable() {

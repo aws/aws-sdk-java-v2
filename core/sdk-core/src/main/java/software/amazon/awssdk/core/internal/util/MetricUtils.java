@@ -67,11 +67,13 @@ public final class MetricUtils {
     }
 
     public static void collectHttpMetrics(MetricCollector metricCollector, SdkHttpFullResponse httpResponse) {
-        metricCollector.reportMetric(HttpMetric.HTTP_STATUS_CODE, httpResponse.statusCode());
-        SdkHttpUtils.allMatchingHeadersFromCollection(httpResponse.headers(), X_AMZN_REQUEST_ID_HEADERS)
-                    .forEach(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
-        httpResponse.firstMatchingHeader(X_AMZ_ID_2_HEADER)
-                    .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_EXTENDED_REQUEST_ID, v));
+        if (metricCollector != null && httpResponse != null) {
+            metricCollector.reportMetric(HttpMetric.HTTP_STATUS_CODE, httpResponse.statusCode());
+            SdkHttpUtils.allMatchingHeadersFromCollection(httpResponse.headers(), X_AMZN_REQUEST_ID_HEADERS)
+                        .forEach(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));
+            httpResponse.firstMatchingHeader(X_AMZ_ID_2_HEADER)
+                        .ifPresent(v -> metricCollector.reportMetric(CoreMetric.AWS_EXTENDED_REQUEST_ID, v));
+        }
     }
 
     public static MetricCollector createAttemptMetricsCollector(RequestExecutionContext context) {

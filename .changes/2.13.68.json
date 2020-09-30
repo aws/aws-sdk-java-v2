@@ -1,0 +1,16 @@
+{
+    "version": "2.13.68",
+    "date": "2020-08-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "description": "Documentation updates for health"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
