@@ -1,18 +1,3 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
 package software.amazon.awssdk.services.sharedeventstream.model;
 
 import java.io.Serializable;
@@ -38,21 +23,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.Builder, Person>, EventStream {
-    private static final SdkField<String> NAME_FIELD = SdkField.<String>builder(MarshallingType.STRING)
-        .getter(getter(Person::name))
-        .setter(setter(Builder::name))
-        .traits(LocationTrait.builder()
-                             .location(MarshallLocation.PAYLOAD)
-                             .locationName("Name")
-                             .build()).build();
+    private static final SdkField<String> NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Name")
+                                                                                                        .getter(getter(Person::name)).setter(setter(Builder::name))
+                                                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
 
-    private static final SdkField<Instant> BIRTHDAY_FIELD = SdkField.<Instant>builder(MarshallingType.INSTANT)
-        .getter(getter(Person::birthday))
-        .setter(setter(Builder::birthday))
-        .traits(LocationTrait.builder()
-                             .location(MarshallLocation.PAYLOAD)
-                             .locationName("Birthday")
-                             .build()).build();
+    private static final SdkField<Instant> BIRTHDAY_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
+        .memberName("Birthday").getter(getter(Person::birthday)).setter(setter(Builder::birthday))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NAME_FIELD, BIRTHDAY_FIELD));
 
@@ -127,7 +104,8 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
     }
 
     /**
-     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be redacted from this string using a placeholder value.
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value.
      */
     @Override
     public String toString() {
@@ -161,7 +139,8 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
     /**
      * Calls the appropriate visit method depending on the subtype of {@link Person}.
      *
-     * @param visitor Visitor to invoke.
+     * @param visitor
+     *        Visitor to invoke.
      */
     @Override
     public void accept(StreamBirthsResponseHandler.Visitor visitor) {
@@ -171,7 +150,8 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
     /**
      * Calls the appropriate visit method depending on the subtype of {@link Person}.
      *
-     * @param visitor Visitor to invoke.
+     * @param visitor
+     *        Visitor to invoke.
      */
     @Override
     public void accept(StreamDeathsResponseHandler.Visitor visitor) {
@@ -182,7 +162,8 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
         /**
          * Sets the value of the Name property for this object.
          *
-         * @param name The new value for the Name property for this object.
+         * @param name
+         *        The new value for the Name property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder name(String name);
@@ -190,7 +171,8 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
         /**
          * Sets the value of the Birthday property for this object.
          *
-         * @param birthday The new value for the Birthday property for this object.
+         * @param birthday
+         *        The new value for the Birthday property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder birthday(Instant birthday);

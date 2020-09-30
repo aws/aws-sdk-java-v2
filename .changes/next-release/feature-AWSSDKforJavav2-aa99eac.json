@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "This release introduces Waiters for the AWS SDK for Java v2! Waiters make it easier for customers to wait for a resource to transition into a desired state. It comes handy when customers are interacting with operations that are eventually consistent on the service side. For more information on Waiters, head on over to the [AWS Developer Blog](https://aws.amazon.com/blogs/developer/category/developer-tools/aws-sdk-for-java/) and check out the [Developer Guide](http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/welcome.html)."
+}
