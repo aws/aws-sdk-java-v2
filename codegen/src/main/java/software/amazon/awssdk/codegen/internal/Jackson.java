@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.fasterxml.jackson.jr.stree.JacksonJrsTreeCodec;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -47,6 +48,10 @@ public final class Jackson {
     }
 
     private Jackson() {
+    }
+
+    public static JrsValue readJrsValue(String input) throws IOException {
+        return MAPPER.beanFrom(JrsValue.class, input);
     }
 
     public static <T> T load(Class<T> clazz, File file) throws IOException {

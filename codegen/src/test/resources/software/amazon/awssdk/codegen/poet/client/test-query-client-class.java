@@ -36,6 +36,7 @@ import software.amazon.awssdk.services.query.transform.APostOperationRequestMars
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
+import software.amazon.awssdk.services.query.waiters.QueryWaiter;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -88,6 +89,7 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
             AwsServiceException, SdkClientException, QueryException {
+
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(APostOperationResponse::builder);
@@ -169,11 +171,11 @@ final class DefaultQueryClient implements QueryClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.
@@ -300,4 +302,10 @@ final class DefaultQueryClient implements QueryClient {
     public void close() {
         clientHandler.close();
     }
+
+    @Override
+    public QueryWaiter waiter() {
+        return QueryWaiter.builder().client(this).build();
+    }
 }
+

@@ -107,6 +107,20 @@ public final class Either<L, R> {
     }
 
     /**
+     * @return the left value
+     */
+    public Optional<L> left() {
+        return left;
+    }
+
+    /**
+     * @return the right value
+     */
+    public Optional<R> right() {
+        return right;
+    }
+
+    /**
      * Create a new {@code Optional<Either>} from two possibly null values.
      *
      * If both values are null, {@link Optional#empty()} is returned. Only one of the left or right values
