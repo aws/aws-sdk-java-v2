@@ -74,7 +74,8 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         return measureApiCallSuccess(executionParams, () -> {
             validateExecutionParams(executionParams);
-            ExecutionContext executionContext = createExecutionContext(executionParams, createInitialExecutionAttributes());
+            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
+            ExecutionContext executionContext = createExecutionContext(executionParams, executionAttributes);
             TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler;
 
             /* Decorate and combine provided response handlers into a single decorated response handler */
@@ -107,7 +108,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                    + "ClientExecutionParams object.");
             }
 
-            ExecutionAttributes executionAttributes = createInitialExecutionAttributes();
+            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
 
             AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
                 new AsyncStreamingResponseHandler<>(asyncResponseTransformer);

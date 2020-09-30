@@ -577,4 +577,16 @@ public class ValidateTest  {
         expected.expectMessage("foo");
         Validate.isPositiveOrNull(-1L, "foo");
     }
+
+    @Test
+    public void isNull_notNull_shouldThrow() {
+        expected.expect(IllegalArgumentException.class);
+        expected.expectMessage("not null");
+        Validate.isNull("string", "not null");
+    }
+
+    @Test
+    public void isNull_null_shouldPass() {
+        Validate.isNull(null, "not null");
+    }
 }

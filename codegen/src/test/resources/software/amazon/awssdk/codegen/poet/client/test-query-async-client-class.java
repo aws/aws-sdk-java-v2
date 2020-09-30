@@ -111,13 +111,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
-            String hostPrefix = "foo-";
-            String resolvedHostExpression = "foo-";
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
                     .createResponseHandler(APostOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            String hostPrefix = "foo-";
+            String resolvedHostExpression = "foo-";
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                     .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
@@ -377,4 +377,3 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         return QueryAsyncWaiter.builder().client(this).scheduledExecutorService(executorService).build();
     }
 }
-

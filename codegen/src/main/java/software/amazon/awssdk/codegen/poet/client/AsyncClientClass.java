@@ -20,6 +20,7 @@ import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
@@ -248,8 +249,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
         }
 
-        builder.addCode(ClientClassUtils.addEndpointTraitCode(opModel))
-                .addCode(protocolSpec.responseHandler(model, opModel));
+        builder.addCode(protocolSpec.responseHandler(model, opModel));
         protocolSpec.errorResponseHandler(opModel).ifPresent(builder::addCode);
         builder.addCode(eventToByteBufferPublisher(opModel));
 
@@ -296,6 +296,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "endpointDiscoveryCache");
             builder.endControlFlow();
         }
+
+        addS3ArnableFieldCode(opModel, model).ifPresent(builder::addCode);
+        builder.addCode(ClientClassUtils.addEndpointTraitCode(opModel));
 
         builder.addCode(protocolSpec.asyncExecutionHandler(model, opModel))
                .endControlFlow()

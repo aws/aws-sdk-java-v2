@@ -101,6 +101,24 @@ public final class Validate {
     }
 
     /**
+     * <p>Validate that the specified argument is {@code null};
+     * otherwise throwing an exception with the specified message.
+     *
+     * <pre>Validate.isNull(myObject, "The object must be null");</pre>
+     *
+     * @param <T> the object type
+     * @param object  the object to check
+     * @param message  the {@link String#format(String, Object...)} exception message if invalid, not null
+     * @param values  the optional values for the formatted exception message
+     * @throws IllegalArgumentException if the object is not {@code null}
+     */
+    public static <T> void isNull(final T object, final String message, final Object... values) {
+        if (object != null) {
+            throw new IllegalArgumentException(String.format(message, values));
+        }
+    }
+
+    /**
      * <p>Validate that the specified field/param is not {@code null};
      * otherwise throwing an exception with a precanned message that includes the parameter name.
      *

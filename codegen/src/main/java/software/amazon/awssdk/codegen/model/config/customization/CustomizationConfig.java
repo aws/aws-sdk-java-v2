@@ -166,6 +166,10 @@ public class CustomizationConfig {
     private boolean enableEndpointDiscoveryMethodRequired = false;
 
     /**
+     * Arnable fields used in s3 control
+     */
+    private Map<String, S3ArnableFieldConfig> s3ArnableFields;
+    /**
      * Allow a customer to set an endpoint override AND bypass endpoint discovery on their client even when endpoint discovery
      * enabled is true and endpoint discovery is required for an operation. This customization should almost never be "true"
      * because it creates a confusing customer experience.
@@ -426,6 +430,19 @@ public class CustomizationConfig {
 
     public void setEnableEndpointDiscoveryMethodRequired(boolean enableEndpointDiscoveryMethodRequired) {
         this.enableEndpointDiscoveryMethodRequired = enableEndpointDiscoveryMethodRequired;
+    }
+
+    public Map<String, S3ArnableFieldConfig> getS3ArnableFields() {
+        return s3ArnableFields;
+    }
+
+    public CustomizationConfig withS3ArnableFields(Map<String, S3ArnableFieldConfig> s3ArnableFields) {
+        this.s3ArnableFields = s3ArnableFields;
+        return this;
+    }
+
+    public void setS3ArnableFields(Map<String, S3ArnableFieldConfig> s3ArnableFields) {
+        this.s3ArnableFields = s3ArnableFields;
     }
 
     public boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations() {
