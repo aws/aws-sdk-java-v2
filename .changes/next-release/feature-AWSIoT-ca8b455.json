@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT",
-    "description": "AWS IoT Rules Engine adds Timestream action. The Timestream rule action lets you stream time-series data from IoT sensors and applications to Amazon Timestream databases for time series analysis."
-}

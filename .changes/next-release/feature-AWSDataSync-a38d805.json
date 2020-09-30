@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "description": "This release enables customers to create s3 location for S3 bucket's located on an AWS Outpost."
-}
