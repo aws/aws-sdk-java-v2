@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "description": "Added several new resource details objects. Added additional details for CloudFront distributions, IAM roles, and IAM access keys. Added a new ResourceRole attribute for resources."
+}
