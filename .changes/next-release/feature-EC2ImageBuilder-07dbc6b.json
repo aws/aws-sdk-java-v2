@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "description": "EC2 Image Builder adds support for copying AMIs created by Image Builder to accounts specific to each Region."
+}
