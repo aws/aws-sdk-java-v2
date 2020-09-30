@@ -1173,6 +1173,11 @@ Amazon AutoScaling, etc).</description>
             <artifactId>timestreamquery</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3outposts</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
