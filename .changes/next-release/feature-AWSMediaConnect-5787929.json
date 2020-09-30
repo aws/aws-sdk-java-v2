@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS MediaConnect",
+    "description": "MediaConnect now supports reservations to provide a discounted rate for a specific outbound bandwidth over a period of time."
+}
