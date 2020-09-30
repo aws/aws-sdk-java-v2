@@ -108,7 +108,7 @@ public class EndpointTraitTest {
         }
     }
 
-    @Test (expected = NullPointerException.class)
+    @Test (expected = IllegalArgumentException.class)
     public void validationException_whenInputMember_inHostPrefix_isNull() {
         client.endpointTraitTwo(EndpointTraitTwoRequest.builder().build());
     }
