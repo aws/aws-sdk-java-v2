@@ -5,6 +5,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.services.query.transform.APostOperationRequestMars
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
+import software.amazon.awssdk.services.query.waiters.QueryAsyncWaiter;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
@@ -63,10 +65,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final ScheduledExecutorService executorService;
+
     protected DefaultQueryAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init();
+        this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
     @Override
@@ -106,13 +111,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
-            String hostPrefix = "foo-";
-            String resolvedHostExpression = "foo-";
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
                     .createResponseHandler(APostOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            String hostPrefix = "foo-";
+            String resolvedHostExpression = "foo-";
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                     .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
@@ -366,5 +371,9 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
         return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
     }
-}
 
+    @Override
+    public QueryAsyncWaiter waiter() {
+        return QueryAsyncWaiter.builder().client(this).scheduledExecutorService(executorService).build();
+    }
+}

@@ -36,7 +36,7 @@ import software.amazon.awssdk.core.traits.Trait;
  */
 @SdkProtectedApi
 public final class SdkField<TypeT> {
-
+    private final String memberName;
     private final MarshallingType<? super TypeT> marshallingType;
     private final MarshallLocation location;
     private final String locationName;
@@ -47,6 +47,7 @@ public final class SdkField<TypeT> {
     private final Map<Class<? extends Trait>, Trait> traits;
 
     private SdkField(Builder<TypeT> builder) {
+        this.memberName = builder.memberName;
         this.marshallingType = builder.marshallingType;
         this.traits = new HashMap<>(builder.traits);
         this.constructor = builder.constructor;
@@ -58,6 +59,10 @@ public final class SdkField<TypeT> {
         this.location = locationTrait.location();
         this.locationName = locationTrait.locationName();
         this.unmarshallLocationName = locationTrait.unmarshallLocationName();
+    }
+
+    public String memberName() {
+        return memberName;
     }
 
     /**
@@ -181,6 +186,7 @@ public final class SdkField<TypeT> {
     public static final class Builder<TypeT> {
 
         private final MarshallingType<? super TypeT> marshallingType;
+        private String memberName;
         private Supplier<SdkPojo> constructor;
         private BiConsumer<Object, TypeT> setter;
         private Function<Object, TypeT> getter;
@@ -188,6 +194,11 @@ public final class SdkField<TypeT> {
 
         private Builder(MarshallingType<? super TypeT> marshallingType) {
             this.marshallingType = marshallingType;
+        }
+
+        public Builder<TypeT> memberName(String memberName) {
+            this.memberName = memberName;
+            return this;
         }
 
         /**

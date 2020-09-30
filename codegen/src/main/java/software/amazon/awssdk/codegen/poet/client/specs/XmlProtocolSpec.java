@@ -15,13 +15,17 @@
 
 package software.amazon.awssdk.codegen.poet.client.specs;
 
+import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -127,6 +131,8 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
         codeBlock.add(".withMetricCollector($N)", "apiCallMetricCollector");
 
+        s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
+
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withRequestBody(requestBody)")
                             .add(".withMarshaller($L));", syncStreamingMarshaller(intermediateModel, opModel, marshaller))
@@ -134,6 +140,23 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         }
         return codeBlock.add(".withMarshaller(new $T(protocolFactory)) $L);", marshaller,
                              opModel.hasStreamingOutput() ? ", responseTransformer" : "").build();
+    }
+
+    private Optional<CodeBlock> s3ArnableFields(OperationModel opModel, IntermediateModel model) {
+        CodeBlock.Builder codeBlock = CodeBlock.builder();
+        Map<String, S3ArnableFieldConfig> s3ArnableFields = model.getCustomizationConfig().getS3ArnableFields();
+        String shapeName = opModel.getInputShape().getShapeName();
+        if (s3ArnableFields != null && s3ArnableFields.containsKey(shapeName)) {
+            S3ArnableFieldConfig s3ArnableField = s3ArnableFields.get(shapeName);
+            codeBlock.add(".putExecutionAttribute($T.$N, $T.builder().arn(arn).build())",
+                          classNameFromFqcn(s3ArnableField.getExecutionAttributeKeyFqcn()),
+                          "S3_ARNABLE_FIELD",
+                          classNameFromFqcn(s3ArnableField.getExecutionAttributeValueFqcn()));
+
+            return Optional.of(codeBlock.build());
+        }
+
+        return Optional.empty();
     }
 
     private CodeBlock streamingExecutionHandler(OperationModel opModel) {
@@ -160,8 +183,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                     ".withMarshaller($L)" +
                                     ".withCombinedResponseHandler($N)" +
                                     hostPrefixExpression(opModel) +
-                                    asyncRequestBody +
-                                    ".withInput($L) $L);",
+                                    asyncRequestBody,
                                     java.util.concurrent.CompletableFuture.class,
                                     executeFutureValueType,
                                     software.amazon.awssdk.core.client.handler.ClientExecutionParams.class,
@@ -169,10 +191,10 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                     pojoResponseType,
                                     opModel.getOperationName(),
                                     asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"),
-                                    "responseHandler",
-                                    opModel.getInput().getVariableName(),
-                                    opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
-
+                                    "responseHandler");
+        s3ArnableFields(opModel, model).ifPresent(builder::add);
+        builder.add(".withInput($L) $L);", opModel.getInput().getVariableName(), opModel.hasStreamingOutput() ?
+                                                                                 ", asyncResponseTransformer" : "");
         builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
                              AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
 

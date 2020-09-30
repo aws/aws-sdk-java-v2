@@ -30,6 +30,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
                                                                                   ToCopyableBuilder<ExistenceCheckNamingResponse.Builder, ExistenceCheckNamingResponse> {
     private static final SdkField<List<String>> BUILD_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
+        .memberName("Build")
         .getter(getter(ExistenceCheckNamingResponse::build))
         .setter(setter(Builder::build))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Build").build(),
@@ -43,6 +44,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
 
     private static final SdkField<List<String>> SUPER_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
+        .memberName("super")
         .getter(getter(ExistenceCheckNamingResponse::superValue))
         .setter(setter(Builder::superValue))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("super").build(),
@@ -56,6 +58,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
 
     private static final SdkField<Map<String, String>> TO_STRING_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("toString")
         .getter(getter(ExistenceCheckNamingResponse::toStringValue))
         .setter(setter(Builder::toStringValue))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("toString").build(),
@@ -69,6 +72,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
 
     private static final SdkField<Map<String, String>> EQUALS_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("equals")
         .getter(getter(ExistenceCheckNamingResponse::equalsValue))
         .setter(setter(Builder::equalsValue))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("equals").build(),

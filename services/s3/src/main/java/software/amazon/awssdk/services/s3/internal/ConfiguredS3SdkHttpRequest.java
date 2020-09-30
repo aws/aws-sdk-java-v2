@@ -28,10 +28,12 @@ public class ConfiguredS3SdkHttpRequest
         implements ToCopyableBuilder<ConfiguredS3SdkHttpRequest.Builder, ConfiguredS3SdkHttpRequest> {
     private final SdkHttpRequest sdkHttpRequest;
     private final Region signingRegionModification;
+    private final String signingServiceModification;
 
     private ConfiguredS3SdkHttpRequest(Builder builder) {
         this.sdkHttpRequest = Validate.notNull(builder.sdkHttpRequest, "sdkHttpRequest");
         this.signingRegionModification = builder.signingRegionModification;
+        this.signingServiceModification = builder.signingServiceModification;
     }
 
     public static Builder builder() {
@@ -44,6 +46,10 @@ public class ConfiguredS3SdkHttpRequest
 
     public Optional<Region> signingRegionModification() {
         return Optional.ofNullable(signingRegionModification);
+    }
+
+    public Optional<String> signingServiceModification() {
+        return Optional.ofNullable(signingServiceModification);
     }
 
     @Override
@@ -62,22 +68,27 @@ public class ConfiguredS3SdkHttpRequest
 
         ConfiguredS3SdkHttpRequest that = (ConfiguredS3SdkHttpRequest) o;
 
-        if (sdkHttpRequest != null ? ! sdkHttpRequest.equals(that.sdkHttpRequest) : that.sdkHttpRequest != null) {
+        if (!sdkHttpRequest.equals(that.sdkHttpRequest)) {
             return false;
         }
-        return signingRegionModification != null ?
-            signingRegionModification.equals(that.signingRegionModification)
-            : that.signingRegionModification == null;
+        if (signingRegionModification != null ? !signingRegionModification.equals(that.signingRegionModification) :
+            that.signingRegionModification != null) {
+            return false;
+        }
+        return signingServiceModification != null ? signingServiceModification.equals(that.signingServiceModification) :
+               that.signingServiceModification == null;
     }
 
     @Override
     public int hashCode() {
-        int result = sdkHttpRequest != null ? sdkHttpRequest.hashCode() : 0;
+        int result = sdkHttpRequest.hashCode();
         result = 31 * result + (signingRegionModification != null ? signingRegionModification.hashCode() : 0);
+        result = 31 * result + (signingServiceModification != null ? signingServiceModification.hashCode() : 0);
         return result;
     }
 
     public static class Builder implements CopyableBuilder<Builder, ConfiguredS3SdkHttpRequest> {
+        private String signingServiceModification;
         private SdkHttpRequest sdkHttpRequest;
         private Region signingRegionModification;
 
@@ -91,6 +102,11 @@ public class ConfiguredS3SdkHttpRequest
 
         public Builder signingRegionModification(Region signingRegionModification) {
             this.signingRegionModification = signingRegionModification;
+            return this;
+        }
+
+        public Builder signingServiceModification(String signingServiceModification) {
+            this.signingServiceModification = signingServiceModification;
             return this;
         }
 

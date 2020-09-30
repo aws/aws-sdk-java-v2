@@ -98,7 +98,6 @@ public interface ProtocolSpec {
                : "";
     }
 
-
     /**
      * For sync streaming operations, wrap request marshaller in {@link StreamingRequestMarshaller} class.
      */

@@ -43,8 +43,11 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
      */
     private static final boolean DEFAULT_DUALSTACK_ENABLED = false;
 
+    private static final boolean DEFAULT_USE_ARN_REGION_ENABLED = false;
+
     private final Boolean fipsModeEnabled;
     private final Boolean dualstackEnabled;
+    private final Boolean useArnRegionEnabled;
     private final ProfileFile profileFile;
     private final String profileName;
 
@@ -53,6 +56,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
         this.fipsModeEnabled = builder.fipsModeEnabled;
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
+        this.useArnRegionEnabled = builder.useArnRegionEnabled;
     }
 
     /**
@@ -89,6 +93,17 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
         return resolveBoolean(dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
     }
 
+    /**
+     * Returns whether the client is configured to make calls to a region specified in an ARN that represents an
+     * S3 resource even if that region is different to the region the client was initialized with. This setting is disabled by
+     * default.
+     *
+     * @return true if use arn region is enabled.
+     */
+    public boolean useArnRegionEnabled() {
+        return resolveBoolean(useArnRegionEnabled, DEFAULT_USE_ARN_REGION_ENABLED);
+    }
+
     private boolean resolveBoolean(Boolean suppliedValue, boolean defaultValue) {
         return suppliedValue == null ? defaultValue : suppliedValue;
     }
@@ -98,6 +113,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
         return builder()
                 .dualstackEnabled(dualstackEnabled)
                 .fipsModeEnabled(fipsModeEnabled)
+                .useArnRegionEnabled(useArnRegionEnabled)
                 .profileFile(profileFile)
                 .profileName(profileName);
     }
@@ -131,6 +147,20 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
          */
         Builder fipsModeEnabled(Boolean fipsModeEnabled);
 
+        /**
+         * Option to enable the client to make calls to a region specified in an ARN that represents an S3 resource
+         * even if that region is different to the region the client was initialized with. This setting is disabled by
+         * default.
+         */
+        Builder useArnRegionEnabled(Boolean arnRegionEnabled);
+
+        /**
+         * Option to enable the client to make calls to a region specified in an ARN that represents an S3 resource
+         * even if that region is different to the region the client was initialized with. This setting is disabled by
+         * default.
+         */
+        Boolean useArnRegionEnabled();
+
         ProfileFile profileFile();
 
         /**
@@ -154,6 +184,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
         private Boolean fipsModeEnabled;
         private ProfileFile profileFile;
         private String profileName;
+        private Boolean useArnRegionEnabled;
 
         public Boolean dualstackEnabled() {
             return dualstackEnabled;
@@ -179,6 +210,21 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
 
         public void setFipsModeEnabled(Boolean fipsModeEnabled) {
             fipsModeEnabled(fipsModeEnabled);
+        }
+
+        @Override
+        public Builder useArnRegionEnabled(Boolean arnRegionEnabled) {
+            this.useArnRegionEnabled = arnRegionEnabled;
+            return this;
+        }
+
+        @Override
+        public Boolean useArnRegionEnabled() {
+            return useArnRegionEnabled;
+        }
+
+        public void setUseArnRegionEnabled(Boolean useArnRegionEnabled) {
+            useArnRegionEnabled(useArnRegionEnabled);
         }
 
         @Override
