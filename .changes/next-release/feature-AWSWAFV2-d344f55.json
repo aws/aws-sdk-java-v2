@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "description": "AWS WAF is now available for AWS AppSync GraphQL APIs. AWS WAF protects against malicious attacks with AWS Managed Rules or your own custom rules. For more information see the AWS WAF Developer Guide."
+}
