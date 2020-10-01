@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "description": "QuickSight now supports connecting to AWS Timestream data source"
+}
