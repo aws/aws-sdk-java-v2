@@ -1,0 +1,41 @@
+{
+    "version": "2.15.1",
+    "date": "2020-10-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic MapReduce",
+            "description": "Documentation updates for elasticmapreduce"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "Adding additional optional map parameter to get-plan api"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "description": "Added support for Enabling Zookeeper Encryption in Transit for AWS MSK."
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "description": "Exposes the wafWebAclArn field on GraphQL api records. The wafWebAclArn field contains the amazon resource name of a WAF Web ACL if the AWS AppSync API is associated with one."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "QuickSight now supports connecting to AWS Timestream data source"
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "description": "AWS WAF is now available for AWS AppSync GraphQL APIs. AWS WAF protects against malicious attacks with AWS Managed Rules or your own custom rules. For more information see the AWS WAF Developer Guide."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
