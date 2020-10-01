@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka",
-    "description": "Added support for Enabling Zookeeper Encryption in Transit for AWS MSK."
-}

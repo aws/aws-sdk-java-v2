@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "Adding additional optional map parameter to get-plan api"
-}
