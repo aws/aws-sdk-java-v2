@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.apache.internal.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -90,5 +91,38 @@ public class ApacheHttpRequestFactoryTest {
         assertNotNull(hostHeaders);
         assertEquals(1, hostHeaders.length);
         assertEquals("localhost", hostHeaders[0].getValue());
+    }
+
+    @Test
+    public void pathWithLeadingSlash_shouldEncode() {
+        assertThat(sanitizedUri("/foobar")).isEqualTo("http://localhost/%2Ffoobar");
+    }
+
+    @Test
+    public void pathWithOnlySlash_shouldEncode() {
+        assertThat(sanitizedUri("/")).isEqualTo("http://localhost/%2F");
+    }
+
+    @Test
+    public void pathWithoutSlash_shouldReturnSameUri() {
+        assertThat(sanitizedUri("path")).isEqualTo("http://localhost/path");
+    }
+
+    @Test
+    public void pathWithSpecialChars_shouldPreserveEncoding() {
+        assertThat(sanitizedUri("/special-chars-%40%24%25")).isEqualTo("http://localhost/%2Fspecial-chars-%40%24%25");
+    }
+
+    private String sanitizedUri(String path) {
+        SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
+                                                  .uri(URI.create("http://localhost:80"))
+                                                  .encodedPath("/" + path)
+                                                  .method(SdkHttpMethod.HEAD)
+                                                  .build();
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(sdkRequest)
+                                                       .build();
+
+        return instance.create(request, requestConfig).getURI().toString();
     }
 }

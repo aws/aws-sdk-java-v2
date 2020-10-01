@@ -1,0 +1,5 @@
+{
+    "category": "Apache HTTP Client", 
+    "type": "bugfix", 
+    "description": "Fixed an issue in Apache HTTP client where a request with path parameter as a single slash threw invalid host name error."
+}

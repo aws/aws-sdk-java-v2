@@ -26,7 +26,9 @@ import software.amazon.awssdk.core.sync.RequestBody;
 public class KeysWithLeadingSlashIntegrationTest extends S3IntegrationTestBase {
 
     private static final String BUCKET = temporaryBucketName(KeysWithLeadingSlashIntegrationTest.class);
-    private static final String KEY = "/stupidkeywithillegalleadingslashthatsucks";
+    private static final String KEY = "/keyWithLeadingSlash";
+    private static final String SLASH_KEY = "/";
+    private static final String KEY_WITH_SLASH_AND_SPECIAL_CHARS = "/special-chars-@$%";
     private static final byte[] CONTENT = "Hello".getBytes(StandardCharsets.UTF_8);
 
     @BeforeClass
@@ -42,9 +44,26 @@ public class KeysWithLeadingSlashIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void putObject_KeyWithLeadingSlash_Succeeds() {
-        s3.putObject(r -> r.bucket(BUCKET).key(KEY), RequestBody.fromBytes(CONTENT));
+        verify(KEY);
+    }
+
+    @Test
+    public void slashKey_shouldSucceed() {
+        verify(SLASH_KEY);
+    }
+
+    @Test
+    public void slashKeyWithSpecialChar_shouldSucceed() {
+        verify(KEY_WITH_SLASH_AND_SPECIAL_CHARS);
+    }
+
+    private void verify(String key) {
+        s3.putObject(r -> r.bucket(BUCKET).key(key), RequestBody.fromBytes(CONTENT));
+
+        assertThat(s3.getObjectAsBytes(r -> r.bucket(BUCKET).key(key)).asByteArray()).isEqualTo(CONTENT);
+
         String retrievedKey = s3.listObjects(r -> r.bucket(BUCKET)).contents().get(0).key();
 
-        assertThat(retrievedKey).isEqualTo(KEY);
+        assertThat(retrievedKey).isEqualTo(key);
     }
 }
