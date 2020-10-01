@@ -71,7 +71,8 @@ public class ApacheHttpRequestFactory {
      */
     private String sanitizeUri(URI uri) {
         String newPath = uri.getPath().replace("//", "/%2F");
-        return uri.toString().replace(uri.getPath(), newPath);
+        String baseUri = uri.toString();
+        return baseUri.substring(0, baseUri.length() - uri.getPath().length()) + newPath;
     }
 
     private void addRequestConfig(final HttpRequestBase base,

@@ -17,6 +17,8 @@ package software.amazon.awssdk.http.apache.internal.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -91,4 +93,32 @@ public class ApacheHttpRequestFactoryTest {
         assertEquals(1, hostHeaders.length);
         assertEquals("localhost", hostHeaders[0].getValue());
     }
+
+    @Test
+    public void sanitizeUriTest_slashPathInUriWillBeReplaced() {
+        assertTrue(sanitizeUriTestHelper("/").endsWith("/%2F"));
+    }
+
+    @Test
+    public void sanitizeUriTest_multipleConsecutiveSlashesPathInUriWillBeReplaced() {
+        assertTrue(sanitizeUriTestHelper("//").endsWith("/%2F/"));
+    }
+
+    @Test
+    public void sanitizeUriTest_normalPathInUriReturnOriginalpath() {
+        assertTrue(sanitizeUriTestHelper("path").endsWith("/path"));
+    }
+
+    private String sanitizeUriTestHelper(String path) {
+        SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
+                                                  .uri(URI.create("http://localhost:80/" + path))
+                                                  .method(SdkHttpMethod.HEAD)
+                                                  .build();
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(sdkRequest)
+                                                       .build();
+
+        return instance.create(request, requestConfig).getURI().toString();
+    }
+
 }
