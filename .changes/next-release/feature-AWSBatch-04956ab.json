@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Batch",
-    "description": "Support tagging for Batch resources (compute environment, job queue, job definition and job) and tag based access control on Batch APIs"
-}
