@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "description": "This release adds support for tagging listeners, rules, and target groups on creation. This release also supported tagging operations through tagging api's for listeners and rules."
+}
