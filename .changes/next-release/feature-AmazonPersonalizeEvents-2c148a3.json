@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize Events",
+    "description": "Adds new APIs to write item and user records to Datasets."
+}
