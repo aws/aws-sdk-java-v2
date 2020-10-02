@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "Adds the NCHAR Character Set ID parameter to the CreateDbInstance API for RDS Oracle."
+}
