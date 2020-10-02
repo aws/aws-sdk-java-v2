@@ -83,7 +83,7 @@ public abstract class AbstractAws4aSigner implements Signer, Presigner {
         signingConfig.setCredentials(buildCredentials(executionAttributes));
         signingConfig.setService(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME));
         signingConfig.setRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION)
-                .toString()); // Temporary, real solution TBD with Lemmy integration
+                .toString()); // TODO: Temporary, real solution TBD with Lemmy integration
 
         signingConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
         signingConfig.setShouldNormalizeUriPath(true);
