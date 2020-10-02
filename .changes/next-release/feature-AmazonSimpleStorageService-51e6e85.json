@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "description": "Amazon S3 Object Ownership is a new S3 feature that enables bucket owners to automatically assume ownership of objects that are uploaded to their buckets by other AWS Accounts."
+}
