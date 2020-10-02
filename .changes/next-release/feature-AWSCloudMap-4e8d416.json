@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Map",
+    "description": "Added support for optional parameters for DiscoverInstances API in AWS Cloud Map"
+}
