@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DynamoDB Enhanced Client",
-    "description": "Added support for attribute level custom update behaviors such as 'write if not exists'."
-}
