@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
 
 /**
  * Static provider class for core {@link BeanTableSchema} attribute tags. Each of the implemented annotations has a
@@ -51,5 +52,9 @@ public final class BeanTableSchemaAttributeTags {
 
     public static StaticAttributeTag attributeTagFor(DynamoDbSecondarySortKey annotation) {
         return StaticAttributeTags.secondarySortKey(Arrays.asList(annotation.indexNames()));
+    }
+
+    public static StaticAttributeTag attributeTagFor(DynamoDbUpdateBehavior annotation) {
+        return StaticAttributeTags.updateBehavior(annotation.value());
     }
 }

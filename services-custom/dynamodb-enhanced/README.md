@@ -432,6 +432,47 @@ private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
     .build();
 ```
 
+### Changing update behavior of attributes
+It is possible to customize the update behavior as applicable to individual attributes when an 'update' operation is
+performed (e.g. UpdateItem or an update within TransactWriteItems).
+
+For example, say like you wanted to store a 'created on' timestamp on your record, but only wanted its value to be
+written if there is no existing value for the attribute stored in the database then you would use the 
+WRITE_IF_NOT_EXISTS update behavior. Here is an example using a bean:
+
+```java
+@DynamoDbBean
+public class Customer extends GenericRecord {
+    private String id;
+    private Instant createdOn;
+
+    @DynamoDbPartitionKey
+    public String getId() { return this.id; }
+    public void setId(String id) { this.name = id; }
+
+    @DynamoDbUpdateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)
+    public Instant getCreatedOn() { return this.createdOn; }    
+    public void setCreatedOn(Instant createdOn) { this.createdOn = createdOn; }
+}
+```
+
+Same example using a static table schema:
+
+```java
+static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
+     TableSchema.builder(Customer.class)
+       .newItemSupplier(Customer::new)
+       .addAttribute(String.class, a -> a.name("id")
+                                         .getter(Customer::getId)
+                                         .setter(Customer::setId)
+                                         .tags(primaryPartitionKey()))
+       .addAttribute(Instant.class, a -> a.name("createdOn")
+                                          .getter(Customer::getCreatedOn)
+                                          .setter(Customer::setCreatedOn)
+                                          .tags(updateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)))
+       .build();
+```
+
 ### Flat map attributes from another class
 If the attributes for your table record are spread across several
 different Java objects, either through inheritance or composition, the
