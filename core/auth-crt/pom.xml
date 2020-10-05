@@ -25,7 +25,7 @@
         <version>2.13.57</version>
     </parent>
 
-    <artifactId>authcrt</artifactId>
+    <artifactId>auth-crt</artifactId>
     <name>AWS Java SDK :: AuthCrt</name>
     <description>
         The AWS SDK for Java - AuthCrt module holds authentication types that are built on the AWS Common Runtime
