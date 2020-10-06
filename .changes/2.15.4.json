@@ -1,0 +1,26 @@
+{
+    "version": "2.15.4",
+    "date": "2020-10-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "description": "Added new S3 endpoint settings to allow partitioning CDC data by date for S3 as target. Exposed some Extra Connection Attributes as endpoint settings for relational databases as target."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Catalog Service",
+            "description": "AWS Marketplace Catalog now supports FailureCode for change workflows to help differentiate client errors and server faults."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release supports returning additional information about local gateway virtual interfaces, and virtual interface groups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Analytics",
+            "description": "Amazon Kinesis Analytics now supports StopApplication with 'force' option"
+        }
+    ]
+}

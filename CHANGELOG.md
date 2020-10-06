@@ -1,3 +1,20 @@
+# __2.15.4__ __2020-10-06__
+## __AWS Database Migration Service__
+  - ### Features
+    - Added new S3 endpoint settings to allow partitioning CDC data by date for S3 as target. Exposed some Extra Connection Attributes as endpoint settings for relational databases as target.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - AWS Marketplace Catalog now supports FailureCode for change workflows to help differentiate client errors and server faults.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release supports returning additional information about local gateway virtual interfaces, and virtual interface groups.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Amazon Kinesis Analytics now supports StopApplication with 'force' option
+
 # __2.15.3__ __2020-10-05__
 ## __AWS DynamoDB Enhanced Client__
   - ### Features
