@@ -176,6 +176,16 @@ public class CustomizationConfig {
      */
     private boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations = false;
 
+    /**
+     * Customization to instruct the code generator *not* to include the event's name in the {@code Visitor#visit*()}
+     * method; i.e. the signature of the method will be {@code void visit(<Event Shape type>)}.
+     * <p>
+     * <b>NOTE</b>This customization is primarily here to preserve backwards compatibility with existing code before the
+     * generation scheme for the visitor methods was changed. There should be no good reason to use this customization
+     * for any other purpose.
+     */
+    private Map<String, List<String>> excludeEventNameFromVisitMethod = new HashMap<>();
+
     private CustomizationConfig() {
     }
 
@@ -453,5 +463,13 @@ public class CustomizationConfig {
         boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations) {
         this.allowEndpointOverrideForEndpointDiscoveryRequiredOperations =
             allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
+    }
+
+    public Map<String, List<String>> getExcludeEventNameFromVisitMethod() {
+        return excludeEventNameFromVisitMethod;
+    }
+
+    public void setExcludeEventNameFromVisitMethod(Map<String, List<String>> excludeEventNameFromVisitMethod) {
+        this.excludeEventNameFromVisitMethod = excludeEventNameFromVisitMethod;
     }
 }

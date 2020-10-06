@@ -96,11 +96,11 @@ public class EventStreamUtils {
     }
 
     /**
-     * Returns the stream of event member shapes ('event: true') excluding exceptions
+     * Returns the stream of event members ('event: true') excluding exceptions
      * from the input event stream shape ('eventstream: true').
      */
-    public static Stream<ShapeModel> getEvents(ShapeModel eventStreamShape) {
-        return getEventMembers(eventStreamShape).map(MemberModel::getShape);
+    public static Stream<MemberModel> getEvents(ShapeModel eventStreamShape) {
+        return getEventMembers(eventStreamShape);
     }
 
     /**

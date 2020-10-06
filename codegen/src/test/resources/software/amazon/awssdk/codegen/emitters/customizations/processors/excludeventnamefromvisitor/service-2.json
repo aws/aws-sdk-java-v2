@@ -412,6 +412,9 @@
         },
         "second-event-two": {
           "shape": "EventTwo"
+        },
+        "third-event-two-customizedVisitMethod": {
+          "shape": "EventTwo"
         }
       },
       "eventstream": true
