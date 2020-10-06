@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Catalog Service",
+    "description": "AWS Marketplace Catalog now supports FailureCode for change workflows to help differentiate client errors and server faults."
+}
