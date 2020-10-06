@@ -36,7 +36,7 @@
         <module>annotations</module>
         <module>arns</module>
         <module>auth</module>
-        <module>authcrt</module>
+        <module>auth-crt</module>
         <module>sdk-core</module>
         <module>aws-core</module>
         <module>profiles</module>
