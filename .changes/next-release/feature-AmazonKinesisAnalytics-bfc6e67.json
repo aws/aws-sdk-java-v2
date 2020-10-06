@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Analytics",
-    "description": "Amazon Kinesis Analytics now supports StopApplication with 'force' option"
-}

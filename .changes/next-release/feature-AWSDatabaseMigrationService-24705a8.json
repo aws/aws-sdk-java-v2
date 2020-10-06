@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "description": "Added new S3 endpoint settings to allow partitioning CDC data by date for S3 as target. Exposed some Extra Connection Attributes as endpoint settings for relational databases as target."
-}
