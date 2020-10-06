@@ -49,6 +49,11 @@ import software.amazon.awssdk.regions.Region;
 @RunWith(MockitoJUnitRunner.class)
 public class Aws4aSignerTest {
 
+    private final String TEST_ACCESS_KEY_ID = "AKIDEXAMPLE";
+    private final String TEST_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY";
+    private final String TEST_VERIFICATION_PUB_X = "b6618f6a65740a99e650b33b6b4b5bd0d43b176d721a3edfea7e7d2d56d936b1";
+    private final String TEST_VERIFICATION_PUB_Y = "865ed22a7eadc9c5cb9d2cbaca1b3699139fedc5043dc6661864218330c8e518";
+
     class Sigv4aSigningTestCase {
         public SdkHttpFullRequest.Builder requestBuilder;
         public String expectedCanonicalRequest;
@@ -62,10 +67,18 @@ public class Aws4aSignerTest {
     private Aws4aSigner v4aSigner = Aws4aSigner.create();
     private AwsS3V4aSigner s3V4aSigner = AwsS3V4aSigner.create();
 
-    boolean verifyEcdsaSignature(SdkHttpFullRequest request, String expectedCanonicalRequest, AwsSigningConfig signingConfig, String signatureValue) {
+    boolean verifyEcdsaSignature(SdkHttpFullRequest request,
+                                 String expectedCanonicalRequest,
+                                 AwsSigningConfig signingConfig,
+                                 String signatureValue) {
         HttpRequest crtRequest = CrtHttpUtils.createCrtRequest(SigningUtils.sanitizeSdkRequestForCrtSigning(request));
 
-        return AwsSigningUtils.verifySigv4aEcdsaSignature(crtRequest, expectedCanonicalRequest, signingConfig, signatureValue);
+        return AwsSigningUtils.verifySigv4aEcdsaSignature(crtRequest, expectedCanonicalRequest, signingConfig,
+                signatureValue, TEST_VERIFICATION_PUB_X, TEST_VERIFICATION_PUB_Y);
+    }
+
+    private AwsBasicCredentials createCredentials() {
+        return AwsBasicCredentials.create(TEST_ACCESS_KEY_ID, TEST_SECRET_ACCESS_KEY);
     }
 
     private Sigv4aSigningTestCase createBasicHeaderSigningTestCase() {
@@ -82,7 +95,7 @@ public class Aws4aSignerTest {
         testCase.signingName = "demo";
         testCase.regionSet = "aws-global";
         testCase.signingTime = Instant.ofEpochSecond(1596476903);
-        testCase.credentials = AwsBasicCredentials.create("access", "secret");
+        testCase.credentials = createCredentials();
         testCase.expectedCanonicalRequest = "POST\n" +
                 "/\n" +
                 "\n" +
@@ -127,6 +140,8 @@ public class Aws4aSignerTest {
         assertTrue(verifyEcdsaSignature(request, testCase.expectedCanonicalRequest, signingConfig, signatureValue));
     }
 
+
+
     private Sigv4aSigningTestCase createBasicQuerySigningTestCase() {
         Sigv4aSigningTestCase testCase = new Sigv4aSigningTestCase();
 
@@ -138,7 +153,7 @@ public class Aws4aSignerTest {
         testCase.signingName = "testing";
         testCase.regionSet = "aws-global";
         testCase.signingTime = Instant.ofEpochSecond(1596476801);
-        testCase.credentials = AwsBasicCredentials.create("QueryAccess", "QuerySecret");
+        testCase.credentials = createCredentials();
         testCase.expectedCanonicalRequest = "GET\n" +
                 "/test%2520path/help\n" +
                 "X-Amz-Algorithm=AWS4-ECDSA-P256-SHA256&X-Amz-Credential=QueryAccess%2F20200803%2Ftesting%2Faws4_request&X-Amz-Date=20200803T174641Z&X-Amz-Expires=604800&X-Amz-Region-Set=aws-global&X-Amz-SignedHeaders=host%3Bx-amz-content-sha256\n" +
