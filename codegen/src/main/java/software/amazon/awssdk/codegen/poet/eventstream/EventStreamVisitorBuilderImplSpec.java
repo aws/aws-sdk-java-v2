@@ -25,8 +25,9 @@ import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
@@ -34,7 +35,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
  * Generates the implementation for the builder of an event stream visitor.
  */
 public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilderInterfaceSpec {
-
+    private final IntermediateModel intermediateModel;
     private final PoetExtensions poetExt;
     private final OperationModel opModel;
     private final ClassName visitorType;
@@ -43,6 +44,7 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
 
     public EventStreamVisitorBuilderImplSpec(GeneratorTaskParams params, OperationModel operationModel) {
         super(params.getPoetExtensions(), operationModel);
+        this.intermediateModel = params.getModel();
         this.poetExt = params.getPoetExtensions();
         this.opModel = operationModel;
         this.visitorType = poetExt.eventStreamResponseHandlerVisitorType(opModel);
@@ -68,7 +70,7 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
         private final MethodSpec.Builder constrBuilder;
 
         VisitorFromBuilderImplSpec() {
-            super(poetExt, opModel);
+            super(intermediateModel, poetExt, opModel);
             this.constrBuilder = MethodSpec.constructorBuilder()
                                            .addParameter(enclosingClassName(), "builder")
                                            .addStatement("this.onDefault = builder.onDefault != null ?\n"
@@ -98,10 +100,10 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
         @Override
         protected MethodSpec.Builder applyVisitSubTypeMethodSpecUpdates(TypeSpec.Builder typeBuilder,
                                                                         MethodSpec.Builder methodBuilder,
-                                                                        ShapeModel s) {
-            ClassName eventSubType = poetExt.getModelClass(s.getShapeName());
+                                                                        MemberModel event) {
+            ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
             TypeName eventConsumerType = consumerType(eventSubType);
-            FieldSpec consumerField = FieldSpec.builder(eventConsumerType, "on" + eventSubType.simpleName())
+            FieldSpec consumerField = FieldSpec.builder(eventConsumerType, eventConsumerName(event))
                                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                                                .build();
             typeBuilder.addField(consumerField);
@@ -127,10 +129,10 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
     @Override
     protected MethodSpec.Builder applyOnSubTypeMethodSpecUpdates(TypeSpec.Builder typeBuilder,
                                                                  MethodSpec.Builder methodBuilder,
-                                                                 ShapeModel eventSubTypeShape) {
-        ClassName eventSubType = poetExt.getModelClass(eventSubTypeShape.getShapeName());
+                                                                 MemberModel event) {
+        ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
         TypeName eventConsumerType = consumerType(eventSubType);
-        FieldSpec consumerField = FieldSpec.builder(eventConsumerType, "on" + eventSubType.simpleName())
+        FieldSpec consumerField = FieldSpec.builder(eventConsumerType, eventConsumerName(event))
                                            .addModifiers(Modifier.PRIVATE)
                                            .build();
         typeBuilder.addField(consumerField);

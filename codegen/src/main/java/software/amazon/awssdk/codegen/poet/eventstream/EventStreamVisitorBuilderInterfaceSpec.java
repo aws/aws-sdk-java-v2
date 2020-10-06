@@ -23,11 +23,13 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 /**
  * Spec for builder interface for visitor.
@@ -52,8 +54,8 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
             .addMethod(applyBuildMethodSpecUpdates(createBuildMethodSpec()).build());
 
         EventStreamUtils.getEvents(eventStreamShape)
-                        .forEach(s -> typeBuilder.addMethod(
-                            applyOnSubTypeMethodSpecUpdates(typeBuilder, createOnSubTypeMethodSpec(s), s)
+                        .forEach(e -> typeBuilder.addMethod(
+                            applyOnSubTypeMethodSpecUpdates(typeBuilder, createOnSubTypeMethodSpec(e), e)
                                 .build()));
 
         return typeBuilder.build();
@@ -105,8 +107,8 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
 
     protected MethodSpec.Builder applyOnSubTypeMethodSpecUpdates(TypeSpec.Builder typeBuilder,
                                                                  MethodSpec.Builder methodBuilder,
-                                                                 ShapeModel eventSubTypeShape) {
-        ClassName eventSubType = poetExt.getModelClass(eventSubTypeShape.getShapeName());
+                                                                 MemberModel event) {
+        ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
         String javadocs = new DocumentationBuilder()
             .description("Callback to invoke when a {@link $T} is visited.")
             .param("c", "Callback to process the event.")
@@ -116,13 +118,16 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
                             .addJavadoc(javadocs, eventSubType);
     }
 
-    private MethodSpec.Builder createOnSubTypeMethodSpec(ShapeModel eventSubTypeShape) {
-        ClassName eventSubType = poetExt.getModelClass(eventSubTypeShape.getShapeName());
+    private MethodSpec.Builder createOnSubTypeMethodSpec(MemberModel event) {
+        ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
         ParameterizedTypeName eventConsumerType = ParameterizedTypeName.get(ClassName.get(Consumer.class), eventSubType);
-        return MethodSpec.methodBuilder("on" + eventSubType.simpleName())
+        return MethodSpec.methodBuilder(eventConsumerName(event))
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(ParameterSpec.builder(eventConsumerType, "c").build())
                          .returns(visitorBuilderType);
     }
 
+    protected final String eventConsumerName(MemberModel event) {
+        return "on" + CodegenNamingUtils.pascalCase(event.getName());
+    }
 }
