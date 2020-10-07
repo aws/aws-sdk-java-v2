@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Compute Optimizer",
+    "description": "This release enables AWS Compute Optimizer to analyze EC2 instance-level EBS read and write operations, and throughput when generating recommendations for your EC2 instances and Auto Scaling groups."
+}
