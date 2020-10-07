@@ -15,9 +15,10 @@
 
 package software.amazon.awssdk.codegen.emitters;
 
+import java.util.concurrent.RecursiveAction;
+
 /**
- * Interface for tasks that are submitted to {@link GeneratorTaskExecutor}.
+ * Base class for tasks.
  */
-public interface GeneratorTask {
-    void execute();
+public abstract class GeneratorTask extends RecursiveAction {
 }

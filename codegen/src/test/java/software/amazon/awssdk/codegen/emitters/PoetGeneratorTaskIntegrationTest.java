@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.CombinableMatcher.both;
+import static software.amazon.awssdk.codegen.TestStringUtils.toPlatformLfs;
 import static software.amazon.awssdk.utils.FunctionalUtils.safeConsumer;
 
 import com.squareup.javapoet.ClassName;
@@ -43,11 +44,11 @@ public final class PoetGeneratorTaskIntegrationTest {
     public void canGenerateJavaClass() throws Exception {
         String randomBaseDirectory = Files.createTempDirectory(getClass().getSimpleName()).toString();
         tempDirectories.add(randomBaseDirectory);
-        String fileHeader = "/*\n * this is the file header\n */";
+        String fileHeader = toPlatformLfs("/*\n * this is the file header\n */");
         ClassSpec classSpec = dummyClass();
 
         PoetGeneratorTask sut = new PoetGeneratorTask(randomBaseDirectory, fileHeader, classSpec);
-        sut.execute();
+        sut.compute();
 
         String contents = new String(Files.readAllBytes(determineOutputFile(classSpec, randomBaseDirectory)));
         assertThat(contents, both(containsString(PACKAGE)).and(startsWith(fileHeader)));

@@ -60,7 +60,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class MakeAsyncHttpRequestStage<OutputT>
-    implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
+        implements RequestPipeline<CompletableFuture<SdkHttpFullRequest>, CompletableFuture<Response<OutputT>>> {
 
     private static final Logger log = Logger.loggerFor(MakeAsyncHttpRequestStage.class);
 
@@ -74,16 +74,48 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                      HttpClientDependencies dependencies) {
         this.responseHandler = responseHandler;
         this.futureCompletionExecutor =
-            dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
+                dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
         this.apiCallAttemptTimeout = dependencies.clientConfiguration().option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT);
         this.timeoutExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
     @Override
-    public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request,
-                                                        RequestExecutionContext context) throws Exception {
-        return executeHttpRequest(request, context);
+    public CompletableFuture<Response<OutputT>> execute(CompletableFuture<SdkHttpFullRequest> requestFuture,
+                                                        RequestExecutionContext context) {
+        CompletableFuture<Response<OutputT>> toReturn = new CompletableFuture<>();
+
+        // Setup the cancellations. If the caller fails to provide a request, forward the exception to the future we
+        // return
+        CompletableFutureUtils.forwardExceptionTo(requestFuture, toReturn);
+
+        // On the other hand, if the future we return is completed exceptionally, throw the exception back up to the
+        // request future
+        CompletableFutureUtils.forwardExceptionTo(toReturn, requestFuture);
+
+        requestFuture.thenAccept(request -> {
+            // At this point, we have a request that we're ready to execute; we do everything in a try-catch in case the
+            // method call to executeHttpRequest throws directly
+            try {
+                CompletableFuture<Response<OutputT>> executeFuture = executeHttpRequest(request, context);
+
+                executeFuture.whenComplete((r, t) -> {
+                    if (t != null) {
+                        toReturn.completeExceptionally(t);
+                    } else {
+                        toReturn.complete(r);
+                    }
+                });
+
+                // Similar to cancelling the request future, but we've now started the request execution, so if our
+                // returned future gets an exception, forward to the HTTP execution future
+                CompletableFutureUtils.forwardExceptionTo(toReturn, executeFuture);
+            } catch (Throwable t) {
+                toReturn.completeExceptionally(t);
+            }
+        });
+
+        return toReturn;
     }
 
     private static final class WrappedErrorForwardingResponseHandler<T>
@@ -130,6 +162,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context) {
+
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
 
         // Wrap the response handler in a layer that will notify the newly created responseFuture when the onError event

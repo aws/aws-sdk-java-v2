@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,14 +31,16 @@ public class VariableModel extends DocumentationModel {
      */
     private String variableDeclarationType;
 
+    public VariableModel() {
+    }
+
     public VariableModel(String variableName, String variableType) {
         this(variableName, variableType, variableType);
     }
 
-    public VariableModel(
-            @JsonProperty("variableName") String variableName,
-            @JsonProperty("variableType") String variableType,
-            @JsonProperty("variableDeclarationType") String variableDeclarationType) {
+    public VariableModel(String variableName,
+                         String variableType,
+                         String variableDeclarationType) {
         setVariableName(variableName);
         setVariableType(variableType);
         setVariableDeclarationType(variableDeclarationType);

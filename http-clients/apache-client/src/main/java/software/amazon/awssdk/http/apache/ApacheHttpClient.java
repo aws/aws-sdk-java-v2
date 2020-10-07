@@ -133,6 +133,15 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return new DefaultBuilder();
     }
 
+    /**
+     * Create a {@link ApacheHttpClient} with the default properties
+     *
+     * @return an {@link ApacheHttpClient}
+     */
+    public static SdkHttpClient create() {
+        return new DefaultBuilder().build();
+    }
+
     private ConnectionManagerAwareHttpClient createClient(ApacheHttpClient.DefaultBuilder configuration,
                                                           AttributeMap standardOptions) {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
@@ -297,7 +306,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private void collectPoolMetric(MetricCollector metricCollector) {
         HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
-        if (cm instanceof PoolingHttpClientConnectionManager) {
+        if (cm instanceof PoolingHttpClientConnectionManager && !(metricCollector instanceof NoOpMetricCollector)) {
             PoolingHttpClientConnectionManager poolingCm = (PoolingHttpClientConnectionManager) cm;
             PoolStats totalStats = poolingCm.getTotalStats();
             metricCollector.reportMetric(MAX_CONCURRENCY, totalStats.getMax());

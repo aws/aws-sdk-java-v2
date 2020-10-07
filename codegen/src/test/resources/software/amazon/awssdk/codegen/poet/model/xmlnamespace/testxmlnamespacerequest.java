@@ -28,6 +28,7 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
                                                                           ToCopyableBuilder<TestXmlNamespaceRequest.Builder, TestXmlNamespaceRequest> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField
         .<String> builder(MarshallingType.STRING)
+        .memberName("stringMember")
         .getter(getter(TestXmlNamespaceRequest::stringMember))
         .setter(setter(Builder::stringMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("stringMember")
@@ -35,6 +36,7 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
 
     private static final SdkField<Integer> INTEGER_MEMBER_FIELD = SdkField
         .<Integer> builder(MarshallingType.INTEGER)
+        .memberName("integerMember")
         .getter(getter(TestXmlNamespaceRequest::integerMember))
         .setter(setter(Builder::integerMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("integerMember")
@@ -42,6 +44,7 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
 
     private static final SdkField<XmlNamespaceMember> XML_NAMESPACE_MEMBER_FIELD = SdkField
         .<XmlNamespaceMember> builder(MarshallingType.SDK_POJO)
+        .memberName("xmlNamespaceMember")
         .getter(getter(TestXmlNamespaceRequest::xmlNamespaceMember))
         .setter(setter(Builder::xmlNamespaceMember))
         .constructor(XmlNamespaceMember::builder)

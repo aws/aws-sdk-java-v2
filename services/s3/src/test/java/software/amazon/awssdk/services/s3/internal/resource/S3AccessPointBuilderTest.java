@@ -16,11 +16,10 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 
 import java.net.URI;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -57,6 +56,20 @@ public class S3AccessPointBuilderTest {
 
         assertThat(result,
                    is(URI.create("protocol://access-point-account-id.s3-accesspoint.dualstack.region.domain")));
+    }
+
+    @Test
+    public void toURI_FipsEnabled() {
+        URI result = S3AccessPointBuilder.create()
+                                         .accessPointName("access-point")
+                                         .accountId("account-id")
+                                         .region("region")
+                                         .protocol("protocol")
+                                         .domain("domain")
+                                         .fipsEnabled(true)
+                                         .toUri();
+
+        assertThat(result, is(URI.create("protocol://access-point-account-id.s3-accesspoint.fips-region.domain")));
     }
 
     @Test

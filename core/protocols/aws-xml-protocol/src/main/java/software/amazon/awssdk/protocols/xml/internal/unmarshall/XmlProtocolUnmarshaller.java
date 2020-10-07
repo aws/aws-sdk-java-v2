@@ -55,7 +55,6 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                                                     SdkHttpFullResponse response) {
-
         XmlElement document = XmlResponseParserUtils.parse(sdkPojo, response);
         return unmarshall(sdkPojo, document, response);
     }
@@ -81,6 +80,11 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             XmlUnmarshaller<Object> unmarshaller = REGISTRY.getUnmarshaller(field.location(), field.marshallingType());
 
             if (root != null && field.location() == MarshallLocation.PAYLOAD) {
+                if (!context.response().content().isPresent()) {
+                    // This is a payload field, but the service sent no content. Do not populate this field (leave it null).
+                    continue;
+                }
+
                 if (isAttribute(field)) {
                     root.getOptionalAttributeByName(field.unmarshallLocationName())
                         .ifPresent(e -> field.set(sdkPojo, e));

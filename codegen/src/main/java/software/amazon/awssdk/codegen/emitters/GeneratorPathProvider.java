@@ -60,4 +60,12 @@ public class GeneratorPathProvider {
     public String getAuthorizerDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullAuthPolicyPackageName());
     }
+
+    public String getWaitersDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullWaitersPackageName());
+    }
+
+    public String getWaitersInternalDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullWaitersInternalPackageName());
+    }
 }

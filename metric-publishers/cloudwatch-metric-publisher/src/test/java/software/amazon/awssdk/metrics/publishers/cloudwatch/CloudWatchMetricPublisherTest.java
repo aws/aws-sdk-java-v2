@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.metrics.publishers.cloudwatch;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
@@ -22,6 +23,10 @@ import static org.mockito.Mockito.never;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -69,14 +74,57 @@ public class CloudWatchMetricPublisherTest {
         Thread.currentThread().interrupt();
         publisher.close();
         assertThat(publisher.isShutdown()).isTrue();
-
-        Thread.interrupted(); // Clear interrupt flag
+        assertThat(Thread.interrupted()).isTrue(); // Clear interrupt flag
     }
 
     @Test
     public void closeDoesNotCloseConfiguredClient() {
         CloudWatchMetricPublisher.builder().cloudWatchClient(cloudWatch).build().close();
         Mockito.verify(cloudWatch, never()).close();
+    }
+
+    @Test(timeout = 10_000)
+    public void closeWaitsForUploadToComplete() throws InterruptedException {
+        CountDownLatch cloudwatchPutCalledLatch = new CountDownLatch(1);
+        CompletableFuture<PutMetricDataResponse> result = new CompletableFuture<>();
+
+        CloudWatchAsyncClient cloudWatch = Mockito.mock(CloudWatchAsyncClient.class);
+        try (CloudWatchMetricPublisher publisher = CloudWatchMetricPublisher.builder()
+                                                                            .cloudWatchClient(cloudWatch)
+                                                                            .uploadFrequency(Duration.ofMinutes(60))
+                                                                            .build()) {
+            MetricCollector collector = newCollector();
+            collector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+            publisher.publish(new FixedTimeMetricCollection(collector.collect()));
+
+            Mockito.when(cloudWatch.putMetricData(any(PutMetricDataRequest.class))).thenAnswer(x -> {
+                cloudwatchPutCalledLatch.countDown();
+                return result;
+            });
+
+            publisher.publish(MetricCollector.create("test").collect());
+
+            Thread closeThread = new Thread(publisher::close);
+
+            assertThat(publisher.isShutdown()).isFalse();
+
+            closeThread.start();
+
+            // Wait until cloudwatch is called
+            cloudwatchPutCalledLatch.await();
+
+            // Wait to make sure the close thread seems to be waiting for the cloudwatch call to complete
+            Thread.sleep(1_000);
+
+            assertThat(closeThread.isAlive()).isTrue();
+
+            // Complete the cloudwatch call
+            result.complete(null);
+
+            // Make sure the close thread finishes
+            closeThread.join(5_000);
+            assertThat(closeThread.isAlive()).isFalse();
+        }
     }
 
     @Test

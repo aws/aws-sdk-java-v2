@@ -1,0 +1,31 @@
+{
+    "version": "2.14.8",
+    "date": "2020-08-31",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "description": "CloudFront now supports real-time logging for CloudFront distributions. CloudFront real-time logs are more detailed, configurable, and are available in real time."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Amazon EC2 and Spot Fleet now support modification of launch template configs for a running fleet enabling instance type, instance weight, AZ, and AMI updates without losing the current fleet ID."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "description": "Documentation updates for SQS."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "description": "Documentation updates for Cryo"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

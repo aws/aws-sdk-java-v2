@@ -84,7 +84,10 @@ public class MakeAsyncHttpRequestStageTest {
             combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                                          AsyncResponseHandlerTestUtils.noOpResponseHandler()),
             clientDependencies(Duration.ofMillis(1000)));
-        stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
+                ValidSdkObjects.sdkHttpFullRequest().build());
+        stage.execute(requestFuture, requestContext());
 
         verify(timeoutExecutor, times(1)).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
     }
@@ -95,7 +98,11 @@ public class MakeAsyncHttpRequestStageTest {
             combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                                          AsyncResponseHandlerTestUtils.noOpResponseHandler()),
             clientDependencies(null));
-        stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
+                ValidSdkObjects.sdkHttpFullRequest().build());
+
+        stage.execute(requestFuture, requestContext());
 
         verify(timeoutExecutor, never()).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
     }
@@ -129,8 +136,10 @@ public class MakeAsyncHttpRequestStageTest {
 
         context.attemptMetricCollector(mockCollector);
 
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(sdkHttpRequest);
+
         try {
-            stage.execute(sdkHttpRequest, context);
+            stage.execute(requestFuture, context);
         } catch (Exception e) {
             e.printStackTrace();
             // ignored, don't really care about successful execution of the stage in this case

@@ -125,6 +125,10 @@
         "VocabularyFilterMatch":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether a word in the item matches a word in the vocabulary filter you've chosen for your real-time stream. If <code>true</code> then a word in the item matches your vocabulary filter.</p>"
+        },
+        "Speaker":{
+          "shape":"String",
+          "documentation":"<p>If speaker identification is enabled, shows the speakers identified in the real-time stream.</p>"
         }
       },
       "documentation":"<p>A word or phrase transcribed from the input audio.</p>"
@@ -169,6 +173,10 @@
       "max":48000,
       "min":8000
     },
+    "NumberOfChannels":{
+      "type":"integer",
+      "min":2
+    },
     "RequestId":{"type":"string"},
     "Result":{
       "type":"structure",
@@ -192,6 +200,10 @@
         "Alternatives":{
           "shape":"AlternativeList",
           "documentation":"<p>A list of possible transcriptions for the audio. Each alternative typically contains one <code>item</code> that contains the result of the transcription.</p>"
+        },
+        "ChannelId":{
+          "shape":"String",
+          "documentation":"<p>When channel identification is enabled, Amazon Transcribe transcribes the speech from each audio channel separately.</p> <p>You can use <code>ChannelId</code> to retrieve the transcription results for a single channel in your audio stream.</p>"
         }
       },
       "documentation":"<p>The result of transcribing a portion of the input audio stream. </p>"
@@ -211,6 +223,8 @@
     },
     "SessionId":{
       "type":"string",
+      "max":36,
+      "min":36,
       "pattern":"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
     },
     "StartStreamTranscriptionRequest":{
@@ -236,7 +250,7 @@
         },
         "MediaEncoding":{
           "shape":"MediaEncoding",
-          "documentation":"<p>The encoding used for the input audio. </p>",
+          "documentation":"<p>The encoding used for the input audio. <code>pcm</code> is the only valid value.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-media-encoding"
         },
@@ -258,7 +272,7 @@
         },
         "VocabularyFilterName":{
           "shape":"VocabularyFilterName",
-          "documentation":"<p>The name of the vocabulary filter you've created that is unique to your AWS accountf. Provide the name in this field to successfully use it in a stream.</p>",
+          "documentation":"<p>The name of the vocabulary filter you've created that is unique to your AWS account. Provide the name in this field to successfully use it in a stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-name"
         },
@@ -267,6 +281,24 @@
           "documentation":"<p>The manner in which you use your vocabulary filter to filter words in your transcript. <code>Remove</code> removes filtered words from your transcription results. <code>Mask</code> masks those words with a <code>***</code> in your transcription results. <code>Tag</code> keeps the filtered words in your transcription results and tags them. The tag appears as <code>VocabularyFilterMatch</code> equal to <code>True</code> </p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-method"
+        },
+        "ShowSpeakerLabel":{
+          "shape":"Boolean",
+          "documentation":"<p>When <code>true</code>, enables speaker identification in your real-time stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-show-speaker-label"
+        },
+        "EnableChannelIdentification":{
+          "shape":"Boolean",
+          "documentation":"<p>When <code>true</code>, instructs Amazon Transcribe to process each audio channel separately and then merge the transcription output of each channel into a single transcription.</p> <p>Amazon Transcribe also produces a transcription of each item. An item includes the start time, end time, and any alternative transcriptions.</p> <p>You can't set both <code>ShowSpeakerLabel</code> and <code>EnableChannelIdentification</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-enable-channel-identification"
+        },
+        "NumberOfChannels":{
+          "shape":"NumberOfChannels",
+          "documentation":"<p>The number of channels that are in your audio stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-number-of-channels"
         }
       },
       "payload":"AudioStream"
@@ -325,6 +357,24 @@
           "documentation":"<p>The vocabulary filtering method used in the real-time stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-method"
+        },
+        "ShowSpeakerLabel":{
+          "shape":"Boolean",
+          "documentation":"<p>Shows whether speaker identification was enabled in the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-show-speaker-label"
+        },
+        "EnableChannelIdentification":{
+          "shape":"Boolean",
+          "documentation":"<p>Shows whether channel identification has been enabled in the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-enable-channel-identification"
+        },
+        "NumberOfChannels":{
+          "shape":"NumberOfChannels",
+          "documentation":"<p>The number of channels identified in the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-number-of-channels"
         }
       },
       "payload":"TranscriptResultStream"

@@ -601,7 +601,8 @@
       "enum": [
         "NONE",
         "SCTE35_ENHANCED",
-        "PASSTHROUGH"
+        "PASSTHROUGH",
+        "DATERANGE"
       ],
       "type": "string"
     },
@@ -1003,8 +1004,8 @@
         }
       },
       "required": [
-        "Id",
-        "ChannelId"
+        "ChannelId",
+        "Id"
       ],
       "type": "structure"
     },
@@ -1168,6 +1169,16 @@
           "documentation": "Duration (in seconds) to delay live content before presentation.",
           "locationName": "suggestedPresentationDelaySeconds",
           "shape": "__integer"
+        },
+        "UtcTiming": {
+          "documentation": "Determines the type of UTCTiming included in the Media Presentation Description (MPD)",
+          "locationName": "utcTiming",
+          "shape": "UtcTiming"
+        },
+        "UtcTimingUri": {
+          "documentation": "Specifies the value attribute of the UTCTiming field when utcTiming is set to HTTP-ISO or HTTP-HEAD",
+          "locationName": "utcTimingUri",
+          "shape": "__string"
         }
       },
       "type": "structure"
@@ -1578,7 +1589,7 @@
       "documentation": "A HTTP Live Streaming (HLS) manifest configuration.",
       "members": {
         "AdMarkers": {
-          "documentation": "This setting controls how ad markers are included in the packaged OriginEndpoint.\n\"NONE\" will omit all SCTE-35 ad markers from the output.\n\"PASSTHROUGH\" causes the manifest to contain a copy of the SCTE-35 ad\nmarkers (comments) taken directly from the input HTTP Live Streaming (HLS) manifest.\n\"SCTE35_ENHANCED\" generates ad markers and blackout tags based on SCTE-35\nmessages in the input source.\n",
+          "documentation": "This setting controls how ad markers are included in the packaged OriginEndpoint.\n\"NONE\" will omit all SCTE-35 ad markers from the output.\n\"PASSTHROUGH\" causes the manifest to contain a copy of the SCTE-35 ad\nmarkers (comments) taken directly from the input HTTP Live Streaming (HLS) manifest.\n\"SCTE35_ENHANCED\" generates ad markers and blackout tags based on SCTE-35\nmessages in the input source.\n\"DATERANGE\" inserts EXT-X-DATERANGE tags to signal ad and program transition events \nin HLS and CMAF manifests. For this option, you must set a programDateTimeIntervalSeconds value \nthat is greater than 0.\n",
           "locationName": "adMarkers",
           "shape": "AdMarkers"
         },
@@ -1627,7 +1638,7 @@
       "documentation": "A HTTP Live Streaming (HLS) manifest configuration.",
       "members": {
         "AdMarkers": {
-          "documentation": "This setting controls how ad markers are included in the packaged OriginEndpoint.\n\"NONE\" will omit all SCTE-35 ad markers from the output.\n\"PASSTHROUGH\" causes the manifest to contain a copy of the SCTE-35 ad\nmarkers (comments) taken directly from the input HTTP Live Streaming (HLS) manifest.\n\"SCTE35_ENHANCED\" generates ad markers and blackout tags based on SCTE-35\nmessages in the input source.\n",
+          "documentation": "This setting controls how ad markers are included in the packaged OriginEndpoint.\n\"NONE\" will omit all SCTE-35 ad markers from the output.\n\"PASSTHROUGH\" causes the manifest to contain a copy of the SCTE-35 ad\nmarkers (comments) taken directly from the input HTTP Live Streaming (HLS) manifest.\n\"SCTE35_ENHANCED\" generates ad markers and blackout tags based on SCTE-35\nmessages in the input source.\n\"DATERANGE\" inserts EXT-X-DATERANGE tags to signal ad and program transition events \nin HLS and CMAF manifests. For this option, you must set a programDateTimeIntervalSeconds value \nthat is greater than 0.\n",
           "locationName": "adMarkers",
           "shape": "AdMarkers"
         },
@@ -1679,7 +1690,7 @@
       "documentation": "An HTTP Live Streaming (HLS) packaging configuration.",
       "members": {
         "AdMarkers": {
-          "documentation": "This setting controls how ad markers are included in the packaged OriginEndpoint.\n\"NONE\" will omit all SCTE-35 ad markers from the output.\n\"PASSTHROUGH\" causes the manifest to contain a copy of the SCTE-35 ad\nmarkers (comments) taken directly from the input HTTP Live Streaming (HLS) manifest.\n\"SCTE35_ENHANCED\" generates ad markers and blackout tags based on SCTE-35\nmessages in the input source.\n",
+          "documentation": "This setting controls how ad markers are included in the packaged OriginEndpoint.\n\"NONE\" will omit all SCTE-35 ad markers from the output.\n\"PASSTHROUGH\" causes the manifest to contain a copy of the SCTE-35 ad\nmarkers (comments) taken directly from the input HTTP Live Streaming (HLS) manifest.\n\"SCTE35_ENHANCED\" generates ad markers and blackout tags based on SCTE-35\nmessages in the input source.\n\"DATERANGE\" inserts EXT-X-DATERANGE tags to signal ad and program transition events \nin HLS and CMAF manifests. For this option, you must set a programDateTimeIntervalSeconds value \nthat is greater than 0.\n",
           "locationName": "adMarkers",
           "shape": "AdMarkers"
         },
@@ -2713,6 +2724,14 @@
         }
       },
       "type": "structure"
+    },
+    "UtcTiming": {
+      "enum": [
+        "NONE",
+        "HTTP-HEAD",
+        "HTTP-ISO"
+      ],
+      "type": "string"
     },
     "__AdTriggersElement": {
       "enum": [

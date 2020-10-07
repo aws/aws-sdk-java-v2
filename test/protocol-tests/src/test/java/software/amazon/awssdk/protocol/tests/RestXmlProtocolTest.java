@@ -15,15 +15,28 @@
 
 package software.amazon.awssdk.protocol.tests;
 
+import java.io.IOException;
+import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import software.amazon.awssdk.protocol.ProtocolTestSuiteLoader;
+import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.runners.ProtocolTestRunner;
 
+@RunWith(Parameterized.class)
 public class RestXmlProtocolTest extends ProtocolTestBase {
-
     private static final ProtocolTestSuiteLoader testSuiteLoader = new ProtocolTestSuiteLoader();
     private static ProtocolTestRunner testRunner;
+
+    @Parameterized.Parameter
+    public TestCase testCase;
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<TestCase> data() throws IOException {
+        return testSuiteLoader.load("restxml-suite.json");
+    }
 
     @BeforeClass
     public static void setupFixture() {
@@ -31,7 +44,7 @@ public class RestXmlProtocolTest extends ProtocolTestBase {
     }
 
     @Test
-    public void run() throws Exception {
-        testRunner.runTests(testSuiteLoader.load("restxml-suite.json"));
+    public void runProtocolTest() throws Exception {
+        testRunner.runTest(testCase);
     }
 }

@@ -1,0 +1,31 @@
+{
+    "version": "2.13.69",
+    "date": "2020-08-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "description": "AWS AppSync releases support for Direct Lambda Resolvers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Notification Service",
+            "description": "Documentation updates for SNS."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "description": "Documentation updates for the Resource Group Tagging API namespace."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "description": "Documentation updates for StorageCapacity input value format."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "description": "Amazon Transcribe now supports custom language models, which can improve transcription accuracy for your specific use case."
+        }
+    ]
+}

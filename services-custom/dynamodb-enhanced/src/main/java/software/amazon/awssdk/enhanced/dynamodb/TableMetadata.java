@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
@@ -72,8 +73,35 @@ public interface TableMetadata {
      * attribute when using the versioned record extension.
      *
      * @return A collection of all key attribute names for the table.
+     *
+     * @deprecated Use {@link #keyAttributes()} instead.
      */
+    @Deprecated
     Collection<String> allKeys();
+
+    /**
+     * Returns metadata about all the known indices for this table.
+     * @return A collection of {@link IndexMetadata} containing information about the indices.
+     */
+    Collection<IndexMetadata> indices();
+
+    /**
+     * Returns all custom metadata for this table. These entries are used by extensions to the library, therefore the
+     * value type of each metadata object stored in the map is not known and is provided as {@link Object}.
+     * <p>
+     * This method should not be used to inspect individual custom metadata objects, instead use
+     * {@link TableMetadata#customMetadataObject(String, Class)} ()} as that will perform a type-safety check on the
+     * retrieved object.
+     * @return A map of all the custom metadata for this table.
+     */
+    Map<String, Object> customMetadata();
+
+    /**
+     * Returns metadata about all the known 'key' attributes for this table, such as primary and secondary index keys,
+     * or any other attribute that forms part of the structure of the table.
+     * @return A collection of {@link KeyAttributeMetadata} containing information about the keys.
+     */
+    Collection<KeyAttributeMetadata> keyAttributes();
 
     /**
      * Returns the DynamoDb scalar attribute type associated with a key attribute if one is applicable.

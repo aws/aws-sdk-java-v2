@@ -15,29 +15,29 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class MapModel {
 
-    private final String implType;
+    private String implType;
 
-    private final String interfaceType;
+    private String interfaceType;
 
-    private final String keyLocationName;
+    private String keyLocationName;
 
-    private final MemberModel keyModel;
+    private MemberModel keyModel;
 
-    private final String valueLocationName;
+    private String valueLocationName;
 
-    private final MemberModel valueModel;
+    private MemberModel valueModel;
 
-    public MapModel(
-            @JsonProperty("implType") String implType,
-            @JsonProperty("interfaceType") String interfaceType,
-            @JsonProperty("keyLocationName") String keyLocationName,
-            @JsonProperty("keyModel") MemberModel keyModel,
-            @JsonProperty("valueLocationName") String valueLocationName,
-            @JsonProperty("valueModel") MemberModel valueModel) {
+    public MapModel() {
+    }
+
+    public MapModel(String implType,
+                    String interfaceType,
+                    String keyLocationName,
+                    MemberModel keyModel,
+                    String valueLocationName,
+                    MemberModel valueModel) {
 
         this.implType = implType;
         this.interfaceType = interfaceType;
@@ -51,24 +51,48 @@ public class MapModel {
         return implType;
     }
 
+    public void setImplType(String implType) {
+        this.implType = implType;
+    }
+
     public String getInterfaceType() {
         return interfaceType;
+    }
+
+    public void setInterfaceType(String interfaceType) {
+        this.interfaceType = interfaceType;
     }
 
     public String getKeyLocationName() {
         return keyLocationName;
     }
 
+    public void setKeyLocationName(String keyLocationName) {
+        this.keyLocationName = keyLocationName;
+    }
+
     public MemberModel getKeyModel() {
         return keyModel;
+    }
+
+    public void setKeyModel(MemberModel keyModel) {
+        this.keyModel = keyModel;
     }
 
     public String getValueLocationName() {
         return valueLocationName;
     }
 
+    public void setValueLocationName(String valueLocationName) {
+        this.valueLocationName = valueLocationName;
+    }
+
     public MemberModel getValueModel() {
         return valueModel;
+    }
+
+    public void setValueModel(MemberModel valueModel) {
+        this.valueModel = valueModel;
     }
 
     public String getTemplateType() {

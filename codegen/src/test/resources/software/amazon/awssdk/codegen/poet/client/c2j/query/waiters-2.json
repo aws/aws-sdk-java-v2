@@ -15,6 +15,12 @@
           "state": "retry",
           "matcher": "status",
           "expected": 404
+        },
+        {
+          "matcher": "pathAny",
+          "expected": "baz",
+          "argument": "foo.bar",
+          "state": "success"
         }
       ]
     }

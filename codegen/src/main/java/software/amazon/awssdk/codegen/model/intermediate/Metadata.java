@@ -67,6 +67,8 @@ public class Metadata {
 
     private String authPolicyPackageName;
 
+    private String waitersPackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -661,5 +663,26 @@ public class Metadata {
     public Metadata withServiceId(String serviceId) {
         setServiceId(serviceId);
         return this;
+    }
+
+    public String getWaitersPackageName() {
+        return waitersPackageName;
+    }
+
+    public void setWaitersPackageName(String waitersPackageName) {
+        this.waitersPackageName = waitersPackageName;
+    }
+
+    public Metadata withWaitersPackageName(String waitersPackageName) {
+        setWaitersPackageName(waitersPackageName);
+        return this;
+    }
+
+    public String getFullWaitersPackageName() {
+        return joinPackageNames(rootPackageName, getWaitersPackageName());
+    }
+
+    public String getFullWaitersInternalPackageName() {
+        return joinPackageNames(getFullWaitersPackageName(), "internal");
     }
 }

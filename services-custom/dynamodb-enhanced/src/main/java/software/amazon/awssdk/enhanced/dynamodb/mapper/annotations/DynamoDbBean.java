@@ -27,8 +27,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 
 /**
  * Class level annotation that identifies this class as being a DynamoDb mappable entity. Any class used to initialize
- * a {@link BeanTableSchema} must have this annotation. If a class is used as a document within another DynamoDbBean,
- * it will also require this annotation.
+ * a {@link BeanTableSchema} must have this annotation. If a class is used as an attribute type within another
+ * annotated DynamoDb class, either as a document or flattened with the {@link DynamoDbFlatten} annotation, it will also
+ * require this annotation to work automatically without an explicit {@link AttributeConverter}.
  * <p>
  * <b>Attribute Converter Providers</b><br>
  * Using {@link AttributeConverterProvider}s is optional and, if used, the supplied provider supersedes the default

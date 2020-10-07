@@ -15,24 +15,21 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Expresses content of the error trait
  */
 public class ErrorTrait {
 
-    @JsonProperty(value = "code")
-    private String errorCode;
+    private String code;
 
     private Integer httpStatusCode;
 
-    public String getErrorCode() {
-        return errorCode;
+    public String getCode() {
+        return code;
     }
 
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Integer getHttpStatusCode() {

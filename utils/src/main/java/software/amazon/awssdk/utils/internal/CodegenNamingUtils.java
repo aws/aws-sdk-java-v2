@@ -66,4 +66,10 @@ public final class CodegenNamingUtils {
     public static String pascalCase(String... words) {
         return Stream.of(words).map(StringUtils::lowerCase).map(StringUtils::capitalize).collect(joining());
     }
+
+    public static String lowercaseFirstChar(String word) {
+        char[] chars = word.toCharArray();
+        chars[0] = Character.toLowerCase(chars[0]);
+        return String.valueOf(chars);
+    }
 }

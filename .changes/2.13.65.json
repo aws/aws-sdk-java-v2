@@ -1,0 +1,56 @@
+{
+    "version": "2.13.65",
+    "date": "2020-07-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "description": "Adding support for BuildBatch, and CodeCoverage APIs. BuildBatch allows you to model your project environment in source, and helps start multiple builds with a single API call. CodeCoverage allows you to track your code coverage using AWS CodeBuild."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups",
+            "description": "Improved documentation for Resource Groups API operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "description": "GuardDuty can now provide detailed cost metrics broken down by account, data source, and S3 resources, based on the past 30 days of usage. This new feature also supports viewing cost metrics for all member accounts as a GuardDuty master."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "description": "This release makes more API operations available to customers in version 2 of the Amazon SES API. With these additions, customers can now access sending authorization, custom verification email, and template API operations. With this release, Amazon SES is also providing new and updated APIs to allow customers to request production access."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "EC2 On-Demand Capacity Reservations now adds support to bring your own licenses (BYOL) of Windows operating system to launch EC2 instances."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "description": "This release adds support for ProvisionProduct, UpdateProvisionedProduct & DescribeProvisioningParameters by product name, provisioning artifact name and path name. In addition DescribeProvisioningParameters now returns a list of provisioning artifact outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "Documentation updates for AWS Organizations"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "description": "Amazon MSK has added a new API that allows you to reboot brokers within a cluster."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "description": "Documentation updates for CloudFront"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

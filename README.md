@@ -49,7 +49,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.13.57</version>
+      <version>2.15.4</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -83,12 +83,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.13.57</version>
+  <version>2.15.4</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.13.57</version>
+  <version>2.15.4</version>
 </dependency>
 ```
 
@@ -100,7 +100,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.13.57</version>
+  <version>2.15.4</version>
 </dependency>
 ```
 
@@ -133,12 +133,12 @@ You can find sample code for v2 in the following places:
 * Integration tests in this repo. They are located in the `it` directory under each service module, eg: [s3-integration-tests]
 
 ## Giving Feedback
-We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels.
+We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels:
 
-* Come join the AWS Java community chat on [Gitter][gitter].
-* Articulate your feature request or upvote existing ones on our [Issues][features] page.
-* Submit [issues][sdk-issues].
-* Send feedback directly to the team at aws-java-sdk-v2-feedback@amazon.com.
+* Submit [issues][sdk-issues] - this is the preferred channel to interact with our team
+* Come join the AWS Java community chat on [Gitter][gitter]
+* Articulate your feature request or upvote existing ones on our [Issues][features] page
+* Send feedback directly to the team at aws-java-sdk-v2-feedback@amazon.com
 
 [aws-iam-credentials]: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/java-dg-roles.html
 [aws]: http://aws.amazon.com/
@@ -155,7 +155,7 @@ We need your help in making this SDK great. Please participate in the community 
 [aws-java-sdk-bom]: https://github.com/aws/aws-sdk-java-v2/tree/master/bom
 [stack-overflow]: http://stackoverflow.com/questions/tagged/aws-java-sdk
 [gitter]: https://gitter.im/aws/aws-sdk-java-v2
-[features]: https://github.com/aws/aws-sdk-java-v2/issues?q=is%3Aopen+is%3Aissue+label%3A%22Feature+Request%22
+[features]: https://github.com/aws/aws-sdk-java-v2/issues?q=is%3Aopen+is%3Aissue+label%3A%22feature-request%22
 [support-center]: https://console.aws.amazon.com/support/
 [console]: https://console.aws.amazon.com
 [bom]: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22software.amazon.awssdk%22%20AND%20a%3A%22bom%22
