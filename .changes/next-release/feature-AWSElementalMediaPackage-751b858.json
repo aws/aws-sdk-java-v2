@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaPackage",
+    "description": "AWS Elemental MediaPackage provides access logs that capture detailed information about requests sent to a customer's MediaPackage channel."
+}
