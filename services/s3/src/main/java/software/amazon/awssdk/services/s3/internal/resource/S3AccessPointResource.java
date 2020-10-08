@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.s3.internal.resource;
 
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -29,6 +31,9 @@ public final class S3AccessPointResource
     implements S3Resource, ToCopyableBuilder<S3AccessPointResource.Builder, S3AccessPointResource> {
 
     private static final S3ResourceType S3_RESOURCE_TYPE = S3ResourceType.ACCESS_POINT;
+
+    private static final Set<S3ResourceType> VALID_PARENT_RESOURCE_TYPES = EnumSet.of(S3ResourceType.OUTPOST,
+                                                                                      S3ResourceType.MULTI_REGION);
 
     private final String partition;
     private final String region;
@@ -158,10 +163,13 @@ public final class S3AccessPointResource
     }
 
     private S3Resource validateParentS3Resource(S3Resource parentS3Resource) {
-        if (!S3ResourceType.OUTPOST.toString().equals(parentS3Resource.type())) {
-            throw new IllegalArgumentException("Invalid 'parentS3Resource' type. An S3 access point resource must be " +
-                                               "associated with an outpost parent resource.");
-        }
+        String invalidParentResourceTypeMessage =
+            "Invalid 'parentS3Resource' type. An S3 access point resource must be "
+            + "associated with an outpost or a multi-region parent resource.";
+        VALID_PARENT_RESOURCE_TYPES.stream()
+                                   .filter(r -> r.toString().equals(parentS3Resource.type()))
+                                   .findAny()
+                                   .orElseThrow(() -> new IllegalArgumentException(invalidParentResourceTypeMessage));
         return parentS3Resource;
     }
 

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 import static software.amazon.awssdk.services.s3.internal.resource.S3ArnUtils.parseOutpostArn;
+import static software.amazon.awssdk.services.s3.internal.resource.S3MultiRegionAccessPointResource.isMultiRegion;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,11 +59,11 @@ public final class S3ArnConverter implements ArnConverter<S3Resource> {
         }
         S3ResourceType s3ResourceType;
 
-        String resourceType = arn.resource().resourceType().orElseThrow(() -> new IllegalArgumentException("Unknown ARN type"));
+        String resourceType = arn.resource().resourceType()
+                                 .orElseThrow(() -> new IllegalArgumentException("Unknown ARN type"));
 
         try {
-            s3ResourceType =
-                S3ResourceType.fromValue(resourceType);
+            s3ResourceType = S3ResourceType.fromValue(resourceType);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Unknown ARN type '" + arn.resource().resourceType().get() + "'");
         }
@@ -133,6 +134,19 @@ public final class S3ArnConverter implements ArnConverter<S3Resource> {
                                    .parentS3Resource(parentResource)
                                    .key(objectKey)
                                    .build();
+        }
+
+        if (isMultiRegion(arn)) {
+            S3MultiRegionAccessPointResource mrapResource =
+                S3MultiRegionAccessPointResource.builder()
+                                                .partition(arn.partition())
+                                                .region(arn.region().orElse(null))
+                                                .accountId(arn.accountId().orElse(null))
+                                                .build();
+            return S3AccessPointResource.builder()
+                                        .accessPointName(arn.resource().resource())
+                                        .parentS3Resource(mrapResource)
+                                        .build();
         }
 
         return S3AccessPointResource.builder()
