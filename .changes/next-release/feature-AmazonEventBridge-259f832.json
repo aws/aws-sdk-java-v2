@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge",
-    "description": "Amazon EventBridge adds support for target Dead Letter Queues (DLQs) and custom retry policies."
-}

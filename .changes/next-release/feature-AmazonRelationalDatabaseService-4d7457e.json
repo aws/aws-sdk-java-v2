@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "description": "Supports a new parameter to set the max allocated storage in gigabytes for restore database instance from S3 and restore database instance to a point in time APIs."
-}
