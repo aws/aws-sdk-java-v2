@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "description": "This release enables Sagemaker customers to convert Tensorflow and PyTorch models to CoreML (ML Model) format."
+}
