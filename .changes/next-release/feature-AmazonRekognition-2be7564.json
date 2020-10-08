@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Rekognition",
+    "description": "This release provides location information for the manifest validation files."
+}
