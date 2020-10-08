@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "description": "You can now create hierarchical cost categories by choosing \"Cost Category\" as a dimension. You can also track the status of your cost category updates to your cost and usage information."
+}
