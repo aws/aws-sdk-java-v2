@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Events",
+    "description": "Amazon EventBridge (formerly called CloudWatch Events) adds support for target Dead-letter Queues and custom retry policies."
+}
