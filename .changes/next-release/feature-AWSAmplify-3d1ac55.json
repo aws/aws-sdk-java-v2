@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify",
+    "description": "Performance mode optimizes for faster hosting performance by keeping content cached at the edge for a longer interval - enabling can make code changes can take up to 10 minutes to roll out."
+}
