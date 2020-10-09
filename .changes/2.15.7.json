@@ -1,0 +1,36 @@
+{
+    "version": "2.15.7",
+    "date": "2020-10-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Amplify",
+            "description": "Performance mode optimizes for faster hosting performance by keeping content cached at the edge for a longer interval - enabling can make code changes can take up to 10 minutes to roll out."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "description": "WAV audio output. Extracting ancillary captions in MP4 file inputs. Priority on channels feeding a multiplex (higher priority channels will tend to have higher video quality)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "description": "This release introduces a new Amazon EKS error code: \"ClusterUnreachable\""
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "description": "We added new APIs to allow customers to better manage their device shipping. You can check if your shipping label expired, generate a new label, and tell us that you received or shipped your job."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "description": "This new API takes either a ProvisonedProductId or a ProvisionedProductName, along with a list of 1 or more output keys and responds with the (key,value) pairs of those outputs."
+        }
+    ]
+}

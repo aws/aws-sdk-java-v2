@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "description": "This release introduces a new Amazon EKS error code: \"ClusterUnreachable\""
-}

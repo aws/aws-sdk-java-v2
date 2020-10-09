@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Service Catalog",
-    "description": "This new API takes either a ProvisonedProductId or a ProvisionedProductName, along with a list of 1 or more output keys and responds with the (key,value) pairs of those outputs."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "description": "WAV audio output. Extracting ancillary captions in MP4 file inputs. Priority on channels feeding a multiplex (higher priority channels will tend to have higher video quality)."
-}
