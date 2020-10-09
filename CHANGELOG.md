@@ -1,3 +1,28 @@
+# __2.15.7__ __2020-10-09__
+## __AWS Amplify__
+  - ### Features
+    - Performance mode optimizes for faster hosting performance by keeping content cached at the edge for a longer interval - enabling can make code changes can take up to 10 minutes to roll out.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - WAV audio output. Extracting ancillary captions in MP4 file inputs. Priority on channels feeding a multiplex (higher priority channels will tend to have higher video quality).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This new API takes either a ProvisonedProductId or a ProvisionedProductName, along with a list of 1 or more output keys and responds with the (key,value) pairs of those outputs.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release introduces a new Amazon EKS error code: "ClusterUnreachable"
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - We added new APIs to allow customers to better manage their device shipping. You can check if your shipping label expired, generate a new label, and tell us that you received or shipped your job.
+
 # __2.15.6__ __2020-10-08__
 ## __AWS Cost Explorer Service__
   - ### Features
