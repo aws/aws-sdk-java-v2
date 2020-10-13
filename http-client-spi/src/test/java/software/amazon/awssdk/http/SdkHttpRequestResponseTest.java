@@ -22,9 +22,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -401,13 +402,74 @@ public class SdkHttpRequestResponseTest {
         });
     }
 
+    @Test
+    public void testSdkHttpFullRequestBuilderNoQueryParams() {
+        URI uri = URI.create("https://github.com/aws/aws-sdk-java-v2/issues/2034");
+        final SdkHttpFullRequest sdkHttpFullRequest = SdkHttpFullRequest.builder().method(SdkHttpMethod.POST).uri(uri).build();
+        assertThat(sdkHttpFullRequest.getUri().getQuery()).isNullOrEmpty();
+    }
+
+    @Test
+    public void testSdkHttpFullRequestBuilderUriWithQueryParams() {
+        URI uri = URI.create("https://github.com/aws/aws-sdk-java-v2/issues/2034?reqParam=1234&oParam=3456%26reqParam%3D5678");
+        final SdkHttpFullRequest sdkHttpFullRequest =
+            SdkHttpFullRequest.builder().method(SdkHttpMethod.POST).uri(uri).build();
+        assertThat(sdkHttpFullRequest.getUri().getQuery()).contains("reqParam=1234", "oParam=3456&reqParam=5678");
+    }
+
+    @Test
+    public void testSdkHttpFullRequestBuilderUriWithQueryParamWithoutValue() {
+        final String expected = "https://github.com/aws/aws-sdk-for-java-v2?foo";
+        URI myUri = URI.create(expected);
+        SdkHttpFullRequest actual = SdkHttpFullRequest.builder().method(SdkHttpMethod.POST).uri(myUri).build();
+        assertThat(actual.getUri()).hasToString(expected);
+    }
+
+    @Test
+    public void testSdkHttpRequestBuilderNoQueryParams() {
+        URI uri = URI.create("https://github.com/aws/aws-sdk-java-v2/issues/2034");
+        final SdkHttpRequest sdkHttpRequest = SdkHttpRequest.builder().method(SdkHttpMethod.POST).uri(uri).build();
+        assertThat(sdkHttpRequest.getUri().getQuery()).isNullOrEmpty();
+    }
+
+    @Test
+    public void testSdkHttpRequestBuilderUriWithQueryParams() {
+        URI uri = URI.create("https://github.com/aws/aws-sdk-java-v2/issues/2034?reqParam=1234&oParam=3456%26reqParam%3D5678");
+        final SdkHttpRequest sdkHttpRequest =
+            SdkHttpRequest.builder().method(SdkHttpMethod.POST).uri(uri).build();
+        assertThat(sdkHttpRequest.getUri().getQuery()).contains("reqParam=1234", "oParam=3456&reqParam=5678");
+    }
+
+    @Test
+    public void testSdkHttpRequestBuilderUriWithQueryParamsIgnoreOtherQueryParams() {
+        URI uri = URI.create("https://github.com/aws/aws-sdk-java-v2/issues/2034?reqParam=1234&oParam=3456%26reqParam%3D5678");
+        final SdkHttpRequest sdkHttpRequest =
+            SdkHttpRequest.builder().method(SdkHttpMethod.POST).appendRawQueryParameter("clean", "up").uri(uri).build();
+        assertThat(sdkHttpRequest.getUri().getQuery()).contains("reqParam=1234", "oParam=3456&reqParam=5678")
+                                                      .doesNotContain("clean");
+    }
+
+    @Test
+    public void testSdkHttpRequestBuilderUriWithQueryParamWithoutValue() {
+        final String expected = "https://github.com/aws/aws-sdk-for-java-v2?foo";
+        URI myUri = URI.create(expected);
+        SdkHttpRequest actual = SdkHttpRequest.builder().method(SdkHttpMethod.POST).uri(myUri).build();
+        assertThat(actual.getUri()).hasToString(expected);
+    }
+
     private interface BuilderProxy {
         BuilderProxy setValue(String key, String value);
+
         BuilderProxy appendValue(String key, String value);
+
         BuilderProxy setValues(String key, List<String> values);
+
         BuilderProxy removeValue(String key);
+
         BuilderProxy clearValues();
+
         BuilderProxy setMap(Map<String, List<String>> map);
+
         Map<String, List<String>> getMap();
     }
 
