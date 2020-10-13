@@ -1,0 +1,5 @@
+{
+    "category": "HTTP Client SPI",
+    "type": "feature",
+    "description": "Calling the SdkHttpFullRequest uri() builder method, query parameters of the provided URI will be kept.\nThis can be useful in case you want to provide an already fully formed URI like a callback URI."
+}
