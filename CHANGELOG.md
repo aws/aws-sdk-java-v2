@@ -1,7 +1,3 @@
-## __AWS SDK for Java v2__
-  - ### Bugfixes
-    - The plus sign is now allowed in profile names.
-
 # __2.14.21__ __2020-09-18__
 ## __AWS CodeStar connections__
   - ### Features
