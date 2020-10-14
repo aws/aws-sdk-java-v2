@@ -164,8 +164,8 @@ public final class JsonProtocolUnmarshaller {
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response) throws IOException {
-        if (hasPayloadMembersOnUnmarshall(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo)) {
-            SdkJsonNode jsonNode = parser.parse(ReleasableInputStream.wrap(response.content().orElse(null)).disableClose());
+        if (hasPayloadMembersOnUnmarshall(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo) && response.content().isPresent()) {
+            SdkJsonNode jsonNode = parser.parse(ReleasableInputStream.wrap(response.content().get()).disableClose());
             return unmarshall(sdkPojo, response, jsonNode);
         } else {
             return unmarshall(sdkPojo, response, null);
@@ -204,8 +204,9 @@ public final class JsonProtocolUnmarshaller {
                                                                       SdkJsonNode jsonContent,
                                                                       JsonUnmarshallerContext context) {
         for (SdkField<?> field : sdkPojo.sdkFields()) {
-            if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
-                field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().orElse(null)));
+            if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES &&
+                context.response().content().isPresent()) {
+                field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
             } else {
                 SdkJsonNode jsonFieldContent = getSdkJsonNode(jsonContent, field);
                 JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(field.location(), field.marshallingType());

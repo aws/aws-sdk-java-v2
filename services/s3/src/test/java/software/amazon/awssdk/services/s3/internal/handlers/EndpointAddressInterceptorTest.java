@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.awscore.AwsExecutionAttribute.AWS_REGION;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
@@ -470,6 +471,132 @@ public class EndpointAddressInterceptorTest {
             .hasMessageContaining("path style");
     }
 
+    @Test
+    public void outpostAccessPointArn_shouldConvertEndpoint() {
+
+        verifyAccesspointArn("http",
+                             "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                             "http://myaccesspoint-123456789012.op-01234567890123456.s3-outposts.us-west-2.amazonaws.com",
+                             Region.of("us-west-2"),
+                             S3Configuration.builder(),
+                             Region.of("us-west-2"));
+
+        verifyAccesspointArn("https",
+                             "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                             "https://myaccesspoint-123456789012.op-01234567890123456.s3-outposts.us-west-2.amazonaws.com",
+                             Region.of("us-west-2"),
+                             S3Configuration.builder(),
+                             Region.of("us-west-2"));
+    }
+
+    @Test
+    public void outpostAccessPointArn_futureUnknownRegion_US_correctlyInfersPartition() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3-outposts:us-future-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                             "http://myaccesspoint-123456789012.op-01234567890123456.s3-outposts.us-future-2.amazonaws.com",
+                             Region.of("us-future-2"),
+                             S3Configuration.builder(),
+                             Region.of("us-future-2"));
+    }
+
+    @Test
+    public void outpostAccessPointArn_futureUnknownRegion_crossRegion_correctlyInfersPartition() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3-outposts:us-future-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                             "http://myaccesspoint-123456789012.op-01234567890123456.s3-outposts.us-future-2.amazonaws.com",
+                             Region.of("us-future-2"),
+                             S3Configuration.builder().useArnRegionEnabled(true),
+                             Region.of("us-future-1"));
+    }
+
+    @Test
+    public void outpostAccessPointArn_futureUnknownRegion_CN_correctlyInfersPartition() {
+        verifyAccesspointArn("http",
+                             "arn:aws-cn:s3-outposts:cn-future-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                             "http://myaccesspoint-123456789012.op-01234567890123456.s3-outposts.cn-future-1.amazonaws.com.cn",
+                             Region.of("cn-future-1"),
+                             S3Configuration.builder(),
+                             Region.of("cn-future-1"));
+    }
+
+    @Test
+    public void outpostAccessPointArn_futureUnknownRegionAndPartition_defaultsToAws() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3-outposts:unknown:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                             "http://myaccesspoint-123456789012.op-01234567890123456.s3-outposts.unknown.amazonaws.com",
+                             Region.of("unknown"),
+                             S3Configuration.builder(),
+                             Region.of("unknown"));
+    }
+
+    @Test
+    public void outpostAccessPointArn_invalidPartition_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> verifyAccesspointArn("http",
+                                                      "arn:bar:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                                                      null,
+                                                      S3Configuration.builder()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("bar");
+    }
+
+    @Test
+    public void outpostAccessPointArn_differentRegionWithoutUseArnRegion_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> verifyAccesspointArn("http",
+                                                      "arn:bar:aws-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                                                      null,
+                                                      S3Configuration.builder()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("region");
+    }
+
+    @Test
+    public void outpostAccessPointArn_fipsEnabled_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> verifyAccesspointArn("http",
+                                                      "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                                                      null,
+                                                      Region.of("us-east-1"),
+                                                      S3Configuration.builder().useArnRegionEnabled(true),
+                                                      Region.of("fips-us-east-1")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("FIPS");
+    }
+
+    @Test
+    public void outpostAccessPointArn_dualStackEnabled_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> verifyAccesspointArn("http",
+                                                      "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                                                      null,
+                                                      Region.of("us-east-1"),
+                                                      S3Configuration.builder().dualstackEnabled(true),
+                                                      Region.of("us-east-1")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("dualstack");
+    }
+
+    @Test
+    public void outpostAccessPointArn_accelerateEnabled_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> verifyAccesspointArn("http",
+                                                      "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint",
+                                                      null,
+                                                      Region.of("us-east-1"),
+                                                      S3Configuration.builder().accelerateModeEnabled(true),
+                                                      Region.of("us-east-1")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("accelerate");
+    }
+
+    @Test
+    public void outpostAccessPointArn_ArnMissingAccesspointName_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> verifyAccesspointArn("http",
+                                                      "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456",
+                                                      null,
+                                                      Region.of("us-east-1"),
+                                                      S3Configuration.builder().accelerateModeEnabled(true),
+                                                      Region.of("us-east-1")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Invalid format");
+    }
+
     private void verifyVirtualStyleConvertDnsEndpoint(String protocol) {
         String bucketName = "test-bucket";
         String key = "test-key";
@@ -550,12 +677,22 @@ public class EndpointAddressInterceptorTest {
         executionAttributes.putAttribute(SERVICE_CONFIG, s3Configuration);
         executionAttributes.putAttribute(AWS_REGION, region);
         executionAttributes.putAttribute(SIGNING_REGION, region);
+        executionAttributes.putAttribute(SERVICE_SIGNING_NAME, "s3");
 
         SdkHttpRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(ctx, executionAttributes);
 
         assertThat(executionAttributes.getAttribute(SIGNING_REGION))
             .isEqualTo(expectedSigningRegion);
         assertThat(sdkHttpFullRequest.getUri()).isEqualTo(expectedUri);
+
+        String expectedSigningName;
+        if (accessPointArn.contains(":s3-outposts")) {
+            expectedSigningName = "s3-outposts";
+        } else {
+            expectedSigningName = "s3";
+        }
+        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
+            .isEqualTo(expectedSigningName);
     }
 
 

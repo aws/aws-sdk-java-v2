@@ -428,7 +428,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      * Tries to find the member model associated with the given c2j member name from this shape
      * model. Returns the member model if present else returns null.
      */
-    private MemberModel tryFindMemberModelByC2jName(String memberC2jName, boolean ignoreCase) {
+    public MemberModel tryFindMemberModelByC2jName(String memberC2jName, boolean ignoreCase) {
 
         List<MemberModel> memberModels = getMembers();
         String expectedName = ignoreCase ? StringUtils.lowerCase(memberC2jName)

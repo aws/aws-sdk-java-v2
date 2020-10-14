@@ -128,6 +128,7 @@ class ShapeModelSpec {
                         .add("$T.<$T>builder($T.$L)\n",
                              sdkFieldType, typeProvider.fieldType(m),
                              ClassName.get(MarshallingType.class), m.getMarshallingType())
+                        .add(".memberName($S)\n", m.getC2jName())
                         .add(".getter(getter($T::$L))\n",
                              className(), m.getFluentGetterMethodName())
                         .add(".setter(setter($T::$L))\n",

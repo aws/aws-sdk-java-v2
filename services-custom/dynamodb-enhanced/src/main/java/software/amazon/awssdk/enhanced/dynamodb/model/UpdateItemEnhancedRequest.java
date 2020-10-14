@@ -19,8 +19,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Defines parameters used to update an item to a DynamoDb table using the updateItem() operation (such as
@@ -123,9 +121,10 @@ public final class UpdateItemEnhancedRequest<T> {
         /**
          *  Sets if the update operation should ignore attributes with null values. By default, the value is false.
          *  <p>
-         *  If set to true, any null values in the Java object will not be written to the table.
-         *  If set to false, null values in the Java object will be written to the table (as an {@link AttributeValue} of type
-         *  'nul' in the output map, see {@link TableSchema#itemToMap(Object, boolean)}).
+         *  If set to true, any null values in the Java object will be ignored and not be updated on the persisted
+         *  record. This is commonly referred to as a 'partial update'.
+         *  If set to false, null values in the Java object will cause those attributes to be removed from the persisted
+         *  record on update.
          * @param ignoreNulls the boolean value
          * @return a builder of this type
          */

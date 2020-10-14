@@ -103,16 +103,6 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
     }
 
     @Test
-    public void getPublicAccessBlock_NoSuchConfig() {
-        try {
-            client.getPublicAccessBlock(r -> r.accountId(accountId));
-            fail("Expected exception");
-        } catch (NoSuchPublicAccessBlockConfigurationException e) {
-            assertNotNull(e.requestId());
-        }
-    }
-
-    @Test
     public void deletePublicAccessBlock_NoSuchAccount() {
         try {
             client.deletePublicAccessBlock(r -> r.accountId(INVALID_ACCOUNT_ID));

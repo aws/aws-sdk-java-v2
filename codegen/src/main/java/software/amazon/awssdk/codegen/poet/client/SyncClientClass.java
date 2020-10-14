@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
@@ -118,6 +119,10 @@ public class SyncClientClass implements ClassSpec {
         model.getEndpointOperation().ifPresent(
             o -> classBuilder.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
 
+        if (model.hasWaiters()) {
+            classBuilder.addMethod(waiterMethod());
+        }
+
         return classBuilder.build();
     }
 
@@ -194,7 +199,6 @@ public class SyncClientClass implements ClassSpec {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
                                                        .addAnnotation(Override.class)
                                                        .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-                                                       .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
                                                        .addCode(protocolSpec.responseHandler(model, opModel));
 
         protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);
@@ -255,12 +259,16 @@ public class SyncClientClass implements ClassSpec {
                 .addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
                               CoreMetric.class, "SERVICE_ID", model.getMetadata().getServiceId())
                 .addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
-                              CoreMetric.class, "OPERATION_NAME", opModel.getOperationName())
-                .addCode(protocolSpec.executionHandler(opModel))
-                .endControlFlow()
-                .beginControlFlow("finally")
-                .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
-                .endControlFlow();
+                              CoreMetric.class, "OPERATION_NAME", opModel.getOperationName());
+
+        addS3ArnableFieldCode(opModel, model).ifPresent(method::addCode);
+        method.addCode(ClientClassUtils.addEndpointTraitCode(opModel));
+
+        method.addCode(protocolSpec.executionHandler(opModel))
+              .endControlFlow()
+              .beginControlFlow("finally")
+              .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
+              .endControlFlow();
 
         methods.add(method.build());
 
@@ -367,5 +375,15 @@ public class SyncClientClass implements ClassSpec {
         methodBuilder.addStatement("return $N", publishersName);
 
         return methodBuilder.build();
+    }
+
+    private MethodSpec waiterMethod() {
+        return MethodSpec.methodBuilder("waiter")
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .addStatement("return $T.builder().client(this).build()",
+                                       poetExtensions.getSyncWaiterInterface())
+                         .returns(poetExtensions.getSyncWaiterInterface())
+                         .build();
     }
 }

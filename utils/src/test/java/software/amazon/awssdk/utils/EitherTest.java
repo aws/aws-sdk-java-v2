@@ -100,6 +100,18 @@ public class EitherTest {
         assertThatThrownBy(() -> Either.fromNullable("left", "right")).isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    public void eitherLeft_returnLeft() {
+        assertThat(Either.left("test").left()).contains("test");
+        assertThat(Either.left("test").right()).isEmpty();
+    }
+
+    @Test
+    public void eitherRight_returnRight() {
+        assertThat(Either.right("test").right()).contains("test");
+        assertThat(Either.right("test").left()).isEmpty();
+    }
+
     private <InT, OutT> OutT assertNotCalled(InT in) {
         fail("Mapping function should not have been called");
         return null;

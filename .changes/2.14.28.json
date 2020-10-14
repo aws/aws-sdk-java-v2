@@ -1,0 +1,41 @@
+{
+    "version": "2.14.28",
+    "date": "2020-09-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release adds support for Client to Client routing for AWS Client VPN."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Simple update to description of ComplianceItemStatus."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "description": "Update TagResource API documentation to include Contact Flows and Routing Profiles as supported resources."
+        },
+        {
+            "type": "feature",
+            "category": "Schemas",
+            "description": "Added support for schemas of type JSONSchemaDraft4. Added ExportSchema API that converts schemas in AWS Events registry and Discovered schemas from OpenApi3 to JSONSchemaDraft4."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Query",
+            "description": "(New Service) Amazon Timestream is a fast, scalable, fully managed, purpose-built time series database that makes it easy to store and analyze trillions of time series data points per day."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Write",
+            "description": "(New Service) Amazon Timestream is a fast, scalable, fully managed, purpose-built time series database that makes it easy to store and analyze trillions of time series data points per day."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

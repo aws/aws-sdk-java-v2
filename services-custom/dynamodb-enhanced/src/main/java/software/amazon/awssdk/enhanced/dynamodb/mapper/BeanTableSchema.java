@@ -88,6 +88,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmut
  *
  * </pre>
  *
+ * Creating an {@link BeanTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
+ * usually done once at application startup.
+ *
  * @param <T> The type of object that this {@link TableSchema} maps to.
  */
 @SdkPublicApi
@@ -101,6 +104,10 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
     /**
      * Scans a bean class and builds a {@link BeanTableSchema} from it that can be used with the
      * {@link DynamoDbEnhancedClient}.
+     *
+     * Creating an {@link BeanTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
+     * usually done once at application startup.
+     *
      * @param beanClass The bean class to build the table schema from.
      * @param <T> The bean class type.
      * @return An initialized {@link BeanTableSchema}

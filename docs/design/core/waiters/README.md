@@ -1,4 +1,4 @@
-**Design:** New Feature, **Status:** [Proposed](../../README.md)
+**Design:** New Feature, **Status:** [Released](../../README.md)
 
 # Waiters
 
@@ -9,7 +9,7 @@ how waiters should be implemented in the Java SDK 2.x.
 ## Introduction
 
 A waiter makes it easier for customers to wait for a resource to transition into a desired state. It comes handy when customers are
-interacting with operations that are eventually consistent on the service side.
+interacting with operations that are asynchronous on the service side.
 
 For example, when you invoke `dynamodb#createTable`, the service immediately returns a response with a TableStatus of `CREATING`
 and the table will not be available to perform write or read until the status has transitioned to `ACTIVE`. Waiters can be used to help 
@@ -38,7 +38,7 @@ WaiterResponse<DescribeTableResponse> response = waiter.waitUntilTableExists(b -
 ```java
 DynamodbWaiter waiter = DynamoDbWaiter.builder()
                                       .client(client)
-                                      .pollingStrategy(p -> p.maxAttempts(10))
+                                      .overrideConfiguration(p -> p.maxAttempts(10))
                                       .build();
 
 WaiterResponse<DescribeTableResponse> response = waiter.waitUntilTableExists(b -> b.tableName("table"));
@@ -62,7 +62,7 @@ CompletableFuture<WaiterResponse<DescribeTableResponse>> responseFuture = waiter
 ```java
 DynamoDbAsyncWaiter waiter = DynamoDbAsyncWaiter.builder()
                                                 .client(asyncClient)
-                                                .pollingStrategy(p -> p.maxAttempts(10))
+                                                .overrideConfiguration(p -> p.maxAttempts(10))
                                                 .build();
 
 CompletableFuture<WaiterResponse<DescribeTableResponse>> responseFuture = waiter.waitUntilTableExists(b -> b.tableName("table"));
@@ -79,7 +79,7 @@ Waiter<DescribeTableResponse> waiter =
          .addAcceptor(WaiterAcceptor.successAcceptor(r -> r.table().tableStatus().equals(TableStatus.ACTIVE)))
          .addAcceptor(WaiterAcceptor.retryAcceptor(t -> t instanceof ResourceNotFoundException))
          .addAcceptor(WaiterAcceptor.errorAcceptor(t -> t instanceof InternalServerErrorException))
-         .pollingStrategy(p -> p.maxAttemps(20).backoffStrategy(BackoffStrategy.defaultStrategy())
+         .overrideConfiguration(p -> p.maxAttemps(20).backoffStrategy(BackoffStrategy.defaultStrategy())
          .build();
 
 // run synchronousely 
@@ -103,7 +103,7 @@ This follows the naming strategy established by the current `{Service}Client` an
  */
 @SdkPublicApi
 @Generated("software.amazon.awssdk:codegen")
-public interface DynamoDbWaiter {
+public interface DynamoDbWaiter extends SdkAutoCloseable {
 
     /**
      * Poller method that waits for the table status to transition to <code>ACTIVE</code> by
@@ -121,30 +121,60 @@ public interface DynamoDbWaiter {
         return waitUntilTableExists(DescribeTableRequest.builder().applyMutation(describeTableRequest).build());
     }
 
-    /**
-     * Poller method that waits until the table does not exists by invoking {@link DynamoDbClient#describeTable}.
-     * It returns when the resource enters into a desired state or it is determined that the resource will never enter into the desired state.
-     *
-     * @param describeTableRequest Represents the input of a <code>DescribeTable</code> operation.
-     */
-    default WaiterResponse<DescribeTableResponse> waitUntilTableNotExists(DescribeTableRequest describeTableRequest) {
-        throw new UnsupportedOperationException();
-    }
+     /**
+      * Polls {@link DynamoDbAsyncClient#describeTable} API until the desired condition {@code TableExists} is met, or
+      * until it is determined that the resource will never enter into the desired state
+      *
+      * @param describeTableRequest
+      *        The request to be used for polling
+      * @param overrideConfig
+      *        Per request override configuration for waiters
+      * @return WaiterResponse containing either a response or an exception that has matched with the waiter success
+      *         condition
+      */
+     default CompletableFuture<WaiterResponse<DescribeTableResponse>> waitUntilTableExists(
+             DescribeTableRequest describeTableRequest, WaiterOverrideConfiguration overrideConfig) {
+         throw new UnsupportedOperationException();
+     }
+ 
+     /**
+      * Polls {@link DynamoDbAsyncClient#describeTable} API until the desired condition {@code TableExists} is met, or
+      * until it is determined that the resource will never enter into the desired state.
+      * <p>
+      * This is a convenience method to create an instance of the request builder and instance of the override config
+      * builder
+      *
+      * @param describeTableRequest
+      *        The consumer that will configure the request to be used for polling
+      * @param overrideConfig
+      *        The consumer that will configure the per request override configuration for waiters
+      * @return WaiterResponse containing either a response or an exception that has matched with the waiter success
+      *         condition
+      */
+     default CompletableFuture<WaiterResponse<DescribeTableResponse>> waitUntilTableExists(
+             Consumer<DescribeTableRequest.Builder> describeTableRequest,
+             Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+         return waitUntilTableExists(DescribeTableRequest.builder().applyMutation(describeTableRequest).build(),
+                 WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+     }
 
-    default void waitUntilTableNotExists(Consumer<DescribeTableRequest.Builder> describeTableRequest) {
-        return waitUntilTableNotExists(DescribeTableRequest.builder().applyMutation(describeTableRequest).build());
-    }
+    // other waiter operations omitted
+    // ...
+
 
     interface Builder {
     
         Builder client(DynamoDbClient client);
         
         /**
-         * Define the {@link PollingStrategy} that computes the delay before the next retry request.
-         * @param backoffStrategy the backoff strategy
-         * @return the chained builder
+         * Defines overrides to the default SDK waiter configuration that should be used for waiters created from this
+         * builder
+         *
+         * @param overrideConfiguration
+         *        the override configuration to set
+         * @return a reference to this object so that method calls can be chained together.
          */
-        Builder pollingStrategy(PollingStrategy backoffStrategy);
+        Builder overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration);
 
         DynamoDbWaiter build();
     }
@@ -155,7 +185,7 @@ public interface DynamoDbWaiter {
  */
 @SdkPublicApi
 @Generated("software.amazon.awssdk:codegen")
-public interface DynamoDbAsyncWaiter extends ServiceWaiter {
+public interface DynamoDbAsyncWaiter extends SdkAutoCloseable {
 
     /**
      * Poller method that waits for the table status to transition to <code>ACTIVE</code> by
@@ -175,33 +205,17 @@ public interface DynamoDbAsyncWaiter extends ServiceWaiter {
         return waitUntilTableExists(DescribeTableRequest.builder().applyMutation(describeTableRequest).build());
     }
 
-    /**
-     * Poller method that waits until the table does not exists by invoking {@link DynamoDbClient#describeTable}.
-     * It returns when the resource enters into a desired state or it is determined that the resource will never enter into the desired state.
-     *
-     * @param describeTableRequest Represents the input of a <code>DescribeTable</code> operation.
-     * @return A CompletableFuture containing the result of the DescribeTable operation returned by the service. It completes
-     * successfully when the resource enters into a desired state or it completes exceptionally when it is determined that the
-     * resource will never enter into the desired state.
-     */
-    default CompletableFuture<WaiterResponse<ResourceNotFoundException>> waitUntilTableNotExists(DescribeTableRequest describeTableRequest) {
-        throw new UnsupportedOperationException();
-    }
+    // other waiter operations omitted
+    // ...
 
-    default CompletableFuture<WaiterResponse<ResourceNotFoundException>> waitUntilTableNotExists(Consumer<DescribeTableRequest.Builder> describeTableRequest) {
-        return waitUntilTableNotExists(DescribeTableRequest.builder().applyMutation(describeTableRequest).build());
-    }
 
     interface Builder {
         
         Builder client(DynamoDbAsyncClient client);
-        
-        /**
-         * Define the {@link PollingStrategy} that computes the delay before the next retry request.
-         * @param backoffStrategy the backoff strategy
-         * @return the chained builder
-         */
-        Builder pollingStrategy(PollingStrategy backoffStrategy);
+
+        Builder scheduledExecutorService(ScheduledExecutorService executorService);
+
+        Builder overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration);
 
         DynamoDbAsyncWaiter build();
     }
@@ -233,19 +247,18 @@ DynamoDbAsyncWaiter dynamoAsyncWaiter = dynamoAsync.waiter();
 // sync waiter
 DynamodbWaiter waiter = DynamoDbWaiter.builder()
               .client(client)
-              .pollingStrategy(p -> p.maxAttempts(10))
+              .overrideConfiguration(p -> p.maxAttempts(10))
               .build();
 
 
 // async waiter
 DynamoDbAsyncWaiter asyncWaiter = DynamoDbAsyncWaiter.builder()
                            .client(asyncClient)
-                           .pollingStrategy(p -> p.maxAttempts(10))
+                           .overrideConfiguration(p -> p.maxAttempts(10))
                            .build();
 
 
 ```
-
 
 #### Methods
 
@@ -270,15 +283,14 @@ A method will be generated for each operation that needs waiter support. There a
 public interface WaiterResponse<T> {
 
     /**
-     * @return the response received that has matched with the waiter success condition
+     * @return the ResponseOrException union received that has matched with the waiter success condition
      */
-    Optional<T> response();
-    
+    ResponseOrException<T> matched();
 
     /**
-     * @return the optional exception that has matched with the waiter success condition
+     * @return the number of attempts executed
      */
-    Optional<Throwable> exception();
+    int attemptsExecuted();
 
 }
 ```
@@ -296,26 +308,34 @@ The generic `Waiter` class enables users to customize waiter configurations and 
 public interface Waiter<T> {
 
     /**
-     * Runs the provided polling function. It completes when the resource enters into a desired state or
+     * It returns when the resource enters into a desired state or
      * it is determined that the resource will never enter into the desired state.
      *
-     * @param asyncPollingFunction the polling function to trigger
-     * @return A CompletableFuture containing the result of the DescribeTable operation returned by the service. It completes
-     * successfully when the resource enters into a desired state or it completes exceptionally when it is determined that the
-     * resource will never enter into the desired state.
+     * @param pollingFunction the polling function
+     * @return the {@link WaiterResponse} containing either a response or an exception that has matched with the
+     * waiter success condition
      */
-    CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction);
+    default WaiterResponse<T> run(Supplier<T> pollingFunction) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * It returns when the resource enters into a desired state or
      * it is determined that the resource will never enter into the desired state.
      *
-     * @param pollingFunction Represents the input of a <code>DescribeTable</code> operation.
-     * @return the response
+     * @param pollingFunction the polling function
+     * @param overrideConfig per request override configuration
+     * @return the {@link WaiterResponse} containing either a response or an exception that has matched with the
+     * waiter success condition
      */
-    WaiterResponse<T> run(Supplier<T> pollingFunction);
+    default WaiterResponse<T> run(Supplier<T> pollingFunction, WaiterOverrideConfiguration overrideConfig) {
+        throw new UnsupportedOperationException();
+    }
     
-    
+    default WaiterResponse<T> run(Supplier<T> pollingFunction, Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+        return run(pollingFunction, WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+    }
+
     /**
      * Creates a newly initialized builder for the waiter object.
      *
@@ -328,7 +348,6 @@ public interface Waiter<T> {
     }
 }
 ```
-
 #### Inner-Class: `Waiter.Builder`
 
 ```java
@@ -351,12 +370,82 @@ public interface Waiter<T> {
         Builder<T> addAcceptor(WaiterAcceptor<T> waiterAcceptors);
 
         /**
-         * Defines a {@link PollingStrategy} to use when polling the resource
+        * Defines overrides to the default SDK waiter configuration that should be used
+        * for waiters created by this builder.
+        *
+        * @param overrideConfiguration the override configuration
+        * @return a reference to this object so that method calls can be chained together.
+        */
+        Builder<T> overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration);
+    }
+```
+### `AsyncWaiter<T>`
+
+#### Methods
+```java
+@SdkPublicApi
+public interface AsyncWaiter<T> {
+
+    /**
+     * Runs the provided polling function. It completes successfully when the resource enters into a desired state or
+     * exceptionally when it is determined that the resource will never enter into the desired state.
+     *
+     * @param asyncPollingFunction the polling function to trigger
+     * @return A {@link CompletableFuture} containing the {@link WaiterResponse}
+     */
+    default CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Runs the provided polling function. It completes successfully when the resource enters into a desired state or
+     * exceptionally when it is determined that the resource will never enter into the desired state.
+     *
+     * @param asyncPollingFunction the polling function to trigger
+     *  @param overrideConfig per request override configuration
+     * @return A {@link CompletableFuture} containing the {@link WaiterResponse}
+     */
+    default CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction,
+                                                          WaiterOverrideConfiguration overrideConfig) {
+        throw new UnsupportedOperationException();
+    }
+
+    default CompletableFuture<WaiterResponse<T>> runAsync(Supplier<CompletableFuture<T>> asyncPollingFunction,
+                                                          Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+        return runAsync(asyncPollingFunction, WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+    }
+}
+```
+
+#### Inner-Class: `AsyncWaiter.Builder`
+#### Methods
+```java
+    public interface Builder<T> {
+
+        /**
+         * Defines a list of {@link WaiterAcceptor}s to check if an expected state has met after executing an operation.
          *
-         * @param pollingStrategy the polling strategy to use
-         * @return a reference to this object so that method calls can be chained together.
+         * @param waiterAcceptors the waiter acceptors
+         * @return the chained builder
          */
-        Builder<T> pollingStrategy(PollingStrategy pollingStrategy);
+        Builder<T> acceptors(List<WaiterAcceptor<T>> waiterAcceptors);
+
+        /**
+         * Add a {@link WaiterAcceptor}s
+         *
+         * @param waiterAcceptors the waiter acceptors
+         * @return the chained builder
+         */
+        Builder<T> addAcceptor(WaiterAcceptor<T> waiterAcceptors);
+
+        /**
+        * Defines overrides to the default SDK waiter configuration that should be used
+        * for waiters created by this builder.
+        *
+        * @param overrideConfiguration the override configuration
+        * @return a reference to this object so that method calls can be chained together.
+        */
+        Builder<T> overrideConfiguration(WaiterOverrideConfiguration overrideConfiguration);
         
         /**
          * Define the {@link ScheduledExecutorService} used to schedule async attempts
@@ -368,25 +457,35 @@ public interface Waiter<T> {
     }
 ```
 
-#### `PollingStrategy`
+#### `WaiterOverrideConfiguration`
 
-PollingStragtegy specifies how the waiter polls the resources.
+WaiterOverrideConfiguration specifies how the waiter polls the resources.
 
 ```java
-public interface PollingStrategy {
+public final class WaiterOverrideConfiguration {
+   //...
 
     /**
-     * Define the maximum number of attempts to try before transitioning the waiter to a failure state.
-     * @return a reference to this object so that method calls can be chained together.
+     * @return the optional maximum number of attempts that should be used when polling the resource
      */
-    int maxAttempts();
+    public Optional<Integer> maxAttempts() {
+        return Optional.ofNullable(maxAttempts);
+    }
 
     /**
-     * Define the {@link BackoffStrategy} that computes the delay before the next retry request.
+     * @return the optional {@link BackoffStrategy} that should be used when polling the resource
+     */
+    public Optional<BackoffStrategy> backoffStrategy() {
+        return Optional.ofNullable(backoffStrategy);
+    }
+
+    /**
+     * @return the optional amount of time to wait that should be used when polling the resource
      *
-     * @return a reference to this object so that method calls can be chained together.
      */
-    BackoffStrategy backoffStrategy();
+    public Optional<Duration> waitTimeout() {
+        return Optional.ofNullable(waitTimeout);
+    }
 }
 
 ```
@@ -437,80 +536,6 @@ public interface WaiterAcceptor<T> {
     default boolean matches(T response) {
         return false;
     }
-
-    /**
-     * Check to see if the exception matches with the expected state defined by the acceptor
-     *
-     * @param throwable the exception to inspect
-     * @return whether it accepts the throwable
-     */
-    default boolean matches(Throwable throwable) {
-        return false;
-    }
-
-    /**
-     * Creates a success waiter acceptor which determines if the response matches with the success state
-     *
-     * @param responsePredicate
-     * @param <T> the response type
-     * @return a {@link WaiterAcceptor}
-     */
-    static <T> WaiterAcceptor<T> successAcceptor(Predicate<T> responsePredicate) {
-        return new WaiterAcceptor<T>() {
-            @Override
-            public WaiterState waiterState() {
-                return WaiterState.SUCCESS;
-            }
-
-            @Override
-            public boolean matches(T response) {
-                return responsePredicate.test(response);
-            }
-        };
-    }
-
-    /**
-     * Creates an error waiter acceptor which determines if the exception should transition the waiter to failure state
-     *
-     * @param errorPredicate
-     * @param <T> the response type
-     * @return a {@link WaiterAcceptor}
-     */
-    static <T> WaiterAcceptor<T> errorAcceptor(Predicate<Throwable> errorPredicate) {
-        return new WaiterAcceptor<T>() {
-            @Override
-            public WaiterState waiterState() {
-                return WaiterState.FAILURE;
-            }
-
-            @Override
-            public boolean matches(Throwable t) {
-                return errorPredicate.test(t);
-            }
-        };
-    }
-
-    /**
-     * Creates a retry waiter acceptor which determines if the exception should transition the waiter to retry state
-     *
-     * @param errorPredicate
-     * @param <T> the response type
-     * @return a {@link WaiterAcceptor}
-     */
-    static <T> WaiterAcceptor<T> retryAcceptor(Predicate<Throwable> errorPredicate) {
-        return new WaiterAcceptor<T>() {
-            @Override
-            public WaiterState waiterState() {
-                return WaiterState.RETRY;
-            }
-
-            @Override
-            public boolean matches(Throwable t) {
-                return errorPredicate.test(t);
-            }
-        };
-    }
-}
 ```
 
 ## FAQ
@@ -569,7 +594,7 @@ we make `response` and `exception` optional in `WaiterResponse` because only one
 The following example shows how to retrieve a response from `WaiterResponse`
 
 ```java
-waiterResponse.response().ifPresent(r -> ...);
+waiterResponse.matched.response().ifPresent(r -> ...);
 
 ```
 

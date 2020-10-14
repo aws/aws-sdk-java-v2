@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -27,23 +28,17 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttributeRecord;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedTestRecord;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
@@ -52,6 +47,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
 public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
+
     private static class Record {
         private String id;
         private Integer sort;
@@ -121,25 +117,53 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
                  .mapToObj(i -> new Record().setId("id-value").setSort(i).setValue(i))
                  .collect(Collectors.toList());
 
+    private static final List<NestedTestRecord> NESTED_TEST_RECORDS =
+            IntStream.range(0, 10)
+                    .mapToObj(i -> {
+                        final NestedTestRecord nestedTestRecord = new NestedTestRecord();
+                        nestedTestRecord.setOuterAttribOne("id-value-" + i);
+                        nestedTestRecord.setSort(i);
+                        final InnerAttributeRecord innerAttributeRecord = new InnerAttributeRecord();
+                        innerAttributeRecord.setAttribOne("attribOne-"+i);
+                        innerAttributeRecord.setAttribTwo(i);
+                        nestedTestRecord.setInnerAttributeRecord(innerAttributeRecord);
+                        nestedTestRecord.setDotVariable("v"+i);
+                        return nestedTestRecord;
+                    })
+                    .collect(Collectors.toList());
+
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())
                                                                           .build();
 
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
+    private DynamoDbTable<NestedTestRecord> mappedNestedTable = enhancedClient.table(getConcreteTableName("nested-table-name"),
+            TableSchema.fromClass(NestedTestRecord.class));
+
     private void insertRecords() {
         RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
+        NESTED_TEST_RECORDS.forEach(nestedTestRecord -> mappedNestedTable.putItem(r -> r.item(nestedTestRecord)));
+    }
+
+    private void insertNestedRecords() {
+        NESTED_TEST_RECORDS.forEach(nestedTestRecord -> mappedNestedTable.putItem(r -> r.item(nestedTestRecord)));
     }
 
     @Before
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        mappedNestedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+
     }
 
     @After
     public void deleteTable() {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name"))
+                                                          .build());
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                          .tableName(getConcreteTableName("nested-table-name"))
                                                           .build());
     }
 
@@ -351,5 +375,193 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
                        .items();
 
         assertThat(results.stream().collect(Collectors.toList()), is(RECORDS.subList(8, 10)));
+    }
+
+    @Test
+    public void queryNestedRecord_SingleAttributeName() {
+        insertNestedRecords();
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
+                        .addNestedAttributeToProject(NestedAttributeName.builder().addElement("innerAttributeRecord")
+                                .addElement("attribOne").build())).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(1));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(nullValue()));
+        assertThat(firstRecord.getSort(), is(nullValue()));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-1"));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(nullValue()));
+        results =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
+                        .addNestedAttributeToProject(NestedAttributeName.create("sort"))
+                .addAttributeToProject("sort")).iterator();
+        assertThat(results.hasNext(), is(true));
+        page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(1));
+        firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(nullValue()));
+        assertThat(firstRecord.getSort(), is(1));
+        assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
+    }
+
+
+    @Test
+    public void queryNestedRecord_withAttributeNameList() {
+        insertNestedRecords();
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
+                        .addNestedAttributesToProject(Arrays.asList(
+                                NestedAttributeName.builder().elements("innerAttributeRecord", "attribOne").build(),
+                                NestedAttributeName.builder().addElement("outerAttribOne").build()))
+                .addNestedAttributesToProject(NestedAttributeName.builder()
+                        .addElements(Arrays.asList("innerAttributeRecord","attribTwo")).build())).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(1));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is("id-value-1"));
+        assertThat(firstRecord.getSort(), is(nullValue()));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-1"));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(1));
+    }
+
+
+
+
+    @Test
+    public void queryNestedRecord_withAttributeNameListAndStringAttributeToProjectAppended() {
+        insertNestedRecords();
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
+                        .addNestedAttributesToProject(Arrays.asList(
+                                NestedAttributeName.builder().elements("innerAttributeRecord","attribOne").build()))
+                        .addNestedAttributesToProject(NestedAttributeName.create("innerAttributeRecord","attribTwo"))
+                .addAttributeToProject("sort")).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(1));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(is(nullValue())));
+        assertThat(firstRecord.getSort(), is(1));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-1"));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(1));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withNestedProjectionNamesNotInNameMap() {
+        insertNestedRecords();
+
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
+                        .addNestedAttributeToProject( NestedAttributeName.builder().addElement("nonExistentSlot").build())).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(1));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord, is(nullValue()));
+    }
+    @Test
+    public void queryRecordDefaultSettings_withDotInTheName() {
+        insertNestedRecords();
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-7")))
+                        .addNestedAttributeToProject( NestedAttributeName.create("test.com"))).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(1));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(is(nullValue())));
+        assertThat(firstRecord.getSort(), is(is(nullValue())));
+        assertThat(firstRecord.getInnerAttributeRecord() ,  is(nullValue()));
+        assertThat(firstRecord.getDotVariable(), is("v7"));
+        Iterator<Page<NestedTestRecord>> resultWithAttributeToProject =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-7")))
+                        .attributesToProject( "test.com").build()).iterator();
+        assertThat(resultWithAttributeToProject.hasNext(), is(true));
+        Page<NestedTestRecord> pageResult = resultWithAttributeToProject.next();
+        assertThat(resultWithAttributeToProject.hasNext(), is(false));
+        assertThat(pageResult.items().size(), is(1));
+        NestedTestRecord record = pageResult.items().get(0);
+        assertThat(record.getOuterAttribOne(), is(is(nullValue())));
+        assertThat(record.getSort(), is(is(nullValue())));
+        assertThat(firstRecord.getInnerAttributeRecord() ,  is(nullValue()));
+        assertThat(record.getDotVariable(), is("v7"));
+    }
+
+    @Test
+    public void queryRecordDefaultSettings_withEmptyAttributeList() {
+        insertNestedRecords();
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-7")))
+                        .attributesToProject(new ArrayList<>()).build()).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(1));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is("id-value-7"));
+        assertThat(firstRecord.getSort(), is(7));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(7));
+        assertThat(firstRecord.getDotVariable(), is("v7"));
+    }
+
+    @Test
+    public void queryRecordDefaultSettings_withNullAttributeList() {
+        insertNestedRecords();
+
+        List<String> backwardCompatibilty = null;
+
+        Iterator<Page<NestedTestRecord>> results =
+                mappedNestedTable.query(b -> b
+                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-7")))
+                        .attributesToProject(backwardCompatibilty).build()).iterator();
+        assertThat(results.hasNext(), is(true));
+        Page<NestedTestRecord> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(1));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is("id-value-7"));
+        assertThat(firstRecord.getSort(), is(7));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(7));
+        assertThat(firstRecord.getDotVariable(), is("v7"));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withNestedProjectionNameEmptyNameMap() {
+        insertNestedRecords();
+
+        assertThatExceptionOfType(Exception.class).isThrownBy(
+                () -> {
+                    Iterator<Page<NestedTestRecord>> results =  mappedNestedTable.query(b -> b.queryConditional(
+                            keyEqualTo(k -> k.partitionValue("id-value-3")))
+                            .attributesToProject("").build()).iterator();
+                    assertThat(results.hasNext(), is(true));
+                    Page<NestedTestRecord> page = results.next();
+                });
+
+        assertThatExceptionOfType(Exception.class).isThrownBy(
+                () -> {
+                    Iterator<Page<NestedTestRecord>> results =  mappedNestedTable.query(b -> b.queryConditional(
+                            keyEqualTo(k -> k.partitionValue("id-value-3")))
+                            .addNestedAttributeToProject(NestedAttributeName.create("")).build()).iterator();
+                    assertThat(results.hasNext(), is(true));
+                    Page<NestedTestRecord> page = results.next();
+
+                });
     }
 }
