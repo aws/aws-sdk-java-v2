@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Rekognition",
-    "description": "This SDK Release introduces new API (DetectProtectiveEquipment) for Amazon Rekognition. This release also adds ServiceQuotaExceeded exception to Amazon Rekognition IndexFaces API."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "description": "Add support to associate VPC Security Groups at server creation."
-}

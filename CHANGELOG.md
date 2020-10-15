@@ -1,3 +1,73 @@
+# __2.15.8__ __2020-10-15__
+## __AWS Budgets__
+  - ### Features
+    - This release introduces AWS Budgets Actions, allowing you to define an explicit response(or set of responses) to take when your budget exceeds it's action threshold.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release improves email validation for subscriptions on the SDK endpoints.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - When creating Endpoints, Replication Instances, and Replication Tasks, the feature provides you the option to specify friendly name to the resources.
+
+## __AWS Glue__
+  - ### Features
+    - API Documentation updates for Glue Get-Plan API
+
+## __AWS Ground Station__
+  - ### Features
+    - Adds error message attribute to DescribeContact DataflowDetails
+
+## __AWS IoT__
+  - ### Features
+    - Add new variable, lastStatusChangeDate, to DescribeDomainConfiguration API
+
+## __AWS Lambda Maven Archetype__
+  - ### Bugfixes
+    - Fixed an issue where archetype generation failed with latest maven-archetype-plugin. See [#1981](https://github.com/aws/aws-sdk-java-v2/issues/1981)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for plus (+) character in profile names
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add support to associate VPC Security Groups at server creation.
+
+## __AWS X-Ray__
+  - ### Features
+    - Enhancing CreateGroup, UpdateGroup, GetGroup and GetGroups APIs to support configuring X-Ray Insights Notifications. Adding TraceLimit information into X-Ray BatchGetTraces API response.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for the ApplyArchiveRule api in IAM Access Analyzer. The ApplyArchiveRule api allows users to apply an archive rule retroactively to existing findings in an analyzer.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API adds support for pausing and resuming classification jobs. Also, sensitive data findings now include location data for up to 15 occurrences of sensitive data.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This SDK Release introduces new API (DetectProtectiveEquipment) for Amazon Rekognition. This release also adds ServiceQuotaExceeded exception to Amazon Rekognition IndexFaces API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Return tags for all resources in the output of DescribeDBInstances, DescribeDBSnapshots, DescribeDBClusters, and DescribeDBClusterSnapshots API operations.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This Patch Manager release now supports searching for available packages from Amazon Linux and Amazon Linux 2 via the DescribeAvailablePatches API.
+
+## __Amazon WorkMail__
+  - ### Features
+    - Add CreateOrganization and DeleteOrganization API operations.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for WorkSpaces
+
 # __2.15.7__ __2020-10-09__
 ## __AWS Amplify__
   - ### Features
@@ -8777,3 +8847,4 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Initial release of the AWS SDK for Java v2. See our [blog post](https://aws.amazon.com/blogs/developer/aws-sdk-for-java-2-0-developer-preview) for information about this new major veresion. This release is considered a developer preview and is not intended for production use cases.
+

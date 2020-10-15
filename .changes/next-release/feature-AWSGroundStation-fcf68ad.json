@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Ground Station",
-    "description": "Adds error message attribute to DescribeContact DataflowDetails"
-}

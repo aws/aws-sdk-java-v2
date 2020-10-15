@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Access Analyzer",
-    "description": "This release adds support for the ApplyArchiveRule api in IAM Access Analyzer. The ApplyArchiveRule api allows users to apply an archive rule retroactively to existing findings in an analyzer."
-}

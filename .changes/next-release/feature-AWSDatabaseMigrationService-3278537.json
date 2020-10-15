@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "description": "When creating Endpoints, Replication Instances, and Replication Tasks, the feature provides you the option to specify friendly name to the resources."
-}
