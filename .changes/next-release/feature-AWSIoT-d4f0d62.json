@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "description": "Add new variable, lastStatusChangeDate, to DescribeDomainConfiguration API"
+}
