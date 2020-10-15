@@ -69,6 +69,6 @@ public final class XmlResponseParserUtils {
     }
 
     private static boolean contentLengthZero(SdkHttpFullResponse response) {
-        return response.firstMatchingHeader(CONTENT_LENGTH).filter(h -> Long.parseLong(h) == 0).isPresent();
+        return response.firstMatchingHeader(CONTENT_LENGTH).map(l -> Long.parseLong(l) == 0).orElse(false);
     }
 }

@@ -13,20 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.poet.client.specs;
+package software.amazon.awssdk.core.interceptor.trait;
 
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-public class Ec2ProtocolSpec extends QueryProtocolSpec {
-
-    public Ec2ProtocolSpec(IntermediateModel model, PoetExtensions poetExtensions) {
-        super(model, poetExtensions);
+@SdkProtectedApi
+public class HttpChecksumRequired {
+    private HttpChecksumRequired() {
     }
 
-    @Override
-    protected Class<?> protocolFactoryClass() {
-        return AwsEc2ProtocolFactory.class;
+    public static HttpChecksumRequired create() {
+        return new HttpChecksumRequired();
     }
 }

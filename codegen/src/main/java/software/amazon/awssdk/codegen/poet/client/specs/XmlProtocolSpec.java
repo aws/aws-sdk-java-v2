@@ -29,6 +29,8 @@ import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldC
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
+import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
@@ -71,13 +73,9 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
             ParameterizedTypeName.get(ClassName.get(software.amazon.awssdk.core.Response.class), responseType));
 
         return CodeBlock.builder()
-                        .addStatement("\n\n$T responseHandler = protocolFactory.createCombinedResponseHandler"
-                                      + "($T::builder,"
+                        .addStatement("\n\n$T responseHandler = protocolFactory.createCombinedResponseHandler($T::builder, "
                                       + "new $T().withHasStreamingSuccessResponse($L))",
-                                      handlerType,
-                                      responseType,
-                                      XmlOperationMetadata.class,
-                                      opModel.hasStreamingOutput())
+                                      handlerType, responseType, XmlOperationMetadata.class, opModel.hasStreamingOutput())
                         .build();
     }
 
@@ -85,12 +83,9 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         return CodeBlock.builder()
-                        .addStatement("\n\n$T<$T> responseHandler = protocolFactory.createResponseHandler($T::builder,"
+                        .addStatement("\n\n$T<$T> responseHandler = protocolFactory.createResponseHandler($T::builder, "
                                       + "new $T().withHasStreamingSuccessResponse($L))",
-                                      HttpResponseHandler.class,
-                                      responseType,
-                                      responseType,
-                                      XmlOperationMetadata.class,
+                                      HttpResponseHandler.class, responseType, responseType, XmlOperationMetadata.class,
                                       opModel.hasStreamingOutput())
                         .build();
     }
@@ -113,23 +108,16 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         TypeName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
-        CodeBlock.Builder codeBlock = CodeBlock
-            .builder()
-            .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()" +
-                 ".withOperationName(\"$N\")\n" +
-                 ".withCombinedResponseHandler($N)" +
-                 ".withMetricCollector(apiCallMetricCollector)\n" +
-                 hostPrefixExpression(opModel) +
-                 discoveredEndpoint(opModel) +
-                 ".withInput($L)",
-                 software.amazon.awssdk.core.client.handler.ClientExecutionParams.class,
-                 requestType,
-                 responseType,
-                 opModel.getOperationName(),
-                 "responseHandler",
-                 opModel.getInput().getVariableName());
-
-        codeBlock.add(".withMetricCollector($N)", "apiCallMetricCollector");
+        CodeBlock.Builder codeBlock = CodeBlock.builder()
+                                               .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n",
+                                                    ClientExecutionParams.class, requestType, responseType)
+                                               .add(".withOperationName($S)\n", opModel.getOperationName())
+                                               .add(".withCombinedResponseHandler(responseHandler)\n")
+                                               .add(".withMetricCollector(apiCallMetricCollector)\n" +
+                                                    hostPrefixExpression(opModel) +
+                                                    discoveredEndpoint(opModel))
+                                               .add(".withInput($L)", opModel.getInput().getVariableName())
+                                               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
 
         s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
 
@@ -173,25 +161,19 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
-        String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
-            : "";
         TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
         CodeBlock.Builder builder =
-            CodeBlock.builder().add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()"
-                                    + "\n" +
-                                    ".withOperationName(\"$N\")\n" +
-                                    ".withMarshaller($L)" +
-                                    ".withCombinedResponseHandler($N)" +
-                                    hostPrefixExpression(opModel) +
-                                    asyncRequestBody,
-                                    java.util.concurrent.CompletableFuture.class,
-                                    executeFutureValueType,
-                                    software.amazon.awssdk.core.client.handler.ClientExecutionParams.class,
-                                    requestType,
-                                    pojoResponseType,
-                                    opModel.getOperationName(),
-                                    asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"),
-                                    "responseHandler");
+            CodeBlock.builder()
+                     .add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n",
+                          CompletableFuture.class, executeFutureValueType,
+                          ClientExecutionParams.class, requestType, pojoResponseType)
+                     .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
+                     .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"))
+                     .add(".withCombinedResponseHandler(responseHandler)\n")
+                     .add(".withMetricCollector(apiCallMetricCollector)\n")
+                     .add(asyncRequestBody(opModel))
+                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+
         s3ArnableFields(opModel, model).ifPresent(builder::add);
         builder.add(".withInput($L) $L);", opModel.getInput().getVariableName(), opModel.hasStreamingOutput() ?
                                                                                  ", asyncResponseTransformer" : "");
@@ -210,6 +192,10 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
                 whenCompleteFutureName);
         return builder.build();
+    }
+
+    private String asyncRequestBody(OperationModel opModel) {
+        return opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)" : "";
     }
 
     private CodeBlock asyncStreamingExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {

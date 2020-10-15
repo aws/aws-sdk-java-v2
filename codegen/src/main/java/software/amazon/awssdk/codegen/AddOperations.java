@@ -162,6 +162,7 @@ final class AddOperations {
             operationModel.setEndpointOperation(op.isEndpointoperation());
             operationModel.setEndpointDiscovery(op.getEndpointdiscovery());
             operationModel.setEndpointTrait(op.getEndpoint());
+            operationModel.setHttpChecksumRequired(op.isHttpChecksumRequired());
 
             Input input = op.getInput();
             if (input != null) {

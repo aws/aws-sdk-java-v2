@@ -62,6 +62,8 @@ public class OperationModel extends DocumentationModel {
 
     private EndpointTrait endpointTrait;
 
+    private boolean httpChecksumRequired;
+
     public String getOperationName() {
         return operationName;
     }
@@ -271,5 +273,13 @@ public class OperationModel extends DocumentationModel {
                && shapeModel.getMembers().stream()
                             .filter(m -> m.getShape() != null)
                             .anyMatch(m -> m.getShape().isEventStream());
+    }
+
+    public boolean isHttpChecksumRequired() {
+        return httpChecksumRequired;
+    }
+
+    public void setHttpChecksumRequired(boolean httpChecksumRequired) {
+        this.httpChecksumRequired = httpChecksumRequired;
     }
 }
