@@ -25,7 +25,8 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
-import software.amazon.awssdk.services.s3.internal.S3EndpointUtils;
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverContext;
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverFactory;
 
 @SdkInternalApi
 public final class EndpointAddressInterceptor implements ExecutionInterceptor {
@@ -33,19 +34,31 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
-        ConfiguredS3SdkHttpRequest configuredRequest =
-            S3EndpointUtils.applyEndpointConfiguration(
-                    context.httpRequest(),
-                    context.request(),
-                    executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION),
-                    (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG),
-                    Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN)));
+
+        boolean endpointOverride =
+            Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN));
+        S3Configuration serviceConfiguration =
+            (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
+        S3EndpointResolverContext resolverContext =
+            S3EndpointResolverContext.builder()
+                                     .request(context.httpRequest())
+                                     .originalRequest(context.request())
+                                     .region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION))
+                                     .endpointOverridden(endpointOverride)
+                                     .serviceConfiguration(serviceConfiguration)
+                                     .build();
+
+        String bucketName = context.request().getValueForField("Bucket", String.class).orElse(null);
+        ConfiguredS3SdkHttpRequest configuredRequest = S3EndpointResolverFactory.getEndpointResolver(bucketName)
+                                                                                .applyEndpointConfiguration(resolverContext);
 
         configuredRequest.signingRegionModification().ifPresent(
             region -> executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region));
 
         configuredRequest.signingServiceModification().ifPresent(
             name -> executionAttributes.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, name));
+
         return configuredRequest.sdkHttpRequest();
     }
+
 }
