@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "description": "This release improves email validation for subscriptions on the SDK endpoints."
+}
