@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Macie 2",
+    "description": "This release of the Amazon Macie API adds support for pausing and resuming classification jobs. Also, sensitive data findings now include location data for up to 15 occurrences of sensitive data."
+}
