@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkMail",
+    "description": "Add CreateOrganization and DeleteOrganization API operations."
+}
