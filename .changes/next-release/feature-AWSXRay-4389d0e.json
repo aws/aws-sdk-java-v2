@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS X-Ray",
+    "description": "Enhancing CreateGroup, UpdateGroup, GetGroup and GetGroups APIs to support configuring X-Ray Insights Notifications. Adding TraceLimit information into X-Ray BatchGetTraces API response."
+}
