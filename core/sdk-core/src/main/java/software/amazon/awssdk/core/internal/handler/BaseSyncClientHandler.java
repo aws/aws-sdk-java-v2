@@ -60,30 +60,12 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
 
         return measureApiCallSuccess(executionParams, () -> {
-            validateExecutionParams(executionParams);
+            // Running beforeExecution interceptors and modifyRequest interceptors.
+            ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
-            if (executionParams.getCombinedResponseHandler() != null) {
-                // There is no support for catching errors in a body for streaming responses
-                throw new IllegalArgumentException("A streaming 'responseTransformer' may not be used when a "
-                                                   + "'combinedResponseHandler' has been specified in a "
-                                                   + "ClientExecutionParams object.");
-            }
-
-            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
-
-            ExecutionContext executionContext = createExecutionContext(executionParams,
-                                                                       executionAttributes);
-
-            HttpResponseHandler<OutputT> decoratedResponseHandlers =
-                decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
-
-            HttpResponseHandler<ReturnT> httpResponseHandler =
-                new HttpResponseHandlerAdapter<>(decoratedResponseHandlers, responseTransformer);
-
-            return doExecute(
-                executionParams,
-                executionContext,
-                new CombinedResponseHandler<>(httpResponseHandler, executionParams.getErrorResponseHandler()));
+            CombinedResponseHandler<ReturnT> streamingCombinedResponseHandler =
+                createStreamingCombinedResponseHandler(executionParams, responseTransformer, executionContext);
+            return doExecute(executionParams, executionContext, streamingCombinedResponseHandler);
         });
     }
 
@@ -92,23 +74,11 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ClientExecutionParams<InputT, OutputT> executionParams) {
 
         return measureApiCallSuccess(executionParams, () -> {
-            validateExecutionParams(executionParams);
-            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
-            ExecutionContext executionContext = createExecutionContext(executionParams,
-                                                                       executionAttributes);
-            HttpResponseHandler<Response<OutputT>> combinedResponseHandler;
+            // Running beforeExecution interceptors and modifyRequest interceptors.
+            ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
-            if (executionParams.getCombinedResponseHandler() != null) {
-                combinedResponseHandler = decorateSuccessResponseHandlers(executionParams.getCombinedResponseHandler(),
-                                                                          executionContext);
-            } else {
-                HttpResponseHandler<OutputT> decoratedResponseHandlers =
-                    decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
-
-                combinedResponseHandler = new CombinedResponseHandler<>(decoratedResponseHandlers,
-                                                                        executionParams.getErrorResponseHandler());
-            }
-
+            HttpResponseHandler<Response<OutputT>> combinedResponseHandler =
+                createCombinedResponseHandler(executionParams, executionContext);
             return doExecute(executionParams, executionContext, combinedResponseHandler);
         });
     }
@@ -133,12 +103,50 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
                      .execute(responseHandler);
     }
 
+    private <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CombinedResponseHandler<ReturnT>
+        createStreamingCombinedResponseHandler(ClientExecutionParams<InputT, OutputT> executionParams,
+                                               ResponseTransformer<OutputT, ReturnT> responseTransformer,
+                                               ExecutionContext executionContext) {
+        if (executionParams.getCombinedResponseHandler() != null) {
+            // There is no support for catching errors in a body for streaming responses
+            throw new IllegalArgumentException("A streaming 'responseTransformer' may not be used when a "
+                                               + "'combinedResponseHandler' has been specified in a "
+                                               + "ClientExecutionParams object.");
+        }
+
+        HttpResponseHandler<OutputT> decoratedResponseHandlers =
+            decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
+
+        HttpResponseHandler<ReturnT> httpResponseHandler =
+            new HttpResponseHandlerAdapter<>(decoratedResponseHandlers, responseTransformer);
+
+        return new CombinedResponseHandler<>(httpResponseHandler, executionParams.getErrorResponseHandler());
+    }
+
+    private <InputT extends SdkRequest, OutputT extends SdkResponse> HttpResponseHandler<Response<OutputT>>
+        createCombinedResponseHandler(ClientExecutionParams<InputT, OutputT> executionParams,
+                                      ExecutionContext executionContext) {
+        validateCombinedResponseHandler(executionParams);
+        HttpResponseHandler<Response<OutputT>> combinedResponseHandler;
+        if (executionParams.getCombinedResponseHandler() != null) {
+            combinedResponseHandler = decorateSuccessResponseHandlers(executionParams.getCombinedResponseHandler(),
+                                                                      executionContext);
+        } else {
+            HttpResponseHandler<OutputT> decoratedResponseHandlers =
+                decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
+
+            combinedResponseHandler = new CombinedResponseHandler<>(decoratedResponseHandlers,
+                                                                    executionParams.getErrorResponseHandler());
+        }
+        return combinedResponseHandler;
+    }
+
     private <InputT extends SdkRequest, OutputT, ReturnT> ReturnT doExecute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext,
         HttpResponseHandler<Response<ReturnT>> responseHandler) {
 
-        InputT inputT = (InputT) finalizeSdkRequest(executionContext).request();
+        InputT inputT = (InputT) executionContext.interceptorContext().request();
 
         InterceptorContext sdkHttpFullRequestContext = finalizeSdkHttpFullRequest(executionParams,
                                                                                   executionContext,

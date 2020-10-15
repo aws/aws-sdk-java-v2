@@ -68,7 +68,7 @@ public final class S3MultiRegionAccessPointBuilder {
         validateHostnameCompliant(accountId, "accountId", "multi-region ARN");
         validateHostnameCompliant(accessPointName, "accessPointName", "multi-region ARN");
 
-        String uriString = String.format("%s://%s-%s.global-s3.%s", protocol, accessPointName, accountId, domain);
+        String uriString = String.format("%s://%s.%s.mrap.global-s3.%s", protocol, accessPointName, accountId, domain);
         return URI.create(uriString);
     }
 }

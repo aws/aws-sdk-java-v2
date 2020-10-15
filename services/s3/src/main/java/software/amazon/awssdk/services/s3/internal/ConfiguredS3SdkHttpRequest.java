@@ -54,7 +54,9 @@ public class ConfiguredS3SdkHttpRequest
 
     @Override
     public Builder toBuilder() {
-        return builder().sdkHttpRequest(sdkHttpRequest).signingRegionModification(signingRegionModification);
+        return builder().sdkHttpRequest(sdkHttpRequest)
+                        .signingRegionModification(signingRegionModification)
+                        .signingServiceModification(signingServiceModification);
     }
 
     @Override

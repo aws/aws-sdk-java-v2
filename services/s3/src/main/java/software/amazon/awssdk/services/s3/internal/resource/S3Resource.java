@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.resource;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.signer.Signer;
 
 /**
  * A representation of an AWS S3 resource. See {@link S3ResourceType} for a list and description of all valid types.
@@ -35,6 +36,10 @@ public interface S3Resource extends AwsResource {
      * @return the optional parent resource.
      */
     default Optional<S3Resource> parentS3Resource() {
+        return Optional.empty();
+    }
+
+    default Optional<Signer> overrideSigner() {
         return Optional.empty();
     }
 }

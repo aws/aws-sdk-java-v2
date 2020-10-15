@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.presigner;
+package software.amazon.awssdk.services.s3.internal.signing;
 
 import static java.util.stream.Collectors.toMap;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.PRESIGNER_EXPIRATION;
