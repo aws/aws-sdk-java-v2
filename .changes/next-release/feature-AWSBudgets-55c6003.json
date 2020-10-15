@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Budgets",
+    "description": "This release introduces AWS Budgets Actions, allowing you to define an explicit response(or set of responses) to take when your budget exceeds it's action threshold."
+}
