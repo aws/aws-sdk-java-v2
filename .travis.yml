@@ -1,7 +1,6 @@
 language: java
 jdk:
   - openjdk8
-  - openjdk11
 sudo: true
 dist: xenial
 install: /bin/true
