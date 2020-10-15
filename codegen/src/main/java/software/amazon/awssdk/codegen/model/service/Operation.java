@@ -46,6 +46,8 @@ public class Operation {
 
     private AuthType authtype = AuthType.IAM;
 
+    private boolean httpChecksumRequired;
+
     public String getName() {
         return name;
     }
@@ -163,5 +165,13 @@ public class Operation {
 
     public void setEndpoint(EndpointTrait endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public boolean isHttpChecksumRequired() {
+        return httpChecksumRequired;
+    }
+
+    public void setHttpChecksumRequired(boolean httpChecksumRequired) {
+        this.httpChecksumRequired = httpChecksumRequired;
     }
 }
