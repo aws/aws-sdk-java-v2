@@ -50,17 +50,6 @@ public abstract class BaseClientHandler {
     }
 
     /**
-     * Finalize {@link SdkRequest} by running beforeExecution and modifyRequest interceptors.
-     *
-     * @param executionContext the execution context
-     * @return the {@link InterceptorContext}
-     */
-    static InterceptorContext finalizeSdkRequest(ExecutionContext executionContext) {
-        runBeforeExecutionInterceptors(executionContext);
-        return runModifyRequestInterceptors(executionContext);
-    }
-
-    /**
      * Finalize {@link SdkHttpFullRequest} by running beforeMarshalling, afterMarshalling,
      * modifyHttpRequest, modifyHttpContent and modifyAsyncHttpContent interceptors
      */
@@ -83,19 +72,6 @@ public abstract class BaseClientHandler {
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
         return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
-    }
-
-    private static void runBeforeExecutionInterceptors(ExecutionContext executionContext) {
-        executionContext.interceptorChain().beforeExecution(executionContext.interceptorContext(),
-                                                            executionContext.executionAttributes());
-    }
-
-    private static InterceptorContext runModifyRequestInterceptors(ExecutionContext executionContext) {
-        InterceptorContext interceptorContext =
-            executionContext.interceptorChain().modifyRequest(executionContext.interceptorContext(),
-                                                              executionContext.executionAttributes());
-        executionContext.interceptorContext(interceptorContext);
-        return interceptorContext;
     }
 
     private static void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
@@ -172,30 +148,35 @@ public abstract class BaseClientHandler {
                     (OutputT) response.toBuilder().sdkHttpResponse(httpFullResponse).build());
     }
 
-    static ExecutionAttributes addInitialExecutionAttributes(ExecutionAttributes executionAttributes) {
-        return executionAttributes.putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1);
-    }
-
-    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
-        ClientExecutionParams<InputT, OutputT> params, ExecutionAttributes executionAttributes) {
-
+    //TODO: Remove/throw exception when called. This method is only called from tests, since the subclasses
+    // in aws-core override it.
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
+        invokeInterceptorsAndCreateExecutionContext(
+        ClientExecutionParams<InputT, OutputT> params) {
         SdkRequest originalRequest = params.getInput();
 
+        ExecutionAttributes executionAttributes = params.executionAttributes();
         executionAttributes
+            .putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1)
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
                           clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfiguration.option(SdkClientOption.SERVICE_NAME));
 
         ExecutionInterceptorChain interceptorChain =
-                new ExecutionInterceptorChain(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+            new ExecutionInterceptorChain(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+
+        InterceptorContext interceptorContext = InterceptorContext.builder()
+                                                                  .request(originalRequest)
+                                                                  .build();
+
+        interceptorChain.beforeExecution(interceptorContext, executionAttributes);
+        interceptorContext = interceptorChain.modifyRequest(interceptorContext, executionAttributes);
 
         MetricCollector metricCollector = resolveMetricCollector(params);
 
         return ExecutionContext.builder()
                                .interceptorChain(interceptorChain)
-                               .interceptorContext(InterceptorContext.builder()
-                                                                     .request(originalRequest)
-                                                                     .build())
+                               .interceptorContext(interceptorContext)
                                .executionAttributes(executionAttributes)
                                .signer(clientConfiguration.option(SdkAdvancedClientOption.SIGNER))
                                .metricCollector(metricCollector)
@@ -248,7 +229,7 @@ public abstract class BaseClientHandler {
         };
     }
 
-    static void validateExecutionParams(ClientExecutionParams<?, ?> executionParams) {
+    static void validateCombinedResponseHandler(ClientExecutionParams<?, ?> executionParams) {
         if (executionParams.getCombinedResponseHandler() != null) {
             if (executionParams.getResponseHandler() != null) {
                 throw new IllegalArgumentException("Only one of 'combinedResponseHandler' and 'responseHandler' may "

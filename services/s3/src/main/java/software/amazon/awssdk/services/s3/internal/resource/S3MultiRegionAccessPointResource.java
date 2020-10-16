@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.s3.internal.resource;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.services.s3.internal.signing.S3SigningUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -48,6 +50,11 @@ public final class S3MultiRegionAccessPointResource implements S3Resource {
 
     public static boolean isMultiRegion(Arn arn) {
         return REGION_VALUE.equals(arn.region().orElse(null));
+    }
+
+    @Override
+    public Optional<Signer> overrideSigner() {
+        return Optional.of(S3SigningUtils.getSigV4aSigner());
     }
 
     /**

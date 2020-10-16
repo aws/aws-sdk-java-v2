@@ -59,6 +59,11 @@ public class SdkExecutionAttribute {
      * generated from regional metadata.
      */
     public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverride");
+
+    /**
+     * If the client signer value has been overridden.
+     */
+    public static final ExecutionAttribute<Boolean> SIGNER_OVERRIDDEN = new ExecutionAttribute<>("SignerOverridden");
     
     protected SdkExecutionAttribute() {
     }

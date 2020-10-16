@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.presigner;
+package software.amazon.awssdk.services.s3.internal.signing;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;

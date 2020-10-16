@@ -21,9 +21,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.Region;
@@ -54,6 +56,18 @@ public final class S3EndpointUtils {
         ListBucketsRequest.class, CreateBucketRequest.class, DeleteBucketRequest.class);
 
     private S3EndpointUtils() {
+    }
+
+    public static Optional<Signer> internalSignerOverride(SdkRequest originalRequest) {
+        String bucketName = originalRequest.getValueForField("Bucket", String.class).orElse(null);
+
+        if (bucketName != null && isArn(bucketName)) {
+            S3Resource resolvedS3Resource = S3ArnConverter.create().convertArn(Arn.fromString(bucketName));
+            return resolvedS3Resource.parentS3Resource()
+                                     .map(S3Resource::overrideSigner)
+                                     .orElseGet(resolvedS3Resource::overrideSigner);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -239,6 +253,15 @@ public final class S3EndpointUtils {
             throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3"
                                                + " operation if the S3 client has been configured with an endpoint "
                                                + "override.");
+        }
+
+        if (isMultiregionAccessPoint(s3Resource) &&
+            serviceConfiguration != null && !serviceConfiguration.useArnRegionEnabled()) {
+            throw new IllegalArgumentException("A multi-region access point ARN cannot be passed as a bucket parameter "
+                                               + "to an S3 operation if the 'useArnRegionEnabled' flag is not set to true. "
+                                               + "To allow potential out-of-region calls, and prevent this exception "
+                                               + "set 'useArnRegionEnabled' to true in the configuration when building "
+                                               + "the S3 client.");
         }
 
         if (shouldCompareRegions(serviceConfiguration, s3Resource)) {

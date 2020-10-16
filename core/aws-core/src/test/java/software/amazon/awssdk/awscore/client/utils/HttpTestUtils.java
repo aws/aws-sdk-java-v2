@@ -19,6 +19,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Executors;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -52,6 +54,7 @@ public class HttpTestUtils {
                                      .option(SdkClientOption.RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                     .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
                                      .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                      .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")

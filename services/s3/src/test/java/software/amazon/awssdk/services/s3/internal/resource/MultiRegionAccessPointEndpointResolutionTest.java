@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -40,20 +39,20 @@ import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 public class MultiRegionAccessPointEndpointResolutionTest {
 
     private MockHttpClient mockHttpClient;
-    private Signer mockSigner;
 
     @Before
     public void setup() {
         mockHttpClient = new MockHttpClient();
-        mockSigner = (request, executionAttributes) -> request;
     }
 
     @Test
     public void multiRegionArn_correctlyRewritesEndpoint() throws Exception {
-        URI customEndpoint = URI.create("https://myaccesspoint-123456789012.global-s3.amazonaws.com");
+        URI customEndpoint = URI.create("https://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com");
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder().build()).build();
-
+        S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder()
+                                                                                .useArnRegionEnabled(true)
+                                                                                .build())
+                                           .build();
         String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
         s3Client.listObjects(ListObjectsRequest.builder().bucket(arn).build());
         assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
@@ -76,6 +75,7 @@ public class MultiRegionAccessPointEndpointResolutionTest {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder()
                                                                                 .dualstackEnabled(true)
+                                                                                .useArnRegionEnabled(true)
                                                                                 .build())
                                            .build();
         String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
@@ -91,6 +91,7 @@ public class MultiRegionAccessPointEndpointResolutionTest {
         S3Client s3Client = clientBuilder().region(Region.of("fips-us-east-1"))
                                            .serviceConfiguration(S3Configuration.builder()
                                                                                 .dualstackEnabled(false)
+                                                                                .useArnRegionEnabled(true)
                                                                                 .build())
                                            .build();
         String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
@@ -130,7 +131,7 @@ public class MultiRegionAccessPointEndpointResolutionTest {
 
     @Test
     public void multiRegionArn_differentRegion_useArnRegionTrue() throws Exception {
-        URI customEndpoint = URI.create("https://myaccesspoint-123456789012.global-s3.amazonaws.com");
+        URI customEndpoint = URI.create("https://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com");
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
         String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
