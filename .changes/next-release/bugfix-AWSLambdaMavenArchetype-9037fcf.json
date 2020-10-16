@@ -1,5 +1,0 @@
-{
-    "category": "AWS Lambda Maven Archetype", 
-    "type": "bugfix", 
-    "description": "Fixed an issue where archetype generation failed with latest maven-archetype-plugin. See [#1981](https://github.com/aws/aws-sdk-java-v2/issues/1981)"
-}
