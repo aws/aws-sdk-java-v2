@@ -19,8 +19,6 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
-import java.util.List;
-import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -30,24 +28,24 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
+import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 
 /**
  * Spec for generated visitor interface.
  */
 class EventStreamVisitorInterfaceSpec implements ClassSpec {
-    private final IntermediateModel intermediateModel;
     private final PoetExtensions poetExt;
     private final OperationModel operationModel;
     private final ShapeModel eventStreamShape;
     private final ClassName eventStreamBaseClass;
+    private final EventStreamSpecHelper eventStreamSpecHelper;
 
     EventStreamVisitorInterfaceSpec(IntermediateModel intermediateModel, PoetExtensions poetExt, OperationModel operationModel) {
-        this.intermediateModel = intermediateModel;
         this.poetExt = poetExt;
         this.operationModel = operationModel;
         this.eventStreamShape = EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape());
         this.eventStreamBaseClass = poetExt.getModelClassFromShape(eventStreamShape);
+        this.eventStreamSpecHelper = new EventStreamSpecHelper(eventStreamShape, intermediateModel);
     }
 
     @Override
@@ -126,10 +124,7 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
     }
 
     protected String visitorMethodName(MemberModel event) {
-        if (!excludeNameFromVisitorName(event)) {
-            return "visit" + CodegenNamingUtils.pascalCase(event.getName());
-        }
-        return "visit";
+        return eventStreamSpecHelper.visitMethodName(event);
     }
 
     private MethodSpec createBuilderMethodSpec() {
@@ -140,18 +135,5 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
                          .returns(visitorBuilderType)
                          .addStatement("return new Default$LVisitorBuilder()", poetExt.getApiName(operationModel))
                          .build();
-    }
-
-    private boolean excludeNameFromVisitorName(MemberModel event) {
-        Map<String, List<String>> excludeEventNameFromVisitMethod = intermediateModel.getCustomizationConfig()
-                .getExcludeEventNameFromVisitMethod();
-
-        List<String> targetEvents = excludeEventNameFromVisitMethod.get(eventStreamShape.getC2jName());
-
-        if (targetEvents == null) {
-            return false;
-        }
-
-        return targetEvents.stream().anyMatch(e -> e.equals(event.getC2jName()));
     }
 }

@@ -27,13 +27,13 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
 /**
- * This process enforces constraints placed on the "excludeEventNameFromVisitMethod"; i.e. that no two members
+ * This process enforces constraints placed on the "useLegacyEventGenerationSchemeProcessor"; i.e. that no two members
  * of the same event stream sharing the same shape have this customization enabled for them. This processor does not
  * modify the the service or intermediate model.
  */
-public class ExcludeEventNameFromVisitMethodProcessor implements CodegenCustomizationProcessor {
-    private static final String CUSTOMIZATION_NAME = "ExcludeEventNameFromVisitMethod";
-    private static final Logger log = LoggerFactory.getLogger(ExcludeEventNameFromVisitMethodProcessor.class);
+public class UseLegacyEventGenerationSchemeProcessor implements CodegenCustomizationProcessor {
+    private static final String CUSTOMIZATION_NAME = "UseLegacyEventGenerationScheme";
+    private static final Logger log = LoggerFactory.getLogger(UseLegacyEventGenerationSchemeProcessor.class);
 
     @Override
     public void preprocess(ServiceModel serviceModel) {
@@ -42,14 +42,15 @@ public class ExcludeEventNameFromVisitMethodProcessor implements CodegenCustomiz
 
     @Override
     public void postprocess(IntermediateModel intermediateModel) {
-        Map<String, List<String>> excludeEventNameFromVisitMethod = intermediateModel.getCustomizationConfig()
-                .getExcludeEventNameFromVisitMethod();
+        Map<String, List<String>> useLegacyEventGenerationScheme = intermediateModel.getCustomizationConfig()
+                .getUseLegacyEventGenerationScheme();
 
-        excludeEventNameFromVisitMethod.forEach((eventStream, members) -> {
+        useLegacyEventGenerationScheme.forEach((eventStream, members) -> {
             ShapeModel shapeModel = getShapeByC2jName(intermediateModel, eventStream);
 
             if (shapeModel == null || !shapeModel.isEventStream()) {
-                log.warn("Encountered " + CUSTOMIZATION_NAME + " for unrecognized eventstream " + eventStream);
+                log.warn(String.format("Encountered %s for unrecognized eventstream %s",
+                        CUSTOMIZATION_NAME, eventStream));
                 return;
             }
 

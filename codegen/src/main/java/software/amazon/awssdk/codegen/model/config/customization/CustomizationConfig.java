@@ -177,14 +177,13 @@ public class CustomizationConfig {
     private boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations = false;
 
     /**
-     * Customization to instruct the code generator *not* to include the event's name in the {@code Visitor#visit*()}
-     * method; i.e. the signature of the method will be {@code void visit(<Event Shape type>)}.
+     * Customization to instruct the code generator to use the legacy model generation scheme for the given events.
      * <p>
      * <b>NOTE</b>This customization is primarily here to preserve backwards compatibility with existing code before the
      * generation scheme for the visitor methods was changed. There should be no good reason to use this customization
      * for any other purpose.
      */
-    private Map<String, List<String>> excludeEventNameFromVisitMethod = new HashMap<>();
+    private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
 
     private CustomizationConfig() {
     }
@@ -465,11 +464,11 @@ public class CustomizationConfig {
             allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
     }
 
-    public Map<String, List<String>> getExcludeEventNameFromVisitMethod() {
-        return excludeEventNameFromVisitMethod;
+    public Map<String, List<String>> getUseLegacyEventGenerationScheme() {
+        return useLegacyEventGenerationScheme;
     }
 
-    public void setExcludeEventNameFromVisitMethod(Map<String, List<String>> excludeEventNameFromVisitMethod) {
-        this.excludeEventNameFromVisitMethod = excludeEventNameFromVisitMethod;
+    public void setUseLegacyEventGenerationScheme(Map<String, List<String>> useLegacyEventGenerationScheme) {
+        this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
     }
 }

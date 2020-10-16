@@ -28,8 +28,10 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 
 /**
  * Generates the implementation for the builder of an event stream visitor.
@@ -41,6 +43,7 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
     private final ClassName visitorType;
     private final ClassName visitorBuilderType;
     private final ClassName eventStreamBaseClass;
+    private final EventStreamSpecHelper eventStreamSpecHelper;
 
     public EventStreamVisitorBuilderImplSpec(GeneratorTaskParams params, OperationModel operationModel) {
         super(params.getPoetExtensions(), operationModel);
@@ -49,8 +52,10 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
         this.opModel = operationModel;
         this.visitorType = poetExt.eventStreamResponseHandlerVisitorType(opModel);
         this.visitorBuilderType = poetExt.eventStreamResponseHandlerVisitorBuilderType(opModel);
-        this.eventStreamBaseClass = poetExt.getModelClassFromShape(
-            EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape()));
+
+        ShapeModel eventStream = EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape());
+        this.eventStreamBaseClass = poetExt.getModelClassFromShape(eventStream);
+        this.eventStreamSpecHelper = new EventStreamSpecHelper(eventStream, intermediateModel);
     }
 
     @Override
@@ -110,7 +115,8 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
 
             constrBuilder.addStatement("this.$1L = builder.$1L != null ?\n"
                                        + "builder.$1L :\n"
-                                       + "$2T.super::visit", consumerField.name, visitorType);
+                                       + "$2T.super::$3N", consumerField.name, visitorType,
+                    eventStreamSpecHelper.visitMethodName(event));
             return methodBuilder
                 .addAnnotation(Override.class)
                 .addStatement("$L.accept(event)", consumerField.name);

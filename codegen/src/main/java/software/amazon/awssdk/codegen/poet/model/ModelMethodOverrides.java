@@ -31,14 +31,15 @@ import software.amazon.awssdk.utils.ToString;
  * Creates the method specs for common method overrides for service models.
  */
 public class ModelMethodOverrides {
+    private final ClassName className;
     private final PoetExtensions poetExtensions;
 
-    public ModelMethodOverrides(PoetExtensions poetExtensions) {
+    public ModelMethodOverrides(ClassName className, PoetExtensions poetExtensions) {
+        this.className = className;
         this.poetExtensions = poetExtensions;
     }
 
     public MethodSpec equalsBySdkFieldsMethod(ShapeModel shapeModel) {
-        ClassName className = poetExtensions.getModelClass(shapeModel.getShapeName());
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("equalsBySdkFields")
                                                      .returns(boolean.class)
                                                      .addAnnotation(Override.class)
