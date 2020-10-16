@@ -14,7 +14,8 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public final class StreamBirthsRequest extends SharedEventStreamRequest implements ToCopyableBuilder<StreamBirthsRequest.Builder, StreamBirthsRequest> {
+public final class StreamBirthsRequest extends SharedEventStreamRequest implements
+        ToCopyableBuilder<StreamBirthsRequest.Builder, StreamBirthsRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private StreamBirthsRequest(BuilderImpl builder) {
@@ -35,19 +36,19 @@ public final class StreamBirthsRequest extends SharedEventStreamRequest implemen
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + super.hashCode();
         return hashCode;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return super.equals(obj) && equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -61,19 +62,20 @@ public final class StreamBirthsRequest extends SharedEventStreamRequest implemen
     }
 
     /**
-     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be redacted from this string using a placeholder value.
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("StreamBirthsRequest").build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         return Optional.empty();
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -82,8 +84,7 @@ public final class StreamBirthsRequest extends SharedEventStreamRequest implemen
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
         @Override
-        Builder overrideConfiguration(
-            Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
+        Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
     }
 
     static final class BuilderImpl extends SharedEventStreamRequest.BuilderImpl implements Builder {
@@ -101,8 +102,7 @@ public final class StreamBirthsRequest extends SharedEventStreamRequest implemen
         }
 
         @Override
-        public Builder overrideConfiguration(
-            Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
             super.overrideConfiguration(builderConsumer);
             return this;
         }
@@ -118,3 +118,4 @@ public final class StreamBirthsRequest extends SharedEventStreamRequest implemen
         }
     }
 }
+

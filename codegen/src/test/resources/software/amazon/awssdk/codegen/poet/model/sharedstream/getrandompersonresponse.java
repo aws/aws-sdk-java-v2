@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkField;
@@ -21,15 +22,15 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class GetRandomPersonResponse extends SharedEventStreamResponse implements
-                                                                             ToCopyableBuilder<GetRandomPersonResponse.Builder, GetRandomPersonResponse> {
+public class GetRandomPersonResponse extends SharedEventStreamResponse implements
+        ToCopyableBuilder<GetRandomPersonResponse.Builder, GetRandomPersonResponse> {
     private static final SdkField<String> NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Name")
-                                                                                                        .getter(getter(GetRandomPersonResponse::name)).setter(setter(Builder::name))
-                                                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
+            .getter(getter(GetRandomPersonResponse::name)).setter(setter(Builder::name))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
 
     private static final SdkField<Instant> BIRTHDAY_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-        .memberName("Birthday").getter(getter(GetRandomPersonResponse::birthday)).setter(setter(Builder::birthday))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
+            .memberName("Birthday").getter(getter(GetRandomPersonResponse::birthday)).setter(setter(Builder::birthday))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NAME_FIELD, BIRTHDAY_FIELD));
 
@@ -37,7 +38,7 @@ public final class GetRandomPersonResponse extends SharedEventStreamResponse imp
 
     private final Instant birthday;
 
-    private GetRandomPersonResponse(BuilderImpl builder) {
+    protected GetRandomPersonResponse(BuilderImpl builder) {
         super(builder);
         this.name = builder.name;
         this.birthday = builder.birthday;
@@ -45,19 +46,19 @@ public final class GetRandomPersonResponse extends SharedEventStreamResponse imp
 
     /**
      * Returns the value of the Name property for this object.
-     *
+     * 
      * @return The value of the Name property for this object.
      */
-    public String name() {
+    public final String name() {
         return name;
     }
 
     /**
      * Returns the value of the Birthday property for this object.
-     *
+     * 
      * @return The value of the Birthday property for this object.
      */
-    public Instant birthday() {
+    public final Instant birthday() {
         return birthday;
     }
 
@@ -75,7 +76,7 @@ public final class GetRandomPersonResponse extends SharedEventStreamResponse imp
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + super.hashCode();
         hashCode = 31 * hashCode + Objects.hashCode(name());
@@ -84,12 +85,12 @@ public final class GetRandomPersonResponse extends SharedEventStreamResponse imp
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return super.equals(obj) && equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -108,23 +109,28 @@ public final class GetRandomPersonResponse extends SharedEventStreamResponse imp
      * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("GetRandomPersonResponse").add("Name", name()).add("Birthday", birthday()).build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "Name":
-                return Optional.ofNullable(clazz.cast(name()));
-            case "Birthday":
-                return Optional.ofNullable(clazz.cast(birthday()));
-            default:
-                return Optional.empty();
+        case "Name":
+            return Optional.ofNullable(clazz.cast(name()));
+        case "Birthday":
+            return Optional.ofNullable(clazz.cast(birthday()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final GetRandomPersonResponse copy(Consumer<? super Builder> modifier) {
+        return ToCopyableBuilder.super.copy(modifier);
+    }
+
+    @Override
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -137,7 +143,7 @@ public final class GetRandomPersonResponse extends SharedEventStreamResponse imp
     }
 
     public interface Builder extends SharedEventStreamResponse.Builder, SdkPojo,
-                                     CopyableBuilder<Builder, GetRandomPersonResponse> {
+            CopyableBuilder<Builder, GetRandomPersonResponse> {
         /**
          * Sets the value of the Name property for this object.
          *
@@ -157,15 +163,15 @@ public final class GetRandomPersonResponse extends SharedEventStreamResponse imp
         Builder birthday(Instant birthday);
     }
 
-    static final class BuilderImpl extends SharedEventStreamResponse.BuilderImpl implements Builder {
+    protected static class BuilderImpl extends SharedEventStreamResponse.BuilderImpl implements Builder {
         private String name;
 
         private Instant birthday;
 
-        private BuilderImpl() {
+        protected BuilderImpl() {
         }
 
-        private BuilderImpl(GetRandomPersonResponse model) {
+        protected BuilderImpl(GetRandomPersonResponse model) {
             super(model);
             name(model.name);
             birthday(model.birthday);
@@ -210,3 +216,4 @@ public final class GetRandomPersonResponse extends SharedEventStreamResponse imp
         }
     }
 }
+

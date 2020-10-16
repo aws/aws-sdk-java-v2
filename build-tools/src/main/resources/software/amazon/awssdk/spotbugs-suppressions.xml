@@ -211,4 +211,9 @@
         <Method name="execute"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.services\.protocolrestjson\.model\..*"/>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE, NM_SAME_SIMPLE_NAME_AS_SUPERCLASS"/>
+    </Match>
 </FindBugsFilter>

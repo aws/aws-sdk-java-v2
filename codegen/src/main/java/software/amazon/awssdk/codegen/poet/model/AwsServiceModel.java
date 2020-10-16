@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
 import com.squareup.javapoet.ClassName;
@@ -33,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,9 +67,9 @@ public class AwsServiceModel implements ClassSpec {
     private final PoetExtensions poetExtensions;
     private final TypeProvider typeProvider;
     private final ShapeModelSpec shapeModelSpec;
-    private final ModelMethodOverrides modelMethodOverrides;
     private final ModelBuilderSpecs modelBuilderSpecs;
     private final ServiceModelCopiers serviceModelCopiers;
+    private final ModelMethodOverrides modelMethodOverrides;
 
     public AwsServiceModel(IntermediateModel intermediateModel, ShapeModel shapeModel) {
         this.intermediateModel = intermediateModel;
@@ -77,93 +80,108 @@ public class AwsServiceModel implements ClassSpec {
                                                  typeProvider,
                                                  poetExtensions,
                                                  intermediateModel);
-        this.modelMethodOverrides = new ModelMethodOverrides(this.poetExtensions);
-        this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.typeProvider);
+        this.modelBuilderSpecs = resolveBuilderSpecs();
         this.serviceModelCopiers = new ServiceModelCopiers(this.intermediateModel);
+        this.modelMethodOverrides = new ModelMethodOverrides(className(), this.poetExtensions);
     }
 
     @Override
     public TypeSpec poetSpec() {
         if (shapeModel.isEventStream()) {
-            Collection<OperationModel> opModels = EventStreamUtils.findOperationsWithEventStream(intermediateModel,
-                                                                                                 shapeModel);
-
-            Collection<OperationModel> outputOperations = findOutputEventStreamOperations(opModels, shapeModel);
-
-            ClassName modelClass = poetExtensions.getModelClassFromShape(shapeModel);
-
-            if (!outputOperations.isEmpty()) {
-                CodeBlock unknownInitializer = buildUnknownEventStreamInitializer(outputOperations,
-                                                                                  modelClass);
-
-                TypeSpec.Builder builder =
-                    PoetUtils.createInterfaceBuilder(modelClass)
-                              .addAnnotation(SdkPublicApi.class)
-                              .addSuperinterface(ClassName.get(SdkPojo.class))
-                              .addJavadoc("Base interface for all event types in $L.", shapeModel.getShapeName())
-                              .addField(FieldSpec.builder(modelClass, "UNKNOWN")
-                                       .addModifiers(PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                       .initializer(unknownInitializer)
-                                       .addJavadoc("Special type of {@link $T} for unknown types of events that this "
-                                                   + "version of the SDK does not know about", modelClass)
-                                       .build());
-
-                for (OperationModel opModel : outputOperations) {
-                    ClassName responseHandlerClass = poetExtensions.eventStreamResponseHandlerType(opModel);
-                    builder.addMethod(acceptMethodSpec(modelClass, responseHandlerClass)
-                                          .addModifiers(Modifier.ABSTRACT)
-                                          .build());
-                }
-                return builder.build();
-            } else if (hasInputStreamOperations(opModels, shapeModel)) {
-                return PoetUtils.createInterfaceBuilder(modelClass)
-                                .addAnnotation(SdkPublicApi.class)
-                                .addJavadoc("Base interface for all event types in $L.", shapeModel.getShapeName())
-                                .build();
-            }
-
-            throw new IllegalArgumentException(shapeModel.getShapeName() + " event stream shape is not found "
-                                               + "in any request or response shape");
-
-        } else {
-            List<FieldSpec> fields = shapeModelSpec.fields();
-            TypeSpec.Builder specBuilder = TypeSpec.classBuilder(this.shapeModel.getShapeName())
-                                                   .addModifiers(PUBLIC, Modifier.FINAL)
-                                                   .addAnnotation(PoetUtils.generatedAnnotation())
-                                                   .addSuperinterfaces(modelSuperInterfaces())
-                                                   .superclass(modelSuperClass())
-                                                   .addMethods(modelClassMethods())
-                                                   .addFields(fields)
-                                                   .addFields(shapeModelSpec.staticFields())
-                                                   .addMethod(sdkFieldsMethod())
-                                                   .addTypes(nestedModelClassTypes());
-
-            // Add serializable version UID for model and exceptions.
-            if (shapeModel.getShapeType() == ShapeType.Model || shapeModel.getShapeType() == ShapeType.Exception) {
-                specBuilder.addField(FieldSpec.builder(long.class, "serialVersionUID",
-                                                       Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                                              .initializer("1L")
-                                              .build());
-            }
-
-            if (!fields.isEmpty()) {
-                specBuilder
-                    .addMethod(getterCreator())
-                    .addMethod(setterCreator());
-            }
-
-            if (this.shapeModel.isEvent()) {
-                EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel).ifPresent(
-                    eventStream -> addEventSupport(specBuilder, eventStream)
-                );
-            }
-
-            if (this.shapeModel.getDocumentation() != null) {
-                specBuilder.addJavadoc("$L", this.shapeModel.getDocumentation());
-            }
-
-            return specBuilder.build();
+            return eventStreamInterfaceSpec();
         }
+
+        List<FieldSpec> fields = shapeModelSpec.fields();
+
+        TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className())
+                                               .addModifiers(PUBLIC)
+                                               .addAnnotation(PoetUtils.generatedAnnotation())
+                                               .addSuperinterfaces(modelSuperInterfaces())
+                                               .superclass(modelSuperClass())
+                                               .addMethods(modelClassMethods())
+                                               .addFields(fields)
+                                               .addFields(shapeModelSpec.staticFields())
+                                               .addMethod(addModifier(sdkFieldsMethod(), FINAL))
+                                               .addTypes(nestedModelClassTypes());
+
+        if (!isEvent()) {
+            specBuilder.addModifiers(Modifier.FINAL);
+        }
+
+        // Add serializable version UID for model and exceptions.
+        if (shapeModel.getShapeType() == ShapeType.Model || shapeModel.getShapeType() == ShapeType.Exception) {
+            specBuilder.addField(FieldSpec.builder(long.class, "serialVersionUID",
+                                                   Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                                          .initializer("1L")
+                                          .build());
+        }
+
+        if (!fields.isEmpty()) {
+            specBuilder
+                .addMethod(getterCreator())
+                .addMethod(setterCreator());
+        }
+
+        if (this.shapeModel.isEvent()) {
+            EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel).ifPresent(
+                eventStream -> addEventSupport(specBuilder, eventStream)
+            );
+
+        }
+
+        if (this.shapeModel.getDocumentation() != null) {
+            specBuilder.addJavadoc("$L", this.shapeModel.getDocumentation());
+        }
+
+        return specBuilder.build();
+    }
+
+    private ModelBuilderSpecs resolveBuilderSpecs() {
+        return new ModelBuilderSpecs(intermediateModel, shapeModel, typeProvider);
+    }
+
+    private TypeSpec eventStreamInterfaceSpec() {
+        Collection<OperationModel> opModels = EventStreamUtils.findOperationsWithEventStream(intermediateModel,
+                shapeModel);
+
+        Collection<OperationModel> outputOperations = findOutputEventStreamOperations(opModels, shapeModel);
+
+        ClassName modelClass = poetExtensions.getModelClassFromShape(shapeModel);
+
+        TypeSpec.Builder builder =
+                PoetUtils.createInterfaceBuilder(modelClass)
+                         .addAnnotation(SdkPublicApi.class)
+                         .addMethods(eventStreamInterfaceEventBuilderMethods());
+
+        if (!outputOperations.isEmpty()) {
+            CodeBlock unknownInitializer = buildUnknownEventStreamInitializer(outputOperations,
+                    modelClass);
+
+            builder.addSuperinterface(ClassName.get(SdkPojo.class))
+                   .addJavadoc("Base interface for all event types in $L.", shapeModel.getShapeName())
+                    .addField(FieldSpec.builder(modelClass, "UNKNOWN")
+                                    .addModifiers(PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                    .initializer(unknownInitializer)
+                                    .addJavadoc("Special type of {@link $T} for unknown types of events that this "
+                                            + "version of the SDK does not know about", modelClass)
+                                    .build());
+
+            for (OperationModel opModel : outputOperations) {
+                ClassName responseHandlerClass = poetExtensions.eventStreamResponseHandlerType(opModel);
+                builder.addMethod(acceptMethodSpec(modelClass, responseHandlerClass)
+                        .addModifiers(Modifier.ABSTRACT)
+                        .build());
+            }
+
+            return builder.build();
+
+        } else if (hasInputStreamOperations(opModels, shapeModel)) {
+            return builder.addJavadoc("Base interface for all event types in $L.", shapeModel.getShapeName())
+                          .build();
+        }
+
+        throw new IllegalArgumentException(shapeModel.getShapeName() + " event stream shape is not found "
+                + "in any request or response shape");
     }
 
     private void addEventSupport(TypeSpec.Builder specBuilder, ShapeModel eventStream) {
@@ -173,23 +191,49 @@ public class AwsServiceModel implements ClassSpec {
 
         Collection<OperationModel> outputOperations = findOutputEventStreamOperations(opModels, eventStream);
 
-        if (!outputOperations.isEmpty()) {
+        boolean onOutput = !outputOperations.isEmpty();
+        boolean onInput = hasInputStreamOperations(opModels, eventStream);
+
+        if (!onOutput && !onInput) {
+            throw new IllegalArgumentException(shapeModel.getC2jName() + " event shape is not a member in any "
+                    + "request or response event shape");
+        }
+
+        EventStreamSpecHelper helper = new EventStreamSpecHelper(eventStream, intermediateModel);
+
+        specBuilder.addSuperinterface(eventStreamClassName);
+
+        if (onOutput) {
             ClassName modelClass = poetExtensions.getModelClass(shapeModel.getShapeName());
-            specBuilder.addSuperinterface(eventStreamClassName);
             for (OperationModel opModel : outputOperations) {
                 ClassName responseHandlerClass = poetExtensions.eventStreamResponseHandlerType(opModel);
-                specBuilder.addMethod(acceptMethodSpec(modelClass, responseHandlerClass)
-                                          .addAnnotation(Override.class)
-                                          .addCode(CodeBlock.builder()
-                                                            .addStatement("visitor.visit(this)")
-                                                            .build())
-                                          .build());
+
+                MethodSpec.Builder acceptMethodSpec = acceptMethodSpec(modelClass, responseHandlerClass)
+                        .addAnnotation(Override.class);
+
+                // This is hacky, but there's no better solution without
+                // extensive refactoring. We basically need to know if any of
+                // the *event types* within this even stream have this
+                // customization enabled, which requires knowing the
+                // MemberModel that has this given shape.
+                boolean usesLegacyScheme = false;
+                for (MemberModel member : eventStream.getMembers()) {
+                    if (member.getShape().equals(shapeModel) && helper.useLegacyGenerationScheme(member)) {
+                        usesLegacyScheme = true;
+                        break;
+                    }
+                }
+
+                if (usesLegacyScheme) {
+                    acceptMethodSpec.addStatement("visitor.visit(this)");
+                } else {
+                    // The class that represents the event type will be
+                    // responsible for implementing this
+                    acceptMethodSpec.addStatement("throw new $T()", UnsupportedOperationException.class);
+                }
+
+                specBuilder.addMethod(acceptMethodSpec.build());
             }
-        } else if (hasInputStreamOperations(opModels, eventStream)) {
-            specBuilder.addSuperinterface(eventStreamClassName);
-        } else {
-            throw new IllegalArgumentException(shapeModel.getC2jName() + " event shape is not a member in any "
-                                               + "request or response event shape");
         }
     }
 
@@ -362,17 +406,21 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.addAll(memberGetters());
                 break;
             default:
-                methodSpecs.addAll(memberGetters());
+                methodSpecs.addAll(addModifier(memberGetters(), FINAL));
                 methodSpecs.add(constructor());
                 methodSpecs.add(toBuilderMethod());
                 methodSpecs.add(builderMethod());
                 methodSpecs.add(serializableBuilderClass());
-                methodSpecs.add(modelMethodOverrides.hashCodeMethod(shapeModel));
-                methodSpecs.add(modelMethodOverrides.equalsMethod(shapeModel));
-                methodSpecs.add(modelMethodOverrides.equalsBySdkFieldsMethod(shapeModel));
-                methodSpecs.add(modelMethodOverrides.toStringMethod(shapeModel));
+                methodSpecs.add(addModifier(modelMethodOverrides.hashCodeMethod(shapeModel), FINAL));
+                methodSpecs.add(addModifier(modelMethodOverrides.equalsMethod(shapeModel), FINAL));
+                methodSpecs.add(addModifier(modelMethodOverrides.equalsBySdkFieldsMethod(shapeModel), FINAL));
+                methodSpecs.add(addModifier(modelMethodOverrides.toStringMethod(shapeModel), FINAL));
                 methodSpecs.add(getValueForField());
                 break;
+        }
+
+        if (isEvent()) {
+            methodSpecs.add(copyMethod());
         }
 
         return methodSpecs;
@@ -380,7 +428,7 @@ public class AwsServiceModel implements ClassSpec {
 
     private MethodSpec getValueForField() {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("getValueForField")
-                                                     .addModifiers(PUBLIC)
+                                                     .addModifiers(PUBLIC, FINAL)
                                                      .addTypeVariable(TypeVariableName.get("T"))
                                                      .returns(ParameterizedTypeName.get(ClassName.get(Optional.class),
                                                                                         TypeVariableName.get("T")))
@@ -533,8 +581,13 @@ public class AwsServiceModel implements ClassSpec {
 
     private MethodSpec constructor() {
         MethodSpec.Builder ctorBuilder = MethodSpec.constructorBuilder()
-                                                   .addModifiers(Modifier.PRIVATE)
                                                    .addParameter(modelBuilderSpecs.builderImplName(), "builder");
+
+        if (shapeModel.isEvent()) {
+            ctorBuilder.addModifiers(Modifier.PROTECTED);
+        } else {
+            ctorBuilder.addModifiers(PRIVATE);
+        }
 
         if (isRequest() || isResponse()) {
             ctorBuilder.addStatement("super(builder)");
@@ -583,11 +636,67 @@ public class AwsServiceModel implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec copyMethod() {
+        ParameterizedTypeName consumerParam = ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                WildcardTypeName.supertypeOf(modelBuilderSpecs.builderInterfaceName()));
+
+        return MethodSpec.methodBuilder("copy")
+                .addModifiers(PUBLIC, FINAL)
+                .addAnnotation(Override.class)
+                .addParameter(consumerParam, "modifier")
+                .addStatement("return $T.super.copy(modifier)", ToCopyableBuilder.class)
+                .returns(className())
+                .build();
+    }
+
     private boolean isResponse() {
         return shapeModel.getShapeType() == ShapeType.Response;
     }
 
     private boolean isRequest() {
         return shapeModel.getShapeType() == ShapeType.Request;
+    }
+
+    private boolean isEvent() {
+        return shapeModel.isEvent();
+    }
+
+    private List<MethodSpec> eventStreamInterfaceEventBuilderMethods() {
+        return shapeModel.getMembers().stream()
+                .filter(m -> m.getShape().isEvent())
+                .map(this::eventBuilderMethod)
+                .collect(Collectors.toList());
+    }
+
+    private MethodSpec eventBuilderMethod(MemberModel event) {
+        EventStreamSpecHelper specHelper = new EventStreamSpecHelper(shapeModel, intermediateModel);
+        ClassName eventClassName = specHelper.eventClassName(event);
+
+        ClassName returnType;
+
+        if (specHelper.useLegacyGenerationScheme(event)) {
+            returnType = eventClassName.nestedClass("Builder");
+        } else {
+            ClassName baseClass = poetExtensions.getModelClass(event.getShape().getShapeName());
+            returnType = baseClass.nestedClass("Builder");
+        }
+
+        String methodName = String.format("%sBuilder", StringUtils.uncapitalize(event.getName()));
+        return MethodSpec.methodBuilder(methodName)
+                .addModifiers(PUBLIC, Modifier.STATIC)
+                .returns(returnType)
+                .addJavadoc("Create a builder for the {@code $L} event type for this stream.", event.getC2jName())
+                .addStatement("return $T.builder()", eventClassName)
+                .build();
+    }
+
+    private List<MethodSpec> addModifier(List<MethodSpec> specs, Modifier modifier) {
+        return specs.stream()
+                .map(spec -> addModifier(spec, modifier))
+                .collect(Collectors.toList());
+    }
+
+    private MethodSpec addModifier(MethodSpec spec, Modifier modifier) {
+        return spec.toBuilder().addModifiers(modifier).build();
     }
 }

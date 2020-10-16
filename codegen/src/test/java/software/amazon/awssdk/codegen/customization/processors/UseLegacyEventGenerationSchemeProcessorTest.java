@@ -29,12 +29,12 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
 /**
- * Tests for {@link ExcludeEventNameFromVisitMethodProcessor}
+ * Tests for {@link UseLegacyEventGenerationSchemeProcessor}
  */
-public class ExcludeEventNameFromVisitMethodProcessorTest {
-    private static final String RESOURCE_ROOT = "/software/amazon/awssdk/codegen/emitters/customizations/processors/excludeventnamefromvisitor";
+public class UseLegacyEventGenerationSchemeProcessorTest {
+    private static final String RESOURCE_ROOT = "/software/amazon/awssdk/codegen/emitters/customizations/processors/uselegacyeventgenerationscheme";
 
-    private static final ExcludeEventNameFromVisitMethodProcessor processor = new ExcludeEventNameFromVisitMethodProcessor();
+    private static final UseLegacyEventGenerationSchemeProcessor processor = new UseLegacyEventGenerationSchemeProcessor();
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -44,7 +44,7 @@ public class ExcludeEventNameFromVisitMethodProcessorTest {
 
     @BeforeClass
     public static void setup() {
-        String c2jFilePath = ExcludeEventNameFromVisitMethodProcessorTest.class.getResource(RESOURCE_ROOT + "/service-2.json").getFile();
+        String c2jFilePath = UseLegacyEventGenerationSchemeProcessorTest.class.getResource(RESOURCE_ROOT + "/service-2.json").getFile();
         File c2jFile = new File(c2jFilePath);
 
         serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, c2jFile);
@@ -80,7 +80,7 @@ public class ExcludeEventNameFromVisitMethodProcessorTest {
     }
 
     private static CustomizationConfig loadCustomizationConfig(String configName) {
-        String c2jFilePath = ExcludeEventNameFromVisitMethodProcessorTest.class.getResource(RESOURCE_ROOT + "/" + configName).getFile();
+        String c2jFilePath = UseLegacyEventGenerationSchemeProcessorTest.class.getResource(RESOURCE_ROOT + "/" + configName).getFile();
         File file = new File(c2jFilePath);
         return ModelLoaderUtils.loadModel(CustomizationConfig.class, file);
     }

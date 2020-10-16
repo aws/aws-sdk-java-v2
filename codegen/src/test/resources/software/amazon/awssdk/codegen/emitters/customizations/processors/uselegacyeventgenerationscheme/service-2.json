@@ -1,0 +1,482 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "json-service",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Json Service",
+    "serviceFullName": "Some Service That Uses Json Protocol",
+    "serviceId":"Json Service",
+    "signatureVersion": "v4",
+    "uid": "json-service-2010-05-08",
+    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "APostOperation": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "endpoint": {
+        "hostPrefix": "{StringMember}-foo."
+      },
+      "input": {
+        "shape": "APostOperationRequest"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        }
+      ],
+      "documentation": "<p>Performs a post operation to the query service and has no output</p>"
+    },
+    "GetWithoutRequiredMembers": {
+      "name": "GetWithoutRequiredMembers",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "GetWithoutRequiredMembersRequest"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        }
+      ],
+      "documentation": "<p>Performs a post operation to the query service and has no output</p>"
+    },
+    "APostOperationWithOutput": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "APostOperationWithOutputRequest"
+      },
+      "output": {
+        "shape": "APostOperationWithOutputResponse",
+        "resultWrapper": "APostOperationWithOutputResult"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        }
+      ],
+      "documentation": "<p>Performs a post operation to the query service and has modelled output</p>"
+    },
+    "StreamingInputOperation": {
+      "name": "StreamingInputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingInputOperation"
+      },
+      "input": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "documentation": "Some operation with a streaming input"
+    },
+    "StreamingOutputOperation": {
+      "name": "StreamingOutputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingOutputOperation"
+      },
+      "output": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "documentation": "Some operation with a streaming output"
+    },
+    "StreamingInputOutputOperation": {
+      "name": "StreamingInputOutputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingInputOutputOperation"
+      },
+      "input": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "output": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "documentation": "Some operation with streaming input and streaming output",
+      "authtype":"v4-unsigned-body"
+    },
+    "PaginatedOperationWithResultKey": {
+      "name": "PaginatedOperationWithResultKey",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithResultKeyRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithResultKeyResponse",
+        "resultWrapper": "PaginatedOperationWithResultKeyResult"
+      },
+      "documentation": "Some paginated operation with result_key in paginators.json file"
+    },
+    "PaginatedOperationWithoutResultKey": {
+      "name": "PaginatedOperationWithoutResultKey",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithoutResultKeyRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithoutResultKeyResponse",
+        "resultWrapper": "PaginatedOperationWithoutResultKeyResult"
+      },
+      "documentation": "Some paginated operation without result_key in paginators.json file"
+    },
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "input": {
+        "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
+    },
+    "EventStreamOperationWithOnlyInput": {
+      "name": "EventStreamOperationWithOnlyInput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/EventStreamOperationWithOnlyInput"
+      },
+      "input": {
+        "shape": "EventStreamOperationWithOnlyInputRequest"
+      }
+    },
+    "EventStreamOperationWithOnlyOutput": {
+      "name": "EventStreamOperationWithOnlyOutput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/EventStreamOperationWithOnlyOutput"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
+    }
+  },
+  "shapes": {
+    "APostOperationRequest": {
+      "type": "structure",
+      "required": [
+        "SomeNestedMember",
+        "StringMember"
+      ],
+      "members": {
+        "SomeNestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>a member that has nested members</p>"
+        },
+        "OptionalMember": {
+          "shape": "dateType",
+          "documentation": "<p>An optional member</p>"
+        },
+        "StringMember": {
+          "shape": "String",
+          "hostLabel": true,
+          "documentation": "<p>Member to compute the endpoint host</p>"
+        }
+      }
+    },
+    "GetWithoutRequiredMembersRequest": {
+      "type": "structure",
+      "members": {
+        "SomeNestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>a member that has nested members</p>"
+        },
+        "OptionalMember": {
+          "shape": "dateType",
+          "documentation": "<p>An optional member</p>"
+        }
+      }
+    },
+    "APostOperationWithOutputRequest": {
+      "type": "structure",
+      "required": [
+        "SomeNestedMember"
+      ],
+      "members": {
+        "SomeNestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>a member that has nested members</p>"
+        },
+        "OptionalMember": {
+          "shape": "dateType",
+          "documentation": "<p>An optional member</p>"
+        }
+      }
+    },
+    "APostOperationWithOutputResponse": {
+      "type": "structure",
+      "required": [
+        "NestedMember"
+      ],
+      "members": {
+        "NestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>A structure containing nested members</p>"
+        }
+      },
+      "documentation": "<p>Contains the response to a successful <a>APostOperationWithOutput</a> request. </p>"
+    },
+    "InvalidInputException": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "invalidInputMessage"
+        }
+      },
+      "documentation": "<p>The request was rejected because an invalid or out-of-range value was supplied for an input parameter.</p>",
+      "error": {
+        "code": "InvalidInput",
+        "httpStatusCode": 400,
+        "senderFault": true
+      },
+      "exception": true
+    },
+    "nestedMember": {
+      "type": "structure",
+      "required": [
+        "SubMember",
+        "CreateDate"
+      ],
+      "members": {
+        "SubMember": {
+          "shape": "subMember",
+          "documentation": "<p>A sub-member</p>"
+        },
+        "CreateDate": {
+          "shape": "dateType",
+          "documentation": "<p>The date and time, in <a href=\"http://www.iso.org/iso/iso8601\">ISO 8601 date-time format</a>, when the member was created.</p>"
+        }
+      },
+      "documentation": "<p>A shape with nested sub-members"
+    },
+    "subMember": {
+      "type": "string",
+      "max": 63,
+      "min": 3,
+      "pattern": "^[a-z0-9](([a-z0-9]|-(?!-))*[a-z0-9])?$"
+    },
+    "dateType": {
+      "type": "timestamp"
+    },
+    "String": {
+      "type": "string"
+    },
+    "invalidInputMessage": {
+      "type": "string"
+    },
+    "StreamType": {
+      "type": "blob",
+      "streaming": true
+    },
+    "StructureWithStreamingMember": {
+      "type": "structure",
+      "members": {
+        "StreamingMember": {
+          "shape": "StreamType",
+          "documentation": "This be a stream"
+        }
+      },
+      "payload": "StreamingMember"
+    },
+    "PaginatedOperationWithResultKeyRequest": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "subMember",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "subMember",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithResultKeyResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "subMember",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "Items": {
+          "shape": "ItemsList",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      },
+      "documentation": "<p>Response type of a single page</p>"
+    },
+    "ItemsList": {
+      "type": "list",
+      "member": {
+        "shape": "subMember"
+      }
+    },
+    "PaginatedOperationWithoutResultKeyRequest": {
+      "type": "structure",
+      "required": [
+        "NextToken"
+      ],
+      "members": {
+        "NextToken": {
+          "shape": "subMember",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "subMember",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithoutResultKeyResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "subMember",
+          "documentation": "<p>Token for the next set of results</p>"
+        }
+      },
+      "documentation": "<p>Response type of a single page</p>"
+    },
+    "EventStreamOperationRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStream"
+      ],
+      "members": {
+        "InputEventStream": {
+          "shape": "InputEventStream"
+        }
+      },
+      "payload":"InputEventStream"
+    },
+    "EventStreamOutput": {
+      "type": "structure",
+      "required": [
+        "EventStream"
+      ],
+      "members": {
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "InputEventStream": {
+      "type": "structure",
+      "members": {
+        "InputEvent": {
+          "shape": "InputEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "InputEvent": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadMember": {
+          "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        }
+      },
+      "event": true
+    },
+    "ExplicitPayloadMember":{"type":"blob"},
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventOne": {
+          "shape": "EventOne"
+        },
+        "event-two": {
+          "shape": "EventTwo"
+        },
+        "secondEventOne": {
+          "shape": "EventOne"
+        },
+        "second-event-two": {
+          "shape": "EventTwo"
+        },
+        "third-event-two-customizedVisitMethod": {
+          "shape": "EventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "EventOne": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventTwo": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventStreamOperationWithOnlyInputRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStreamTwo"
+      ],
+      "members": {
+        "InputEventStreamTwo": {
+          "shape": "InputEventStreamTwo"
+        }
+      }
+    },
+    "InputEventStreamTwo": {
+      "type": "structure",
+      "members": {
+        "InputEventOne": {
+          "shape": "InputEvent"
+        },
+        "InputEventTwo": {
+          "shape": "InputEventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "InputEventTwo": {
+      "type": "structure",
+      "members": {
+        "ImplicitPayloadMemberOne": {
+          "shape": "ImplicitPayloadMemberOne"
+        },
+        "ImplicitPayloadMemberTwo": {
+          "shape": "String"
+        },
+        "EventHeaderMember": {
+          "shape":"String",
+          "eventheader":true
+        }
+      },
+      "event": true
+    },
+    "ImplicitPayloadMemberOne":{"type":"blob"}
+  },
+  "documentation": "A service that is implemented using the query protocol"
+}

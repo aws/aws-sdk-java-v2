@@ -72,9 +72,9 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
             this.onEventTwo = builder.onEventTwo != null ? builder.onEventTwo
                     : EventStreamOperationResponseHandler.Visitor.super::visit;
             this.onSecondEventOne = builder.onSecondEventOne != null ? builder.onSecondEventOne
-                    : EventStreamOperationResponseHandler.Visitor.super::visit;
+                    : EventStreamOperationResponseHandler.Visitor.super::visitSecondEventOne;
             this.onSecondEventTwo = builder.onSecondEventTwo != null ? builder.onSecondEventTwo
-                    : EventStreamOperationResponseHandler.Visitor.super::visit;
+                    : EventStreamOperationResponseHandler.Visitor.super::visitSecondEventTwo;
         }
 
         @Override
