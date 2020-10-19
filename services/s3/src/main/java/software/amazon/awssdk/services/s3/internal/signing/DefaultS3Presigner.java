@@ -35,13 +35,12 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
@@ -56,7 +55,6 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.signer.Presigner;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -255,10 +253,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                                               Class<U> requestToPresignType,
                                                               Function<U, SdkHttpFullRequest> requestMarshaller,
                                                               String operationName) {
-        ExecutionContext execCtx = createExecutionContext(presignRequest, requestToPresign, operationName);
 
-        callBeforeExecutionHooks(execCtx);
-        callModifyRequestHooksAndUpdateContext(execCtx);
+        ExecutionContext execCtx = invokeInterceptorsAndCreateExecutionContext(presignRequest, requestToPresign, operationName);
+
         callBeforeMarshallingHooks(execCtx);
         marshalRequestAndUpdateContext(execCtx, requestToPresignType, requestMarshaller);
         callAfterMarshallingHooks(execCtx);
@@ -274,24 +271,13 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     }
 
     /**
-     * Creates an execution context from the provided requests information.
+     * Creates an execution context from the provided request information.
      */
-    private ExecutionContext createExecutionContext(PresignRequest presignRequest, SdkRequest sdkRequest, String operationName) {
-        AwsCredentialsProvider clientCredentials = credentialsProvider();
-        AwsCredentialsProvider credentialsProvider = sdkRequest.overrideConfiguration()
-                                                               .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-                                                               .map(c -> (AwsRequestOverrideConfiguration) c)
-                                                               .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
-                                                               .orElse(clientCredentials);
-
-        Signer signer = sdkRequest.overrideConfiguration().flatMap(RequestOverrideConfiguration::signer).orElse(DEFAULT_SIGNER);
-        Instant signatureExpiration = Instant.now().plus(presignRequest.signatureDuration());
-
-        AwsCredentials credentials = credentialsProvider.resolveCredentials();
-        Validate.validState(credentials != null, "Credential providers must never return null.");
+    private ExecutionContext invokeInterceptorsAndCreateExecutionContext(PresignRequest presignRequest,
+                                                                         SdkRequest sdkRequest,
+                                                                         String operationName) {
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
             .putAttribute(AwsExecutionAttribute.AWS_REGION, region())
             .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region())
@@ -300,32 +286,29 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
-            .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration);
+            .putAttribute(PRESIGNER_EXPIRATION, Instant.now().plus(presignRequest.signatureDuration()));
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
+
+        InterceptorContext interceptorContext = InterceptorContext.builder()
+                                                                  .request(sdkRequest)
+                                                                  .build();
+        interceptorContext = AwsExecutionContextBuilder.runInitialInterceptors(interceptorContext,
+                                                                               executionAttributes,
+                                                                               executionInterceptorChain);
+
+        AwsCredentialsProvider credentialsProvider =
+            AwsExecutionContextBuilder.resolveCredentialsProvider(sdkRequest, credentialsProvider());
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        Validate.validState(credentials != null, "Credential providers must never return null.");
+        executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
+
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
-                               .interceptorContext(InterceptorContext.builder()
-                                                                     .request(sdkRequest)
-                                                                     .build())
+                               .interceptorContext(interceptorContext)
                                .executionAttributes(executionAttributes)
-                               .signer(signer)
+                               .signer(AwsExecutionContextBuilder.resolveSigner(interceptorContext.request(), DEFAULT_SIGNER))
                                .build();
-    }
-
-    /**
-     * Call the before-execution interceptor hooks.
-     */
-    private void callBeforeExecutionHooks(ExecutionContext execCtx) {
-        execCtx.interceptorChain().beforeExecution(execCtx.interceptorContext(), execCtx.executionAttributes());
-    }
-
-    /**
-     * Call the modify-request interceptor hooks and update the execution context.
-     */
-    private void callModifyRequestHooksAndUpdateContext(ExecutionContext execCtx) {
-        execCtx.interceptorContext(execCtx.interceptorChain().modifyRequest(execCtx.interceptorContext(),
-                                                                            execCtx.executionAttributes()));
     }
 
     /**

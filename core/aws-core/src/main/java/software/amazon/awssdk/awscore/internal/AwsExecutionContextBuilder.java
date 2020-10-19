@@ -49,6 +49,9 @@ public final class AwsExecutionContextBuilder {
 
     }
 
+    /**
+     * Used by both sync and async clients to create the execution context, and run initial interceptors.
+     */
     public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
                                                     SdkClientConfiguration clientConfig) {
@@ -82,36 +85,73 @@ public final class AwsExecutionContextBuilder {
                                                      .asyncRequestBody(executionParams.getAsyncRequestBody())
                                                      .requestBody(executionParams.getRequestBody())
                                                      .build();
-
-        executionInterceptorChain.beforeExecution(interceptorContext, executionAttributes);
-        interceptorContext = executionInterceptorChain.modifyRequest(interceptorContext, executionAttributes);
+        interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
         // beforeExecution and modifyRequest interceptors should avoid dependency on credentials,
         // since they should be resolved after the interceptors run
-        executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS,
-                                         resolveCredentials(clientConfig, originalRequest, metricCollector));
+        AwsCredentials credentials = resolveCredentials(clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER),
+                                                        originalRequest,
+                                                        metricCollector);
+        executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
 
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
                                .executionAttributes(executionAttributes)
-                               .signer(computeSigner(interceptorContext.request(), clientConfig))
+                               .signer(resolveSigner(interceptorContext.request(),
+                                                     clientConfig.option(AwsAdvancedClientOption.SIGNER)))
                                .metricCollector(metricCollector)
                                .build();
     }
 
-    private static AwsCredentials resolveCredentials(SdkClientConfiguration clientConfig,
+    /**
+     * Resolves the credentials provider, with the request override configuration taking precedence over the
+     * provided default.
+     *
+     * @return The credentials provider that will be used by the SDK to resolve credentials
+     */
+    public static AwsCredentialsProvider resolveCredentialsProvider(SdkRequest originalRequest,
+                                                                    AwsCredentialsProvider defaultProvider) {
+        return originalRequest.overrideConfiguration()
+                              .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+                              .map(c -> (AwsRequestOverrideConfiguration) c)
+                              .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
+                              .orElse(defaultProvider);
+    }
+
+    /**
+     * Request override signers take precedence over the default alternative, for instance what is specified in the
+     * client. Request override signers can also be modified by modifyRequest interceptors.
+     *
+     * @return The signer that will be used by the SDK to sign the request
+     */
+    public static Signer resolveSigner(SdkRequest request, Signer defaultSigner) {
+        return request.overrideConfiguration()
+                      .flatMap(RequestOverrideConfiguration::signer)
+                      .orElse(defaultSigner);
+    }
+
+    /**
+     * Finalize {@link SdkRequest} by running beforeExecution and modifyRequest interceptors.
+     *
+     * @param interceptorContext containing the immutable SdkRequest information the interceptor can act on
+     * @param executionAttributes mutable container of attributes concerning the execution and request
+     * @return the {@link InterceptorContext} returns a context with a new SdkRequest
+     */
+    public static InterceptorContext runInitialInterceptors(InterceptorContext interceptorContext,
+                                                            ExecutionAttributes executionAttributes,
+                                                            ExecutionInterceptorChain executionInterceptorChain) {
+        executionInterceptorChain.beforeExecution(interceptorContext, executionAttributes);
+        return executionInterceptorChain.modifyRequest(interceptorContext, executionAttributes);
+    }
+
+    private static AwsCredentials resolveCredentials(AwsCredentialsProvider clientCredentials,
                                                      SdkRequest originalRequest,
                                                      MetricCollector metricCollector) {
-        AwsCredentialsProvider clientCredentials = clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER);
-        AwsCredentialsProvider credentialsProvider =
-            originalRequest.overrideConfiguration()
-                           .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-                           .map(c -> (AwsRequestOverrideConfiguration) c)
-                           .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
-                           .orElse(clientCredentials);
 
+        AwsCredentialsProvider credentialsProvider = resolveCredentialsProvider(originalRequest, clientCredentials);
         long credentialsResolveStart = System.nanoTime();
+
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
 
         Duration fetchDuration = Duration.ofNanos(System.nanoTime() - credentialsResolveStart);
@@ -119,13 +159,6 @@ public final class AwsExecutionContextBuilder {
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
         return credentials;
-    }
-
-    private static Signer computeSigner(SdkRequest request,
-                                        SdkClientConfiguration clientConfiguration) {
-        return request.overrideConfiguration()
-                      .flatMap(RequestOverrideConfiguration::signer)
-                      .orElseGet(() -> clientConfiguration.option(AwsAdvancedClientOption.SIGNER));
     }
 
     private static MetricCollector resolveMetricCollector(ClientExecutionParams<?, ?> params) {
