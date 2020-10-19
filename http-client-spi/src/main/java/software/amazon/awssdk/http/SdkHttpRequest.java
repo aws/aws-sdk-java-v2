@@ -135,17 +135,23 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
      */
     interface Builder extends CopyableBuilder<Builder, SdkHttpRequest> {
         /**
-         * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()}, and
-         * {@link #encodedPath()} from a {@link URI} object.
+         * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()},
+         * {@link #encodedPath()} and extracts query parameters from a {@link URI} object.
          *
          * @param uri URI containing protocol, host, port and path.
          * @return This builder for method chaining.
          */
         default Builder uri(URI uri) {
-            return this.protocol(uri.getScheme())
+            Builder builder = this.protocol(uri.getScheme())
                        .host(uri.getHost())
                        .port(uri.getPort())
                        .encodedPath(SdkHttpUtils.appendUri(uri.getRawPath(), encodedPath()));
+            if (uri.getRawQuery() != null) {
+                builder.clearQueryParameters();
+                SdkHttpUtils.uriParams(uri)
+                            .forEach(this::putRawQueryParameter);
+            }
+            return builder;
         }
 
         /**
