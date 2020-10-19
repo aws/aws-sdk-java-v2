@@ -1,3 +1,29 @@
+# __2.15.10__ __2020-10-19__
+## __AWS Backup__
+  - ### Features
+    - Documentation updates for Cryo
+
+## __AWS Service Catalog__
+  - ### Features
+    - An Admin can now update the launch role associated with a Provisioned Product. Admins and End Users can now view the launch role associated with a Provisioned Product.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront adds support for Origin Shield.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Documentation updates for docdb
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This Patch Manager release now supports Common Vulnerabilities and Exposure (CVE) Ids for missing packages via the DescribeInstancePatches API.
+
+## __HTTP Client SPI__
+  - ### Features
+    - Calling the SdkHttpFullRequest uri() builder method, query parameters of the provided URI will be kept.
+      This can be useful in case you want to provide an already fully formed URI like a callback URI.
+
 # __2.15.9__ __2020-10-16__
 ## __AWS Elemental MediaLive__
   - ### Features
