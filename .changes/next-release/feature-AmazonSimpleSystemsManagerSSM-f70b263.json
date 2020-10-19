@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "description": "This Patch Manager release now supports Common Vulnerabilities and Exposure (CVE) Ids for missing packages via the DescribeInstancePatches API."
-}
