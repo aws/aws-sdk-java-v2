@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "description": "Fixed an issue where metrics were not being collected for Amazon S3 (or other XML services)"
+}

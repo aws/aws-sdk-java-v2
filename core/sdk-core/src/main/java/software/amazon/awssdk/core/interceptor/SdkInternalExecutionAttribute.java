@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 
 /**
  * Attributes that can be applied to all sdk requests. Only generated code from the SDK clients should set these values.
@@ -28,6 +29,9 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      * at the same time.
      */
     public static final ExecutionAttribute<Boolean> IS_FULL_DUPLEX = new ExecutionAttribute<>("IsFullDuplex");
+
+    public static final ExecutionAttribute<HttpChecksumRequired> HTTP_CHECKSUM_REQUIRED =
+        new ExecutionAttribute<>("HttpChecksumRequired");
 
     private SdkInternalExecutionAttribute() {
     }
