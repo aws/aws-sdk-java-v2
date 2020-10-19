@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog",
+    "description": "An Admin can now update the launch role associated with a Provisioned Product. Admins and End Users can now view the launch role associated with a Provisioned Product."
+}
