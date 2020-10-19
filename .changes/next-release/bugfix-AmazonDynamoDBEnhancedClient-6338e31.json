@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "description": "Fix for handling special characters in attribute names with WRITE_IF_NOT_EXISTS update behavior"
+}
