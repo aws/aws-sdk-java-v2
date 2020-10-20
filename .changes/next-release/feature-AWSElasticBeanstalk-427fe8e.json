@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elastic Beanstalk",
+    "description": "EnvironmentStatus enum update to include Aborting, LinkingFrom and LinkingTo"
+}
