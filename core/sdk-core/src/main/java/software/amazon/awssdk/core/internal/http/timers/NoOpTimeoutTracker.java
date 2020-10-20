@@ -22,7 +22,7 @@ import software.amazon.awssdk.http.Abortable;
  * A no op implementation of {@link TimeoutTracker}.
  */
 @SdkInternalApi
-public final class NoOpTimeoutTracker implements TimeoutTracker {
+public final class NoOpTimeoutTracker implements TimeoutTracker, Java15SealedTimeoutTracker {
 
     public static final NoOpTimeoutTracker INSTANCE = new NoOpTimeoutTracker();
 
