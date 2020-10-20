@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "description": "Adding evaluateOnExit to job retry strategies."
+}
