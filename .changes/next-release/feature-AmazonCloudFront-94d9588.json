@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "description": "CloudFront adds support for managing the public keys for signed URLs and signed cookies directly in CloudFront (it no longer requires the AWS root account)."
-}

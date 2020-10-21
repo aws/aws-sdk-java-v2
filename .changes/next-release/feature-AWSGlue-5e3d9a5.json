@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "AWS Glue crawlers now support incremental crawls for the Amazon Simple Storage Service (Amazon S3) data source."
-}

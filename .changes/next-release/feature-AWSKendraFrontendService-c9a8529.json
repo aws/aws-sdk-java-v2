@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSKendraFrontendService",
-    "description": "This release adds custom data sources: a new data source type that gives you full control of the documents added, modified or deleted during a data source sync while providing run history metrics."
-}
