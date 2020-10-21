@@ -5,10 +5,9 @@ class ReleaseChanges(object):
         self.entries = entries
 
 class ChangelogEntry(object):
-    def __init__(self, type, category, description, contributor):
+    def __init__(self, type, category, description):
         self.type = type
         self.category = category
-        self.contributor = contributor
         self.description = description
 
 class Version(object):

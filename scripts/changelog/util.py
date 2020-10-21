@@ -38,8 +38,7 @@ def parse_release_changes(changes_json):
     return ReleaseChanges(version, date, entries)
 
 def parse_changelog_entry(entry_json):
-    return ChangelogEntry(entry_json['type'], entry_json['category'], entry_json['description'],
-                          entry_json.get('contributor'))
+    return ChangelogEntry(entry_json['type'], entry_json['category'], entry_json['description'])
 
 def parse_version_string(s):
     version_parts = [s for s in s.split('.')]

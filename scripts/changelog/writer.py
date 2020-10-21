@@ -28,19 +28,6 @@ class ChangelogWriter(object):
             self.write_items_for_category(s, self.bugfixes, "Bugfixes")
             self.write_items_for_category(s, self.deprecations, "Deprecations")
             self.write_items_for_category(s, self.removals, "Removals")
-        self.write_contributors()
-
-    def write_contributors(self):
-        contributors = set()
-        for e in self.current_changes.entries:
-            if e.contributor:
-                contributors.add(e.contributor)
-
-        if contributors:
-            self.output_file.write("## __Contributors__\n")
-            contributors_string = ', '.join(contributors)
-            self.output_file.write("Special thanks to the following contributors to this release: \n")
-            self.output_file.write("\n" + contributors_string + ".\n")
 
     def process_changes(self, changes):
         self.current_changes = changes
@@ -57,7 +44,7 @@ class ChangelogWriter(object):
     def group_entries(self):
         for e in self.current_changes.entries:
             m = self.get_map_for_type(e.type)
-            m.setdefault(e.category, []).append(e)
+            m.setdefault(e.category, []).append(e.description)
             self.categories.add(e.category)
 
     def get_sorted_categories(self):
@@ -88,8 +75,7 @@ class ChangelogWriter(object):
         self.write('\n')
 
     def write_entry(self,e):
-        description = e.description
-        entry_lines = description.splitlines(True)
+        entry_lines = e.splitlines(True)
         self.write("    - %s" % entry_lines[0])
         for l in entry_lines[1:]:
             if len(l.strip()) == 0:
@@ -97,10 +83,7 @@ class ChangelogWriter(object):
             else:
                 self.write("      %s" % l)
         self.write('\n')
-        if e.contributor:
-            self.write("\n        - ")
-            self.write("Contributed by: " + e.contributor)
-            self.write('\n')
+
 
     def get_map_for_type(self, t):
         if t == 'feature':
