@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Global Accelerator",
+    "description": "This release adds support for specifying port overrides on AWS Global Accelerator endpoint groups."
+}
