@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "description": "Moved the logic for calculating the Content-MD5 checksums from s3 to sdk-core. As always, make sure to use a version of 'sdk-core' greater than or equal to your version of 's3'. If you use an old version of 'sdk-core' and a new version of 's3', you will receive errors that Content-MD5 is required."
-}

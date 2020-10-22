@@ -1,3 +1,80 @@
+# __2.15.13__ __2020-10-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Documentation updates for servicecatalog
+
+## __Access Analyzer__
+  - ### Features
+    - API Documentation updates for IAM Access Analyzer.
+
+## __Amazon Appflow__
+  - ### Features
+    - Salesforce connector creation with customer provided client id and client secret, incremental pull configuration, salesforce upsert write operations and execution ID when on-demand flows are executed.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - SNS now supports a new class of topics: FIFO (First-In-First-Out). FIFO topics provide strictly-ordered, deduplicated, filterable, encryptable, many-to-many messaging at scale.
+
+# __2.15.12__ __2020-10-21__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release adds support for specifying port overrides on AWS Global Accelerator endpoint groups.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue crawlers now support incremental crawls for the Amazon Simple Storage Service (Amazon S3) data source.
+
+## __AWS Organizations__
+  - ### Features
+    - AWS Organizations renamed the 'master account' to 'management account'.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - This release adds custom data sources: a new data source type that gives you full control of the documents added, modified or deleted during a data source sync while providing run history metrics.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront adds support for managing the public keys for signed URLs and signed cookies directly in CloudFront (it no longer requires the AWS root account).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - instance-storage-info nvmeSupport added to DescribeInstanceTypes API
+
+# __2.15.11__ __2020-10-20__
+## __AWS AppSync__
+  - ### Features
+    - Documentation updates to AppSync to correct several typos.
+
+## __AWS Batch__
+  - ### Features
+    - Adding evaluateOnExit to job retry strategies.
+
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - EnvironmentStatus enum update to include Aborting, LinkingFrom and LinkingTo
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where requestBody and asyncRequestBody were not visible in ExecutionInterceptor.afterMarshalling.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix for handling special characters in attribute names with WRITE_IF_NOT_EXISTS update behavior
+
+## __Amazon S3__
+  - ### Features
+    - Moved the logic for calculating the Content-MD5 checksums from s3 to sdk-core. As always, make sure to use a version of 'sdk-core' greater than or equal to your version of 's3'. If you use an old version of 'sdk-core' and a new version of 's3', you will receive errors that Content-MD5 is required.
+
+  - ### Bugfixes
+    - Fixed an issue where metrics were not being collected for Amazon S3 (or other XML services)
+
 # __2.15.10__ __2020-10-19__
 ## __AWS Backup__
   - ### Features
@@ -4943,6 +5020,7 @@
 ## __Amazon Elastic Compute Cloud__
   - ### Features
     - This release of Amazon Elastic Compute Cloud (Amazon EC2) introduces support for Amazon Elastic Block Store (Amazon EBS) fast snapshot restores.
+    - Upgrades to Instance Metadata Service version 2 (IMDS v2). With IMDS v2, a session token is used to make requests for EC2 instance metadata and credentials.
 
 ## __Amazon FSx__
   - ### Features

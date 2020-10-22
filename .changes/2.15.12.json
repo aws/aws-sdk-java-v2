@@ -1,0 +1,36 @@
+{
+    "version": "2.15.12",
+    "date": "2020-10-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "description": "This release adds support for specifying port overrides on AWS Global Accelerator endpoint groups."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "AWS Organizations renamed the 'master account' to 'management account'."
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "description": "This release adds custom data sources: a new data source type that gives you full control of the documents added, modified or deleted during a data source sync while providing run history metrics."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "AWS Glue crawlers now support incremental crawls for the Amazon Simple Storage Service (Amazon S3) data source."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "instance-storage-info nvmeSupport added to DescribeInstanceTypes API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "description": "CloudFront adds support for managing the public keys for signed URLs and signed cookies directly in CloudFront (it no longer requires the AWS root account)."
+        }
+    ]
+}
