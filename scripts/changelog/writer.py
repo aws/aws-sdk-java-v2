@@ -1,6 +1,7 @@
 from changelog.git import stage_file
 from changelog.util import load_all_released_changes, load_unreleased_changes, version_cmp
 from functools import cmp_to_key
+from operator import attrgetter
 
 class ChangelogWriter(object):
     """
@@ -40,7 +41,7 @@ class ChangelogWriter(object):
             self.output_file.write("## __Contributors__\n")
             contributors_string = ', '.join(contributors)
             self.output_file.write("Special thanks to the following contributors to this release: \n")
-            self.output_file.write("\n" + contributors_string + ".\n")
+            self.output_file.write("\n" + contributors_string + "\n")
 
     def process_changes(self, changes):
         self.current_changes = changes
@@ -76,7 +77,8 @@ class ChangelogWriter(object):
         self.output_file.write("## __%s__\n" % c)
 
     def write_items_for_category(self, category, map, header):
-        items = sorted(map.get(category, []))
+        entries = map.get(category, [])
+        items = sorted(entries, key=attrgetter('description'))
         self.write_entries_with_header(header, items)
 
     def write_entries_with_header(self, header, entries):
@@ -98,7 +100,7 @@ class ChangelogWriter(object):
                 self.write("      %s" % l)
         self.write('\n')
         if e.contributor:
-            self.write("\n        - ")
+            self.write("        - ")
             self.write("Contributed by: " + e.contributor)
             self.write('\n')
 
