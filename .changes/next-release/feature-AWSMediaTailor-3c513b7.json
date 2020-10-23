@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaTailor",
-    "description": "MediaTailor now supports ad marker passthrough for HLS. Use AdMarkerPassthrough to pass EXT-X-CUE-IN, EXT-X-CUE-OUT, and EXT-X-SPLICEPOINT-SCTE35 from origin manifests into personalized manifests."
-}
