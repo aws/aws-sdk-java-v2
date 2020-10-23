@@ -1,0 +1,6 @@
+{
+    "category": "AWS Single Sign-on", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Added support for retrieving SSO credentials: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html."
+}
