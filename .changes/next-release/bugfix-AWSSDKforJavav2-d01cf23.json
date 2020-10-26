@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixing FilteringSubscriber and LimitingSubscriber to complete when subscribing criteria is completed."
+}
