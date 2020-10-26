@@ -59,6 +59,20 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel xmlServiceModels() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/xml/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/xml/customization.config").getFile());
+
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel endpointDiscoveryModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/endpointdiscovery/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/endpointdiscovery/customization.config").getFile());
