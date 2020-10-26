@@ -1,3 +1,20 @@
+# __2.15.15__ __2020-10-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports indexing data from Confluence Server.
+
+## __Amazon Neptune__
+  - ### Features
+    - This feature enables custom endpoints for Amazon Neptune clusters. Custom endpoints simplify connection management when clusters contain instances with different capacities and configuration settings.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release enables customers to bring custom images for use with SageMaker Studio notebooks.
+
 # __2.15.14__ __2020-10-23__
 ## __AWS MediaTailor__
   - ### Features
