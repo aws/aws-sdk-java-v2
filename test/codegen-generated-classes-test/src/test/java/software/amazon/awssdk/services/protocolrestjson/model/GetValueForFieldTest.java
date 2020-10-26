@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.codegenerationjsonrpccustomized.model;
+package software.amazon.awssdk.services.protocolrestjson.model;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;

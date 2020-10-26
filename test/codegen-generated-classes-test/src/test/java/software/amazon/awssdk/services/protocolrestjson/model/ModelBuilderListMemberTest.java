@@ -13,50 +13,50 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.codegenerationjsonrpccustomized.model;
-
-import org.junit.Test;
-import software.amazon.awssdk.core.util.SdkAutoConstructMap;
-
-import java.util.HashMap;
+package software.amazon.awssdk.services.protocolrestjson.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import org.junit.Test;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+
 /**
- * Test for verifying map member behavior for model builders.
+ * Test for verifying list member behavior for model builders.
  */
-public class ModelBuilderMapMemberTest {
+public class ModelBuilderListMemberTest {
     @Test
     public void defaultConstructedModelsHaveInitialValue() {
         AllTypesRequest request = AllTypesRequest.builder().build();
 
-        assertThat(request.mapOfStringToString()).isInstanceOf(SdkAutoConstructMap.class);
+        assertThat(request.listOfEnumsAsStrings()).isInstanceOf(SdkAutoConstructList.class);
     }
 
     @Test
-    public void nullSetterCreatesSdkAutoConstructedMap() {
+    public void nullSetterCreatesSdkAutoConstructedList() {
         AllTypesRequest request = AllTypesRequest.builder()
-                .mapOfStringToString(null)
+                .listOfEnumsWithStrings((Collection<String>) null)
                 .build();
 
-        assertThat(request.mapOfStringToString()).isInstanceOf(SdkAutoConstructMap.class);
+        assertThat(request.listOfEnumsAsStrings()).isInstanceOf(SdkAutoConstructList.class);
     }
 
     @Test
-    public void modelToBuilderRoundTripPreservesAutoConstructedMaps() {
+    public void modelToBuilderRoundTripPreservesAutoConstructedLists() {
         AllTypesRequest request = AllTypesRequest.builder().build();
         AllTypesRequest roundTrip = request.toBuilder().build();
 
-        assertThat(roundTrip.mapOfStringToString()).isInstanceOf(SdkAutoConstructMap.class);
+        assertThat(roundTrip.listOfEnumsAsStrings()).isInstanceOf(SdkAutoConstructList.class);
     }
 
     @Test
-    public void modelToBuilderRoundTripPreservesExplicitEmptyMaps() {
+    public void modelToBuilderRoundTripPreservesExplicitEmptyLists() {
         AllTypesRequest request = AllTypesRequest.builder()
-                .mapOfStringToString(new HashMap<>())
+                .listOfEnums(new ArrayList<>())
                 .build();
         AllTypesRequest roundTrip = request.toBuilder().build();
 
-        assertThat(roundTrip.mapOfStringToString()).isNotInstanceOf(SdkAutoConstructMap.class);
+        assertThat(roundTrip.listOfEnumsAsStrings()).isNotInstanceOf(SdkAutoConstructList.class);
     }
 }
