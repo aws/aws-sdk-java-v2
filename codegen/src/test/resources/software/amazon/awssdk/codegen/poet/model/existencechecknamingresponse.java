@@ -214,10 +214,10 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
     public int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + super.hashCode();
-        hashCode = 31 * hashCode + Objects.hashCode(build());
-        hashCode = 31 * hashCode + Objects.hashCode(superValue());
-        hashCode = 31 * hashCode + Objects.hashCode(toStringValue());
-        hashCode = 31 * hashCode + Objects.hashCode(equalsValue());
+        hashCode = 31 * hashCode + Objects.hashCode(hasBuild() ? build() : null);
+        hashCode = 31 * hashCode + Objects.hashCode(hasSuperValue() ? superValue() : null);
+        hashCode = 31 * hashCode + Objects.hashCode(hasToStringValue() ? toStringValue() : null);
+        hashCode = 31 * hashCode + Objects.hashCode(hasEqualsValue() ? equalsValue() : null);
         return hashCode;
     }
 
@@ -238,8 +238,10 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
             return false;
         }
         ExistenceCheckNamingResponse other = (ExistenceCheckNamingResponse) obj;
-        return Objects.equals(build(), other.build()) && Objects.equals(superValue(), other.superValue())
-               && Objects.equals(toStringValue(), other.toStringValue()) && Objects.equals(equalsValue(), other.equalsValue());
+        return hasBuild() == other.hasBuild() && Objects.equals(build(), other.build())
+               && hasSuperValue() == other.hasSuperValue() && Objects.equals(superValue(), other.superValue())
+               && hasToStringValue() == other.hasToStringValue() && Objects.equals(toStringValue(), other.toStringValue())
+               && hasEqualsValue() == other.hasEqualsValue() && Objects.equals(equalsValue(), other.equalsValue());
     }
 
     /**
@@ -248,8 +250,9 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      */
     @Override
     public String toString() {
-        return ToString.builder("ExistenceCheckNamingResponse").add("Build", build()).add("Super", superValue())
-                       .add("ToString", toStringValue()).add("Equals", equalsValue()).build();
+        return ToString.builder("ExistenceCheckNamingResponse").add("Build", hasBuild() ? build() : null)
+                       .add("Super", hasSuperValue() ? superValue() : null).add("ToString", hasToStringValue() ? toStringValue() : null)
+                       .add("Equals", hasEqualsValue() ? equalsValue() : null).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -358,6 +361,9 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
 
         public final Collection<String> getBuild() {
+            if (build instanceof SdkAutoConstructList) {
+                return null;
+            }
             return build;
         }
 
@@ -379,6 +385,9 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
 
         public final Collection<String> getSuperValue() {
+            if (superValue instanceof SdkAutoConstructList) {
+                return null;
+            }
             return superValue;
         }
 
@@ -400,6 +409,9 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
 
         public final Map<String, String> getToStringValue() {
+            if (toStringValue instanceof SdkAutoConstructMap) {
+                return null;
+            }
             return toStringValue;
         }
 
@@ -414,6 +426,9 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
 
         public final Map<String, String> getEqualsValue() {
+            if (equalsValue instanceof SdkAutoConstructMap) {
+                return null;
+            }
             return equalsValue;
         }
 

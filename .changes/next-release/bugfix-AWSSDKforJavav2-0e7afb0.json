@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Fixed an issue where the toString/equals/hashCode on a modeled object were not honoring the has* methods for lists and maps."
+}

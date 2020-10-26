@@ -16,13 +16,13 @@ final class MapOfEnumToSimpleStructCopier {
             return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<String, SimpleStruct> mapOfEnumToSimpleStructParamCopy = mapOfEnumToSimpleStructParam.entrySet().stream()
-                .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
+                                                                                                 .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
         return Collections.unmodifiableMap(mapOfEnumToSimpleStructParamCopy);
     }
 
     static Map<String, SimpleStruct> copyFromBuilder(Map<String, ? extends SimpleStruct.Builder> mapOfEnumToSimpleStructParam) {
-        if (mapOfEnumToSimpleStructParam == null) {
-            return null;
+        if (mapOfEnumToSimpleStructParam == null || mapOfEnumToSimpleStructParam instanceof DefaultSdkAutoConstructMap) {
+            return DefaultSdkAutoConstructMap.getInstance();
         }
         return copy(mapOfEnumToSimpleStructParam.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
     }
@@ -32,7 +32,7 @@ final class MapOfEnumToSimpleStructCopier {
             return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<String, SimpleStruct> mapOfEnumToSimpleStructParamCopy = mapOfEnumToSimpleStructParam.entrySet().stream()
-                .collect(HashMap::new, (m, e) -> m.put(e.getKey().toString(), e.getValue()), HashMap::putAll);
+                                                                                                 .collect(HashMap::new, (m, e) -> m.put(e.getKey().toString(), e.getValue()), HashMap::putAll);
         return Collections.unmodifiableMap(mapOfEnumToSimpleStructParamCopy);
     }
 
@@ -41,12 +41,12 @@ final class MapOfEnumToSimpleStructCopier {
             return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<EnumType, SimpleStruct> mapOfEnumToSimpleStructParamCopy = mapOfEnumToSimpleStructParam.entrySet().stream()
-                .collect(HashMap::new, (m, e) -> {
-                    EnumType keyAsEnum = EnumType.fromValue(e.getKey());
-                    if (keyAsEnum != EnumType.UNKNOWN_TO_SDK_VERSION) {
-                        m.put(keyAsEnum, e.getValue());
-                    }
-                }, HashMap::putAll);
+                                                                                                   .collect(HashMap::new, (m, e) -> {
+                                                                                                       EnumType keyAsEnum = EnumType.fromValue(e.getKey());
+                                                                                                       if (keyAsEnum != EnumType.UNKNOWN_TO_SDK_VERSION) {
+                                                                                                           m.put(keyAsEnum, e.getValue());
+                                                                                                       }
+                                                                                                   }, HashMap::putAll);
         return Collections.unmodifiableMap(mapOfEnumToSimpleStructParamCopy);
     }
 }
