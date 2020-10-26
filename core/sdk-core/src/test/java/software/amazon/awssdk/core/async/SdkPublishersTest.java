@@ -26,9 +26,9 @@ import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import software.amazon.awssdk.core.internal.async.SdkPublishers;
 import utils.FakePublisher;
+import utils.FakeSdkPublisher;
 
 public class SdkPublishersTest {
     @Test
@@ -43,6 +43,45 @@ public class SdkPublishersTest {
         fakePublisher.complete();
 
         assertThat(fakeSubscriber.recordedEvents()).containsExactly("prefix:content", ":suffix");
+    }
+
+    @Test
+    public void mapTransformsCorrectly() {
+        FakeSdkPublisher<String> fakePublisher = new FakeSdkPublisher<>();
+        FakeStringSubscriber fakeSubscriber = new FakeStringSubscriber();
+        fakePublisher.map(String::toUpperCase).subscribe(fakeSubscriber);
+
+        fakePublisher.publish("one");
+        fakePublisher.publish("two");
+        fakePublisher.complete();
+
+        assertThat(fakeSubscriber.recordedEvents()).containsExactly("ONE", "TWO");
+        assertThat(fakeSubscriber.isComplete()).isTrue();
+        assertThat(fakeSubscriber.isError()).isFalse();
+    }
+
+    @Test
+    public void mapHandlesError() {
+        FakeSdkPublisher<String> fakePublisher = new FakeSdkPublisher<>();
+        FakeStringSubscriber fakeSubscriber = new FakeStringSubscriber();
+        RuntimeException exception = new IllegalArgumentException("Twos are not supported");
+
+        fakePublisher.map(s -> {
+            if ("two".equals(s)) {
+                throw exception;
+            }
+
+            return s.toUpperCase();
+        }).subscribe(fakeSubscriber);
+
+        fakePublisher.publish("one");
+        fakePublisher.publish("two");
+        fakePublisher.publish("three");
+
+        assertThat(fakeSubscriber.recordedEvents()).containsExactly("ONE");
+        assertThat(fakeSubscriber.isComplete()).isFalse();
+        assertThat(fakeSubscriber.isError()).isTrue();
+        assertThat(fakeSubscriber.recordedErrors()).containsExactly(exception);
     }
 
     private final static class FakeByteBufferSubscriber implements Subscriber<ByteBuffer> {
@@ -71,6 +110,50 @@ public class SdkPublishersTest {
 
         public List<String> recordedEvents() {
             return this.recordedEvents;
+        }
+    }
+
+    private final static class FakeStringSubscriber implements Subscriber<String> {
+        private final List<String> recordedEvents = new ArrayList<>();
+        private final List<Throwable> recordedErrors = new ArrayList<>();
+        private boolean isComplete = false;
+        private boolean isError = false;
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            s.request(1000);
+        }
+
+        @Override
+        public void onNext(String s) {
+            recordedEvents.add(s);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            recordedErrors.add(t);
+            this.isError = true;
+        }
+
+        @Override
+        public void onComplete() {
+            this.isComplete = true;
+        }
+
+        public List<String> recordedEvents() {
+            return this.recordedEvents;
+        }
+
+        public List<Throwable> recordedErrors() {
+            return this.recordedErrors;
+        }
+
+        public boolean isComplete() {
+            return isComplete;
+        }
+
+        public boolean isError() {
+            return isError;
         }
     }
 }
