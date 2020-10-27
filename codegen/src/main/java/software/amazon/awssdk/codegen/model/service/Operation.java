@@ -36,15 +36,13 @@ public class Operation {
 
     private List<ErrorMap> errors;
 
-    private boolean requiresApiKey;
-
     private EndpointDiscovery endpointdiscovery;
 
     private boolean endpointoperation;
 
     private EndpointTrait endpoint;
 
-    private AuthType authtype = AuthType.IAM;
+    private AuthType authtype;
 
     private boolean httpChecksumRequired;
 
@@ -133,14 +131,6 @@ public class Operation {
 
     public void setAuthorizer(String authorizer) {
         this.authorizer = authorizer;
-    }
-
-    public boolean requiresApiKey() {
-        return requiresApiKey;
-    }
-
-    public void setRequiresApiKey(boolean requiresApiKey) {
-        this.requiresApiKey = requiresApiKey;
     }
 
     public EndpointDiscovery getEndpointdiscovery() {
