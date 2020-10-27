@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
+import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkPojo;
@@ -46,7 +48,8 @@ public final class XmlResponseParserUtils {
 
             // In some cases the responseContent is present but empty, so when we are not expecting a body we should
             // not attempt to parse it even if the body appears to be present.
-            if ((!response.isSuccessful() || hasPayloadMembers(sdkPojo)) && responseContent.isPresent()) {
+            if ((!response.isSuccessful() || hasPayloadMembers(sdkPojo)) && responseContent.isPresent() &&
+                !contentLengthZero(response)) {
                 return XmlDomParser.parse(responseContent.get());
             } else {
                 return XmlElement.empty();
@@ -63,5 +66,9 @@ public final class XmlResponseParserUtils {
     private static boolean hasPayloadMembers(SdkPojo sdkPojo) {
         return sdkPojo.sdkFields().stream()
                       .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD);
+    }
+
+    private static boolean contentLengthZero(SdkHttpFullResponse response) {
+        return response.firstMatchingHeader(CONTENT_LENGTH).map(l -> Long.parseLong(l) == 0).orElse(false);
     }
 }

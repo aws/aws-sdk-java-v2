@@ -23,8 +23,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<BaseType.Builder, BaseType> {
     private static final SdkField<String> BASE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(BaseType::baseMember)).setter(setter(Builder::baseMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BaseMember").build()).build();
+        .memberName("BaseMember").getter(getter(BaseType::baseMember)).setter(setter(Builder::baseMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BaseMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BASE_MEMBER_FIELD));
 
@@ -38,7 +38,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
 
     /**
      * Returns the value of the BaseMember property for this object.
-     * 
+     *
      * @return The value of the BaseMember property for this object.
      */
     public String baseMember() {
@@ -96,10 +96,10 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "BaseMember":
-            return Optional.ofNullable(clazz.cast(baseMember()));
-        default:
-            return Optional.empty();
+            case "BaseMember":
+                return Optional.ofNullable(clazz.cast(baseMember()));
+            default:
+                return Optional.empty();
         }
     }
 

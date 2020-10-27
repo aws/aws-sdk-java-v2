@@ -15,25 +15,25 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.Map;
 
 public class ServiceModel {
 
-    private final ServiceMetadata metadata;
-
-    private final Map<String, Operation> operations;
-
-    private final Map<String, Shape> shapes;
-    private final Map<String, Authorizer> authorizers;
+    private ServiceMetadata metadata;
+    private Map<String, Operation> operations;
+    private Map<String, Shape> shapes;
+    private Map<String, Authorizer> authorizers;
 
     private String documentation;
 
-    public ServiceModel(@JsonProperty(value = "metadata", required = true) ServiceMetadata metadata,
-                        @JsonProperty(value = "operations", required = true) Map<String, Operation> operations,
-                        @JsonProperty(value = "shapes", required = true) Map<String, Shape> shapes,
-                        @JsonProperty(value = "authorizers") Map<String, Authorizer> authorizers) {
+    public ServiceModel() {
+    }
+
+    public ServiceModel(ServiceMetadata metadata,
+                        Map<String, Operation> operations,
+                        Map<String, Shape> shapes,
+                        Map<String, Authorizer> authorizers) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -44,8 +44,16 @@ public class ServiceModel {
         return metadata;
     }
 
+    public void setMetadata(ServiceMetadata metadata) {
+        this.metadata = metadata;
+    }
+
     public Map<String, Operation> getOperations() {
         return operations;
+    }
+
+    public void setOperations(Map<String, Operation> operations) {
+        this.operations = operations != null ? operations : Collections.emptyMap();
     }
 
     /**
@@ -60,6 +68,10 @@ public class ServiceModel {
 
     public Map<String, Shape> getShapes() {
         return shapes;
+    }
+
+    public void setShapes(Map<String, Shape> shapes) {
+        this.shapes = shapes != null ? shapes : Collections.emptyMap();
     }
 
     /**
@@ -82,5 +94,9 @@ public class ServiceModel {
 
     public Map<String, Authorizer> getAuthorizers() {
         return authorizers != null ? authorizers : Collections.emptyMap();
+    }
+
+    public void setAuthorizers(Map<String, Authorizer> authorizers) {
+        this.authorizers = authorizers;
     }
 }

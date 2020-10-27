@@ -200,6 +200,23 @@
       ],
       "documentation":"<p>Stops one or more job runs for a specified job definition.</p>"
     },
+    "BatchUpdatePartition":{
+      "name":"BatchUpdatePartition",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"BatchUpdatePartitionRequest"},
+      "output":{"shape":"BatchUpdatePartitionResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"GlueEncryptionException"}
+      ],
+      "documentation":"<p>Updates one or more partitions in a batch operation.</p>"
+    },
     "CancelMLTaskRun":{
       "name":"CancelMLTaskRun",
       "http":{
@@ -1157,6 +1174,23 @@
       ],
       "documentation":"<p>Retrieves information about a specified partition.</p>"
     },
+    "GetPartitionIndexes":{
+      "name":"GetPartitionIndexes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetPartitionIndexesRequest"},
+      "output":{"shape":"GetPartitionIndexesResponse"},
+      "errors":[
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Retrieves the partition indexes associated with a table.</p>"
+    },
     "GetPartitions":{
       "name":"GetPartitions",
       "http":{
@@ -1656,7 +1690,7 @@
         {"shape":"ConcurrentRunsExceededException"},
         {"shape":"IllegalWorkflowStateException"}
       ],
-      "documentation":"<p>Restarts any completed nodes in a workflow run and resumes the run execution.</p>"
+      "documentation":"<p>Restarts selected nodes of a previous partially completed workflow run and resumes the workflow run. The selected nodes and all nodes that are downstream from the selected nodes are run.</p>"
     },
     "SearchTables":{
       "name":"SearchTables",
@@ -2228,6 +2262,11 @@
       "type":"list",
       "member":{"shape":"Action"}
     },
+    "AdditionalPlanOptionsMap":{
+      "type":"map",
+      "key":{"shape":"GenericString"},
+      "value":{"shape":"GenericString"}
+    },
     "AlreadyExistsException":{
       "type":"structure",
       "members":{
@@ -2659,6 +2698,83 @@
     "BatchStopJobRunSuccessfulSubmissionList":{
       "type":"list",
       "member":{"shape":"BatchStopJobRunSuccessfulSubmission"}
+    },
+    "BatchUpdatePartitionFailureEntry":{
+      "type":"structure",
+      "members":{
+        "PartitionValueList":{
+          "shape":"BoundedPartitionValueList",
+          "documentation":"<p>A list of values defining the partitions.</p>"
+        },
+        "ErrorDetail":{
+          "shape":"ErrorDetail",
+          "documentation":"<p>The details about the batch update partition error.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a batch update partition error.</p>"
+    },
+    "BatchUpdatePartitionFailureList":{
+      "type":"list",
+      "member":{"shape":"BatchUpdatePartitionFailureEntry"}
+    },
+    "BatchUpdatePartitionRequest":{
+      "type":"structure",
+      "required":[
+        "DatabaseName",
+        "TableName",
+        "Entries"
+      ],
+      "members":{
+        "CatalogId":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the catalog in which the partition is to be updated. Currently, this should be the AWS account ID.</p>"
+        },
+        "DatabaseName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the metadata database in which the partition is to be updated.</p>"
+        },
+        "TableName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the metadata table in which the partition is to be updated.</p>"
+        },
+        "Entries":{
+          "shape":"BatchUpdatePartitionRequestEntryList",
+          "documentation":"<p>A list of up to 100 <code>BatchUpdatePartitionRequestEntry</code> objects to update.</p>"
+        }
+      }
+    },
+    "BatchUpdatePartitionRequestEntry":{
+      "type":"structure",
+      "required":[
+        "PartitionValueList",
+        "PartitionInput"
+      ],
+      "members":{
+        "PartitionValueList":{
+          "shape":"BoundedPartitionValueList",
+          "documentation":"<p>A list of values defining the partitions.</p>"
+        },
+        "PartitionInput":{
+          "shape":"PartitionInput",
+          "documentation":"<p>The structure used to update a partition.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains the values and structure used to update a partition.</p>"
+    },
+    "BatchUpdatePartitionRequestEntryList":{
+      "type":"list",
+      "member":{"shape":"BatchUpdatePartitionRequestEntry"},
+      "max":100,
+      "min":1
+    },
+    "BatchUpdatePartitionResponse":{
+      "type":"structure",
+      "members":{
+        "Errors":{
+          "shape":"BatchUpdatePartitionFailureList",
+          "documentation":"<p>The errors encountered when trying to update the requested partitions. A list of <code>BatchUpdatePartitionFailureEntry</code> objects.</p>"
+        }
+      }
     },
     "BinaryColumnStatisticsData":{
       "type":"structure",
@@ -3182,7 +3298,7 @@
         },
         "State":{
           "shape":"JobRunState",
-          "documentation":"<p>The condition state. Currently, the values supported are <code>SUCCEEDED</code>, <code>STOPPED</code>, <code>TIMEOUT</code>, and <code>FAILED</code>.</p>"
+          "documentation":"<p>The condition state. Currently, the only job states that a trigger can listen for are <code>SUCCEEDED</code>, <code>STOPPED</code>, <code>FAILED</code>, and <code>TIMEOUT</code>. The only crawler states that a trigger can listen for are <code>SUCCEEDED</code>, <code>FAILED</code>, and <code>CANCELLED</code>.</p>"
         },
         "CrawlerName":{
           "shape":"NameString",
@@ -3209,6 +3325,17 @@
     "ConditionList":{
       "type":"list",
       "member":{"shape":"Condition"}
+    },
+    "ConflictException":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
+      },
+      "documentation":"<p>The <code>CreatePartitions</code> API was called on a table that has indexes enabled. </p>",
+      "exception":true
     },
     "ConfusionMatrix":{
       "type":"structure",
@@ -3292,7 +3419,7 @@
         },
         "ConnectionType":{
           "shape":"ConnectionType",
-          "documentation":"<p>The type of the connection. Currently, these types are supported:</p> <ul> <li> <p> <code>JDBC</code> - Designates a connection to a database through Java Database Connectivity (JDBC).</p> </li> <li> <p> <code>KAFKA</code> - Designates a connection to an Apache Kafka streaming platform.</p> </li> <li> <p> <code>MONGODB</code> - Designates a connection to a MongoDB document database.</p> </li> </ul> <p>SFTP is not supported.</p>"
+          "documentation":"<p>The type of the connection. Currently, these types are supported:</p> <ul> <li> <p> <code>JDBC</code> - Designates a connection to a database through Java Database Connectivity (JDBC).</p> </li> <li> <p> <code>KAFKA</code> - Designates a connection to an Apache Kafka streaming platform.</p> </li> <li> <p> <code>MONGODB</code> - Designates a connection to a MongoDB document database.</p> </li> <li> <p> <code>NETWORK</code> - Designates a network connection to a data source within an Amazon Virtual Private Cloud environment (Amazon VPC).</p> </li> </ul> <p>SFTP is not supported.</p>"
         },
         "MatchCriteria":{
           "shape":"MatchCriteria",
@@ -3368,7 +3495,8 @@
         "JDBC",
         "SFTP",
         "MONGODB",
-        "KAFKA"
+        "KAFKA",
+        "NETWORK"
       ]
     },
     "ConnectionsList":{
@@ -3451,6 +3579,10 @@
         "Classifiers":{
           "shape":"ClassifierNameList",
           "documentation":"<p>A list of UTF-8 strings that specify the custom classifiers that are associated with the crawler.</p>"
+        },
+        "RecrawlPolicy":{
+          "shape":"RecrawlPolicy",
+          "documentation":"<p>A policy that specifies whether to crawl the entire dataset again, or to crawl only folders that were added since the last crawler run.</p>"
         },
         "SchemaChangePolicy":{
           "shape":"SchemaChangePolicy",
@@ -3619,6 +3751,10 @@
           "shape":"JdbcTargetList",
           "documentation":"<p>Specifies JDBC targets.</p>"
         },
+        "MongoDBTargets":{
+          "shape":"MongoDBTargetList",
+          "documentation":"<p>Specifies Amazon DocumentDB or MongoDB targets.</p>"
+        },
         "DynamoDBTargets":{
           "shape":"DynamoDBTargetList",
           "documentation":"<p>Specifies Amazon DynamoDB targets.</p>"
@@ -3718,6 +3854,10 @@
         "SchemaChangePolicy":{
           "shape":"SchemaChangePolicy",
           "documentation":"<p>The policy for the crawler's update and deletion behavior.</p>"
+        },
+        "RecrawlPolicy":{
+          "shape":"RecrawlPolicy",
+          "documentation":"<p>A policy that specifies whether to crawl the entire dataset again, or to crawl only folders that were added since the last crawler run.</p>"
         },
         "Configuration":{
           "shape":"CrawlerConfiguration",
@@ -4261,6 +4401,10 @@
         "TableInput":{
           "shape":"TableInput",
           "documentation":"<p>The <code>TableInput</code> object that defines the metadata table to create in the catalog.</p>"
+        },
+        "PartitionIndexes":{
+          "shape":"PartitionIndexList",
+          "documentation":"<p>A list of partition indexes, <code>PartitionIndex</code> structures, to create in the table.</p>"
         }
       }
     },
@@ -4369,6 +4513,10 @@
         "Tags":{
           "shape":"TagsMap",
           "documentation":"<p>The tags to be used with this workflow.</p>"
+        },
+        "MaxConcurrentRuns":{
+          "shape":"NullableInteger",
+          "documentation":"<p>You can use this parameter to prevent unwanted multiple updates to data, to control costs, or in some cases, to prevent exceeding the maximum number of concurrent runs of any of the component jobs. If you leave this parameter blank, there is no limit to the number of concurrent workflow runs.</p>"
         }
       }
     },
@@ -6311,6 +6459,44 @@
         }
       }
     },
+    "GetPartitionIndexesRequest":{
+      "type":"structure",
+      "required":[
+        "DatabaseName",
+        "TableName"
+      ],
+      "members":{
+        "CatalogId":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The catalog ID where the table resides.</p>"
+        },
+        "DatabaseName":{
+          "shape":"NameString",
+          "documentation":"<p>Specifies the name of a database from which you want to retrieve partition indexes.</p>"
+        },
+        "TableName":{
+          "shape":"NameString",
+          "documentation":"<p>Specifies the name of a table for which you want to retrieve the partition indexes.</p>"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p>A continuation token, included if this is a continuation call.</p>"
+        }
+      }
+    },
+    "GetPartitionIndexesResponse":{
+      "type":"structure",
+      "members":{
+        "PartitionIndexDescriptorList":{
+          "shape":"PartitionIndexDescriptorList",
+          "documentation":"<p>A list of index descriptors.</p>"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p>A continuation token, present if the current list segment is not the last.</p>"
+        }
+      }
+    },
     "GetPartitionRequest":{
       "type":"structure",
       "required":[
@@ -6422,6 +6608,10 @@
         "Language":{
           "shape":"Language",
           "documentation":"<p>The programming language of the code to perform the mapping.</p>"
+        },
+        "AdditionalPlanOptionsMap":{
+          "shape":"AdditionalPlanOptionsMap",
+          "documentation":"<p>A map to hold additional optional key-value parameters.</p> <p>Currently, these key-value pairs are supported:</p> <ul> <li> <p> <code>inferSchema</code>  —  Specifies whether to set <code>inferSchema</code> to true or false for the default script generated by an AWS Glue job. For example, to set <code>inferSchema</code> to true, pass the following key value pair:</p> <p> <code>--additional-plan-options-map '{\"inferSchema\":\"true\"}'</code> </p> </li> </ul>"
         }
       }
     },
@@ -7396,7 +7586,7 @@
         },
         "JobRunState":{
           "shape":"JobRunState",
-          "documentation":"<p>The current state of the job run.</p>"
+          "documentation":"<p>The current state of the job run. For more information about the statuses of jobs that have terminated abnormally, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/job-run-statuses.html\">AWS Glue Job Run Statuses</a>.</p>"
         },
         "Arguments":{
           "shape":"GenericMap",
@@ -7579,6 +7769,34 @@
     },
     "JsonPath":{"type":"string"},
     "JsonValue":{"type":"string"},
+    "KeyList":{
+      "type":"list",
+      "member":{"shape":"NameString"},
+      "min":1
+    },
+    "KeySchemaElement":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Type"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of a partition key.</p>"
+        },
+        "Type":{
+          "shape":"ColumnTypeString",
+          "documentation":"<p>The type of a partition key.</p>"
+        }
+      },
+      "documentation":"<p>A partition key pair consisting of a name and a type.</p>"
+    },
+    "KeySchemaElementList":{
+      "type":"list",
+      "member":{"shape":"KeySchemaElement"},
+      "min":1
+    },
     "KeyString":{
       "type":"string",
       "max":255,
@@ -8058,6 +8276,28 @@
     },
     "MessageString":{"type":"string"},
     "MillisecondsCount":{"type":"long"},
+    "MongoDBTarget":{
+      "type":"structure",
+      "members":{
+        "ConnectionName":{
+          "shape":"ConnectionName",
+          "documentation":"<p>The name of the connection to use to connect to the Amazon DocumentDB or MongoDB target.</p>"
+        },
+        "Path":{
+          "shape":"Path",
+          "documentation":"<p>The path of the Amazon DocumentDB or MongoDB target (database/collection).</p>"
+        },
+        "ScanAll":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Indicates whether to scan all the records, or to sample rows from the table. Scanning all the records can take a long time when the table is not a high throughput table.</p> <p>A value of <code>true</code> means to scan all records, while a value of <code>false</code> means to sample the records. If no value is specified, the value defaults to <code>true</code>.</p>"
+        }
+      },
+      "documentation":"<p>Specifies an Amazon DocumentDB or MongoDB data store to crawl.</p>"
+    },
+    "MongoDBTargetList":{
+      "type":"list",
+      "member":{"shape":"MongoDBTarget"}
+    },
     "NameString":{
       "type":"string",
       "max":255,
@@ -8276,6 +8516,60 @@
     "PartitionErrors":{
       "type":"list",
       "member":{"shape":"PartitionError"}
+    },
+    "PartitionIndex":{
+      "type":"structure",
+      "required":[
+        "Keys",
+        "IndexName"
+      ],
+      "members":{
+        "Keys":{
+          "shape":"KeyList",
+          "documentation":"<p>The keys for the partition index.</p>"
+        },
+        "IndexName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the partition index.</p>"
+        }
+      },
+      "documentation":"<p>A structure for a partition index.</p>"
+    },
+    "PartitionIndexDescriptor":{
+      "type":"structure",
+      "required":[
+        "IndexName",
+        "Keys",
+        "IndexStatus"
+      ],
+      "members":{
+        "IndexName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the partition index.</p>"
+        },
+        "Keys":{
+          "shape":"KeySchemaElementList",
+          "documentation":"<p>A list of one or more keys, as <code>KeySchemaElement</code> structures, for the partition index.</p>"
+        },
+        "IndexStatus":{
+          "shape":"PartitionIndexStatus",
+          "documentation":"<p>The status of the partition index. </p>"
+        }
+      },
+      "documentation":"<p>A descriptor for a partition index in a table.</p>"
+    },
+    "PartitionIndexDescriptorList":{
+      "type":"list",
+      "member":{"shape":"PartitionIndexDescriptor"}
+    },
+    "PartitionIndexList":{
+      "type":"list",
+      "member":{"shape":"PartitionIndex"},
+      "max":3
+    },
+    "PartitionIndexStatus":{
+      "type":"string",
+      "enum":["ACTIVE"]
     },
     "PartitionInput":{
       "type":"structure",
@@ -8547,6 +8841,23 @@
       "type":"long",
       "box":true
     },
+    "RecrawlBehavior":{
+      "type":"string",
+      "enum":[
+        "CRAWL_EVERYTHING",
+        "CRAWL_NEW_FOLDERS_ONLY"
+      ]
+    },
+    "RecrawlPolicy":{
+      "type":"structure",
+      "members":{
+        "RecrawlBehavior":{
+          "shape":"RecrawlBehavior",
+          "documentation":"<p>Specifies whether to crawl the entire dataset again or to crawl only folders that were added since the last crawler run.</p> <p>A value of <code>CRAWL_EVERYTHING</code> specifies crawling the entire dataset again.</p> <p>A value of <code>CRAWL_NEW_FOLDERS_ONLY</code> specifies crawling only folders that were added since the last crawler run.</p>"
+        }
+      },
+      "documentation":"<p>When crawling an Amazon S3 data source after the first crawl is complete, specifies whether to crawl the entire dataset again or to crawl only folders that were added since the last crawler run. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/incremental-crawls.html\">Incremental Crawls in AWS Glue</a> in the developer guide.</p>"
+    },
     "ReplaceBoolean":{"type":"boolean"},
     "ResetJobBookmarkRequest":{
       "type":"structure",
@@ -8635,7 +8946,7 @@
         },
         "NodeIds":{
           "shape":"NodeIdList",
-          "documentation":"<p>A list of the node IDs for the nodes you want to restart. The nodes that are to be restarted must have an execution attempt in the original run.</p>"
+          "documentation":"<p>A list of the node IDs for the nodes you want to restart. The nodes that are to be restarted must have a run attempt in the original run.</p>"
         }
       }
     },
@@ -8696,6 +9007,10 @@
         "Exclusions":{
           "shape":"PathList",
           "documentation":"<p>A list of glob patterns used to exclude from the crawl. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html\">Catalog Tables with a Crawler</a>.</p>"
+        },
+        "ConnectionName":{
+          "shape":"ConnectionName",
+          "documentation":"<p>The name of a connection which allows a job or crawler to access data in Amazon S3 within an Amazon Virtual Private Cloud environment (Amazon VPC).</p>"
         }
       },
       "documentation":"<p>Specifies a data store in Amazon Simple Storage Service (Amazon S3).</p>"
@@ -10202,6 +10517,10 @@
           "shape":"SchemaChangePolicy",
           "documentation":"<p>The policy for the crawler's update and deletion behavior.</p>"
         },
+        "RecrawlPolicy":{
+          "shape":"RecrawlPolicy",
+          "documentation":"<p>A policy that specifies whether to crawl the entire dataset again, or to crawl only folders that were added since the last crawler run.</p>"
+        },
         "Configuration":{
           "shape":"CrawlerConfiguration",
           "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Configuring a Crawler</a>.</p>"
@@ -10601,6 +10920,10 @@
         "DefaultRunProperties":{
           "shape":"WorkflowRunProperties",
           "documentation":"<p>A collection of properties to be used as part of each execution of the workflow.</p>"
+        },
+        "MaxConcurrentRuns":{
+          "shape":"NullableInteger",
+          "documentation":"<p>You can use this parameter to prevent unwanted multiple updates to data, to control costs, or in some cases, to prevent exceeding the maximum number of concurrent runs of any of the component jobs. If you leave this parameter blank, there is no limit to the number of concurrent workflow runs.</p>"
         }
       }
     },
@@ -10780,6 +11103,10 @@
         "Graph":{
           "shape":"WorkflowGraph",
           "documentation":"<p>The graph representing all the AWS Glue components that belong to the workflow as nodes and directed connections between them as edges.</p>"
+        },
+        "MaxConcurrentRuns":{
+          "shape":"NullableInteger",
+          "documentation":"<p>You can use this parameter to prevent unwanted multiple updates to data, to control costs, or in some cases, to prevent exceeding the maximum number of concurrent runs of any of the component jobs. If you leave this parameter blank, there is no limit to the number of concurrent workflow runs.</p>"
         }
       },
       "documentation":"<p>A workflow represents a flow in which AWS Glue components should be executed to complete a logical task.</p>"
@@ -10835,6 +11162,10 @@
           "shape":"WorkflowRunStatus",
           "documentation":"<p>The status of the workflow run.</p>"
         },
+        "ErrorMessage":{
+          "shape":"ErrorString",
+          "documentation":"<p>This error message describes any error that may have occurred in starting the workflow run. Currently the only error message is \"Concurrent runs exceeded for workflow: <code>foo</code>.\"</p>"
+        },
         "Statistics":{
           "shape":"WorkflowRunStatistics",
           "documentation":"<p>The statistics of the run.</p>"
@@ -10887,7 +11218,8 @@
         "RUNNING",
         "COMPLETED",
         "STOPPING",
-        "STOPPED"
+        "STOPPED",
+        "ERROR"
       ]
     },
     "WorkflowRuns":{

@@ -25,12 +25,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest implements
                                                                             ToCopyableBuilder<DeprecatedRenameRequest.Builder, DeprecatedRenameRequest> {
     private static final SdkField<String> NEW_NAME_NO_DEPRECATION_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-        .getter(getter(DeprecatedRenameRequest::newNameNoDeprecation)).setter(setter(Builder::newNameNoDeprecation))
+        .memberName("NewNameNoDeprecation").getter(getter(DeprecatedRenameRequest::newNameNoDeprecation))
+        .setter(setter(Builder::newNameNoDeprecation))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OriginalNameNoDeprecation").build())
         .build();
 
     private static final SdkField<String> NEW_NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-        .getter(getter(DeprecatedRenameRequest::newName)).setter(setter(Builder::newName))
+        .memberName("NewName").getter(getter(DeprecatedRenameRequest::newName)).setter(setter(Builder::newName))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OriginalNameDeprecated").build())
         .build();
 

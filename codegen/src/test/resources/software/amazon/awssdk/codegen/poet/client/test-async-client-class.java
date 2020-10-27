@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
 import software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -37,6 +38,8 @@ import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
@@ -74,6 +77,8 @@ import software.amazon.awssdk.services.json.model.InputEventTwo;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.JsonRequest;
+import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
+import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -94,13 +99,14 @@ import software.amazon.awssdk.services.json.transform.EventStreamOperationWithOn
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventTwoMarshaller;
+import software.amazon.awssdk.services.json.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.HostnameValidator;
 
 /**
  * Internal implementation of {@link JsonAsyncClient}.
@@ -164,9 +170,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
-            String hostPrefix = "{StringMember}-foo.";
-            Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
-            String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                                                                            .isPayloadJson(true).build();
 
@@ -175,6 +178,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata);
+            String hostPrefix = "{StringMember}-foo.";
+            HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
+                                                        "aPostOperationRequest");
+            String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
@@ -323,10 +330,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 new ClientExecutionParams<EventStreamOperationRequest, EventStreamOperationResponse>()
                     .withOperationName("EventStreamOperation")
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
-                    .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
-                    .withFullDuplex(true).withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
-                    .withInput(eventStreamOperationRequest), restAsyncResponseTransformer);
+                    .withAsyncRequestBody(AsyncRequestBody.fromPublisher(adapted)).withFullDuplex(true)
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationRequest),
+                restAsyncResponseTransformer);
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationRequest.overrideConfiguration().orElse(
                 null);
             CompletableFuture<Void> whenCompleted = executeFuture.whenComplete((r, e) -> {
@@ -401,9 +408,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 .execute(new ClientExecutionParams<EventStreamOperationWithOnlyInputRequest, EventStreamOperationWithOnlyInputResponse>()
                              .withOperationName("EventStreamOperationWithOnlyInput")
                              .withMarshaller(new EventStreamOperationWithOnlyInputRequestMarshaller(protocolFactory))
-                             .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationWithOnlyInputRequest));
+                             .withAsyncRequestBody(AsyncRequestBody.fromPublisher(adapted)).withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
+                             .withInput(eventStreamOperationWithOnlyInputRequest));
             AwsRequestOverrideConfiguration requestOverrideConfig = eventStreamOperationWithOnlyInputRequest
                 .overrideConfiguration().orElse(null);
             CompletableFuture<EventStreamOperationWithOnlyInputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
@@ -557,6 +564,67 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             AwsRequestOverrideConfiguration requestOverrideConfig = getWithoutRequiredMembersRequest.overrideConfiguration()
                                                                                                     .orElse(null);
             CompletableFuture<GetWithoutRequiredMembersResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
+            return executeFuture;
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
+     * Invokes the OperationWithChecksumRequired operation asynchronously.
+     *
+     * @param operationWithChecksumRequiredRequest
+     * @return A Java Future containing the result of the OperationWithChecksumRequired operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.OperationWithChecksumRequired
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
+        OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithChecksumRequired");
+            JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                           .isPayloadJson(true).build();
+
+            HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
+                operationMetadata, OperationWithChecksumRequiredResponse::builder);
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                       operationMetadata);
+
+            CompletableFuture<OperationWithChecksumRequiredResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
+                             .withOperationName("OperationWithChecksumRequired")
+                             .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
+                                                    HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = operationWithChecksumRequiredRequest.overrideConfiguration()
+                                                                                                        .orElse(null);
+            CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
@@ -872,6 +940,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
+            if (!isSignerOverridden(clientConfiguration)) {
+                streamingInputOperationRequest = applySignerOverride(streamingInputOperationRequest, AsyncAws4Signer.create());
+            }
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                                                                            .isPayloadJson(true).build();
 
@@ -1104,6 +1175,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                                        .map(c -> c.toBuilder().applyMutation(signerOverride).build())
                                                                        .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+    }
+
+    private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
+        return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
     }
 
     @Override

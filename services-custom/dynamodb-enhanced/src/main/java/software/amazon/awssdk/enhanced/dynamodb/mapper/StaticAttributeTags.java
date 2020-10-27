@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 
 /**
  * Common implementations of {@link StaticAttributeTag}. These tags can be used to mark your attributes as primary or
@@ -104,6 +105,16 @@ public final class StaticAttributeTags {
                     indexName -> tableMetadataBuilder.addIndexSortKey(indexName,
                                                                       attribute.getAttributeName(),
                                                                       attribute.getAttributeValueType())));
+    }
+
+    /**
+     * Specifies the behavior when this attribute is updated as part of an 'update' operation such as UpdateItem. See
+     * documentation of {@link UpdateBehavior} for details on the different behaviors supported and the default
+     * behavior.
+     * @param updateBehavior The {@link UpdateBehavior} to be applied to this attribute
+     */
+    public static StaticAttributeTag updateBehavior(UpdateBehavior updateBehavior) {
+        return UpdateBehaviorTag.fromUpdateBehavior(updateBehavior);
     }
 
     private static class KeyAttributeTag implements StaticAttributeTag {

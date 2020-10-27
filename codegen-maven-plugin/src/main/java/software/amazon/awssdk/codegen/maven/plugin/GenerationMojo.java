@@ -32,7 +32,6 @@ import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
@@ -46,7 +45,6 @@ public class GenerationMojo extends AbstractMojo {
 
     private static final String MODEL_FILE = "service-2.json";
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
-    private static final String EXAMPLES_FILE = "examples-1.json";
     private static final String WAITERS_FILE = "waiters-2.json";
     private static final String PAGINATORS_FILE = "paginators-1.json";
 
@@ -55,6 +53,9 @@ public class GenerationMojo extends AbstractMojo {
 
     @Parameter(property = "outputDirectory", defaultValue = "${project.build.directory}")
     private String outputDirectory;
+
+    @Parameter(defaultValue = "false")
+    private boolean writeIntermediateModel;
 
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
@@ -67,31 +68,32 @@ public class GenerationMojo extends AbstractMojo {
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
         findModelRoots().forEach(p -> {
-            getLog().info("Loading from: " + p.toString());
+            Path modelRootPath = p.modelRoot;
+            getLog().info("Loading from: " + modelRootPath.toString());
             generateCode(C2jModels.builder()
-                                  .customizationConfig(loadCustomizationConfig(p))
-                                  .serviceModel(loadServiceModel(p))
-                                  .waitersModel(loadWaiterModel(p))
-                                  .paginatorsModel(loadPaginatorModel(p))
-                                  .examplesModel(loadExamplesModel(p))
+                                  .customizationConfig(p.customizationConfig)
+                                  .serviceModel(loadServiceModel(modelRootPath))
+                                  .waitersModel(loadWaiterModel(modelRootPath))
+                                  .paginatorsModel(loadPaginatorModel(modelRootPath))
                                   .build());
         });
         project.addCompileSourceRoot(sourcesDirectory.toFile().getAbsolutePath());
         project.addTestCompileSourceRoot(testsDirectory.toFile().getAbsolutePath());
     }
 
-    private Stream<Path> findModelRoots() throws MojoExecutionException {
+    private Stream<ModelRoot> findModelRoots() throws MojoExecutionException {
         try {
             return Files.find(codeGenResources.toPath(), 10, this::isModelFile)
                         .map(Path::getParent)
+                        .map(p -> new ModelRoot(p, loadCustomizationConfig(p)))
                         .sorted(this::modelSharersLast);
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to find '" + MODEL_FILE + "' files in " + codeGenResources, e);
         }
     }
 
-    private int modelSharersLast(Path lhs, Path rhs) {
-        return loadCustomizationConfig(lhs).getShareModelConfig() == null ? -1 : 1;
+    private int modelSharersLast(ModelRoot lhs, ModelRoot rhs) {
+        return lhs.customizationConfig.getShareModelConfig() == null ? -1 : 1;
     }
 
     private boolean isModelFile(Path p, BasicFileAttributes a) {
@@ -103,9 +105,13 @@ public class GenerationMojo extends AbstractMojo {
                      .models(models)
                      .sourcesDirectory(sourcesDirectory.toFile().getAbsolutePath())
                      .testsDirectory(testsDirectory.toFile().getAbsolutePath())
-                     .fileNamePrefix(Utils.getFileNamePrefix(models.serviceModel()))
+                     .intermediateModelFileNamePrefix(intermediateModelFileNamePrefix(models))
                      .build()
                      .execute();
+    }
+
+    private String intermediateModelFileNamePrefix(C2jModels models) {
+        return writeIntermediateModel ? Utils.getFileNamePrefix(models.serviceModel()) : null;
     }
 
     private CustomizationConfig loadCustomizationConfig(Path root) {
@@ -117,10 +123,6 @@ public class GenerationMojo extends AbstractMojo {
 
     private ServiceModel loadServiceModel(Path root) {
         return loadRequiredModel(ServiceModel.class, root.resolve(MODEL_FILE));
-    }
-
-    private ServiceExamples loadExamplesModel(Path root) {
-        return loadOptionalModel(ServiceExamples.class, root.resolve(EXAMPLES_FILE)).orElse(ServiceExamples.none());
     }
 
     private Waiters loadWaiterModel(Path root) {
@@ -145,5 +147,15 @@ public class GenerationMojo extends AbstractMojo {
      */
     private <T> Optional<T> loadOptionalModel(Class<T> clzz, Path location) {
         return ModelLoaderUtils.loadOptionalModel(clzz, location.toFile());
+    }
+
+    private static class ModelRoot {
+        private final Path modelRoot;
+        private final CustomizationConfig customizationConfig;
+
+        private ModelRoot(Path modelRoot, CustomizationConfig customizationConfig) {
+            this.modelRoot = modelRoot;
+            this.customizationConfig = customizationConfig;
+        }
     }
 }

@@ -41,6 +41,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterNoConstructorBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
@@ -49,7 +50,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterP
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterProvidersValidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EnumBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ExtendedBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
@@ -155,16 +157,16 @@ public class BeanTableSchemaTest {
     }
 
     @Test
-    public void dynamoDbFlatten_correctlyFlattensAttributes() {
-        BeanTableSchema<FlattenedBean> beanTableSchema = BeanTableSchema.create(FlattenedBean.class);
+    public void dynamoDbFlatten_correctlyFlattensBeanAttributes() {
+        BeanTableSchema<FlattenedBeanBean> beanTableSchema = BeanTableSchema.create(FlattenedBeanBean.class);
         AbstractBean abstractBean = new AbstractBean();
         abstractBean.setAttribute2("two");
-        FlattenedBean flattenedBean = new FlattenedBean();
-        flattenedBean.setId("id-value");
-        flattenedBean.setAttribute1("one");
-        flattenedBean.setAbstractBean(abstractBean);
+        FlattenedBeanBean flattenedBeanBean = new FlattenedBeanBean();
+        flattenedBeanBean.setId("id-value");
+        flattenedBeanBean.setAttribute1("one");
+        flattenedBeanBean.setAbstractBean(abstractBean);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedBeanBean, false);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -172,7 +174,23 @@ public class BeanTableSchemaTest {
     }
 
     @Test
-    public void documentBean_correctlyMapsAttributes() {
+    public void dynamoDbFlatten_correctlyFlattensImmutableAttributes() {
+        BeanTableSchema<FlattenedImmutableBean> beanTableSchema = BeanTableSchema.create(FlattenedImmutableBean.class);
+        AbstractImmutable abstractImmutable = AbstractImmutable.builder().attribute2("two").build();
+        FlattenedImmutableBean flattenedImmutableBean = new FlattenedImmutableBean();
+        flattenedImmutableBean.setId("id-value");
+        flattenedImmutableBean.setAttribute1("one");
+        flattenedImmutableBean.setAbstractImmutable(abstractImmutable);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedImmutableBean, false);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+    }
+
+    @Test
+    public void documentBean_correctlyMapsBeanAttributes() {
         BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
         AbstractBean abstractBean = new AbstractBean();
         abstractBean.setAttribute2("two");
@@ -193,7 +211,7 @@ public class BeanTableSchemaTest {
     }
 
     @Test
-    public void documentBean_list_correctlyMapsAttributes() {
+    public void documentBean_list_correctlyMapsBeanAttributes() {
         BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
         AbstractBean abstractBean1 = new AbstractBean();
         abstractBean1.setAttribute2("two");
@@ -220,7 +238,7 @@ public class BeanTableSchemaTest {
     }
 
     @Test
-    public void documentBean_map_correctlyMapsAttributes() {
+    public void documentBean_map_correctlyMapsBeanAttributes() {
         BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
         AbstractBean abstractBean1 = new AbstractBean();
         abstractBean1.setAttribute2("two");
@@ -251,6 +269,83 @@ public class BeanTableSchemaTest {
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("abstractBeanMap", expectedMap));
+    }
+
+    @Test
+    public void documentBean_correctlyMapsImmutableAttributes() {
+        BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
+        AbstractImmutable abstractImmutable = AbstractImmutable.builder().attribute2("two").build();
+        DocumentBean documentBean = new DocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+        documentBean.setAbstractImmutable(abstractImmutable);
+
+        AttributeValue expectedDocument = AttributeValue.builder()
+                                                        .m(singletonMap("attribute2", stringValue("two")))
+                                                        .build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractImmutable", expectedDocument));
+    }
+
+    @Test
+    public void documentBean_list_correctlyMapsImmutableAttributes() {
+        BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
+        AbstractImmutable abstractImmutable1 = AbstractImmutable.builder().attribute2("two").build();
+        AbstractImmutable abstractImmutable2 = AbstractImmutable.builder().attribute2("three").build();
+        DocumentBean documentBean = new DocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+        documentBean.setAbstractImmutableList(Arrays.asList(abstractImmutable1, abstractImmutable2));
+
+        AttributeValue expectedDocument1 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("two")))
+                                                         .build();
+        AttributeValue expectedDocument2 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("three")))
+                                                         .build();
+        AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractImmutableList", expectedList));
+    }
+
+    @Test
+    public void documentBean_map_correctlyMapsImmutableAttributes() {
+        BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
+        AbstractImmutable abstractImmutable1 = AbstractImmutable.builder().attribute2("two").build();
+        AbstractImmutable abstractImmutable2 = AbstractImmutable.builder().attribute2("three").build();
+        DocumentBean documentBean = new DocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+
+        Map<String, AbstractImmutable> abstractImmutableMap = new HashMap<>();
+        abstractImmutableMap.put("key1", abstractImmutable1);
+        abstractImmutableMap.put("key2", abstractImmutable2);
+        documentBean.setAbstractImmutableMap(abstractImmutableMap);
+
+        AttributeValue expectedDocument1 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("two")))
+                                                         .build();
+        AttributeValue expectedDocument2 = AttributeValue.builder()
+                                                         .m(singletonMap("attribute2", stringValue("three")))
+                                                         .build();
+        Map<String, AttributeValue> expectedAttributeValueMap = new HashMap<>();
+        expectedAttributeValueMap.put("key1", expectedDocument1);
+        expectedAttributeValueMap.put("key2", expectedDocument2);
+        AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("abstractImmutableMap", expectedMap));
     }
 
     @Test

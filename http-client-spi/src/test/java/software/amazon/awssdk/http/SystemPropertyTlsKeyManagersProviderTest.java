@@ -21,6 +21,7 @@ import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_PASSW
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_TYPE;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.security.Security;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -85,5 +86,27 @@ public class SystemPropertyTlsKeyManagersProviderTest extends ClientTlsAuthTestB
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), "not correct password");
 
         assertThat(PROVIDER.keyManagers()).isNull();
+    }
+
+    @Test
+    public void customKmfAlgorithmSetInProperty_usesAlgorithm() {
+        System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
+        System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
+        System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
+
+        assertThat(PROVIDER.keyManagers()).isNotNull();
+
+        String property = "ssl.KeyManagerFactory.algorithm";
+        String previousValue = Security.getProperty(property);
+        Security.setProperty(property, "some-bogus-value");
+
+        try {
+            // This would otherwise be non-null if using the right algorithm,
+            // i.e. not setting the algorithm property will cause the assertion
+            // to fail
+            assertThat(PROVIDER.keyManagers()).isNull();
+        } finally {
+            Security.setProperty(property, previousValue);
+        }
     }
 }

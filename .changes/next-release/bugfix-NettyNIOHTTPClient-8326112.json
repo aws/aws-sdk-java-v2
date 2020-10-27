@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Netty NIO HTTP Client",
-    "description": "Fixed an issue where, under rare circumstances, streaming request bytes could be misordered."
-}

@@ -23,12 +23,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class GetRandomPersonResponse extends SharedEventStreamResponse implements
                                                                              ToCopyableBuilder<GetRandomPersonResponse.Builder, GetRandomPersonResponse> {
-    private static final SdkField<String> NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-        .getter(getter(GetRandomPersonResponse::name)).setter(setter(Builder::name))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
+    private static final SdkField<String> NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Name")
+                                                                                                        .getter(getter(GetRandomPersonResponse::name)).setter(setter(Builder::name))
+                                                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
 
     private static final SdkField<Instant> BIRTHDAY_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-        .getter(getter(GetRandomPersonResponse::birthday)).setter(setter(Builder::birthday))
+        .memberName("Birthday").getter(getter(GetRandomPersonResponse::birthday)).setter(setter(Builder::birthday))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NAME_FIELD, BIRTHDAY_FIELD));

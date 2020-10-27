@@ -1,0 +1,36 @@
+{
+    "version": "2.13.76",
+    "date": "2020-08-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "New C5ad instances featuring AMD's 2nd Generation EPYC processors, offering up to 96 vCPUs, 192 GiB of instance memory, 3.8 TB of NVMe based SSD instance storage, and 20 Gbps in Network bandwidth"
+        },
+        {
+            "type": "feature",
+            "category": "AWS License Manager",
+            "description": "This release includes ability to enforce license assignment rules with EC2 Dedicated Hosts."
+        },
+        {
+            "type": "feature",
+            "category": "Braket",
+            "description": "Fixing bug in our SDK model where device status and device type had been flipped."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "description": "Adds support for the Desktop View feature"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "Amazon SageMaker now supports 1) creating real-time inference endpoints using model container images from Docker registries in customers' VPC 2) AUC(Area under the curve) as AutoPilot objective metric"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

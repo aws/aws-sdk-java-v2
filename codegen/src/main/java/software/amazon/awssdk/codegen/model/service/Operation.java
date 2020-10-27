@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import software.amazon.awssdk.codegen.model.intermediate.EndpointDiscovery;
 
@@ -39,16 +38,15 @@ public class Operation {
 
     private boolean requiresApiKey;
 
-    @JsonProperty("endpointdiscovery")
-    private EndpointDiscovery endpointDiscovery;
+    private EndpointDiscovery endpointdiscovery;
 
-    @JsonProperty("endpointoperation")
-    private boolean endpointOperation;
+    private boolean endpointoperation;
 
     private EndpointTrait endpoint;
 
-    @JsonProperty("authtype")
-    private AuthType authType = AuthType.IAM;
+    private AuthType authtype = AuthType.IAM;
+
+    private boolean httpChecksumRequired;
 
     public String getName() {
         return name;
@@ -121,12 +119,12 @@ public class Operation {
         this.errors = errors;
     }
 
-    public AuthType getAuthType() {
-        return authType;
+    public AuthType getAuthtype() {
+        return authtype;
     }
 
-    public void setAuthType(AuthType authType) {
-        this.authType = authType;
+    public void setAuthtype(String authtype) {
+        this.authtype = AuthType.fromValue(authtype);
     }
 
     public String getAuthorizer() {
@@ -145,20 +143,20 @@ public class Operation {
         this.requiresApiKey = requiresApiKey;
     }
 
-    public EndpointDiscovery getEndpointDiscovery() {
-        return endpointDiscovery;
+    public EndpointDiscovery getEndpointdiscovery() {
+        return endpointdiscovery;
     }
 
-    public void setEndpointDiscovery(EndpointDiscovery endpointDiscovery) {
-        this.endpointDiscovery = endpointDiscovery;
+    public void setEndpointdiscovery(EndpointDiscovery endpointdiscovery) {
+        this.endpointdiscovery = endpointdiscovery;
     }
 
-    public boolean isEndpointOperation() {
-        return endpointOperation;
+    public boolean isEndpointoperation() {
+        return endpointoperation;
     }
 
-    public void setEndpointOperation(boolean endpointOperation) {
-        this.endpointOperation = endpointOperation;
+    public void setEndpointoperation(boolean endpointoperation) {
+        this.endpointoperation = endpointoperation;
     }
 
     public EndpointTrait getEndpoint() {
@@ -167,5 +165,13 @@ public class Operation {
 
     public void setEndpoint(EndpointTrait endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public boolean isHttpChecksumRequired() {
+        return httpChecksumRequired;
+    }
+
+    public void setHttpChecksumRequired(boolean httpChecksumRequired) {
+        this.httpChecksumRequired = httpChecksumRequired;
     }
 }

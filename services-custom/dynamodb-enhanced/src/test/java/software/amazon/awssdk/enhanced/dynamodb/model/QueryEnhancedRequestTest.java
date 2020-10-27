@@ -15,24 +15,23 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
-import static java.util.Collections.singletonMap;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
+import java.util.*;
+
+import static java.util.Collections.singletonMap;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.assertFails;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueryEnhancedRequestTest {
@@ -58,9 +57,9 @@ public class QueryEnhancedRequestTest {
 
         Map<String, AttributeValue> expressionValues = singletonMap(":test-key", stringValue("test-value"));
         Expression filterExpression = Expression.builder()
-                                                .expression("test-expression")
-                                                .expressionValues(expressionValues)
-                                                .build();
+                .expression("test-expression")
+                .expressionValues(expressionValues)
+                .build();
 
         QueryConditional queryConditional = keyEqualTo(k -> k.partitionValue("id-value"));
 
@@ -70,15 +69,15 @@ public class QueryEnhancedRequestTest {
         attributesToProject.add(additionalElement);
 
         QueryEnhancedRequest builtObject = QueryEnhancedRequest.builder()
-                                                               .exclusiveStartKey(exclusiveStartKey)
-                                                               .consistentRead(false)
-                                                               .filterExpression(filterExpression)
-                                                               .limit(3)
-                                                               .queryConditional(queryConditional)
-                                                               .scanIndexForward(true)
-                                                               .attributesToProject(attributesToProjectArray)
-                                                               .addAttributeToProject(additionalElement)
-                                                               .build();
+                .exclusiveStartKey(exclusiveStartKey)
+                .consistentRead(false)
+                .filterExpression(filterExpression)
+                .limit(3)
+                .queryConditional(queryConditional)
+                .scanIndexForward(true)
+                .attributesToProject(attributesToProjectArray)
+                .addAttributeToProject(additionalElement)
+                .build();
 
         assertThat(builtObject.exclusiveStartKey(), is(exclusiveStartKey));
         assertThat(builtObject.consistentRead(), is(false));
@@ -88,6 +87,95 @@ public class QueryEnhancedRequestTest {
         assertThat(builtObject.scanIndexForward(), is(true));
         assertThat(builtObject.attributesToProject(), is(attributesToProject));
     }
+
+
+    @Test
+    public void test_withNestedAttributeAddedFirstAndThenAttributesToProject() {
+
+        String[] attributesToProjectArray = {"one", "two"};
+        String additionalElement = "three";
+        QueryEnhancedRequest builtObject = QueryEnhancedRequest.builder()
+                .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"))
+                .attributesToProject(attributesToProjectArray)
+                .addAttributeToProject(additionalElement)
+                .build();
+        List<String> attributesToProject = Arrays.asList("one", "two", "three");
+        assertThat(builtObject.attributesToProject(), is(attributesToProject));
+    }
+
+
+    @Test
+    public void test_nestedAttributesToProjectWithNestedAttributeAddedLast() {
+
+        String[] attributesToProjectArray = {"one", "two"};
+        String additionalElement = "three";
+
+        QueryEnhancedRequest builtObjectOne = QueryEnhancedRequest.builder()
+                .attributesToProject(attributesToProjectArray)
+                .addAttributeToProject(additionalElement)
+                .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"))
+                .build();
+        List<String> attributesToProjectNestedLast = Arrays.asList("one", "two", "three", "foo.bar");
+        assertThat(builtObjectOne.attributesToProject(), is(attributesToProjectNestedLast));
+
+    }
+
+    @Test
+    public void test_nestedAttributesToProjectWithNestedAttributeAddedInBetween() {
+
+        String[] attributesToProjectArray = {"one", "two"};
+        String additionalElement = "three";
+
+        QueryEnhancedRequest builtObjectOne = QueryEnhancedRequest.builder()
+                .attributesToProject(attributesToProjectArray)
+                .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"))
+                .addAttributeToProject(additionalElement)
+                .build();
+        List<String> attributesToProjectNestedLast = Arrays.asList("one", "two", "foo.bar", "three");
+        assertThat(builtObjectOne.attributesToProject(), is(attributesToProjectNestedLast));
+
+    }
+
+    @Test
+    public void test_nestedAttributesToProjectOverwrite() {
+
+        String[] attributesToProjectArray = {"one", "two"};
+        String additionalElement = "three";
+        String[] overwrite = { "overwrite"};
+
+        QueryEnhancedRequest builtObjectTwo = QueryEnhancedRequest.builder()
+                .attributesToProject(attributesToProjectArray)
+                .addAttributeToProject(additionalElement)
+                .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"))
+                .attributesToProject(overwrite)
+                .build();
+        assertThat(builtObjectTwo.attributesToProject(), is(Arrays.asList(overwrite)));
+    }
+
+    @Test
+    public void test_nestedAttributesNullNestedAttributeElement() {
+        List<NestedAttributeName> attributeNames = new ArrayList<>();
+        attributeNames.add(NestedAttributeName.create("foo"));
+        attributeNames.add(null);
+        assertFails(() -> QueryEnhancedRequest.builder()
+                .addNestedAttributesToProject(attributeNames)
+                .build());
+
+        assertFails(() -> QueryEnhancedRequest.builder()
+                .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"), null)
+                .build());
+
+        NestedAttributeName nestedAttributeName = null;
+        QueryEnhancedRequest.builder()
+                .addNestedAttributeToProject(nestedAttributeName)
+                .build();
+        assertFails(() -> QueryEnhancedRequest.builder()
+                .addNestedAttributesToProject(nestedAttributeName)
+                .build());
+    }
+
+
+
 
     @Test
     public void toBuilder() {

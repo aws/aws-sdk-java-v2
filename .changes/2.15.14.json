@@ -1,0 +1,21 @@
+{
+    "version": "2.15.14",
+    "date": "2020-10-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "description": "This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "Support description on columns."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "description": "MediaTailor now supports ad marker passthrough for HLS. Use AdMarkerPassthrough to pass EXT-X-CUE-IN, EXT-X-CUE-OUT, and EXT-X-SPLICEPOINT-SCTE35 from origin manifests into personalized manifests."
+        }
+    ]
+}

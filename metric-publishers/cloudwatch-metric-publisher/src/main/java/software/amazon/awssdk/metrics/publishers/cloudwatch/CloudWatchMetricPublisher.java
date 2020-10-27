@@ -26,17 +26,20 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -152,10 +155,7 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
  *
  * <p><b>Warning:</b> Make sure the {@link #close()} this publisher when it is done being used to release all resources it
  * consumes. Failure to do so will result in possible thread or file descriptor leaks.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
-@SdkPreviewApi
 @ThreadSafe
 @Immutable
 @SdkPublicApi
@@ -236,7 +236,7 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
                                                threadFactory);
 
         long flushFrequencyInMillis = resolveUploadFrequency(builder).toMillis();
-        this.scheduledExecutor.scheduleAtFixedRate(this::flushMetrics,
+        this.scheduledExecutor.scheduleAtFixedRate(this::flushMetricsQuietly,
                                                    flushFrequencyInMillis, flushFrequencyInMillis, TimeUnit.MILLISECONDS);
     }
 
@@ -290,51 +290,66 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
     /**
      * Flush the metrics (via a {@link UploadMetricsTasks}). In the event that the {@link #executor} task queue is full, this
      * this will retry automatically.
+     *
+     * This returns when the {@code UploadMetricsTask} has been submitted to the executor. The returned future is completed
+     * when the metrics upload to cloudwatch has started. The inner-most future is finally completed when the upload to cloudwatch
+     * has finished.
      */
-    private void flushMetrics() {
-        while (!scheduledExecutor.isShutdown() &&
-               !executor.isShutdown() &&
-               !Thread.currentThread().isInterrupted()) {
+    private Future<CompletableFuture<?>> flushMetrics() throws InterruptedException {
+        while (!executor.isShutdown()) {
             try {
-                executor.submit(new UploadMetricsTasks(metricAggregator, metricUploader, maximumCallsPerUpload));
-                break;
+                return executor.submit(new UploadMetricsTasks(metricAggregator, metricUploader, maximumCallsPerUpload));
             } catch (RejectedExecutionException e) {
-                sleepQuietly(100);
+                Thread.sleep(100);
             }
         }
+
+        return CompletableFuture.completedFuture(CompletableFuture.completedFuture(null));
     }
 
-    private void sleepQuietly(int duration) {
+    private void flushMetricsQuietly() {
         try {
-            Thread.sleep(duration);
+            flushMetrics();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            METRIC_LOGGER.error(() -> "Interrupted during metric flushing.", e);
         }
     }
 
     @Override
     public void close() {
-        flushMetrics();
-
-        scheduledExecutor.shutdownNow();
-        executor.shutdown();
         try {
+            scheduledExecutor.shutdownNow();
+
+            Future<CompletableFuture<?>> flushFuture = flushMetrics();
+            executor.shutdown();
+
+            flushFuture.get(60, TimeUnit.SECONDS) // Wait for flush to start
+                       .get(60, TimeUnit.SECONDS); // Wait for flush to finish
+
             if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
+                throw new TimeoutException("Internal executor did not shut down in 60 seconds.");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            executor.shutdownNow();
+            METRIC_LOGGER.error(() -> "Interrupted during graceful metric publisher shutdown.", e);
+        } catch (ExecutionException e) {
+            METRIC_LOGGER.error(() -> "Failed during graceful metric publisher shutdown.", e);
+        } catch (TimeoutException e) {
+            METRIC_LOGGER.error(() -> "Timed out during graceful metric publisher shutdown.", e);
+        } finally {
+            runQuietly(scheduledExecutor::shutdownNow, "shutting down scheduled executor");
+            runQuietly(executor::shutdownNow, "shutting down executor");
+            runQuietly(() -> metricUploader.close(closeClientWithPublisher), "closing metric uploader");
         }
-
-        metricUploader.close(closeClientWithPublisher);
     }
 
-    /**
-     * Returns {@code true} when the internal executor has been shutdown.
-     */
-    public boolean isShutdown() {
-        return executor.isShutdown() && scheduledExecutor.isShutdown();
+    private void runQuietly(Runnable runnable, String taskName) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            METRIC_LOGGER.warn(() -> "Failed while " + taskName + ".", e);
+        }
     }
 
     /**
@@ -349,6 +364,13 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
      */
     public static CloudWatchMetricPublisher create() {
         return builder().build();
+    }
+
+    /**
+     * Returns {@code true} when the internal executors for this publisher are shut down.
+     */
+    boolean isShutdown() {
+        return scheduledExecutor.isShutdown() && executor.isShutdown();
     }
 
     /**

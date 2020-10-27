@@ -39,7 +39,6 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() {
-        info("Emitting marshaller classes");
         return model.getShapes().entrySet().stream()
                     .filter(e -> shouldGenerate(e.getValue()))
                     .flatMap(safeFunction(e -> createTask(e.getKey(), e.getValue())))
@@ -48,7 +47,7 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 
     private boolean shouldGenerate(ShapeModel shapeModel) {
         if (shapeModel.getCustomization().isSkipGeneratingMarshaller()) {
-            info("Skip generating marshaller class for " + shapeModel.getShapeName());
+            info("Skipping generating marshaller class for " + shapeModel.getShapeName());
             return false;
         }
 

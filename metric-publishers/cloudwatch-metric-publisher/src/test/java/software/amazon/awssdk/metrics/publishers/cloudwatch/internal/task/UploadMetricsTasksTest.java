@@ -46,7 +46,7 @@ public class UploadMetricsTasksTest {
                                                             PutMetricDataRequest.builder().build(),
                                                             PutMetricDataRequest.builder().build());
         Mockito.when(aggregator.getRequests()).thenReturn(requests);
-        task.run();
+        task.call();
 
 
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);

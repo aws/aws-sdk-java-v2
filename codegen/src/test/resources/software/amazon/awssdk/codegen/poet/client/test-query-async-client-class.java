@@ -5,10 +5,13 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -20,8 +23,11 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -32,15 +38,20 @@ import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputResponse;
 import software.amazon.awssdk.services.query.model.InvalidInputException;
+import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredRequest;
+import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.query.model.QueryException;
+import software.amazon.awssdk.services.query.model.QueryRequest;
 import software.amazon.awssdk.services.query.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.query.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.query.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.query.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.query.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
+import software.amazon.awssdk.services.query.waiters.QueryAsyncWaiter;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
@@ -59,10 +70,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final ScheduledExecutorService executorService;
+
     protected DefaultQueryAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init();
+        this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
     @Override
@@ -102,13 +116,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
-            String hostPrefix = "foo-";
-            String resolvedHostExpression = "foo-";
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(APostOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            String hostPrefix = "foo-";
+            String resolvedHostExpression = "foo-";
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
@@ -188,6 +202,64 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     }
 
     /**
+     * Invokes the OperationWithChecksumRequired operation asynchronously.
+     *
+     * @param operationWithChecksumRequiredRequest
+     * @return A Java Future containing the result of the OperationWithChecksumRequired operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>QueryException Base class for all service exceptions. Unknown exceptions will be thrown as an
+     *         instance of this type.</li>
+     *         </ul>
+     * @sample QueryAsyncClient.OperationWithChecksumRequired
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithChecksumRequired"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
+        OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithChecksumRequired");
+
+            HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory
+                .createResponseHandler(OperationWithChecksumRequiredResponse::builder);
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+
+            CompletableFuture<OperationWithChecksumRequiredResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
+                             .withOperationName("OperationWithChecksumRequired")
+                             .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
+                                                    HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
+            AwsRequestOverrideConfiguration requestOverrideConfig = operationWithChecksumRequiredRequest.overrideConfiguration()
+                                                                                                        .orElse(null);
+            CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleteFuture = null;
+            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
      * Some operation with a streaming input
      *
      * @param streamingInputOperationRequest
@@ -221,6 +293,9 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
+            if (!isSignerOverridden(clientConfiguration)) {
+                streamingInputOperationRequest = applySignerOverride(streamingInputOperationRequest, AsyncAws4Signer.create());
+            }
 
             HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(StreamingInputOperationResponse::builder);
@@ -343,5 +418,25 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    private <T extends QueryRequest> T applySignerOverride(T request, Signer signer) {
+        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
+            return request;
+        }
+        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+    }
+
+    private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
+        return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
+    }
+
+    @Override
+    public QueryAsyncWaiter waiter() {
+        return QueryAsyncWaiter.builder().client(this).scheduledExecutorService(executorService).build();
     }
 }

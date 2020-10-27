@@ -22,11 +22,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Defines parameters used to when querying a DynamoDb table or index using the query() operation (such as
@@ -46,7 +49,7 @@ public final class QueryEnhancedRequest {
     private final Integer limit;
     private final Boolean consistentRead;
     private final Expression filterExpression;
-    private final List<String> attributesToProject;
+    private final List<NestedAttributeName> attributesToProject;
 
     private QueryEnhancedRequest(Builder builder) {
         this.queryConditional = builder.queryConditional;
@@ -72,12 +75,12 @@ public final class QueryEnhancedRequest {
      */
     public Builder toBuilder() {
         return builder().queryConditional(queryConditional)
-                        .exclusiveStartKey(exclusiveStartKey)
-                        .scanIndexForward(scanIndexForward)
-                        .limit(limit)
-                        .consistentRead(consistentRead)
-                        .filterExpression(filterExpression)
-                        .attributesToProject(attributesToProject);
+                .exclusiveStartKey(exclusiveStartKey)
+                .scanIndexForward(scanIndexForward)
+                .limit(limit)
+                .consistentRead(consistentRead)
+                .filterExpression(filterExpression)
+                .addNestedAttributesToProject(attributesToProject);
     }
 
     /**
@@ -125,8 +128,23 @@ public final class QueryEnhancedRequest {
 
     /**
      * Returns the list of projected attributes on this request object, or an null if no projection is specified.
+     * This is the single list which has Nested and Non Nested attributes to project.
+     * The Nested Attributes are represented using DOT separator in this List.
+     * Example : foo.bar is represented as "foo.bar" which is indistinguishable from a non-nested attribute
+     * with the name "foo.bar".
+     * Use {@link #nestedAttributesToProject} if you have a use-case that requires discrimination between these two cases.
      */
     public List<String> attributesToProject() {
+        return attributesToProject != null ? attributesToProject.stream()
+                .map(item -> String.join(".", item.elements())).collect(Collectors.toList()) : null;
+    }
+
+    /**
+     * Returns the list of projected attribute names, in the form of {@link NestedAttributeName} objects,
+     * for this request object, or null if no projection is specified.
+     * Refer  {@link NestedAttributeName} .
+     */
+    public List<NestedAttributeName> nestedAttributesToProject() {
         return attributesToProject;
     }
 
@@ -160,9 +178,7 @@ public final class QueryEnhancedRequest {
             return false;
         }
         if (attributesToProject != null
-                ? ! attributesToProject.equals(query.attributesToProject)
-                : query.attributesToProject != null
-        ) {
+                ? !attributesToProject.equals(query.attributesToProject) : query.attributesToProject != null) {
             return false;
         }
         return filterExpression != null ? filterExpression.equals(query.filterExpression) : query.filterExpression == null;
@@ -192,7 +208,7 @@ public final class QueryEnhancedRequest {
         private Integer limit;
         private Boolean consistentRead;
         private Expression filterExpression;
-        private List<String> attributesToProject;
+        private List<NestedAttributeName> attributesToProject;
 
         private Builder() {
         }
@@ -288,18 +304,25 @@ public final class QueryEnhancedRequest {
          * <p>
          * If no attribute names are specified, then all attributes will be returned. If any of the requested attributes
          * are not found, they will not appear in the result.
+         * If there are nested attributes then addNestedAttributesToProject API should be used.
          * </p>
          * <p>
          * For more information, see <a href=
          * "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html"
          * >Accessing Item Attributes</a> in the <i>Amazon DynamoDB Developer Guide</i>.
          * </p>
-         * @param attributesToProject
-         *        A collection of the attributes names to be retrieved from the database.
+         *
+         * @param attributesToProject A collection of the attributes names to be retrieved from the database.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         public Builder attributesToProject(Collection<String> attributesToProject) {
-            this.attributesToProject = attributesToProject != null ? new ArrayList<>(attributesToProject) : null;
+            if (this.attributesToProject != null) {
+                this.attributesToProject.clear();
+            }
+            if (attributesToProject != null) {
+                addNestedAttributesToProject(new ArrayList<>(attributesToProject).stream()
+                        .map(NestedAttributeName::create).collect(Collectors.toList()));
+            }
             return this;
         }
 
@@ -311,14 +334,15 @@ public final class QueryEnhancedRequest {
          * <p>
          * If no attribute names are specified, then all attributes will be returned. If any of the requested attributes
          * are not found, they will not appear in the result.
+         * If there are nested attributes then addNestedAttributesToProject API should be used.
          * </p>
          * <p>
          * For more information, see <a href=
          * "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html"
          * >Accessing Item Attributes</a> in the <i>Amazon DynamoDB Developer Guide</i>.
          * </p>
-         * @param attributesToProject
-         *        One or more  attributes names to be retrieved from the database.
+         *
+         * @param attributesToProject One or more  attributes names to be retrieved from the database.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         public Builder attributesToProject(String... attributesToProject) {
@@ -329,21 +353,85 @@ public final class QueryEnhancedRequest {
          * <p>
          * Adds a single attribute name to be retrieved from the database. This attribute can include
          * scalars, sets, or elements of a JSON document.
+         * If there are nested attributes then addNestedAttributesToProject API should be used.
          * </p>
-         * <p>
-         * For more information, see <a href=
-         * "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html"
-         * >Accessing Item Attributes</a> in the <i>Amazon DynamoDB Developer Guide</i>.
-         * </p>
-         * @param attributeToProject
-         *        An additional single attribute name to be retrieved from the database.
+         *
+         * @param attributeToProject An additional single attribute name to be retrieved from the database.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         public Builder addAttributeToProject(String attributeToProject) {
-            if (attributesToProject == null) {
-                attributesToProject = new ArrayList<>();
+            if (attributeToProject != null) {
+                addNestedAttributesToProject(NestedAttributeName.create(attributeToProject));
             }
-            attributesToProject.add(attributeToProject);
+            return this;
+        }
+
+        /**
+         * <p>
+         * Adds a collection of the NestedAttributeNames to be retrieved from the database. These attributes can include
+         * scalars, sets, or elements of a JSON document.
+         * This method takes arguments in form of NestedAttributeName which supports representing nested attributes.
+         * The NestedAttributeNames is specially created for projecting Nested Attribute names.
+         * The DOT characters are not recognized as nesting separator by DDB thus for Enhanced request NestedAttributeNames
+         * should be created to project Nested Attribute name at various levels.
+         * This method will add new attributes to project to the existing list of attributes to project stored by this builder.
+         *
+         * @param nestedAttributeNames A collection of the attributes names to be retrieved from the database.
+         *                             Nested levels of Attributes can be added using NestedAttributeName class.
+         *                             Refer {@link NestedAttributeName}.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder addNestedAttributesToProject(Collection<NestedAttributeName> nestedAttributeNames) {
+            if (nestedAttributeNames != null) {
+                Validate.noNullElements(nestedAttributeNames,
+                        "nestedAttributeNames list must not contain null elements");
+                if (attributesToProject == null) {
+                    this.attributesToProject = new ArrayList<>(nestedAttributeNames);
+                } else {
+                    this.attributesToProject.addAll(nestedAttributeNames);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * <p>
+         * Adds one or more attribute names to be retrieved from the database. These attributes can include
+         * scalars, sets, or elements of a JSON document.
+         * This method takes arguments in form of NestedAttributeName which supports representing nested attributes.
+         * This method takes arguments in form of NestedAttributeName which supports representing nested attributes.
+         * The NestedAttributeNames is specially created for projecting Nested Attribute names.
+         * The DOT characters are not recognized as nesting separator by DDB thus for Enhanced request NestedAttributeNames
+         * should be created to project Nested Attribute name at various levels.
+         * This method will add new attributes to project to the existing list of attributes to project stored
+         * by this builder.
+         * </p>
+         *
+         * @param nestedAttributeNames One or more  attributesNames to be retrieved from the database.
+         *                             Nested levels of Attributes can be added using NestedAttributeName class.
+         *                             Refer {@link NestedAttributeName}.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder addNestedAttributesToProject(NestedAttributeName... nestedAttributeNames) {
+            return addNestedAttributesToProject(Arrays.asList(nestedAttributeNames));
+        }
+
+        /**
+         * <p>
+         * Adds a single NestedAttributeName to be retrieved from the database. This attribute can include
+         * scalars, sets, or elements of a JSON document.
+         * This method takes arguments in form of NestedAttributeName which supports representing nested attributes.
+         * This method will add new attributes to project to the existing list of attributes to project stored by this builder.
+         * </p>
+         *
+         * @param nestedAttributeName An additional single attribute name to be retrieved from the database.
+         *                            Refer {@link NestedAttributeName}.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder addNestedAttributeToProject(NestedAttributeName nestedAttributeName) {
+            if (nestedAttributeName != null) {
+                addNestedAttributesToProject(Arrays.asList(nestedAttributeName));
+            }
             return this;
         }
 

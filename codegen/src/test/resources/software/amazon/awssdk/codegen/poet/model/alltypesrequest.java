@@ -40,31 +40,32 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                                                                     ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-        .getter(getter(AllTypesRequest::stringMember)).setter(setter(Builder::stringMember))
+        .memberName("StringMember").getter(getter(AllTypesRequest::stringMember)).setter(setter(Builder::stringMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final SdkField<Integer> INTEGER_MEMBER_FIELD = SdkField.<Integer> builder(MarshallingType.INTEGER)
-        .getter(getter(AllTypesRequest::integerMember)).setter(setter(Builder::integerMember))
+        .memberName("IntegerMember").getter(getter(AllTypesRequest::integerMember)).setter(setter(Builder::integerMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("IntegerMember").build()).build();
 
     private static final SdkField<Boolean> BOOLEAN_MEMBER_FIELD = SdkField.<Boolean> builder(MarshallingType.BOOLEAN)
-        .getter(getter(AllTypesRequest::booleanMember)).setter(setter(Builder::booleanMember))
+        .memberName("BooleanMember").getter(getter(AllTypesRequest::booleanMember)).setter(setter(Builder::booleanMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BooleanMember").build()).build();
 
     private static final SdkField<Float> FLOAT_MEMBER_FIELD = SdkField.<Float> builder(MarshallingType.FLOAT)
-        .getter(getter(AllTypesRequest::floatMember)).setter(setter(Builder::floatMember))
+        .memberName("FloatMember").getter(getter(AllTypesRequest::floatMember)).setter(setter(Builder::floatMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("FloatMember").build()).build();
 
     private static final SdkField<Double> DOUBLE_MEMBER_FIELD = SdkField.<Double> builder(MarshallingType.DOUBLE)
-        .getter(getter(AllTypesRequest::doubleMember)).setter(setter(Builder::doubleMember))
+        .memberName("DoubleMember").getter(getter(AllTypesRequest::doubleMember)).setter(setter(Builder::doubleMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("DoubleMember").build()).build();
 
     private static final SdkField<Long> LONG_MEMBER_FIELD = SdkField.<Long> builder(MarshallingType.LONG)
-        .getter(getter(AllTypesRequest::longMember)).setter(setter(Builder::longMember))
+        .memberName("LongMember").getter(getter(AllTypesRequest::longMember)).setter(setter(Builder::longMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
 
     private static final SdkField<List<String>> SIMPLE_LIST_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
+        .memberName("SimpleList")
         .getter(getter(AllTypesRequest::simpleList))
         .setter(setter(Builder::simpleList))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SimpleList").build(),
@@ -78,6 +79,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<List<String>> LIST_OF_ENUMS_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
+        .memberName("ListOfEnums")
         .getter(getter(AllTypesRequest::listOfEnumsAsStrings))
         .setter(setter(Builder::listOfEnumsWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfEnums").build(),
@@ -91,6 +93,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<List<Map<String, String>>> LIST_OF_MAPS_FIELD = SdkField
         .<List<Map<String, String>>> builder(MarshallingType.LIST)
+        .memberName("ListOfMaps")
         .getter(getter(AllTypesRequest::listOfMaps))
         .setter(setter(Builder::listOfMaps))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMaps").build(),
@@ -113,6 +116,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<List<SimpleStruct>> LIST_OF_STRUCTS_FIELD = SdkField
         .<List<SimpleStruct>> builder(MarshallingType.LIST)
+        .memberName("ListOfStructs")
         .getter(getter(AllTypesRequest::listOfStructs))
         .setter(setter(Builder::listOfStructs))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfStructs").build(),
@@ -127,6 +131,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<List<Map<String, String>>> LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD = SdkField
         .<List<Map<String, String>>> builder(MarshallingType.LIST)
+        .memberName("ListOfMapOfEnumToString")
         .getter(getter(AllTypesRequest::listOfMapOfEnumToStringAsStrings))
         .setter(setter(Builder::listOfMapOfEnumToStringWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfEnumToString").build(),
@@ -149,6 +154,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, List<Integer>>> MAP_OF_STRING_TO_INTEGER_LIST_FIELD = SdkField
         .<Map<String, List<Integer>>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToIntegerList")
         .getter(getter(AllTypesRequest::mapOfStringToIntegerList))
         .setter(setter(Builder::mapOfStringToIntegerList))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToIntegerList").build(),
@@ -171,6 +177,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_STRING_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToString")
         .getter(getter(AllTypesRequest::mapOfStringToString))
         .setter(setter(Builder::mapOfStringToString))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToString").build(),
@@ -184,6 +191,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, SimpleStruct>> MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD = SdkField
         .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToSimpleStruct")
         .getter(getter(AllTypesRequest::mapOfStringToSimpleStruct))
         .setter(setter(Builder::mapOfStringToSimpleStruct))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToSimpleStruct").build(),
@@ -198,6 +206,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_ENUM_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToEnum")
         .getter(getter(AllTypesRequest::mapOfEnumToEnumAsStrings))
         .setter(setter(Builder::mapOfEnumToEnumWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToEnum").build(),
@@ -211,6 +220,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_STRING_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToString")
         .getter(getter(AllTypesRequest::mapOfEnumToStringAsStrings))
         .setter(setter(Builder::mapOfEnumToStringWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToString").build(),
@@ -224,6 +234,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_ENUM_FIELD = SdkField
         .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToEnum")
         .getter(getter(AllTypesRequest::mapOfStringToEnumAsStrings))
         .setter(setter(Builder::mapOfStringToEnumWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToEnum").build(),
@@ -237,6 +248,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, SimpleStruct>> MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD = SdkField
         .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToSimpleStruct")
         .getter(getter(AllTypesRequest::mapOfEnumToSimpleStructAsStrings))
         .setter(setter(Builder::mapOfEnumToSimpleStructWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToSimpleStruct").build(),
@@ -251,6 +263,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, List<String>>> MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD = SdkField
         .<Map<String, List<String>>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToListOfEnums")
         .getter(getter(AllTypesRequest::mapOfEnumToListOfEnumsAsStrings))
         .setter(setter(Builder::mapOfEnumToListOfEnumsWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToListOfEnums").build(),
@@ -273,6 +286,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<Map<String, Map<String, String>>> MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD = SdkField
         .<Map<String, Map<String, String>>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToMapOfStringToEnum")
         .getter(getter(AllTypesRequest::mapOfEnumToMapOfStringToEnumAsStrings))
         .setter(setter(Builder::mapOfEnumToMapOfStringToEnumWithStrings))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToMapOfStringToEnum")
@@ -295,11 +309,13 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                                                 .build()).build()).build()).build();
 
     private static final SdkField<Instant> TIMESTAMP_MEMBER_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-        .getter(getter(AllTypesRequest::timestampMember)).setter(setter(Builder::timestampMember))
+        .memberName("TimestampMember").getter(getter(AllTypesRequest::timestampMember))
+        .setter(setter(Builder::timestampMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("TimestampMember").build()).build();
 
     private static final SdkField<StructWithTimestamp> STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD = SdkField
         .<StructWithTimestamp> builder(MarshallingType.SDK_POJO)
+        .memberName("StructWithNestedTimestampMember")
         .getter(getter(AllTypesRequest::structWithNestedTimestampMember))
         .setter(setter(Builder::structWithNestedTimestampMember))
         .constructor(StructWithTimestamp::builder)
@@ -307,17 +323,19 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                              .build()).build();
 
     private static final SdkField<SdkBytes> BLOB_ARG_FIELD = SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-        .getter(getter(AllTypesRequest::blobArg)).setter(setter(Builder::blobArg))
+        .memberName("BlobArg").getter(getter(AllTypesRequest::blobArg)).setter(setter(Builder::blobArg))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobArg").build()).build();
 
     private static final SdkField<StructWithNestedBlobType> STRUCT_WITH_NESTED_BLOB_FIELD = SdkField
-        .<StructWithNestedBlobType> builder(MarshallingType.SDK_POJO).getter(getter(AllTypesRequest::structWithNestedBlob))
-                                                                     .setter(setter(Builder::structWithNestedBlob)).constructor(StructWithNestedBlobType::builder)
+        .<StructWithNestedBlobType> builder(MarshallingType.SDK_POJO).memberName("StructWithNestedBlob")
+                                                                     .getter(getter(AllTypesRequest::structWithNestedBlob)).setter(setter(Builder::structWithNestedBlob))
+                                                                     .constructor(StructWithNestedBlobType::builder)
                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedBlob").build())
                                                                      .build();
 
     private static final SdkField<Map<String, SdkBytes>> BLOB_MAP_FIELD = SdkField
         .<Map<String, SdkBytes>> builder(MarshallingType.MAP)
+        .memberName("BlobMap")
         .getter(getter(AllTypesRequest::blobMap))
         .setter(setter(Builder::blobMap))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobMap").build(),
@@ -331,6 +349,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<List<SdkBytes>> LIST_OF_BLOBS_FIELD = SdkField
         .<List<SdkBytes>> builder(MarshallingType.LIST)
+        .memberName("ListOfBlobs")
         .getter(getter(AllTypesRequest::listOfBlobs))
         .setter(setter(Builder::listOfBlobs))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfBlobs").build(),
@@ -343,12 +362,14 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                                                  .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<RecursiveStructType> RECURSIVE_STRUCT_FIELD = SdkField
-        .<RecursiveStructType> builder(MarshallingType.SDK_POJO).getter(getter(AllTypesRequest::recursiveStruct))
-                                                                .setter(setter(Builder::recursiveStruct)).constructor(RecursiveStructType::builder)
+        .<RecursiveStructType> builder(MarshallingType.SDK_POJO).memberName("RecursiveStruct")
+                                                                .getter(getter(AllTypesRequest::recursiveStruct)).setter(setter(Builder::recursiveStruct))
+                                                                .constructor(RecursiveStructType::builder)
                                                                 .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveStruct").build()).build();
 
     private static final SdkField<BaseType> POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD = SdkField
         .<BaseType> builder(MarshallingType.SDK_POJO)
+        .memberName("PolymorphicTypeWithSubTypes")
         .getter(getter(AllTypesRequest::polymorphicTypeWithSubTypes))
         .setter(setter(Builder::polymorphicTypeWithSubTypes))
         .constructor(BaseType::builder)
@@ -357,6 +378,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final SdkField<SubTypeOne> POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD = SdkField
         .<SubTypeOne> builder(MarshallingType.SDK_POJO)
+        .memberName("PolymorphicTypeWithoutSubTypes")
         .getter(getter(AllTypesRequest::polymorphicTypeWithoutSubTypes))
         .setter(setter(Builder::polymorphicTypeWithoutSubTypes))
         .constructor(SubTypeOne::builder)
@@ -364,7 +386,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                              .build()).build();
 
     private static final SdkField<String> ENUM_TYPE_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-        .getter(getter(AllTypesRequest::enumTypeAsString)).setter(setter(Builder::enumType))
+        .memberName("EnumType").getter(getter(AllTypesRequest::enumTypeAsString)).setter(setter(Builder::enumType))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EnumType").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,

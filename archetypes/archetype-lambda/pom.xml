@@ -20,7 +20,7 @@
     <parent>
         <artifactId>archetypes</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.13.67-SNAPSHOT</version>
+        <version>2.15.16-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>archetype-lambda</artifactId>
@@ -31,7 +31,8 @@
     </description>
 
     <properties>
-        <maven.archetype.version>3.1.2</maven.archetype.version>
+        <maven.archetype.version>3.2.0</maven.archetype.version>
+        <maven.resource.plugin.version>3.2.0</maven.resource.plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
 
@@ -117,6 +118,56 @@
                 <configuration>
                     <skip>true</skip>
                 </configuration>
+            </plugin>
+
+            <!-- workaround to copy the global.vm and serviceMapping.vm to the sub folders
+                 because gloabl.vm is not so global any more
+                 see https://github.com/aws/aws-sdk-java-v2/issues/1981 -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven.resource.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/archetype-resources</outputDirectory>
+                            <encoding>UTF-8</encoding>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/target/classes/</directory>
+                                    <includes>
+                                        <include>global.vm</include>
+                                        <include>serviceMapping.vm</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-resources-to-sub-folder</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/archetype-resources/src/main/java</outputDirectory>
+                            <encoding>UTF-8</encoding>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/target/classes/</directory>
+                                    <includes>
+                                        <include>global.vm</include>
+                                        <include>serviceMapping.vm</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

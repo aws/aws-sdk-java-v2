@@ -86,6 +86,39 @@
           // Empty object
       }
     }
+  },
+  {
+    "description": "Empty payload responses are unmarshalled",
+    "given": {
+      "response": {
+        "status_code": 204
+      }
+    },
+
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+      }
+    }
+  },
+  {
+    "description": "Empty payload blob responses are unmarshalled",
+    "given": {
+      "response": {
+        "status_code": 204
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "OperationWithExplicitPayloadBlob"
+    },
+    "then": {
+      "deserializedAs": {
+      }
+    }
   }
   // TODO header maps, service models supports this but Java SDK does not (not currently exercised)
   // TODO header maps with prefix, services models do not support this, only used by S3

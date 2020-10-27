@@ -138,7 +138,7 @@ public abstract class BaseAsyncCoreMetricsTest {
      */
     void addDelayIfNeeded() {
         try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (InterruptedException ie) {
             ie.printStackTrace();
         }

@@ -17,55 +17,16 @@ package software.amazon.awssdk.codegen.utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.internal.Jackson;
-import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
 public final class ModelLoaderUtils {
 
     private static final Logger log = LoggerFactory.getLogger(ModelLoaderUtils.class);
 
     private ModelLoaderUtils() {
-    }
-
-    public static ServiceModel loadModel(String modelLocation) {
-        return loadConfigurationModel(ServiceModel.class, modelLocation);
-    }
-
-    /**
-     * Deserialize the contents of a given configuration file.
-     *
-     * @param clzz                      Class to deserialize into
-     * @param configurationFileLocation Location of config file to load
-     * @return Marshalled configuration class
-     */
-    public static <T> T loadConfigurationModel(Class<T> clzz, String configurationFileLocation) {
-        log.info("Loading config file {}", configurationFileLocation);
-        InputStream fileContents = null;
-        try {
-            fileContents = getRequiredResourceAsStream(configurationFileLocation);
-            return Jackson.load(clzz, fileContents);
-        } catch (IOException e) {
-            log.error("Failed to read the configuration file {}", configurationFileLocation);
-            throw new RuntimeException(e);
-        } finally {
-            if (fileContents != null) {
-                Utils.closeQuietly(fileContents);
-            }
-        }
-    }
-
-    /**
-     * Return an InputStream of the specified resource, failing if it can't be found.
-     *
-     * @param location Location of resource
-     */
-    public static InputStream getRequiredResourceAsStream(String location) {
-        return Utils.getRequiredResourceAsStream(ModelLoaderUtils.class, location);
     }
 
     public static <T> T loadModel(Class<T> clzz, File file) {

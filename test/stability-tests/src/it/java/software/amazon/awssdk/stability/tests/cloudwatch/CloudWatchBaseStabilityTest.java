@@ -17,24 +17,51 @@ package software.amazon.awssdk.stability.tests.cloudwatch;
 
 
 import java.time.Duration;
-import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.IntFunction;
+
+import org.apache.commons.lang3.RandomUtils;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
+import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
+import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public abstract class CloudWatchBaseStabilityTest extends AwsTestBase {
     protected static final int CONCURRENCY = 50;
     protected static final int TOTAL_RUNS = 3;
 
-    protected static CloudWatchAsyncClient cloudWatchAsyncClient =
-        CloudWatchAsyncClient.builder()
-                             .httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(CONCURRENCY))
-                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                             .overrideConfiguration(b -> b
-                                 // Retry at test level
-                                 .retryPolicy(RetryPolicy.none())
-                                 .apiCallTimeout(Duration.ofMinutes(1)))
-                             .build();
 
+
+    protected abstract CloudWatchAsyncClient getTestClient();
+    protected abstract String getNamespace();
+
+    protected void putMetrics() {
+        List<MetricDatum> metrics = new ArrayList<>();
+        for (int i = 0; i < 20 ; i++) {
+            metrics.add(MetricDatum.builder()
+                    .metricName("test")
+                    .values(RandomUtils.nextDouble(1d, 1000d))
+                    .build());
+        }
+
+        IntFunction<CompletableFuture<?>> futureIntFunction = i ->
+                getTestClient().putMetricData(b -> b.namespace(getNamespace())
+                        .metricData(metrics));
+
+        runCloudWatchTest("putMetrics_lowTpsLongInterval", futureIntFunction);
+    }
+
+
+    private void runCloudWatchTest(String testName, IntFunction<CompletableFuture<?>> futureIntFunction) {
+        StabilityTestRunner.newRunner()
+                .testName("CloudWatchAsyncStabilityTest." + testName)
+                .futureFactory(futureIntFunction)
+                .totalRuns(TOTAL_RUNS)
+                .requestCountPerRun(CONCURRENCY)
+                .delaysBetweenEachRun(Duration.ofSeconds(6))
+                .run();
+    }
 
 }

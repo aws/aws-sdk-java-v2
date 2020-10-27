@@ -37,6 +37,23 @@ public final class InterceptorTestUtils {
     private InterceptorTestUtils() {
     }
 
+    public static SdkHttpFullRequest sdkHttpFullRequest() {
+        return SdkHttpFullRequest.builder()
+                                 .uri(URI.create("http://localhost:8080"))
+                                 .method(SdkHttpMethod.GET)
+                                 .build();
+    }
+
+    public static SdkHttpRequest sdkHttpRequest(URI customUri) {
+        return SdkHttpFullRequest.builder()
+                                 .protocol(customUri.getScheme())
+                                 .host(customUri.getHost())
+                                 .port(customUri.getPort())
+                                 .method(SdkHttpMethod.GET)
+                                 .encodedPath(customUri.getPath())
+                                 .build();
+    }
+
     public static Context.ModifyHttpResponse modifyHttpResponse(SdkRequest request, SdkHttpResponse sdkHttpResponse) {
 
         Publisher<ByteBuffer> publisher = new EmptyPublisher<>();
@@ -114,13 +131,6 @@ public final class InterceptorTestUtils {
                 return request;
             }
         };
-    }
-
-    public static SdkHttpFullRequest sdkHttpFullRequest() {
-        return SdkHttpFullRequest.builder()
-                                 .uri(URI.create("http://localhost:8080"))
-                                 .method(SdkHttpMethod.GET)
-                                 .build();
     }
 
     public static Context.ModifyResponse modifyResponseContext(SdkRequest request, SdkResponse response, SdkHttpResponse sdkHttpResponse) {

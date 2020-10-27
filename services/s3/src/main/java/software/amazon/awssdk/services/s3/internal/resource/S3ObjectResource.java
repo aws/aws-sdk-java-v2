@@ -18,30 +18,20 @@ package software.amazon.awssdk.services.s3.internal.resource;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An {@link S3Resource} that represents an S3 object.
  */
 @SdkInternalApi
-public final class S3ObjectResource
-    implements S3Resource, ToCopyableBuilder<S3ObjectResource.Builder, S3ObjectResource> {
+public final class S3ObjectResource implements S3Resource {
 
     private static final S3ResourceType S3_RESOURCE_TYPE = S3ResourceType.OBJECT;
-
-    private final String partition;
-    private final String region;
-    private final String accountId;
-    private final String bucketName;
+    private final S3Resource parentS3Resource;
     private final String key;
 
     private S3ObjectResource(Builder b) {
-        this.bucketName = Validate.paramNotBlank(b.bucketName, "bucketName");
+        this.parentS3Resource = validateParentS3Resource(b.parentS3Resource);
         this.key = Validate.paramNotBlank(b.key, "key");
-        this.partition = Validate.paramNotBlank(b.partition, "partition");
-        this.region = b.region;
-        this.accountId = b.accountId;
     }
 
     /**
@@ -67,7 +57,7 @@ public final class S3ObjectResource
      */
     @Override
     public Optional<String> partition() {
-        return Optional.ofNullable(this.partition);
+        return parentS3Resource.partition();
     }
 
     /**
@@ -77,7 +67,7 @@ public final class S3ObjectResource
      */
     @Override
     public Optional<String> region() {
-        return Optional.ofNullable(this.region);
+        return parentS3Resource.region();
     }
 
     /**
@@ -86,15 +76,7 @@ public final class S3ObjectResource
      */
     @Override
     public Optional<String> accountId() {
-        return Optional.ofNullable(this.accountId);
-    }
-
-    /**
-     * Gets the name of the bucket associated with the S3 object.
-     * @return the name of the bucket associated with the S3 object.
-     */
-    public String bucketName() {
-        return this.bucketName;
+        return parentS3Resource.accountId();
     }
 
     /**
@@ -103,6 +85,11 @@ public final class S3ObjectResource
      */
     public String key() {
         return this.key;
+    }
+
+    @Override
+    public Optional<S3Resource> parentS3Resource() {
+        return Optional.of(parentS3Resource);
     }
 
     @Override
@@ -116,104 +103,39 @@ public final class S3ObjectResource
 
         S3ObjectResource that = (S3ObjectResource) o;
 
-        if (partition != null ? ! partition.equals(that.partition) : that.partition != null) {
+        if (parentS3Resource != null ? !parentS3Resource.equals(that.parentS3Resource) : that.parentS3Resource != null) {
             return false;
         }
-        if (region != null ? ! region.equals(that.region) : that.region != null) {
-            return false;
-        }
-        if (accountId != null ? ! accountId.equals(that.accountId) : that.accountId != null) {
-            return false;
-        }
-        if (! bucketName.equals(that.bucketName)) {
-            return false;
-        }
-        return key.equals(that.key);
+        return key != null ? key.equals(that.key) : that.key == null;
     }
 
     @Override
     public int hashCode() {
-        int result = partition != null ? partition.hashCode() : 0;
-        result = 31 * result + (region != null ? region.hashCode() : 0);
-        result = 31 * result + (accountId != null ? accountId.hashCode() : 0);
-        result = 31 * result + bucketName.hashCode();
-        result = 31 * result + key.hashCode();
+        int result = parentS3Resource != null ? parentS3Resource.hashCode() : 0;
+        result = 31 * result + (key != null ? key.hashCode() : 0);
         return result;
     }
 
-    @Override
-    public Builder toBuilder() {
-        return builder()
-            .partition(partition)
-            .region(region)
-            .accountId(accountId)
-            .bucketName(bucketName)
-            .key(key);
+    private S3Resource validateParentS3Resource(S3Resource parentS3Resource) {
+        Validate.paramNotNull(parentS3Resource, "parentS3Resource");
+
+        if (!S3ResourceType.ACCESS_POINT.toString().equals(parentS3Resource.type())
+            && !S3ResourceType.BUCKET.toString().equals(parentS3Resource.type())) {
+            throw new IllegalArgumentException("Invalid 'parentS3Resource' type. An S3 object resource must be " +
+                                               "associated with either a bucket or access-point parent resource.");
+        }
+
+        return parentS3Resource;
     }
 
     /**
      * A builder for {@link S3ObjectResource} objects.
      */
-    public static final class Builder implements CopyableBuilder<Builder, S3ObjectResource> {
-        private String partition;
-        private String region;
-        private String accountId;
-        private String bucketName;
+    public static final class Builder {
+        private S3Resource parentS3Resource;
         private String key;
 
         private Builder() {
-        }
-
-        public void setPartition(String partition) {
-            partition(partition);
-        }
-
-        /**
-         * The AWS partition associated with the S3 object.
-         */
-        public Builder partition(String partition) {
-            this.partition = partition;
-            return this;
-        }
-
-        public void setRegion(String region) {
-            region(region);
-        }
-
-        /**
-         * The AWS region associated with the S3 object. This property is optional.
-         */
-        public Builder region(String region) {
-            this.region = region;
-            return this;
-        }
-
-        public void setAccountId(String accountId) {
-            accountId(accountId);
-        }
-
-        /**
-         * The AWS account ID associated with the S3 object. This property is optional.
-         */
-        public Builder accountId(String accountId) {
-            this.accountId = accountId;
-            return this;
-        }
-
-        public void setBucketName(String bucketName) {
-            bucketName(bucketName);
-        }
-
-        /**
-         * The name of the S3 bucket associated with this S3 object.
-         */
-        public Builder bucketName(String bucketName) {
-            this.bucketName = bucketName;
-            return this;
-        }
-
-        public void setKey(String key) {
-            key(key);
         }
 
         /**
@@ -225,9 +147,17 @@ public final class S3ObjectResource
         }
 
         /**
+         * The S3 resource this object is associated with (contained within). Only {@link S3BucketResource} and
+         * {@link S3AccessPointResource} are valid parent resource types.
+         */
+        public Builder parentS3Resource(S3Resource parentS3Resource) {
+            this.parentS3Resource = parentS3Resource;
+            return this;
+        }
+
+        /**
          * Builds an instance of {@link S3BucketResource}.
          */
-        @Override
         public S3ObjectResource build() {
             return new S3ObjectResource(this);
         }

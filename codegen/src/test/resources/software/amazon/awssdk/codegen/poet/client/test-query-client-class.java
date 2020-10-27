@@ -13,6 +13,8 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -27,6 +29,8 @@ import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputResponse;
 import software.amazon.awssdk.services.query.model.InvalidInputException;
+import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredRequest;
+import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.query.model.QueryException;
 import software.amazon.awssdk.services.query.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.query.model.StreamingInputOperationResponse;
@@ -34,8 +38,11 @@ import software.amazon.awssdk.services.query.model.StreamingOutputOperationReque
 import software.amazon.awssdk.services.query.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.query.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
+import software.amazon.awssdk.services.query.waiters.QueryWaiter;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Internal implementation of {@link QueryClient}.
@@ -45,6 +52,8 @@ import software.amazon.awssdk.services.query.transform.StreamingOutputOperationR
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultQueryClient implements QueryClient {
+    private static final Logger log = Logger.loggerFor(DefaultQueryClient.class);
+
     private final SyncClientHandler clientHandler;
 
     private final AwsQueryProtocolFactory protocolFactory;
@@ -85,8 +94,6 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                      AwsServiceException, SdkClientException, QueryException {
-        String hostPrefix = "foo-";
-        String resolvedHostExpression = "foo-";
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
             .createResponseHandler(APostOperationResponse::builder);
@@ -99,6 +106,8 @@ final class DefaultQueryClient implements QueryClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
+            String hostPrefix = "foo-";
+            String resolvedHostExpression = "foo-";
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                                              .withOperationName("APostOperation").withResponseHandler(responseHandler)
@@ -153,6 +162,54 @@ final class DefaultQueryClient implements QueryClient {
                              .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationWithOutputRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the OperationWithChecksumRequired operation.
+     *
+     * @param operationWithChecksumRequiredRequest
+     * @return Result of the OperationWithChecksumRequired operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws QueryException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample QueryClient.OperationWithChecksumRequired
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithChecksumRequired"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public OperationWithChecksumRequiredResponse operationWithChecksumRequired(
+        OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
+                                                                                          SdkClientException, QueryException {
+
+        HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory
+            .createResponseHandler(OperationWithChecksumRequiredResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithChecksumRequired");
+
+            return clientHandler
+                .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
+                             .withOperationName("OperationWithChecksumRequired")
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withInput(operationWithChecksumRequiredRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
+                                                    HttpChecksumRequired.create())
+                             .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -296,5 +353,10 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public void close() {
         clientHandler.close();
+    }
+
+    @Override
+    public QueryWaiter waiter() {
+        return QueryWaiter.builder().client(this).build();
     }
 }
