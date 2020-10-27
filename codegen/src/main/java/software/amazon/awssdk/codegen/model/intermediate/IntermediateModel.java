@@ -43,8 +43,6 @@ public final class IntermediateModel {
 
     private CustomizationConfig customizationConfig;
 
-    private Map<String, AuthorizerModel> customAuthorizers;
-
     private Optional<OperationModel> endpointOperation;
 
     private Map<String, PaginatorDefinition> paginators;
@@ -70,7 +68,7 @@ public final class IntermediateModel {
                              Map<String, ShapeModel> shapes,
                              CustomizationConfig customizationConfig) {
         this(metadata, operations, shapes, customizationConfig, null,
-             Collections.emptyMap(), Collections.emptyMap(), null, Collections.emptyMap());
+             Collections.emptyMap(), null, Collections.emptyMap());
     }
 
     public IntermediateModel(
@@ -79,7 +77,6 @@ public final class IntermediateModel {
         Map<String, ShapeModel> shapes,
         CustomizationConfig customizationConfig,
         OperationModel endpointOperation,
-        Map<String, AuthorizerModel> customAuthorizers,
         Map<String, PaginatorDefinition> paginators,
         NamingStrategy namingStrategy,
         Map<String, WaiterDefinition> waiters) {
@@ -88,7 +85,6 @@ public final class IntermediateModel {
         this.shapes = shapes;
         this.customizationConfig = customizationConfig;
         this.endpointOperation = Optional.ofNullable(endpointOperation);
-        this.customAuthorizers = customAuthorizers;
         this.paginators = paginators;
         this.namingStrategy = namingStrategy;
         this.waiters = waiters;
@@ -215,13 +211,9 @@ public final class IntermediateModel {
     }
 
     public String getSdkBaseResponseFqcn() {
-        if (metadata.getProtocol() == Protocol.API_GATEWAY) {
-            return "software.amazon.awssdk.opensdk.BaseResult";
-        } else {
-            return String.format("%s<%s>",
-                                 AwsResponse.class.getName(),
-                                 getResponseMetadataClassName());
-        }
+        return String.format("%s<%s>",
+                             AwsResponse.class.getName(),
+                             getResponseMetadataClassName());
     }
 
     private String getResponseMetadataClassName() {
@@ -233,14 +225,6 @@ public final class IntermediateModel {
         return getOperations().values().stream()
                               .filter(v -> v.getInputShape().isSimpleMethod())
                               .collect(Collectors.toList());
-    }
-
-    public Map<String, AuthorizerModel> getCustomAuthorizers() {
-        return customAuthorizers;
-    }
-
-    public void setCustomAuthorizers(Map<String, AuthorizerModel> customAuthorizers) {
-        this.customAuthorizers = customAuthorizers;
     }
 
     public Optional<OperationModel> getEndpointOperation() {

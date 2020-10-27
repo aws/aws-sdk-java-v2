@@ -335,8 +335,6 @@ public class SyncClientClass implements ClassSpec {
             case CBOR:
             case ION:
                 return new JsonProtocolSpec(poetExtensions, model);
-            case API_GATEWAY:
-                throw new UnsupportedOperationException("Not yet supported.");
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());
         }

@@ -511,7 +511,6 @@ public class Metadata {
         return protocol == Protocol.CBOR ||
                protocol == Protocol.ION ||
                protocol == Protocol.AWS_JSON ||
-               protocol == Protocol.API_GATEWAY ||
                protocol == Protocol.REST_JSON;
     }
 
@@ -531,7 +530,6 @@ public class Metadata {
      */
     public static boolean isNotRestProtocol(String protocol) {
         switch (Protocol.fromValue(protocol)) {
-            case API_GATEWAY:
             case REST_JSON:
             case REST_XML:
                 return false;

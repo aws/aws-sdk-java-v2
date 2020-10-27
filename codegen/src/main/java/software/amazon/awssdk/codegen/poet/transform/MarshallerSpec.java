@@ -128,8 +128,6 @@ public class MarshallerSpec implements ClassSpec {
             case REST_XML:
                 return new XmlMarshallerSpec(intermediateModel, shapeModel);
 
-            case API_GATEWAY:
-                throw new UnsupportedOperationException("Not yet supported.");
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());
         }
