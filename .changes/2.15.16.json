@@ -1,0 +1,18 @@
+{
+    "version": "2.15.16",
+    "date": "2020-10-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue machine learning transforms now support encryption-at-rest for labels and trained models."
+        }
+    ]
+}

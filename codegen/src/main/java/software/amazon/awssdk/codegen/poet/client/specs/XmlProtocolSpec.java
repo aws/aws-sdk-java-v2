@@ -170,6 +170,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                      .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
                      .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"))
                      .add(".withCombinedResponseHandler(responseHandler)\n")
+                     .add(hostPrefixExpression(opModel))
                      .add(".withMetricCollector(apiCallMetricCollector)\n")
                      .add(asyncRequestBody(opModel))
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));

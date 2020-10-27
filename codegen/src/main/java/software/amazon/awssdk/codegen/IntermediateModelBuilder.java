@@ -32,11 +32,9 @@ import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.codegen.model.intermediate.AuthorizerModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.Operation;
@@ -96,8 +94,6 @@ public class IntermediateModelBuilder {
         Map<String, ShapeModel> shapes = new HashMap<>();
 
         Map<String, OperationModel> operations = new TreeMap<>(new AddOperations(this).constructOperations());
-        Map<String, AuthorizerModel> authorizers =
-            new HashMap<>(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());
 
         // Iterate through every operation and build an 'endpointOperation' if at least one operation that supports
         // endpoint discovery is found. If -any operations that require- endpoint discovery are found, then the flag
@@ -133,7 +129,7 @@ public class IntermediateModelBuilder {
 
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
-            customConfig, endpointOperation, authorizers, paginators.getPagination(), namingStrategy,
+            customConfig, endpointOperation, paginators.getPagination(), namingStrategy,
             waiters.getWaiters());
 
         customization.postprocess(fullModel);
@@ -151,7 +147,6 @@ public class IntermediateModelBuilder {
                                                                trimmedShapes,
                                                                fullModel.getCustomizationConfig(),
                                                                endpointOperation,
-                                                               fullModel.getCustomAuthorizers(),
                                                                fullModel.getPaginators(),
                                                                namingStrategy,
                                                                fullModel.getWaiters());
@@ -210,33 +205,15 @@ public class IntermediateModelBuilder {
                                                               operation.getOperationName()));
                  }
 
-                 if (model.getMetadata().getProtocol() == Protocol.API_GATEWAY) {
-                     linkAuthorizationToRequestShapeForApiGatewayProtocol(model, c2jOperation, shape);
-                 } else {
-                     linkAuthorizationToRequestShapeForAwsProtocol(c2jOperation.getAuthtype(), shape);
-                 }
+                 linkAuthorizationToRequestShapeForAwsProtocol(c2jOperation.getAuthtype(), shape);
              });
     }
 
-    private void linkAuthorizationToRequestShapeForApiGatewayProtocol(IntermediateModel model,
-                                                                      Operation c2jOperation,
-                                                                      ShapeModel shape) {
-        if (AuthType.CUSTOM.equals(c2jOperation.getAuthtype())) {
-            AuthorizerModel auth = model.getCustomAuthorizers().get(c2jOperation.getAuthorizer());
-            if (auth == null) {
-                throw new RuntimeException(String.format("Required custom auth not defined: %s",
-                                                         c2jOperation.getAuthorizer()));
-            }
-            shape.setRequestSignerClassFqcn(model.getMetadata().getAuthPolicyPackageName() + '.' +
-                                            auth.getInterfaceName());
-        } else if (AuthType.IAM.equals(c2jOperation.getAuthtype())) {
-            model.getMetadata().setRequiresIamSigners(true);
-            // TODO IamRequestSigner does not exist
-            shape.setRequestSignerClassFqcn("software.amazon.awssdk.opensdk.protect.auth.IamRequestSigner");
-        }
-    }
-
     private void linkAuthorizationToRequestShapeForAwsProtocol(AuthType authType, ShapeModel shape) {
+        if (authType == null) {
+            return;
+        }
+
         switch (authType) {
             case V4:
                 shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4Signer");
@@ -245,8 +222,6 @@ public class IntermediateModelBuilder {
                 shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner");
                 break;
             case NONE:
-            case IAM:
-                // just ignore this, this is the default value but only applicable to APIG generated clients
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported authtype for AWS Request: " + authType);

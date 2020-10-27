@@ -75,12 +75,6 @@ public class DefaultNamingStrategyTest {
     }
 
     @Test
-    public void canConvertAuthorizerStartingWithNumber() {
-        String anInvalidClassName = "35-authorizer-implementation";
-        assertThat(strat.getAuthorizerClassName(anInvalidClassName)).isEqualTo("I35AuthorizerImplementation");
-    }
-
-    @Test
     public void enumNamesConvertCorrectly() {
         validateConversion("Twilio-Sms", "TWILIO_SMS");
         validateConversion("t2.micro", "T2_MICRO");
