@@ -1,0 +1,6 @@
+{
+    "type": "deprecation",
+    "category": "AWS SSO OIDC",
+    "contributor": "",
+    "description": "Renamed/deprecated 'error_description' fields in exceptions in favor of 'errorDescription'."
+}
