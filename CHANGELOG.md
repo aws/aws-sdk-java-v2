@@ -1,3 +1,12 @@
+# __2.15.16__ __2020-10-27__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue machine learning transforms now support encryption-at-rest for labels and trained models.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.15.15__ __2020-10-26__
 ## __AWS SDK for Java v2__
   - ### Features
