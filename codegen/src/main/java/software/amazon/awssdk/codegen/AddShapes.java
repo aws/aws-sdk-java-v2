@@ -159,7 +159,6 @@ abstract class AddShapes {
                                                variableType + " type.");
         }
 
-
         MemberModel memberModel = new MemberModel();
 
         memberModel.withC2jName(c2jMemberName)
@@ -443,7 +442,7 @@ abstract class AddShapes {
                                                  mapValueModel));
 
         } else if (memberC2jShape.getEnumValues() != null) { // enum values
-            memberModel.withEnumType(getNamingStrategy().getJavaClassName(memberC2jShapeName));
+            memberModel.withEnumType(getNamingStrategy().getShapeClassName(memberC2jShapeName));
         }
     }
 
