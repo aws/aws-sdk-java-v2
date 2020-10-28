@@ -25,16 +25,16 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.services.s3.internal.S3EndpointUtils;
+import software.amazon.awssdk.services.s3.internal.signing.S3SigningUtils;
 
 @SdkInternalApi
 public final class SignerOverrideInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
-        return S3EndpointUtils.internalSignerOverride(context.request())
-                       .map(signer -> setRequestOverrideSignerIfNotExist(context.request(), signer, executionAttributes))
-                       .orElseGet(context::request);
+        return S3SigningUtils.internalSignerOverride(context.request())
+                             .map(signer -> setRequestOverrideSignerIfNotExist(context.request(), signer, executionAttributes))
+                             .orElseGet(context::request);
     }
 
     private SdkRequest setRequestOverrideSignerIfNotExist(SdkRequest request, Signer signer,
