@@ -20,11 +20,11 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
+import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.utils.Lazy;
 
 /**
@@ -43,16 +43,17 @@ public final class S3SigningUtils {
         return SIGV4A_SIGNER.getValue();
     }
 
-    public static Optional<Signer> internalSignerOverride(SdkRequest originalRequest) {
-        String bucketName = originalRequest.getValueForField("Bucket", String.class).orElse(null);
+    public static Optional<Signer> internalSignerOverride(S3Request originalRequest) {
+        return originalRequest.getValueForField("Bucket", String.class)
+                              .filter(S3EndpointUtils::isArn)
+                              .flatMap(S3SigningUtils::getS3ResourceSigner);
+    }
 
-        if (bucketName != null && S3EndpointUtils.isArn(bucketName)) {
-            S3Resource resolvedS3Resource = S3ArnConverter.create().convertArn(Arn.fromString(bucketName));
-            return resolvedS3Resource.parentS3Resource()
-                                     .map(S3Resource::overrideSigner)
-                                     .orElseGet(resolvedS3Resource::overrideSigner);
-        }
-        return Optional.empty();
+    private static Optional<Signer> getS3ResourceSigner(String name) {
+        S3Resource resolvedS3Resource = S3ArnConverter.create().convertArn(Arn.fromString(name));
+        return resolvedS3Resource.parentS3Resource()
+                                 .map(S3Resource::overrideSigner)
+                                 .orElseGet(resolvedS3Resource::overrideSigner);
     }
 
     private static Signer initializeV4aSigner() {
