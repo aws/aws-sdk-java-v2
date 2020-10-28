@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -83,29 +85,44 @@ public class ExecutionInterceptorChain {
                                                               ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
         for (ExecutionInterceptor interceptor : interceptors) {
-
             AsyncRequestBody asyncRequestBody = interceptor.modifyAsyncHttpContent(result, executionAttributes).orElse(null);
-
-            SdkHttpFullRequest sdkHttpFullRequest = (SdkHttpFullRequest) context.httpRequest();
-            if (!result.requestBody().isPresent() && sdkHttpFullRequest.contentStreamProvider().isPresent()) {
-                long contentLength = Long.parseLong(sdkHttpFullRequest.firstMatchingHeader("Content-Length").orElse("0"));
-                String contentType = sdkHttpFullRequest.firstMatchingHeader("Content-Type").orElse("");
-                RequestBody requestBody = RequestBody.fromContentProvider(sdkHttpFullRequest.contentStreamProvider().get(),
-                                                                          contentLength,
-                                                                          contentType);
-                result = result.toBuilder().requestBody(requestBody).build();
-            }
-
             RequestBody requestBody = interceptor.modifyHttpContent(result, executionAttributes).orElse(null);
-
             SdkHttpRequest interceptorResult = interceptor.modifyHttpRequest(result, executionAttributes);
             validateInterceptorResult(result.httpRequest(), interceptorResult, interceptor, "modifyHttpRequest");
+
+            result = applySdkHttpFullRequestHack(result);
 
             result = result.copy(b -> b.httpRequest(interceptorResult)
                                        .asyncRequestBody(asyncRequestBody)
                                        .requestBody(requestBody));
         }
         return result;
+    }
+
+    private InterceptorContext applySdkHttpFullRequestHack(InterceptorContext context) {
+        // Someone thought it would be a great idea to allow interceptors to return SdkHttpFullRequest to modify the payload
+        // instead of using the modifyPayload method. This is for backwards-compatibility with those interceptors.
+        // TODO: Update interceptors to use the proper payload-modifying method so that this code path is only used for older
+        // client versions. Maybe if we ever decide to break @SdkProtectedApis (if we stop using Jackson?!) we can even remove
+        // this hack!
+        SdkHttpFullRequest sdkHttpFullRequest = (SdkHttpFullRequest) context.httpRequest();
+
+        if (context.requestBody().isPresent()) {
+            return context;
+        }
+
+        Optional<ContentStreamProvider> contentStreamProvider = sdkHttpFullRequest.contentStreamProvider();
+
+        if (!contentStreamProvider.isPresent()) {
+            return context;
+        }
+
+        long contentLength = Long.parseLong(sdkHttpFullRequest.firstMatchingHeader("Content-Length").orElse("0"));
+        String contentType = sdkHttpFullRequest.firstMatchingHeader("Content-Type").orElse("");
+        RequestBody requestBody = RequestBody.fromContentProvider(contentStreamProvider.get(),
+                                                                  contentLength,
+                                                                  contentType);
+        return context.toBuilder().requestBody(requestBody).build();
     }
 
     public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {

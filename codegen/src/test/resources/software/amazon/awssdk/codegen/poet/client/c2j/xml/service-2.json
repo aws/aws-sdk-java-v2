@@ -1,0 +1,193 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "xml-service",
+    "globalEndpoint": "xml-service.amazonaws.com",
+    "protocol": "rest-xml",
+    "serviceAbbreviation": "xml Service",
+    "serviceFullName": "Some Service That Uses xml Protocol",
+    "serviceId":"Xml Service",
+    "signatureVersion": "v4",
+    "uid": "xml-service-2010-05-08",
+    "xmlNamespace": "https://xml-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "OperationWithChecksumRequired": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "httpChecksumRequired": true
+    },
+    "APostOperation": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "endpoint": {
+        "hostPrefix": "foo-"
+      },
+      "input": {
+        "shape": "APostOperationRequest"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        }
+      ],
+      "documentation": "<p>Performs a post operation to the xml service and has no output</p>"
+    },
+    "APostOperationWithOutput": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "APostOperationWithOutputRequest"
+      },
+      "output": {
+        "shape": "APostOperationWithOutputResponse",
+        "resultWrapper": "APostOperationWithOutputResult"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        }
+      ],
+      "documentation": "<p>Performs a post operation to the xml service and has modelled output</p>"
+    },
+    "StreamingInputOperation": {
+      "name": "StreamingInputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingInputOperation"
+      },
+      "input": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "documentation": "Some operation with a streaming input"
+    },
+    "StreamingOutputOperation": {
+      "name": "StreamingOutputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingOutputOperation"
+      },
+      "output": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "documentation": "Some operation with a streaming output"
+    }
+  },
+  "shapes": {
+    "APostOperationRequest": {
+      "type": "structure",
+      "required": [
+        "SomeNestedMember"
+      ],
+      "members": {
+        "SomeNestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>a member that has nested members</p>"
+        },
+        "OptionalMember": {
+          "shape": "dateType",
+          "documentation": "<p>An optional member</p>"
+        }
+      }
+    },
+    "APostOperationWithOutputRequest": {
+      "type": "structure",
+      "required": [
+        "SomeNestedMember"
+      ],
+      "members": {
+        "SomeNestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>a member that has nested members</p>"
+        },
+        "OptionalMember": {
+          "shape": "dateType",
+          "documentation": "<p>An optional member</p>"
+        }
+      }
+    },
+    "APostOperationWithOutputResponse": {
+      "type": "structure",
+      "required": [
+        "NestedMember"
+      ],
+      "members": {
+        "NestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>A structure containing nested members</p>"
+        }
+      },
+      "documentation": "<p>Contains the response to a successful <a>APostOperationWithOutput</a> request. </p>"
+    },
+    "InvalidInputException": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "invalidInputMessage"
+        }
+      },
+      "documentation": "<p>The request was rejected because an invalid or out-of-range value was supplied for an input parameter.</p>",
+      "error": {
+        "code": "InvalidInput",
+        "httpStatusCode": 400,
+        "senderFault": true
+      },
+      "exception": true
+    },
+    "nestedMember": {
+      "type": "structure",
+      "required": [
+        "SubMember",
+        "CreateDate"
+      ],
+      "members": {
+        "SubMember": {
+          "shape": "subMember",
+          "documentation": "<p>A sub-member</p>"
+        },
+        "CreateDate": {
+          "shape": "dateType",
+          "documentation": "<p>The date and time, in <a href=\"http://www.iso.org/iso/iso8601\">ISO 8601 date-time format</a>, when the member was created.</p>"
+        }
+      },
+      "documentation": "<p>A shape with nested sub-members"
+    },
+    "subMember": {
+      "type": "string",
+      "max": 63,
+      "min": 3,
+      "pattern": "^[a-z0-9](([a-z0-9]|-(?!-))*[a-z0-9])?$"
+    },
+    "dateType": {
+      "type": "timestamp"
+    },
+    "invalidInputMessage": {
+      "type": "string"
+    },
+    "StreamType": {
+      "type": "blob",
+      "streaming": true
+    },
+    "StructureWithStreamingMember": {
+      "type": "structure",
+      "members": {
+        "StreamingMember": {
+          "shape": "StreamType",
+          "documentation": "This be a stream"
+        }
+      },
+      "payload": "StreamingMember"
+    }
+  },
+  "documentation": "A service that is implemented using the xml protocol"
+}
