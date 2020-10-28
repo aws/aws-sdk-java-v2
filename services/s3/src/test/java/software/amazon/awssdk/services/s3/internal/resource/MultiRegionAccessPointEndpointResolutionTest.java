@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.resource;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;

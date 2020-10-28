@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.utils;
+package software.amazon.awssdk.services.s3;
 
 
 import static org.assertj.core.api.Assertions.assertThat;

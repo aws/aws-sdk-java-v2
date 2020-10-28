@@ -1,0 +1,36 @@
+{
+    "version": "2.15.10",
+    "date": "2020-10-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "description": "An Admin can now update the launch role associated with a Provisioned Product. Admins and End Users can now view the launch role associated with a Provisioned Product."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "This Patch Manager release now supports Common Vulnerabilities and Exposure (CVE) Ids for missing packages via the DescribeInstancePatches API."
+        },
+        {
+            "type": "feature",
+            "category": "HTTP Client SPI",
+            "description": "Calling the SdkHttpFullRequest uri() builder method, query parameters of the provided URI will be kept.\nThis can be useful in case you want to provide an already fully formed URI like a callback URI."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "description": "Amazon CloudFront adds support for Origin Shield."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "description": "Documentation updates for docdb"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "description": "Documentation updates for Cryo"
+        }
+    ]
+}

@@ -219,4 +219,11 @@
         <Method name="execute"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+
+    <!-- For forward-compatibility with this having members (i.e. the checksum type) -->
+    <Match>
+        <Class name="software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired"/>
+        <Method name="create"/>
+        <Bug pattern="ISC_INSTANTIATE_STATIC_CLASS"/>
+    </Match>
 </FindBugsFilter>

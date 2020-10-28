@@ -762,6 +762,284 @@
       "documentation":"<p/>",
       "exception":true
     },
+    "ConfluenceAttachmentConfiguration":{
+      "type":"structure",
+      "members":{
+        "CrawlAttachments":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether Amazon Kendra indexes attachments to the pages and blogs in the Confluence data source. </p>"
+        },
+        "AttachmentFieldMappings":{
+          "shape":"ConfluenceAttachmentFieldMappingsList",
+          "documentation":"<p>Defines how attachment metadata fields should be mapped to index fields. Before you can map a field, you must first create an index field with a matching type using the console or the <code>UpdateIndex</code> operation.</p> <p>If you specify the <code>AttachentFieldMappings</code> parameter, you must specify at least one field mapping.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the attachment settings for the Confluence data source. Attachment settings are optional, if you don't specify settings attachments, Amazon Kendra won't index them.</p>"
+    },
+    "ConfluenceAttachmentFieldMappingsList":{
+      "type":"list",
+      "member":{"shape":"ConfluenceAttachmentToIndexFieldMapping"},
+      "max":11,
+      "min":1
+    },
+    "ConfluenceAttachmentFieldName":{
+      "type":"string",
+      "enum":[
+        "AUTHOR",
+        "CONTENT_TYPE",
+        "CREATED_DATE",
+        "DISPLAY_URL",
+        "FILE_SIZE",
+        "ITEM_TYPE",
+        "PARENT_ID",
+        "SPACE_KEY",
+        "SPACE_NAME",
+        "URL",
+        "VERSION"
+      ]
+    },
+    "ConfluenceAttachmentToIndexFieldMapping":{
+      "type":"structure",
+      "members":{
+        "DataSourceFieldName":{
+          "shape":"ConfluenceAttachmentFieldName",
+          "documentation":"<p>The name of the field in the data source. </p> <p>You must first create the index field using the operation. </p>"
+        },
+        "DateFieldFormat":{
+          "shape":"DataSourceDateFieldFormat",
+          "documentation":"<p>The format for date fields in the data source. If the field specified in <code>DataSourceFieldName</code> is a date field you must specify the date format. If the field is not a date field, an exception is thrown.</p>"
+        },
+        "IndexFieldName":{
+          "shape":"IndexFieldName",
+          "documentation":"<p>The name of the index field to map to the Confluence data source field. The index field type must match the Confluence field type.</p>"
+        }
+      },
+      "documentation":"<p>Defines the mapping between a field in the Confluence data source to a Amazon Kendra index field.</p> <p>You must first create the index field using the operation. </p>"
+    },
+    "ConfluenceBlogConfiguration":{
+      "type":"structure",
+      "members":{
+        "BlogFieldMappings":{
+          "shape":"ConfluenceBlogFieldMappingsList",
+          "documentation":"<p>Defines how blog metadata fields should be mapped to index fields. Before you can map a field, you must first create an index field with a matching type using the console or the <code>UpdateIndex</code> operation.</p> <p>If you specify the <code>BlogFieldMappings</code> parameter, you must specify at least one field mapping.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the blog settings for the Confluence data source. Blogs are always indexed unless filtered from the index by the <code>ExclusionPatterns</code> or <code>InclusionPatterns</code> fields in the data type.</p>"
+    },
+    "ConfluenceBlogFieldMappingsList":{
+      "type":"list",
+      "member":{"shape":"ConfluenceBlogToIndexFieldMapping"},
+      "max":9,
+      "min":1
+    },
+    "ConfluenceBlogFieldName":{
+      "type":"string",
+      "enum":[
+        "AUTHOR",
+        "DISPLAY_URL",
+        "ITEM_TYPE",
+        "LABELS",
+        "PUBLISH_DATE",
+        "SPACE_KEY",
+        "SPACE_NAME",
+        "URL",
+        "VERSION"
+      ]
+    },
+    "ConfluenceBlogToIndexFieldMapping":{
+      "type":"structure",
+      "members":{
+        "DataSourceFieldName":{
+          "shape":"ConfluenceBlogFieldName",
+          "documentation":"<p>The name of the field in the data source. </p>"
+        },
+        "DateFieldFormat":{
+          "shape":"DataSourceDateFieldFormat",
+          "documentation":"<p>The format for date fields in the data source. If the field specified in <code>DataSourceFieldName</code> is a date field you must specify the date format. If the field is not a date field, an exception is thrown.</p>"
+        },
+        "IndexFieldName":{
+          "shape":"IndexFieldName",
+          "documentation":"<p>The name of the index field to map to the Confluence data source field. The index field type must match the Confluence field type.</p>"
+        }
+      },
+      "documentation":"<p>Defines the mapping between a blog field in the Confluence data source to a Amazon Kendra index field.</p> <p>You must first create the index field using the operation. </p>"
+    },
+    "ConfluenceConfiguration":{
+      "type":"structure",
+      "required":[
+        "ServerUrl",
+        "SecretArn",
+        "Version"
+      ],
+      "members":{
+        "ServerUrl":{
+          "shape":"Url",
+          "documentation":"<p>The URL of your Confluence instance. Use the full URL of the server. For example, <code>https://server.example.com:port/</code>. You can also use an IP address, for example, <code>https://192.168.1.113/</code>.</p>"
+        },
+        "SecretArn":{
+          "shape":"SecretArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an AWS Secrets Manager secret that contains the key/value pairs required to connect to your Confluence server. The secret must contain a JSON structure with the following keys:</p> <ul> <li> <p>username - The user name of a user with administrative privileges for the Confluence server.</p> </li> <li> <p>password - The password associated with the user logging in to the Confluence server.</p> </li> </ul>"
+        },
+        "Version":{
+          "shape":"ConfluenceVersion",
+          "documentation":"<p>Specifies the version of the Confluence installation that you are connecting to.</p>"
+        },
+        "SpaceConfiguration":{
+          "shape":"ConfluenceSpaceConfiguration",
+          "documentation":"<p>Specifies configuration information for indexing Confluence spaces.</p>"
+        },
+        "PageConfiguration":{
+          "shape":"ConfluencePageConfiguration",
+          "documentation":"<p>Specifies configuration information for indexing Confluence pages.</p>"
+        },
+        "BlogConfiguration":{
+          "shape":"ConfluenceBlogConfiguration",
+          "documentation":"<p> Specifies configuration information for indexing Confluence blogs.</p>"
+        },
+        "AttachmentConfiguration":{
+          "shape":"ConfluenceAttachmentConfiguration",
+          "documentation":"<p>Specifies configuration information for indexing attachments to Confluence blogs and pages.</p>"
+        },
+        "VpcConfiguration":{
+          "shape":"DataSourceVpcConfiguration",
+          "documentation":"<p>Specifies the information for connecting to an Amazon VPC.</p>"
+        },
+        "InclusionPatterns":{
+          "shape":"DataSourceInclusionsExclusionsStrings",
+          "documentation":"<p>A list of regular expression patterns that apply to a URL on the Confluence server. An inclusion pattern can apply to a blog post, a page, a space, or an attachment. Items that match the patterns are included in the index. Items that don't match the pattern are excluded from the index. If an item matches both an inclusion pattern and an exclusion pattern, the item isn't included in the index.</p>"
+        },
+        "ExclusionPatterns":{
+          "shape":"DataSourceInclusionsExclusionsStrings",
+          "documentation":"<p>A list of regular expression patterns that apply to a URL on the Confluence server. An exclusion pattern can apply to a blog post, a page, a space, or an attachment. Items that match the pattern are excluded from the index. Items that don't match the pattern are included in the index. If a item matches both an exclusion pattern and an inclusion pattern, the item isn't included in the index.</p>"
+        }
+      },
+      "documentation":"<p>Provides configuration information for data sources that connect to Confluence.</p>"
+    },
+    "ConfluencePageConfiguration":{
+      "type":"structure",
+      "members":{
+        "PageFieldMappings":{
+          "shape":"ConfluencePageFieldMappingsList",
+          "documentation":"<p>Defines how page metadata fields should be mapped to index fields. Before you can map a field, you must first create an index field with a matching type using the console or the <code>UpdateIndex</code> operation.</p> <p>If you specify the <code>PageFieldMappings</code> parameter, you must specify at least one field mapping.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the page settings for the Confluence data source.</p>"
+    },
+    "ConfluencePageFieldMappingsList":{
+      "type":"list",
+      "member":{"shape":"ConfluencePageToIndexFieldMapping"},
+      "max":12,
+      "min":1
+    },
+    "ConfluencePageFieldName":{
+      "type":"string",
+      "enum":[
+        "AUTHOR",
+        "CONTENT_STATUS",
+        "CREATED_DATE",
+        "DISPLAY_URL",
+        "ITEM_TYPE",
+        "LABELS",
+        "MODIFIED_DATE",
+        "PARENT_ID",
+        "SPACE_KEY",
+        "SPACE_NAME",
+        "URL",
+        "VERSION"
+      ]
+    },
+    "ConfluencePageToIndexFieldMapping":{
+      "type":"structure",
+      "members":{
+        "DataSourceFieldName":{
+          "shape":"ConfluencePageFieldName",
+          "documentation":"<p>The name of the field in the data source. </p>"
+        },
+        "DateFieldFormat":{
+          "shape":"DataSourceDateFieldFormat",
+          "documentation":"<p>The format for date fields in the data source. If the field specified in <code>DataSourceFieldName</code> is a date field you must specify the date format. If the field is not a date field, an exception is thrown.</p>"
+        },
+        "IndexFieldName":{
+          "shape":"IndexFieldName",
+          "documentation":"<p>The name of the index field to map to the Confluence data source field. The index field type must match the Confluence field type.</p>"
+        }
+      },
+      "documentation":"<p>Defines the mapping between a field in the Confluence data source to a Amazon Kendra index field.</p> <p>You must first create the index field using the operation. </p>"
+    },
+    "ConfluenceSpaceConfiguration":{
+      "type":"structure",
+      "members":{
+        "CrawlPersonalSpaces":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether Amazon Kendra should index personal spaces. Users can add restrictions to items in personal spaces. If personal spaces are indexed, queries without user context information may return restricted items from a personal space in their results. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html\">Filtering on user context</a>.</p>"
+        },
+        "CrawlArchivedSpaces":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether Amazon Kendra should index archived spaces.</p>"
+        },
+        "IncludeSpaces":{
+          "shape":"ConfluenceSpaceList",
+          "documentation":"<p>A list of space keys for Confluence spaces. If you include a key, the blogs, documents, and attachments in the space are indexed. Spaces that aren't in the list aren't indexed. A space in the list must exist. Otherwise, Amazon Kendra logs an error when the data source is synchronized. If a space is in both the <code>IncludeSpaces</code> and the <code>ExcludeSpaces</code> list, the space is excluded.</p>"
+        },
+        "ExcludeSpaces":{
+          "shape":"ConfluenceSpaceList",
+          "documentation":"<p>A list of space keys of Confluence spaces. If you include a key, the blogs, documents, and attachments in the space are not indexed. If a space is in both the <code>ExcludeSpaces</code> and the <code>IncludeSpaces</code> list, the space is excluded.</p>"
+        },
+        "SpaceFieldMappings":{
+          "shape":"ConfluenceSpaceFieldMappingsList",
+          "documentation":"<p>Defines how space metadata fields should be mapped to index fields. Before you can map a field, you must first create an index field with a matching type using the console or the <code>UpdateIndex</code> operation.</p> <p>If you specify the <code>SpaceFieldMappings</code> parameter, you must specify at least one field mapping.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the configuration for indexing Confluence spaces.</p>"
+    },
+    "ConfluenceSpaceFieldMappingsList":{
+      "type":"list",
+      "member":{"shape":"ConfluenceSpaceToIndexFieldMapping"},
+      "max":4,
+      "min":1
+    },
+    "ConfluenceSpaceFieldName":{
+      "type":"string",
+      "enum":[
+        "DISPLAY_URL",
+        "ITEM_TYPE",
+        "SPACE_KEY",
+        "URL"
+      ]
+    },
+    "ConfluenceSpaceIdentifier":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"^\\P{C}*$"
+    },
+    "ConfluenceSpaceList":{
+      "type":"list",
+      "member":{"shape":"ConfluenceSpaceIdentifier"},
+      "min":1
+    },
+    "ConfluenceSpaceToIndexFieldMapping":{
+      "type":"structure",
+      "members":{
+        "DataSourceFieldName":{
+          "shape":"ConfluenceSpaceFieldName",
+          "documentation":"<p>The name of the field in the data source. </p>"
+        },
+        "DateFieldFormat":{
+          "shape":"DataSourceDateFieldFormat",
+          "documentation":"<p>The format for date fields in the data source. If the field specified in <code>DataSourceFieldName</code> is a date field you must specify the date format. If the field is not a date field, an exception is thrown.</p>"
+        },
+        "IndexFieldName":{
+          "shape":"IndexFieldName",
+          "documentation":"<p>The name of the index field to map to the Confluence data source field. The index field type must match the Confluence field type.</p>"
+        }
+      },
+      "documentation":"<p>Defines the mapping between a field in the Confluence data source to a Amazon Kendra index field.</p> <p>You must first create the index field using the operation. </p>"
+    },
+    "ConfluenceVersion":{
+      "type":"string",
+      "enum":["SERVER"]
+    },
     "ConnectionConfiguration":{
       "type":"structure",
       "required":[
@@ -810,9 +1088,7 @@
       "required":[
         "Name",
         "IndexId",
-        "Type",
-        "Configuration",
-        "RoleArn"
+        "Type"
       ],
       "members":{
         "Name":{
@@ -829,7 +1105,7 @@
         },
         "Configuration":{
           "shape":"DataSourceConfiguration",
-          "documentation":"<p>The data source connector configuration information that is required to access the repository.</p>"
+          "documentation":"<p>The connector configuration information that is required to access the repository.</p> <p>You can't specify the <code>Configuration</code> parameter when the <code>Type</code> parameter is set to <code>CUSTOM</code>. If you do, you receive a <code>ValidationException</code> exception.</p> <p>The <code>Configuration</code> parameter is required for all other data sources.</p>"
         },
         "Description":{
           "shape":"Description",
@@ -837,15 +1113,20 @@
         },
         "Schedule":{
           "shape":"ScanSchedule",
-          "documentation":"<p>Sets the frequency that Amazon Kendra will check the documents in your repository and update the index. If you don't set a schedule Amazon Kendra will not periodically update the index. You can call the <code>StartDataSourceSyncJob</code> operation to update the index.</p>"
+          "documentation":"<p>Sets the frequency that Amazon Kendra will check the documents in your repository and update the index. If you don't set a schedule Amazon Kendra will not periodically update the index. You can call the <code>StartDataSourceSyncJob</code> operation to update the index.</p> <p>You can't specify the <code>Schedule</code> parameter when the <code>Type</code> parameter is set to <code>CUSTOM</code>. If you do, you receive a <code>ValidationException</code> exception.</p>"
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access the data source. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM Roles for Amazon Kendra</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a role with permission to access the data source. For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/iam-roles.html\">IAM Roles for Amazon Kendra</a>.</p> <p>You can't specify the <code>RoleArn</code> parameter when the <code>Type</code> parameter is set to <code>CUSTOM</code>. If you do, you receive a <code>ValidationException</code> exception.</p> <p>The <code>RoleArn</code> parameter is required for all other data sources.</p>"
         },
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A list of key-value pairs that identify the data source. You can use the tags to identify and organize your resources and to control access to resources.</p>"
+        },
+        "ClientToken":{
+          "shape":"ClientTokenName",
+          "documentation":"<p>A token that you provide to identify the request to create a data source. Multiple calls to the <code>CreateDataSource</code> operation with the same client token will create only one data source.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -895,6 +1176,11 @@
         "FileFormat":{
           "shape":"FaqFileFormat",
           "documentation":"<p>The format of the input file. You can choose between a basic CSV format, a CSV format that includes customs attributes in a header, and a JSON format that includes custom attributes.</p> <p>The format must match the format of the file stored in the S3 bucket identified in the <code>S3Path</code> parameter.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/kendra/latest/dg/in-creating-faq.html\">Adding questions and answers</a>.</p>"
+        },
+        "ClientToken":{
+          "shape":"ClientTokenName",
+          "documentation":"<p>A token that you provide to identify the request to create a FAQ. Multiple calls to the <code>CreateFaqRequest</code> operation with the same client token will create only one FAQ. </p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -924,7 +1210,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>An IAM role that gives Amazon Kendra permissions to access your Amazon CloudWatch logs and metrics. This is also the role used when you use the <code>BatchPutDocument</code> operation to index documents from an Amazon S3 bucket.</p>"
+          "documentation":"<p>An AWS Identity and Access Management (IAM) role that gives Amazon Kendra permissions to access your Amazon CloudWatch logs and metrics. This is also the role used when you use the <code>BatchPutDocument</code> operation to index documents from an Amazon S3 bucket.</p>"
         },
         "ServerSideEncryptionConfiguration":{
           "shape":"ServerSideEncryptionConfiguration",
@@ -936,7 +1222,7 @@
         },
         "ClientToken":{
           "shape":"ClientTokenName",
-          "documentation":"<p>A token that you provide to identify the request to create an index. Multiple calls to the <code>CreateIndex</code> operation with the same client token will create only one index.”</p>",
+          "documentation":"<p>A token that you provide to identify the request to create an index. Multiple calls to the <code>CreateIndex</code> operation with the same client token will create only one index.</p>",
           "idempotencyToken":true
         },
         "Tags":{
@@ -980,6 +1266,10 @@
         "ServiceNowConfiguration":{
           "shape":"ServiceNowConfiguration",
           "documentation":"<p>Provides configuration for data sources that connect to ServiceNow instances.</p>"
+        },
+        "ConfluenceConfiguration":{
+          "shape":"ConfluenceConfiguration",
+          "documentation":"<p>Provides configuration information for connecting to a Confluence data source.</p>"
         }
       },
       "documentation":"<p>Configuration information for a Amazon Kendra data source.</p>"
@@ -1010,7 +1300,7 @@
     },
     "DataSourceInclusionsExclusionsStringsMember":{
       "type":"string",
-      "max":50,
+      "max":150,
       "min":1
     },
     "DataSourceName":{
@@ -1203,7 +1493,9 @@
         "DATABASE",
         "SALESFORCE",
         "ONEDRIVE",
-        "SERVICENOW"
+        "SERVICENOW",
+        "CUSTOM",
+        "CONFLUENCE"
       ]
     },
     "DataSourceVpcConfiguration":{
@@ -1528,7 +1820,7 @@
     "Description":{
       "type":"string",
       "max":1000,
-      "min":1,
+      "min":0,
       "pattern":"^\\P{C}*$"
     },
     "Document":{
@@ -2558,9 +2850,13 @@
           "shape":"DataSourceInclusionsExclusionsStrings",
           "documentation":"<p>A list of S3 prefixes for the documents that should be included in the index.</p>"
         },
+        "InclusionPatterns":{
+          "shape":"DataSourceInclusionsExclusionsStrings",
+          "documentation":"<p>A list of glob patterns for documents that should be indexed. If a document that matches an inclusion pattern also matches an exclusion pattern, the document is not indexed.</p> <p>For more information about glob patterns, see <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob (programming)</a> in <i>Wikipedia</i>.</p>"
+        },
         "ExclusionPatterns":{
           "shape":"DataSourceInclusionsExclusionsStrings",
-          "documentation":"<p>A list of glob patterns for documents that should not be indexed. If a document that matches an inclusion prefix also matches an exclusion pattern, the document is not indexed.</p> <p>For more information about glob patterns, see <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob (programming)</a> in <i>Wikipedia</i>.</p>"
+          "documentation":"<p>A list of glob patterns for documents that should not be indexed. If a document that matches an inclusion prefix or inclusion pattern also matches an exclusion pattern, the document is not indexed.</p> <p>For more information about glob patterns, see <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob (programming)</a> in <i>Wikipedia</i>.</p>"
         },
         "DocumentsMetadataConfiguration":{"shape":"DocumentsMetadataConfiguration"},
         "AccessControlListConfiguration":{

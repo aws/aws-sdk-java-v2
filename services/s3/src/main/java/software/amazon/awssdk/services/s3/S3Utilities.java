@@ -36,7 +36,8 @@ import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.internal.S3EndpointUtils;
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverContext;
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverFactory;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -156,12 +157,17 @@ public final class S3Utilities {
                                                             .key(getUrlRequest.key())
                                                             .build();
 
-        SdkHttpRequest httpRequest = S3EndpointUtils.applyEndpointConfiguration(marshalledRequest,
-                                                                                getObjectRequest,
-                                                                                resolvedRegion,
-                                                                                s3Configuration,
-                                                                                endpointOverridden)
-                                                    .sdkHttpRequest();
+        S3EndpointResolverContext resolverContext = S3EndpointResolverContext.builder()
+                                                                             .request(marshalledRequest)
+                                                                             .originalRequest(getObjectRequest)
+                                                                             .region(resolvedRegion)
+                                                                             .endpointOverridden(endpointOverridden)
+                                                                             .serviceConfiguration(s3Configuration)
+                                                                             .build();
+
+        SdkHttpRequest httpRequest = S3EndpointResolverFactory.getEndpointResolver(getObjectRequest.bucket())
+                                                              .applyEndpointConfiguration(resolverContext)
+                                                              .sdkHttpRequest();
 
         try {
             return httpRequest.getUri().toURL();

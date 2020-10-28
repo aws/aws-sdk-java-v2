@@ -1,3 +1,303 @@
+# __2.15.16__ __2020-10-27__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue machine learning transforms now support encryption-at-rest for labels and trained models.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+# __2.15.15__ __2020-10-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports indexing data from Confluence Server.
+
+## __Amazon Neptune__
+  - ### Features
+    - This feature enables custom endpoints for Amazon Neptune clusters. Custom endpoints simplify connection management when clusters contain instances with different capacities and configuration settings.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release enables customers to bring custom images for use with SageMaker Studio notebooks.
+
+# __2.15.14__ __2020-10-23__
+## __AWS MediaTailor__
+  - ### Features
+    - MediaTailor now supports ad marker passthrough for HLS. Use AdMarkerPassthrough to pass EXT-X-CUE-IN, EXT-X-CUE-OUT, and EXT-X-SPLICEPOINT-SCTE35 from origin manifests into personalized manifests.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Support description on columns.
+
+# __2.15.13__ __2020-10-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Documentation updates for servicecatalog
+
+## __Access Analyzer__
+  - ### Features
+    - API Documentation updates for IAM Access Analyzer.
+
+## __Amazon Appflow__
+  - ### Features
+    - Salesforce connector creation with customer provided client id and client secret, incremental pull configuration, salesforce upsert write operations and execution ID when on-demand flows are executed.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - SNS now supports a new class of topics: FIFO (First-In-First-Out). FIFO topics provide strictly-ordered, deduplicated, filterable, encryptable, many-to-many messaging at scale.
+
+# __2.15.12__ __2020-10-21__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release adds support for specifying port overrides on AWS Global Accelerator endpoint groups.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue crawlers now support incremental crawls for the Amazon Simple Storage Service (Amazon S3) data source.
+
+## __AWS Organizations__
+  - ### Features
+    - AWS Organizations renamed the 'master account' to 'management account'.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - This release adds custom data sources: a new data source type that gives you full control of the documents added, modified or deleted during a data source sync while providing run history metrics.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront adds support for managing the public keys for signed URLs and signed cookies directly in CloudFront (it no longer requires the AWS root account).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - instance-storage-info nvmeSupport added to DescribeInstanceTypes API
+
+# __2.15.11__ __2020-10-20__
+## __AWS AppSync__
+  - ### Features
+    - Documentation updates to AppSync to correct several typos.
+
+## __AWS Batch__
+  - ### Features
+    - Adding evaluateOnExit to job retry strategies.
+
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - EnvironmentStatus enum update to include Aborting, LinkingFrom and LinkingTo
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where requestBody and asyncRequestBody were not visible in ExecutionInterceptor.afterMarshalling.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix for handling special characters in attribute names with WRITE_IF_NOT_EXISTS update behavior
+
+## __Amazon S3__
+  - ### Features
+    - Moved the logic for calculating the Content-MD5 checksums from s3 to sdk-core. As always, make sure to use a version of 'sdk-core' greater than or equal to your version of 's3'. If you use an old version of 'sdk-core' and a new version of 's3', you will receive errors that Content-MD5 is required.
+
+  - ### Bugfixes
+    - Fixed an issue where metrics were not being collected for Amazon S3 (or other XML services)
+
+# __2.15.10__ __2020-10-19__
+## __AWS Backup__
+  - ### Features
+    - Documentation updates for Cryo
+
+## __AWS Service Catalog__
+  - ### Features
+    - An Admin can now update the launch role associated with a Provisioned Product. Admins and End Users can now view the launch role associated with a Provisioned Product.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront adds support for Origin Shield.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Documentation updates for docdb
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This Patch Manager release now supports Common Vulnerabilities and Exposure (CVE) Ids for missing packages via the DescribeInstancePatches API.
+
+## __HTTP Client SPI__
+  - ### Features
+    - Calling the SdkHttpFullRequest uri() builder method, query parameters of the provided URI will be kept.
+      This can be useful in case you want to provide an already fully formed URI like a callback URI.
+
+# __2.15.9__ __2020-10-16__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - The AWS Elemental MediaLive APIs and SDKs now support the ability to transfer the ownership of MediaLive Link devices across AWS accounts.
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for AWS Organizations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+# __2.15.8__ __2020-10-15__
+## __AWS Budgets__
+  - ### Features
+    - This release introduces AWS Budgets Actions, allowing you to define an explicit response(or set of responses) to take when your budget exceeds it's action threshold.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release improves email validation for subscriptions on the SDK endpoints.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - When creating Endpoints, Replication Instances, and Replication Tasks, the feature provides you the option to specify friendly name to the resources.
+
+## __AWS Glue__
+  - ### Features
+    - API Documentation updates for Glue Get-Plan API
+
+## __AWS Ground Station__
+  - ### Features
+    - Adds error message attribute to DescribeContact DataflowDetails
+
+## __AWS IoT__
+  - ### Features
+    - Add new variable, lastStatusChangeDate, to DescribeDomainConfiguration API
+
+## __AWS Lambda Maven Archetype__
+  - ### Bugfixes
+    - Fixed an issue where archetype generation failed with latest maven-archetype-plugin. See [#1981](https://github.com/aws/aws-sdk-java-v2/issues/1981)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for plus (+) character in profile names
+    - Updated service endpoint metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add support to associate VPC Security Groups at server creation.
+
+## __AWS X-Ray__
+  - ### Features
+    - Enhancing CreateGroup, UpdateGroup, GetGroup and GetGroups APIs to support configuring X-Ray Insights Notifications. Adding TraceLimit information into X-Ray BatchGetTraces API response.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for the ApplyArchiveRule api in IAM Access Analyzer. The ApplyArchiveRule api allows users to apply an archive rule retroactively to existing findings in an analyzer.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API adds support for pausing and resuming classification jobs. Also, sensitive data findings now include location data for up to 15 occurrences of sensitive data.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This SDK Release introduces new API (DetectProtectiveEquipment) for Amazon Rekognition. This release also adds ServiceQuotaExceeded exception to Amazon Rekognition IndexFaces API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Return tags for all resources in the output of DescribeDBInstances, DescribeDBSnapshots, DescribeDBClusters, and DescribeDBClusterSnapshots API operations.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This Patch Manager release now supports searching for available packages from Amazon Linux and Amazon Linux 2 via the DescribeAvailablePatches API.
+
+## __Amazon WorkMail__
+  - ### Features
+    - Add CreateOrganization and DeleteOrganization API operations.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for WorkSpaces
+
+# __2.15.7__ __2020-10-09__
+## __AWS Amplify__
+  - ### Features
+    - Performance mode optimizes for faster hosting performance by keeping content cached at the edge for a longer interval - enabling can make code changes can take up to 10 minutes to roll out.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - WAV audio output. Extracting ancillary captions in MP4 file inputs. Priority on channels feeding a multiplex (higher priority channels will tend to have higher video quality).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This new API takes either a ProvisonedProductId or a ProvisionedProductName, along with a list of 1 or more output keys and responds with the (key,value) pairs of those outputs.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release introduces a new Amazon EKS error code: "ClusterUnreachable"
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - We added new APIs to allow customers to better manage their device shipping. You can check if your shipping label expired, generate a new label, and tell us that you received or shipped your job.
+
+# __2.15.6__ __2020-10-08__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - You can now create hierarchical cost categories by choosing "Cost Category" as a dimension. You can also track the status of your cost category updates to your cost and usage information.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Amazon EventBridge (formerly called CloudWatch Events) adds support for target Dead-letter Queues and custom retry policies.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS EC2 RevokeSecurityGroupIngress and RevokeSecurityGroupEgress APIs will return IpPermissions which do not match with any existing IpPermissions for security groups in default VPC and EC2-Classic.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Amazon EventBridge adds support for target Dead Letter Queues (DLQs) and custom retry policies.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release provides location information for the manifest validation files.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Supports a new parameter to set the max allocated storage in gigabytes for restore database instance from S3 and restore database instance to a point in time APIs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release enables Sagemaker customers to convert Tensorflow and PyTorch models to CoreML (ML Model) format.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Documentation updates for SNS.
+
+# __2.15.5__ __2020-10-07__
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze EC2 instance-level EBS read and write operations, and throughput when generating recommendations for your EC2 instances and Auto Scaling groups.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Enables Rightsizing Recommendations to analyze and present EC2 instance-level EBS metrics when generating recommendations. Returns AccessDeniedException if the account is not opted into Rightsizing
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - AWS Elemental MediaPackage provides access logs that capture detailed information about requests sent to a customer's MediaPackage channel.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - This release introduces User and UserGroup to allow customers to have access control list of the Redis resources for AWS ElastiCache. This release also adds support for Outposts for AWS ElastiCache.
+
 # __2.15.4__ __2020-10-06__
 ## __AWS Database Migration Service__
   - ### Features
@@ -4759,6 +5059,7 @@
 ## __Amazon Elastic Compute Cloud__
   - ### Features
     - This release of Amazon Elastic Compute Cloud (Amazon EC2) introduces support for Amazon Elastic Block Store (Amazon EBS) fast snapshot restores.
+    - Upgrades to Instance Metadata Service version 2 (IMDS v2). With IMDS v2, a session token is used to make requests for EC2 instance metadata and credentials.
 
 ## __Amazon FSx__
   - ### Features

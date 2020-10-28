@@ -42,7 +42,7 @@ public final class ProfileFileReader {
 
     private static final Pattern EMPTY_LINE = Pattern.compile("^[\t ]*$");
 
-    private static final Pattern VALID_IDENTIFIER = Pattern.compile("^[A-Za-z0-9_\\-/.%@:]*$");
+    private static final Pattern VALID_IDENTIFIER = Pattern.compile("^[A-Za-z0-9_\\-/.%@:\\+]*$");
 
     private ProfileFileReader() {
     }
@@ -214,7 +214,7 @@ public final class ProfileFileReader {
         // If the profile name includes invalid characters, it should be ignored.
         if (!isValidIdentifier(profileName)) {
             log.warn(() -> "Ignoring profile '" + standardizedProfileName + "' on line " + state.currentLineNumber + " because " +
-                           "it was not alphanumeric with only these special characters: - / . % @ _ :");
+                           "it was not alphanumeric with only these special characters: - / . % @ _ : +");
             return Optional.empty();
         }
 
@@ -257,7 +257,7 @@ public final class ProfileFileReader {
         // If the profile name includes invalid characters, it should be ignored.
         if (!isValidIdentifier(propertyKey)) {
             log.warn(() -> "Ignoring property '" + propertyKey + "' on line " + state.currentLineNumber + " because " +
-                           "its name was not alphanumeric with only these special characters: - / . % @ _ :");
+                           "its name was not alphanumeric with only these special characters: - / . % @ _ : +");
             return Optional.empty();
         }
 

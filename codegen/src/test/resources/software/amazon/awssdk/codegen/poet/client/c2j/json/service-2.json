@@ -13,6 +13,14 @@
     "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
   },
   "operations": {
+    "OperationWithChecksumRequired": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "httpChecksumRequired": true
+    },
     "APostOperation": {
       "name": "APostOperation",
       "http": {
