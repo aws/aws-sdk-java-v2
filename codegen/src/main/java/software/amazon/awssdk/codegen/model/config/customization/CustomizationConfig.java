@@ -119,10 +119,6 @@ public class CustomizationConfig {
 
     private Map<String, String> modelMarshallerDefaultValueSupplier = new HashMap<>();
 
-    private boolean useAutoConstructList = true;
-
-    private boolean useAutoConstructMap = true;
-
     /**
      * Custom Retry Policy
      */
@@ -350,22 +346,6 @@ public class CustomizationConfig {
 
     public void setModelMarshallerDefaultValueSupplier(Map<String, String> modelMarshallerDefaultValueSupplier) {
         this.modelMarshallerDefaultValueSupplier = modelMarshallerDefaultValueSupplier;
-    }
-
-    public boolean isUseAutoConstructList() {
-        return useAutoConstructList;
-    }
-
-    public void setUseAutoConstructList(boolean useAutoConstructList) {
-        this.useAutoConstructList = useAutoConstructList;
-    }
-
-    public boolean isUseAutoConstructMap() {
-        return useAutoConstructMap;
-    }
-
-    public void setUseAutoConstructMap(boolean useAutoConstructMap) {
-        this.useAutoConstructMap = useAutoConstructMap;
     }
 
     public String getCustomRetryPolicy() {

@@ -13,8 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.codegenerationjsonrpccustomized.model;
+package software.amazon.awssdk.services.protocolrestjson.model;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
@@ -69,7 +70,7 @@ public class MapCopierTest {
         Map<String, String> mapOfEnumToEnum = new HashMap<>();
         mapOfEnumToEnum.put("foo", "bar");
         Map<EnumType, EnumType> copy = MapOfEnumToEnumCopier.copyStringToEnum(mapOfEnumToEnum);
-        assertThat(copy).isEmpty();
+        Assertions.assertThat(copy).isEmpty();
     }
 
     @Test
@@ -77,6 +78,6 @@ public class MapCopierTest {
         Map<String, String> mapOfEnumToEnum = new HashMap<>();
         mapOfEnumToEnum.put(EnumType.ENUM_VALUE1.toString(), "bar");
         Map<EnumType, EnumType> copy = MapOfEnumToEnumCopier.copyStringToEnum(mapOfEnumToEnum);
-        assertThat(copy).hasSize(1);
+        Assertions.assertThat(copy).hasSize(1);
     }
 }

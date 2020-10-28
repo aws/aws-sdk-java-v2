@@ -20,7 +20,6 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.service.AuthType;
-import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
@@ -38,21 +37,11 @@ final class AddMetadata {
 
     public static Metadata constructMetadata(ServiceModel serviceModel,
                                              CustomizationConfig customizationConfig) {
-
         Metadata metadata = new Metadata();
 
         NamingStrategy namingStrategy = new DefaultNamingStrategy(serviceModel, customizationConfig);
         ServiceMetadata serviceMetadata = serviceModel.getMetadata();
-
-        String serviceName;
-        String rootPackageName;
-
-        if (serviceMetadata.getProtocol().equals(Protocol.API_GATEWAY.getValue())) {
-            throw new UnsupportedOperationException("Java SDK V2 doesn't support api-gateway protocol yet");
-        } else {
-            serviceName = namingStrategy.getServiceName();
-            rootPackageName = AWS_PACKAGE_PREFIX;
-        }
+        String serviceName = namingStrategy.getServiceName();
 
         metadata.withApiVersion(serviceMetadata.getApiVersion())
                 .withAsyncClient(String.format(Constant.ASYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
@@ -62,7 +51,7 @@ final class AddMetadata {
                 .withBaseBuilderInterface(String.format(Constant.BASE_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
                 .withBaseBuilder(String.format(Constant.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withDocumentation(serviceModel.getDocumentation())
-                .withRootPackageName(rootPackageName)
+                .withRootPackageName(AWS_PACKAGE_PREFIX)
                 .withClientPackageName(namingStrategy.getClientPackageName(serviceName))
                 .withModelPackageName(namingStrategy.getModelPackageName(serviceName))
                 .withTransformPackageName(namingStrategy.getTransformPackageName(serviceName))
@@ -84,13 +73,10 @@ final class AddMetadata {
                 .withEndpointPrefix(serviceMetadata.getEndpointPrefix())
                 .withSigningName(serviceMetadata.getSigningName())
                 .withAuthType(AuthType.fromValue(serviceMetadata.getSignatureVersion()))
-                .withRequiresApiKey(requiresApiKey(serviceModel))
                 .withUid(serviceMetadata.getUid())
                 .withServiceId(serviceMetadata.getServiceId())
-                .withSupportsH2(supportsH2(serviceMetadata));
-
-        String jsonVersion = getJsonVersion(metadata, serviceMetadata);
-        metadata.setJsonVersion(jsonVersion);
+                .withSupportsH2(supportsH2(serviceMetadata))
+                .withJsonVersion(getJsonVersion(metadata, serviceMetadata));
 
         return metadata;
     }
@@ -106,15 +92,5 @@ final class AddMetadata {
         } else {
             return serviceMetadata.getJsonVersion();
         }
-    }
-
-    /**
-     * If any operation requires an API key we generate a setter on the builder.
-     *
-     * @return True if any operation requires an API key. False otherwise.
-     */
-    private static boolean requiresApiKey(ServiceModel serviceModel) {
-        return serviceModel.getOperations().values().stream()
-                           .anyMatch(Operation::requiresApiKey);
     }
 }
