@@ -1,0 +1,42 @@
+{
+    "version": "2.15.17",
+    "date": "2020-10-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release adds support for GG-Managed Job Namespace"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "contributor": "",
+            "description": "Documentation update for Amazon WorkMail"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": null,
+            "description": "Fixed an issue where marshalling of a modeled object was not honoring the has* method on a list/map."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "AWS Nitro Enclaves general availability. Added support to RunInstances for creating enclave-enabled EC2 instances. New APIs to associate an ACM certificate with an IAM role, for enclave consumption."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": null,
+            "description": "Fixed an issue where the toString/equals/hashCode on a modeled object were not honoring the has* methods for lists and maps."
+        }
+    ]
+}
