@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "contributor": "",
+    "description": "Adding support for access based enumeration on SMB file shares, file share visibility on SMB file shares, and file upload notifications for all file shares"
+}
