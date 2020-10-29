@@ -53,7 +53,6 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -243,7 +242,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         builder.addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
                              CoreMetric.class, "OPERATION_NAME", opModel.getOperationName());
 
-        if (model.getMetadata().getProtocol() != Protocol.API_GATEWAY && shouldUseAsyncWithBodySigner(opModel)) {
+        if (shouldUseAsyncWithBodySigner(opModel)) {
             builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
         } else {
             builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
@@ -445,7 +444,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         AuthType authTypeForOperation = opModel.getAuthType();
 
-        if (authTypeForOperation == AuthType.IAM) {
+        if (authTypeForOperation == null) {
             authTypeForOperation = model.getMetadata().getAuthType();
         }
 

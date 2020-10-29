@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.naming;
 
 import static java.util.stream.Collectors.joining;
-import static software.amazon.awssdk.codegen.internal.Constant.AUTHORIZER_NAME_PREFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.CONFLICTING_NAME_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.EXCEPTION_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFIX;
@@ -48,7 +47,7 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 public class DefaultNamingStrategy implements NamingStrategy {
 
-    private static Logger log = Logger.loggerFor(DefaultNamingStrategy.class);
+    private static final Logger log = Logger.loggerFor(DefaultNamingStrategy.class);
 
     private static final String COLLISION_DISAMBIGUATION_PREFIX = "Default";
 
@@ -274,15 +273,6 @@ public class DefaultNamingStrategy implements NamingStrategy {
                      .filter(s -> !StringUtils.isEmpty(s))
                      .map(Utils::capitalize)
                      .collect(joining());
-    }
-
-    @Override
-    public String getAuthorizerClassName(String shapeName) {
-        String converted = getJavaClassName(shapeName);
-        if (converted.length() > 0 && !Character.isLetter(converted.charAt(0))) {
-            return AUTHORIZER_NAME_PREFIX + converted;
-        }
-        return converted;
     }
 
     @Override

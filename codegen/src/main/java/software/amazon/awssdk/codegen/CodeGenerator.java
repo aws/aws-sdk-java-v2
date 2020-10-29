@@ -26,7 +26,6 @@ import software.amazon.awssdk.codegen.emitters.tasks.AwsGeneratorTasks;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 
 public class CodeGenerator {
 
@@ -125,14 +124,8 @@ public class CodeGenerator {
     }
 
     private GeneratorTask createGeneratorTasks(IntermediateModel intermediateModel) {
-        // For clients built internally, the output directory and source directory are the same.
-        GeneratorTaskParams params = GeneratorTaskParams.create(intermediateModel, sourcesDirectory, testsDirectory);
+        return new AwsGeneratorTasks(GeneratorTaskParams.create(intermediateModel, sourcesDirectory, testsDirectory));
 
-        if (params.getModel().getMetadata().getProtocol() == Protocol.API_GATEWAY) {
-            throw new UnsupportedOperationException("Unsupported protocol: " + Protocol.API_GATEWAY);
-        } else {
-            return new AwsGeneratorTasks(params);
-        }
     }
 
     /**

@@ -1,3 +1,79 @@
+# __2.15.18__ __2020-10-29__
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - Documentation updates for marketplacecommerceanalytics to specify four data sets which are deprecated.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for access based enumeration on SMB file shares, file share visibility on SMB file shares, and file upload notifications for all file shares
+
+## __Amazon API Gateway__
+  - ### Features
+    - Support disabling the default execute-api endpoint for REST APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Support for Appliance mode on Transit Gateway that simplifies deployment of stateful network appliances. Added support for AWS Client VPN Self-Service Portal.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release enables customers to manage their own contact lists and end-user subscription preferences.
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for tagging of CodeArtifact domain and repository resources.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Application Load Balancer (ALB) now supports the gRPC protocol-version. With this release, customers can use ALB to route and load balance gRPC traffic between gRPC enabled clients and microservices.
+
+# __2.15.17__ __2020-10-28__
+## __AWS IoT__
+  - ### Features
+    - This release adds support for GG-Managed Job Namespace
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where marshalling of a modeled object was not honoring the has* method on a list/map.
+    - Fixed an issue where the toString/equals/hashCode on a modeled object were not honoring the has* methods for lists and maps.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Nitro Enclaves general availability. Added support to RunInstances for creating enclave-enabled EC2 instances. New APIs to associate an ACM certificate with an IAM role, for enclave consumption.
+
+## __Amazon WorkMail__
+  - ### Features
+    - Documentation update for Amazon WorkMail
+
+# __2.15.16__ __2020-10-27__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue machine learning transforms now support encryption-at-rest for labels and trained models.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+# __2.15.15__ __2020-10-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports indexing data from Confluence Server.
+
+## __Amazon Neptune__
+  - ### Features
+    - This feature enables custom endpoints for Amazon Neptune clusters. Custom endpoints simplify connection management when clusters contain instances with different capacities and configuration settings.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release enables customers to bring custom images for use with SageMaker Studio notebooks.
+
 # __2.15.14__ __2020-10-23__
 ## __AWS MediaTailor__
   - ### Features
