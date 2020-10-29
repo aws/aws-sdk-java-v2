@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.usearnregion;
+package software.amazon.awssdk.services.s3.internal.settingproviders;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;

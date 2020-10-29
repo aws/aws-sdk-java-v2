@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.usearnregion;
+package software.amazon.awssdk.services.s3.internal.settingproviders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_CONFIG_FILE;
@@ -42,7 +42,7 @@ public class UseArnRegionProviderChainTest {
     @Test
     public void specifiedInBothProviders_systemPropertiesShouldTakePrecedence() {
         System.setProperty(AWS_S3_USE_ARN_REGION.property(), "false");
-        String configFile = getClass().getResource("UseArnRegionSet_true").getFile();
+        String configFile = getClass().getResource("ProfileFile_true").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
         assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.of(Boolean.FALSE));
@@ -51,7 +51,7 @@ public class UseArnRegionProviderChainTest {
     @Test
     public void systemPropertiesThrowException_shouldUseConfigFile() {
         System.setProperty(AWS_S3_USE_ARN_REGION.property(), "foobar");
-        String configFile = getClass().getResource("UseArnRegionSet_true").getFile();
+        String configFile = getClass().getResource("ProfileFile_true").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
         assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.of(Boolean.TRUE));
@@ -60,7 +60,7 @@ public class UseArnRegionProviderChainTest {
     @Test
     public void bothProvidersThrowException_shouldReturnEmpty() {
         System.setProperty(AWS_S3_USE_ARN_REGION.property(), "foobar");
-        String configFile = getClass().getResource("UseArnRegionSet_unsupportedValue").getFile();
+        String configFile = getClass().getResource("ProfileFile_unsupportedValue").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
         assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.empty());

@@ -524,14 +524,14 @@ public class S3AccessPointEndpointResolverTest {
                              "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
                              "http://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com",
                              Region.of("global"),
-                             S3Configuration.builder().useArnRegionEnabled(true),
+                             S3Configuration.builder(),
                              Region.of("us-west-2"));
 
         verifyAccesspointArn("https",
                              "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
                              "https://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com",
                              Region.of("global"),
-                             S3Configuration.builder().useArnRegionEnabled(true),
+                             S3Configuration.builder(),
                              Region.of("us-west-2"));
     }
 
@@ -541,7 +541,7 @@ public class S3AccessPointEndpointResolverTest {
                              "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
                              "http://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com",
                              Region.of("global"),
-                             S3Configuration.builder().useArnRegionEnabled(true),
+                             S3Configuration.builder(),
                              Region.of("us-future-2"));
     }
 
@@ -551,7 +551,7 @@ public class S3AccessPointEndpointResolverTest {
                              "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
                              "http://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com",
                              Region.of("global"),
-                             S3Configuration.builder().useArnRegionEnabled(true),
+                             S3Configuration.builder(),
                              Region.of("us-future-1"));
     }
 
@@ -561,7 +561,7 @@ public class S3AccessPointEndpointResolverTest {
                              "arn:aws-cn:s3:global:123456789012:accesspoint:myaccesspoint",
                              "http://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com.cn",
                              Region.of("global"),
-                             S3Configuration.builder().useArnRegionEnabled(true),
+                             S3Configuration.builder(),
                              Region.of("cn-future-1"));
     }
 
@@ -571,8 +571,18 @@ public class S3AccessPointEndpointResolverTest {
                              "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
                              "http://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com",
                              Region.of("global"),
-                             S3Configuration.builder().useArnRegionEnabled(true),
+                             S3Configuration.builder(),
                              Region.of("unknown"));
+    }
+
+    @Test
+    public void multiRegionAccessPointArn_UseArnRegionEnabled_hasNoEffect() {
+        verifyAccesspointArn("http",
+                             "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
+                             "http://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com",
+                             Region.of("global"),
+                             S3Configuration.builder().useArnRegionEnabled(true),
+                             Region.of("us-west-2"));
     }
 
     @Test
@@ -580,9 +590,21 @@ public class S3AccessPointEndpointResolverTest {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                                                       "arn:bar:s3:global:123456789012:accesspoint:myaccesspoint",
                                                       null,
-                                                      S3Configuration.builder().useArnRegionEnabled(true)))
+                                                      S3Configuration.builder()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("bar");
+    }
+
+    @Test
+    public void multiRegionAccessPointArn_mrapDisabled_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> verifyAccesspointArn("http",
+                                                      "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
+                                                      null,
+                                                      Region.of("global"),
+                                                      S3Configuration.builder().multiRegionEnabled(false),
+                                                      Region.of("fips-us-east-1")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("FIPS");
     }
 
     @Test
@@ -591,7 +613,7 @@ public class S3AccessPointEndpointResolverTest {
                                                       "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
                                                       null,
                                                       Region.of("us-east-1"),
-                                                      S3Configuration.builder().useArnRegionEnabled(true),
+                                                      S3Configuration.builder(),
                                                       Region.of("fips-us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("FIPS");
@@ -603,9 +625,7 @@ public class S3AccessPointEndpointResolverTest {
                                                       "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint",
                                                       null,
                                                       Region.of("us-east-1"),
-                                                      S3Configuration.builder()
-                                                                     .dualstackEnabled(true)
-                                                                     .useArnRegionEnabled(true),
+                                                      S3Configuration.builder().dualstackEnabled(true),
                                                       Region.of("us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("dualstack");

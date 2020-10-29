@@ -13,18 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.usearnregion;
+package software.amazon.awssdk.services.s3.internal.settingproviders;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.in;
 import static org.mockito.Matchers.any;
 import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_CONFIG_FILE;
 
 import java.util.Optional;
-import java.util.StringJoiner;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -33,8 +31,6 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -55,7 +51,7 @@ public class ProfileUseArnRegionProviderTest {
 
     @Test
     public void specifiedInConfigFile_shouldResolve() {
-        String configFile = getClass().getResource("UseArnRegionSet_true").getFile();
+        String configFile = getClass().getResource("ProfileFile_true").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
         assertThat(provider.resolveUseArnRegion()).isEqualTo(Optional.of(TRUE));
@@ -63,7 +59,7 @@ public class ProfileUseArnRegionProviderTest {
 
     @Test
     public void configFile_mixedSpace() {
-        String configFile = getClass().getResource("UseArnRegionSet_mixedSpace").getFile();
+        String configFile = getClass().getResource("ProfileFile_mixedSpace").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
         assertThat(provider.resolveUseArnRegion()).isEqualTo(Optional.of(FALSE));
@@ -71,7 +67,7 @@ public class ProfileUseArnRegionProviderTest {
 
     @Test
     public void unsupportedValue_shouldThrowException() {
-        String configFile = getClass().getResource("UseArnRegionSet_unsupportedValue").getFile();
+        String configFile = getClass().getResource("ProfileFile_unsupportedValue").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
         assertThatThrownBy(() -> provider.resolveUseArnRegion()).isInstanceOf(IllegalArgumentException.class);
@@ -79,7 +75,7 @@ public class ProfileUseArnRegionProviderTest {
 
     @Test
     public void commaNoSpace_shouldResolveCorrectly() {
-        String configFile = getClass().getResource("UseArnRegionSet_noSpace").getFile();
+        String configFile = getClass().getResource("ProfileFile_noSpace").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
         assertThat(provider.resolveUseArnRegion()).isEqualTo(Optional.of(FALSE));
