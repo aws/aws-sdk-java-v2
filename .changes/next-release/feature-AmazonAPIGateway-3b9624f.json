@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon API Gateway",
+    "contributor": "",
+    "description": "Support disabling the default execute-api endpoint for REST APIs."
+}
