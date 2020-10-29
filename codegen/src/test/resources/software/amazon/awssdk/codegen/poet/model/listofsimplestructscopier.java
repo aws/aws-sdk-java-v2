@@ -21,8 +21,8 @@ final class ListOfSimpleStructsCopier {
     }
 
     static List<SimpleStruct> copyFromBuilder(Collection<? extends SimpleStruct.Builder> listOfSimpleStructsParam) {
-        if (listOfSimpleStructsParam == null) {
-            return null;
+        if (listOfSimpleStructsParam == null || listOfSimpleStructsParam instanceof DefaultSdkAutoConstructList) {
+            return DefaultSdkAutoConstructList.getInstance();
         }
         return copy(listOfSimpleStructsParam.stream().map(SimpleStruct.Builder::build).collect(toList()));
     }

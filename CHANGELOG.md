@@ -1,3 +1,33 @@
+# __2.15.17__ __2020-10-28__
+## __AWS IoT__
+  - ### Features
+    - This release adds support for GG-Managed Job Namespace
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where marshalling of a modeled object was not honoring the has* method on a list/map.
+    - Fixed an issue where the toString/equals/hashCode on a modeled object were not honoring the has* methods for lists and maps.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Nitro Enclaves general availability. Added support to RunInstances for creating enclave-enabled EC2 instances. New APIs to associate an ACM certificate with an IAM role, for enclave consumption.
+
+## __Amazon WorkMail__
+  - ### Features
+    - Documentation update for Amazon WorkMail
+
+# __2.15.16__ __2020-10-27__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue machine learning transforms now support encryption-at-rest for labels and trained models.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.15.15__ __2020-10-26__
 ## __AWS SDK for Java v2__
   - ### Features
