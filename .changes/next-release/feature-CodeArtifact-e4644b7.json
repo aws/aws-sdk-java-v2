@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "CodeArtifact",
+    "contributor": "",
+    "description": "Add support for tagging of CodeArtifact domain and repository resources."
+}
