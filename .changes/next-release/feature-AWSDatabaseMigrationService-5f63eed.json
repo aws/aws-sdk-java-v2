@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "Adding DocDbSettings to support DocumentDB as a source."
+}
