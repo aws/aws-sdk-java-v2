@@ -116,15 +116,6 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                                + "override.");
         }
 
-        if (isMultiregionAccessPoint(s3Resource) &&
-            serviceConfiguration != null && !serviceConfiguration.useArnRegionEnabled()) {
-            throw new IllegalArgumentException("A multi-region access point ARN cannot be passed as a bucket parameter "
-                                               + "to an S3 operation if the 'useArnRegionEnabled' flag is not set to true. "
-                                               + "To allow potential out-of-region calls, and prevent this exception "
-                                               + "set 'useArnRegionEnabled' to true in the configuration when building "
-                                               + "the S3 client.");
-        }
-
         if (shouldCompareRegions(serviceConfiguration, s3Resource) && clientRegionDiffersFromArnRegion(region, arnRegion)) {
             throw new IllegalArgumentException(
                 String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "

@@ -24,7 +24,8 @@ import software.amazon.awssdk.utils.SystemSetting;
 @SdkProtectedApi
 public enum S3SystemSetting implements SystemSetting {
 
-    AWS_S3_USE_ARN_REGION("aws.s3UseArnRegion", null);
+    AWS_S3_USE_ARN_REGION("aws.s3UseArnRegion", null),
+    AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS("aws.s3DisableMultiRegionAccessPoints", null);
 
     private final String systemProperty;
     private final String defaultValue;

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.usearnregion;
+package software.amazon.awssdk.services.s3.internal.settingproviders;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;

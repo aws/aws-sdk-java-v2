@@ -13,20 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.usearnregion;
+package software.amazon.awssdk.services.s3.internal.settingproviders;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Interface for loading useArnRegion configuration.
+ * Interface for loading disable multi-region configuration.
  */
 @FunctionalInterface
 @SdkInternalApi
-public interface UseArnRegionProvider {
+public interface DisableMultiRegionProvider {
 
     /**
-     * @return whether use-arn-region is enabled, or empty if it is not configured.
+     * @return whether multi-region is disabled, or empty if it is not configured.
      */
-    Optional<Boolean> resolveUseArnRegion();
+    Optional<Boolean> resolve();
 }

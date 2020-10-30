@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.usearnregion;
+package software.amazon.awssdk.services.s3.internal.settingproviders;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,8 +43,9 @@ public final class UseArnRegionProviderChain implements UseArnRegionProvider {
      * AWS use arn region provider that looks for the useArnRegion in this order:
      *
      * <ol>
-     *   <li>Check the 'aws.useArnRegion' system property for the region.</li>
-     *   <li>Check the 'AWS_USE_ARN_REGION' environment variable for the region.</li>
+     *   <li>Check if 'aws.s3UseArnRegion' system property is set.</li>
+     *   <li>Check if 'AWS_USE_ARN_REGION' environment variable is set.</li>
+     *   <li>Check if 's3_use_arn_region' profile file configuration is set.</li>
      * </ol>
      */
     public static UseArnRegionProviderChain create() {
@@ -66,7 +67,7 @@ public final class UseArnRegionProviderChain implements UseArnRegionProvider {
                     return useArnRegion;
                 }
             } catch (Exception ex) {
-                log.warn(() -> "Failed to retrieve useArnRegion from " + provider);
+                log.warn(() -> "Failed to retrieve useArnRegion from " + provider, ex);
             }
         }
         return Optional.empty();

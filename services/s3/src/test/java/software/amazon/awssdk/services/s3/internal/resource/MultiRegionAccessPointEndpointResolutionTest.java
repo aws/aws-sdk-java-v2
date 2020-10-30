@@ -37,6 +37,8 @@ import software.amazon.awssdk.testutils.service.http.MockHttpClient;
  */
 public class MultiRegionAccessPointEndpointResolutionTest {
 
+    private final static String MULTI_REGION_ARN = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
+    private final static URI MULTI_REGION_ENDPOINT = URI.create("https://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com");
     private MockHttpClient mockHttpClient;
 
     @Before
@@ -46,15 +48,21 @@ public class MultiRegionAccessPointEndpointResolutionTest {
 
     @Test
     public void multiRegionArn_correctlyRewritesEndpoint() throws Exception {
-        URI customEndpoint = URI.create("https://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder().build()).build();
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build());
+        assertEndpointMatches(mockHttpClient.getLastRequest(), MULTI_REGION_ENDPOINT.toString());
+    }
+
+    @Test
+    public void multiRegionArn_useArnRegionEnabled_correctlyRewritesEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder()
                                                                                 .useArnRegionEnabled(true)
                                                                                 .build())
                                            .build();
-        String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
-        s3Client.listObjects(ListObjectsRequest.builder().bucket(arn).build());
-        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build());
+        assertEndpointMatches(mockHttpClient.getLastRequest(), MULTI_REGION_ENDPOINT.toString());
     }
 
     @Test
@@ -62,9 +70,8 @@ public class MultiRegionAccessPointEndpointResolutionTest {
         URI customEndpoint = URI.create("https://foobar.amazonaws.com");
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
-        String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
 
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(arn).build()))
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("endpoint override");
     }
@@ -74,12 +81,10 @@ public class MultiRegionAccessPointEndpointResolutionTest {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder()
                                                                                 .dualstackEnabled(true)
-                                                                                .useArnRegionEnabled(true)
                                                                                 .build())
                                            .build();
-        String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
 
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(arn).build()))
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("dualstack");
     }
@@ -90,12 +95,10 @@ public class MultiRegionAccessPointEndpointResolutionTest {
         S3Client s3Client = clientBuilder().region(Region.of("fips-us-east-1"))
                                            .serviceConfiguration(S3Configuration.builder()
                                                                                 .dualstackEnabled(false)
-                                                                                .useArnRegionEnabled(true)
                                                                                 .build())
                                            .build();
-        String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
 
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(arn).build()))
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("FIPS");
     }
@@ -107,9 +110,8 @@ public class MultiRegionAccessPointEndpointResolutionTest {
                                                                                 .accelerateModeEnabled(true)
                                                                                 .build())
                                            .build();
-        String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
 
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(arn).build()))
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("accelerate");
     }
@@ -121,23 +123,19 @@ public class MultiRegionAccessPointEndpointResolutionTest {
                                                                                 .pathStyleAccessEnabled(true)
                                                                                 .build())
                                            .build();
-        String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
 
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(arn).build()))
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("path style addressing");
     }
 
     @Test
     public void multiRegionArn_differentRegion_useArnRegionTrue() throws Exception {
-        URI customEndpoint = URI.create("https://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com");
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
-        String arn = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
+        S3Client s3Client = clientBuilder().build();
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build());
 
-        s3Client.listObjects(ListObjectsRequest.builder().bucket(arn).build());
-
-        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+        assertEndpointMatches(mockHttpClient.getLastRequest(), MULTI_REGION_ENDPOINT.toString());
     }
 
     /**

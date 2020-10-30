@@ -32,7 +32,7 @@ import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
-import software.amazon.awssdk.services.s3.internal.usearnregion.UseArnRegionProviderChain;
+import software.amazon.awssdk.services.s3.internal.settingproviders.UseArnRegionProviderChain;
 import software.amazon.awssdk.services.s3control.S3ControlConfiguration;
 
 @SdkInternalApi
