@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "contributor": "",
+    "description": "This feature increases the number of accounts that can be added to the Launch permissions within an Image Builder Distribution configuration."
+}
