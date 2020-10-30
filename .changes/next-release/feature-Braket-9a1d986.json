@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Braket",
-    "contributor": "",
-    "description": "This release supports tagging for Amazon Braket quantum-task resources. It also supports tag-based access control for quantum-task APIs."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Macie 2",
-    "contributor": "",
-    "description": "This release of the Amazon Macie API adds an eqExactMatch operator for filtering findings. With this operator you can increase the precision of your finding filters and suppression rules."
-}
