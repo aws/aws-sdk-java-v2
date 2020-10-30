@@ -38,6 +38,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
+import io.netty.util.ReferenceCountUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -251,6 +252,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 public void onNext(HttpContent httpContent) {
                     // isDone may be true if the subscriber cancelled
                     if (isDone.get()) {
+                        ReferenceCountUtil.release(httpContent);
                         return;
                     }
 
