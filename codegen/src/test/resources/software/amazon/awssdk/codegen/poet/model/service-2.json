@@ -137,7 +137,8 @@
         "RecursiveStruct":{"shape":"RecursiveStructType"},
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
-        "EnumType":{"shape":"EnumType"}
+        "EnumType":{"shape":"EnumType"},
+        "Underscore_Name_Type":{"shape":"Underscore_Name_Type"}
       }
     },
     "BaseType":{
@@ -468,6 +469,9 @@
       },
       "event": true
     },
-    "ImplicitPayloadMemberOne":{"type":"blob"}
+    "ImplicitPayloadMemberOne":{"type":"blob"},
+    "Underscore_Name_Type": {
+      "type": "structure"
+    }
   }
 }
