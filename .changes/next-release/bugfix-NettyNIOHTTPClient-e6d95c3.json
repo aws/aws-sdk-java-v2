@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Fix a bug where the Netty HTTP client can leak memory when a response stream is cancelled prematurely but the upstream publisher continues to invoke onNext for some time before stopping. Fixes [#2051](https://github.com/aws/aws-sdk-java-v2/issues/2051)."
+}
