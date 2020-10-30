@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,9 +58,11 @@ public final class IntermediateModel {
     }
 
     public IntermediateModel() {
+        this.operations = new HashMap<>();
+        this.shapes = new HashMap<>();
         this.endpointOperation = Optional.empty();
-        this.paginators = Collections.emptyMap();
-        this.waiters = Collections.emptyMap();
+        this.paginators = new HashMap<>();
+        this.waiters = new HashMap<>();
         this.namingStrategy = null;
     }
 

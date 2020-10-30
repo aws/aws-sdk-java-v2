@@ -220,22 +220,6 @@ public class MemberModel extends DocumentationModel {
         return this;
     }
 
-    // TODO: Remove when all marshallers switch over to new style
-    public String getSetterMethodName() {
-        return getBeanStyleSetterMethodName();
-    }
-
-    // TODO: Remove when all marshallers switch over to new style
-    public void setSetterMethodName(String setterMethodName) {
-        setBeanStyleGetterMethodName(setterMethodName);
-    }
-
-    // TODO: Remove when all marshallers switch over to new style
-    public MemberModel withSetterMethodName(String setterMethodName) {
-        setSetterMethodName(setterMethodName);
-        return this;
-    }
-
     public String getFluentSetterMethodName() {
         return fluentSetterMethodName;
     }

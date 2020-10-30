@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 public class Shape {
-
     private String type;
 
     private Map<String, Member> members = Collections.emptyMap();
