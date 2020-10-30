@@ -1,3 +1,36 @@
+# __2.15.19__ __2020-10-30__
+## __AWS Database Migration Service__
+  - ### Features
+    - Adding DocDbSettings to support DocumentDB as a source.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Support for HLS discontinuity tags in the child manifests. Support for incomplete segment behavior in the media output. Support for automatic input failover condition settings.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixing FilteringSubscriber and LimitingSubscriber to complete when subscribing criteria is completed.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation updates for AWS ElastiCache
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API adds an eqExactMatch operator for filtering findings. With this operator you can increase the precision of your finding filters and suppression rules.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Documentation updates for Amazon SNS
+
+## __Braket__
+  - ### Features
+    - This release supports tagging for Amazon Braket quantum-task resources. It also supports tag-based access control for quantum-task APIs.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This feature increases the number of accounts that can be added to the Launch permissions within an Image Builder Distribution configuration.
+
 # __2.15.18__ __2020-10-29__
 ## __AWS Marketplace Commerce Analytics__
   - ### Features
