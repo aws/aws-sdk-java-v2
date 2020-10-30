@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.15.18-SNAPSHOT</version>
+        <version>2.15.19-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>bom</artifactId>
@@ -1296,6 +1296,11 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>s3outposts</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>metrics-spi</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
         </dependencies>
