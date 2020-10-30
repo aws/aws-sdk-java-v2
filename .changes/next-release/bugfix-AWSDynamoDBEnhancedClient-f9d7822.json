@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Publisher streams returned by async resources in the DynamoDB Enhanced Client now correctly handle mapping errors when they are encountered in the stream by calling onError on the subscriber and then implicitly cancelling the subscription. Previously the stream would just permanently hang and never complete."
+}
