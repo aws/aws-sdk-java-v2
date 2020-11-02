@@ -157,6 +157,8 @@ public class IntermediateModelBuilder {
 
         setSimpleMethods(trimmedModel);
 
+        namingStrategy.validateCustomerVisibleNaming(trimmedModel);
+
         return trimmedModel;
     }
 

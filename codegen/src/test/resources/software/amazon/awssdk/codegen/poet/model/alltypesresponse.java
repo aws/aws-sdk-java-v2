@@ -388,6 +388,13 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         .memberName("EnumType").getter(getter(AllTypesResponse::enumTypeAsString)).setter(setter(Builder::enumType))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EnumType").build()).build();
 
+    private static final SdkField<Underscore_Name_Type> UNDERSCORE_NAME_TYPE_FIELD = SdkField
+        .<Underscore_Name_Type> builder(MarshallingType.SDK_POJO).memberName("Underscore_Name_Type")
+                                                                 .getter(getter(AllTypesResponse::underscore_Name_Type)).setter(setter(Builder::underscore_Name_Type))
+                                                                 .constructor(Underscore_Name_Type::builder)
+                                                                 .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Underscore_Name_Type").build())
+                                                                 .build();
+
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
                                                                                                    INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
                                                                                                    SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
@@ -396,7 +403,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                                                                                                    MAP_OF_STRING_TO_ENUM_FIELD, MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD,
                                                                                                    MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD, TIMESTAMP_MEMBER_FIELD, STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD,
                                                                                                    BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD, LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD,
-                                                                                                   POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD, POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD));
+                                                                                                   POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD, POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD,
+                                                                                                   UNDERSCORE_NAME_TYPE_FIELD));
 
     private final String stringMember;
 
@@ -458,6 +466,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
     private final String enumType;
 
+    private final Underscore_Name_Type underscore_Name_Type;
+
     private AllTypesResponse(BuilderImpl builder) {
         super(builder);
         this.stringMember = builder.stringMember;
@@ -490,6 +500,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         this.polymorphicTypeWithSubTypes = builder.polymorphicTypeWithSubTypes;
         this.polymorphicTypeWithoutSubTypes = builder.polymorphicTypeWithoutSubTypes;
         this.enumType = builder.enumType;
+        this.underscore_Name_Type = builder.underscore_Name_Type;
     }
 
     /**
@@ -1137,6 +1148,15 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         return enumType;
     }
 
+    /**
+     * Returns the value of the Underscore_Name_Type property for this object.
+     *
+     * @return The value of the Underscore_Name_Type property for this object.
+     */
+    public Underscore_Name_Type underscore_Name_Type() {
+        return underscore_Name_Type;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -1185,6 +1205,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         hashCode = 31 * hashCode + Objects.hashCode(polymorphicTypeWithSubTypes());
         hashCode = 31 * hashCode + Objects.hashCode(polymorphicTypeWithoutSubTypes());
         hashCode = 31 * hashCode + Objects.hashCode(enumTypeAsString());
+        hashCode = 31 * hashCode + Objects.hashCode(underscore_Name_Type());
         return hashCode;
     }
 
@@ -1242,7 +1263,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                && Objects.equals(recursiveStruct(), other.recursiveStruct())
                && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
                && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
-               && Objects.equals(enumTypeAsString(), other.enumTypeAsString());
+               && Objects.equals(enumTypeAsString(), other.enumTypeAsString())
+               && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type());
     }
 
     /**
@@ -1280,7 +1302,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             .add("ListOfBlobs", hasListOfBlobs() ? listOfBlobs() : null).add("RecursiveStruct", recursiveStruct())
             .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
             .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
-            .build();
+            .add("Underscore_Name_Type", underscore_Name_Type()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -1345,6 +1367,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                 return Optional.ofNullable(clazz.cast(polymorphicTypeWithoutSubTypes()));
             case "EnumType":
                 return Optional.ofNullable(clazz.cast(enumTypeAsString()));
+            case "Underscore_Name_Type":
+                return Optional.ofNullable(clazz.cast(underscore_Name_Type()));
             default:
                 return Optional.empty();
         }
@@ -1879,6 +1903,33 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
          * @see EnumType
          */
         Builder enumType(EnumType enumType);
+
+        /**
+         * Sets the value of the Underscore_Name_Type property for this object.
+         *
+         * @param underscore_Name_Type
+         *        The new value for the Underscore_Name_Type property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder underscore_Name_Type(Underscore_Name_Type underscore_Name_Type);
+
+        /**
+         * Sets the value of the Underscore_Name_Type property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link Underscore_Name_Type.Builder} avoiding the need
+         * to create one manually via {@link Underscore_Name_Type#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link Underscore_Name_Type.Builder#build()} is called immediately and
+         * its result is passed to {@link #underscore_Name_Type(Underscore_Name_Type)}.
+         *
+         * @param underscore_Name_Type
+         *        a consumer that will call methods on {@link Underscore_Name_Type.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #underscore_Name_Type(Underscore_Name_Type)
+         */
+        default Builder underscore_Name_Type(Consumer<Underscore_Name_Type.Builder> underscore_Name_Type) {
+            return underscore_Name_Type(Underscore_Name_Type.builder().applyMutation(underscore_Name_Type).build());
+        }
     }
 
     static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
@@ -1942,6 +1993,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
         private String enumType;
 
+        private Underscore_Name_Type underscore_Name_Type;
+
         private BuilderImpl() {
         }
 
@@ -1977,6 +2030,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             polymorphicTypeWithSubTypes(model.polymorphicTypeWithSubTypes);
             polymorphicTypeWithoutSubTypes(model.polymorphicTypeWithoutSubTypes);
             enumType(model.enumType);
+            underscore_Name_Type(model.underscore_Name_Type);
         }
 
         public final String getStringMember() {
@@ -2558,6 +2612,20 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
         public final void setEnumType(String enumType) {
             this.enumType = enumType;
+        }
+
+        public final Underscore_Name_Type.Builder getUnderscore_Name_Type() {
+            return underscore_Name_Type != null ? underscore_Name_Type.toBuilder() : null;
+        }
+
+        @Override
+        public final Builder underscore_Name_Type(Underscore_Name_Type underscore_Name_Type) {
+            this.underscore_Name_Type = underscore_Name_Type;
+            return this;
+        }
+
+        public final void setUnderscore_Name_Type(Underscore_Name_Type.BuilderImpl underscore_Name_Type) {
+            this.underscore_Name_Type = underscore_Name_Type != null ? underscore_Name_Type.build() : null;
         }
 
         @Override

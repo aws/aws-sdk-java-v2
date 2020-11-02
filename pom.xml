@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.15.19</version>
+    <version>2.15.20</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -152,7 +152,7 @@
         <aspectj.version>1.8.2</aspectj.version>
 
         <jre.version>1.8</jre.version>
-        <httpcomponents.httpclient.version>4.5.9</httpcomponents.httpclient.version>
+        <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.11</httpcomponents.httpcore.version>
 
         <!-- These properties are used by cucumber tests related code -->

@@ -1,3 +1,25 @@
+# __2.15.20__ __2020-11-02__
+## __AWS DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Publisher streams returned by async resources in the DynamoDB Enhanced Client now correctly handle mapping errors when they are encountered in the stream by calling onError on the subscriber and then implicitly cancelling the subscription. Previously the stream would just permanently hang and never complete.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added code generation validation that customer-visible identifiers are idiomatic (do not contain underscores). Services with underscores in their models can use rename customizations to fix these issues, or apply the 'underscoresInNameBehavior = ALLOW' customization.
+    - Upgrade `org.apache.httpcomponents:httpclient` version to `4.5.13`
+
+  - ### Bugfixes
+    - Fixing race condition in EventStreamAsyncResponseTransformer.  Field eventsToDeliver is a LinkedList, i.e., not thread-safe.  Accesses to field eventsToDeliver are protected by synchronization on itself, but not in 1 location.
+    - The mapped publisher returned by SdkPublisher.map will now handle exceptions thrown by the mapping function by calling onError on its subscriber and then cancelling the subscription rather than throwing it back to the publishing process when it attempts to publish data.
+
+## __AWS SSO OIDC__
+  - ### Deprecations
+    - Renamed/deprecated 'error_description' fields in exceptions in favor of 'errorDescription'.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for the following features: 1. P4d instances based on NVIDIA A100 GPUs. 2. NetworkCardIndex attribute to support multiple network cards.
+
 # __2.15.19__ __2020-10-30__
 ## __AWS Database Migration Service__
   - ### Features

@@ -412,7 +412,7 @@
         "EventOne": {
           "shape": "EventOne"
         },
-        "event-two": {
+        "EventTheSecond": {
           "shape": "EventTwo"
         }
       },
