@@ -37,8 +37,9 @@ import software.amazon.awssdk.testutils.service.http.MockHttpClient;
  */
 public class MultiRegionAccessPointEndpointResolutionTest {
 
-    private final static String MULTI_REGION_ARN = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
-    private final static URI MULTI_REGION_ENDPOINT = URI.create("https://myaccesspoint.123456789012.mrap.global-s3.amazonaws.com");
+    private final static String MULTI_REGION_ARN = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+    private final static URI MULTI_REGION_ENDPOINT =
+        URI.create("https://mfzwi23gnjvgw.mrap.global-s3.amazonaws.com");
     private MockHttpClient mockHttpClient;
 
     @Before

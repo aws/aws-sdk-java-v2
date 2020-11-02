@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class SignerOverrideInterceptorTest {
 
-    private static final String MRAP_ARN = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
+    private static final String MRAP_ARN = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
     private static final String AP_ARN = "arn:aws:s3:us-east-1:123456789012:accesspoint:myaccesspoint";
     private static final String OUTPOSTS_ARN = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456"
                                                + ":accesspoint:myaccesspoint";

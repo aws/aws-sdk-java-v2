@@ -39,6 +39,7 @@ import software.amazon.awssdk.services.s3.internal.resource.S3MultiRegionAccessP
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostAccessPointBuilder;
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -72,6 +73,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         URI accessPointUri = getUriForAccessPointResource(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
         String key = context.originalRequest().getValueForField("Key", String.class).orElse(null);
+
         SdkHttpRequest httpRequest = context.request().toBuilder()
                                             .protocol(accessPointUri.getScheme())
                                             .host(accessPointUri.getHost())
@@ -79,6 +81,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                             .encodedPath(key)
                                             .build();
 
+        Region signingRegionModification = StringUtils.isEmpty(arnRegion) ? null : Region.of(arnRegion);
         String signingServiceModification = s3EndpointResource.parentS3Resource()
                                                               .filter(r -> r instanceof S3OutpostResource)
                                                               .map(ignore -> S3_OUTPOSTS_NAME)
@@ -86,7 +89,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         return ConfiguredS3SdkHttpRequest.builder()
                                          .sdkHttpRequest(httpRequest)
-                                         .signingRegionModification(Region.of(arnRegion))
+                                         .signingRegionModification(signingRegionModification)
                                          .signingServiceModification(signingServiceModification)
                                          .build();
     }
@@ -95,7 +98,6 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         Region region = context.region();
         String arnRegion = s3Resource.region().orElseThrow(() -> new IllegalArgumentException(
             "An S3 access point ARN must have a region"));
-
 
         S3Configuration serviceConfiguration = context.serviceConfiguration();
         if (isAccelerateEnabled(serviceConfiguration)) {
