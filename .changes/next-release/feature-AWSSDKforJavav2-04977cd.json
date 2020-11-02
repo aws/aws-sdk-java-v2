@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Upgrade `org.apache.httpcomponents:httpclient` version to `4.5.13`"
+}

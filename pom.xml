@@ -152,7 +152,7 @@
         <aspectj.version>1.8.2</aspectj.version>
 
         <jre.version>1.8</jre.version>
-        <httpcomponents.httpclient.version>4.5.9</httpcomponents.httpclient.version>
+        <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.11</httpcomponents.httpcore.version>
 
         <!-- These properties are used by cucumber tests related code -->
