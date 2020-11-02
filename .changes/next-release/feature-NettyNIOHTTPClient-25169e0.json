@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Upgrade Netty libraries to `4.1.53.Final`, and `netty-tcnative-boringssl-static` to `2.0.34.Final`."
+}
