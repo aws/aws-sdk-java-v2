@@ -26,7 +26,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class S3MultiRegionAccessPointBuilder {
 
-    private String accessPointName;
+    private static final String MRAP_SUFFIX = ".mrap";
+
+    private String mrapAlias;
     private String accountId;
     private String protocol;
     private String domain;
@@ -42,7 +44,11 @@ public final class S3MultiRegionAccessPointBuilder {
     }
 
     public S3MultiRegionAccessPointBuilder accessPointName(String accessPointName) {
-        this.accessPointName = accessPointName;
+        String mrapAlias = accessPointName;
+        if (accessPointName.endsWith(MRAP_SUFFIX)) {
+            mrapAlias = accessPointName.substring(0, accessPointName.length() - MRAP_SUFFIX.length());
+        }
+        this.mrapAlias = mrapAlias;
         return this;
     }
 
@@ -65,10 +71,9 @@ public final class S3MultiRegionAccessPointBuilder {
      * Generate an endpoint URI with no path that maps to the Multi-Region Access Point information stored in this builder.
      */
     public URI toUri() {
-        validateHostnameCompliant(accountId, "accountId", "multi-region ARN");
-        validateHostnameCompliant(accessPointName, "accessPointName", "multi-region ARN");
+        validateHostnameCompliant(mrapAlias, "accessPointName", "multi-region ARN");
 
-        String uriString = String.format("%s://%s.%s.mrap.global-s3.%s", protocol, accessPointName, accountId, domain);
+        String uriString = String.format("%s://%s.mrap.global-s3.%s", protocol, mrapAlias, domain);
         return URI.create(uriString);
     }
 }

@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.s3.internal.signing.S3SigningUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -28,15 +29,15 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class S3MultiRegionAccessPointResource implements S3Resource {
 
-    private static final String REGION_VALUE = "global";
+    private static final String MRAP_SUFFIX = ".mrap";
+    private static final String MRAP_REGION = "";
 
     private final String partition;
-    private final String region;
+
     private final String accountId;
 
     private S3MultiRegionAccessPointResource(Builder b) {
         this.partition = Validate.paramNotBlank(b.partition, "partition");
-        this.region = Validate.paramNotBlank(b.region, "region");
         this.accountId = Validate.paramNotBlank(b.accountId, "accountId");
     }
 
@@ -48,8 +49,14 @@ public final class S3MultiRegionAccessPointResource implements S3Resource {
         return new Builder();
     }
 
+    /**
+     * A multi-region ARN is identified by having no region. The access point name should end with ".mrap"
+     */
     public static boolean isMultiRegion(Arn arn) {
-        return REGION_VALUE.equals(arn.region().orElse(null));
+        boolean hasNoRegion = StringUtils.isEmpty(arn.region().orElse(null));
+        String accessPointName = arn.resource().resource();
+
+        return hasNoRegion && accessPointName.endsWith(MRAP_SUFFIX);
     }
 
     @Override
@@ -81,7 +88,7 @@ public final class S3MultiRegionAccessPointResource implements S3Resource {
      */
     @Override
     public Optional<String> region() {
-        return Optional.ofNullable(this.region);
+        return Optional.ofNullable(MRAP_REGION);
     }
 
     /**
@@ -107,9 +114,6 @@ public final class S3MultiRegionAccessPointResource implements S3Resource {
         if (partition != null ? !partition.equals(that.partition) : that.partition != null) {
             return false;
         }
-        if (region != null ? !region.equals(that.region) : that.region != null) {
-            return false;
-        }
         if (accountId != null ? !accountId.equals(that.accountId) : that.accountId != null) {
             return false;
         }
@@ -119,7 +123,6 @@ public final class S3MultiRegionAccessPointResource implements S3Resource {
     @Override
     public int hashCode() {
         int result = partition != null ? partition.hashCode() : 0;
-        result = 31 * result + (region != null ? region.hashCode() : 0);
         result = 31 * result + (accountId != null ? accountId.hashCode() : 0);
         return result;
     }
@@ -129,7 +132,6 @@ public final class S3MultiRegionAccessPointResource implements S3Resource {
      */
     public static final class Builder {
         private String partition;
-        private String region;
         private String accountId;
 
         private Builder() {
@@ -140,14 +142,6 @@ public final class S3MultiRegionAccessPointResource implements S3Resource {
          */
         public Builder partition(String partition) {
             this.partition = partition;
-            return this;
-        }
-
-        /**
-         * The AWS region associated with the access point.
-         */
-        public Builder region(String region) {
-            this.region = region;
             return this;
         }
 

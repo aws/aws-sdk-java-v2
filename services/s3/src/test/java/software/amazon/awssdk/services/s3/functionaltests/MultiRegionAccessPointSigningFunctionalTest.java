@@ -42,7 +42,7 @@ import software.amazon.awssdk.testutils.service.http.MockHttpClient;
  */
 public class MultiRegionAccessPointSigningFunctionalTest {
 
-    private static final String MRAP_ARN = "arn:aws:s3:global:123456789012:accesspoint:myaccesspoint";
+    private static final String MRAP_ARN = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
     private static final String AWS4A_SIGNING_ALGORITHM = "AWS4-ECDSA-P256-SHA256";
 
     private MockHttpClient mockHttpClient;

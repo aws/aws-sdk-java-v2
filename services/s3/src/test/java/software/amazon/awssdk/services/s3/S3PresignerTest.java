@@ -511,8 +511,8 @@ public class S3PresignerTest {
 
     @Test
     public void accessPointArn_multiRegion_useArnRegionTrue_correctEndpointAndSigner() {
-        String customEndpoint = "https://foobar.12345678910.mrap.global-s3.amazonaws.com";
-        String accessPointArn = "arn:aws:s3:global:12345678910:accesspoint:foobar";
+        String customEndpoint = "https://mfzwi23gnjvgw.mrap.global-s3.amazonaws.com";
+        String accessPointArn = "arn:aws:s3::12345678910:accesspoint:mfzwi23gnjvgw.mrap";
 
         S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
                                                                                        .useArnRegionEnabled(true)

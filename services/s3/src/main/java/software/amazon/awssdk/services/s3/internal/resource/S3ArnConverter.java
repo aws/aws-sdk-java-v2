@@ -140,7 +140,6 @@ public final class S3ArnConverter implements ArnConverter<S3Resource> {
             S3MultiRegionAccessPointResource mrapResource =
                 S3MultiRegionAccessPointResource.builder()
                                                 .partition(arn.partition())
-                                                .region(arn.region().orElse(null))
                                                 .accountId(arn.accountId().orElse(null))
                                                 .build();
             return S3AccessPointResource.builder()
