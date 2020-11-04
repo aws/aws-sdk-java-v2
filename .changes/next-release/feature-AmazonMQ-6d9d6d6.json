@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonMQ",
+    "contributor": "",
+    "description": "Amazon MQ introduces support for RabbitMQ, a popular message-broker with native support for AMQP 0.9.1. You can now create fully-managed RabbitMQ brokers in the cloud."
+}
