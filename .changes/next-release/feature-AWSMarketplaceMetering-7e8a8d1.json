@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSMarketplace Metering",
+    "contributor": "",
+    "description": "Adding Vendor Tagging Support in MeterUsage and BatchMeterUsage API."
+}
