@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Auto Scaling",
-    "contributor": "",
-    "description": "Capacity Rebalance helps you manage and maintain workload availability during Spot interruptions by proactively augmenting your Auto Scaling group with a new instance before interrupting an old one."
-}

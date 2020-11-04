@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS X-Ray",
-    "contributor": "",
-    "description": "Releasing new APIs GetInsightSummaries, GetInsightEvents, GetInsight, GetInsightImpactGraph and updating GetTimeSeriesServiceStatistics API for AWS X-Ray Insights feature"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Streaming Service",
-    "contributor": "",
-    "description": "With this release, Amazon Transcribe now supports real-time transcription from audio sources in Italian (it-IT) and German(de-DE)."
-}
