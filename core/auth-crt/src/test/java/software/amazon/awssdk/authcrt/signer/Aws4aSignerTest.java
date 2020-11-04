@@ -156,7 +156,7 @@ public class Aws4aSignerTest {
         testCase.credentials = createCredentials();
         testCase.expectedCanonicalRequest = "GET\n" +
                 "/test%2520path/help\n" +
-                "X-Amz-Algorithm=AWS4-ECDSA-P256-SHA256&X-Amz-Credential=QueryAccess%2F20200803%2Ftesting%2Faws4_request&X-Amz-Date=20200803T174641Z&X-Amz-Expires=604800&X-Amz-Region-Set=aws-global&X-Amz-SignedHeaders=host%3Bx-amz-content-sha256\n" +
+                "X-Amz-Algorithm=AWS4-ECDSA-P256-SHA256&X-Amz-Credential=AKIDEXAMPLE%2F20200803%2Ftesting%2Faws4_request&X-Amz-Date=20200803T174641Z&X-Amz-Expires=604800&X-Amz-Region-Set=aws-global&X-Amz-SignedHeaders=host%3Bx-amz-content-sha256\n" +
                 "host:testing.us-east-1.amazonaws.com\n" +
                 "x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n" +
                 "\n" +

@@ -80,5 +80,4 @@ public final class MockHttpClient implements SdkHttpClient {
         }
         return capturedRequests.get(capturedRequests.size() - 1);
     }
-
 }

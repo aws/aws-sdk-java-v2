@@ -40,6 +40,7 @@ import java.net.URI;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.Http2Metric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;

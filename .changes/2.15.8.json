@@ -1,0 +1,96 @@
+{
+    "version": "2.15.8",
+    "date": "2020-10-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS Lambda Maven Archetype",
+            "description": "Fixed an issue where archetype generation failed with latest maven-archetype-plugin. See [#1981](https://github.com/aws/aws-sdk-java-v2/issues/1981)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "description": "This SDK Release introduces new API (DetectProtectiveEquipment) for Amazon Rekognition. This release also adds ServiceQuotaExceeded exception to Amazon Rekognition IndexFaces API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Ground Station",
+            "description": "Adds error message attribute to DescribeContact DataflowDetails"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "description": "When creating Endpoints, Replication Instances, and Replication Tasks, the feature provides you the option to specify friendly name to the resources."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "description": "Documentation updates for WorkSpaces"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "This Patch Manager release now supports searching for available packages from Amazon Linux and Amazon Linux 2 via the DescribeAvailablePatches API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "description": "Add CreateOrganization and DeleteOrganization API operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Add support for plus (+) character in profile names"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "description": "Add support to associate VPC Security Groups at server creation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "API Documentation updates for Glue Get-Plan API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "description": "This release improves email validation for subscriptions on the SDK endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "description": "Add new variable, lastStatusChangeDate, to DescribeDomainConfiguration API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS X-Ray",
+            "description": "Enhancing CreateGroup, UpdateGroup, GetGroup and GetGroups APIs to support configuring X-Ray Insights Notifications. Adding TraceLimit information into X-Ray BatchGetTraces API response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Return tags for all resources in the output of DescribeDBInstances, DescribeDBSnapshots, DescribeDBClusters, and DescribeDBClusterSnapshots API operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "description": "This release introduces AWS Budgets Actions, allowing you to define an explicit response(or set of responses) to take when your budget exceeds it's action threshold."
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "description": "This release adds support for the ApplyArchiveRule api in IAM Access Analyzer. The ApplyArchiveRule api allows users to apply an archive rule retroactively to existing findings in an analyzer."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "description": "This release of the Amazon Macie API adds support for pausing and resuming classification jobs. Also, sensitive data findings now include location data for up to 15 occurrences of sensitive data."
+        }
+    ]
+}

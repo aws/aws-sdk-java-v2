@@ -1474,6 +1474,14 @@
         "MessageAttributes":{
           "shape":"MessageAttributeMap",
           "documentation":"<p>Message attributes for Publish action.</p>"
+        },
+        "MessageDeduplicationId":{
+          "shape":"String",
+          "documentation":"<p>This parameter applies only to FIFO (first-in-first-out) topics. The <code>MessageDeduplicationId</code> can contain up to 128 alphanumeric characters (a-z, A-Z, 0-9) and punctuation <code>(!\"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\\]^_`{|}~)</code>.</p> <p>Every message must have a unique <code>MessageDeduplicationId</code>, which is a token used for deduplication of sent messages. If a message with a particular <code>MessageDeduplicationId</code> is sent successfully, any message sent with the same <code>MessageDeduplicationId</code> during the 5-minute deduplication interval is treated as a duplicate. </p> <p>If the topic has <code>ContentBasedDeduplication</code> set, the system generates a <code>MessageDeduplicationId</code> based on the contents of the message. Your <code>MessageDeduplicationId</code> overrides the generated one.</p>"
+        },
+        "MessageGroupId":{
+          "shape":"String",
+          "documentation":"<p>This parameter applies only to FIFO (first-in-first-out) topics. The <code>MessageGroupId</code> can contain up to 128 alphanumeric characters (a-z, A-Z, 0-9) and punctuation <code>(!\"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\\]^_`{|}~)</code>.</p> <p>The <code>MessageGroupId</code> is a tag that specifies that a message belongs to a specific message group. Messages that belong to the same message group are processed in a FIFO manner (however, messages in different message groups might be processed out of order). Every message must include a <code>MessageGroupId</code>.</p>"
         }
       },
       "documentation":"<p>Input for Publish action.</p>"
@@ -1484,6 +1492,10 @@
         "MessageId":{
           "shape":"messageId",
           "documentation":"<p>Unique identifier assigned to the published message.</p> <p>Length Constraint: Maximum 100 characters</p>"
+        },
+        "SequenceNumber":{
+          "shape":"String",
+          "documentation":"<p>This response element applies only to FIFO (first-in-first-out) topics. </p> <p>The sequence number is a large, non-consecutive number that Amazon SNS assigns to each message. The length of <code>SequenceNumber</code> is 128 bits. <code>SequenceNumber</code> continues to increase for each <code>MessageGroupId</code>.</p>"
         }
       },
       "documentation":"<p>Response for Publish action.</p>"

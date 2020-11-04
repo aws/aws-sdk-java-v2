@@ -34,7 +34,17 @@ public enum S3ResourceType {
     /**
      * A specific S3 object (bucket and key). Implemented by {@link S3ObjectResource}.
      */
-    OBJECT("object");
+    OBJECT("object"),
+
+    /**
+     * An outpost access point. Implemented by {@link S3OutpostResource}.
+     */
+    OUTPOST("outpost"),
+
+    /**
+     * A global multi-region access point. Implemented by {@link S3MultiRegionAccessPointResource}.
+     */
+    MULTI_REGION("multi-region");
 
     private final String value;
 

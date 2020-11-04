@@ -98,7 +98,6 @@ public interface ProtocolSpec {
                : "";
     }
 
-
     /**
      * For sync streaming operations, wrap request marshaller in {@link StreamingRequestMarshaller} class.
      */
@@ -186,8 +185,6 @@ public interface ProtocolSpec {
     }
 
     default String publishMetrics() {
-        return "List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, "
-               + "requestOverrideConfig);\n"
-               + "metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));";
+        return "metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));";
     }
 }

@@ -117,5 +117,11 @@ public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvid
         public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
             return refreshRequest(AssumeRoleRequest.builder().applyMutation(assumeRoleRequest).build());
         }
+
+        @Override
+        public StsAssumeRoleCredentialsProvider build() {
+            return super.build();
+        }
+
     }
 }

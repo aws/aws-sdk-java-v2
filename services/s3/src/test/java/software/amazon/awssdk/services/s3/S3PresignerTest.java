@@ -29,6 +29,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
+import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.regions.Region;
@@ -437,6 +438,8 @@ public class S3PresignerTest {
                                 .key("bar")));
 
         assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
+        assertThat(presignedRequest.httpRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0))
+            .isEqualTo(SignerConstant.AWS4_SIGNING_ALGORITHM);
     }
 
     @Test
@@ -452,5 +455,77 @@ public class S3PresignerTest {
                         .getObjectRequest(go -> go.bucket(accessPointArn).key("bar"))))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("region");
+    }
+
+    @Test
+    public void accessPointArn_outpost_correctEndpoint() {
+        String customEndpoint = "https://myaccesspoint-123456789012.op-01234567890123456.s3-outposts.us-west-2.amazonaws.com";
+        String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
+
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                                                                                       .useArnRegionEnabled(true)
+                                                                                       .build())
+                                                  .build();
+
+        PresignedGetObjectRequest presignedRequest =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(accessPointArn)
+                                                                       .key("bar")));
+
+        assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
+    }
+
+    @Test
+    public void accessPointArn_outpost_differentRegion_useArnRegionTrue_correctEndpoint() {
+        String customEndpoint = "https://myaccesspoint-123456789012.op-01234567890123456.s3-outposts.us-east-1.amazonaws.com";
+        String accessPointArn = "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
+
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                                                                                       .useArnRegionEnabled(true)
+                                                                                       .build())
+                                                  .build();
+
+        PresignedGetObjectRequest presignedRequest =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(accessPointArn)
+                                                                       .key("bar")));
+
+        assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
+    }
+
+    @Test
+    public void accessPointArn_outpost_differentRegion_useArnRegionFalse_throwsIllegalArgumentException() {
+        String accessPointArn = "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
+
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                                                                                       .useArnRegionEnabled(false)
+                                                                                       .build())
+                                                  .build();
+
+        assertThatThrownBy(() -> presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                                  .getObjectRequest(go -> go.bucket(accessPointArn)
+                                                                                            .key("bar"))))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("region");
+    }
+
+    @Test
+    public void accessPointArn_multiRegion_useArnRegionTrue_correctEndpointAndSigner() {
+        String customEndpoint = "https://mfzwi23gnjvgw.mrap.global-s3.amazonaws.com";
+        String accessPointArn = "arn:aws:s3::12345678910:accesspoint:mfzwi23gnjvgw.mrap";
+
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                                                                                       .useArnRegionEnabled(true)
+                                                                                       .build())
+                                                  .build();
+
+        PresignedGetObjectRequest presignedRequest =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(accessPointArn)
+                                                                       .key("bar")));
+
+        assertThat(presignedRequest.httpRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0))
+            .isEqualTo("AWS4-ECDSA-P256-SHA256");
+        assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
     }
 }

@@ -5,10 +5,10 @@ software.amazon.awssdk.services.s3.internal.handlers.CreateMultipartUploadReques
 software.amazon.awssdk.services.s3.internal.handlers.EnableChunkedEncodingInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.DisableDoubleUrlEncodingInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.DecodeUrlEncodedResponseInterceptor
-software.amazon.awssdk.services.s3.internal.handlers.AddContentMd5HeaderInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.GetBucketPolicyInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.AsyncChecksumValidationInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.EnableTrailingChecksumInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.ExceptionTranslationInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.GetObjectInterceptor
+software.amazon.awssdk.services.s3.internal.handlers.SignerOverrideInterceptor

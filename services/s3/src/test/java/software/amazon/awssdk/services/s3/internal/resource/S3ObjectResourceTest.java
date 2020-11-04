@@ -20,213 +20,188 @@ import static org.junit.Assert.assertNotEquals;
 
 import java.util.Optional;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class S3ObjectResourceTest {
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @Test
-    public void buildWithAllPropertiesSet() {
+    public void buildWithBucketParent() {
+        S3BucketResource parentResource = S3BucketResource.builder()
+                                                          .bucketName("bucket")
+                                                          .accountId("account-id")
+                                                          .partition("partition")
+                                                          .region("region")
+                                                          .build();
+
         S3ObjectResource s3ObjectResource = S3ObjectResource.builder()
-                                                            .bucketName("bucket")
                                                             .key("key")
-                                                            .accountId("account-id")
-                                                            .partition("partition")
-                                                            .region("region")
+                                                            .parentS3Resource(parentResource)
                                                             .build();
 
-        assertEquals("bucket", s3ObjectResource.bucketName());
         assertEquals("key", s3ObjectResource.key());
         assertEquals(Optional.of("account-id"), s3ObjectResource.accountId());
         assertEquals(Optional.of("partition"), s3ObjectResource.partition());
         assertEquals(Optional.of("region"), s3ObjectResource.region());
         assertEquals("object", s3ObjectResource.type());
+        assertEquals(Optional.of(parentResource), s3ObjectResource.parentS3Resource());
     }
 
     @Test
-    public void toBuilder() {
+    public void buildWithAccessPointParent() {
+        S3AccessPointResource parentResource = S3AccessPointResource.builder()
+                                                                    .accessPointName("test-ap")
+                                                                    .accountId("account-id")
+                                                                    .partition("partition")
+                                                                    .region("region")
+                                                                    .build();
+
         S3ObjectResource s3ObjectResource = S3ObjectResource.builder()
-                                                            .bucketName("bucket")
                                                             .key("key")
-                                                            .accountId("account-id")
-                                                            .partition("partition")
-                                                            .region("region")
-                                                            .build()
-                                                            .toBuilder()
+                                                            .parentS3Resource(parentResource)
                                                             .build();
 
-        assertEquals("bucket", s3ObjectResource.bucketName());
         assertEquals("key", s3ObjectResource.key());
         assertEquals(Optional.of("account-id"), s3ObjectResource.accountId());
         assertEquals(Optional.of("partition"), s3ObjectResource.partition());
         assertEquals(Optional.of("region"), s3ObjectResource.region());
         assertEquals("object", s3ObjectResource.type());
+        assertEquals(Optional.of(parentResource), s3ObjectResource.parentS3Resource());
     }
 
     @Test
-    public void buildWithSetters() {
-        S3ObjectResource.Builder builder = S3ObjectResource.builder();
-        builder.setBucketName("bucket");
-        builder.setKey("key");
-        builder.setAccountId("account-id");
-        builder.setPartition("partition");
-        builder.setRegion("region");
-        S3ObjectResource s3ObjectResource = builder.build();
+    public void buildWithInvalidParentType() {
+        S3Resource fakeS3ObjectResource = new S3Resource() {
+            @Override
+            public Optional<String> partition() {
+                return Optional.empty();
+            }
 
-        assertEquals("bucket", s3ObjectResource.bucketName());
-        assertEquals("key", s3ObjectResource.key());
-        assertEquals(Optional.of("account-id"), s3ObjectResource.accountId());
-        assertEquals(Optional.of("partition"), s3ObjectResource.partition());
-        assertEquals(Optional.of("region"), s3ObjectResource.region());
-        assertEquals("object", s3ObjectResource.type());
-    }
+            @Override
+            public Optional<String> region() {
+                return Optional.empty();
+            }
 
-    @Test
-    public void buildWithMinimalPropertiesSet() {
-        S3ObjectResource s3ObjectResource = S3ObjectResource.builder()
-                                                            .partition("aws")
-                                                            .bucketName("bucket")
-                                                            .key("key")
-                                                            .build();
+            @Override
+            public Optional<String> accountId() {
+                return Optional.empty();
+            }
 
-        assertEquals("bucket", s3ObjectResource.bucketName());
-        assertEquals("key", s3ObjectResource.key());
-        assertEquals(Optional.of("aws"), s3ObjectResource.partition());
-        assertEquals(Optional.empty(), s3ObjectResource.accountId());
-        assertEquals(Optional.empty(), s3ObjectResource.region());
-        assertEquals("object", s3ObjectResource.type());
-    }
+            @Override
+            public String type() {
+                return null;
+            }
+        };
 
-    @Test(expected = NullPointerException.class)
-    public void buildWithMissingPartition() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("parentS3Resource");
         S3ObjectResource.builder()
-                        .bucketName("bucket")
+                        .parentS3Resource(fakeS3ObjectResource)
                         .key("key")
                         .build();
     }
 
-    @Test(expected = NullPointerException.class)
-    public void buildWithMissingBucketName() {
-        S3ObjectResource.builder()
-                        .partition("aws")
-                        .key("key")
-                        .build();
-    }
-
-    @Test(expected = NullPointerException.class)
+    @Test
     public void buildWithMissingKey() {
-        S3ObjectResource.builder()
-                        .partition("aws")
-                        .bucketName("bucket-name")
-                        .build();
-    }
+        S3BucketResource parentResource = S3BucketResource.builder()
+                                                          .bucketName("bucket")
+                                                          .accountId("account-id")
+                                                          .partition("partition")
+                                                          .region("region")
+                                                          .build();
 
-    @Test(expected = IllegalArgumentException.class)
-    public void buildWithEmptyPartition() {
+        exception.expect(NullPointerException.class);
+        exception.expectMessage("key");
         S3ObjectResource.builder()
-                        .bucketName("bucket")
-                        .key("key")
-                        .partition("")
-                        .build();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void buildWithEmptyBucketName() {
-        S3ObjectResource.builder()
-                        .partition("aws")
-                        .key("key")
-                        .bucketName("")
-                        .build();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void buildWithEmptyKey() {
-        S3ObjectResource.builder()
-                        .partition("aws")
-                        .bucketName("bucket-name")
-                        .key("")
+                        .parentS3Resource(parentResource)
                         .build();
     }
 
     @Test
-    public void equals_allProperties() {
+    public void buildWithMissingParent() {
+        exception.expect(NullPointerException.class);
+        exception.expectMessage("parentS3Resource");
+        S3ObjectResource.builder()
+                        .key("test-key")
+                        .build();
+    }
+
+    @Test
+    public void equalsAndHashCode_allPropertiesSame() {
+        S3BucketResource parentResource = S3BucketResource.builder()
+                                                          .bucketName("bucket")
+                                                          .accountId("account-id")
+                                                          .partition("partition")
+                                                          .region("region")
+                                                          .build();
         S3ObjectResource s3ObjectResource1 = S3ObjectResource.builder()
-                                                             .bucketName("bucket")
                                                              .key("key")
-                                                             .accountId("account-id")
-                                                             .partition("partition")
-                                                             .region("region")
+                                                             .parentS3Resource(parentResource)
                                                              .build();
 
         S3ObjectResource s3ObjectResource2 = S3ObjectResource.builder()
-                                                             .bucketName("bucket")
                                                              .key("key")
-                                                             .accountId("account-id")
-                                                             .partition("partition")
-                                                             .region("region")
-                                                             .build();
-
-        S3ObjectResource s3ObjectResource3 = S3ObjectResource.builder()
-                                                             .bucketName("bucket")
-                                                             .key("key")
-                                                             .accountId("account-id")
-                                                             .partition("different-partition")
-                                                             .region("region")
+                                                             .parentS3Resource(parentResource)
                                                              .build();
 
         assertEquals(s3ObjectResource1, s3ObjectResource2);
-        assertNotEquals(s3ObjectResource1, s3ObjectResource3);
-    }
-
-    @Test
-    public void equals_minimalProperties() {
-        S3ObjectResource s3ObjectResource1 = S3ObjectResource.builder()
-                                                             .partition("aws")
-                                                             .bucketName("bucket")
-                                                             .key("key")
-                                                             .build();
-
-        S3ObjectResource s3ObjectResource2 = S3ObjectResource.builder()
-                                                             .partition("aws")
-                                                             .bucketName("bucket")
-                                                             .key("key")
-                                                             .build();
-
-        S3ObjectResource s3ObjectResource3 = S3ObjectResource.builder()
-                                                             .partition("aws")
-                                                             .bucketName("another-bucket")
-                                                             .key("key")
-                                                             .build();
-
-        assertEquals(s3ObjectResource1, s3ObjectResource2);
-        assertNotEquals(s3ObjectResource1, s3ObjectResource3);
-    }
-
-    @Test
-    public void hashcode_allProperties() {
-        S3ObjectResource s3ObjectResource1 = S3ObjectResource.builder()
-                                                             .bucketName("bucket")
-                                                             .key("key")
-                                                             .accountId("account-id")
-                                                             .partition("partition")
-                                                             .region("region")
-                                                             .build();
-
-        S3ObjectResource s3ObjectResource2 = S3ObjectResource.builder()
-                                                             .bucketName("bucket")
-                                                             .key("key")
-                                                             .accountId("account-id")
-                                                             .partition("partition")
-                                                             .region("region")
-                                                             .build();
-
-        S3ObjectResource s3ObjectResource3 = S3ObjectResource.builder()
-                                                             .bucketName("bucket")
-                                                             .key("key")
-                                                             .accountId("account-id")
-                                                             .partition("different-partition")
-                                                             .region("region")
-                                                             .build();
-
         assertEquals(s3ObjectResource1.hashCode(), s3ObjectResource2.hashCode());
-        assertNotEquals(s3ObjectResource1.hashCode(), s3ObjectResource3.hashCode());
     }
+
+    @Test
+    public void equalsAndHashCode_differentKey() {
+        S3BucketResource parentResource = S3BucketResource.builder()
+                                                          .bucketName("bucket")
+                                                          .accountId("account-id")
+                                                          .partition("partition")
+                                                          .region("region")
+                                                          .build();
+        S3ObjectResource s3ObjectResource1 = S3ObjectResource.builder()
+                                                             .key("key1")
+                                                             .parentS3Resource(parentResource)
+                                                             .build();
+
+        S3ObjectResource s3ObjectResource2 = S3ObjectResource.builder()
+                                                             .key("key2")
+                                                             .parentS3Resource(parentResource)
+                                                             .build();
+
+
+        assertNotEquals(s3ObjectResource1, s3ObjectResource2);
+        assertNotEquals(s3ObjectResource1.hashCode(), s3ObjectResource2.hashCode());
+    }
+
+    @Test
+    public void equalsAndHashCode_differentParent() {
+        S3BucketResource parentResource = S3BucketResource.builder()
+                                                          .bucketName("bucket")
+                                                          .accountId("account-id")
+                                                          .partition("partition")
+                                                          .region("region")
+                                                          .build();
+
+        S3BucketResource parentResource2 = S3BucketResource.builder()
+                                                          .bucketName("bucket2")
+                                                          .accountId("account-id")
+                                                          .partition("partition")
+                                                          .region("region")
+                                                          .build();
+        S3ObjectResource s3ObjectResource1 = S3ObjectResource.builder()
+                                                             .key("key")
+                                                             .parentS3Resource(parentResource)
+                                                             .build();
+
+        S3ObjectResource s3ObjectResource2 = S3ObjectResource.builder()
+                                                             .key("key")
+                                                             .parentS3Resource(parentResource2)
+                                                             .build();
+
+
+        assertNotEquals(s3ObjectResource1, s3ObjectResource2);
+        assertNotEquals(s3ObjectResource1.hashCode(), s3ObjectResource2.hashCode());
+    }
+
 }

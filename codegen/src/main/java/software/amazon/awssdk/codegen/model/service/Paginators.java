@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,16 +26,14 @@ public class Paginators {
 
     private static final Paginators NONE = new Paginators(Collections.emptyMap());
 
-    @JsonProperty("pagination")
-    private final Map<String, PaginatorDefinition> paginators;
+    private Map<String, PaginatorDefinition> pagination;
 
-    // Needed for JSON deserialization
     private Paginators() {
         this(new HashMap<>());
     }
 
-    private Paginators(Map<String, PaginatorDefinition> paginators) {
-        this.paginators = paginators;
+    private Paginators(Map<String, PaginatorDefinition> pagination) {
+        this.pagination = pagination;
     }
 
     public static Paginators none() {
@@ -46,11 +43,15 @@ public class Paginators {
     /**
      * Returns a map of operation name to its {@link PaginatorDefinition}.
      */
-    public Map<String, PaginatorDefinition> getPaginators() {
-        return paginators;
+    public Map<String, PaginatorDefinition> getPagination() {
+        return pagination;
+    }
+
+    public void setPagination(Map<String, PaginatorDefinition> pagination) {
+        this.pagination = pagination;
     }
 
     public PaginatorDefinition getPaginatorDefinition(String operationName) {
-        return paginators.get(operationName);
+        return pagination.get(operationName);
     }
 }

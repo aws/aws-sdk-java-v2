@@ -23,7 +23,7 @@ import java.io.Writer;
 /**
  * Simple generator task that writes a string to a file.
  */
-public final class SimpleGeneratorTask implements GeneratorTask {
+public final class SimpleGeneratorTask extends GeneratorTask {
 
     private final Writer writer;
     private final String fileHeader;
@@ -41,7 +41,7 @@ public final class SimpleGeneratorTask implements GeneratorTask {
     }
 
     @Override
-    public void execute() {
+    public void compute() {
         try {
             writer.write(fileHeader + "\n");
             writer.write(contents);

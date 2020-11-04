@@ -1,0 +1,51 @@
+{
+    "version": "2.14.0",
+    "date": "2020-08-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "description": "This feature adds support for pushing and pulling Open Container Initiative (OCI) artifacts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "The client-side metrics feature is out of developer preview and is now generaly available."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis",
+            "description": "Introducing ShardFilter for ListShards API to filter the shards using a position in the stream, and ChildShards support for GetRecords and SubscribeToShard API to discover children shards on shard end"
+        },
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "description": "This release introduces RoboMaker Simulation WorldForge, a capability that automatically generates one or more simulation worlds."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "description": "ACM Private CA is launching cross-account support. This allows customers to share their private CAs with other accounts, AWS Organizations, and organizational units to issue end-entity certificates."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "description": "Adds support for HTTP Desync Mitigation in Application Load Balancers."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "description": "Adds support for HTTP Desync Mitigation in Classic Load Balancers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager",
+            "description": "ACM provides support for the new Private CA feature Cross-account CA sharing. ACM users can issue certificates signed by a private CA belonging to another account where the CA was shared with them."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "Amazon QuickSight now supports programmatic creation and management of analyses with new APIs."
+        }
+    ]
+}

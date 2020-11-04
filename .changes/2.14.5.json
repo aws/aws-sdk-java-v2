@@ -1,0 +1,21 @@
+{
+    "version": "2.14.5",
+    "date": "2020-08-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "description": "Amazon AppFlow is a fully managed integration service that securely transfers data between AWS services and SaaS applications. This update releases the first version of Amazon AppFlow APIs and SDK."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "description": "Route 53 Resolver adds support for resolver query logs"
+        }
+    ]
+}

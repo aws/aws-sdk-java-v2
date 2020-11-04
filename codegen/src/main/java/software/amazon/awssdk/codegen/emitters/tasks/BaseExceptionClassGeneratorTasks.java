@@ -41,7 +41,6 @@ public class BaseExceptionClassGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        info("Emitting Base Service Exception class");
         return Collections.singletonList(
             new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new BaseExceptionClass(model)));
     }

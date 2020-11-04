@@ -16,6 +16,9 @@ package software.amazon.awssdk.services.s3control.internal.interceptors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.is;
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SIGNING_REGION;
 
 import java.util.Optional;
 import org.junit.Before;
@@ -33,6 +36,8 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 import software.amazon.awssdk.services.s3control.S3ControlConfiguration;
+import software.amazon.awssdk.services.s3control.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3control.model.ListRegionalBucketsRequest;
 
 public class EndpointAddressInterceptorTest {
 
@@ -52,23 +57,10 @@ public class EndpointAddressInterceptorTest {
     }
 
     @Test
-    public void modifyHttpRequest_illegalCharacterInAccountId_throwsException() {
-        SdkHttpRequest modifiedRequest = SdkHttpFullRequest.builder()
-                                                           .appendHeader(X_AMZ_ACCOUNT_ID, "1234/#")
-                                                           .protocol(Protocol.HTTPS.toString())
-                                                           .method(SdkHttpMethod.POST)
-                                                           .host(S3ControlClient.serviceMetadata().endpointFor(Region.US_EAST_1).toString())
-                                                           .build();
-        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
-        assertThatThrownBy(() -> interceptor.modifyHttpRequest(new Context(modifiedRequest), new ExecutionAttributes()))
-            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("account id");
-    }
-
-    @Test
     public void modifyHttpRequest_ResolvesCorrectHost_StandardSettings() {
         EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
         SdkHttpRequest modified = interceptor.modifyHttpRequest(new Context(request), new ExecutionAttributes());
-        assertThat(modified.host()).isEqualTo(ACCOUNT_ID + ".s3-control.us-east-1.amazonaws.com");
+        assertThat(modified.host()).isEqualTo("s3-control.us-east-1.amazonaws.com");
     }
 
     @Test
@@ -80,7 +72,7 @@ public class EndpointAddressInterceptorTest {
         executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
 
         SdkHttpRequest modified = interceptor.modifyHttpRequest(new Context(request), executionAttributes);
-        assertThat(modified.host()).isEqualTo(ACCOUNT_ID + ".s3-control.dualstack.us-east-1.amazonaws.com");
+        assertThat(modified.host()).isEqualTo("s3-control.dualstack.us-east-1.amazonaws.com");
     }
 
     @Test
@@ -92,7 +84,115 @@ public class EndpointAddressInterceptorTest {
         executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
 
         SdkHttpRequest modified = interceptor.modifyHttpRequest(new Context(request), executionAttributes);
-        assertThat(modified.host()).isEqualTo(ACCOUNT_ID + ".s3-control-fips.us-east-1.amazonaws.com");
+        assertThat(modified.host()).isEqualTo("s3-control-fips.us-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void createBucketRequestWithOutpostId_shouldRedirect() {
+        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
+        CreateBucketRequest createBucketRequest = CreateBucketRequest.builder().outpostId("1234").build();
+
+        S3ControlConfiguration controlConfiguration = S3ControlConfiguration.builder().build();
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
+        executionAttributes.putAttribute(SIGNING_REGION, Region.US_EAST_1);
+
+        SdkHttpRequest modified = interceptor.modifyHttpRequest(new Context(request).request(createBucketRequest),
+                                                                executionAttributes);
+        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME)).isEqualTo("s3-outposts");
+        assertThat(modified.host()).isEqualTo("s3-outposts.us-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void listRegionalBucketsRequestsWithOutpostId_shouldRedirect() {
+        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
+        ListRegionalBucketsRequest sdkRequest = ListRegionalBucketsRequest.builder().outpostId("1234").build();
+
+        S3ControlConfiguration controlConfiguration = S3ControlConfiguration.builder().build();
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
+        executionAttributes.putAttribute(SIGNING_REGION, Region.US_EAST_1);
+        executionAttributes.putAttribute(SERVICE_SIGNING_NAME, "s3");
+
+        SdkHttpRequest modified = interceptor.modifyHttpRequest(new Context(request).request(sdkRequest),
+                                                                executionAttributes);
+        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME)).isEqualTo("s3-outposts");
+        assertThat(modified.host()).isEqualTo("s3-outposts.us-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void listRegionalBucketsRequestsWithoutOutpostId_shouldNotRedirect() {
+        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
+        ListRegionalBucketsRequest sdkRequest = ListRegionalBucketsRequest.builder().build();
+
+        S3ControlConfiguration controlConfiguration = S3ControlConfiguration.builder()
+                                                                            .dualstackEnabled(true)
+                                                                            .build();
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
+        executionAttributes.putAttribute(SIGNING_REGION, Region.US_EAST_1);
+        executionAttributes.putAttribute(SERVICE_SIGNING_NAME, "s3");
+
+        SdkHttpRequest modified = interceptor.modifyHttpRequest(new Context(request).request(sdkRequest),
+                                                                executionAttributes);
+        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME)).isEqualTo("s3");
+        assertThat(modified.host()).isEqualTo("s3-control.dualstack.us-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void createBucketRequestsWithoutOutpostId_shouldNotRedirect() {
+        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
+        ListRegionalBucketsRequest sdkRequest = ListRegionalBucketsRequest.builder()
+                                                                          .build();
+
+        S3ControlConfiguration controlConfiguration = S3ControlConfiguration.builder()
+                                                                            .fipsModeEnabled(true)
+                                                                            .build();
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
+        executionAttributes.putAttribute(SIGNING_REGION, Region.US_EAST_1);
+        executionAttributes.putAttribute(SERVICE_SIGNING_NAME, "s3");
+
+        SdkHttpRequest modified = interceptor.modifyHttpRequest(new Context(request).request(sdkRequest),
+                                                                executionAttributes);
+        assertThat(executionAttributes.getAttribute(SERVICE_SIGNING_NAME)).isEqualTo("s3");
+        assertThat(modified.host()).isEqualTo("s3-control-fips.us-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void listRegionalBucketsRequestWithOutpostId_fipsEnabled_shouldThrowException() {
+        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
+        ListRegionalBucketsRequest sdkRequest = ListRegionalBucketsRequest.builder()
+                                                                          .outpostId("123")
+                                                                          .build();
+
+        S3ControlConfiguration controlConfiguration = S3ControlConfiguration.builder().fipsModeEnabled(true).build();
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
+        executionAttributes.putAttribute(SIGNING_REGION, Region.US_EAST_1);
+        executionAttributes.putAttribute(SERVICE_SIGNING_NAME, "s3");
+
+        assertThatThrownBy(() -> interceptor.modifyHttpRequest(new Context(request).request(sdkRequest),
+                                                               executionAttributes)).hasMessageContaining("FIPS endpoints are "
+                                                                                                          + "not supported");
+    }
+
+    @Test
+    public void listRegionalBucketsRequestWithOutpostId_fipsDualsackEnabled_shouldThrowException() {
+        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
+        ListRegionalBucketsRequest sdkRequest = ListRegionalBucketsRequest.builder()
+                                                                          .outpostId("123")
+                                                                          .build();
+
+        S3ControlConfiguration controlConfiguration = S3ControlConfiguration.builder().dualstackEnabled(true).build();
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
+        executionAttributes.putAttribute(SIGNING_REGION, Region.US_EAST_1);
+        executionAttributes.putAttribute(SERVICE_SIGNING_NAME, "s3");
+
+        assertThatThrownBy(() -> interceptor.modifyHttpRequest(new Context(request).request(sdkRequest),
+                                                               executionAttributes)).hasMessageContaining("Dualstack endpoints are "
+                                                                                                          + "not supported");
     }
 
     @Test(expected = SdkClientException.class)
@@ -123,31 +223,23 @@ public class EndpointAddressInterceptorTest {
                                       executionAttributes);
     }
 
-    @Test(expected = SdkClientException.class)
-    public void modifyHttpRequest_ThrowsException_NoAccountId() {
-        EndpointAddressInterceptor interceptor = new EndpointAddressInterceptor();
-
-        S3ControlConfiguration controlConfiguration = S3ControlConfiguration.builder()
-                                                                            .dualstackEnabled(true)
-                                                                            .build();
-        ExecutionAttributes executionAttributes = new ExecutionAttributes();
-        executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, controlConfiguration);
-
-        interceptor.modifyHttpRequest(new Context(request.toBuilder().removeHeader(X_AMZ_ACCOUNT_ID).build()),
-                                      executionAttributes);
-    }
-
     public final class Context implements software.amazon.awssdk.core.interceptor.Context.ModifyHttpRequest {
 
         private final SdkHttpRequest request;
+        private SdkRequest sdkRequest;
 
         public Context(SdkHttpRequest request) {
             this.request = request;
         }
 
+        public Context request(SdkRequest sdkRequest) {
+            this.sdkRequest = sdkRequest;
+            return this;
+        }
+
         @Override
         public SdkRequest request() {
-            return null;
+            return sdkRequest;
         }
 
         @Override

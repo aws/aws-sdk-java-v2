@@ -36,6 +36,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
+import software.amazon.awssdk.codegen.docs.WaiterDocs;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -90,6 +91,10 @@ public class AsyncClientInterface implements ClassSpec {
 
         if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
             result.addMethod(utilitiesMethod());
+        }
+
+        if (model.hasWaiters()) {
+            result.addMethod(waiterMethod());
         }
 
         return result.build();
@@ -440,6 +445,15 @@ public class AsyncClientInterface implements ClassSpec {
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .addJavadoc("Creates an instance of {@link $T} object with the "
                                      + "configuration set on this client.", returnType)
+                         .build();
+    }
+
+    private MethodSpec waiterMethod() {
+        return MethodSpec.methodBuilder("waiter")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .returns(poetExtensions.getAsyncWaiterInterface())
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .addJavadoc(WaiterDocs.waiterMethodInClient(poetExtensions.getAsyncWaiterInterface()))
                          .build();
     }
 }

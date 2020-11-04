@@ -1,0 +1,46 @@
+{
+    "version": "2.15.11",
+    "date": "2020-10-20",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "description": "Fixed an issue where metrics were not being collected for Amazon S3 (or other XML services)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "description": "Adding evaluateOnExit to job retry strategies."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed an issue where requestBody and asyncRequestBody were not visible in ExecutionInterceptor.afterMarshalling."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elastic Beanstalk",
+            "description": "EnvironmentStatus enum update to include Aborting, LinkingFrom and LinkingTo"
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "description": "Documentation updates to AppSync to correct several typos."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "description": "Moved the logic for calculating the Content-MD5 checksums from s3 to sdk-core. As always, make sure to use a version of 'sdk-core' greater than or equal to your version of 's3'. If you use an old version of 'sdk-core' and a new version of 's3', you will receive errors that Content-MD5 is required."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "description": "Fix for handling special characters in attribute names with WRITE_IF_NOT_EXISTS update behavior"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

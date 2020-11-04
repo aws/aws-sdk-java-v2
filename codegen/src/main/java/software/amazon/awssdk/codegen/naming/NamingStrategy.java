@@ -53,6 +53,11 @@ public interface NamingStrategy {
     String getPaginatorsPackageName(String serviceName);
 
     /**
+     * Retrieve the waiters package name that should be used based on the service name.
+     */
+    String getWaitersPackageName(String serviceName);
+
+    /**
      * Retrieve the smote test package name that should be used based on the service name.
      */
     String getSmokeTestPackageName(String serviceName);

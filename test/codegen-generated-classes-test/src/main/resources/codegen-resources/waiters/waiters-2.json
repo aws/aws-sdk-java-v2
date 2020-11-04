@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "waiters": {
+    "AllTypesSuccess": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "expected": 200,
+          "matcher": "status",
+          "state": "success"
+        },
+        {
+          "state": "retry",
+          "matcher": "status",
+          "expected": 404
+        },
+        {
+          "matcher": "error",
+          "expected": "EmptyModeledException",
+          "state": "failure"
+        },
+        {
+          "state": "failure",
+          "matcher": "status",
+          "expected": 500
+        }
+      ]
+    }
+  }
+}

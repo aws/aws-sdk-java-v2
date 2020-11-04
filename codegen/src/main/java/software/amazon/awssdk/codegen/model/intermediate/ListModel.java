@@ -15,31 +15,32 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 
 public class ListModel {
 
-    private final String implType;
+    private String implType;
 
-    private final String memberType;
+    private String memberType;
 
-    private final String interfaceType;
+    private String interfaceType;
 
-    private final MemberModel listMemberModel;
+    private MemberModel listMemberModel;
 
-    private final String memberLocationName;
+    private String memberLocationName;
 
     private String memberAdditionalMarshallingPath;
 
     private String memberAdditionalUnmarshallingPath;
 
-    public ListModel(
-            @JsonProperty("memberType") String memberType,
-            @JsonProperty("memberLocationName") String memberLocationName,
-            @JsonProperty("implType") String implType,
-            @JsonProperty("interfaceType") String interfaceType,
-            @JsonProperty("listMemberModel") MemberModel listMemberModel) {
+    public ListModel() {
+    }
+
+    public ListModel(String memberType,
+                     String memberLocationName,
+                     String implType,
+                     String interfaceType,
+                     MemberModel listMemberModel) {
 
         this.memberType = memberType;
         this.memberLocationName = memberLocationName;
@@ -52,20 +53,40 @@ public class ListModel {
         return implType;
     }
 
+    public void setImplType(String implType) {
+        this.implType = implType;
+    }
+
     public String getMemberType() {
         return memberType;
+    }
+
+    public void setMemberType(String memberType) {
+        this.memberType = memberType;
     }
 
     public String getInterfaceType() {
         return interfaceType;
     }
 
+    public void setInterfaceType(String interfaceType) {
+        this.interfaceType = interfaceType;
+    }
+
     public MemberModel getListMemberModel() {
         return listMemberModel;
     }
 
+    public void setListMemberModel(MemberModel listMemberModel) {
+        this.listMemberModel = listMemberModel;
+    }
+
     public String getMemberLocationName() {
         return memberLocationName;
+    }
+
+    public void setMemberLocationName(String memberLocationName) {
+        this.memberLocationName = memberLocationName;
     }
 
     public String getMemberAdditionalMarshallingPath() {

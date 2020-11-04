@@ -33,12 +33,14 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 
 @SdkInternalApi
 public final class CrtHttpUtils {
 
+    private static final String SLASH = "/";
     private static final String HOST_HEADER = "Host";
     private static final int READ_BUFFER_SIZE = 4096;
 
@@ -47,10 +49,7 @@ public final class CrtHttpUtils {
 
     public static HttpRequest createCrtRequest(SdkHttpFullRequest inputRequest) {
         String method = inputRequest.method().name();
-        String encodedPath = inputRequest.encodedPath();
-        if (encodedPath == null || encodedPath.length() == 0) {
-            encodedPath = "/";
-        }
+        String encodedPath = encodedPathToCrtFormat(inputRequest.encodedPath());
 
         String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(inputRequest.rawQueryParameters())
                 .map(value -> "?" + value)
@@ -150,7 +149,8 @@ public final class CrtHttpUtils {
         URI fullUri = null;
         try {
             String portString = SdkHttpUtils.isUsingStandardPort(builder.protocol(), builder.port()) ? "" : ":" + builder.port();
-            String fullUriString = builder.protocol() + "://" + builder.host() + portString + signedCrtRequest.getEncodedPath();
+            String encodedPath = encodedPathFromCrtFormat(inputRequest.encodedPath(), signedCrtRequest.getEncodedPath());
+            String fullUriString = builder.protocol() + "://" + builder.host() + portString + encodedPath;
             fullUri = new URI(fullUriString);
         } catch (URISyntaxException e) {
             return null;
@@ -189,4 +189,21 @@ public final class CrtHttpUtils {
 
         return builder.build();
     }
+
+    //TODO When CRT can work with SDK format empty paths, this method can be removed
+    private static String encodedPathToCrtFormat(String sdkEncodedPath) {
+        if (StringUtils.isEmpty(sdkEncodedPath)) {
+            return "/";
+        }
+        return sdkEncodedPath;
+    }
+
+    //TODO When CRT can work with SDK empty paths, this method can be removed
+    private static String encodedPathFromCrtFormat(String sdkEncodedPath, String crtEncodedPath) {
+        if (SLASH.equals(crtEncodedPath) && StringUtils.isEmpty(sdkEncodedPath)) {
+            return "";
+        }
+        return crtEncodedPath;
+    }
+
 }

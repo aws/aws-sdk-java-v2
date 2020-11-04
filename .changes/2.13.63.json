@@ -1,0 +1,56 @@
+{
+    "version": "2.13.63",
+    "date": "2020-07-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Slight performance improvement when metrics are disabled."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "description": "Now you can enable Instance Metadata Service Version 2 (IMDSv2) or disable the instance metadata endpoint with Launch Configurations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "description": "Added a new error code, PendingVerification, to differentiate between errors caused by insufficient IAM permissions and errors caused by account verification."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "description": "AWS Elemental MediaLive now supports several new features: EBU-TT-D captions in Microsoft Smooth outputs; interlaced video in HEVC outputs; video noise reduction (using temporal filtering) in HEVC outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "description": "Added UpdateSecurityHubConfiguration API. Security Hub now allows customers to choose whether to automatically enable new controls that are added to an existing standard that the customer enabled. For example, if you enabled Foundational Security Best Practices for an account, you can automatically enable new controls as we add them to that standard. By default, new controls are enabled."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed an issue where HTTP status code metrics were not always published for async clients."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "description": "This release updates distribution configurations to allow periods in AMI names."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Introduces support for tag-on-create capability for the following APIs: CreateVpnConnection, CreateVpnGateway, and CreateCustomerGateway. A user can now add tags while creating these resources. For further detail, please see AWS Tagging Strategies."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Adds reporting of manual cluster snapshot quota to DescribeAccountAttributes API"
+        }
+    ]
+}

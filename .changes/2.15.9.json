@@ -1,0 +1,21 @@
+{
+    "version": "2.15.9",
+    "date": "2020-10-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "Documentation updates for AWS Organizations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "description": "The AWS Elemental MediaLive APIs and SDKs now support the ability to transfer the ownership of MediaLive Link devices across AWS accounts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

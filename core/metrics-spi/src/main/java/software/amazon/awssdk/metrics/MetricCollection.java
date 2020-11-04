@@ -19,15 +19,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * An immutable collection of metrics.
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
-@SdkPreviewApi
 @SdkPublicApi
 public interface MetricCollection extends Iterable<MetricRecord<?>> {
     /**

@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -426,25 +425,19 @@ public final class ClientOverrideConfiguration
          * Set the Metric publishers to be use to publish metrics for this client. This overwrites the current list of
          * metric publishers set on the builder.
          *
-         * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
-         *
          * @param metricPublishers The metric publishers.
          */
-        @SdkPreviewApi
         Builder metricPublishers(List<MetricPublisher> metricPublishers);
+
 
         /**
          * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics
          * for this client.
          *
-         * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
-         *
          * @param metricPublisher The metric publisher to add.
          */
-        @SdkPreviewApi
         Builder addMetricPublisher(MetricPublisher metricPublisher);
 
-        @SdkPreviewApi
         List<MetricPublisher> metricPublishers();
     }
 

@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -142,7 +143,8 @@ public class AsyncClientHandlerInterceptorExceptionTest {
     @Test
     public void test() {
         if (hook != Hook.ON_EXECUTION_FAILURE) {
-            doVerify(() -> clientHandler.execute(executionParams), (t) -> t.getCause().getCause().getMessage().equals(hook.name()));
+            doVerify(() -> clientHandler.execute(executionParams), (t) -> ExceptionUtils.getRootCause(t).getMessage()
+                                                                                        .equals(hook.name()));
         } else {
             // ON_EXECUTION_FAILURE is handled differently because we don't
             // want an exception thrown from the interceptor to replace the
