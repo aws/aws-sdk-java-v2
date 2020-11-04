@@ -96,10 +96,6 @@ public abstract class AbstractAws4aSigner implements Signer, Presigner {
         } else {
             signingConfig.setUseDoubleUriEncode(DEFAULT_DOUBLE_URL_ENCODE);
         }
-
-        if (!request.protocol().equals("https") && request.contentStreamProvider() != null) {
-            signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
-        }
     }
 
     protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig,

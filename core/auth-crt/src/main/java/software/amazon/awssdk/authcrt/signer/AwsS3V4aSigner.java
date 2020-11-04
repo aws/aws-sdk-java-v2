@@ -52,12 +52,30 @@ public class AwsS3V4aSigner extends AbstractAws4aSigner {
         signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
 
         /*
+         * S3 Payload signing rules:
+         *
+         *  (1) Sign payload if there's a body and we're over an insecure protocol
+         *  (2) Sign payload if explicitly asked to via execution attribute
+         *
+         * otherwise use UNSIGNED-PAYLOAD for the body hash value
+         *
+         */
+        boolean signPayload = false;
+        if (!request.protocol().equals("https") && request.contentStreamProvider() != null) {
+            signPayload = true;
+        }
+
+        /*
          * Sha256 the body if requested via execution attributes, otherwise use UNSIGNED_PAYLOAD
          * In CRT signing, Sha256 will be done by default unless an override value is specified.
          */
-        Optional<Boolean> signPayload = Optional.ofNullable(executionAttributes.getAttribute(
+        Optional<Boolean> signPayloadAttribute = Optional.ofNullable(executionAttributes.getAttribute(
                 S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
-        if (signPayload == null || !signPayload.isPresent() || signPayload.get() == false) {
+        if (signPayloadAttribute != null && signPayloadAttribute.isPresent() && signPayloadAttribute.get() == true) {
+            signPayload = true;
+        }
+
+        if (!signPayload) {
             signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
         }
     }
