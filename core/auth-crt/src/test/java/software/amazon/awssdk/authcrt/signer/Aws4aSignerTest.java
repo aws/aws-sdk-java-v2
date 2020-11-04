@@ -90,7 +90,7 @@ public class Aws4aSignerTest {
                 .putHeader("Host", "demo.us-east-1.amazonaws.com")
                 .putHeader("x-amz-archive-description", "test  test")
                 .encodedPath("/")
-                .uri(URI.create("http://demo.us-east-1.amazonaws.com"));
+                .uri(URI.create("https://demo.us-east-1.amazonaws.com"));
 
         testCase.signingName = "demo";
         testCase.regionSet = "aws-global";
@@ -101,11 +101,10 @@ public class Aws4aSignerTest {
                 "\n" +
                 "host:demo.us-east-1.amazonaws.com\n" +
                 "x-amz-archive-description:test test\n" +
-                "x-amz-content-sha256:a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2\n" +
                 "x-amz-date:20200803T174823Z\n" +
                 "x-amz-region-set:aws-global\n" +
                 "\n" +
-                "host;x-amz-archive-description;x-amz-content-sha256;x-amz-date;x-amz-region-set\n" +
+                "host;x-amz-archive-description;x-amz-date;x-amz-region-set\n" +
                 "a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2";
 
         return testCase;
@@ -156,11 +155,10 @@ public class Aws4aSignerTest {
         testCase.credentials = createCredentials();
         testCase.expectedCanonicalRequest = "GET\n" +
                 "/test%2520path/help\n" +
-                "X-Amz-Algorithm=AWS4-ECDSA-P256-SHA256&X-Amz-Credential=AKIDEXAMPLE%2F20200803%2Ftesting%2Faws4_request&X-Amz-Date=20200803T174641Z&X-Amz-Expires=604800&X-Amz-Region-Set=aws-global&X-Amz-SignedHeaders=host%3Bx-amz-content-sha256\n" +
+                "X-Amz-Algorithm=AWS4-ECDSA-P256-SHA256&X-Amz-Credential=AKIDEXAMPLE%2F20200803%2Ftesting%2Faws4_request&X-Amz-Date=20200803T174641Z&X-Amz-Expires=604800&X-Amz-Region-Set=aws-global&X-Amz-SignedHeaders=host\n" +
                 "host:testing.us-east-1.amazonaws.com\n" +
-                "x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n" +
                 "\n" +
-                "host;x-amz-content-sha256\n" +
+                "host\n" +
                 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
         return testCase;
