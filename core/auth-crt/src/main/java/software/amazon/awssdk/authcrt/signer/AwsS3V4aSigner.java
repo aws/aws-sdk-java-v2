@@ -46,13 +46,19 @@ public class AwsS3V4aSigner extends AbstractAws4aSigner {
                                           ExecutionAttributes executionAttributes) {
         super.fillInCrtSigningConfig(signingConfig, request, executionAttributes);
 
+        /*
+         * Always add x-amz-content-sha256 to s3 requests
+         */
+        signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
+
+        /*
+         * Sha256 the body if requested via execution attributes, otherwise use UNSIGNED_PAYLOAD
+         * In CRT signing, Sha256 will be done by default unless an override value is specified.
+         */
         Optional<Boolean> signPayload = Optional.ofNullable(executionAttributes.getAttribute(
                 S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
         if (signPayload == null || !signPayload.isPresent() || signPayload.get() == false) {
             signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
-            signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
-        } else {
-            signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         }
     }
 }

@@ -263,25 +263,28 @@ public class Aws4aSignerTest {
         assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         assertTrue(signingConfig.getSignedBodyValue() == null);
 
-        /* try again with body signing explicitly disabled */
+        /* try again with body signing explicitly disabled
+         * we should still see the header but it should be using UNSIGNED_PAYLOAD for the value */
         executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, false);
         signingConfig = s3V4aSigner.createCrtSigningConfig(request, executionAttributes);
 
-        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         assertTrue(signingConfig.getSignedBodyValue().equals(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD));
 
-        /* try again with body signing implicitly disabled via null attribute */
+        /* try again with body signing implicitly disabled via null attribute
+        * we should still see the header but it should be using UNSIGNED_PAYLOAD for the value */
         executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, null);
         signingConfig = s3V4aSigner.createCrtSigningConfig(request, executionAttributes);
 
-        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         assertTrue(signingConfig.getSignedBodyValue() == AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
 
-        /* try again with body signing implicitly disabled via non-existent attribute */
+        /* try again with body signing implicitly disabled via non-existent attribute
+        * we should still see the header but it should be using UNSIGNED_PAYLOAD for the value */
         executionAttributes = buildBasicExecutionAttributes(testCase);
         signingConfig = s3V4aSigner.createCrtSigningConfig(request, executionAttributes);
 
-        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         assertTrue(signingConfig.getSignedBodyValue() == AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
     }
 }
