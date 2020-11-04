@@ -26,6 +26,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -95,8 +96,6 @@ public abstract class AbstractAws4aSigner implements Signer, Presigner {
         } else {
             signingConfig.setUseDoubleUriEncode(DEFAULT_DOUBLE_URL_ENCODE);
         }
-
-        signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
     }
 
     protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig,
@@ -148,6 +147,10 @@ public abstract class AbstractAws4aSigner implements Signer, Presigner {
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+        if (CredentialUtils.isAnonymous(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))) {
+            return request;
+        }
+
         AwsSigningConfig signingConfig = createCrtSigningConfig(request, executionAttributes);
         return signWithCrt(request, signingConfig);
     }
