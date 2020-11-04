@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "contributor": "",
+    "description": "Updated API documentation and added paginator for AWS Iot Registry ListThingPrincipals API."
+}
