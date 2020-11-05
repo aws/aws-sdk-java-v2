@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Fraud Detector",
-    "contributor": "",
-    "description": "Added support for deleting resources like Variables, ExternalModels, Outcomes, Models, ModelVersions, Labels, EventTypes and EntityTypes. Updated DeleteEvent operation to catch missing exceptions."
-}

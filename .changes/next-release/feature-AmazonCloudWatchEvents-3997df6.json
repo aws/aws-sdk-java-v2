@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Events",
-    "contributor": "",
-    "description": "With this release, customers can now reprocess past events by storing the events published on event bus in an encrypted archive."
-}

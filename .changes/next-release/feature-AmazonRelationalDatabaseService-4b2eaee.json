@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Supports a new parameter to set the max allocated storage in gigabytes for the CreateDBInstanceReadReplica API."
-}
