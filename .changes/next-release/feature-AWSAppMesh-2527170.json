@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS App Mesh",
+    "contributor": "",
+    "description": "This release adds circuit breaking capabilities to your mesh with connection pooling and outlier detection support."
+}
