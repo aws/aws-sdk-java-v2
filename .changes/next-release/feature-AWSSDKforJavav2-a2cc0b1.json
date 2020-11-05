@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Added code generation validation that customer-visible identifiers are idiomatic (do not contain underscores). Services with underscores in their models can use rename customizations to fix these issues, or apply the 'underscoresInNameBehavior = ALLOW' customization."
-}

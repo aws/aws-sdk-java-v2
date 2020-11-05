@@ -1,3 +1,115 @@
+# __2.15.22__ __2020-11-05__
+## __AWS App Mesh__
+  - ### Features
+    - This release adds circuit breaking capabilities to your mesh with connection pooling and outlier detection support.
+
+## __AWS Lambda__
+  - ### Features
+    - Support Amazon MQ as an Event Source.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports providing user context in your query requests, Tokens can be JSON or JWT format. This release also introduces support for Confluence cloud datasources.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - With this release, customers can now reprocess past events by storing the events published on event bus in an encrypted archive.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release adds a new ReplicaStatus INACCESSIBLE_ENCRYPTION_CREDENTIALS for the Table description, indicating when a key used to encrypt a regional replica table is not accessible.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Amazon Elasticsearch Service now provides the ability to define a custom endpoint for your domain and link an SSL certificate from ACM, making it easier to refer to Kibana and the domain endpoint.
+
+## __Amazon EventBridge__
+  - ### Features
+    - With this release, customers can now reprocess past events by storing the events published on event bus in an encrypted archive.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Added support for deleting resources like Variables, ExternalModels, Outcomes, Models, ModelVersions, Labels, EventTypes and EntityTypes. Updated DeleteEvent operation to catch missing exceptions.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Supports a new parameter to set the max allocated storage in gigabytes for the CreateDBInstanceReadReplica API.
+
+# __2.15.21__ __2020-11-04__
+## __AWS IoT__
+  - ### Features
+    - Updated API documentation and added paginator for AWS Iot Registry ListThingPrincipals API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Service Catalog API ListPortfolioAccess can now support a maximum PageSize of 100.
+
+## __AWS X-Ray__
+  - ### Features
+    - Releasing new APIs GetInsightSummaries, GetInsightEvents, GetInsight, GetInsightImpactGraph and updating GetTimeSeriesServiceStatistics API for AWS X-Ray Insights feature
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Adding Vendor Tagging Support in MeterUsage and BatchMeterUsage API.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Documentation updates for monitoring
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for Client Connect Handler for AWS Client VPN. Fleet supports launching replacement instances in response to Capacity Rebalance recommendation.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Amazon Elasticsearch Service now supports native SAML authentication that seamlessly integrates with the customers' existing SAML 2.0 Identity Provider (IdP).
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - With this release, Amazon Transcribe now supports real-time transcription from audio sources in Italian (it-IT) and German(de-DE).
+
+## __AmazonMQ__
+  - ### Features
+    - Amazon MQ introduces support for RabbitMQ, a popular message-broker with native support for AMQP 0.9.1. You can now create fully-managed RabbitMQ brokers in the cloud.
+
+## __Auto Scaling__
+  - ### Features
+    - Capacity Rebalance helps you manage and maintain workload availability during Spot interruptions by proactively augmenting your Auto Scaling group with a new instance before interrupting an old one.
+
+# __2.15.20__ __2020-11-02__
+## __AWS DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Publisher streams returned by async resources in the DynamoDB Enhanced Client now correctly handle mapping errors when they are encountered in the stream by calling onError on the subscriber and then implicitly cancelling the subscription. Previously the stream would just permanently hang and never complete.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added code generation validation that customer-visible identifiers are idiomatic (do not contain underscores). Services with underscores in their models can use rename customizations to fix these issues, or apply the 'underscoresInNameBehavior = ALLOW' customization.
+    - Upgrade `org.apache.httpcomponents:httpclient` version to `4.5.13`
+
+  - ### Bugfixes
+    - Fixing race condition in EventStreamAsyncResponseTransformer.  Field eventsToDeliver is a LinkedList, i.e., not thread-safe.  Accesses to field eventsToDeliver are protected by synchronization on itself, but not in 1 location.
+    - The mapped publisher returned by SdkPublisher.map will now handle exceptions thrown by the mapping function by calling onError on its subscriber and then cancelling the subscription rather than throwing it back to the publishing process when it attempts to publish data.
+
+## __AWS SSO OIDC__
+  - ### Deprecations
+    - Renamed/deprecated 'error_description' fields in exceptions in favor of 'errorDescription'.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for the following features: 1. P4d instances based on NVIDIA A100 GPUs. 2. NetworkCardIndex attribute to support multiple network cards.
+
 # __2.15.19__ __2020-10-30__
 ## __AWS Database Migration Service__
   - ### Features
