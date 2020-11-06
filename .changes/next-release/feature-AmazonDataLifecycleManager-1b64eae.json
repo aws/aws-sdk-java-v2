@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Data Lifecycle Manager",
+    "contributor": "",
+    "description": "Amazon Data Lifecycle Manager now supports the creation and retention of EBS-backed Amazon Machine Images"
+}
