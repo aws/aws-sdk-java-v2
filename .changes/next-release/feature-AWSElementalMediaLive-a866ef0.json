@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "Support for SCTE35 ad markers in OnCuePoint style in RTMP outputs."
-}
