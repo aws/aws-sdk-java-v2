@@ -1,3 +1,24 @@
+# __2.15.23__ __2020-11-06__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Support for SCTE35 ad markers in OnCuePoint style in RTMP outputs.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Remove the CreatePresignedPortalUrl API
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Amazon Data Lifecycle Manager now supports the creation and retention of EBS-backed Amazon Machine Images
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Network card support with four new attributes: NetworkCardIndex, NetworkPerformance, DefaultNetworkCardIndex, and MaximumNetworkInterfaces, added to the DescribeInstanceTypes API.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Documentation updates for Systems Manager
+
 # __2.15.22__ __2020-11-05__
 ## __AWS App Mesh__
   - ### Features
