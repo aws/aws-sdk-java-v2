@@ -42,4 +42,9 @@
     <!-- Assumes getter/setter match JSON property -->
     <suppress checks="AbbreviationAsWordInName"
               files=".*[\\/]software[\\/]amazon[\\/]awssdk[\\/]services[\\/]s3[\\/]event[\\/]S3EventNotification.java$"/>
+
+    <!-- Ignore usage of Thread.currentThread().getContextClassLoader for ClassLoaderHelper.!-->
+    <suppress checks="Regexp"
+              files=".*ClassLoaderHelper\.java$"/>
+
 </suppressions>

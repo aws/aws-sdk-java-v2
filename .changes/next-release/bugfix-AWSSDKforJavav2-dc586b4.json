@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Replaced class loading from Thread.currentThread().getContextClassLoader() to ClassLoaderHelper in ProfileCredentialsUtils and WebIdentityCredentialsUtils, since it was causing Class not found error."
+}
