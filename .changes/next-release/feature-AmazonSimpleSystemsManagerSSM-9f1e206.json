@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "contributor": "",
-    "description": "add a new filter to allow customer to filter automation executions by using resource-group which used for execute automation"
-}

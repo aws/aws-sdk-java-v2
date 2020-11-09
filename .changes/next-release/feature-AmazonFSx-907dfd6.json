@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon FSx",
-    "contributor": "",
-    "description": "This release adds support for creating DNS aliases for Amazon FSx for Windows File Server, and using AWS Backup to automate scheduled, policy-driven backup plans for Amazon FSx file systems."
-}

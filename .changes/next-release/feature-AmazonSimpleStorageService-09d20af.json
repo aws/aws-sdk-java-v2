@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Storage Service",
-    "contributor": "",
-    "description": "S3 Intelligent-Tiering adds support for Archive and Deep Archive Access tiers; S3 Replication adds replication metrics and failure notifications, brings feature parity for delete marker replication"
-}

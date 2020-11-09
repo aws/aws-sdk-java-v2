@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "contributor": "",
-    "description": "DataSync now enables customers to adjust the network bandwidth used by a running AWS DataSync task."
-}

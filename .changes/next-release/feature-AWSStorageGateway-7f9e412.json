@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Storage Gateway",
-    "contributor": "",
-    "description": "Added bandwidth rate limit schedule for Tape and Volume Gateways"
-}
