@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "contributor": "",
+    "description": "This release adds supports for exporting Amazon DynamoDB table data to Amazon S3 to perform analytics at any scale."
+}
