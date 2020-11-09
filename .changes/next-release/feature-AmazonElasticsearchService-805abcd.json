@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elasticsearch Service",
+    "contributor": "",
+    "description": "Adding support for package versioning in Amazon Elasticsearch Service"
+}
