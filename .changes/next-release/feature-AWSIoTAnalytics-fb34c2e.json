@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Analytics",
+    "contributor": "",
+    "description": "AWS IoT Analytics now supports Late Data Notifications for datasets, dataset content creation using previous version IDs, and includes the LastMessageArrivalTime attribute for channels and datastores."
+}
