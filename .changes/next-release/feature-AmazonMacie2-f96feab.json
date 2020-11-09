@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Macie 2",
+    "contributor": "",
+    "description": "Sensitive data findings in Amazon Macie now include enhanced location data for Apache Avro object containers and Apache Parquet files."
+}
