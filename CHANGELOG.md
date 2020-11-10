@@ -1,3 +1,30 @@
+# __2.15.25__ __2020-11-10__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix default client error to have spaces between words.
+        - Contributed by: @frosforever
+    - Replaced class loading from Thread.currentThread().getContextClassLoader() to ClassLoaderHelper in ProfileCredentialsUtils and WebIdentityCredentialsUtils, since it was causing Class not found error.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Gateway Load Balancer VPC endpoints and VPC endpoint services
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add SessionId as a filter for DescribeSessions API
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates and corrections for Amazon EC2 Auto Scaling API Reference and SDKs.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Added support for Gateway Load Balancers, which make it easy to deploy, scale, and run third-party virtual networking appliances.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+@frosforever
 # __2.15.24__ __2020-11-09__
 ## __AWS DataSync__
   - ### Features

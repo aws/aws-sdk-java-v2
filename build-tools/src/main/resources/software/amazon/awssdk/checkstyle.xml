@@ -373,6 +373,14 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use Thread.currentThread().getContextClassLoader() directly -->
+        <module name="Regexp">
+            <property name="format" value="Thread\s*\.\s*currentThread\s*\(\s*\)\s*(\.|::)\s*getContextClassLoader"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Use software.amazon.awssdk.core.internal.util.ClassLoaderHelper Class to load the class."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks that we don't use plural enum names -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.PluralEnumNames"/>
 
