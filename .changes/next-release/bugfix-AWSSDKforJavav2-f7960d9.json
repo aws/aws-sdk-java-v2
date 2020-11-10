@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "@frosforever", 
-    "type": "bugfix", 
-    "description": "Fix default client error to have spaces between words."
-}
