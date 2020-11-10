@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "contributor": "",
+    "description": "Added support for Gateway Load Balancers, which make it easy to deploy, scale, and run third-party virtual networking appliances."
+}
