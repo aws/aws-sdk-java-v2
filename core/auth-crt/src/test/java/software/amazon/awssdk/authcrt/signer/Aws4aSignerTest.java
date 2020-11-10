@@ -57,6 +57,7 @@ public class Aws4aSignerTest {
     class Sigv4aSigningTestCase {
         public SdkHttpFullRequest.Builder requestBuilder;
         public String expectedCanonicalRequest;
+        public String expectedS3PresignCanonicalRequest;
 
         public String signingName;
         public String regionSet;
@@ -161,6 +162,14 @@ public class Aws4aSignerTest {
                 "host\n" +
                 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
+        testCase.expectedS3PresignCanonicalRequest = "GET\n" +
+                "/test%2520path/help\n" +
+                "X-Amz-Algorithm=AWS4-ECDSA-P256-SHA256&X-Amz-Credential=AKIDEXAMPLE%2F20200803%2Ftesting%2Faws4_request&X-Amz-Date=20200803T174641Z&X-Amz-Expires=604800&X-Amz-Region-Set=aws-global&X-Amz-SignedHeaders=host\n" +
+                "host:testing.us-east-1.amazonaws.com\n" +
+                "\n" +
+                "host\n" +
+                "UNSIGNED-PAYLOAD";
+
         return testCase;
     }
 
@@ -179,6 +188,24 @@ public class Aws4aSignerTest {
         AwsSigningConfig signingConfig = v4aSigner.createCrtPreSigningConfig(request, executionAttributes);
 
         assertTrue(verifyEcdsaSignature(request, testCase.expectedCanonicalRequest, signingConfig, signatureValue));
+    }
+
+    @Test
+    public void testS3PreSigning() {
+        Sigv4aSigningTestCase testCase = createBasicQuerySigningTestCase();
+
+        ExecutionAttributes executionAttributes = buildBasicExecutionAttributes(testCase);
+
+        SdkHttpFullRequest request = testCase.requestBuilder.build();
+
+        SdkHttpFullRequest signed = s3V4aSigner.presign(request, executionAttributes);
+
+        List<String> signatureValues = signed.rawQueryParameters().get("X-Amz-Signature");
+        String signatureValue = signatureValues.get(0);
+
+        AwsSigningConfig signingConfig = s3V4aSigner.createCrtPreSigningConfig(request, executionAttributes);
+
+        assertTrue(verifyEcdsaSignature(request, testCase.expectedS3PresignCanonicalRequest, signingConfig, signatureValue));
     }
 
     @Test
@@ -284,5 +311,31 @@ public class Aws4aSignerTest {
 
         assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
         assertTrue(signingConfig.getSignedBodyValue() == AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
+    }
+
+    @Test
+    public void testS3PresigningConfiguration() {
+        Sigv4aSigningTestCase testCase = createBasicQuerySigningTestCase();
+
+        ExecutionAttributes executionAttributes = buildBasicExecutionAttributes(testCase);
+        executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true);
+        executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE, false);
+
+        SdkHttpFullRequest request = testCase.requestBuilder.build();
+
+        AwsSigningConfig signingConfig = s3V4aSigner.createCrtPreSigningConfig(request, executionAttributes);
+
+        /* first check basic configuration */
+        assertTrue(signingConfig.getAlgorithm() == AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        assertTrue(signingConfig.getSignatureType() == AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
+        assertTrue(signingConfig.getRegion().equals(testCase.regionSet));
+        assertTrue(signingConfig.getService().equals(testCase.signingName));
+        assertTrue(signingConfig.getShouldNormalizeUriPath());
+        assertFalse(signingConfig.getUseDoubleUriEncode());
+
+        /* body signing should be disabled and the body should be UNSIGNED_PAYLOAD */
+        assertTrue(signingConfig.getSignedBodyHeader() == AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        assertTrue(signingConfig.getSignedBodyValue() == AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
+
     }
 }
