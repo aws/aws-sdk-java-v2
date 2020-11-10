@@ -20,8 +20,10 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * This class is used to construct an endpoint host for an S3 access point.
@@ -107,6 +109,11 @@ public class S3AccessPointBuilder {
      */
     public URI toUri() {
         validateHostnameCompliant(accountId, "accountId");
+
+        if (StringUtils.isEmpty(region)) {
+            return globalAccessPointUri();
+        }
+
         validateHostnameCompliant(accessPointName, "accessPointName");
 
         String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "fips-" : "";
@@ -119,6 +126,14 @@ public class S3AccessPointBuilder {
             throw SdkClientException.create("ARN region (" + region + ") resulted in an invalid URI:" + uri);
         }
         return uri;
+    }
+
+    private URI globalAccessPointUri() {
+        Stream.of(accessPointName.split("\\."))
+              .forEach(segment -> validateHostnameCompliant(segment, segment));
+
+        String uriString = String.format("%s://%s.accesspoint.s3-global.%s", protocol, urlEncode(accessPointName), domain);
+        return URI.create(uriString);
     }
 
     private static void validateHostnameCompliant(String hostnameComponent, String paramName) {

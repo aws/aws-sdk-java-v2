@@ -29,8 +29,8 @@ public class ArnTest {
         Arn arn = Arn.fromString(arnString);
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("s3");
-        assertThat(arn.region()).isEqualTo(Optional.of("us-east-1"));
-        assertThat(arn.accountId()).isEqualTo(Optional.of("12345678910"));
+        assertThat(arn.region()).hasValue("us-east-1");
+        assertThat(arn.accountId()).hasValue("12345678910");
         assertThat(arn.resourceAsString()).isEqualTo("myresource");
         System.out.println(arn.resource());
     }
@@ -64,7 +64,7 @@ public class ArnTest {
         Arn arn = Arn.fromString(arnString);
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("s3");
-        assertThat(arn.region()).isEqualTo(Optional.of("us-east-1"));
+        assertThat(arn.region()).hasValue("us-east-1");
         assertThat(arn.resourceAsString()).isEqualTo("bucket:foobar");
 
         verifyArnResource(arn.resource());
@@ -82,7 +82,7 @@ public class ArnTest {
         Arn arn = Arn.fromString(arnString);
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("s3");
-        assertThat(arn.region()).isEqualTo(Optional.of("us-east-1"));
+        assertThat(arn.region()).hasValue("us-east-1");
         assertThat(arn.resourceAsString()).isEqualTo("bucket:foobar:1");
 
 
@@ -98,7 +98,7 @@ public class ArnTest {
         Arn arn = Arn.fromString(arnString);
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("s3");
-        assertThat(arn.region()).isEqualTo(Optional.of("us-east-1"));
+        assertThat(arn.region()).hasValue("us-east-1");
         assertThat(arn.resourceAsString()).isEqualTo("bucket/foobar");
         verifyArnResource(arn.resource());
     }
@@ -109,7 +109,7 @@ public class ArnTest {
         Arn arn = Arn.fromString(arnString);
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("s3");
-        assertThat(arn.region()).isEqualTo(Optional.of("us-east-1"));
+        assertThat(arn.region()).hasValue("us-east-1");
         assertThat(arn.resourceAsString()).isEqualTo("bucket/foobar/1");
         verifyArnResource(arn.resource());
         assertThat(arn.resource().qualifier().get()).isEqualTo("1");
@@ -136,8 +136,8 @@ public class ArnTest {
 
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("s3");
-        assertThat(arn.region()).isEqualTo(Optional.of("us-east-1"));
-        assertThat(arn.accountId()).isEqualTo(Optional.of("123456789012"));
+        assertThat(arn.region()).hasValue("us-east-1");
+        assertThat(arn.accountId()).hasValue("123456789012");
         assertThat(arn.resourceAsString()).isEqualTo("bucket:foobar:1");
         verifyArnResource(arn.resource());
         assertThat(arn.resource().qualifier()).isPresent();
@@ -156,13 +156,46 @@ public class ArnTest {
                      .build();
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("s3");
-        assertThat(arn.region()).isEqualTo(Optional.of("us-east-1"));
-        assertThat(arn.accountId()).isEqualTo(Optional.of("123456789012"));
+        assertThat(arn.region()).hasValue("us-east-1");
+        assertThat(arn.accountId()).hasValue("123456789012");
         assertThat(arn.resourceAsString()).isEqualTo(resourceWithColonAndSlash);
 
         assertThat(arn.resource().resource()).isEqualTo("foobar/myobjectname");
-        assertThat(arn.resource().qualifier()).isEqualTo(Optional.of("1"));
-        assertThat(arn.resource().resourceType()).isEqualTo(Optional.of("object"));
+        assertThat(arn.resource().qualifier()).hasValue("1");
+        assertThat(arn.resource().resourceType()).hasValue("object");
+    }
+
+    @Test
+    public void arnWithoutRegion_ParsesCorrectly() {
+        String arnString = "arn:aws:s3::123456789012:myresource";
+        Arn arn = Arn.fromString(arnString);
+        assertThat(arn.partition()).isEqualTo("aws");
+        assertThat(arn.service()).isEqualTo("s3");
+        assertThat(arn.region()).isEmpty();
+        assertThat(arn.accountId()).hasValue("123456789012");
+        assertThat(arn.resourceAsString()).isEqualTo("myresource");
+    }
+
+    @Test
+    public void arnWithoutAccountId_ParsesCorrectly() {
+        String arnString = "arn:aws:s3:us-east-1::myresource";
+        Arn arn = Arn.fromString(arnString);
+        assertThat(arn.partition()).isEqualTo("aws");
+        assertThat(arn.service()).isEqualTo("s3");
+        assertThat(arn.region()).hasValue("us-east-1");
+        assertThat(arn.accountId()).isEmpty();
+        assertThat(arn.resourceAsString()).isEqualTo("myresource");
+    }
+
+    @Test
+    public void arnResourceContainingDots_ParsesCorrectly() {
+        String arnString = "arn:aws:s3:us-east-1:12345678910:myresource:foobar.1";
+        Arn arn = Arn.fromString(arnString);
+        assertThat(arn.partition()).isEqualTo("aws");
+        assertThat(arn.service()).isEqualTo("s3");
+        assertThat(arn.region()).hasValue("us-east-1");
+        assertThat(arn.accountId()).hasValue("12345678910");
+        assertThat(arn.resourceAsString()).isEqualTo("myresource:foobar.1");
     }
 
     @Test
@@ -205,6 +238,8 @@ public class ArnTest {
                      .build();
         Arn anotherArn = arn.toBuilder().build();
         assertThat(arn.hashCode()).isEqualTo(anotherArn.hashCode());
+        assertThat(arn.region()).isEmpty();
+        assertThat(arn.accountId()).isEmpty();
         assertThat(arn.equals(anotherArn)).isTrue();
     }
 

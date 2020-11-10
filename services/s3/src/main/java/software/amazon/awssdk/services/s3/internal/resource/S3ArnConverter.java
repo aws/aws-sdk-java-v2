@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 import static software.amazon.awssdk.services.s3.internal.resource.S3ArnUtils.parseOutpostArn;
-import static software.amazon.awssdk.services.s3.internal.resource.S3MultiRegionAccessPointResource.isMultiRegion;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -134,18 +133,6 @@ public final class S3ArnConverter implements ArnConverter<S3Resource> {
                                    .parentS3Resource(parentResource)
                                    .key(objectKey)
                                    .build();
-        }
-
-        if (isMultiRegion(arn)) {
-            S3MultiRegionAccessPointResource mrapResource =
-                S3MultiRegionAccessPointResource.builder()
-                                                .partition(arn.partition())
-                                                .accountId(arn.accountId().orElse(null))
-                                                .build();
-            return S3AccessPointResource.builder()
-                                        .accessPointName(arn.resource().resource())
-                                        .parentS3Resource(mrapResource)
-                                        .build();
         }
 
         return S3AccessPointResource.builder()

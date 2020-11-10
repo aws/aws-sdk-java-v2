@@ -322,15 +322,11 @@ public class S3ArnConverterTest {
 
         assertThat(resource, instanceOf(S3AccessPointResource.class));
         S3AccessPointResource s3AccessPointResource = (S3AccessPointResource) resource;
+        assertThat(s3AccessPointResource.type(), is(S3ResourceType.ACCESS_POINT.toString()));
         assertThat(s3AccessPointResource.accessPointName(), is("mfzwi23gnjvgw.mrap"));
-        assertThat(s3AccessPointResource.parentS3Resource().get(), instanceOf(S3MultiRegionAccessPointResource.class));
-
-        S3MultiRegionAccessPointResource mrapResource =
-            (S3MultiRegionAccessPointResource) s3AccessPointResource.parentS3Resource().get();
-        assertThat(mrapResource.accountId(), is(Optional.of(ACCOUNT_ID)));
-        assertThat(mrapResource.partition(), is(Optional.of("aws")));
-        assertThat(mrapResource.region(), is(Optional.of("")));
-        assertThat(mrapResource.type(), is(S3ResourceType.MULTI_REGION.toString()));
+        assertThat(s3AccessPointResource.accountId(), is(Optional.of(ACCOUNT_ID)));
+        assertThat(s3AccessPointResource.partition(), is(Optional.of("aws")));
+        assertThat(s3AccessPointResource.region(), is(Optional.empty()));
     }
 
     @Test
@@ -345,15 +341,30 @@ public class S3ArnConverterTest {
 
         assertThat(resource, instanceOf(S3AccessPointResource.class));
         S3AccessPointResource s3AccessPointResource = (S3AccessPointResource) resource;
+        assertThat(s3AccessPointResource.type(), is(S3ResourceType.ACCESS_POINT.toString()));
         assertThat(s3AccessPointResource.accessPointName(), is("mfzwi23gnjvgw.mrap"));
-        assertThat(s3AccessPointResource.parentS3Resource().get(), instanceOf(S3MultiRegionAccessPointResource.class));
+        assertThat(s3AccessPointResource.accountId(), is(Optional.of(ACCOUNT_ID)));
+        assertThat(s3AccessPointResource.partition(), is(Optional.of("aws")));
+        assertThat(s3AccessPointResource.region(), is(Optional.empty()));
+    }
 
-        S3MultiRegionAccessPointResource mrapResource =
-            (S3MultiRegionAccessPointResource) s3AccessPointResource.parentS3Resource().get();
-        assertThat(mrapResource.accountId(), is(Optional.of(ACCOUNT_ID)));
-        assertThat(mrapResource.partition(), is(Optional.of("aws")));
-        assertThat(mrapResource.region(), is(Optional.of("")));
-        assertThat(mrapResource.type(), is(S3ResourceType.MULTI_REGION.toString()));
+    @Test
+    public void parseArn_globalAccessPoint_colon_multiple_dots() {
+        S3Resource resource = S3_ARN_PARSER.convertArn(Arn.builder()
+                                                          .partition("aws")
+                                                          .service("s3")
+                                                          .region("")
+                                                          .accountId(ACCOUNT_ID)
+                                                          .resource("accesspoint:name.with.dot")
+                                                          .build());
+
+        assertThat(resource, instanceOf(S3AccessPointResource.class));
+        S3AccessPointResource s3AccessPointResource = (S3AccessPointResource) resource;
+        assertThat(s3AccessPointResource.type(), is(S3ResourceType.ACCESS_POINT.toString()));
+        assertThat(s3AccessPointResource.accessPointName(), is("name.with.dot"));
+        assertThat(s3AccessPointResource.accountId(), is(Optional.of(ACCOUNT_ID)));
+        assertThat(s3AccessPointResource.partition(), is(Optional.of("aws")));
+        assertThat(s3AccessPointResource.region(), is(Optional.empty()));
     }
 
     @Test

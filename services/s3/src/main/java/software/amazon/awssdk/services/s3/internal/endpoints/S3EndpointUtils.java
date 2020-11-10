@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Utilities for working with Amazon S3 bucket names and endpoints.
@@ -61,7 +62,7 @@ public final class S3EndpointUtils {
     }
 
     public static boolean isFipsRegion(String region) {
-        return region.startsWith("fips-") || region.endsWith("-fips");
+        return !StringUtils.isEmpty(region) && (region.startsWith("fips-") || region.endsWith("-fips"));
     }
 
     /**

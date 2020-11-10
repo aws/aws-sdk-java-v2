@@ -51,9 +51,7 @@ public final class S3SigningUtils {
 
     private static Optional<Signer> getS3ResourceSigner(String name) {
         S3Resource resolvedS3Resource = S3ArnConverter.create().convertArn(Arn.fromString(name));
-        return resolvedS3Resource.parentS3Resource()
-                                 .map(S3Resource::overrideSigner)
-                                 .orElseGet(resolvedS3Resource::overrideSigner);
+        return resolvedS3Resource.overrideSigner();
     }
 
     private static Signer initializeV4aSigner() {
