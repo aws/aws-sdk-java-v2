@@ -79,4 +79,15 @@ public class AwsS3V4aSigner extends AbstractAws4aSigner {
             signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
         }
     }
+
+    @Override
+    protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig,
+                                             SdkHttpFullRequest request,
+                                             ExecutionAttributes executionAttributes) {
+
+        super.fillInCrtPresigningConfig(signingConfig, request, executionAttributes);
+
+        signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
+    }
 }
