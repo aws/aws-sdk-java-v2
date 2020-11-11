@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog",
+    "contributor": "",
+    "description": "Adding support to remove a Provisioned Product launch role via UpdateProvisionedProductProperties"
+}
