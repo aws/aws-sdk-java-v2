@@ -58,7 +58,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             throws Exception {
         StringBuilder userAgentBuilder = getUserAgent(clientConfig, context.requestConfig().apiNames());
         String userAgent = addUserAgentSuffix(userAgentBuilder, clientConfig);
-        request.putHeader("x-amz-sdk-user-agent", userAgent);
+        //request.putHeader("x-amz-sdk-user-agent", userAgent);
         return request.putHeader(HEADER_USER_AGENT, userAgent);
     }
 
