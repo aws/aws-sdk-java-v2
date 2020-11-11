@@ -63,6 +63,8 @@ public final class AwsClientHandlerUtils {
         ClientExecutionParams<InputT, OutputT> executionParams,
         SdkClientConfiguration clientConfig,
         ExecutionAttributes executionAttributes) {
+        // Note: This is currently copied to DefaultS3Presigner and other presigners. Don't edit this without considering those
+        // as well. TODO: Probably don't copy all of this manually.
 
         SdkRequest originalRequest = executionParams.getInput();
         AwsCredentialsProvider clientCredentials = clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER);
@@ -92,8 +94,8 @@ public final class AwsClientHandlerUtils {
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, clientConfig.option(SdkClientOption.CLIENT_TYPE))
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfig.option(SdkClientOption.SERVICE_NAME))
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
-            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
-                          clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN));
+            .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfig.option(SdkClientOption.ENDPOINT))
+            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN));
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));

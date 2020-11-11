@@ -148,7 +148,6 @@ public final class S3Utilities {
     public URL getUrl(GetUrlRequest getUrlRequest) {
         Region resolvedRegion = resolveRegionForGetUrl(getUrlRequest);
         URI resolvedEndpoint = resolveEndpoint(getUrlRequest.endpoint(), resolvedRegion);
-        boolean endpointOverridden = getUrlRequest.endpoint() != null;
 
         SdkHttpFullRequest marshalledRequest = createMarshalledRequest(getUrlRequest, resolvedEndpoint);
 
@@ -162,7 +161,7 @@ public final class S3Utilities {
                                                                              .request(marshalledRequest)
                                                                              .originalRequest(getObjectRequest)
                                                                              .region(resolvedRegion)
-                                                                             .endpointOverridden(endpointOverridden)
+                                                                             .endpointOverride(getUrlRequest.endpoint())
                                                                              .serviceConfiguration(s3Configuration)
                                                                              .build();
 

@@ -74,12 +74,13 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                   + "appear to be a valid S3 access point ARN.");
 
         URI accessPointUri = getUriForAccessPointResource(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
-        String key = context.originalRequest().getValueForField("Key", String.class).orElse(null);
+        String path = buildPath(accessPointUri, context);
+
         SdkHttpRequest httpRequest = context.request().toBuilder()
                                             .protocol(accessPointUri.getScheme())
                                             .host(accessPointUri.getHost())
                                             .port(accessPointUri.getPort())
-                                            .encodedPath(key)
+                                            .encodedPath(path)
                                             .build();
 
         String signingServiceModification = s3EndpointResource.parentS3Resource()
@@ -92,6 +93,23 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                          .signingRegionModification(Region.of(arnRegion))
                                          .signingServiceModification(signingServiceModification)
                                          .build();
+    }
+
+    private String buildPath(URI accessPointUri, S3EndpointResolverContext context) {
+        String key = context.originalRequest().getValueForField("Key", String.class).orElse(null);
+
+        StringBuilder pathBuilder = new StringBuilder();
+        if (accessPointUri.getPath() != null) {
+            pathBuilder.append(accessPointUri.getPath());
+        }
+
+        if (key != null) {
+            if (pathBuilder.length() > 0) {
+                pathBuilder.append('/');
+            }
+            pathBuilder.append(key);
+        }
+        return pathBuilder.length() > 0 ? pathBuilder.toString() : null;
     }
 
     private String validateConfiguration(S3EndpointResolverContext context, S3Resource s3Resource) {
@@ -111,12 +129,6 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
             throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3 "
                                                + "operation if the S3 client has been configured with path style "
                                                + "addressing enabled.");
-        }
-
-        if (context.endpointOverridden()) {
-            throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3"
-                                               + " operation if the S3 client has been configured with an endpoint "
-                                               + "override.");
         }
 
         if (!isArnRegionEnabled(serviceConfiguration) && clientRegionDiffersFromArnRegion(region, arnRegion)) {
@@ -157,11 +169,6 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
     private URI getUriForAccessPointResource(S3EndpointResolverContext context, String arnRegion,
                                                     PartitionMetadata clientPartitionMetadata,
                                                     S3AccessPointResource s3EndpointResource) {
-
-        boolean dualstackEnabled = isDualstackEnabled(context.serviceConfiguration());
-        boolean fipsRegionProvided = isFipsRegionProvided(context.region().toString(), arnRegion,
-                                                          isArnRegionEnabled(context.serviceConfiguration()));
-
         String accountId = s3EndpointResource.accountId().orElseThrow(() -> new IllegalArgumentException(
             "An S3 access point ARN must have an account ID"));
         String accessPointName = s3EndpointResource.accessPointName();
@@ -170,7 +177,11 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
             return getOutpostAccessPointUri(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
         }
 
+        boolean dualstackEnabled = isDualstackEnabled(context.serviceConfiguration());
+        boolean fipsRegionProvided = isFipsRegionProvided(context.region().toString(), arnRegion,
+                                                          isArnRegionEnabled(context.serviceConfiguration()));
         return S3AccessPointBuilder.create()
+                                   .endpointOverride(context.endpointOverride())
                                    .accessPointName(accessPointName)
                                    .accountId(accountId)
                                    .fipsEnabled(fipsRegionProvided)
@@ -200,6 +211,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         S3OutpostResource parentResource = (S3OutpostResource) s3EndpointResource.parentS3Resource().get();
         return S3OutpostAccessPointBuilder.create()
+                                          .endpointOverride(context.endpointOverride())
                                           .accountId(s3EndpointResource.accountId().get())
                                           .outpostId(parentResource.outpostId())
                                           .region(arnRegion)

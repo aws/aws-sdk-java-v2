@@ -68,14 +68,13 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
-    @Test
     public void dualstackEnabled_shouldThrowException() {
         S3ControlClient s3ControlForTest = buildClientCustom().serviceConfiguration(b -> b.dualstackEnabled(true)).build();
 
         String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
 
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Dualstack");
+        exception.expectMessage("Dual stack");
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
@@ -110,17 +109,6 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Invalid format");
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
-    }
-
-    @Test
-    public void outpostArnClientHasCustomEndpoint_throwsIllegalArgumentException() {
-        S3ControlClient s3Control = buildClientWithCustomEndpoint("https://foo.bar", "us-east-1");
-
-        String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
-
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("endpoint");
-        s3Control.getAccessPoint(b -> b.name(outpostArn));
     }
 
     @Test

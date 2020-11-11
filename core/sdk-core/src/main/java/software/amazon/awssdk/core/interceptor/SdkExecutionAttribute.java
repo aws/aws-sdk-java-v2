@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
@@ -58,7 +59,13 @@ public class SdkExecutionAttribute {
      * If true indicates that the configured endpoint of the client is a value that was supplied as an override and not
      * generated from regional metadata.
      */
-    public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverride");
+    public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverridden");
+
+    /**
+     * The endpoint resolved at client creation time. This is either the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is
+     * true) or the endpoint derived from the region metadata (if {@link #ENDPOINT_OVERRIDDEN} is false).
+     */
+    public static final ExecutionAttribute<URI> CLIENT_ENDPOINT = new ExecutionAttribute<>("EndpointOverride");
     
     protected SdkExecutionAttribute() {
     }

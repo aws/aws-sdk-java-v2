@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.endpoints;
 
+import java.net.URI;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
@@ -31,14 +32,14 @@ public final class S3EndpointResolverContext {
     private final SdkRequest originalRequest;
     private final Region region;
     private final S3Configuration serviceConfiguration;
-    private final boolean endpointOverridden;
+    private final URI endpointOverride;
 
     private S3EndpointResolverContext(Builder builder) {
         this.request = builder.request;
         this.originalRequest = builder.originalRequest;
         this.region = builder.region;
         this.serviceConfiguration = builder.serviceConfiguration;
-        this.endpointOverridden = builder.endpointOverridden;
+        this.endpointOverride = builder.endpointOverride;
     }
 
     public static Builder builder() {
@@ -61,8 +62,8 @@ public final class S3EndpointResolverContext {
         return serviceConfiguration;
     }
 
-    public boolean endpointOverridden() {
-        return endpointOverridden;
+    public URI endpointOverride() {
+        return endpointOverride;
     }
 
 
@@ -75,7 +76,7 @@ public final class S3EndpointResolverContext {
             return false;
         }
         S3EndpointResolverContext that = (S3EndpointResolverContext) o;
-        return endpointOverridden == that.endpointOverridden &&
+        return Objects.equals(endpointOverride, that.endpointOverride) &&
                Objects.equals(request, that.request) &&
                Objects.equals(originalRequest, that.originalRequest) &&
                Objects.equals(region, that.region) &&
@@ -89,12 +90,12 @@ public final class S3EndpointResolverContext {
         hashCode = 31 * hashCode + Objects.hashCode(originalRequest());
         hashCode = 31 * hashCode + Objects.hashCode(region());
         hashCode = 31 * hashCode + Objects.hashCode(serviceConfiguration());
-        hashCode = 31 * hashCode + Objects.hashCode(endpointOverridden());
+        hashCode = 31 * hashCode + Objects.hashCode(endpointOverride());
         return hashCode;
     }
 
     public Builder toBuilder() {
-        return builder().endpointOverridden(endpointOverridden)
+        return builder().endpointOverride(endpointOverride)
                         .request(request)
                         .originalRequest(originalRequest)
                         .region(region)
@@ -106,7 +107,7 @@ public final class S3EndpointResolverContext {
         private SdkRequest originalRequest;
         private Region region;
         private S3Configuration serviceConfiguration;
-        private boolean endpointOverridden;
+        private URI endpointOverride;
 
         private Builder() {
         }
@@ -131,8 +132,8 @@ public final class S3EndpointResolverContext {
             return this;
         }
 
-        public Builder endpointOverridden(boolean endpointOverridden) {
-            this.endpointOverridden = endpointOverridden;
+        public Builder endpointOverride(URI endpointOverride) {
+            this.endpointOverride = endpointOverride;
             return this;
         }
 

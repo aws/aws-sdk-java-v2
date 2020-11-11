@@ -115,6 +115,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final UploadPartRequestMarshaller uploadPartRequestMarshaller;
     private final CompleteMultipartUploadRequestMarshaller completeMultipartUploadRequestMarshaller;
     private final AbortMultipartUploadRequestMarshaller abortMultipartUploadRequestMarshaller;
+    private final SdkClientConfiguration clientConfiguration;
 
     private DefaultS3Presigner(Builder b) {
         super(b);
@@ -128,9 +129,11 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         this.clientInterceptors = initializeInterceptors();
 
+        this.clientConfiguration = createClientConfiguration();
+
         // Copied from DefaultS3Client#init
         AwsS3ProtocolFactory protocolFactory = AwsS3ProtocolFactory.builder()
-                                                                   .clientConfiguration(createClientConfiguration())
+                                                                   .clientConfiguration(clientConfiguration)
                                                                    .build();
 
         // Copied from DefaultS3Client#getObject
@@ -308,6 +311,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
+            .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfiguration.option(SdkClientOption.ENDPOINT))
+            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
+                          clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
             .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration);
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);

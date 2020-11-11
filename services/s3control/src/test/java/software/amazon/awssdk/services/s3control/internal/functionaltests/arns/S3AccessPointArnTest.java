@@ -60,20 +60,7 @@ public class S3AccessPointArnTest extends S3ControlWireMockTestBase {
         exception.expectMessage("Invalid format");
         s3Control.getAccessPoint(b -> b.name(accessPointArn));
     }
-
-    @Test
-    public void accessPointArn_ClientHasCustomEndpoint_throwsIllegalArgumentException() {
-        S3ControlClient s3ControlCustom = buildClientWithCustomEndpoint("https://foo.bar", "us-east-1");
-
-        String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint"
-                                + ":myaccesspoint";
-
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("endpoint");
-        s3ControlCustom.getAccessPoint(b -> b.name(accessPointArn));
-    }
-
-    @Test
+    
     public void bucketArnDifferentRegionNoConfigFlag_throwsIllegalArgumentException() {
         S3ControlClient s3ControlCustom = initializedBuilder().region(Region.of("us-east-1")).build();
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint"

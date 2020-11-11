@@ -124,18 +124,6 @@ public class S3EndpointResolutionTest {
     }
 
     @Test
-    public void accessPointArn_customEndpoint_throwsIllegalArgumentException() throws Exception {
-        URI customEndpoint = URI.create("https://foobar.amazonaws.com");
-        mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
-        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
-
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("endpoint override");
-    }
-
-    @Test
     public void accessPointArn_differentRegion_useArnRegionFalse_throwsIllegalArgumentException() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().build();

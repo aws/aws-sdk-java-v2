@@ -62,18 +62,6 @@ public class OutpostAccessPointArnEndpointResolutionTest {
     }
 
     @Test
-    public void outpostArn_customEndpoint_throwsIllegalArgumentException() throws Exception {
-        URI customEndpoint = URI.create("https://foobar.amazonaws.com");
-        mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
-        String outpostArn = "arn:aws:s3-outposts:ap-south-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
-
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(outpostArn).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("endpoint override");
-    }
-
-    @Test
     public void outpostArn_dualstackEnabled_throwsIllegalArgumentException() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder().dualstackEnabled(true).build()).build();
