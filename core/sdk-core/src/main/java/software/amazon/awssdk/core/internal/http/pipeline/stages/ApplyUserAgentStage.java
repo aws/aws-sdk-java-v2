@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -58,8 +59,8 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             throws Exception {
         StringBuilder userAgentBuilder = getUserAgent(clientConfig, context.requestConfig().apiNames());
         String userAgent = addUserAgentSuffix(userAgentBuilder, clientConfig);
-        //request.putHeader("x-amz-sdk-user-agent", userAgent);
-        return request.putHeader(HEADER_USER_AGENT, userAgent);
+        request.putHeader(HEADER_USER_AGENT, "aws-sdk-java/" + VersionInfo.SDK_VERSION);
+        return request.putHeader("x-amz-sdk-user-agent", userAgent);
     }
 
     private StringBuilder getUserAgent(SdkClientConfiguration config, List<ApiName> requestApiNames) {
