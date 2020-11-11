@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Amplify",
-    "contributor": "",
-    "description": "Whereas previously custom headers were set via the app's buildspec, custom headers can now be set directly on the Amplify app for both ci/cd and manual deploy apps."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Forecast Service",
-    "contributor": "",
-    "description": "Providing support of custom quantiles in CreatePredictor API."
-}
