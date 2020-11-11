@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.credentials.internal;
 import java.lang.reflect.InvocationTargetException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenCredentialsProviderFactory;
+import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 
 /**
  * Utility class used to configure credential providers based on JWT web identity tokens.
@@ -39,8 +40,8 @@ public final class WebIdentityCredentialsUtils {
      */
     public static WebIdentityTokenCredentialsProviderFactory factory() {
         try {
-            Class<?> stsCredentialsProviderFactory = Class.forName(STS_WEB_IDENTITY_CREDENTIALS_PROVIDER_FACTORY, true,
-                                                                   Thread.currentThread().getContextClassLoader());
+            Class<?> stsCredentialsProviderFactory = ClassLoaderHelper.loadClass(STS_WEB_IDENTITY_CREDENTIALS_PROVIDER_FACTORY,
+                    WebIdentityCredentialsUtils.class);
             return (WebIdentityTokenCredentialsProviderFactory) stsCredentialsProviderFactory.getConstructor().newInstance();
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("To use web identity tokens, the 'sts' service module must be on the class path.", e);

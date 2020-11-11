@@ -43,9 +43,9 @@ public final class DefaultSdkAsyncHttpClientBuilder implements SdkAsyncHttpClien
                 .map(f -> f.buildWithDefaults(serviceDefaults))
                 .orElseThrow(
                     () -> SdkClientException.builder()
-                                            .message("Unable to load an HTTP implementation from any provider in the" +
-                                                    "chain. You must declare a dependency on an appropriate HTTP" +
-                                                    "implementation or pass in an SdkHttpClient explicitly to the" +
+                                            .message("Unable to load an HTTP implementation from any provider in the " +
+                                                    "chain. You must declare a dependency on an appropriate HTTP " +
+                                                    "implementation or pass in an SdkHttpClient explicitly to the " +
                                                     "client builder.")
                                             .build());
     }
