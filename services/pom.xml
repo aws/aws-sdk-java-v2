@@ -253,6 +253,7 @@
         <module>timestreamwrite</module>
         <module>timestreamquery</module>
         <module>s3outposts</module>
+        <module>databrew</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

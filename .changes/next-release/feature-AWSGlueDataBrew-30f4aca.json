@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue DataBrew",
+    "contributor": "",
+    "description": "This is the initial SDK release for AWS Glue DataBrew. DataBrew is a visual data preparation tool that enables users to clean and normalize data without writing any code."
+}
