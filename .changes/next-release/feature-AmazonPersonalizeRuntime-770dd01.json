@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize Runtime",
-    "contributor": "",
-    "description": "Adds support to use dynamic filters with Personalize."
-}
