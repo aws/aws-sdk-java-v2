@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Textract",
-    "contributor": "",
-    "description": "AWS Textract now allows customers to specify their own KMS key to be used for asynchronous jobs output results, AWS Textract now also recognizes handwritten text from English documents."
-}
