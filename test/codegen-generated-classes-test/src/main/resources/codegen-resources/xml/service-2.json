@@ -151,6 +151,26 @@
       },
       "input":{"shape":"QueryParamWithoutValueInput"}
     },
+    "StreamingInputOperationWithRequiredChecksum":{
+      "name":"OperationWithRequiredChecksum",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypes"
+      },
+      "input":{"shape":"StructureWithStreamingMember"},
+      "output":{"shape":"AllTypesStructure"},
+      "httpChecksumRequired": true
+    },
+    "OperationWithRequiredChecksum":{
+      "name":"OperationWithRequiredChecksum",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypes"
+      },
+      "input":{"shape":"AllTypesStructure"},
+      "output":{"shape":"AllTypesStructure"},
+      "httpChecksumRequired": true
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{

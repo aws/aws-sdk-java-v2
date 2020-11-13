@@ -36,15 +36,15 @@ public class Operation {
 
     private List<ErrorMap> errors;
 
-    private boolean requiresApiKey;
-
     private EndpointDiscovery endpointdiscovery;
 
     private boolean endpointoperation;
 
     private EndpointTrait endpoint;
 
-    private AuthType authtype = AuthType.IAM;
+    private AuthType authtype;
+
+    private boolean httpChecksumRequired;
 
     public String getName() {
         return name;
@@ -133,14 +133,6 @@ public class Operation {
         this.authorizer = authorizer;
     }
 
-    public boolean requiresApiKey() {
-        return requiresApiKey;
-    }
-
-    public void setRequiresApiKey(boolean requiresApiKey) {
-        this.requiresApiKey = requiresApiKey;
-    }
-
     public EndpointDiscovery getEndpointdiscovery() {
         return endpointdiscovery;
     }
@@ -163,5 +155,13 @@ public class Operation {
 
     public void setEndpoint(EndpointTrait endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public boolean isHttpChecksumRequired() {
+        return httpChecksumRequired;
+    }
+
+    public void setHttpChecksumRequired(boolean httpChecksumRequired) {
+        this.httpChecksumRequired = httpChecksumRequired;
     }
 }

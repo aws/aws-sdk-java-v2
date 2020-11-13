@@ -37,6 +37,7 @@ import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvide
 import software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -252,8 +253,8 @@ public final class ProfileCredentialsUtils {
      */
     private ChildProfileCredentialsProviderFactory stsCredentialsProviderFactory() {
         try {
-            Class<?> stsCredentialsProviderFactory = Class.forName(STS_PROFILE_CREDENTIALS_PROVIDER_FACTORY, true,
-                                                                   Thread.currentThread().getContextClassLoader());
+            Class<?> stsCredentialsProviderFactory = ClassLoaderHelper.loadClass(STS_PROFILE_CREDENTIALS_PROVIDER_FACTORY,
+                    getClass());
             return (ChildProfileCredentialsProviderFactory) stsCredentialsProviderFactory.getConstructor().newInstance();
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("To use assumed roles in the '" + name + "' profile, the 'sts' service module must "

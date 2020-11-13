@@ -1,0 +1,42 @@
+{
+    "version": "2.15.25",
+    "date": "2020-11-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for Gateway Load Balancer VPC endpoints and VPC endpoint services"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Add SessionId as a filter for DescribeSessions API"
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Added support for Gateway Load Balancers, which make it easy to deploy, scale, and run third-party virtual networking appliances."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Documentation updates and corrections for Amazon EC2 Auto Scaling API Reference and SDKs."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Replaced class loading from Thread.currentThread().getContextClassLoader() to ClassLoaderHelper in ProfileCredentialsUtils and WebIdentityCredentialsUtils, since it was causing Class not found error."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "@frosforever",
+            "description": "Fix default client error to have spaces between words."
+        }
+    ]
+}

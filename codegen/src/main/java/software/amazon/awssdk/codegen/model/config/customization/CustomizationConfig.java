@@ -119,10 +119,6 @@ public class CustomizationConfig {
 
     private Map<String, String> modelMarshallerDefaultValueSupplier = new HashMap<>();
 
-    private boolean useAutoConstructList = true;
-
-    private boolean useAutoConstructMap = true;
-
     /**
      * Custom Retry Policy
      */
@@ -169,12 +165,18 @@ public class CustomizationConfig {
      * Arnable fields used in s3 control
      */
     private Map<String, S3ArnableFieldConfig> s3ArnableFields;
+
     /**
      * Allow a customer to set an endpoint override AND bypass endpoint discovery on their client even when endpoint discovery
      * enabled is true and endpoint discovery is required for an operation. This customization should almost never be "true"
      * because it creates a confusing customer experience.
      */
     private boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations = false;
+
+    /**
+     * How the code generator should behave when it encounters shapes with underscores in the name.
+     */
+    private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private CustomizationConfig() {
     }
@@ -352,22 +354,6 @@ public class CustomizationConfig {
         this.modelMarshallerDefaultValueSupplier = modelMarshallerDefaultValueSupplier;
     }
 
-    public boolean isUseAutoConstructList() {
-        return useAutoConstructList;
-    }
-
-    public void setUseAutoConstructList(boolean useAutoConstructList) {
-        this.useAutoConstructList = useAutoConstructList;
-    }
-
-    public boolean isUseAutoConstructMap() {
-        return useAutoConstructMap;
-    }
-
-    public void setUseAutoConstructMap(boolean useAutoConstructMap) {
-        this.useAutoConstructMap = useAutoConstructMap;
-    }
-
     public String getCustomRetryPolicy() {
         return customRetryPolicy;
     }
@@ -453,5 +439,18 @@ public class CustomizationConfig {
         boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations) {
         this.allowEndpointOverrideForEndpointDiscoveryRequiredOperations =
             allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
+    }
+
+    public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {
+        return underscoresInNameBehavior;
+    }
+
+    public void setUnderscoresInNameBehavior(UnderscoresInNameBehavior behavior) {
+        this.underscoresInNameBehavior = behavior;
+    }
+
+    public CustomizationConfig withUnderscoresInShapeNameBehavior(UnderscoresInNameBehavior behavior) {
+        this.underscoresInNameBehavior = behavior;
+        return this;
     }
 }

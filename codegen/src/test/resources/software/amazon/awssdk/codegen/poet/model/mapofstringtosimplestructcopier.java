@@ -16,15 +16,15 @@ final class MapOfStringToSimpleStructCopier {
             return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<String, SimpleStruct> mapOfStringToSimpleStructParamCopy = mapOfStringToSimpleStructParam.entrySet().stream()
-            .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
+                                                                                                     .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
         return Collections.unmodifiableMap(mapOfStringToSimpleStructParamCopy);
     }
 
     static Map<String, SimpleStruct> copyFromBuilder(Map<String, ? extends SimpleStruct.Builder> mapOfStringToSimpleStructParam) {
-        if (mapOfStringToSimpleStructParam == null) {
-            return null;
+        if (mapOfStringToSimpleStructParam == null || mapOfStringToSimpleStructParam instanceof DefaultSdkAutoConstructMap) {
+            return DefaultSdkAutoConstructMap.getInstance();
         }
         return copy(mapOfStringToSimpleStructParam.entrySet().stream()
-            .collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
+                                                  .collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
     }
 }

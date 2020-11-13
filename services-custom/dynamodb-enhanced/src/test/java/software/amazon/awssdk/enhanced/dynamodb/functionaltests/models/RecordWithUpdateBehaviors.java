@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
 import java.time.Instant;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
@@ -41,6 +42,7 @@ public class RecordWithUpdateBehaviors {
     }
 
     @DynamoDbUpdateBehavior(WRITE_IF_NOT_EXISTS)
+    @DynamoDbAttribute("created-on")                           // Forces a test on attribute name cleaning
     public Instant getCreatedOn() {
         return createdOn;
     }
