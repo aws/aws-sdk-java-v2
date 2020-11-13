@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "contributor": "",
+    "description": "Adds dualstack support for Network Load Balancers (TCP/TLS only), an attribute for WAF fail open for Application Load Balancers, and an attribute for connection draining for Network Load Balancers."
+}
