@@ -39,7 +39,7 @@ public class MultiRegionAccessPointEndpointResolutionTest {
 
     private final static String MULTI_REGION_ARN = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
     private final static URI MULTI_REGION_ENDPOINT =
-        URI.create("https://mfzwi23gnjvgw.mrap.global-s3.amazonaws.com");
+        URI.create("https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com");
     private MockHttpClient mockHttpClient;
 
     @Before

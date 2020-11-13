@@ -19,6 +19,9 @@ import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.services.s3.internal.signing.S3SigningUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -31,9 +34,7 @@ public final class S3AccessPointResource
     implements S3Resource, ToCopyableBuilder<S3AccessPointResource.Builder, S3AccessPointResource> {
 
     private static final S3ResourceType S3_RESOURCE_TYPE = S3ResourceType.ACCESS_POINT;
-
-    private static final Set<S3ResourceType> VALID_PARENT_RESOURCE_TYPES = EnumSet.of(S3ResourceType.OUTPOST,
-                                                                                      S3ResourceType.MULTI_REGION);
+    private static final Set<S3ResourceType> VALID_PARENT_RESOURCE_TYPES = EnumSet.of(S3ResourceType.OUTPOST);
 
     private final String partition;
     private final String region;
@@ -46,7 +47,7 @@ public final class S3AccessPointResource
         if (b.parentS3Resource == null) {
             this.parentS3Resource = null;
             this.partition = Validate.paramNotBlank(b.partition, "partition");
-            this.region = Validate.paramNotBlank(b.region, "region");
+            this.region = b.region;
             this.accountId = Validate.paramNotBlank(b.accountId, "accountId");
         } else {
             this.parentS3Resource = validateParentS3Resource(b.parentS3Resource);
@@ -114,6 +115,11 @@ public final class S3AccessPointResource
      */
     public String accessPointName() {
         return this.accessPointName;
+    }
+
+    @Override
+    public Optional<Signer> overrideSigner() {
+        return StringUtils.isEmpty(region) ? Optional.of(S3SigningUtils.getSigV4aSigner()) : Optional.empty();
     }
 
     @Override

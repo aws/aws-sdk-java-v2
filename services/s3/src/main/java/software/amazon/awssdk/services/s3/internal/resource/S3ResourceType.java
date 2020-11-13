@@ -39,12 +39,7 @@ public enum S3ResourceType {
     /**
      * An outpost access point. Implemented by {@link S3OutpostResource}.
      */
-    OUTPOST("outpost"),
-
-    /**
-     * A global multi-region access point. Implemented by {@link S3MultiRegionAccessPointResource}.
-     */
-    MULTI_REGION("multi-region");
+    OUTPOST("outpost");
 
     private final String value;
 
