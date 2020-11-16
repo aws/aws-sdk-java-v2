@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Synthetics",
-    "contributor": "",
-    "description": "AWS Synthetics now supports Environment Variables to assign runtime parameters in the canary scripts."
-}
