@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Secure Tunneling",
+    "contributor": "",
+    "description": "Support using multiple data streams per tunnel using the Secure Tunneling multiplexing feature."
+}
