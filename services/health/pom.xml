@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.15.28</version>
+        <version>2.15.29</version>
     </parent>
     <artifactId>health</artifactId>
     <name>AWS Java SDK :: Services :: AWS Health APIs and Notifications</name>
