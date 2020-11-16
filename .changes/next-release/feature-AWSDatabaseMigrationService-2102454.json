@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "Adding MoveReplicationTask feature to move replication tasks between instances"
+}
