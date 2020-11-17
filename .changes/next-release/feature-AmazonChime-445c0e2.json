@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime",
-    "contributor": "",
-    "description": "This release adds CRUD APIs for Amazon Chime SipMediaApplications and SipRules. It also adds the API for creating outbound PSTN calls for Amazon Chime meetings."
-}
