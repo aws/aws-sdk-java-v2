@@ -21,10 +21,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
-import software.amazon.awssdk.services.s3control.S3ControlClientBuilder;
 
 public class S3AccessPointArnTest extends S3ControlWireMockTestBase {
-    private S3ControlClient s3;
+    private S3ControlClient s3Control;
     private static final String EXPECTED_URL = "/v20180820/accesspoint/myendpoint";
 
     @Rule
@@ -32,63 +31,57 @@ public class S3AccessPointArnTest extends S3ControlWireMockTestBase {
 
     @Before
     public void methodSetUp() {
-        s3 = buildClient();
+        s3Control = buildClient();
     }
 
     @Test
     public void malformedArn_MissingOutpostSegment_shouldThrowException() {
-        S3ControlClient s3ControlForTest = buildClientCustom().build();
-
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost";
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Unknown ARN type");
-        s3ControlForTest.getAccessPoint(b -> b.name(accessPointArn));
+        s3Control.getAccessPoint(b -> b.name(accessPointArn));
     }
 
     @Test
     public void malformedArn_MissingAccessPointSegment_shouldThrowException() {
-        S3ControlClient s3ControlForTest = buildClientCustom().build();
-
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456";
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Invalid format");
-        s3ControlForTest.getAccessPoint(b -> b.name(accessPointArn));
+        s3Control.getAccessPoint(b -> b.name(accessPointArn));
     }
 
     @Test
     public void malformedArn_MissingAccessPointName_shouldThrowException() {
-        S3ControlClient s3ControlForTest = buildClientCustom().build();
-
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:myaccesspoint";
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Invalid format");
-        s3ControlForTest.getAccessPoint(b -> b.name(accessPointArn));
+        s3Control.getAccessPoint(b -> b.name(accessPointArn));
     }
 
     @Test
     public void accessPointArn_ClientHasCustomEndpoint_throwsIllegalArgumentException() {
-        S3ControlClient s3Control = buildClientWithCustomEndpoint("https://foo.bar", "us-east-1");
+        S3ControlClient s3ControlCustom = buildClientWithCustomEndpoint("https://foo.bar", "us-east-1");
 
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint"
                                 + ":myaccesspoint";
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("endpoint");
-        s3Control.getAccessPoint(b -> b.name(accessPointArn));
+        s3ControlCustom.getAccessPoint(b -> b.name(accessPointArn));
     }
 
     @Test
     public void bucketArnDifferentRegionNoConfigFlag_throwsIllegalArgumentException() {
-        S3ControlClient s3ControlForTest = initializedBuilder().region(Region.of("us-east-1")).build();
+        S3ControlClient s3ControlCustom = initializedBuilder().region(Region.of("us-east-1")).build();
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint"
                                 + ":myaccesspoint";
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("does not match the region the client was configured with");
-        s3ControlForTest.getAccessPoint(b -> b.name(accessPointArn));
+        s3ControlCustom.getAccessPoint(b -> b.name(accessPointArn));
     }
 
     @Override
