@@ -1,0 +1,54 @@
+{
+    "version": "2.15.31",
+    "date": "2020-11-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "AWS S3 Storage Lens provides visibility into your storage usage and activity trends at the organization or account level, with aggregations by Region, storage class, bucket, and prefix."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Adding Memcached 1.6 to parameter family"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "Mark the Name parameter in CreateOutpost as required."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "AWS Backup now supports cross-account backup, enabling AWS customers to securely copy their backups across their AWS accounts within their AWS organizations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "EC2 Fleet adds support of DeleteFleets API for instant type fleets. Now you can delete an instant type fleet and terminate all associated instances with a single API call."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "AWS CodeBuild - Adding Status field for Report Group"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "This release adds ChangeSets support for Nested Stacks. ChangeSets offer a preview of how proposed changes to a stack might impact existing resources or create new ones."
+        }
+    ]
+}
