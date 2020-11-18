@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Backup",
-    "contributor": "",
-    "description": "AWS Backup now supports cross-account backup, enabling AWS customers to securely copy their backups across their AWS accounts within their AWS organizations."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon ElastiCache",
-    "contributor": "",
-    "description": "Adding Memcached 1.6 to parameter family"
-}
