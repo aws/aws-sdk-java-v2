@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Redshift",
+    "contributor": "",
+    "description": "Amazon Redshift support for returning ClusterNamespaceArn in describeClusters"
+}
