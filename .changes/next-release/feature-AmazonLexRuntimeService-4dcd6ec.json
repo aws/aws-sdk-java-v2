@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Runtime Service",
+    "contributor": "",
+    "description": "Amazon Lex now supports the ability to view and manage active contexts associated with a user session."
+}
