@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaLive",
+    "contributor": "",
+    "description": "The AWS Elemental MediaLive APIs and SDKs now support the ability to see the software update status on Link devices"
+}
