@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Directory Service",
-    "contributor": "",
-    "description": "Adding multi-region replication feature for AWS Managed Microsoft AD"
-}

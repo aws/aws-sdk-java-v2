@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Model Building Service",
-    "contributor": "",
-    "description": "Amazon Lex supports managing input and output contexts as well as default values for slots."
-}

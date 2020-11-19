@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "contributor": "",
-    "description": "Added the starting position and starting position timestamp to ESM Configuration. Now customers will be able to view these fields for their ESM."
-}
