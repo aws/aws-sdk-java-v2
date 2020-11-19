@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Adding support for Glue Schema Registry. The AWS Glue Schema Registry is a new feature that allows you to centrally discover, control, and evolve data stream schemas."
+}
