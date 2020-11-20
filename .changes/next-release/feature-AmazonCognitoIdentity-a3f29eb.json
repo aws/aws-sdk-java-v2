@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity",
-    "contributor": "",
-    "description": "Added SDK pagination support for ListIdentityPools"
-}

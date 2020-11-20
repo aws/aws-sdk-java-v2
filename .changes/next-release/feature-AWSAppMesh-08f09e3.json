@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS App Mesh",
-    "contributor": "",
-    "description": "This release makes tag value a required attribute of the tag's key-value pair."
-}

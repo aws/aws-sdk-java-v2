@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka",
-    "contributor": "",
-    "description": "This release adds support for PER TOPIC PER PARTITION monitoring on AWS MSK clusters."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "This release adds a set of Amazon Connect APIs to programmatically control instance creation, modification, description and deletion."
-}
