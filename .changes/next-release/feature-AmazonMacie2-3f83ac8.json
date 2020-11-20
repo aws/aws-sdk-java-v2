@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Macie 2",
+    "contributor": "",
+    "description": "The Amazon Macie API now provides S3 bucket metadata that indicates whether any one-time or recurring classification jobs are configured to analyze data in a bucket."
+}
