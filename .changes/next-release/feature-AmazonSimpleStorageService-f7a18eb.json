@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "Add new documentation regarding automatically generated Content-MD5 headers when using the SDK or CLI."
+}
