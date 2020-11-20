@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudHSM V2",
+    "contributor": "",
+    "description": "Added managed backup retention, a feature that enables customers to retain backups for a configurable period after which CloudHSM service will automatically delete them."
+}
