@@ -13,9 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profiles;
+package software.amazon.awssdk.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,13 +25,10 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.profiles.ProfileFileLocation;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
-/**
- * Verify the functionality of {@link ProfileFileLocation}.
- */
-public class ProfileFileLocationTest {
+public class UserHomeDirectoryUtilsTest {
+
     private final Map<String, String> savedEnvironmentVariableValues = new HashMap<>();
 
     private static final List<String> SAVED_ENVIRONMENT_VARIABLES = Arrays.asList("HOME",
@@ -46,11 +44,10 @@ public class ProfileFileLocationTest {
      */
     @Before
     public void saveEnvironment() throws Exception {
-        // The tests in this file change the os.home for testing windows vs non-windows loading, and the static constructor for
-        // ProfileFileLocation currently loads the file system separator based on the os.home. We need to call the static
-        // constructor for ProfileFileLocation before changing the os.home so that it doesn't try to load the file system
-        // separator during the test. If we don't, it'll complain that it doesn't recognize the file system.
-        ProfileFileLocation.userHomeDirectory();
+        // The tests in this file change the os.home for testing windows vs non-windows loading. We need to load the home
+        // directory that should be used for the stored file before changing the os.home so that it doesn't try to load
+        // the file system separator during the test. If we don't, it'll complain that it doesn't recognize the file system.
+        userHomeDirectory();
 
         for (String variable : SAVED_ENVIRONMENT_VARIABLES) {
             savedEnvironmentVariableValues.put(variable, System.getenv(variable));
@@ -84,18 +81,18 @@ public class ProfileFileLocationTest {
             ENVIRONMENT_VARIABLE_HELPER.set("HOMEDRIVE", "homedrive");
             ENVIRONMENT_VARIABLE_HELPER.set("HOMEPATH", "homepath");
 
-            assertThat(ProfileFileLocation.userHomeDirectory()).isEqualTo("home");
+            assertThat(userHomeDirectory()).isEqualTo("home");
 
             ENVIRONMENT_VARIABLE_HELPER.remove("HOME");
-            assertThat(ProfileFileLocation.userHomeDirectory()).isEqualTo("userprofile");
+            assertThat(userHomeDirectory()).isEqualTo("userprofile");
 
             ENVIRONMENT_VARIABLE_HELPER.remove("USERPROFILE");
-            assertThat(ProfileFileLocation.userHomeDirectory()).isEqualTo("homedrivehomepath");
+            assertThat(userHomeDirectory()).isEqualTo("homedrivehomepath");
 
             ENVIRONMENT_VARIABLE_HELPER.remove("HOMEDRIVE");
             ENVIRONMENT_VARIABLE_HELPER.remove("HOMEPATH");
 
-            assertThat(ProfileFileLocation.userHomeDirectory()).isEqualTo(System.getProperty("user.home"));
+            assertThat(userHomeDirectory()).isEqualTo(System.getProperty("user.home"));
         } finally {
             System.setProperty("os.name", osName);
         }
@@ -112,18 +109,18 @@ public class ProfileFileLocationTest {
             ENVIRONMENT_VARIABLE_HELPER.set("HOMEDRIVE", "homedrive");
             ENVIRONMENT_VARIABLE_HELPER.set("HOMEPATH", "homepath");
 
-            assertThat(ProfileFileLocation.userHomeDirectory()).isEqualTo("home");
+            assertThat(userHomeDirectory()).isEqualTo("home");
 
             ENVIRONMENT_VARIABLE_HELPER.remove("HOME");
-            assertThat(ProfileFileLocation.userHomeDirectory()).isEqualTo(System.getProperty("user.home"));
+            assertThat(userHomeDirectory()).isEqualTo(System.getProperty("user.home"));
 
             ENVIRONMENT_VARIABLE_HELPER.remove("USERPROFILE");
-            assertThat(ProfileFileLocation.userHomeDirectory()).isEqualTo(System.getProperty("user.home"));
+            assertThat(userHomeDirectory()).isEqualTo(System.getProperty("user.home"));
 
             ENVIRONMENT_VARIABLE_HELPER.remove("HOMEDRIVE");
             ENVIRONMENT_VARIABLE_HELPER.remove("HOMEPATH");
 
-            assertThat(ProfileFileLocation.userHomeDirectory()).isEqualTo(System.getProperty("user.home"));
+            assertThat(userHomeDirectory()).isEqualTo(System.getProperty("user.home"));
         } finally {
             System.setProperty("os.name", osName);
         }
