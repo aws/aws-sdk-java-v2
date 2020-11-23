@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Timestream Query",
+    "contributor": "",
+    "description": "Amazon Timestream now supports \"QueryStatus\" in Query API which has information about cumulative bytes scanned, metered, as well as progress percentage for the query."
+}
