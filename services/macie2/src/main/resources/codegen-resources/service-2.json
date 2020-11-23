@@ -2583,12 +2583,12 @@
         "kmsManaged": {
           "shape": "__long",
           "locationName": "kmsManaged",
-          "documentation": " <p>The total number of buckets that use an AWS Key Management Service (AWS KMS) customer master key (CMK) to encrypt objects. These buckets use AWS KMS AWS-managed (AWS-KMS) encryption or AWS KMS customer-managed (SSE-KMS) encryption.</p>"
+          "documentation": " <p>The total number of buckets that use an AWS Key Management Service (AWS KMS) customer master key (CMK) to encrypt objects. These buckets use AWS managed AWS KMS (AWS-KMS) encryption or customer managed AWS KMS (SSE-KMS) encryption.</p>"
         },
         "s3Managed": {
           "shape": "__long",
           "locationName": "s3Managed",
-          "documentation": "<p>The total number of buckets that use an Amazon S3-managed key to encrypt objects. These buckets use Amazon S3-managed (SSE-S3) encryption.</p>"
+          "documentation": "<p>The total number of buckets that use an Amazon S3 managed key to encrypt objects. These buckets use Amazon S3 managed (SSE-S3) encryption.</p>"
         },
         "unencrypted": {
           "shape": "__long",
@@ -2728,6 +2728,11 @@
           "shape": "__long",
           "locationName": "classifiableSizeInBytes",
           "documentation": "<p>The total storage size, in bytes, of the objects that Amazon Macie can analyze in the bucket. These objects use a supported storage class and have a file name extension for a supported file or storage format.</p>"
+        },
+        "jobDetails": {
+          "shape": "JobDetails",
+          "locationName": "jobDetails",
+          "documentation": "<p>Specifies whether any one-time or recurring classification jobs are configured to analyze data in the bucket, and, if so, the details of the job that ran most recently.</p>"
         },
         "lastUpdated": {
           "shape": "__timestampIso8601",
@@ -2937,7 +2942,7 @@
         "additionalOccurrences": {
           "shape": "__boolean",
           "locationName": "additionalOccurrences",
-          "documentation": "<p>Specifies whether Amazon Macie detected additional occurrences of sensitive data in the S3 object. A finding includes location data for a maximum of 15 occurrences of sensitive data.</p> <p>This value can help you to determine whether to investigate additional occurrences of sensitive data in an object. You can do this by referring to the corresponding sensitive data discovery result for the finding (ClassificationDetails.detailedResultsLocation).</p>"
+          "documentation": "<p>Specifies whether Amazon Macie detected additional occurrences of sensitive data in the S3 object. A finding includes location data for a maximum of 15 occurrences of sensitive data.</p> <p>This value can help you determine whether to investigate additional occurrences of sensitive data in an object. You can do this by referring to the corresponding sensitive data discovery result for the finding (ClassificationDetails.detailedResultsLocation).</p>"
         },
         "customDataIdentifiers": {
           "shape": "CustomDataIdentifiers",
@@ -2973,7 +2978,7 @@
         "code": {
           "shape": "__string",
           "locationName": "code",
-          "documentation": " <p>The status of the finding. Possible values are:</p> <ul><li><p>COMPLETE - Amazon Macie successfully completed its analysis of the object that the finding applies to.</p></li> <li><p>PARTIAL - Macie was able to analyze only a subset of the data in the object that the finding applies to. For example, the object is a compressed or archive file that contains files in an unsupported format.</p></li> <li><p>SKIPPED - Macie wasn't able to analyze the object that the finding applies to. For example, the object is a malformed file or a file that uses an unsupported format.</p></li></ul>"
+          "documentation": " <p>The status of the finding. Possible values are:</p> <ul><li><p>COMPLETE - Amazon Macie successfully completed its analysis of the object that the finding applies to.</p></li> <li><p>PARTIAL - Macie analyzed only a subset of the data in the object that the finding applies to. For example, the object is an archive file that contains files in an unsupported format.</p></li> <li><p>SKIPPED - Macie wasn't able to analyze the object that the finding applies to. For example, the object is a malformed file or a file that uses an unsupported format.</p></li></ul>"
         },
         "reason": {
           "shape": "__string",
@@ -3288,7 +3293,7 @@
         "eqExactMatch": {
           "shape": "__listOf__string",
           "locationName": "eqExactMatch",
-          "documentation": "<p>A condition that requires an array field of a finding to exactly match the specified property values. You can use this operator with the following properties: customDataIdentifiers.detections.arn, customDataIdentifiers.detections.name, resourcesAffected.s3Bucket.tags.key, resourcesAffected.s3Bucket.tags.value, resourcesAffected.s3Object.tags.key, resourcesAffected.s3Object.tags.value, sensitiveData.category, and sensitiveData.detections.type.</p>"
+          "documentation": "<p>A condition that requires an array field to exactly match the specified property values. You can use this operator with the following properties: customDataIdentifiers.detections.arn, customDataIdentifiers.detections.name, resourcesAffected.s3Bucket.tags.key, resourcesAffected.s3Bucket.tags.value, resourcesAffected.s3Object.tags.key, resourcesAffected.s3Object.tags.value, sensitiveData.category, and sensitiveData.detections.type.</p>"
         },
         "gt": {
           "shape": "__long",
@@ -3646,17 +3651,22 @@
         "jobStatus": {
           "shape": "JobStatus",
           "locationName": "jobStatus",
-          "documentation": "<p>The current status of the job. Possible values are:</p> <ul><li><p>CANCELLED - You cancelled the job, or you paused the job and didn't resume it within 30 days of pausing it.</p></li> <li><p>COMPLETE - For a one-time job, Amazon Macie finished processing all the data specified for the job. This value doesn't apply to recurring jobs.</p></li> <li><p>IDLE - For a recurring job, the previous scheduled run is complete and the next scheduled run is pending. This value doesn't apply to one-time jobs.</p></li> <li><p>PAUSED - Amazon Macie started running the job but completion of the job would exceed one or more quotas for your account.</p></li> <li><p>RUNNING - For a one-time job, the job is in progress. For a recurring job, a scheduled run is in progress.</p></li> <li><p>USER_PAUSED - You paused the job. If you don't resume the job within 30 days of pausing it, the job will expire and be cancelled.</p></li></ul>"
+          "documentation": "<p>The current status of the job. Possible values are:</p> <ul><li><p>CANCELLED - You cancelled the job, or you paused the job while it had a status of RUNNING and you didn't resume it within 30 days of pausing it.</p></li> <li><p>COMPLETE - For a one-time job, Amazon Macie finished processing the data specified for the job. This value doesn't apply to recurring jobs.</p></li> <li><p>IDLE - For a recurring job, the previous scheduled run is complete and the next scheduled run is pending. This value doesn't apply to one-time jobs.</p></li> <li><p>PAUSED - Amazon Macie started running the job but additional processing would exceed the monthly sensitive data discovery quota for your account or one or more member accounts that the job analyzes data for.</p></li> <li><p>RUNNING - For a one-time job, the job is in progress. For a recurring job, a scheduled run is in progress.</p></li> <li><p>USER_PAUSED - You paused the job. If you paused the job while it had a status of RUNNING and you don't resume the job within 30 days of pausing it, the job expires and is cancelled. To check the job's expiration date, refer to the UserPausedDetails.jobExpiresAt property.</p></li></ul>"
         },
         "jobType": {
           "shape": "JobType",
           "locationName": "jobType",
           "documentation": "<p>The schedule for running the job. Possible values are:</p> <ul><li><p>ONE_TIME - The job runs only once.</p></li> <li><p>SCHEDULED - The job runs on a daily, weekly, or monthly basis. The scheduleFrequency property indicates the recurrence pattern for the job.</p></li></ul>"
         },
+        "lastRunErrorStatus": {
+          "shape": "LastRunErrorStatus",
+          "locationName": "lastRunErrorStatus",
+          "documentation": "<p>Specifies whether any account- or bucket-level access errors occurred when the job ran. For a recurring job, this value indicates the error status of the job's most recent run.</p>"
+        },
         "lastRunTime": {
           "shape": "__timestampIso8601",
           "locationName": "lastRunTime",
-          "documentation": "<p>The date and time, in UTC and extended ISO 8601 format, when the job last ran.</p>"
+          "documentation": "<p>The date and time, in UTC and extended ISO 8601 format, when the job started. If the job is a recurring job, this value indicates when the most recent run started.</p>"
         },
         "name": {
           "shape": "__string",
@@ -3913,7 +3923,7 @@
         "count": {
           "shape": "__long",
           "locationName": "count",
-          "documentation": "<p>The total number of occurrences of the finding.</p>"
+          "documentation": "<p>The total number of occurrences of the finding. For sensitive data findings, this value is always 1. All sensitive data findings are considered new (unique) because they derive from individual classification jobs.</p>"
         },
         "createdAt": {
           "shape": "__timestampIso8601",
@@ -4789,6 +4799,22 @@
       },
       "documentation": "<p>Provides information about the registered owner of an IP address.</p>"
     },
+    "IsDefinedInJob": {
+      "type": "string",
+      "enum": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "IsMonitoredByJob": {
+      "type": "string",
+      "enum": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
     "JobComparator": {
       "type": "string",
       "documentation": "<p>The operator to use in a condition. Valid values are:</p>",
@@ -4801,6 +4827,32 @@
         "NE",
         "CONTAINS"
       ]
+    },
+    "JobDetails": {
+      "type": "structure",
+      "members": {
+        "isDefinedInJob": {
+          "shape": "IsDefinedInJob",
+          "locationName": "isDefinedInJob",
+          "documentation": "<p>Specifies whether any one-time or recurring jobs are configured to analyze data in the bucket. Possible values are:</p> <ul><li><p>TRUE - One or more jobs is configured to analyze data in the bucket, and at least one of those jobs has a status other than CANCELLED.</p></li> <li><p>FALSE - No jobs are configured to analyze data in the bucket, or all the jobs that are configured to analyze data in the bucket have a status of CANCELLED.</p></li> <li><p>UNKNOWN - An exception occurred when Amazon Macie attempted to retrieve job data for the bucket.</p></li></ul> <p></p>"
+        },
+        "isMonitoredByJob": {
+          "shape": "IsMonitoredByJob",
+          "locationName": "isMonitoredByJob",
+          "documentation": "<p>Specifies whether any recurring jobs are configured to analyze data in the bucket. Possible values are:</p> <ul><li><p>TRUE - One or more recurring jobs is configured to analyze data in the bucket, and at least one of those jobs has a status other than CANCELLED.</p></li> <li><p>FALSE - No recurring jobs are configured to analyze data in the bucket, or all the recurring jobs that are configured to analyze data in the bucket have a status of CANCELLED.</p></li> <li><p>UNKNOWN - An exception occurred when Amazon Macie attempted to retrieve job data for the bucket.</p></li></ul>"
+        },
+        "lastJobId": {
+          "shape": "__string",
+          "locationName": "lastJobId",
+          "documentation": "<p>The unique identifier for the job that ran most recently (either the latest run of a recurring job or the only run of a one-time job) and is configured to analyze data in the bucket.</p> <p>This value is null if the value for the isDefinedInJob property is FALSE or UNKNOWN.</p>"
+        },
+        "lastJobRunTime": {
+          "shape": "__timestampIso8601",
+          "locationName": "lastJobRunTime",
+          "documentation": "<p>The date and time, in UTC and extended ISO 8601 format, when the job (lastJobId) started. If the job is a recurring job, this value indicates when the most recent run started.</p> <p>This value is null if the value for the isDefinedInJob property is FALSE or UNKNOWN.</p>"
+        }
+      },
+      "documentation": "<p>Specifies whether any one-time or recurring classification jobs are configured to analyze data in an S3 bucket, and, if so, the details of the job that ran most recently.</p>"
     },
     "JobScheduleFrequency": {
       "type": "structure",
@@ -4883,12 +4935,17 @@
         "jobStatus": {
           "shape": "JobStatus",
           "locationName": "jobStatus",
-          "documentation": "<p>The current status of the job. Possible values are:</p> <ul><li><p>CANCELLED - You cancelled the job, or you paused the job and didn't resume it within 30 days of pausing it.</p></li> <li><p>COMPLETE - For a one-time job, Amazon Macie finished processing all the data specified for the job. This value doesn't apply to recurring jobs.</p></li> <li><p>IDLE - For a recurring job, the previous scheduled run is complete and the next scheduled run is pending. This value doesn't apply to one-time jobs.</p></li> <li><p>PAUSED - Amazon Macie started running the job but completion of the job would exceed one or more quotas for your account.</p></li> <li><p>RUNNING - For a one-time job, the job is in progress. For a recurring job, a scheduled run is in progress.</p></li> <li><p>USER_PAUSED - You paused the job. If you don't resume the job within 30 days of pausing it, the job will expire and be cancelled.</p></li></ul>"
+          "documentation": "<p>The current status of the job. Possible values are:</p> <ul><li><p>CANCELLED - You cancelled the job, or you paused the job while it had a status of RUNNING and you didn't resume it within 30 days of pausing it.</p></li> <li><p>COMPLETE - For a one-time job, Amazon Macie finished processing the data specified for the job. This value doesn't apply to recurring jobs.</p></li> <li><p>IDLE - For a recurring job, the previous scheduled run is complete and the next scheduled run is pending. This value doesn't apply to one-time jobs.</p></li> <li><p>PAUSED - Amazon Macie started running the job but additional processing would exceed the monthly sensitive data discovery quota for your account or one or more member accounts that the job analyzes data for.</p></li> <li><p>RUNNING - For a one-time job, the job is in progress. For a recurring job, a scheduled run is in progress.</p></li> <li><p>USER_PAUSED - You paused the job. If you paused the job while it had a status of RUNNING and you don't resume the job within 30 days of pausing it, the job expires and is cancelled. To check the job's expiration date, refer to the UserPausedDetails.jobExpiresAt property.</p></li></ul>"
         },
         "jobType": {
           "shape": "JobType",
           "locationName": "jobType",
           "documentation": "<p>The schedule for running the job. Possible values are:</p> <ul><li><p>ONE_TIME - The job runs only once.</p></li> <li><p>SCHEDULED - The job runs on a daily, weekly, or monthly basis.</p></li></ul>"
+        },
+        "lastRunErrorStatus": {
+          "shape": "LastRunErrorStatus",
+          "locationName": "lastRunErrorStatus",
+          "documentation": "<p>Specifies whether any account- or bucket-level access errors occurred when the job ran. For a recurring job, this value indicates the error status of the job's most recent run.</p>"
         },
         "name": {
           "shape": "__string",
@@ -4922,7 +4979,7 @@
         "value": {
           "shape": "__string",
           "locationName": "value",
-          "documentation": "<p>One part of a key-value pair that comprises a tag. A tag value acts as a descriptor for a tag key. A tag value can be empty or null.</p>"
+          "documentation": "<p>One part of a key-value pair that comprises a tag. A tag value acts as a descriptor for a tag key. A tag value can be an empty string.</p>"
         }
       },
       "documentation": "<p>Provides information about the tags that are associated with an S3 bucket or object. Each tag consists of a required tag key and an associated tag value.</p>"
@@ -4933,6 +4990,25 @@
       "member": {
         "shape": "KeyValuePair"
       }
+    },
+    "LastRunErrorStatus": {
+      "type": "structure",
+      "members": {
+        "code": {
+          "shape": "LastRunErrorStatusCode",
+          "locationName": "code",
+          "documentation": "<p>Specifies whether any account- or bucket-level access errors occurred when the job ran. For a recurring job, this value indicates the error status of the job's most recent run. Possible values are:</p> <ul><li><p>ERROR - One or more errors occurred. Amazon Macie didn't process all the data specified for the job.</p></li> <li><p>NONE - No errors occurred. Macie processed all the data specified for the job.</p></li></ul>"
+        }
+      },
+      "documentation": "<p>Specifies whether any account- or bucket-level access errors occurred when a classification job ran. For example, the job is configured to analyze data for a member account that was suspended, or the job is configured to analyze an S3 bucket that Amazon Macie isn't allowed to access.</p>"
+    },
+    "LastRunErrorStatusCode": {
+      "type": "string",
+      "documentation": "<p>Specifies whether any account- or bucket-level access errors occurred during the run of a one-time classification job or the most recent run of a recurring classification job. Possible values are:</p>",
+      "enum": [
+        "NONE",
+        "ERROR"
+      ]
     },
     "ListClassificationJobsRequest": {
       "type": "structure",
@@ -5356,12 +5432,12 @@
         "kmsManaged": {
           "shape": "__long",
           "locationName": "kmsManaged",
-          "documentation": "<p>The total number of objects that are encrypted using an AWS Key Management Service (AWS KMS) customer master key (CMK). The objects use AWS KMS AWS-managed (AWS-KMS) encryption or AWS KMS customer-managed (SSE-KMS) encryption.</p>"
+          "documentation": "<p>The total number of objects that are encrypted using an AWS Key Management Service (AWS KMS) customer master key (CMK). The objects use AWS managed AWS KMS (AWS-KMS) encryption or customer managed AWS KMS (SSE-KMS) encryption.</p>"
         },
         "s3Managed": {
           "shape": "__long",
           "locationName": "s3Managed",
-          "documentation": "<p>The total number of objects that are encrypted using an Amazon S3-managed key. The objects use Amazon S3-managed (SSE-S3) encryption.</p>"
+          "documentation": "<p>The total number of objects that are encrypted using an Amazon S3 managed key. The objects use Amazon S3 managed (SSE-S3) encryption.</p>"
         },
         "unencrypted": {
           "shape": "__long",
@@ -5408,7 +5484,7 @@
         "offsetRanges": {
           "shape": "Ranges",
           "locationName": "offsetRanges",
-          "documentation": "<p>An array of objects, one for each occurrence of sensitive data in a binary text file. Each object specifies the position of the data relative to the beginning of the file.</p> <p>This value is typically null. For binary text files, Macie adds location data to a lineRanges.Range or Page object, depending on the file type.</p>"
+          "documentation": "<p>An array of objects, one for each occurrence of sensitive data in a binary text file. Each object specifies the position of the data relative to the beginning of the file.</p> <p>This value is typically null. For binary text files, Amazon Macie adds location data to a lineRanges.Range or Page object, depending on the file type.</p>"
         },
         "pages": {
           "shape": "Pages",
@@ -5418,7 +5494,7 @@
         "records": {
           "shape": "Records",
           "locationName": "records",
-          "documentation": "<p>An array of objects, one for each occurrence of sensitive data in an Apache Avro object container or Apache Parquet file. Each object specifies the field or record that contains the data. This value is null for all other types of files.</p>"
+          "documentation": "<p>An array of objects, one for each occurrence of sensitive data in an Apache Avro object container or Apache Parquet file. Each object specifies the record index and the path to the field in the record that contains the data. This value is null for all other types of files.</p>"
         }
       },
       "documentation": "<p>Provides the location of 1-15 occurrences of sensitive data that was detected by managed data identifiers or a custom data identifier and produced a sensitive data finding.</p>"
@@ -5531,7 +5607,7 @@
         "jsonPath": {
           "shape": "__string",
           "locationName": "jsonPath",
-          "documentation": "<p>The path, as a JSONPath expression, to the field (in an Apache Avro object container) or record (in an Apache Parquet file) that contains the data.</p> <p>If the name of an element exceeds 20 characters, Amazon Macie truncates the name by removing characters from the beginning of the name. If the resulting full path exceeds 250 characters, Macie also truncates the path, starting with the first element in the path, until the path contains 250 or fewer characters.</p>"
+          "documentation": "<p>The path, as a JSONPath expression, to the field in the record that contains the data.</p> <p>If the name of an element exceeds 20 characters, Amazon Macie truncates the name by removing characters from the beginning of the name. If the resulting full path exceeds 250 characters, Macie also truncates the path, starting with the first element in the path, until the path contains 250 or fewer characters.</p>"
         },
         "recordIndex": {
           "shape": "__long",
@@ -5663,7 +5739,7 @@
         "accountId": {
           "shape": "__string",
           "locationName": "accountId",
-          "documentation": "<p>The unique identifier for the AWS account that owns one or more of the buckets. If specified, the job analyzes objects in all the buckets that are owned by the account and meet other conditions specified for the job.</p>"
+          "documentation": "<p>The unique identifier for the AWS account that owns the buckets. If you specify this value and don't specify a value for the buckets array, the job analyzes objects in all the buckets that are owned by the account and meet other conditions specified for the job.</p>"
         },
         "buckets": {
           "shape": "__listOf__string",
@@ -5671,7 +5747,7 @@
           "documentation": "<p>An array that lists the names of the buckets.</p>"
         }
       },
-      "documentation": "<p>Specifies which S3 buckets contain the objects that a classification job analyzes.</p>"
+      "documentation": "<p>Specifies which AWS account owns the S3 buckets that a classification job analyzes, and the buckets to analyze for the account.</p>"
     },
     "S3BucketOwner": {
       "type": "structure",
@@ -5720,7 +5796,7 @@
         "bucketDefinitions": {
           "shape": "__listOfS3BucketDefinitionForJob",
           "locationName": "bucketDefinitions",
-          "documentation": "<p>An array of objects, one for each bucket that contains objects to analyze.</p>"
+          "documentation": "<p>An array of objects, one for each AWS account that owns buckets to analyze. Each object specifies the account ID for an account and one or more buckets to analyze for the account.</p>"
         },
         "scoping": {
           "shape": "Scoping",
@@ -5836,7 +5912,7 @@
         "category": {
           "shape": "SensitiveDataItemCategory",
           "locationName": "category",
-          "documentation": "<p>The category of sensitive data that was detected. For example: FINANCIAL_INFORMATION, for financial information such as credit card numbers; PERSONAL_INFORMATION, for personally identifiable information, such as full names and mailing addresses, or personal health information; or, CUSTOM_IDENTIFIER, for data that was detected by a custom data identifier.</p>"
+          "documentation": "<p>The category of sensitive data that was detected. For example: CREDENTIALS, for credentials data such as private keys or AWS secret keys; FINANCIAL_INFORMATION, for financial data such as credit card numbers; or, PERSONAL_INFORMATION, for personal health information, such as health insurance identification numbers, or personally identifiable information, such as driver's license identification numbers.</p>"
         },
         "detections": {
           "shape": "DefaultDetections",
@@ -6282,7 +6358,7 @@
         "jobStatus": {
           "shape": "JobStatus",
           "locationName": "jobStatus",
-          "documentation": "<p>The new status for the job. Valid values are:</p> <ul><li><p>CANCELLED - Stops the job permanently and cancels it. You can't resume a job after you cancel it. This value is valid only if the job's current status is IDLE, PAUSED, RUNNING, or USER_PAUSED.</p></li> <li><p>RUNNING - Resumes the job. This value is valid only if the job's current status is USER_PAUSED. If you specify this value, Amazon Macie immediately resumes the job.</p></li> <li><p>USER_PAUSED - Pauses the job. This value is valid only if the job's current status is IDLE or RUNNING. If you specify this value and the job is currently running, Macie immediately stops running the job.</p> <p>To resume a job after you pause it, change the job's status to RUNNING. If you don't resume a job within 30 days of pausing it, the job expires and Macie cancels it. You can't resume a job after it's cancelled.</p></li></ul>"
+          "documentation": "<p>The new status for the job. Valid values are:</p> <ul><li><p>CANCELLED - Stops the job permanently and cancels it. You can't resume a job after you cancel it. This value is valid only if the job's current status is IDLE, PAUSED, RUNNING, or USER_PAUSED.</p></li> <li><p>RUNNING - Resumes the job. This value is valid only if the job's current status is USER_PAUSED. If you specify this value, Amazon Macie immediately resumes processing from the point where you paused the job. Otherwise, Macie resumes the job according to the schedule and other configuration settings for the job.</p></li> <li><p>USER_PAUSED - Pauses the job. This value is valid only if the job's current status is IDLE or RUNNING. If you specify this value and the job's current status is RUNNING, Macie immediately begins to pause all processing tasks for the job.</p> <p>If you pause a job when its status is RUNNING and you don't resume the job within 30 days, the job expires and Macie cancels it. You can't resume a job after it's cancelled.</p></li></ul>"
         }
       },
       "required": [
@@ -6647,7 +6723,7 @@
           "documentation": "<p>The date and time, in UTC and extended ISO 8601 format, when you paused the job.</p>"
         }
       },
-      "documentation": "<p>Provides information about when a classification job was paused and when it will expire and be cancelled if it isn't resumed. This object is present only if a job's current status (jobStatus) is USER_PAUSED.</p>"
+      "documentation": "<p>Provides information about when a classification job was paused and when it will expire and be cancelled if it isn't resumed. This object is present only if a job's current status (jobStatus) is USER_PAUSED. The information in this object applies only to a job that was paused while it had a status of RUNNING.</p>"
     },
     "ValidationException": {
       "type": "structure",

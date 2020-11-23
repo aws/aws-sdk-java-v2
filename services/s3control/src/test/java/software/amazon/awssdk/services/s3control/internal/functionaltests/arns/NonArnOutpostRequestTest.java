@@ -34,7 +34,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 
 
-public class NonArnOutpostRequetsTest extends S3ControlWireMockTestBase {
+public class NonArnOutpostRequestTest extends S3ControlWireMockTestBase {
     private S3ControlClient s3;
     private static final String EXPECTED_URL = "/v20180820/bucket";
 

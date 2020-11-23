@@ -1,0 +1,78 @@
+{
+    "version": "2.15.33",
+    "date": "2020-11-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudHSM V2",
+            "contributor": "",
+            "description": "Added managed backup retention, a feature that enables customers to retain backups for a configurable period after which CloudHSM service will automatically delete them."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity",
+            "contributor": "",
+            "description": "Added SDK pagination support for ListIdentityPools"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "This release adds support for PER TOPIC PER PARTITION monitoring on AWS MSK clusters."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds a set of Amazon Connect APIs to programmatically control instance creation, modification, description and deletion."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "The Amazon Macie API now provides S3 bucket metadata that indicates whether any one-time or recurring classification jobs are configured to analyze data in a bucket."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Add new documentation regarding automatically generated Content-MD5 headers when using the SDK or CLI."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "contributor": "",
+            "description": "The Amazon Chime SDK for messaging provides the building blocks needed to build chat and other real-time collaboration features."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog App Registry",
+            "contributor": "",
+            "description": "AWS Service Catalog AppRegistry Documentation update"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "contributor": "",
+            "description": "This release supports tagging repository association resources in Amazon CodeGuru Reviewer."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-on",
+            "contributor": "",
+            "description": "Added support for retrieving SSO credentials: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html."
+        },
+        {
+            "type": "feature",
+            "category": "AWS App Mesh",
+            "contributor": "",
+            "description": "This release makes tag value a required attribute of the tag's key-value pair."
+        }
+    ]
+}

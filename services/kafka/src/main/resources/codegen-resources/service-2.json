@@ -1392,7 +1392,7 @@
         "EnhancedMonitoring": {
           "shape": "EnhancedMonitoring",
           "locationName": "enhancedMonitoring",
-          "documentation": "\n            <p>Specifies which metrics are gathered for the MSK cluster. This property has three possible values: DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER. For a list of the metrics associated with each of these three levels of monitoring, see <a href=\"https://docs.aws.amazon.com/msk/latest/developerguide/monitoring.html\">Monitoring</a>.</p>\n         "
+          "documentation": "\n            <p>Specifies which metrics are gathered for the MSK cluster. This property has the following possible values: DEFAULT, PER_BROKER, PER_TOPIC_PER_BROKER, and PER_TOPIC_PER_PARTITION. For a list of the metrics associated with each of these levels of monitoring, see <a href=\"https://docs.aws.amazon.com/msk/latest/developerguide/monitoring.html\">Monitoring</a>.</p>\n         "
         },
         "OpenMonitoring" : {
           "shape" : "OpenMonitoring",
@@ -1411,7 +1411,7 @@
         "State": {
           "shape": "ClusterState",
           "locationName": "state",
-          "documentation": "\n            <p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>\n         "
+          "documentation": "\n            <p>The state of the cluster. The possible states are ACTIVE, CREATING, DELETING, FAILED, MAINTENANCE, REBOOTING_BROKER, and UPDATING.</p>\n         "
         },
         "StateInfo" : {
           "shape" : "StateInfo",
@@ -1529,9 +1529,11 @@
       "enum": [
         "ACTIVE",
         "CREATING",
-        "UPDATING",
         "DELETING",
-        "FAILED"
+        "FAILED",
+        "MAINTENANCE",
+        "REBOOTING_BROKER",
+        "UPDATING"
       ]
     },
     "CompatibleKafkaVersion" : {
@@ -1705,7 +1707,7 @@
         "EnhancedMonitoring": {
           "shape": "EnhancedMonitoring",
           "locationName": "enhancedMonitoring",
-          "documentation": "\n            <p>Specifies the level of monitoring for the MSK cluster. The possible values are DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER.</p>\n         "
+          "documentation": "\n            <p>Specifies the level of monitoring for the MSK cluster. The possible values are DEFAULT, PER_BROKER, PER_TOPIC_PER_BROKER, and PER_TOPIC_PER_PARTITION.</p>\n         "
         },
         "OpenMonitoring" : {
           "shape" : "OpenMonitoringInfo",
@@ -1755,7 +1757,7 @@
         "State": {
           "shape": "ClusterState",
           "locationName": "state",
-          "documentation": "\n            <p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>\n         "
+          "documentation": "\n            <p>The state of the cluster. The possible states are ACTIVE, CREATING, DELETING, FAILED, MAINTENANCE, REBOOTING_BROKER, and UPDATING.</p>\n         "
         }
       }
     },
@@ -1849,7 +1851,7 @@
         "State": {
           "shape": "ClusterState",
           "locationName": "state",
-          "documentation": "\n            <p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>\n         "
+          "documentation": "\n            <p>The state of the cluster. The possible states are ACTIVE, CREATING, DELETING, FAILED, MAINTENANCE, REBOOTING_BROKER, and UPDATING.</p>\n         "
         }
       }
     },
@@ -2127,11 +2129,12 @@
     },
     "EnhancedMonitoring": {
       "type": "string",
-      "documentation": "\n            <p>Specifies which metrics are gathered for the MSK cluster. This property has three possible values: DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER. For a list of the metrics associated with each of these three levels of monitoring, see <a href=\"https://docs.aws.amazon.com/msk/latest/developerguide/monitoring.html\">Monitoring</a>.</p>\n         ",
+      "documentation": "\n            <p>Specifies which metrics are gathered for the MSK cluster. This property has the following possible values: DEFAULT, PER_BROKER, PER_TOPIC_PER_BROKER, and PER_TOPIC_PER_PARTITION. For a list of the metrics associated with each of these levels of monitoring, see <a href=\"https://docs.aws.amazon.com/msk/latest/developerguide/monitoring.html\">Monitoring</a>.</p>\n         ",
       "enum": [
         "DEFAULT",
         "PER_BROKER",
-        "PER_TOPIC_PER_BROKER"
+        "PER_TOPIC_PER_BROKER",
+        "PER_TOPIC_PER_PARTITION"
       ]
     },
     "Error": {
