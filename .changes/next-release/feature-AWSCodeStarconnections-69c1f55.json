@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeStar connections",
+    "contributor": "",
+    "description": "Added support for the UpdateHost API."
+}
