@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed a resource leak that could occur when closing the default credentials provider (or a client using the default credentials provider), when `closeable` credentials like STS or SSO were in use. Fixes [#2149](https://github.com/aws/aws-sdk-java-v2/issues/2149)."
+}
