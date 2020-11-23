@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS License Manager",
+    "contributor": "",
+    "description": "AWS License Manager now provides the ability for license administrators to be able to associate license configurations to AMIs shared with their AWS account"
+}
