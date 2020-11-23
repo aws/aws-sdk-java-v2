@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Outposts",
+    "contributor": "",
+    "description": "Support specifying tags during the creation of the Outpost resource. Tags are now returned in the response body of Outpost APIs."
+}
