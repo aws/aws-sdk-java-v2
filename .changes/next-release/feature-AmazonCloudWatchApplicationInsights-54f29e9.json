@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Application Insights",
-    "contributor": "",
-    "description": "Add Detected Workload to ApplicationComponent which shows the workloads that installed in the component"
-}

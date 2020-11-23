@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic MapReduce",
-    "contributor": "",
-    "description": "Add API support for EMR Studio, a new notebook-first IDE for data scientists and data engineers with single sign-on, Jupyter notebooks, automated infrastructure provisioning, and job diagnosis."
-}

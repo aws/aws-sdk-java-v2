@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Translate",
-    "contributor": "",
-    "description": "This update adds new operations to create and manage parallel data in Amazon Translate. Parallel data is a resource that you can use to run Active Custom Translation jobs."
-}

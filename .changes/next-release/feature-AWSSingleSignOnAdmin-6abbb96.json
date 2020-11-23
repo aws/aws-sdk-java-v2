@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Single Sign-On Admin",
-    "contributor": "",
-    "description": "AWS Single Sign-On now enables attribute-based access control for workforce identities to simplify permissions in AWS"
-}

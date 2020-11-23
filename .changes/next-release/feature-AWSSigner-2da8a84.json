@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Signer",
-    "contributor": "",
-    "description": "AWS Signer is launching code-signing for AWS Lambda. Now customers can cryptographically sign Lambda code to ensure trust, integrity, and functionality."
-}

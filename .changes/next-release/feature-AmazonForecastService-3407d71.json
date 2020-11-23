@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Forecast Service",
-    "contributor": "",
-    "description": "Releasing the set of PredictorBacktestExportJob APIs which allow customers to export backtest values and item-level metrics data from Predictor training."
-}
