@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Streaming Service",
+    "contributor": "",
+    "description": "Amazon Transcribe Medical streaming added medical specialties and HTTP/2 support. Amazon Transcribe streaming supports additional languages. Both support OGG/OPUS and FLAC codecs for streaming."
+}
