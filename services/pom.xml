@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.15.34</version>
+        <version>2.15.35</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -256,6 +256,7 @@
         <module>databrew</module>
         <module>servicecatalogappregistry</module>
         <module>networkfirewall</module>
+        <module>mwaa</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
