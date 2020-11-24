@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "contributor": "",
+    "description": "Support for embedding without user registration. New enum EmbeddingIdentityType. A potential breaking change. Affects code that refers IdentityType enum type directly instead of literal string value."
+}
