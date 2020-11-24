@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "AWS Elemental MediaConvert SDK has added support for Vorbis and Opus audio in OGG/OGA containers."
+}
