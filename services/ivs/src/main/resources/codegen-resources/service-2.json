@@ -1143,7 +1143,10 @@
       "member":{"shape":"StreamSummary"}
     },
     "StreamMetadata":{"type":"string"},
-    "StreamStartTime":{"type":"timestamp"},
+    "StreamStartTime":{
+      "type":"timestamp",
+      "timestampFormat":"iso8601"
+    },
     "StreamState":{
       "type":"string",
       "enum":[
