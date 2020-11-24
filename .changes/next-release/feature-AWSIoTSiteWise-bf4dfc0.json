@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT SiteWise",
+    "contributor": "",
+    "description": "This release adds support for customer managed customer master key (CMK) based encryption in IoT SiteWise."
+}
