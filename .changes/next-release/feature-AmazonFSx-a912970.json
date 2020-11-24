@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon FSx",
+    "contributor": "",
+    "description": "This release adds the capability to increase storage capacity of Amazon FSx for Lustre file systems, providing the flexibility to meet evolving storage needs over time."
+}
