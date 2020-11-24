@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity Provider",
+    "contributor": "",
+    "description": "This release adds ability to configure Cognito User Pools with third party sms and email providers for sending notifications to users."
+}
