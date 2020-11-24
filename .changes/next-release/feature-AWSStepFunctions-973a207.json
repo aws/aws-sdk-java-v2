@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "contributor": "",
+    "description": "This release of the AWS Step Functions SDK introduces support for Synchronous Express Workflows"
+}
