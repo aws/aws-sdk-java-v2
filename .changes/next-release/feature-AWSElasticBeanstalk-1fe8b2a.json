@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elastic Beanstalk",
+    "contributor": "",
+    "description": "Updates the Integer constraint of DescribeEnvironmentManagedActionHistory's MaxItems parameter to [1, 100]."
+}
