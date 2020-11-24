@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GameLift",
-    "contributor": "",
-    "description": "GameLift FlexMatch is now available as a standalone matchmaking solution. FlexMatch now provides customizable matchmaking for games hosted peer-to-peer, on-premises, or on cloud compute primitives."
-}

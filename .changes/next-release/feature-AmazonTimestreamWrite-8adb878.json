@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Timestream Write",
-    "contributor": "",
-    "description": "Adds support of upserts for idempotent updates to Timestream."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudFormation",
-    "contributor": "",
-    "description": "Adds support for the new Modules feature for CloudFormation. A module encapsulates one or more resources and their respective configurations for reuse across your organization."
-}

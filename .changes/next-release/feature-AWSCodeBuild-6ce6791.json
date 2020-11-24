@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "contributor": "",
-    "description": "Adding GetReportGroupTrend API for Test Reports."
-}
