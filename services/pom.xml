@@ -256,6 +256,7 @@
         <module>databrew</module>
         <module>servicecatalogappregistry</module>
         <module>networkfirewall</module>
+        <module>mwaa</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

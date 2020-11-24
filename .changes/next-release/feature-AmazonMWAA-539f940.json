@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonMWAA",
+    "contributor": "",
+    "description": "(New Service) Amazon MWAA is a managed service for Apache Airflow that makes it easy for data engineers and data scientists to execute data processing workflows in the cloud."
+}
