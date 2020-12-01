@@ -1,21 +1,21 @@
-package software.amazon.awssdk.services.json.model.inputeventstream;
+package software.amazon.awssdk.services.json.model.inputeventstreamtwo;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.json.model.InputEvent;
-import software.amazon.awssdk.services.json.model.InputEventStream;
+import software.amazon.awssdk.services.json.model.InputEventStreamTwo;
 
 /**
  * A specialization of {@code software.amazon.awssdk.services.json.model.InputEvent} that represents the
- * {@code InputEventStream$InputEvent} event. Do not use this class directly. Instead, use the static builder methods on
- * {@link software.amazon.awssdk.services.json.model.InputEventStream}.
+ * {@code InputEventStreamTwo$InputEventOne} event. Do not use this class directly. Instead, use the static builder
+ * methods on {@link software.amazon.awssdk.services.json.model.InputEventStreamTwo}.
  */
 @SdkInternalApi
 @Generated("software.amazon.awssdk:codegen")
-public final class DefaultInputEvent extends InputEvent {
+public final class DefaultInputEventOne extends InputEvent {
     private static final long serialVersionUID = 1L;
 
-    DefaultInputEvent(BuilderImpl builderImpl) {
+    DefaultInputEventOne(BuilderImpl builderImpl) {
         super(builderImpl);
     }
 
@@ -29,26 +29,26 @@ public final class DefaultInputEvent extends InputEvent {
     }
 
     @Override
-    public InputEventStream.EventType sdkEventType() {
-        return InputEventStream.EventType.INPUT_EVENT;
+    public InputEventStreamTwo.EventType sdkEventType() {
+        return InputEventStreamTwo.EventType.INPUT_EVENT_ONE;
     }
 
     public interface Builder extends InputEvent.Builder {
         @Override
-        DefaultInputEvent build();
+        DefaultInputEventOne build();
     }
 
     private static final class BuilderImpl extends InputEvent.BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 
-        private BuilderImpl(DefaultInputEvent event) {
+        private BuilderImpl(DefaultInputEventOne event) {
             super(event);
         }
 
         @Override
-        public DefaultInputEvent build() {
-            return new DefaultInputEvent(this);
+        public DefaultInputEventOne build() {
+            return new DefaultInputEventOne(this);
         }
     }
 }

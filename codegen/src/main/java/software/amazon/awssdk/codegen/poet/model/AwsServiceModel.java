@@ -48,6 +48,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -123,10 +124,7 @@ public class AwsServiceModel implements ClassSpec {
         }
 
         if (this.shapeModel.isEvent()) {
-            EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel).ifPresent(
-                eventStream -> addEventSupport(specBuilder, eventStream)
-            );
-
+            addEventSupport(specBuilder);
         }
 
         if (this.shapeModel.getDocumentation() != null) {
@@ -146,12 +144,24 @@ public class AwsServiceModel implements ClassSpec {
 
         Collection<OperationModel> outputOperations = findOutputEventStreamOperations(opModels, shapeModel);
 
+        EventStreamSpecHelper helper = new EventStreamSpecHelper(shapeModel, intermediateModel);
+
         ClassName modelClass = poetExtensions.getModelClassFromShape(shapeModel);
 
         TypeSpec.Builder builder =
                 PoetUtils.createInterfaceBuilder(modelClass)
                          .addAnnotation(SdkPublicApi.class)
-                         .addMethods(eventStreamInterfaceEventBuilderMethods());
+                         .addMethods(eventStreamInterfaceEventBuilderMethods())
+                         .addType(helper.eventTypeEnumSpec());
+
+
+        ClassName eventTypeEnum = helper.eventTypeEnumClassName();
+        builder.addMethod(MethodSpec.methodBuilder("sdkEventType")
+                .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                .returns(eventTypeEnum)
+                .addJavadoc("The type of this event. Corresponds to the {@code :event-type} header on the Message.")
+                .addStatement("return $T.UNKNOWN_TO_SDK_VERSION", eventTypeEnum)
+                .build());
 
         if (!outputOperations.isEmpty()) {
             CodeBlock unknownInitializer = buildUnknownEventStreamInitializer(outputOperations,
@@ -184,6 +194,11 @@ public class AwsServiceModel implements ClassSpec {
                 + "in any request or response shape");
     }
 
+    private void addEventSupport(TypeSpec.Builder specBuilder) {
+        EventStreamUtils.getBaseEventStreamShapes(intermediateModel, shapeModel)
+                .forEach(eventStream -> addEventSupport(specBuilder, eventStream));
+    }
+
     private void addEventSupport(TypeSpec.Builder specBuilder, ShapeModel eventStream) {
         ClassName eventStreamClassName = poetExtensions.getModelClassFromShape(eventStream);
         Collection<OperationModel> opModels = EventStreamUtils.findOperationsWithEventStream(intermediateModel,
@@ -203,6 +218,22 @@ public class AwsServiceModel implements ClassSpec {
 
         specBuilder.addSuperinterface(eventStreamClassName);
 
+        boolean usesLegacyScheme = useLegacyEventGenerationScheme(eventStream);
+        Optional<MemberModel> legacyEvent = findLegacyGenerationEventWithShape(eventStream);
+
+        if (usesLegacyScheme && legacyEvent.isPresent()) {
+            NamingStrategy namingStrategy = intermediateModel.getNamingStrategy();
+            ClassName eventTypeEnum = helper.eventTypeEnumClassName();
+            specBuilder.addMethod(MethodSpec.methodBuilder("sdkEventType")
+                       .addAnnotation(Override.class)
+                       .addModifiers(PUBLIC)
+                       .returns(eventTypeEnum)
+                       .addStatement("return $T.$N",
+                                     eventTypeEnum,
+                                     namingStrategy.getEnumValueName(legacyEvent.get().getName()))
+                       .build());
+        }
+
         if (onOutput) {
             ClassName modelClass = poetExtensions.getModelClass(shapeModel.getShapeName());
             for (OperationModel opModel : outputOperations) {
@@ -210,19 +241,6 @@ public class AwsServiceModel implements ClassSpec {
 
                 MethodSpec.Builder acceptMethodSpec = acceptMethodSpec(modelClass, responseHandlerClass)
                         .addAnnotation(Override.class);
-
-                // This is hacky, but there's no better solution without
-                // extensive refactoring. We basically need to know if any of
-                // the *event types* within this even stream have this
-                // customization enabled, which requires knowing the
-                // MemberModel that has this given shape.
-                boolean usesLegacyScheme = false;
-                for (MemberModel member : eventStream.getMembers()) {
-                    if (member.getShape().equals(shapeModel) && helper.useLegacyGenerationScheme(member)) {
-                        usesLegacyScheme = true;
-                        break;
-                    }
-                }
 
                 if (usesLegacyScheme) {
                     acceptMethodSpec.addStatement("visitor.visit(this)");
@@ -681,7 +699,9 @@ public class AwsServiceModel implements ClassSpec {
             returnType = baseClass.nestedClass("Builder");
         }
 
-        String methodName = String.format("%sBuilder", StringUtils.uncapitalize(event.getName()));
+        String eventClass = intermediateModel.getNamingStrategy().getShapeClassName(event.getName());
+        String methodName = String.format("%sBuilder", StringUtils.uncapitalize(eventClass));
+
         return MethodSpec.methodBuilder(methodName)
                 .addModifiers(PUBLIC, Modifier.STATIC)
                 .returns(returnType)
@@ -698,5 +718,30 @@ public class AwsServiceModel implements ClassSpec {
 
     private MethodSpec addModifier(MethodSpec spec, Modifier modifier) {
         return spec.toBuilder().addModifiers(modifier).build();
+    }
+
+    private boolean useLegacyEventGenerationScheme(ShapeModel eventStream) {
+        EventStreamSpecHelper helper = new EventStreamSpecHelper(eventStream, intermediateModel);
+        // This is hacky, but there's no better solution without
+        // extensive refactoring. We basically need to know if any of
+        // the *event types* within this even stream have this
+        // customization enabled, which requires knowing the
+        // MemberModel that has this given shape.
+        for (MemberModel member : eventStream.getMembers()) {
+            if (member.getShape().equals(shapeModel) && helper.useLegacyGenerationScheme(member)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Optional<MemberModel> findLegacyGenerationEventWithShape(ShapeModel eventStream) {
+        EventStreamSpecHelper helper = new EventStreamSpecHelper(eventStream, intermediateModel);
+        for (MemberModel member : eventStream.getMembers()) {
+            if (member.getShape().equals(shapeModel) && helper.useLegacyGenerationScheme(member)) {
+                return Optional.ofNullable(member);
+            }
+        }
+        return Optional.empty();
     }
 }

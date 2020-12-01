@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.eventstream;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -93,6 +94,14 @@ public class EventStreamUtils {
                     .filter(ShapeModel::isEventStream)
                     .filter(s -> s.getMembers().stream().anyMatch(m -> m.getShape().equals(eventShape)))
                     .findFirst();
+    }
+
+    public static List<ShapeModel> getBaseEventStreamShapes(IntermediateModel model, ShapeModel eventShape) {
+        return model.getShapes().values()
+                .stream()
+                .filter(ShapeModel::isEventStream)
+                .filter(s -> s.getMembers().stream().anyMatch(m -> m.getShape().equals(eventShape)))
+                .collect(Collectors.toList());
     }
 
     /**

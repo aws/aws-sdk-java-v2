@@ -72,13 +72,14 @@ public final class EventModelSpec implements ClassSpec {
                 .addMethod(toBuilderMethod())
                 .addMethod(builderMethod())
                 .addMethods(acceptMethods())
+                .addMethod(sdkEventTypeMethodSpec())
                 .addTypes(Arrays.asList(builderSpecs.builderInterface(), builderSpecs.beanStyleBuilder()))
                 .build();
     }
 
     private CodeBlock classJavadoc() {
         return CodeBlock.builder()
-                .add("A specialization of {@code $L} that represents the {@code $L#$L} event. Do not use this class " +
+                .add("A specialization of {@code $L} that represents the {@code $L$$$L} event. Do not use this class " +
                         "directly. Instead, use the static builder methods on {@link $L}.",
                         baseShapeModelSpec.className().canonicalName(), eventStream.getC2jName(),
                         eventModel.getC2jName(), poetExtensions.getModelClass(eventStream.getShapeName()))
@@ -149,6 +150,17 @@ public final class EventModelSpec implements ClassSpec {
                 .addParameter(responseHandlerClass
                         .nestedClass("Visitor"), "visitor")
                 .addStatement("visitor.$N(this)", visitMethodName)
+                .build();
+    }
+
+    private MethodSpec sdkEventTypeMethodSpec() {
+        ClassName eventTypeEnumClass = eventStreamSpecHelper.eventTypeEnumClassName();
+        String eventTypeValue = eventStreamSpecHelper.eventTypeEnumValue(eventModel);
+        return MethodSpec.methodBuilder("sdkEventType")
+                .addAnnotation(Override.class)
+                .addModifiers(PUBLIC)
+                .returns(eventTypeEnumClass)
+                .addStatement("return $T.$N", eventTypeEnumClass, eventTypeValue)
                 .build();
     }
 }

@@ -1,14 +1,16 @@
-package software.amazon.awssdk.services.jsonprotocoltests.model.eventstream;
+package software.amazon.awssdk.services.json.model.eventstream;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.services.jsonprotocoltests.model.EventOne;
-import software.amazon.awssdk.services.jsonprotocoltests.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.json.model.EventOne;
+import software.amazon.awssdk.services.json.model.EventStream;
+import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponseHandler;
 
 /**
- * A specialization of {@code software.amazon.awssdk.services.jsonprotocoltests.model.EventOne} that represents the
- * {@code EventStream#EventOne} event. Do not use this class directly. Instead, use the static builder methods on
- * {@link software.amazon.awssdk.services.jsonprotocoltests.model.EventStream}.
+ * A specialization of {@code software.amazon.awssdk.services.json.model.EventOne} that represents the
+ * {@code EventStream$EventOne} event. Do not use this class directly. Instead, use the static builder methods on
+ * {@link software.amazon.awssdk.services.json.model.EventStream}.
  */
 @SdkInternalApi
 @Generated("software.amazon.awssdk:codegen")
@@ -31,6 +33,16 @@ public final class DefaultEventOne extends EventOne {
     @Override
     public void accept(EventStreamOperationResponseHandler.Visitor visitor) {
         visitor.visitEventOne(this);
+    }
+
+    @Override
+    public void accept(EventStreamOperationWithOnlyOutputResponseHandler.Visitor visitor) {
+        visitor.visitEventOne(this);
+    }
+
+    @Override
+    public EventStream.EventType sdkEventType() {
+        return EventStream.EventType.EVENT_ONE;
     }
 
     public interface Builder extends EventOne.Builder {

@@ -1,8 +1,7 @@
 package software.amazon.awssdk.codegen.poet.common.model;
 
-import static java.util.stream.Collectors.toSet;
-
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
 
@@ -39,16 +38,18 @@ public enum TestEnumClass {
         if (value == null) {
             return null;
         }
-        return Stream.of(TestEnumClass.values()).filter(e -> e.toString().equals(value)).findFirst().orElse(UNKNOWN_TO_SDK_VERSION);
+        return Stream.of(TestEnumClass.values()).filter(e -> e.toString().equals(value)).findFirst()
+                .orElse(UNKNOWN_TO_SDK_VERSION);
     }
 
     /**
-     * Use this in place of {@link #values()} to return a {@link Set} of all values known to the SDK.
-     * This will return all known enum values except {@link #UNKNOWN_TO_SDK_VERSION}.
+     * Use this in place of {@link #values()} to return a {@link Set} of all values known to the SDK. This will return
+     * all known enum values except {@link #UNKNOWN_TO_SDK_VERSION}.
      *
      * @return a {@link Set} of known {@link TestEnumClass}s
      */
     public static Set<TestEnumClass> knownValues() {
-        return Stream.of(values()).filter(v -> v != UNKNOWN_TO_SDK_VERSION).collect(toSet());
+        return Stream.of(values()).filter(v -> v != UNKNOWN_TO_SDK_VERSION).collect(Collectors.toSet());
     }
 }
+

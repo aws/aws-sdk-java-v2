@@ -15,14 +15,20 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static javax.lang.model.element.Modifier.PUBLIC;
+
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeSpec;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.eventstream.EventTypeEnumSpec;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public final class EventStreamSpecHelper {
@@ -65,7 +71,24 @@ public final class EventStreamSpecHelper {
         if (useLegacyGenerationScheme(eventModel)) {
             return poetExtensions.getModelClass(eventModel.getShape().getShapeName());
         }
-        String simpleName = "Default" + CodegenNamingUtils.pascalCase(eventModel.getName());
+        String simpleName = "Default" + intermediateModel.getNamingStrategy().getShapeClassName(eventModel.getName());
         return ClassName.get(eventPackageName(), simpleName);
+    }
+
+    public ClassName eventTypeEnumClassName() {
+        return poetExtensions.getModelClass(eventStream.getShapeName()).nestedClass("EventType");
+    }
+
+    public TypeSpec eventTypeEnumSpec() {
+        return new EventTypeEnumSpec("", intermediateModel, eventStream)
+                .poetSpec()
+                .toBuilder()
+                .addModifiers(PUBLIC, Modifier.STATIC)
+                .build();
+    }
+
+    public String eventTypeEnumValue(MemberModel eventModel) {
+        NamingStrategy namingStrategy = intermediateModel.getNamingStrategy();
+        return namingStrategy.getEnumValueName(eventModel.getName());
     }
 }
