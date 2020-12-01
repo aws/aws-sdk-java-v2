@@ -1,3 +1,16 @@
+# __2.15.36__ __2020-11-30__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add LICENSE.txt and NOTICE.txt to META-INF directory of generated JARs
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed a resource leak that could occur when closing the default credentials provider (or a client using the default credentials provider), when `closeable` credentials like STS or SSO were in use. Fixes [#2149](https://github.com/aws/aws-sdk-java-v2/issues/2149).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces Amazon EC2 Mac1 instances, a new Amazon EC2 instance family built on Apple Mac mini computers, powered by AWS Nitro System, and support running macOS workloads on Amazon EC2
+
 # __2.15.35__ __2020-11-24__
 ## __AWS Batch__
   - ### Features

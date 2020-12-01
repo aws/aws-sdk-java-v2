@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.15.35</version>
+    <version>2.15.36</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -284,6 +284,25 @@
                                 <sources>
                                     <source>${basedir}/target/generated-sources/sdk</source>
                                 </sources>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>add-license-notice</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-resource</goal>
+                            </goals>
+                            <configuration>
+                                <resources>
+                                    <resource>
+                                        <directory>${maven.multiModuleProjectDirectory}</directory>
+                                        <includes>
+                                            <include>LICENSE.txt</include>
+                                            <include>NOTICE.txt</include>
+                                        </includes>
+                                        <targetPath>META-INF</targetPath>
+                                    </resource>
+                                </resources>
                             </configuration>
                         </execution>
                     </executions>
