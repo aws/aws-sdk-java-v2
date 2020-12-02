@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Directory Service",
+    "contributor": "",
+    "description": "Adding client authentication feature for AWS AD Connector"
+}
