@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Contact Lens",
-    "contributor": "",
-    "description": "Contact Lens for Amazon Connect analyzes conversations, both real-time and post-call. The ListRealtimeContactAnalysisSegments API returns a list of analysis segments for a real-time analysis session."
-}
