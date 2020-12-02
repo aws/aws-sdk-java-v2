@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <!--
   ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
@@ -14,20 +14,19 @@
   ~ permissions and limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>services</artifactId>
         <groupId>software.amazon.awssdk</groupId>
+        <artifactId>services</artifactId>
         <version>2.15.37</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>medialive</artifactId>
-    <name>AWS Java SDK :: Services :: AWS Elemental MediaLive</name>
-    <description>The AWS Java SDK for AWS Elemental MediaLive module holds the client classes that are used for
-        communicating
-        with AWS Elemental MediaLive Service
+    <artifactId>profile</artifactId>
+    <name>AWS Java SDK :: Services :: Profile</name>
+    <description>The AWS Java SDK for Profile module holds the client classes that are used for
+        communicating with Profile.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>
@@ -38,7 +37,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.services.medialive</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.profile</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -49,12 +48,12 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>aws-json-protocol</artifactId>
+            <artifactId>protocol-core</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>protocol-core</artifactId>
+            <artifactId>aws-json-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "This release adds an Amazon Connect API that provides the ability to create tasks, and a set of APIs (in preview) to configure AppIntegrations associations with Amazon Connect instances."
-}
