@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Honeycode",
+    "contributor": "",
+    "description": "Introducing APIs to read and write directly from Honeycode tables. Use APIs to pull table and column metadata, then use the read and write APIs to programmatically read and write from the tables."
+}
