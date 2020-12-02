@@ -1,3 +1,12 @@
+# __2.15.38__ __2020-12-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This is the first release of Amazon Connect Customer Profiles, a unified customer profile for your Amazon Connect contact center.
+
 # __2.15.37__ __2020-12-01__
 ## __AWS Directory Service__
   - ### Features
