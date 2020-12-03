@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.eventstream.EventTypeEnumSpec;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public final class EventStreamSpecHelper {
@@ -90,5 +91,9 @@ public final class EventStreamSpecHelper {
     public String eventTypeEnumValue(MemberModel eventModel) {
         NamingStrategy namingStrategy = intermediateModel.getNamingStrategy();
         return namingStrategy.getEnumValueName(eventModel.getName());
+    }
+
+    public String eventBuilderMethodName(MemberModel eventModel) {
+        return String.format("%sBuilder", StringUtils.uncapitalize(eventModel.getName()));
     }
 }
