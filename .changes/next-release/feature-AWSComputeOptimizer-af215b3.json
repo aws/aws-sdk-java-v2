@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Compute Optimizer",
+    "contributor": "",
+    "description": "This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for EBS volumes that are attached to instances."
+}
