@@ -47,4 +47,7 @@
     <suppress checks="Regexp"
               files=".*ClassLoaderHelper\.java$"/>
 
+    <!-- Ignore usage of sslContext.newHandler for NettyUtils.!-->
+    <suppress checks="Regexp"
+              files=".*NettyUtils\.java$"/>
 </suppressions>

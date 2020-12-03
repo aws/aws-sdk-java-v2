@@ -1,3 +1,24 @@
+# __2.15.39__ __2020-12-03__
+## __AWS Batch__
+  - ### Features
+    - This release adds support for customer to run Batch Jobs on ECS Fargate, the serverless compute engine built for containers on AWS. Customer can also propagate Job and Job Definition Tags to ECS Task.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for EBS volumes that are attached to instances.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager enables managed entitlements for AWS customers and Software Vendors (ISV). You can track and distribute license entitlements from AWS Marketplace and supported ISVs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AmplifyBackend__
+  - ### Features
+    - Regular documentation updates.
+
 # __2.15.38__ __2020-12-01__
 ## __AWS SDK for Java v2__
   - ### Features
