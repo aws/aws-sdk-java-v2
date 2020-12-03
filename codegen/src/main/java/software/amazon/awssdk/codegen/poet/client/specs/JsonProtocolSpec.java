@@ -41,6 +41,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -419,9 +420,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  protocolFactory,
                  JsonOperationMetadata.class,
                  ClassName.get(EventStreamTaggedUnionPojoSupplier.class));
+
+        EventStreamSpecHelper eventStreamSpecHelper = new EventStreamSpecHelper(eventStream, model);
         EventStreamUtils.getEventMembers(eventStream)
-                        .forEach(m -> builder.add(".putSdkPojoSupplier(\"$L\", $T::builder)\n",
-                                                  m.getC2jName(), poetExtensions.getModelClass(m.getShape().getC2jName())));
+                        .forEach(m -> {
+                            String builderMethod = eventStreamSpecHelper.eventBuilderMethodName(m);
+                            builder.add(".putSdkPojoSupplier($S, $T::$N)",
+                                        m.getC2jName(), eventStreamBaseClass, builderMethod);
+                        });
         builder.add(".defaultSdkPojoSupplier(() -> new $T($T.UNKNOWN))\n"
                     + ".build());\n", SdkPojoBuilder.class, eventStreamBaseClass);
     }

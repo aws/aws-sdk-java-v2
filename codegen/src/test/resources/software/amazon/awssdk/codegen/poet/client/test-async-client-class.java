@@ -57,7 +57,6 @@ import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
-import software.amazon.awssdk.services.json.model.EventOne;
 import software.amazon.awssdk.services.json.model.EventStream;
 import software.amazon.awssdk.services.json.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationResponse;
@@ -67,7 +66,6 @@ import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyIn
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponse;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponseHandler;
-import software.amazon.awssdk.services.json.model.EventTwo;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InputEvent;
@@ -304,9 +302,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             HttpResponseHandler<? extends EventStream> eventResponseHandler = protocolFactory.createResponseHandler(
                     JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
-                    EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
-                            .putSdkPojoSupplier("EventTheSecond", EventTwo::builder)
-                            .putSdkPojoSupplier("secondEventOne", EventOne::builder)
+                    EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventStream::eventOneBuilder)
+                            .putSdkPojoSupplier("EventTheSecond", EventStream::eventTheSecondBuilder)
+                            .putSdkPojoSupplier("secondEventOne", EventStream::secondEventOneBuilder)
                             .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
@@ -467,9 +465,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             HttpResponseHandler<? extends EventStream> eventResponseHandler = protocolFactory.createResponseHandler(
                     JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
-                    EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
-                            .putSdkPojoSupplier("EventTheSecond", EventTwo::builder)
-                            .putSdkPojoSupplier("secondEventOne", EventOne::builder)
+                    EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventStream::eventOneBuilder)
+                            .putSdkPojoSupplier("EventTheSecond", EventStream::eventTheSecondBuilder)
+                            .putSdkPojoSupplier("secondEventOne", EventStream::secondEventOneBuilder)
                             .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
