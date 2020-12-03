@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.utils.http;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.UnsupportedEncodingException;
@@ -30,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -52,6 +56,9 @@ public final class SdkHttpUtils {
     private static final String[] ENCODED_CHARACTERS_WITHOUT_SLASHES = new String[] {"+", "*", "%7E"};
     private static final String[] ENCODED_CHARACTERS_WITHOUT_SLASHES_REPLACEMENTS = new String[] {"%20", "%2A", "~"};
 
+    private static final String QUERY_PARAM_DELIMITER_REGEX = "\\s*&\\s*";
+    private static final Pattern QUERY_PARAM_DELIMITER_PATTERN = Pattern.compile(QUERY_PARAM_DELIMITER_REGEX);
+
     // List of headers that may appear only once in a request; i.e. is not a list of values.
     // Taken from https://github.com/apache/httpcomponents-client/blob/81c1bc4dc3ca5a3134c5c60e8beff08be2fd8792/httpclient5-cache/src/test/java/org/apache/hc/client5/http/impl/cache/HttpTestUtils.java#L69-L85 with modifications:
     // removed: accept-ranges, if-match, if-none-match, vary since it looks like they're defined as lists
@@ -61,6 +68,7 @@ public final class SdkHttpUtils {
             "if-unmodified-since", "last-modified", "location", "max-forwards",
             "proxy-authorization", "range", "referer", "retry-after", "server", "user-agent")
             .collect(Collectors.toSet());
+
 
     private SdkHttpUtils() {
     }
@@ -322,4 +330,15 @@ public final class SdkHttpUtils {
     public static boolean isSingleHeader(String h) {
         return SINGLE_HEADERS.contains(StringUtils.lowerCase(h));
     }
+
+    /**
+     * Extracts query parameters from the given URI
+     */
+    public static Map<String, List<String>> uriParams(URI uri) {
+        return QUERY_PARAM_DELIMITER_PATTERN
+                      .splitAsStream(uri.getRawQuery().trim())
+                      .map(s -> s.contains("=") ? s.split("=", 2) : new String[] {s, null})
+                      .collect(groupingBy(a -> urlDecode(a[0]), mapping(a -> urlDecode(a[1]), toList())));
+    }
+
 }

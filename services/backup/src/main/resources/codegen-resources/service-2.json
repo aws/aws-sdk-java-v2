@@ -214,6 +214,19 @@
       "documentation":"<p>Returns metadata associated with creating a copy of a resource.</p>",
       "idempotent":true
     },
+    "DescribeGlobalSettings":{
+      "name":"DescribeGlobalSettings",
+      "http":{
+        "method":"GET",
+        "requestUri":"/global-settings"
+      },
+      "input":{"shape":"DescribeGlobalSettingsInput"},
+      "output":{"shape":"DescribeGlobalSettingsOutput"},
+      "errors":[
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>The current feature settings for the AWS Account.</p>"
+    },
     "DescribeProtectedResource":{
       "name":"DescribeProtectedResource",
       "http":{
@@ -259,7 +272,7 @@
       "errors":[
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Returns the current service opt-in settings for the Region. If the service has a value set to <code>true</code>, AWS Backup tries to protect that service's resources in this Region, when included in an on-demand backup or scheduled backup plan. If the value is set to <code>false</code> for a service, AWS Backup does not try to protect that service's resources in this Region.</p>"
+      "documentation":"<p>Returns the current service opt-in settings for the Region. If service-opt-in is enabled for a service, AWS Backup tries to protect that service's resources in this Region, when the resource is included in an on-demand backup or scheduled backup plan. Otherwise, AWS Backup does not try to protect that service's resources in this Region, AWS Backup does not try to protect that service's resources in this Region.</p>"
     },
     "DescribeRestoreJob":{
       "name":"DescribeRestoreJob",
@@ -665,6 +678,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingParameterValueException"},
+        {"shape":"InvalidRequestException"},
         {"shape":"ServiceUnavailableException"},
         {"shape":"LimitExceededException"}
       ],
@@ -703,7 +717,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Recovers the saved resource identified by an Amazon Resource Name (ARN). </p> <p>If the resource ARN is included in the request, then the last complete backup of that resource is recovered. If the ARN of a recovery point is supplied, then that recovery point is restored.</p>",
+      "documentation":"<p>Recovers the saved resource identified by an Amazon Resource Name (ARN). </p>",
       "idempotent":true
     },
     "StopBackupJob":{
@@ -772,6 +786,21 @@
       "documentation":"<p>Updates an existing backup plan identified by its <code>backupPlanId</code> with the input document in JSON format. The new version is uniquely identified by a <code>VersionId</code>.</p>",
       "idempotent":true
     },
+    "UpdateGlobalSettings":{
+      "name":"UpdateGlobalSettings",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/global-settings"
+      },
+      "input":{"shape":"UpdateGlobalSettingsInput"},
+      "errors":[
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"MissingParameterValueException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Updates the current global settings for the AWS Account. Use the <code>DescribeGlobalSettings</code> API to determine the current settings.</p>"
+    },
     "UpdateRecoveryPointLifecycle":{
       "name":"UpdateRecoveryPointLifecycle",
       "http":{
@@ -801,7 +830,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"InvalidParameterValueException"}
       ],
-      "documentation":"<p>Updates the current service opt-in settings for the Region. If the service has a value set to <code>true</code>, AWS Backup tries to protect that service's resources in this Region, when included in an on-demand backup or scheduled backup plan. If the value is set to <code>false</code> for a service, AWS Backup does not try to protect that service's resources in this Region.</p>"
+      "documentation":"<p>Updates the current service opt-in settings for the Region. If service-opt-in is enabled for a service, AWS Backup tries to protect that service's resources in this Region, when the resource is included in an on-demand backup or scheduled backup plan. Otherwise, AWS Backup does not try to protect that service's resources in this Region. Use the <code>DescribeRegionSettings</code> API to determine the resource types that are supported.</p>"
     }
   },
   "shapes":{
@@ -819,7 +848,7 @@
         },
         "BackupOptions":{
           "shape":"BackupOptions",
-          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid value: <code>\"WindowsVSS”:“enabled\"</code>. If enabled, creates a VSS Windows backup; otherwise, creates a regular backup.</p> <p>If you specify an invalid option, you get an <code>InvalidParameterValueException</code> exception.</p> <p>For more information about Windows VSS backups, see <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/windows-backups.html\">Creating a VSS-Enabled Windows Backup</a>.</p>"
+          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid values: </p> <p>Set to <code>\"WindowsVSS\":\"enabled\"</code> to enable the WindowsVSS backup option and create a VSS Windows backup. </p> <p>Set to <code>\"WindowsVSS\":\"disabled\"</code> to create a regular backup. The WindowsVSS option is not enabled by default.</p> <p>If you specify an invalid option, you get an <code>InvalidParameterValueException</code> exception.</p> <p>For more information about Windows VSS backups, see <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/windows-backups.html\">Creating a VSS-Enabled Windows Backup</a>.</p>"
         }
       },
       "documentation":"<p>A list of backup options for each resource type.</p>"
@@ -930,7 +959,7 @@
         },
         "BackupOptions":{
           "shape":"BackupOptions",
-          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid value: <code>\"WindowsVSS”:“enabled\"</code>. If enabled, creates a VSS Windows backup; otherwise, creates a regular backup. If you specify an invalid option, you get an <code>InvalidParameterValueException</code> exception.</p>"
+          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid values: Set to <code>\"WindowsVSS”:“enabled\"</code> to enable WindowsVSS backup option and create a VSS Windows backup. Set to “WindowsVSS”:”disabled” to create a regular backup. If you specify an invalid option, you get an <code>InvalidParameterValueException</code> exception.</p>"
         },
         "BackupType":{
           "shape":"string",
@@ -1099,7 +1128,7 @@
         },
         "ScheduleExpression":{
           "shape":"CronExpression",
-          "documentation":"<p>A CRON expression specifying when AWS Backup initiates a backup job.</p>"
+          "documentation":"<p>A CRON expression specifying when AWS Backup initiates a backup job. For more information about cron expressions, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html\">Schedule Expressions for Rules</a> in the <i>Amazon CloudWatch Events User Guide.</i>. Prior to specifying a value for this parameter, we recommend testing your cron expression using one of the many available cron generator and testing tools.</p>"
         },
         "StartWindowMinutes":{
           "shape":"WindowMinutes",
@@ -1791,7 +1820,7 @@
         },
         "BackupType":{
           "shape":"string",
-          "documentation":"<p>Represents the actual backup type selected for a backup job. For example, if a successful WindowsVSS backup was taken, <code>BackupType</code> returns “WindowsVSS”. If <code>BackupType</code> is empty, then it is a regular backup.</p>"
+          "documentation":"<p>Represents the actual backup type selected for a backup job. For example, if a successful WindowsVSS backup was taken, <code>BackupType</code> returns \"WindowsVSS\". If <code>BackupType</code> is empty, then the backup type that was is a regular backup.</p>"
         }
       }
     },
@@ -1854,6 +1883,24 @@
         "CopyJob":{
           "shape":"CopyJob",
           "documentation":"<p>Contains detailed information about a copy job.</p>"
+        }
+      }
+    },
+    "DescribeGlobalSettingsInput":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "DescribeGlobalSettingsOutput":{
+      "type":"structure",
+      "members":{
+        "GlobalSettings":{
+          "shape":"GlobalSettings",
+          "documentation":"<p>A list of resources along with the opt-in preferences for the account.</p>"
+        },
+        "LastUpdateTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time that the global settings was last updated. This update is in Unix format and Coordinated Universal Time (UTC). The value of <code>LastUpdateTime</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         }
       }
     },
@@ -1921,6 +1968,10 @@
         "BackupVaultArn":{
           "shape":"ARN",
           "documentation":"<p>An ARN that uniquely identifies a backup vault; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>.</p>"
+        },
+        "SourceBackupVaultArn":{
+          "shape":"ARN",
+          "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies the source vault where the resource was originally backed up in; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:BackupVault</code>. If the recovery is restored to the same AWS account or Region, this value will be <code>null</code>.</p>"
         },
         "ResourceArn":{
           "shape":"ARN",
@@ -2338,6 +2389,13 @@
         }
       }
     },
+    "GlobalSettings":{
+      "type":"map",
+      "key":{"shape":"GlobalSettingsName"},
+      "value":{"shape":"GlobalSettingsValue"}
+    },
+    "GlobalSettingsName":{"type":"string"},
+    "GlobalSettingsValue":{"type":"string"},
     "IAMPolicy":{"type":"string"},
     "IAMRoleArn":{"type":"string"},
     "InvalidParameterValueException":{
@@ -3057,6 +3115,10 @@
           "shape":"ARN",
           "documentation":"<p>An ARN that uniquely identifies a backup vault; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>.</p>"
         },
+        "SourceBackupVaultArn":{
+          "shape":"ARN",
+          "documentation":"<p>The backup vault where the recovery point was originally copied from. If the recovery point is restored to the same account this value will be <code>null</code>.</p>"
+        },
         "ResourceArn":{
           "shape":"ARN",
           "documentation":"<p>An ARN that uniquely identifies a resource. The format of the ARN depends on the resource type.</p>"
@@ -3348,7 +3410,7 @@
         },
         "BackupOptions":{
           "shape":"BackupOptions",
-          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid value: <code>\"WindowsVSS”:“enabled\"</code>. If enabled, creates a VSS Windows backup; otherwise, creates a regular backup.</p>"
+          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid values: Set to <code>\"WindowsVSS”:“enabled\"</code> to enable WindowsVSS backup option and create a VSS Windows backup. Set to “WindowsVSS”:”disabled” to create a regular backup. The WindowsVSS option is not enabled by default.</p>"
         }
       }
     },
@@ -3428,7 +3490,7 @@
         },
         "Metadata":{
           "shape":"Metadata",
-          "documentation":"<p>A set of metadata key-value pairs. Contains information, such as a resource name, required to restore a recovery point.</p> <p> You can get configuration metadata about a resource at the time it was backed up by calling <code>GetRecoveryPointRestoreMetadata</code>. However, values in addition to those provided by <code>GetRecoveryPointRestoreMetadata</code> might be required to restore a resource. For example, you might need to provide a new resource name if the original already exists.</p> <p>You need to specify specific metadata to restore an Amazon Elastic File System (Amazon EFS) instance:</p> <ul> <li> <p> <code>file-system-id</code>: The ID of the Amazon EFS file system that is backed up by AWS Backup. Returned in <code>GetRecoveryPointRestoreMetadata</code>.</p> </li> <li> <p> <code>Encrypted</code>: A Boolean value that, if true, specifies that the file system is encrypted. If <code>KmsKeyId</code> is specified, <code>Encrypted</code> must be set to <code>true</code>.</p> </li> <li> <p> <code>KmsKeyId</code>: Specifies the AWS KMS key that is used to encrypt the restored file system.</p> </li> <li> <p> <code>PerformanceMode</code>: Specifies the throughput mode of the file system.</p> </li> <li> <p> <code>CreationToken</code>: A user-supplied value that ensures the uniqueness (idempotency) of the request.</p> </li> <li> <p> <code>newFileSystem</code>: A Boolean value that, if true, specifies that the recovery point is restored to a new Amazon EFS file system.</p> </li> </ul>"
+          "documentation":"<p>A set of metadata key-value pairs. Contains information, such as a resource name, required to restore a recovery point.</p> <p> You can get configuration metadata about a resource at the time it was backed up by calling <code>GetRecoveryPointRestoreMetadata</code>. However, values in addition to those provided by <code>GetRecoveryPointRestoreMetadata</code> might be required to restore a resource. For example, you might need to provide a new resource name if the original already exists.</p> <p>You need to specify specific metadata to restore an Amazon Elastic File System (Amazon EFS) instance:</p> <ul> <li> <p> <code>file-system-id</code>: The ID of the Amazon EFS file system that is backed up by AWS Backup. Returned in <code>GetRecoveryPointRestoreMetadata</code>.</p> </li> <li> <p> <code>Encrypted</code>: A Boolean value that, if true, specifies that the file system is encrypted. If <code>KmsKeyId</code> is specified, <code>Encrypted</code> must be set to <code>true</code>.</p> </li> <li> <p> <code>KmsKeyId</code>: Specifies the AWS KMS key that is used to encrypt the restored file system. You can specify a key from another AWS account provided that key it is properly shared with your account via AWS KMS.</p> </li> <li> <p> <code>PerformanceMode</code>: Specifies the throughput mode of the file system.</p> </li> <li> <p> <code>CreationToken</code>: A user-supplied value that ensures the uniqueness (idempotency) of the request.</p> </li> <li> <p> <code>newFileSystem</code>: A Boolean value that, if true, specifies that the recovery point is restored to a new Amazon EFS file system.</p> </li> <li> <p> <code>ItemsToRestore </code>: A serialized list of up to five strings where each string is a file path. Use <code>ItemsToRestore</code> to restore specific files or directories rather than the entire file system. This parameter is optional.</p> </li> </ul>"
         },
         "IamRoleArn":{
           "shape":"IAMRoleArn",
@@ -3565,6 +3627,15 @@
         "AdvancedBackupSettings":{
           "shape":"AdvancedBackupSettings",
           "documentation":"<p>Contains a list of <code>BackupOptions</code> for each resource type.</p>"
+        }
+      }
+    },
+    "UpdateGlobalSettingsInput":{
+      "type":"structure",
+      "members":{
+        "GlobalSettings":{
+          "shape":"GlobalSettings",
+          "documentation":"<p>A list of resources along with the opt-in preferences for the account.</p>"
         }
       }
     },

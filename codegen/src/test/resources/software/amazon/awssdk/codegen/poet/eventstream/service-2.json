@@ -404,16 +404,16 @@
         "EventOne": {
           "shape": "EventOne"
         },
-        "event-two": {
+        "event_two": {
           "shape": "EventTwo"
         },
         "secondEventOne": {
           "shape": "EventOne"
         },
-        "second-event-two": {
+        "second_event_two": {
           "shape": "EventTwo"
         },
-        "third-event-two-customizedVisitMethod": {
+        "third_event_two_customizedVisitMethod": {
           "shape": "EventTwo"
         }
       },

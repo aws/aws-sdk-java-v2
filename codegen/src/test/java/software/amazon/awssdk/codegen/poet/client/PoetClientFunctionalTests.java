@@ -65,6 +65,19 @@ public class PoetClientFunctionalTests {
         assertThat(syncClientClass, generatesTo("test-query-async-client-class.java"));
     }
 
+    @Test
+    public void syncClientClassXml() throws Exception {
+        SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.xmlServiceModels());
+        assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
+    }
+
+
+    @Test
+    public void asyncClientClassXml() throws Exception {
+        AsyncClientClass syncClientClass = createAsyncClientClass(ClientTestModels.xmlServiceModels());
+        assertThat(syncClientClass, generatesTo("test-xml-async-client-class.java"));
+    }
+
     private SyncClientClass createSyncClientClass(IntermediateModel model) {
         return new SyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/"));
     }

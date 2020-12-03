@@ -70,7 +70,15 @@ public class ModelMethodOverrides {
             memberEqualsStmt.add("return ");
             memberEqualsStmt.add(memberModels.stream().map(m -> {
                 String getterName = m.getFluentGetterMethodName();
-                return CodeBlock.builder().add("$T.equals($N(), other.$N())", Objects.class, getterName, getterName).build();
+
+                CodeBlock.Builder result = CodeBlock.builder();
+                if (m.getAutoConstructClassIfExists().isPresent()) {
+                    String existenceCheckMethodName = m.getExistenceCheckMethodName();
+                    result.add("$1N() == other.$1N() && ", existenceCheckMethodName);
+                }
+
+                return result.add("$T.equals($N(), other.$N())", Objects.class, getterName, getterName)
+                             .build();
             }).collect(PoetCollectors.toDelimitedCodeBlock("&&")));
             memberEqualsStmt.add(";");
         }
@@ -119,13 +127,19 @@ public class ModelMethodOverrides {
     }
 
     public CodeBlock toStringValue(MemberModel member) {
-        if (!member.isSensitive()) {
-            return CodeBlock.of("$L()", member.getFluentGetterMethodName());
+        if (member.isSensitive()) {
+            return CodeBlock.of("$L() == null ? null : $S",
+                                member.getFluentGetterMethodName(),
+                                "*** Sensitive Data Redacted ***");
         }
 
-        return CodeBlock.of("$L() == null ? null : $S",
-                            member.getFluentGetterMethodName(),
-                            "*** Sensitive Data Redacted ***");
+        if (member.getAutoConstructClassIfExists().isPresent()) {
+            return CodeBlock.of("$N() ? $N() : null",
+                                member.getExistenceCheckMethodName(),
+                                member.getFluentGetterMethodName());
+        }
+
+        return CodeBlock.of("$L()", member.getFluentGetterMethodName());
     }
 
     public MethodSpec hashCodeMethod(ShapeModel shapeModel) {
@@ -141,13 +155,22 @@ public class ModelMethodOverrides {
         }
 
         shapeModel.getNonStreamingMembers()
-                  .forEach(m -> methodBuilder.addStatement(
-                          "hashCode = 31 * hashCode + $T.hashCode($N())",
-                          Objects.class,
-                          m.getFluentGetterMethodName()));
+                  .forEach(m -> methodBuilder.addCode("hashCode = 31 * hashCode + $T.hashCode(", Objects.class)
+                                             .addCode(hashCodeValue(m))
+                                             .addCode(");\n"));
 
         methodBuilder.addStatement("return hashCode");
 
         return methodBuilder.build();
+    }
+
+    public CodeBlock hashCodeValue(MemberModel member) {
+        if (member.getAutoConstructClassIfExists().isPresent()) {
+            return CodeBlock.of("$N() ? $N() : null",
+                                member.getExistenceCheckMethodName(),
+                                member.getFluentGetterMethodName());
+        }
+
+        return CodeBlock.of("$N()", member.getFluentGetterMethodName());
     }
 }

@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoop;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
@@ -25,6 +28,8 @@ import io.netty.util.concurrent.SucceededFuture;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 
@@ -172,5 +177,30 @@ public final class NettyUtils {
         //CHECKSTYLE:OFF - This is the only place allowed to call AttributeKey.newInstance()
         return AttributeKey.newInstance(attr);
         //CHECKSTYLE:ON
+    }
+
+    /**
+     * @return a new {@link SslHandler} with ssl engine configured
+     */
+    public static SslHandler newSslHandler(SslContext sslContext, ByteBufAllocator alloc,  String peerHost, int peerPort) {
+        // Need to provide host and port to enable SNI
+        // https://github.com/netty/netty/issues/3801#issuecomment-104274440
+        SslHandler sslHandler = sslContext.newHandler(alloc, peerHost, peerPort);
+        configureSslEngine(sslHandler.engine());
+        return sslHandler;
+    }
+
+    /**
+     * Enable Hostname verification.
+     *
+     * See https://netty.io/4.0/api/io/netty/handler/ssl/SslContext.html#newHandler-io.netty.buffer.ByteBufAllocator-java.lang
+     * .String-int-
+     *
+     * @param sslEngine the sslEngine to configure
+     */
+    private static void configureSslEngine(SSLEngine sslEngine) {
+        SSLParameters sslParameters = sslEngine.getSSLParameters();
+        sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+        sslEngine.setSSLParameters(sslParameters);
     }
 }

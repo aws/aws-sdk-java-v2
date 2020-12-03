@@ -63,20 +63,20 @@ public final class BeanGetterHelper {
     private MethodSpec byteBufferGetter(MemberModel memberModel) {
         return basicGetter(memberModel,
                            ClassName.get(ByteBuffer.class),
-                           CodeBlock.of("return $1N == null ? null : $1N.asByteBuffer()",
+                           CodeBlock.of("return $1N == null ? null : $1N.asByteBuffer();",
                                         memberModel.getVariable().getVariableName()));
     }
 
     private MethodSpec listByteBufferGetter(MemberModel memberModel) {
         return basicGetter(memberModel,
                            ParameterizedTypeName.get(List.class, ByteBuffer.class),
-                           CodeBlock.of("return $1N == null ? null : $1N.stream().map($2T::asByteBuffer).collect($3T.toList())",
+                           CodeBlock.of("return $1N == null ? null : $1N.stream().map($2T::asByteBuffer).collect($3T.toList());",
                                         memberModel.getVariable().getVariableName(), SdkBytes.class, Collectors.class));
     }
 
     private MethodSpec mapByteBufferGetter(MemberModel memberModel) {
         String body = "return $1N == null ? null : " +
-                      "$1N.entrySet().stream().collect($2T.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()))";
+                      "$1N.entrySet().stream().collect($2T.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));";
         String keyType = memberModel.getMapModel().getKeyModel().getVariable().getVariableType();
         return basicGetter(memberModel,
                            PoetUtils.createParameterizedTypeName(Map.class, keyType, ByteBuffer.class.getSimpleName()),
@@ -86,15 +86,14 @@ public final class BeanGetterHelper {
     private MethodSpec regularGetter(MemberModel memberModel) {
         return basicGetter(memberModel,
                            typeProvider.parameterType(memberModel),
-                           CodeBlock.of("return $N", memberModel.getVariable().getVariableName()));
+                           CodeBlock.of("return $N;", memberModel.getVariable().getVariableName()));
     }
 
     private MethodSpec builderGetter(MemberModel memberModel) {
         return basicGetter(memberModel,
                            poetExtensions.getModelClass(memberModel.getC2jShape()).nestedClass("Builder"),
-                           CodeBlock.builder().add("return $1N != null ? $1N.toBuilder() : null",
-                                                   memberModel.getVariable().getVariableName())
-                                    .build());
+                           CodeBlock.of("return $1N != null ? $1N.toBuilder() : null;",
+                                        memberModel.getVariable().getVariableName()));
     }
 
     private MethodSpec mapOfBuildersGetter(MemberModel memberModel) {
@@ -105,11 +104,10 @@ public final class BeanGetterHelper {
 
         return basicGetter(memberModel,
                            returnType,
-                           CodeBlock.builder().add("return $1N != null ? $2T.mapValues($1N, $3T::toBuilder) : null",
+                           CodeBlock.of("return $1N != null ? $2T.mapValues($1N, $3T::toBuilder) : null;",
                                                    memberModel.getVariable().getVariableName(),
                                                    CollectionUtils.class,
-                                                   valueType)
-                                    .build());
+                                                   valueType));
     }
 
     private MethodSpec listOfBuildersGetter(MemberModel memberModel) {
@@ -118,19 +116,27 @@ public final class BeanGetterHelper {
 
         return basicGetter(memberModel,
                            returnType,
-                           CodeBlock.builder().add(
-                               "return $1N != null ? $1N.stream().map($2T::toBuilder).collect($3T.toList()) : null",
-                               memberModel.getVariable().getVariableName(),
-                               memberType,
-                               Collectors.class)
-                               .build());
+                           CodeBlock.of("return $1N != null ? $1N.stream().map($2T::toBuilder).collect($3T.toList()) : null;",
+                                        memberModel.getVariable().getVariableName(),
+                                        memberType,
+                                        Collectors.class));
     }
 
-    private MethodSpec basicGetter(MemberModel memberModel, TypeName returnType, CodeBlock statement) {
+    private MethodSpec basicGetter(MemberModel memberModel, TypeName returnType, CodeBlock body) {
+        CodeBlock.Builder getterBody = CodeBlock.builder();
+
+        memberModel.getAutoConstructClassIfExists().ifPresent(autoConstructClass -> {
+            getterBody.add("if ($N instanceof $T) {", memberModel.getVariable().getVariableName(), autoConstructClass)
+                      .add("return null;")
+                      .add("}");
+        });
+
+        getterBody.add(body);
+
         return MethodSpec.methodBuilder(memberModel.getBeanStyleGetterMethodName())
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                          .returns(returnType)
-                         .addStatement(statement)
+                         .addCode(getterBody.build())
                          .build();
     }
 }

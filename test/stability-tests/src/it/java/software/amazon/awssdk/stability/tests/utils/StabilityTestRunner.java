@@ -74,7 +74,7 @@ public class StabilityTestRunner {
     private static final int TESTS_TIMEOUT_IN_MINUTES = 60;
     // The peak thread count might be different depending on the machine the tests are currently running on.
     // because of the internal thread pool used in AsynchronousFileChannel
-    private static final int ALLOWED_PEAK_THREAD_COUNT = 60;
+    private static final int ALLOWED_PEAK_THREAD_COUNT = 90;
 
     private ThreadMXBean threadMXBean;
     private IntFunction<CompletableFuture<?>> futureFactory;

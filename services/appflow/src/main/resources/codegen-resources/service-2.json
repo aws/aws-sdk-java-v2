@@ -420,6 +420,13 @@
       "max":512,
       "pattern":".*"
     },
+    "ClientCredentialsArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"arn:aws:secretsmanager:.*:[0-9]+:.*",
+      "sensitive":true
+    },
     "ClientId":{
       "type":"string",
       "max":512,
@@ -632,6 +639,10 @@
         "EventBridge":{
           "shape":"EventBridgeMetadata",
           "documentation":"<p> The connector metadata specific to Amazon EventBridge. </p>"
+        },
+        "Upsolver":{
+          "shape":"UpsolverMetadata",
+          "documentation":"<p> The connector metadata specific to Upsolver. </p>"
         }
       },
       "documentation":"<p> A structure to specify connector-specific metadata such as <code>oAuthScopes</code>, <code>supportedRegions</code>, <code>privateLinkServiceUrl</code>, and so on. </p>"
@@ -948,7 +959,8 @@
         "Infornexus",
         "Amplitude",
         "Veeva",
-        "EventBridge"
+        "EventBridge",
+        "Upsolver"
       ]
     },
     "ConnectorTypeList":{
@@ -1138,6 +1150,11 @@
       "documentation":"<p> The properties that are applied when Datadog is being used as a source. </p>"
     },
     "Date":{"type":"timestamp"},
+    "DatetimeTypeFieldName":{
+      "type":"string",
+      "max":256,
+      "pattern":".*"
+    },
     "DeleteConnectorProfileRequest":{
       "type":"structure",
       "required":["connectorProfileName"],
@@ -1401,6 +1418,10 @@
         "EventBridge":{
           "shape":"EventBridgeDestinationProperties",
           "documentation":"<p> The properties required to query Amazon EventBridge. </p>"
+        },
+        "Upsolver":{
+          "shape":"UpsolverDestinationProperties",
+          "documentation":"<p> The properties required to query Upsolver. </p>"
         }
       },
       "documentation":"<p> This stores the information that is required to query a particular connector. </p>"
@@ -1424,6 +1445,14 @@
         "isUpsertable":{
           "shape":"Boolean",
           "documentation":"<p> Specifies if the flow run can either insert new rows in the destination field if they do not already exist, or update them if they do. </p>"
+        },
+        "isUpdatable":{
+          "shape":"Boolean",
+          "documentation":"<p> Specifies whether the field can be updated during an <code>UPDATE</code> or <code>UPSERT</code> write operation. </p>"
+        },
+        "supportedWriteOperations":{
+          "shape":"SupportedWriteOperationList",
+          "documentation":"<p> A list of supported write operations. For each write operation listed, this field can be used in <code>idFieldNames</code> when that write operation is present as a destination option. </p>"
         }
       },
       "documentation":"<p> The properties that can be applied to a field when connector is being used as a destination. </p>"
@@ -1809,7 +1838,7 @@
         },
         "clientSecret":{
           "shape":"ClientSecret",
-          "documentation":"<p> The client secret used by the oauth client to authenticate to the authorization server. </p>"
+          "documentation":"<p> The client secret used by the OAuth client to authenticate to the authorization server. </p>"
         },
         "accessToken":{
           "shape":"AccessToken",
@@ -1821,7 +1850,7 @@
         },
         "oAuthRequest":{
           "shape":"ConnectorOAuthRequest",
-          "documentation":"<p> The oauth requirement needed to request security tokens from the connector endpoint. </p>"
+          "documentation":"<p> The OAuth requirement needed to request security tokens from the connector endpoint. </p>"
         }
       },
       "documentation":"<p> The connector-specific profile credentials required by Google Analytics. </p>"
@@ -1858,10 +1887,27 @@
       "max":128,
       "pattern":"\\S+"
     },
+    "IdFieldNameList":{
+      "type":"list",
+      "member":{"shape":"Name"},
+      "documentation":"<p> A list of field names that can be used as an ID field when performing a write operation. </p>",
+      "max":1,
+      "min":0
+    },
     "Identifier":{
       "type":"string",
       "max":128,
       "pattern":"\\S+"
+    },
+    "IncrementalPullConfig":{
+      "type":"structure",
+      "members":{
+        "datetimeTypeFieldName":{
+          "shape":"DatetimeTypeFieldName",
+          "documentation":"<p> A field that specifies the date time or timestamp field as the criteria to use when importing incremental records from the source. </p>"
+        }
+      },
+      "documentation":"<p> Specifies the configuration used when importing incremental records from the source. </p>"
     },
     "InforNexusConnectorOperator":{
       "type":"string",
@@ -2078,7 +2124,7 @@
         },
         "clientSecret":{
           "shape":"ClientSecret",
-          "documentation":"<p> The client secret used by the oauth client to authenticate to the authorization server. </p>"
+          "documentation":"<p> The client secret used by the OAuth client to authenticate to the authorization server. </p>"
         },
         "accessToken":{
           "shape":"AccessToken",
@@ -2086,7 +2132,7 @@
         },
         "oAuthRequest":{
           "shape":"ConnectorOAuthRequest",
-          "documentation":"<p> The oauth requirement needed to request security tokens from the connector endpoint. </p>"
+          "documentation":"<p> The OAuth requirement needed to request security tokens from the connector endpoint. </p>"
         }
       },
       "documentation":"<p> The connector-specific profile credentials required by Marketo. </p>"
@@ -2472,7 +2518,11 @@
         },
         "oAuthRequest":{
           "shape":"ConnectorOAuthRequest",
-          "documentation":"<p> The oauth requirement needed to request security tokens from the connector endpoint. </p>"
+          "documentation":"<p> The OAuth requirement needed to request security tokens from the connector endpoint. </p>"
+        },
+        "clientCredentialsArn":{
+          "shape":"ClientCredentialsArn",
+          "documentation":"<p> The secret manager ARN, which contains the client ID and client secret of the connected app. </p>"
         }
       },
       "documentation":"<p> The connector-specific profile credentials required when using Salesforce. </p>"
@@ -2499,9 +2549,17 @@
           "shape":"Object",
           "documentation":"<p> The object specified in the Salesforce flow destination. </p>"
         },
+        "idFieldNames":{
+          "shape":"IdFieldNameList",
+          "documentation":"<p> The name of the field that Amazon AppFlow uses as an ID when performing a write operation such as update or delete. </p>"
+        },
         "errorHandlingConfig":{
           "shape":"ErrorHandlingConfig",
           "documentation":"<p> The settings that determine how Amazon AppFlow handles an error when placing data in the Salesforce destination. For example, this setting would determine if the flow should fail after one insertion error, or continue and attempt to insert every record regardless of the initial failure. <code>ErrorHandlingConfig</code> is a part of the destination connector details. </p>"
+        },
+        "writeOperationType":{
+          "shape":"WriteOperationType",
+          "documentation":"<p> This specifies the type of write operation to be performed in Salesforce. When the value is <code>UPSERT</code>, then <code>idFieldNames</code> is required. </p>"
         }
       },
       "documentation":"<p> The properties that are applied when Salesforce is being used as a destination. </p>"
@@ -2557,7 +2615,7 @@
       "members":{
         "scheduleExpression":{
           "shape":"ScheduleExpression",
-          "documentation":"<p> The scheduling expression that determines when and how often the rule runs. </p>"
+          "documentation":"<p> The scheduling expression that determines the rate at which the schedule will run, for example <code>rate(5minutes)</code>. </p>"
         },
         "dataPullMode":{
           "shape":"DataPullMode",
@@ -2759,7 +2817,7 @@
         },
         "clientSecret":{
           "shape":"ClientSecret",
-          "documentation":"<p> The client secret used by the oauth client to authenticate to the authorization server. </p>"
+          "documentation":"<p> The client secret used by the OAuth client to authenticate to the authorization server. </p>"
         },
         "accessToken":{
           "shape":"AccessToken",
@@ -2767,7 +2825,7 @@
         },
         "oAuthRequest":{
           "shape":"ConnectorOAuthRequest",
-          "documentation":"<p> The oauth requirement needed to request security tokens from the connector endpoint. </p>"
+          "documentation":"<p> The OAuth requirement needed to request security tokens from the connector endpoint. </p>"
         }
       },
       "documentation":"<p> The connector-specific profile credentials required when using Slack. </p>"
@@ -2995,6 +3053,10 @@
         "sourceConnectorProperties":{
           "shape":"SourceConnectorProperties",
           "documentation":"<p> Specifies the information that is required to query a particular source connector. </p>"
+        },
+        "incrementalPullConfig":{
+          "shape":"IncrementalPullConfig",
+          "documentation":"<p> Defines the configuration for a scheduled incremental data pull. If a valid configuration is provided, the fields specified in the configuration are used when querying for the incremental data pull. </p>"
         }
       },
       "documentation":"<p> Contains information about the configuration of the source connector used in the flow. </p>"
@@ -3024,6 +3086,10 @@
         "flowStatus":{
           "shape":"FlowStatus",
           "documentation":"<p> Indicates the current status of the flow. </p>"
+        },
+        "executionId":{
+          "shape":"ExecutionId",
+          "documentation":"<p> Returns the internal execution ID of an on-demand flow when the flow is started. For scheduled or event-triggered flows, this value is null. </p>"
         }
       }
     },
@@ -3069,6 +3135,10 @@
     "SupportedValueList":{
       "type":"list",
       "member":{"shape":"Value"}
+    },
+    "SupportedWriteOperationList":{
+      "type":"list",
+      "member":{"shape":"WriteOperationType"}
     },
     "TagKey":{
       "type":"string",
@@ -3171,7 +3241,8 @@
     },
     "Timezone":{
       "type":"string",
-      "max":256
+      "max":256,
+      "pattern":".*"
     },
     "TrendmicroConnectorOperator":{
       "type":"string",
@@ -3375,6 +3446,53 @@
       "max":256,
       "pattern":"\\S+"
     },
+    "UpsolverBucketName":{
+      "type":"string",
+      "max":63,
+      "min":16,
+      "pattern":"^(upsolver-appflow)\\S*"
+    },
+    "UpsolverDestinationProperties":{
+      "type":"structure",
+      "required":[
+        "bucketName",
+        "s3OutputFormatConfig"
+      ],
+      "members":{
+        "bucketName":{
+          "shape":"UpsolverBucketName",
+          "documentation":"<p> The Upsolver Amazon S3 bucket name in which Amazon AppFlow places the transferred data. </p>"
+        },
+        "bucketPrefix":{
+          "shape":"BucketPrefix",
+          "documentation":"<p> The object key for the destination Upsolver Amazon S3 bucket in which Amazon AppFlow places the files. </p>"
+        },
+        "s3OutputFormatConfig":{
+          "shape":"UpsolverS3OutputFormatConfig",
+          "documentation":"<p> The configuration that determines how data is formatted when Upsolver is used as the flow destination. </p>"
+        }
+      },
+      "documentation":"<p> The properties that are applied when Upsolver is used as a destination. </p>"
+    },
+    "UpsolverMetadata":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p> The connector metadata specific to Upsolver. </p>"
+    },
+    "UpsolverS3OutputFormatConfig":{
+      "type":"structure",
+      "required":["prefixConfig"],
+      "members":{
+        "fileType":{
+          "shape":"FileType",
+          "documentation":"<p> Indicates the file type that Amazon AppFlow places in the Upsolver Amazon S3 bucket. </p>"
+        },
+        "prefixConfig":{"shape":"PrefixConfig"},
+        "aggregationConfig":{"shape":"AggregationConfig"}
+      },
+      "documentation":"<p> The configuration that determines how Amazon AppFlow formats the flow output data when Upsolver is used as the destination. </p>"
+    },
     "Username":{
       "type":"string",
       "max":512,
@@ -3471,6 +3589,15 @@
       "max":512,
       "pattern":"[\\s\\w/!@#+=.-]*"
     },
+    "WriteOperationType":{
+      "type":"string",
+      "documentation":"<p> The possible write operations in the destination connector. When this value is not provided, this defaults to the <code>INSERT</code> operation. </p>",
+      "enum":[
+        "INSERT",
+        "UPSERT",
+        "UPDATE"
+      ]
+    },
     "ZendeskConnectorOperator":{
       "type":"string",
       "enum":[
@@ -3503,7 +3630,7 @@
         },
         "clientSecret":{
           "shape":"ClientSecret",
-          "documentation":"<p> The client secret used by the oauth client to authenticate to the authorization server. </p>"
+          "documentation":"<p> The client secret used by the OAuth client to authenticate to the authorization server. </p>"
         },
         "accessToken":{
           "shape":"AccessToken",
@@ -3511,7 +3638,7 @@
         },
         "oAuthRequest":{
           "shape":"ConnectorOAuthRequest",
-          "documentation":"<p> The oauth requirement needed to request security tokens from the connector endpoint. </p>"
+          "documentation":"<p> The OAuth requirement needed to request security tokens from the connector endpoint. </p>"
         }
       },
       "documentation":"<p> The connector-specific profile credentials required when using Zendesk. </p>"

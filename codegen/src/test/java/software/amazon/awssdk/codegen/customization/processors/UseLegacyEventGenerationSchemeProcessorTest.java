@@ -68,15 +68,11 @@ public class UseLegacyEventGenerationSchemeProcessorTest {
 
 
     private static IntermediateModel intermediateModelWithConfig(String configName) {
-        IntermediateModel intermediateModel = new IntermediateModelBuilder(C2jModels.builder()
+        return new IntermediateModelBuilder(C2jModels.builder()
                 .serviceModel(serviceModel)
-                .customizationConfig(CustomizationConfig.create())
+                .customizationConfig(loadCustomizationConfig(configName))
                 .build())
                 .build();
-
-        intermediateModel.setCustomizationConfig(loadCustomizationConfig(configName));
-
-        return intermediateModel;
     }
 
     private static CustomizationConfig loadCustomizationConfig(String configName) {
