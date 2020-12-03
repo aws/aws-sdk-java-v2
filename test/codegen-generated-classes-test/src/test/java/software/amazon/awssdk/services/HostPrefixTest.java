@@ -30,23 +30,23 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
-import software.amazon.awssdk.testutils.service.http.MockAyncHttpClient;
-import software.amazon.awssdk.testutils.service.http.MockHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 public class HostPrefixTest {
 
-    private MockHttpClient mockHttpClient;
+    private MockSyncHttpClient mockHttpClient;
     private ProtocolRestJsonClient client;
-    private MockAyncHttpClient mockAsyncClient;
+    private MockAsyncHttpClient mockAsyncClient;
 
     private ProtocolRestJsonAsyncClient asyncClient;
 
     @Before
     public void setupClient() {
-        mockHttpClient = new MockHttpClient();
-        mockAsyncClient = new MockAyncHttpClient();
+        mockHttpClient = new MockSyncHttpClient();
+        mockAsyncClient = new MockAsyncHttpClient();
         client = ProtocolRestJsonClient.builder()
                                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid",
                                                                                                                         "skid")))
