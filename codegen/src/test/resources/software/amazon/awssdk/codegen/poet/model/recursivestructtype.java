@@ -177,8 +177,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(noRecurse());
         hashCode = 31 * hashCode + Objects.hashCode(recursiveStruct());
-        hashCode = 31 * hashCode + Objects.hashCode(recursiveList());
-        hashCode = 31 * hashCode + Objects.hashCode(recursiveMap());
+        hashCode = 31 * hashCode + Objects.hashCode(hasRecursiveList() ? recursiveList() : null);
+        hashCode = 31 * hashCode + Objects.hashCode(hasRecursiveMap() ? recursiveMap() : null);
         return hashCode;
     }
 
@@ -200,7 +200,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
         RecursiveStructType other = (RecursiveStructType) obj;
         return Objects.equals(noRecurse(), other.noRecurse()) && Objects.equals(recursiveStruct(), other.recursiveStruct())
-                && Objects.equals(recursiveList(), other.recursiveList()) && Objects.equals(recursiveMap(), other.recursiveMap());
+                && hasRecursiveList() == other.hasRecursiveList() && Objects.equals(recursiveList(), other.recursiveList())
+                && hasRecursiveMap() == other.hasRecursiveMap() && Objects.equals(recursiveMap(), other.recursiveMap());
     }
 
     /**
@@ -210,7 +211,8 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
     @Override
     public final String toString() {
         return ToString.builder("RecursiveStructType").add("NoRecurse", noRecurse()).add("RecursiveStruct", recursiveStruct())
-                .add("RecursiveList", recursiveList()).add("RecursiveMap", recursiveMap()).build();
+                .add("RecursiveList", hasRecursiveList() ? recursiveList() : null)
+                .add("RecursiveMap", hasRecursiveMap() ? recursiveMap() : null).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -370,6 +372,9 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         public final Collection<Builder> getRecursiveList() {
+            if (recursiveList instanceof SdkAutoConstructList) {
+                return null;
+            }
             return recursiveList != null ? recursiveList.stream().map(RecursiveStructType::toBuilder)
                     .collect(Collectors.toList()) : null;
         }
@@ -400,6 +405,9 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
 
         public final Map<String, Builder> getRecursiveMap() {
+            if (recursiveMap instanceof SdkAutoConstructMap) {
+                return null;
+            }
             return recursiveMap != null ? CollectionUtils.mapValues(recursiveMap, RecursiveStructType::toBuilder) : null;
         }
 

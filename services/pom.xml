@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.15.8-SNAPSHOT</version>
+        <version>2.15.40-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -253,6 +253,18 @@
         <module>timestreamwrite</module>
         <module>timestreamquery</module>
         <module>s3outposts</module>
+        <module>databrew</module>
+        <module>servicecatalogappregistry</module>
+        <module>networkfirewall</module>
+        <module>mwaa</module>
+        <module>devopsguru</module>
+        <module>sagemakerfeaturestoreruntime</module>
+        <module>appintegrations</module>
+        <module>ecrpublic</module>
+        <module>amplifybackend</module>
+        <module>connectcontactlens</module>
+        <module>lookoutvision</module>
+        <module>customerprofiles</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

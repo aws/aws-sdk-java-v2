@@ -169,11 +169,11 @@ class ModelBuilderSpecs {
         List<FieldSpec> fields = shapeModel.getNonStreamingMembers().stream()
                 .map(m -> {
                     FieldSpec fieldSpec = typeProvider.asField(m, Modifier.PRIVATE);
-                    if (m.isList() && typeProvider.useAutoConstructLists()) {
+                    if (m.isList()) {
                         fieldSpec = fieldSpec.toBuilder()
                                 .initializer("$T.getInstance()", DefaultSdkAutoConstructList.class)
                                 .build();
-                    } else if (m.isMap() && typeProvider.useAutoConstructMaps()) {
+                    } else if (m.isMap()) {
                         fieldSpec = fieldSpec.toBuilder()
                                 .initializer("$T.getInstance()", DefaultSdkAutoConstructMap.class)
                                 .build();

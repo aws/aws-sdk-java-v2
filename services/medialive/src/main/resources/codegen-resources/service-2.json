@@ -12,6 +12,60 @@
     "jsonVersion": "1.1"
   },
   "operations": {
+    "AcceptInputDeviceTransfer": {
+      "name": "AcceptInputDeviceTransfer",
+      "http": {
+        "method": "POST",
+        "requestUri": "/prod/inputDevices/{inputDeviceId}/accept",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "AcceptInputDeviceTransferRequest"
+      },
+      "output": {
+        "shape": "AcceptInputDeviceTransferResponse",
+        "documentation": "Your request to accept this device transfer has succeeded."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "Transfer operation failed, input could not be validated."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to accept input device transfers."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad gateway error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "Input device not found."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error"
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on transfer device calls to the input device service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "Input device transfer could not be accepted."
+        }
+      ],
+      "documentation": "Accept an incoming input device transfer. The ownership of the device will transfer to your AWS account."
+    },
     "BatchDelete": {
       "name": "BatchDelete",
       "http": {
@@ -211,6 +265,60 @@
         }
       ],
       "documentation": "Update a channel schedule"
+    },
+    "CancelInputDeviceTransfer": {
+      "name": "CancelInputDeviceTransfer",
+      "http": {
+        "method": "POST",
+        "requestUri": "/prod/inputDevices/{inputDeviceId}/cancel",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "CancelInputDeviceTransferRequest"
+      },
+      "output": {
+        "shape": "CancelInputDeviceTransferResponse",
+        "documentation": "Your cancel request has succeeded."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "Transfer operation failed, input could not be validated."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to cancel input device transfers."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad gateway error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "Input device not found."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error"
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on transfer device calls to the input device service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "Input device transfer could not be canceled."
+        }
+      ],
+      "documentation": "Cancel an input device transfer that you have requested."
     },
     "CreateChannel": {
       "name": "CreateChannel",
@@ -1350,6 +1458,52 @@
       ],
       "documentation": "Produces list of channels that have been created"
     },
+    "ListInputDeviceTransfers": {
+      "name": "ListInputDeviceTransfers",
+      "http": {
+        "method": "GET",
+        "requestUri": "/prod/inputDeviceTransfers",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "ListInputDeviceTransfersRequest"
+      },
+      "output": {
+        "shape": "ListInputDeviceTransfersResponse",
+        "documentation": "An array of input devices that are currently being transferred."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "Transfer operation failed, input could not be validated."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to list transferring devices."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad gateway error."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error"
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on list devices calls to the input device service."
+        }
+      ],
+      "documentation": "List input devices that are currently being transferred. List input devices that you are transferring from your AWS account or input devices that another AWS account is transferring to you."
+    },
     "ListInputDevices": {
       "name": "ListInputDevices",
       "http": {
@@ -1732,6 +1886,60 @@
       ],
       "documentation": "Purchase an offering and create a reservation."
     },
+    "RejectInputDeviceTransfer": {
+      "name": "RejectInputDeviceTransfer",
+      "http": {
+        "method": "POST",
+        "requestUri": "/prod/inputDevices/{inputDeviceId}/reject",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "RejectInputDeviceTransferRequest"
+      },
+      "output": {
+        "shape": "RejectInputDeviceTransferResponse",
+        "documentation": "Your reject request has succeeded."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "Transfer operation failed, input could not be validated."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to reject input device transfers."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad gateway error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "Input device not found."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error"
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on transfer device calls to the input device service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "Input device transfer could not be rejected."
+        }
+      ],
+      "documentation": "Reject the transfer of the specified input device to your AWS account."
+    },
     "StartChannel": {
       "name": "StartChannel",
       "http": {
@@ -1931,6 +2139,60 @@
         }
       ],
       "documentation": "Stops a running multiplex. If the multiplex isn't running, this action has no effect."
+    },
+    "TransferInputDevice": {
+      "name": "TransferInputDevice",
+      "http": {
+        "method": "POST",
+        "requestUri": "/prod/inputDevices/{inputDeviceId}/transfer",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "TransferInputDeviceRequest"
+      },
+      "output": {
+        "shape": "TransferInputDeviceResponse",
+        "documentation": "The device transfer request has started."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "Transfer operation failed, input could not be validated."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to transfer input devices."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad gateway error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "Input device not found."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error"
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on transfer device calls to the input device service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "Input device could not be transferred."
+        }
+      ],
+      "documentation": "Start an input device transfer to another AWS account. After you make the request, the other account must accept or reject the transfer."
     },
     "UpdateChannel": {
       "name": "UpdateChannel",
@@ -2528,6 +2790,27 @@
       },
       "documentation": "Ac3 Settings"
     },
+    "AcceptInputDeviceTransferRequest": {
+      "type": "structure",
+      "members": {
+        "InputDeviceId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "inputDeviceId",
+          "documentation": "The unique ID of the input device to accept. For example, hd-123456789abcdef."
+        }
+      },
+      "required": [
+        "InputDeviceId"
+      ],
+      "documentation": "Placeholder documentation for AcceptInputDeviceTransferRequest"
+    },
+    "AcceptInputDeviceTransferResponse": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Placeholder documentation for AcceptInputDeviceTransferResponse"
+    },
     "AccessDenied": {
       "type": "structure",
       "members": {
@@ -2960,6 +3243,16 @@
     "AutomaticInputFailoverSettings": {
       "type": "structure",
       "members": {
+        "ErrorClearTimeMsec": {
+          "shape": "__integerMin1",
+          "locationName": "errorClearTimeMsec",
+          "documentation": "This clear time defines the requirement a recovered input must meet to be considered healthy. The input must have no failover conditions for this length of time. Enter a time in milliseconds. This value is particularly important if the input_preference for the failover pair is set to PRIMARY_INPUT_PREFERRED, because after this time, MediaLive will switch back to the primary input."
+        },
+        "FailoverConditions": {
+          "shape": "__listOfFailoverCondition",
+          "locationName": "failoverConditions",
+          "documentation": "A list of failover conditions. If any of these conditions occur, MediaLive will perform a failover to the other input."
+        },
         "InputPreference": {
           "shape": "InputPreference",
           "locationName": "inputPreference",
@@ -3621,6 +3914,27 @@
         "FIXED",
         "SCALED"
       ]
+    },
+    "CancelInputDeviceTransferRequest": {
+      "type": "structure",
+      "members": {
+        "InputDeviceId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "inputDeviceId",
+          "documentation": "The unique ID of the input device to cancel. For example, hd-123456789abcdef."
+        }
+      },
+      "required": [
+        "InputDeviceId"
+      ],
+      "documentation": "Placeholder documentation for CancelInputDeviceTransferRequest"
+    },
+    "CancelInputDeviceTransferResponse": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Placeholder documentation for CancelInputDeviceTransferResponse"
     },
     "CaptionDescription": {
       "type": "structure",
@@ -5127,6 +5441,11 @@
           "locationName": "deviceSettingsSyncState",
           "documentation": "The status of the action to synchronize the device configuration. If you change the configuration of the input device (for example, the maximum bitrate), MediaLive sends the new data to the device. The device might not update itself immediately. SYNCED means the device has updated its configuration. SYNCING means that it has not updated its configuration."
         },
+        "DeviceUpdateStatus": {
+          "shape": "DeviceUpdateStatus",
+          "locationName": "deviceUpdateStatus",
+          "documentation": "The status of software on the input device."
+        },
         "HdDeviceSettings": {
           "shape": "InputDeviceHdSettings",
           "locationName": "hdDeviceSettings",
@@ -5726,6 +6045,14 @@
       "enum": [
         "SYNCED",
         "SYNCING"
+      ]
+    },
+    "DeviceUpdateStatus": {
+      "type": "string",
+      "documentation": "The status of software on the input device.",
+      "enum": [
+        "UP_TO_DATE",
+        "NOT_UP_TO_DATE"
       ]
     },
     "DvbNitSettings": {
@@ -6355,6 +6682,28 @@
         "OutputGroups",
         "TimecodeConfig"
       ]
+    },
+    "FailoverCondition": {
+      "type": "structure",
+      "members": {
+        "FailoverConditionSettings": {
+          "shape": "FailoverConditionSettings",
+          "locationName": "failoverConditionSettings",
+          "documentation": "Failover condition type-specific settings."
+        }
+      },
+      "documentation": "Failover Condition settings. There can be multiple failover conditions inside AutomaticInputFailoverSettings."
+    },
+    "FailoverConditionSettings": {
+      "type": "structure",
+      "members": {
+        "InputLossSettings": {
+          "shape": "InputLossFailoverSettings",
+          "locationName": "inputLossSettings",
+          "documentation": "MediaLive will perform a failover if content is not detected in this input for the specified period."
+        }
+      },
+      "documentation": "Settings for one failover condition."
     },
     "FeatureActivations": {
       "type": "structure",
@@ -7545,6 +7894,14 @@
         "SUBDIRECTORY_PER_STREAM"
       ]
     },
+    "HlsDiscontinuityTags": {
+      "type": "string",
+      "documentation": "Hls Discontinuity Tags",
+      "enum": [
+        "INSERT",
+        "NEVER_INSERT"
+      ]
+    },
     "HlsEncryptionType": {
       "type": "string",
       "documentation": "Hls Encryption Type",
@@ -7616,6 +7973,11 @@
           "locationName": "directoryStructure",
           "documentation": "Place segments in subdirectories."
         },
+        "DiscontinuityTags": {
+          "shape": "HlsDiscontinuityTags",
+          "locationName": "discontinuityTags",
+          "documentation": "Specifies whether to insert EXT-X-DISCONTINUITY tags in the HLS child manifests for this output group.\nTypically, choose Insert because these tags are required in the manifest (according to the HLS specification) and serve an important purpose.\nChoose Never Insert only if the downstream system is doing real-time failover (without using the MediaLive automatic failover feature) and only if that downstream system has advised you to exclude the tags."
+        },
         "EncryptionType": {
           "shape": "HlsEncryptionType",
           "locationName": "encryptionType",
@@ -7635,6 +7997,11 @@
           "shape": "IFrameOnlyPlaylistType",
           "locationName": "iFrameOnlyPlaylists",
           "documentation": "DISABLED: Do not create an I-frame-only manifest, but do create the master and media manifests (according to the Output Selection field).\n\nSTANDARD: Create an I-frame-only manifest for each output that contains video, as well as the other manifests (according to the Output Selection field). The I-frame manifest contains a #EXT-X-I-FRAMES-ONLY tag to indicate it is I-frame only, and one or more #EXT-X-BYTERANGE entries identifying the I-frame position. For example, #EXT-X-BYTERANGE:160364@1461888\""
+        },
+        "IncompleteSegmentBehavior": {
+          "shape": "HlsIncompleteSegmentBehavior",
+          "locationName": "incompleteSegmentBehavior",
+          "documentation": "Specifies whether to include the final (incomplete) segment in the media output when the pipeline stops producing output because of a channel stop, a channel pause or a loss of input to the pipeline.\nAuto means that MediaLive decides whether to include the final segment, depending on the channel class and the types of output groups.\nSuppress means to never include the incomplete segment. We recommend you choose Auto and let MediaLive control the behavior."
         },
         "IndexNSegments": {
           "shape": "__integerMin3",
@@ -7790,6 +8157,14 @@
       "enum": [
         "DISABLED",
         "ENABLED"
+      ]
+    },
+    "HlsIncompleteSegmentBehavior": {
+      "type": "string",
+      "documentation": "Hls Incomplete Segment Behavior",
+      "enum": [
+        "AUTO",
+        "SUPPRESS"
       ]
     },
     "HlsInputSettings": {
@@ -8320,6 +8695,11 @@
           "locationName": "deviceSettingsSyncState",
           "documentation": "The status of the action to synchronize the device configuration. If you change the configuration of the input device (for example, the maximum bitrate), MediaLive sends the new data to the device. The device might not update itself immediately. SYNCED means the device has updated its configuration. SYNCING means that it has not updated its configuration."
         },
+        "DeviceUpdateStatus": {
+          "shape": "DeviceUpdateStatus",
+          "locationName": "deviceUpdateStatus",
+          "documentation": "The status of software on the input device."
+        },
         "HdDeviceSettings": {
           "shape": "InputDeviceHdSettings",
           "locationName": "hdDeviceSettings",
@@ -8556,6 +8936,11 @@
           "locationName": "deviceSettingsSyncState",
           "documentation": "The status of the action to synchronize the device configuration. If you change the configuration of the input device (for example, the maximum bitrate), MediaLive sends the new data to the device. The device might not update itself immediately. SYNCED means the device has updated its configuration. SYNCING means that it has not updated its configuration."
         },
+        "DeviceUpdateStatus": {
+          "shape": "DeviceUpdateStatus",
+          "locationName": "deviceUpdateStatus",
+          "documentation": "The status of software on the input device."
+        },
         "HdDeviceSettings": {
           "shape": "InputDeviceHdSettings",
           "locationName": "hdDeviceSettings",
@@ -8593,6 +8978,14 @@
         }
       },
       "documentation": "Details of the input device."
+    },
+    "InputDeviceTransferType": {
+      "type": "string",
+      "documentation": "The type of device transfer. INCOMING for an input device that is being transferred to you, OUTGOING for an input device that you are transferring to another AWS account.",
+      "enum": [
+        "OUTGOING",
+        "INCOMING"
+      ]
     },
     "InputDeviceType": {
       "type": "string",
@@ -8697,6 +9090,17 @@
         }
       },
       "documentation": "Input Loss Behavior"
+    },
+    "InputLossFailoverSettings": {
+      "type": "structure",
+      "members": {
+        "InputLossThresholdMsec": {
+          "shape": "__integerMin100",
+          "locationName": "inputLossThresholdMsec",
+          "documentation": "The amount of time (in milliseconds) that no input is detected. After that time, an input failover will occur."
+        }
+      },
+      "documentation": "MediaLive will perform a failover if content is not detected in this input for the specified period."
     },
     "InputLossImageType": {
       "type": "string",
@@ -9154,6 +9558,62 @@
         }
       },
       "documentation": "Placeholder documentation for ListChannelsResultModel"
+    },
+    "ListInputDeviceTransfersRequest": {
+      "type": "structure",
+      "members": {
+        "MaxResults": {
+          "shape": "MaxResults",
+          "location": "querystring",
+          "locationName": "maxResults"
+        },
+        "NextToken": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "nextToken"
+        },
+        "TransferType": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "transferType"
+        }
+      },
+      "required": [
+        "TransferType"
+      ],
+      "documentation": "Placeholder documentation for ListInputDeviceTransfersRequest"
+    },
+    "ListInputDeviceTransfersResponse": {
+      "type": "structure",
+      "members": {
+        "InputDeviceTransfers": {
+          "shape": "__listOfTransferringInputDeviceSummary",
+          "locationName": "inputDeviceTransfers",
+          "documentation": "The list of devices that you are transferring or are being transferred to you."
+        },
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken",
+          "documentation": "A token to get additional list results."
+        }
+      },
+      "documentation": "Placeholder documentation for ListInputDeviceTransfersResponse"
+    },
+    "ListInputDeviceTransfersResultModel": {
+      "type": "structure",
+      "members": {
+        "InputDeviceTransfers": {
+          "shape": "__listOfTransferringInputDeviceSummary",
+          "locationName": "inputDeviceTransfers",
+          "documentation": "The list of devices that you are transferring or are being transferred to you."
+        },
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken",
+          "documentation": "A token to get additional list results."
+        }
+      },
+      "documentation": "The list of input devices in the transferred state. The recipient hasn't yet accepted or rejected the transfer."
     },
     "ListInputDevicesRequest": {
       "type": "structure",
@@ -11504,6 +11964,27 @@
       },
       "documentation": "Rec709 Settings"
     },
+    "RejectInputDeviceTransferRequest": {
+      "type": "structure",
+      "members": {
+        "InputDeviceId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "inputDeviceId",
+          "documentation": "The unique ID of the input device to reject. For example, hd-123456789abcdef."
+        }
+      },
+      "required": [
+        "InputDeviceId"
+      ],
+      "documentation": "Placeholder documentation for RejectInputDeviceTransferRequest"
+    },
+    "RejectInputDeviceTransferResponse": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Placeholder documentation for RejectInputDeviceTransferResponse"
+    },
     "RemixSettings": {
       "type": "structure",
       "members": {
@@ -11765,6 +12246,13 @@
       },
       "documentation": "Placeholder documentation for ResourceNotFound"
     },
+    "RtmpAdMarkers": {
+      "type": "string",
+      "documentation": "Rtmp Ad Markers",
+      "enum": [
+        "ON_CUE_POINT_SCTE35"
+      ]
+    },
     "RtmpCacheFullBehavior": {
       "type": "string",
       "documentation": "Rtmp Cache Full Behavior",
@@ -11791,6 +12279,11 @@
     "RtmpGroupSettings": {
       "type": "structure",
       "members": {
+        "AdMarkers": {
+          "shape": "__listOfRtmpAdMarkers",
+          "locationName": "adMarkers",
+          "documentation": "Choose the ad marker type for this output group. MediaLive will create a message based on the content of each SCTE-35 message, format it for that marker type, and insert it in the datastream."
+        },
         "AuthenticationScheme": {
           "shape": "AuthenticationScheme",
           "locationName": "authenticationScheme",
@@ -12968,6 +13461,17 @@
         "STRENGTH_16"
       ]
     },
+    "ThumbnailData": {
+      "type": "structure",
+      "members": {
+        "Body": {
+          "shape": "__string",
+          "locationName": "body",
+          "documentation": "The binary data for the thumbnail that the Link device has most recently sent to MediaLive."
+        }
+      },
+      "documentation": "The binary data for the thumbnail that the Link device has most recently sent to MediaLive."
+    },
     "TimecodeConfig": {
       "type": "structure",
       "members": {
@@ -13009,6 +13513,79 @@
         "httpStatusCode": 429
       },
       "documentation": "Placeholder documentation for TooManyRequestsException"
+    },
+    "TransferInputDevice": {
+      "type": "structure",
+      "members": {
+        "TargetCustomerId": {
+          "shape": "__string",
+          "locationName": "targetCustomerId",
+          "documentation": "The AWS account ID (12 digits) for the recipient of the device transfer."
+        },
+        "TransferMessage": {
+          "shape": "__string",
+          "locationName": "transferMessage",
+          "documentation": "An optional message for the recipient. Maximum 280 characters."
+        }
+      },
+      "documentation": "The transfer details of the input device."
+    },
+    "TransferInputDeviceRequest": {
+      "type": "structure",
+      "members": {
+        "InputDeviceId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "inputDeviceId",
+          "documentation": "The unique ID of this input device. For example, hd-123456789abcdef."
+        },
+        "TargetCustomerId": {
+          "shape": "__string",
+          "locationName": "targetCustomerId",
+          "documentation": "The AWS account ID (12 digits) for the recipient of the device transfer."
+        },
+        "TransferMessage": {
+          "shape": "__string",
+          "locationName": "transferMessage",
+          "documentation": "An optional message for the recipient. Maximum 280 characters."
+        }
+      },
+      "documentation": "A request to transfer an input device.",
+      "required": [
+        "InputDeviceId"
+      ]
+    },
+    "TransferInputDeviceResponse": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Placeholder documentation for TransferInputDeviceResponse"
+    },
+    "TransferringInputDeviceSummary": {
+      "type": "structure",
+      "members": {
+        "Id": {
+          "shape": "__string",
+          "locationName": "id",
+          "documentation": "The unique ID of the input device."
+        },
+        "Message": {
+          "shape": "__string",
+          "locationName": "message",
+          "documentation": "The optional message that the sender has attached to the transfer."
+        },
+        "TargetCustomerId": {
+          "shape": "__string",
+          "locationName": "targetCustomerId",
+          "documentation": "The AWS account ID for the recipient of the input device transfer."
+        },
+        "TransferType": {
+          "shape": "InputDeviceTransferType",
+          "locationName": "transferType",
+          "documentation": "The type (direction) of the input device transfer."
+        }
+      },
+      "documentation": "Details about the input device that is being transferred."
     },
     "TtmlDestinationSettings": {
       "type": "structure",
@@ -13391,6 +13968,11 @@
           "shape": "DeviceSettingsSyncState",
           "locationName": "deviceSettingsSyncState",
           "documentation": "The status of the action to synchronize the device configuration. If you change the configuration of the input device (for example, the maximum bitrate), MediaLive sends the new data to the device. The device might not update itself immediately. SYNCED means the device has updated its configuration. SYNCING means that it has not updated its configuration."
+        },
+        "DeviceUpdateStatus": {
+          "shape": "DeviceUpdateStatus",
+          "locationName": "deviceUpdateStatus",
+          "documentation": "The status of software on the input device."
         },
         "HdDeviceSettings": {
           "shape": "InputDeviceHdSettings",
@@ -14071,6 +14653,11 @@
       "min": 1,
       "documentation": "Placeholder documentation for __integerMin1"
     },
+    "__integerMin100": {
+      "type": "integer",
+      "min": 100,
+      "documentation": "Placeholder documentation for __integerMin100"
+    },
     "__integerMin1000": {
       "type": "integer",
       "min": 1000,
@@ -14319,6 +14906,13 @@
       },
       "documentation": "Placeholder documentation for __listOfChannelSummary"
     },
+    "__listOfFailoverCondition": {
+      "type": "list",
+      "member": {
+        "shape": "FailoverCondition"
+      },
+      "documentation": "Placeholder documentation for __listOfFailoverCondition"
+    },
     "__listOfHlsAdMarkers": {
       "type": "list",
       "member": {
@@ -14522,6 +15116,13 @@
       },
       "documentation": "Placeholder documentation for __listOfReservation"
     },
+    "__listOfRtmpAdMarkers": {
+      "type": "list",
+      "member": {
+        "shape": "RtmpAdMarkers"
+      },
+      "documentation": "Placeholder documentation for __listOfRtmpAdMarkers"
+    },
     "__listOfScheduleAction": {
       "type": "list",
       "member": {
@@ -14535,6 +15136,13 @@
         "shape": "Scte35Descriptor"
       },
       "documentation": "Placeholder documentation for __listOfScte35Descriptor"
+    },
+    "__listOfTransferringInputDeviceSummary": {
+      "type": "list",
+      "member": {
+        "shape": "TransferringInputDeviceSummary"
+      },
+      "documentation": "Placeholder documentation for __listOfTransferringInputDeviceSummary"
     },
     "__listOfValidationError": {
       "type": "list",

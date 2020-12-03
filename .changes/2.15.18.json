@@ -1,0 +1,48 @@
+{
+    "version": "2.15.18",
+    "date": "2020-10-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Commerce Analytics",
+            "contributor": "",
+            "description": "Documentation updates for marketplacecommerceanalytics to specify four data sets which are deprecated."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "This release enables customers to manage their own contact lists and end-user subscription preferences."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Application Load Balancer (ALB) now supports the gRPC protocol-version. With this release, customers can use ALB to route and load balance gRPC traffic between gRPC enabled clients and microservices."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "contributor": "",
+            "description": "Adding support for access based enumeration on SMB file shares, file share visibility on SMB file shares, and file upload notifications for all file shares"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Support for Appliance mode on Transit Gateway that simplifies deployment of stateful network appliances. Added support for AWS Client VPN Self-Service Portal."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "Support disabling the default execute-api endpoint for REST APIs."
+        },
+        {
+            "type": "feature",
+            "category": "CodeArtifact",
+            "contributor": "",
+            "description": "Add support for tagging of CodeArtifact domain and repository resources."
+        }
+    ]
+}

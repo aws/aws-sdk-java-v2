@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.handler;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
@@ -35,6 +36,8 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -126,8 +129,28 @@ public abstract class BaseClientHandler {
     }
 
     private static void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request) {
-        InterceptorContext interceptorContext = executionContext.interceptorContext().copy(b -> b.httpRequest(request));
+        InterceptorContext interceptorContext = executionContext.interceptorContext();
+
+        Optional<ContentStreamProvider> contentStreamProvider = request.contentStreamProvider();
+        if (contentStreamProvider.isPresent()) {
+            interceptorContext = interceptorContext.copy(b -> b.httpRequest(request)
+                                                               .requestBody(getBody(request)));
+        } else {
+            interceptorContext = interceptorContext.copy(b -> b.httpRequest(request));
+        }
+
         executionContext.interceptorContext(interceptorContext);
+    }
+
+    private static RequestBody getBody(SdkHttpFullRequest request) {
+        Optional<ContentStreamProvider> contentStreamProvider = request.contentStreamProvider();
+        if (contentStreamProvider.isPresent()) {
+            long contentLength = Long.parseLong(request.firstMatchingHeader("Content-Length").orElse("0"));
+            String contentType = request.firstMatchingHeader("Content-Type").orElse("");
+            return RequestBody.fromContentProvider(contentStreamProvider.get(), contentLength, contentType);
+        }
+
+        return null;
     }
 
     private static void runAfterMarshallingInterceptors(ExecutionContext executionContext) {

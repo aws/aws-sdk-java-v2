@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
+import software.amazon.awssdk.codegen.customization.processors.UseLegacyEventGenerationSchemeProcessorTest;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -58,14 +59,20 @@ public class EventModelSpecTest {
     }
 
     private static void setUp() {
-        File serviceModelFile = new File(AwsModelSpecTest.class.getResource("service-2.json").getFile());
+        File serviceModelFile = new File(EventModelSpecTest.class.getResource("service-2.json").getFile());
         ServiceModel serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
 
         intermediateModel = new IntermediateModelBuilder(
                 C2jModels.builder()
                         .serviceModel(serviceModel)
-                        .customizationConfig(CustomizationConfig.create())
+                        .customizationConfig(loadCustomizationConfig("customization.config"))
                         .build())
                 .build();
+    }
+
+    private static CustomizationConfig loadCustomizationConfig(String configName) {
+        String c2jFilePath = EventModelSpecTest.class.getResource(configName).getFile();
+        File file = new File(c2jFilePath);
+        return ModelLoaderUtils.loadModel(CustomizationConfig.class, file);
     }
 }

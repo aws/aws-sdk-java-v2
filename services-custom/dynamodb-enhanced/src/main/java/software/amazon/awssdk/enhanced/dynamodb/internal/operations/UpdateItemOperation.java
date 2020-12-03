@@ -59,7 +59,8 @@ public class UpdateItemOperation<T>
         key -> "#AMZN_MAPPED_" + EnhancedClientUtils.cleanAttributeName(key);
 
     private static final Function<String, String> CONDITIONAL_UPDATE_MAPPER =
-        key -> "if_not_exists(" + key + ", " + EXPRESSION_VALUE_KEY_MAPPER.apply(key) + ")";
+        key -> "if_not_exists(" + EXPRESSION_KEY_MAPPER.apply(key) + ", " +
+                EXPRESSION_VALUE_KEY_MAPPER.apply(key) + ")";
 
     private final UpdateItemEnhancedRequest<T> request;
 

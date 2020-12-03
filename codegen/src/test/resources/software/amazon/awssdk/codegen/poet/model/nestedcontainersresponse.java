@@ -233,9 +233,10 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
     public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + super.hashCode();
-        hashCode = 31 * hashCode + Objects.hashCode(listOfListOfStrings());
-        hashCode = 31 * hashCode + Objects.hashCode(listOfListOfListOfStrings());
-        hashCode = 31 * hashCode + Objects.hashCode(mapOfStringToListOfListOfStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(hasListOfListOfStrings() ? listOfListOfStrings() : null);
+        hashCode = 31 * hashCode + Objects.hashCode(hasListOfListOfListOfStrings() ? listOfListOfListOfStrings() : null);
+        hashCode = 31 * hashCode
+                + Objects.hashCode(hasMapOfStringToListOfListOfStrings() ? mapOfStringToListOfListOfStrings() : null);
         return hashCode;
     }
 
@@ -256,8 +257,11 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
             return false;
         }
         NestedContainersResponse other = (NestedContainersResponse) obj;
-        return Objects.equals(listOfListOfStrings(), other.listOfListOfStrings())
+        return hasListOfListOfStrings() == other.hasListOfListOfStrings()
+                && Objects.equals(listOfListOfStrings(), other.listOfListOfStrings())
+                && hasListOfListOfListOfStrings() == other.hasListOfListOfListOfStrings()
                 && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
+                && hasMapOfStringToListOfListOfStrings() == other.hasMapOfStringToListOfListOfStrings()
                 && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
     }
 
@@ -267,9 +271,12 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
      */
     @Override
     public final String toString() {
-        return ToString.builder("NestedContainersResponse").add("ListOfListOfStrings", listOfListOfStrings())
-                .add("ListOfListOfListOfStrings", listOfListOfListOfStrings())
-                .add("MapOfStringToListOfListOfStrings", mapOfStringToListOfListOfStrings()).build();
+        return ToString
+                .builder("NestedContainersResponse")
+                .add("ListOfListOfStrings", hasListOfListOfStrings() ? listOfListOfStrings() : null)
+                .add("ListOfListOfListOfStrings", hasListOfListOfListOfStrings() ? listOfListOfListOfStrings() : null)
+                .add("MapOfStringToListOfListOfStrings",
+                        hasMapOfStringToListOfListOfStrings() ? mapOfStringToListOfListOfStrings() : null).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -365,6 +372,9 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         }
 
         public final Collection<? extends Collection<String>> getListOfListOfStrings() {
+            if (listOfListOfStrings instanceof SdkAutoConstructList) {
+                return null;
+            }
             return listOfListOfStrings;
         }
 
@@ -386,6 +396,9 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         }
 
         public final Collection<? extends Collection<? extends Collection<String>>> getListOfListOfListOfStrings() {
+            if (listOfListOfListOfStrings instanceof SdkAutoConstructList) {
+                return null;
+            }
             return listOfListOfListOfStrings;
         }
 
@@ -409,6 +422,9 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         }
 
         public final Map<String, ? extends Collection<? extends Collection<String>>> getMapOfStringToListOfListOfStrings() {
+            if (mapOfStringToListOfListOfStrings instanceof SdkAutoConstructMap) {
+                return null;
+            }
             return mapOfStringToListOfListOfStrings;
         }
 

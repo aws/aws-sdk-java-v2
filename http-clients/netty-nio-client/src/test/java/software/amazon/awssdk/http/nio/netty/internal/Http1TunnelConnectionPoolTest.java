@@ -45,6 +45,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSessionContext;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -180,6 +181,9 @@ public class Http1TunnelConnectionPoolTest {
     @Test
     public void sslContextProvided_andProxyUsingHttps_addsSslHandler() {
         SslHandler mockSslHandler = mock(SslHandler.class);
+        SSLEngine mockSslEngine = mock(SSLEngine.class);
+        when(mockSslHandler.engine()).thenReturn(mockSslEngine);
+        when(mockSslEngine.getSSLParameters()).thenReturn(mock(SSLParameters.class));
         TestSslContext mockSslCtx = new TestSslContext(mockSslHandler);
 
         Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, remoteAddr, initFuture) -> {
