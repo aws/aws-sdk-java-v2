@@ -54,7 +54,8 @@ public class EventModelSpecTest {
     }
 
     private String referenceFileForShape() {
-        String fileName = "default" + event.getName().toLowerCase(Locale.ENGLISH) + ".java";
+        String className = "Default" + intermediateModel.getNamingStrategy().getShapeClassName(event.getName());
+        String fileName = className.toLowerCase(Locale.ENGLISH) + ".java";
         return "/software/amazon/awssdk/codegen/poet/eventstream/" + fileName;
     }
 

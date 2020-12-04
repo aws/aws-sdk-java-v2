@@ -1,21 +1,23 @@
-package software.amazon.awssdk.services.jsonprotocoltests.model.eventstream;
+package software.amazon.awssdk.services.json.model.eventstream;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.services.jsonprotocoltests.model.EventStreamOperationResponseHandler;
-import software.amazon.awssdk.services.jsonprotocoltests.model.EventTwo;
+import software.amazon.awssdk.services.json.model.EventStream;
+import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponseHandler;
+import software.amazon.awssdk.services.json.model.EventTwo;
 
 /**
- * A specialization of {@code software.amazon.awssdk.services.jsonprotocoltests.model.EventTwo} that represents the
- * {@code EventStream#SecondEventTwo} event. Do not use this class directly. Instead, use the static builder methods on
- * {@link software.amazon.awssdk.services.jsonprotocoltests.model.EventStream}.
+ * A specialization of {@code software.amazon.awssdk.services.json.model.EventTwo} that represents the
+ * {@code EventStream$secondeventtwo} event. Do not use this class directly. Instead, use the static builder methods on
+ * {@link software.amazon.awssdk.services.json.model.EventStream}.
  */
 @SdkInternalApi
 @Generated("software.amazon.awssdk:codegen")
-public final class DefaultSecondEventTwo extends EventTwo {
+public final class DefaultSecondeventtwo extends EventTwo {
     private static final long serialVersionUID = 1L;
 
-    DefaultSecondEventTwo(BuilderImpl builderImpl) {
+    DefaultSecondeventtwo(BuilderImpl builderImpl) {
         super(builderImpl);
     }
 
@@ -30,25 +32,35 @@ public final class DefaultSecondEventTwo extends EventTwo {
 
     @Override
     public void accept(EventStreamOperationResponseHandler.Visitor visitor) {
-        visitor.visitSecondEventTwo(this);
+        visitor.visitSecondeventtwo(this);
+    }
+
+    @Override
+    public void accept(EventStreamOperationWithOnlyOutputResponseHandler.Visitor visitor) {
+        visitor.visitSecondeventtwo(this);
+    }
+
+    @Override
+    public EventStream.EventType sdkEventType() {
+        return EventStream.EventType.SECONDEVENTTWO;
     }
 
     public interface Builder extends EventTwo.Builder {
         @Override
-        DefaultSecondEventTwo build();
+        DefaultSecondeventtwo build();
     }
 
     private static final class BuilderImpl extends EventTwo.BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 
-        private BuilderImpl(DefaultSecondEventTwo event) {
+        private BuilderImpl(DefaultSecondeventtwo event) {
             super(event);
         }
 
         @Override
-        public DefaultSecondEventTwo build() {
-            return new DefaultSecondEventTwo(this);
+        public DefaultSecondeventtwo build() {
+            return new DefaultSecondeventtwo(this);
         }
     }
 }

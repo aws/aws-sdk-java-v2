@@ -1,14 +1,16 @@
-package software.amazon.awssdk.services.jsonprotocoltests.model.eventstream;
+package software.amazon.awssdk.services.json.model.eventstream;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.services.jsonprotocoltests.model.EventStreamOperationResponseHandler;
-import software.amazon.awssdk.services.jsonprotocoltests.model.EventTwo;
+import software.amazon.awssdk.services.json.model.EventStream;
+import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponseHandler;
+import software.amazon.awssdk.services.json.model.EventTwo;
 
 /**
- * A specialization of {@code software.amazon.awssdk.services.jsonprotocoltests.model.EventTwo} that represents the
- * {@code EventStream#EventTwo} event. Do not use this class directly. Instead, use the static builder methods on
- * {@link software.amazon.awssdk.services.jsonprotocoltests.model.EventStream}.
+ * A specialization of {@code software.amazon.awssdk.services.json.model.EventTwo} that represents the
+ * {@code EventStream$EventTwo} event. Do not use this class directly. Instead, use the static builder methods on
+ * {@link software.amazon.awssdk.services.json.model.EventStream}.
  */
 @SdkInternalApi
 @Generated("software.amazon.awssdk:codegen")
@@ -31,6 +33,16 @@ public final class DefaultEventTwo extends EventTwo {
     @Override
     public void accept(EventStreamOperationResponseHandler.Visitor visitor) {
         visitor.visitEventTwo(this);
+    }
+
+    @Override
+    public void accept(EventStreamOperationWithOnlyOutputResponseHandler.Visitor visitor) {
+        visitor.visitEventTwo(this);
+    }
+
+    @Override
+    public EventStream.EventType sdkEventType() {
+        return EventStream.EventType.EVENT_TWO;
     }
 
     public interface Builder extends EventTwo.Builder {
