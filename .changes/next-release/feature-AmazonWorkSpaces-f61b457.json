@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Update the import-workspace-image API to have \"BYOL_REGULAR_WSP\" as a valid input string for ingestion-process."
+}
