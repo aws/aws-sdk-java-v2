@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS License Manager",
+    "contributor": "",
+    "description": "Automated Discovery now has support for custom tags, and detects software uninstalls."
+}
