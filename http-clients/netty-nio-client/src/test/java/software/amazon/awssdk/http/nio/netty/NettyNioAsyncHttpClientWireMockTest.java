@@ -395,14 +395,13 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
             SdkHttpRequest request = createRequest(uri);
             RecordingResponseHandler recorder = new RecordingResponseHandler();
-            client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
+            netty.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
 
             recorder.completeFuture.get(5, TimeUnit.SECONDS);
         } finally {
             selfSignedServer.stop();
         }
     }
-
 
     /**
      * Make a simple async request and wait for it to fiish.

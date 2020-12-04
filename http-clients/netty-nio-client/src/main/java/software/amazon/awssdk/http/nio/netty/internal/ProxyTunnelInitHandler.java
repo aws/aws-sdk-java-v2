@@ -34,12 +34,14 @@ import java.net.URI;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Handler that initializes the HTTP tunnel.
  */
 @SdkInternalApi
 public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
+    public static final Logger log = Logger.loggerFor(ProxyTunnelInitHandler.class);
     private final ChannelPool sourcePool;
     private final URI remoteHost;
     private final Promise<Channel> initPromise;
@@ -65,9 +67,7 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
         HttpRequest connectRequest = connectRequest();
         ctx.channel().writeAndFlush(connectRequest).addListener(f -> {
             if (!f.isSuccess()) {
-                ctx.close();
-                sourcePool.release(ctx.channel());
-                initPromise.setFailure(new IOException("Unable to send CONNECT request to proxy", f.cause()));
+                handleConnectRequestFailure(ctx, f.cause());
             }
         });
     }
@@ -96,6 +96,40 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
         ctx.close();
         sourcePool.release(ctx.channel());
         initPromise.setFailure(new IOException("Could not connect to proxy"));
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        if (!initPromise.isDone()) {
+            handleConnectRequestFailure(ctx, null);
+        } else {
+            log.debug(() -> "The proxy channel (" + ctx.channel().id() + ") is inactive");
+            closeAndRelease(ctx);
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        if (!initPromise.isDone()) {
+            handleConnectRequestFailure(ctx, cause);
+        } else {
+            log.debug(() -> "An exception occurred on the proxy tunnel channel (" + ctx.channel().id() + "). " +
+                            "The channel has been closed to prevent any ongoing issues.", cause);
+            closeAndRelease(ctx);
+        }
+    }
+
+    private void handleConnectRequestFailure(ChannelHandlerContext ctx, Throwable cause) {
+        closeAndRelease(ctx);
+        String errorMsg = "Unable to send CONNECT request to proxy";
+        IOException ioException = cause == null ? new IOException(errorMsg) :
+                                  new IOException(errorMsg, cause);
+        initPromise.setFailure(ioException);
+    }
+
+    private void closeAndRelease(ChannelHandlerContext ctx) {
+        ctx.close();
+        sourcePool.release(ctx.channel());
     }
 
     private HttpRequest connectRequest() {
