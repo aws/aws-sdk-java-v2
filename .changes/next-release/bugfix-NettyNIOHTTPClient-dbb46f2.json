@@ -1,0 +1,6 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed the issue where certain handshake errors manifested as acquire connection timeout error when using TLS1.3 and proxy."
+}
