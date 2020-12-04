@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka",
-    "contributor": "",
-    "description": "Adding HEALING to ClusterState."
-}
