@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaLive",
+    "contributor": "",
+    "description": "AWS Elemental MediaLive now supports black video and audio silence as new conditions to trigger automatic input failover."
+}
