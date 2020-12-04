@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Added the additional enum InvalidImage to StateReasonCode and LastUpdateStatusReasonCode fields."
+}
