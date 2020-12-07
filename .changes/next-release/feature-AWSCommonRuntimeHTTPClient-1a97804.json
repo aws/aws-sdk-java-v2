@@ -1,6 +1,0 @@
-{
-    "category": "AWS Common Runtime HTTP Client", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Bump up `aws-crt` version to `0.9.0`"
-}

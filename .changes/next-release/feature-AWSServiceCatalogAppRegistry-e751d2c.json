@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Service Catalog App Registry",
-    "contributor": "",
-    "description": "AWS Service Catalog AppRegistry now supports adding, removing, and listing tags on resources after they are created."
-}

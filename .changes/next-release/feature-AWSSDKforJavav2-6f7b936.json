@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Added amz-sdk-request and removed amz-sdk-retry header. The new header matches the behavior of the other SDKs."
-}
