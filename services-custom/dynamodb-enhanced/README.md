@@ -153,7 +153,7 @@ index. Here's an example of how to do this:
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
    PageIterable<Customer> customersWithName = 
-       customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
+       customersByName.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("Smith"))));
    ```
 
 ### Working with immutable data classes

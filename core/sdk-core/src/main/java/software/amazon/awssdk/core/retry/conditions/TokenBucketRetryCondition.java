@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -47,6 +48,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public class TokenBucketRetryCondition implements RetryCondition {
+    private static final Logger log = Logger.loggerFor(TokenBucketRetryCondition.class);
+
     private static final ExecutionAttribute<Capacity> LAST_ACQUIRED_CAPACITY =
         new ExecutionAttribute<>("TokenBucketRetryCondition.LAST_ACQUIRED_CAPACITY");
 
@@ -122,9 +125,17 @@ public class TokenBucketRetryCondition implements RetryCondition {
             context.executionAttributes().putAttribute(LAST_ACQUIRED_CAPACITY, c);
             context.executionAttributes().putAttribute(RETRY_COUNT_OF_LAST_CAPACITY_ACQUISITION,
                                                        context.retriesAttempted());
+            log.trace(() -> "Successfully acquired token bucket capacity to retry this request. "
+                            + "Acquired: " + c.capacityAcquired + ". Remaining: " + c.capacityRemaining);
         });
 
-        return capacity.isPresent();
+        boolean hasCapacity = capacity.isPresent();
+
+        if (!hasCapacity) {
+            log.debug(() -> "This request will not be retried because the client has experienced too many recent call failures.");
+        }
+
+        return hasCapacity;
     }
 
     @Override
