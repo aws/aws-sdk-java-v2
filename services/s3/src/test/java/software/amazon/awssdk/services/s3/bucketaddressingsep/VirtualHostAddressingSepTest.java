@@ -35,12 +35,12 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.testutils.service.http.MockHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
 @RunWith(Parameterized.class)
 public class VirtualHostAddressingSepTest {
     private static final String TEST_FILE_PATH = "VirtualAddressingSepTestCases.json";
-    private MockHttpClient mockHttpClient;
+    private MockSyncHttpClient mockHttpClient;
     private TestCaseModel testCaseModel;
 
     public VirtualHostAddressingSepTest(TestCaseModel testCaseModel) {
@@ -49,7 +49,7 @@ public class VirtualHostAddressingSepTest {
 
     @Before
     public void setup() {
-        mockHttpClient = new MockHttpClient();
+        mockHttpClient = new MockSyncHttpClient();
     }
 
     @Parameterized.Parameters
