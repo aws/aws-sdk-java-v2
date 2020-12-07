@@ -53,6 +53,7 @@ import software.amazon.awssdk.testutils.Waiter;
 
 public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
+    public static final int WAIT_TIME_FOR_SUBSCRIPTION_COMPLETION = 300;
     private String streamName;
     private static final String CONSUMER_NAME = "subscribe-to-shard-consumer";
     private static String consumerArn;
@@ -146,8 +147,75 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
     }
 
     @Test
-    public void cancelledSubscription_doesNotCallTerminalMethods() {
-        AtomicBoolean terminalMethodsCalled = new AtomicBoolean(false);
+    public void limitedSubscription_callCompleteMethodOfSubs_whenLimitsReached() {
+        AtomicBoolean onCompleteSubsMethodsCalled = new AtomicBoolean(false);
+        AtomicBoolean completeMethodOfHandlerCalled = new AtomicBoolean(false);
+        AtomicBoolean errorOccurred = new AtomicBoolean(false);
+        List<SubscribeToShardEventStream> events = new ArrayList<>();
+        asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
+                        .shardId(shardId)
+                        .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
+                new SubscribeToShardResponseHandler() {
+                    @Override
+                    public void responseReceived(SubscribeToShardResponse response) {
+                        verifyHttpMetadata(response);
+                    }
+
+                    @Override
+                    public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
+                        publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
+                            private Subscription subscription;
+                            @Override
+                            public void onSubscribe(Subscription subscription) {
+                                this.subscription = subscription;
+                                subscription.request(10);
+                            }
+
+                            @Override
+                            public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
+                                events.add(subscribeToShardEventStream);
+                            }
+
+                            @Override
+                            public void onError(Throwable throwable) {
+                                errorOccurred.set(true);
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                onCompleteSubsMethodsCalled.set(true);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void exceptionOccurred(Throwable throwable) {
+                        errorOccurred.set(true);
+                    }
+
+                    @Override
+                    public void complete() {
+                        completeMethodOfHandlerCalled.set(true);
+                    }
+                }).join();
+
+        try {
+            Thread.sleep(WAIT_TIME_FOR_SUBSCRIPTION_COMPLETION);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        assertThat(onCompleteSubsMethodsCalled).isTrue();
+        assertThat(completeMethodOfHandlerCalled).isFalse();
+        assertThat(errorOccurred).isFalse();
+        assertThat(events.size()).isEqualTo(3);
+
+    }
+
+    @Test
+    public void cancelledSubscription_doesNotCallCompleteMethodOfHandler() {
+        AtomicBoolean onCompleteSubsMethodsCalled = new AtomicBoolean(false);
+        AtomicBoolean completeMethodOfHandlerCalled = new AtomicBoolean(false);
         AtomicBoolean errorOccurred = new AtomicBoolean(false);
         List<SubscribeToShardEventStream> events = new ArrayList<>();
         asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
@@ -162,14 +230,18 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
                                          @Override
                                          public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
                                              publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
+                                                 private Subscription subscription;
                                                  @Override
                                                  public void onSubscribe(Subscription subscription) {
+                                                     this.subscription = subscription;
                                                      subscription.request(10);
                                                  }
 
                                                  @Override
                                                  public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
                                                      events.add(subscribeToShardEventStream);
+                                                     //Cancel on first event.
+                                                     subscription.cancel();
                                                  }
 
                                                  @Override
@@ -179,7 +251,7 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
                                                  @Override
                                                  public void onComplete() {
-                                                     terminalMethodsCalled.set(true);
+                                                     onCompleteSubsMethodsCalled.set(true);
                                                  }
                                              });
                                          }
@@ -191,16 +263,22 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
                                          @Override
                                          public void complete() {
-                                             terminalMethodsCalled.set(true);
+                                             completeMethodOfHandlerCalled.set(true);
                                          }
                                      }).join();
 
-        assertThat(terminalMethodsCalled).isFalse();
+        try {
+            Thread.sleep(WAIT_TIME_FOR_SUBSCRIPTION_COMPLETION);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        assertThat(completeMethodOfHandlerCalled).isFalse();
+        assertThat(onCompleteSubsMethodsCalled).isFalse();
         assertThat(errorOccurred).isFalse();
-        assertThat(events.size()).isEqualTo(3);
+        assertThat(events.size()).isEqualTo(1);
 
     }
-
     private static void waitForConsumerToBeActive() {
         Waiter.run(() -> asyncClient.describeStreamConsumer(r -> r.consumerARN(consumerArn)).join())
               .until(b -> b.consumerDescription().consumerStatus().equals(ConsumerStatus.ACTIVE))
