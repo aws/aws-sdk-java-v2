@@ -121,7 +121,6 @@ public class Http1TunnelConnectionPool implements ChannelPool {
             ch.pipeline().addLast(sslHandler);
         }
         ch.pipeline().addLast(initHandlerSupplier.newInitHandler(delegate, remoteAddress, tunnelEstablishedPromise));
-
         tunnelEstablishedPromise.addListener((Future<Channel> f) -> {
             if (f.isSuccess()) {
                 Channel tunnel = f.getNow();

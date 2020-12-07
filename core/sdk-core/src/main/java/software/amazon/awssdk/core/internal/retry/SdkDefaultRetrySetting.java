@@ -32,8 +32,6 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class SdkDefaultRetrySetting {
-    public static final String SDK_RETRY_INFO_HEADER = "amz-sdk-retry";
-
     public static final class Legacy {
         private static final int THROTTLE_EXCEPTION_TOKEN_COST = 0;
         private static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;

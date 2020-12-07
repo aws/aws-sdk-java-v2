@@ -26,16 +26,15 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.io.IOException;
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider;
+import software.amazon.awssdk.http.HttpTestUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
@@ -139,8 +138,6 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
 
     @Test
     public void proxyRequest_noKeyManagerGiven_notAbleToSendConnect() throws Throwable {
-        // TODO: remove this and fix the issue with TLS1.3
-        Assume.assumeThat(System.getProperty("java.version"), CoreMatchers.startsWith("1.8"));
         thrown.expectCause(instanceOf(IOException.class));
         thrown.expectMessage("Unable to send CONNECT request to proxy");
 
@@ -171,6 +168,17 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
             System.clearProperty("javax.net.ssl.keyStoreType");
             System.clearProperty("javax.net.ssl.keyStorePassword");
         }
+    }
+
+    @Test
+    public void nonProxy_noKeyManagerGiven_shouldThrowException() {
+        thrown.expectCause(instanceOf(IOException.class));
+        thrown.expectMessage("The channel was closed");
+
+        netty = NettyNioAsyncHttpClient.builder()
+                                       .buildWithDefaults(DEFAULTS);
+
+        HttpTestUtils.sendGetRequest(mockProxy.httpsPort(), netty).join();
     }
 
     private void sendRequest(SdkAsyncHttpClient client, SdkAsyncHttpResponseHandler responseHandler) {
