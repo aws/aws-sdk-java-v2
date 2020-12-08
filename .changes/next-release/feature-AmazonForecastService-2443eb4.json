@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Forecast Service",
+    "contributor": "",
+    "description": "This release adds support for the Amazon Forecast Weather Index which can increase forecasting accuracy by automatically including weather forecasts in demand forecasts."
+}
