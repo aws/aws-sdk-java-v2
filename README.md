@@ -37,7 +37,7 @@ section of the developer guide.
 
 ## Using the SDK
 
-The recommended way to use the AWS SDK for Java in your project is to consume it from Maven. 
+The recommended way to use the AWS SDK for Java in your project is to consume it from Maven Central. 
 
 #### Importing the BOM ####
 
