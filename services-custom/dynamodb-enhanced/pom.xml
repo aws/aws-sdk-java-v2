@@ -21,10 +21,9 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services-custom</artifactId>
-        <version>2.15.40-SNAPSHOT</version>
+        <version>2.15.42-SNAPSHOT</version>
     </parent>
     <artifactId>dynamodb-enhanced</artifactId>
-    <version>${awsjavasdk.version}</version>
     <name>AWS Java SDK :: DynamoDB :: Enhanced Client</name>
     <url>https://aws.amazon.com/sdkforjava</url>
 

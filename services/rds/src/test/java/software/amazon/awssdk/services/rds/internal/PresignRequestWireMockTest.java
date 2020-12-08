@@ -98,4 +98,10 @@ public class PresignRequestWireMockTest {
         assertThat(lastRequestBody).contains("PreSignedUrl=https%3A%2F%2Frds.us-west-2.amazonaws.com%3FAction%3D" + actionName
                                              + "%26Version%3D2014-10-31%26DestinationRegion%3Dus-east-1%26");
     }
+
+    @Test
+    public void startDBInstanceAutomatedBackupsReplicationWithSourceRegionSendsPresignedUrl() {
+        verifyMethodCallSendsPresignedUrl(() -> client.startDBInstanceAutomatedBackupsReplication(r -> r.sourceRegion("us-west-2")),
+                "StartDBInstanceAutomatedBackupsReplication");
+    }
 }

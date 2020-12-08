@@ -1,3 +1,71 @@
+# __2.15.41__ __2020-12-07__
+## __AWS Common Runtime HTTP Client__
+  - ### Features
+    - Bump up `aws-crt` version to `0.9.0`
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Added PreserveTransaction setting to preserve order of CDC for S3 as target. Added CsvNoSupValue setting to replace empty value for columns not included in the supplemental log for S3 as target.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added amz-sdk-request and removed amz-sdk-retry header. The new header matches the behavior of the other SDKs.
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - AWS Service Catalog AppRegistry now supports adding, removing, and listing tags on resources after they are created.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed the issue where certain handshake errors manifested as acquire connection timeout error when using TLS1.3 and proxy.
+
+# __2.15.40__ __2020-12-04__
+## __AWS Directory Service__
+  - ### Features
+    - Documentation updates for ds - updated descriptions
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports black video and audio silence as new conditions to trigger automatic input failover.
+
+## __AWS Lambda__
+  - ### Features
+    - Added the additional enum InvalidImage to StateReasonCode and LastUpdateStatusReasonCode fields.
+
+## __AWS License Manager__
+  - ### Features
+    - Automated Discovery now has support for custom tags, and detects software uninstalls.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Avoid costly metrics collection when metric collector is NoOpMetricCollector.
+        - Contributed by: @croudet
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces tag-on-create capability for the CreateImage API. A user can now specify tags that will be applied to the new resources (image, snapshots or both), during creation time.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for Amazon RDS Cross-Region Automated Backups, the ability to setup automatic replication of snapshots and transaction logs from a primary AWS Region to a secondary AWS Region.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager Patch Manager MAC OS Support and OpsMetadata Store APIs to store operational metadata for an Application.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Update the import-workspace-image API to have "BYOL_REGULAR_WSP" as a valid input string for ingestion-process.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Adding HEALING to ClusterState.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+@croudet
 # __2.15.39__ __2020-12-03__
 ## __AWS Batch__
   - ### Features
