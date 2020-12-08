@@ -65,7 +65,10 @@ public final class SsoAccessTokenProvider {
     }
 
     private boolean validateToken(String expirationTime) {
-        return Instant.now().isAfter(Instant.parse(expirationTime).minus(15, MINUTES));
+        // The input string is not valid ISO instant format.
+        // Convert "2019-01-01T00:00:00UTC" to "2019-01-01T00:00:00Z"
+        Instant expirationInstant = Instant.parse(expirationTime.replace("UTC", "Z"));
+        return Instant.now().isAfter(expirationInstant.minus(15, MINUTES));
     }
 
 }

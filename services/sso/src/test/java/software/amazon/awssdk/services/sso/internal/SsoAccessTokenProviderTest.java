@@ -43,7 +43,7 @@ public class SsoAccessTokenProviderTest {
     public void cachedTokenFile_correctFormat_resolveAccessTokenCorrectly() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
-                           "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
+                           "\"expiresAt\": \"2090-01-01T00:00:00UTC\",\n" +
                            "\"region\": \"us-west-2\", \n" +
                            "\"startUrl\": \""+ START_URL +"\"\n" +
                            "}";
@@ -55,7 +55,7 @@ public class SsoAccessTokenProviderTest {
     @Test
     public void cachedTokenFile_accessTokenMissing_throwNullPointerException() throws IOException {
         String tokenFile = "{\n" +
-                           "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
+                           "\"expiresAt\": \"2090-01-01T00:00:00UTC\",\n" +
                            "\"region\": \"us-west-2\", \n" +
                            "\"startUrl\": \""+ START_URL +"\"\n" +
                            "}";
@@ -81,7 +81,7 @@ public class SsoAccessTokenProviderTest {
     public void cachedTokenFile_optionalRegionMissing_resolveAccessTokenCorrectly() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
-                           "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
+                           "\"expiresAt\": \"2090-01-01T00:00:00UTC\",\n" +
                            "\"startUrl\": \""+ START_URL +"\"\n" +
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
@@ -93,7 +93,7 @@ public class SsoAccessTokenProviderTest {
     public void cachedTokenFile_optionalStartUrlMissing_resolveAccessTokenCorrectly() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
-                           "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
+                           "\"expiresAt\": \"2090-01-01T00:00:00UTC\",\n" +
                            "\"region\": \"us-west-2\"\n" +
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
@@ -105,7 +105,7 @@ public class SsoAccessTokenProviderTest {
     public void cachedTokenFile_alreadyExpired_resolveAccessTokenCorrectly() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
-                           "\"expiresAt\": \"2019-01-01T00:00:00Z\",\n" +
+                           "\"expiresAt\": \"2019-01-01T00:00:00UTC\",\n" +
                            "\"region\": \"us-west-2\"\n" +
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
@@ -118,7 +118,7 @@ public class SsoAccessTokenProviderTest {
     public void cachedTokenFile_tokenFileNotExist_throwNullPointerException() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
-                           "\"expiresAt\": \"2019-01-01T00:00:00Z\",\n" +
+                           "\"expiresAt\": \"2019-01-01T00:00:00UTC\",\n" +
                            "\"region\": \"us-west-2\"\n" +
                            "}";
         prepareTestCachedTokenFile(tokenFile, WRONG_TOKEN_FILE_NAME);

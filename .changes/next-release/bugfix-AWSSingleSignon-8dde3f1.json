@@ -1,0 +1,6 @@
+{
+    "category": "AWS Single Sign-on", 
+    "contributor": "@yuzawa-san", 
+    "type": "bugfix", 
+    "description": "Fix datetime parse in SsoAccessTokenProvider to allow ProfileCredentialsProvider to use SSO profiles."
+}

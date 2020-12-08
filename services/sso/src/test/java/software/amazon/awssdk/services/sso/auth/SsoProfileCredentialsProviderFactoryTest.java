@@ -51,7 +51,7 @@ public class SsoProfileCredentialsProviderFactoryTest {
 
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
-                           "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
+                           "\"expiresAt\": \"2090-01-01T00:00:00UTC\",\n" +
                            "\"region\": \"us-west-2\", \n" +
                            "\"startUrl\": \""+ startUrl +"\"\n" +
                            "}";
