@@ -1,3 +1,25 @@
+# __2.15.41__ __2020-12-07__
+## __AWS Common Runtime HTTP Client__
+  - ### Features
+    - Bump up `aws-crt` version to `0.9.0`
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Added PreserveTransaction setting to preserve order of CDC for S3 as target. Added CsvNoSupValue setting to replace empty value for columns not included in the supplemental log for S3 as target.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added amz-sdk-request and removed amz-sdk-retry header. The new header matches the behavior of the other SDKs.
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - AWS Service Catalog AppRegistry now supports adding, removing, and listing tags on resources after they are created.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed the issue where certain handshake errors manifested as acquire connection timeout error when using TLS1.3 and proxy.
+
 # __2.15.40__ __2020-12-04__
 ## __AWS Directory Service__
   - ### Features
