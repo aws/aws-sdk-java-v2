@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSKendraFrontendService",
+    "contributor": "",
+    "description": "1. Amazon Kendra connector for Google Drive repositories 2. Amazon Kendra's relevance ranking models are regularly tuned for each customer by capturing end-user search patterns and feedback."
+}
