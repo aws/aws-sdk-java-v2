@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon HealthLake",
+    "contributor": "",
+    "description": "This release introduces Amazon HealthLake (preview), a HIPAA-eligible service that enables healthcare and life sciences customers to store, transform, query, and analyze health data in the AWS Cloud."
+}
