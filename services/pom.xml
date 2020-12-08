@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.15.42-SNAPSHOT</version>
+        <version>2.15.42</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -265,6 +265,10 @@
         <module>connectcontactlens</module>
         <module>lookoutvision</module>
         <module>customerprofiles</module>
+        <module>emrcontainers</module>
+        <module>sagemakeredge</module>
+        <module>healthlake</module>
+        <module>auditmanager</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Audit Manager",
-    "contributor": "",
-    "description": "AWS Audit Manager helps you continuously audit your AWS usage to simplify how you manage risk and compliance. This update releases the first version of the AWS Audit Manager APIs and SDK."
-}

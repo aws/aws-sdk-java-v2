@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Sagemaker Edge Manager",
-    "contributor": "",
-    "description": "Amazon SageMaker Edge Manager makes it easy to optimize, secure, monitor, and maintain machine learning (ML) models across fleets of edge devices such as smart cameras, smart speakers, and robots."
-}
