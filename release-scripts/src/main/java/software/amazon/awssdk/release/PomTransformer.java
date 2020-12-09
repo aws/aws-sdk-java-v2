@@ -74,6 +74,19 @@ public abstract class PomTransformer {
         throw new IllegalArgumentException(parent + " has no child element named " + childName);
     }
 
+    protected final void addChild(Node parent, Element childToAdd) {
+        NodeList children = parent.getChildNodes();
+        for (int i = 0; i < children.getLength(); ++i) {
+            Node existingChild = children.item(i);
+            if (existingChild.isEqualNode(childToAdd)) {
+                // Child already exists, skip.
+                return;
+            }
+        }
+
+        parent.appendChild(childToAdd);
+    }
+
     protected final Element textElement(Document doc, String name, String value) {
         Element element = doc.createElement(name);
         element.setTextContent(value);
