@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "contributor": "",
-    "description": "Add support for availability zone relocation feature."
-}
