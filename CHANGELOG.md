@@ -1,3 +1,407 @@
+# __2.15.43__ __2020-12-09__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release adds support for custom routing accelerators
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for G4ad instances powered by AMD Radeon Pro V520 GPUs and AMD 2nd Generation EPYC processors
+
+## __Amazon Redshift__
+  - ### Features
+    - Add support for availability zone relocation feature.
+
+# __2.15.42__ __2020-12-08__
+## __AWS Audit Manager__
+  - ### Features
+    - AWS Audit Manager helps you continuously audit your AWS usage to simplify how you manage risk and compliance. This update releases the first version of the AWS Audit Manager APIs and SDK.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - The SDK will now retry on `TransactionInProgressException` error code.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - 1. Amazon Kendra connector for Google Drive repositories 2. Amazon Kendra's relevance ranking models are regularly tuned for each customer by capturing end-user search patterns and feedback.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds support for configuring cross-region and cross-account replication of your Amazon ECR images.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This release adds support for Amazon EMR on EKS, a simple way to run Spark on Kubernetes.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - This release adds support for the Amazon Forecast Weather Index which can increase forecasting accuracy by automatically including weather forecasts in demand forecasts.
+
+## __Amazon HealthLake__
+  - ### Features
+    - This release introduces Amazon HealthLake (preview), a HIPAA-eligible service that enables healthcare and life sciences customers to store, transform, query, and analyze health data in the AWS Cloud.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added new parameters for join optimization.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - This feature allows customers to invoke their endpoint with an inference ID. If used and data capture for the endpoint is enabled, this ID will be captured along with request data.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This feature helps you monitor model performance characteristics such as accuracy, identify undesired bias in your ML models, and explain model decisions better with explainability drift detection.
+
+## __Amazon Sagemaker Edge Manager__
+  - ### Features
+    - Amazon SageMaker Edge Manager makes it easy to optimize, secure, monitor, and maintain machine learning (ML) models across fleets of edge devices such as smart cameras, smart speakers, and robots.
+
+# __2.15.41__ __2020-12-07__
+## __AWS Common Runtime HTTP Client__
+  - ### Features
+    - Bump up `aws-crt` version to `0.9.0`
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Added PreserveTransaction setting to preserve order of CDC for S3 as target. Added CsvNoSupValue setting to replace empty value for columns not included in the supplemental log for S3 as target.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added amz-sdk-request and removed amz-sdk-retry header. The new header matches the behavior of the other SDKs.
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - AWS Service Catalog AppRegistry now supports adding, removing, and listing tags on resources after they are created.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed the issue where certain handshake errors manifested as acquire connection timeout error when using TLS1.3 and proxy.
+
+# __2.15.40__ __2020-12-04__
+## __AWS Directory Service__
+  - ### Features
+    - Documentation updates for ds - updated descriptions
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports black video and audio silence as new conditions to trigger automatic input failover.
+
+## __AWS Lambda__
+  - ### Features
+    - Added the additional enum InvalidImage to StateReasonCode and LastUpdateStatusReasonCode fields.
+
+## __AWS License Manager__
+  - ### Features
+    - Automated Discovery now has support for custom tags, and detects software uninstalls.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Avoid costly metrics collection when metric collector is NoOpMetricCollector.
+        - Contributed by: @croudet
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces tag-on-create capability for the CreateImage API. A user can now specify tags that will be applied to the new resources (image, snapshots or both), during creation time.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for Amazon RDS Cross-Region Automated Backups, the ability to setup automatic replication of snapshots and transaction logs from a primary AWS Region to a secondary AWS Region.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager Patch Manager MAC OS Support and OpsMetadata Store APIs to store operational metadata for an Application.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Update the import-workspace-image API to have "BYOL_REGULAR_WSP" as a valid input string for ingestion-process.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Adding HEALING to ClusterState.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+@croudet
+# __2.15.39__ __2020-12-03__
+## __AWS Batch__
+  - ### Features
+    - This release adds support for customer to run Batch Jobs on ECS Fargate, the serverless compute engine built for containers on AWS. Customer can also propagate Job and Job Definition Tags to ECS Task.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for EBS volumes that are attached to instances.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager enables managed entitlements for AWS customers and Software Vendors (ISV). You can track and distribute license entitlements from AWS Marketplace and supported ISVs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AmplifyBackend__
+  - ### Features
+    - Regular documentation updates.
+
+# __2.15.38__ __2020-12-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This is the first release of Amazon Connect Customer Profiles, a unified customer profile for your Amazon Connect contact center.
+
+# __2.15.37__ __2020-12-01__
+## __AWS Directory Service__
+  - ### Features
+    - Adding client authentication feature for AWS AD Connector
+
+## __AWS Lambda__
+  - ### Features
+    - This release includes support for a new feature: Container images support in AWS Lambda. This adds APIs for deploying functions as container images. AWS Lambda now supports memory up to 10240MB.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - The Amazon AppIntegrations service (in preview release) enables you to configure and reuse connections to external applications.
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Contact Lens for Amazon Connect analyzes conversations, both real-time and post-call. The ListRealtimeContactAnalysisSegments API returns a list of analysis segments for a real-time analysis session.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds an Amazon Connect API that provides the ability to create tasks, and a set of APIs (in preview) to configure AppIntegrations associations with Amazon Connect instances.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - (New Service) Amazon DevOps Guru is available in public preview. It's a fully managed service that uses machine learning to analyze your operational solutions to help you find and troubleshoot issues.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for: EBS gp3 volumes; and D3/D3en/R5b/M5zn instances powered by Intel Cascade Lake CPUs
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Supports Amazon Elastic Container Registry (Amazon ECR) Public, a fully managed registry that makes it easy for a developer to publicly share container software worldwide for anyone to download.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Amazon EKS now allows you to define and manage the lifecycle for Kubernetes add-ons for your clusters. This release adds support for the AWS VPC CNI (vpc-cni).
+
+## __Amazon Honeycode__
+  - ### Features
+    - Introducing APIs to read and write directly from Honeycode tables. Use APIs to pull table and column metadata, then use the read and write APIs to programmatically read and write from the tables.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This release introduces support for Amazon Lookout for Vision.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - This release adds support for Amazon SageMaker Feature Store, which makes it easy for customers to create, version, share, and manage curated data for machine learning (ML) development.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Pipelines for ML workflows. Amazon SageMaker Feature Store, a fully managed repository for ML features.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - S3 adds support for multiple-destination replication, option to sync replica modifications; S3 Bucket Keys to reduce cost of S3 SSE with AWS KMS
+
+## __AmplifyBackend__
+  - ### Features
+    - (New Service) The Amplify Admin UI offers an accessible way to develop app backends and manage app content. We recommend that you use the Amplify Admin UI to manage the backend of your Amplify app.
+
+# __2.15.36__ __2020-11-30__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add LICENSE.txt and NOTICE.txt to META-INF directory of generated JARs
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed a resource leak that could occur when closing the default credentials provider (or a client using the default credentials provider), when `closeable` credentials like STS or SSO were in use. Fixes [#2149](https://github.com/aws/aws-sdk-java-v2/issues/2149).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces Amazon EC2 Mac1 instances, a new Amazon EC2 instance family built on Apple Mac mini computers, powered by AWS Nitro System, and support running macOS workloads on Amazon EC2
+
+# __2.15.35__ __2020-11-24__
+## __AWS Batch__
+  - ### Features
+    - Add Ec2Configuration in ComputeEnvironment.ComputeResources. Use in CreateComputeEnvironment API to enable AmazonLinux2 support.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Adds support for the new Modules feature for CloudFormation. A module encapsulates one or more resources and their respective configurations for reuse across your organization.
+
+## __AWS CloudTrail__
+  - ### Features
+    - CloudTrail now includes advanced event selectors, which give you finer-grained control over the events that are logged to your trail.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Adding GetReportGroupTrend API for Test Reports.
+
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Updates the Integer constraint of DescribeEnvironmentManagedActionHistory's MaxItems parameter to [1, 100].
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for Vorbis and Opus audio in OGG/OGA containers.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release adds support for customer managed customer master key (CMK) based encryption in IoT SiteWise.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release of the AWS Step Functions SDK introduces support for Synchronous Express Workflows
+
+## __Amazon Appflow__
+  - ### Features
+    - Upsolver as a destination connector and documentation update.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds ability to configure Cognito User Pools with third party sms and email providers for sending notifications to users.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Support Comprehend events detection APIs
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds the capability to increase storage capacity of Amazon FSx for Lustre file systems, providing the flexibility to meet evolving storage needs over time.
+
+## __Amazon GameLift__
+  - ### Features
+    - GameLift FlexMatch is now available as a standalone matchmaking solution. FlexMatch now provides customizable matchmaking for games hosted peer-to-peer, on-premises, or on cloud compute primitives.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Lex now supports es-419, de-DE locales
+
+## __Amazon QuickSight__
+  - ### Features
+    - Support for embedding without user registration. New enum EmbeddingIdentityType. A potential breaking change. Affects code that refers IdentityType enum type directly instead of literal string value.
+
+## __Amazon Timestream Write__
+  - ### Features
+    - Adds support of upserts for idempotent updates to Timestream.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe Medical streaming added medical specialties and HTTP/2 support. Amazon Transcribe streaming supports additional languages. Both support OGG/OPUS and FLAC codecs for streaming.
+
+## __AmazonMWAA__
+  - ### Features
+    - (New Service) Amazon MWAA is a managed service for Apache Airflow that makes it easy for data engineers and data scientists to execute data processing workflows in the cloud.
+
+# __2.15.34__ __2020-11-23__
+## __AWS CodeStar connections__
+  - ### Features
+    - Added support for the UpdateHost API.
+
+## __AWS Glue__
+  - ### Features
+    - Feature1 - Glue crawler adds data lineage configuration option. Feature2 - AWS Glue Data Catalog adds APIs for PartitionIndex creation and deletion as part of Enhancement Partition Management feature.
+
+## __AWS IoT__
+  - ### Features
+    - This release enables users to identify different file types in the over-the-air update (OTA) functionality using fileType parameter for CreateOTAUpdate API
+
+## __AWS Lambda__
+  - ### Features
+    - This release includes support for new feature: Code Signing for AWS Lambda. This adds new resources and APIs to configure Lambda functions to accept and verify signed code artifacts at deployment.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now provides the ability for license administrators to be able to associate license configurations to AMIs shared with their AWS account
+
+## __AWS Outposts__
+  - ### Features
+    - Support specifying tags during the creation of the Outpost resource. Tags are now returned in the response body of Outpost APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Updated the account management API to support the integration with AWS Organizations. Added new methods to allow users to view and manage the delegated administrator account for Security Hub.
+
+## __AWS Signer__
+  - ### Features
+    - AWS Signer is launching code-signing for AWS Lambda. Now customers can cryptographically sign Lambda code to ensure trust, integrity, and functionality.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - AWS Single Sign-On now enables attribute-based access control for workforce identities to simplify permissions in AWS
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Add Detected Workload to ApplicationComponent which shows the workloads that installed in the component
+
+## __Amazon DynamoDB__
+  - ### Features
+    - With this release, you can capture data changes in any Amazon DynamoDB table as an Amazon Kinesis data stream. You also can use PartiQL (SQL-compatible language) to manipulate data in DynamoDB tables.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for updating capacity providers, specifying custom instance warmup periods for capacity providers, and using deployment circuit breaker for your ECS Services.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation updates for elasticache
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Multiple Private DNS names to DescribeVpcEndpointServices response.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Add API support for EMR Studio, a new notebook-first IDE for data scientists and data engineers with single sign-on, Jupyter notebooks, automated infrastructure provisioning, and job diagnosis.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Releasing the set of PredictorBacktestExportJob APIs which allow customers to export backtest values and item-level metrics data from Predictor training.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Amazon Timestream now supports "QueryStatus" in Query API which has information about cumulative bytes scanned, metered, as well as progress percentage for the query.
+
+## __Amazon Translate__
+  - ### Features
+    - This update adds new operations to create and manage parallel data in Amazon Translate. Parallel data is a resource that you can use to run Active Custom Translation jobs.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates and corrections for Amazon EC2 Auto Scaling API Reference and SDKs.
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the NuGet package format.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Adding MAINTENANCE and REBOOTING_BROKER to Cluster states.
+
 # __2.15.33__ __2020-11-20__
 ## __AWS App Mesh__
   - ### Features

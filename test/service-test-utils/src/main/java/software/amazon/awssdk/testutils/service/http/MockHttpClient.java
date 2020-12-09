@@ -15,69 +15,34 @@
 
 package software.amazon.awssdk.testutils.service.http;
 
-import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.http.ExecutableHttpRequest;
-import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
-/**
- * Mockable implementation of {@link SdkHttpClient}.
- */
-public final class MockHttpClient implements SdkHttpClient {
-
-    private final List<SdkHttpRequest> capturedRequests = new ArrayList<>();
-    private HttpExecuteResponse nextResponse;
-
-    @Override
-    public ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
-        capturedRequests.add(request.httpRequest());
-        return new ExecutableHttpRequest() {
-            @Override
-            public HttpExecuteResponse call() {
-                return nextResponse;
-            }
-
-            @Override
-            public void abort() {
-            }
-        };
-    }
-
-
-    @Override
-    public void close() {
-    }
-
+public interface MockHttpClient {
     /**
      * Resets this mock by clearing any captured requests and wiping any stubbed responses.
      */
-    public void reset() {
-        this.capturedRequests.clear();
-        this.nextResponse = null;
-    }
+    void reset();
 
     /**
-     * Sets up the next HTTP response that will be returned by the mock.
-     *
-     * @param nextResponse Next {@link SdkHttpFullResponse} to return from
-     *                     {@link #prepareRequest(HttpExecuteRequest)}
+     * Sets up the next HTTP response that will be returned by the mock. Removes responses previously added to the mock.
      */
-    public void stubNextResponse(HttpExecuteResponse nextResponse) {
-        this.nextResponse = nextResponse;
-    }
+    void stubNextResponse(HttpExecuteResponse nextResponse);
 
     /**
-     * @return The last executed request that went through this mock client.
-     * @throws IllegalStateException If no requests have been captured.
+     * Sets the next set of HTTP responses that will be returned by the mock. Removes responses previously added to the mock.
      */
-    public SdkHttpRequest getLastRequest() {
-        if (capturedRequests.isEmpty()) {
-            throw new IllegalStateException("No requests were captured by the mock");
-        }
-        return capturedRequests.get(capturedRequests.size() - 1);
-    }
+    void stubResponses(HttpExecuteResponse... responses);
+
+    /**
+     * Get the last request called on the mock.
+     */
+    SdkHttpRequest getLastRequest();
+
+    /**
+     * Get all requests called on the mock.
+     */
+    List<SdkHttpRequest> getRequests();
+
 }

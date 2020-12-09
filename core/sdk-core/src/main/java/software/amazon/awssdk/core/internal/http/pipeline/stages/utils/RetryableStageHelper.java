@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
-import static software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting.SDK_RETRY_INFO_HEADER;
-
 import java.time.Duration;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -37,7 +35,6 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.retry.conditions.TokenBucketRetryCondition;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
@@ -47,6 +44,8 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  */
 @SdkInternalApi
 public class RetryableStageHelper {
+    public static final String SDK_RETRY_INFO_HEADER = "amz-sdk-request";
+
     public static final ExecutionAttribute<Duration> LAST_BACKOFF_DELAY_DURATION =
         new ExecutionAttribute<>("LastBackoffDuration");
 
@@ -140,14 +139,8 @@ public class RetryableStageHelper {
      * Retrieve the request to send to the service, including any detailed retry information headers.
      */
     public SdkHttpFullRequest requestToSend() {
-        Integer availableRetryCapacity = TokenBucketRetryCondition.getCapacityForExecution(context.executionAttributes())
-                                                                  .map(TokenBucketRetryCondition.Capacity::capacityRemaining)
-                                                                  .orElse(null);
-        String headerValue = (attemptNumber - 1) + "/" +
-                             context.executionAttributes().getAttribute(LAST_BACKOFF_DELAY_DURATION).toMillis() + "/" +
-                             (availableRetryCapacity != null ? availableRetryCapacity : "");
         return request.toBuilder()
-                      .putHeader(SDK_RETRY_INFO_HEADER, headerValue)
+                      .putHeader(SDK_RETRY_INFO_HEADER, "attempt=" + attemptNumber + "; max=" + retryPolicy.numRetries())
                       .build();
     }
 
