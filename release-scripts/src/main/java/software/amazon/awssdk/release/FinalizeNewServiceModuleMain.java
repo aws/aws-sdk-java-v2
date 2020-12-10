@@ -89,8 +89,7 @@ public class FinalizeNewServiceModuleMain extends Cli {
             protected void updateDocument(Document doc) {
                 Node project = findChild(doc, "project");
                 Node modules = findChild(project, "modules");
-
-                modules.appendChild(textElement(doc, "module", serviceModuleName));
+                addChild(modules, textElement(doc, "module", serviceModuleName));
             }
         }
 
@@ -105,8 +104,7 @@ public class FinalizeNewServiceModuleMain extends Cli {
             protected void updateDocument(Document doc) {
                 Node project = findChild(doc, "project");
                 Node dependencies = findChild(project, "dependencies");
-
-                dependencies.appendChild(sdkDependencyElement(doc, serviceModuleName));
+                addChild(dependencies, sdkDependencyElement(doc, serviceModuleName));
             }
         }
 
@@ -122,8 +120,7 @@ public class FinalizeNewServiceModuleMain extends Cli {
                 Node project = findChild(doc, "project");
                 Node dependencyManagement = findChild(project, "dependencyManagement");
                 Node dependencies = findChild(dependencyManagement, "dependencies");
-
-                dependencies.appendChild(sdkDependencyElement(doc, serviceModuleName));
+                addChild(dependencies, sdkDependencyElement(doc, serviceModuleName));
             }
         }
     }

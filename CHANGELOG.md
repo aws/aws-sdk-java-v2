@@ -1,3 +1,16 @@
+# __2.15.44__ __2020-12-10__
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support for Transit Gateway Connect integration into AWS Network Manager.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports adding synonyms to an index through the new Thesaurus resource.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - TGW connect simplifies connectivity of SD-WAN appliances; IGMP support for TGW multicast; VPC Reachability Analyzer for VPC resources connectivity analysis.
+
 # __2.15.43__ __2020-12-09__
 ## __AWS Global Accelerator__
   - ### Features
@@ -9965,5 +9978,5 @@ Special thanks to the following contributors to this release:
 # __2.0.0-preview-1__ __2017-06-28__
 ## __AWS SDK for Java v2__
   - ### Features
-    - Initial release of the AWS SDK for Java v2. See our [blog post](https://aws.amazon.com/blogs/developer/aws-sdk-for-java-2-0-developer-preview) for information about this new major veresion. This release is considered a developer preview and is not intended for production use cases.
+    - Initial release of the AWS SDK for Java v2. See our [blog post](https://aws.amazon.com/blogs/developer/aws-sdk-for-java-2-0-developer-preview) for information about this new major version. This release is considered a developer preview and is not intended for production use cases.
 
