@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSKendraFrontendService",
-    "contributor": "",
-    "description": "Amazon Kendra now supports adding synonyms to an index through the new Thesaurus resource."
-}

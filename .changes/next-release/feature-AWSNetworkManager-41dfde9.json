@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Manager",
-    "contributor": "",
-    "description": "This release adds API support for Transit Gateway Connect integration into AWS Network Manager."
-}
