@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudTrail",
+    "contributor": "",
+    "description": "CloudTrailInvalidClientTokenIdException is now thrown when a call results in the InvalidClientTokenId error code. The Name parameter of the AdvancedEventSelector data type is now optional."
+}
