@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Performance Insights",
-    "contributor": "",
-    "description": "You can group DB load according to the dimension groups for database, application, and session type. Amazon RDS also supports the dimensions db.name, db.application.name, and db.session_type.name."
-}
