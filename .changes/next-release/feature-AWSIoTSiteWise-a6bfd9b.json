@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT SiteWise",
+    "contributor": "",
+    "description": "Added the ListAssetRelationships operation and support for composite asset models, which represent structured sets of properties within asset models."
+}
