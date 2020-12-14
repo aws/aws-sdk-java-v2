@@ -21,6 +21,7 @@ import static software.amazon.awssdk.utils.StringUtils.isBlank;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.reactivex.Flowable;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 public class HttpTestUtils {
     private HttpTestUtils() {
@@ -64,36 +66,44 @@ public class HttpTestUtils {
         return keyStore;
     }
 
-    public static CompletableFuture<Void> sendGetRequest(int serverPort, SdkAsyncHttpClient client) {
-        AsyncExecuteRequest req = AsyncExecuteRequest.builder()
-                .responseHandler(new SdkAsyncHttpResponseHandler() {
-                    private SdkHttpResponse headers;
+    public static CompletableFuture<byte[]> sendGetRequest(int serverPort, SdkAsyncHttpClient client) {
+        return sendRequest(serverPort, client, SdkHttpMethod.GET);
+    }
 
-                    @Override
-                    public void onHeaders(SdkHttpResponse headers) {
-                        this.headers = headers;
-                    }
+    public static CompletableFuture<byte[]> sendHeadRequest(int serverPort, SdkAsyncHttpClient client) {
+        return sendRequest(serverPort, client, SdkHttpMethod.HEAD);
+    }
 
-                    @Override
-                    public void onStream(Publisher<ByteBuffer> stream) {
-                        Flowable.fromPublisher(stream).forEach(b -> {
-                        });
-                    }
+    private static CompletableFuture<byte[]> sendRequest(int serverPort,
+                                                                  SdkAsyncHttpClient client,
+                                                                  SdkHttpMethod httpMethod) {
+        ByteArrayOutputStream data = new ByteArrayOutputStream();
+        return client.execute(AsyncExecuteRequest.builder()
+                                                 .responseHandler(new SdkAsyncHttpResponseHandler() {
+                                                         @Override
+                                                         public void onHeaders(SdkHttpResponse headers) {
+                                                         }
 
-                    @Override
-                    public void onError(Throwable error) {
-                    }
-                })
-                .request(SdkHttpFullRequest.builder()
-                        .method(SdkHttpMethod.GET)
-                        .protocol("https")
-                        .host("127.0.0.1")
-                        .port(serverPort)
-                        .build())
-                .requestContentPublisher(new EmptyPublisher())
-                .build();
+                                                         @Override
+                                                         public void onStream(Publisher<ByteBuffer> stream) {
+                                                             Flowable.fromPublisher(stream).forEach(b -> {
+                                                                 data.write(BinaryUtils.copyAllBytesFrom(b));
+                                                             });
+                                                         }
 
-        return client.execute(req);
+                                                         @Override
+                                                         public void onError(Throwable error) {
+                                                         }
+                                                     })
+                                                 .request(SdkHttpFullRequest.builder()
+                                                                            .method(httpMethod)
+                                                                            .protocol("https")
+                                                                            .host("127.0.0.1")
+                                                                            .port(serverPort)
+                                                                            .build())
+                                                 .requestContentPublisher(new EmptyPublisher())
+                                                 .build())
+                     .thenApply(v -> data.toByteArray());
     }
 
     public static SdkHttpContentPublisher createProvider(String body) {

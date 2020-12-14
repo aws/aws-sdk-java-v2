@@ -1,3 +1,23 @@
+# __2.15.46__ __2020-12-14__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release adds support for custom routing accelerators
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Treat zero-byte responses from async HTTP clients as not having a payload, regardless of the response content-length. This fixes an issue that could cause HEAD responses (e.g. s3's headObject responses) with a content-length specified from being treated as having a payload. This fixes issues like [#1216](https://github.com/aws/aws-sdk-java-v2/issues/1216) where the SDK attempts to read data from the response based on the content-length, not based on whether there was actually a payload.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Documentation updates for DevOps Guru.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add c5n.metal to ec2 instance types list
+
 # __2.15.45__ __2020-12-11__
 ## __AWS CloudTrail__
   - ### Features
