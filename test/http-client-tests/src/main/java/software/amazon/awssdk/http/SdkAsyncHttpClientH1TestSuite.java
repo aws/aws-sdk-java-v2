@@ -118,12 +118,6 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
         assertThat(server.channels.size()).isEqualTo(2);
     }
 
-    @Test
-    public void headRequestResponsesHaveNoPayload() {
-        byte[] responseData = HttpTestUtils.sendHeadRequest(server.port(), client).join();
-        assertThat(responseData).hasSize(0);
-    }
-
     private static class Server extends ChannelInitializer<Channel> {
         private static final byte[] CONTENT = "helloworld".getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;

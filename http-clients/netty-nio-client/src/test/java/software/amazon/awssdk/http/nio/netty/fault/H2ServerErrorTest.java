@@ -90,7 +90,7 @@ public class H2ServerErrorTest {
     @Test
     public void serviceReturn500_newRequestShouldUseNewConnection() {
         server.return500OnFirstRequest = true;
-        CompletableFuture<?> firstRequest = sendGetRequest(server.port(), netty);
+        CompletableFuture<Void> firstRequest = sendGetRequest(server.port(), netty);
         firstRequest.join();
 
         sendGetRequest(server.port(), netty).join();
@@ -100,7 +100,7 @@ public class H2ServerErrorTest {
     @Test
     public void serviceReturn200_newRequestShouldReuseNewConnection() {
         server.return500OnFirstRequest = false;
-        CompletableFuture<?> firstRequest = sendGetRequest(server.port(), netty);
+        CompletableFuture<Void> firstRequest = sendGetRequest(server.port(), netty);
         firstRequest.join();
 
         sendGetRequest(server.port(), netty).join();
