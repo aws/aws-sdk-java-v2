@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Wireless",
+    "contributor": "",
+    "description": "AWS IoT for LoRaWAN enables customers to setup a private LoRaWAN network by connecting their LoRaWAN devices and gateways to the AWS cloud without managing a LoRaWAN Network Server."
+}
