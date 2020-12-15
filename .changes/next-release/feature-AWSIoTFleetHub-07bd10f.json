@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Fleet Hub",
+    "contributor": "",
+    "description": "AWS IoT Fleet Hub, a new feature of AWS IoT Device Management that provides a web application for monitoring and managing device fleets connected to AWS IoT at scale."
+}
