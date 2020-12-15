@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "contributor": "",
-    "description": "Added support for Apache Kafka as a event source. Added support for TumblingWindowInSeconds for streams event source mappings. Added support for FunctionResponseTypes for streams event source mappings"
-}
