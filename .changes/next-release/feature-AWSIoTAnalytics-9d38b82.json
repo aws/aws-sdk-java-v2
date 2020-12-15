@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Analytics",
+    "contributor": "",
+    "description": "FileFormatConfiguration enables data store to save data in JSON or Parquet format. S3Paths enables you to specify the S3 objects that save your channel messages when you reprocess the pipeline."
+}
