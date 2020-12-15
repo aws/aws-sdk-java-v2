@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Greengrass V2",
+    "contributor": "",
+    "description": "AWS IoT Greengrass V2 is a new major version of AWS IoT Greengrass. This release adds several updates such as modular components, continuous deployments, and improved ease of use."
+}
