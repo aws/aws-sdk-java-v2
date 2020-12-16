@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.15.40-SNAPSHOT</version>
+    <version>2.15.49-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -93,7 +93,7 @@
         <slf4j.version>1.7.28</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <commons.io.version>2.5</commons.io.version>
-        <equalsverifier.version>3.1.13</equalsverifier.version>
+        <equalsverifier.version>3.5</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml#L384 -->
         <netty.version>4.1.53.Final</netty.version>
@@ -109,7 +109,7 @@
         <rxjava.version>2.1.9</rxjava.version>
         <commons-codec.verion>1.10</commons-codec.verion>
         <jmh.version>1.21</jmh.version>
-        <awscrt.version>0.8.2</awscrt.version>
+        <awscrt.version>0.9.0</awscrt.version>
 
         <!-- Test dependencies -->
         <junit.version>4.12</junit.version>
@@ -136,7 +136,7 @@
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <checkstyle.version>8.29</checkstyle.version>
+        <checkstyle.version>8.38</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>

@@ -1,3 +1,253 @@
+# __2.15.48__ __2020-12-16__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release updates the "MonitorArnList" from a list of String to be a list of Arn for both CreateAnomalySubscription and UpdateAnomalySubscription APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This is the first release of AWS Well-Architected Tool API support, use to review your workload and compare against the latest AWS architectural best practices.
+
+## __Amazon Location Service__
+  - ### Features
+    - Initial release of Amazon Location Service. A new geospatial service providing capabilities to render maps, geocode/reverse geocode, track device locations, and detect geofence entry/exit events.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Documentation updates for Amazon Managed Service for Prometheus
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight now supports connecting to federated data sources of Athena
+
+# __2.15.47__ __2020-12-15__
+## __AWS IoT__
+  - ### Features
+    - AWS IoT Rules Engine adds Kafka Action that allows sending data to Apache Kafka clusters inside a VPC. AWS IoT Device Defender adds custom metrics and machine-learning based anomaly detection.
+
+## __AWS IoT Analytics__
+  - ### Features
+    - FileFormatConfiguration enables data store to save data in JSON or Parquet format. S3Paths enables you to specify the S3 objects that save your channel messages when you reprocess the pipeline.
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - AWS IoT Core Device Advisor is fully managed test capability for IoT devices. Device manufacturers can use Device Advisor to test their IoT devices for reliable and secure connectivity with AWS IoT.
+
+## __AWS IoT Fleet Hub__
+  - ### Features
+    - AWS IoT Fleet Hub, a new feature of AWS IoT Device Management that provides a web application for monitoring and managing device fleets connected to AWS IoT at scale.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - AWS IoT Greengrass V2 is a new major version of AWS IoT Greengrass. This release adds several updates such as modular components, continuous deployments, and improved ease of use.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - AWS IoT for LoRaWAN enables customers to setup a private LoRaWAN network by connecting their LoRaWAN devices and gateways to the AWS cloud without managing a LoRaWAN Network Server.
+
+## __AWS Lambda__
+  - ### Features
+    - Added support for Apache Kafka as a event source. Added support for TumblingWindowInSeconds for streams event source mappings. Added support for FunctionResponseTypes for streams event source mappings
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - (New Service) Amazon Managed Service for Prometheus is a fully managed Prometheus-compatible monitoring service that makes it easy to monitor containerized applications securely and at scale.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Adding support for Change Manager API content
+
+# __2.15.46__ __2020-12-14__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release adds support for custom routing accelerators
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Treat zero-byte responses from async HTTP clients as not having a payload, regardless of the response content-length. This fixes an issue that could cause HEAD responses (e.g. s3's headObject responses) with a content-length specified from being treated as having a payload. This fixes issues like [#1216](https://github.com/aws/aws-sdk-java-v2/issues/1216) where the SDK attempts to read data from the response based on the content-length, not based on whether there was actually a payload.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Documentation updates for DevOps Guru.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add c5n.metal to ec2 instance types list
+
+# __2.15.45__ __2020-12-11__
+## __AWS CloudTrail__
+  - ### Features
+    - CloudTrailInvalidClientTokenIdException is now thrown when a call results in the InvalidClientTokenId error code. The Name parameter of the AdvancedEventSelector data type is now optional.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Added the ListAssetRelationships operation and support for composite asset models, which represent structured sets of properties within asset models.
+
+## __AWS Performance Insights__
+  - ### Features
+    - You can group DB load according to the dimension groups for database, application, and session type. Amazon RDS also supports the dimensions db.name, db.application.name, and db.session_type.name.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Documentation updates for monitoring
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Documentation updates for GuardDuty
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates and corrections for Amazon EC2 Auto Scaling API Reference and SDKs.
+
+# __2.15.44__ __2020-12-10__
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support for Transit Gateway Connect integration into AWS Network Manager.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports adding synonyms to an index through the new Thesaurus resource.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - TGW connect simplifies connectivity of SD-WAN appliances; IGMP support for TGW multicast; VPC Reachability Analyzer for VPC resources connectivity analysis.
+
+# __2.15.43__ __2020-12-09__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release adds support for custom routing accelerators
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for G4ad instances powered by AMD Radeon Pro V520 GPUs and AMD 2nd Generation EPYC processors
+
+## __Amazon Redshift__
+  - ### Features
+    - Add support for availability zone relocation feature.
+
+# __2.15.42__ __2020-12-08__
+## __AWS Audit Manager__
+  - ### Features
+    - AWS Audit Manager helps you continuously audit your AWS usage to simplify how you manage risk and compliance. This update releases the first version of the AWS Audit Manager APIs and SDK.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - The SDK will now retry on `TransactionInProgressException` error code.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - 1. Amazon Kendra connector for Google Drive repositories 2. Amazon Kendra's relevance ranking models are regularly tuned for each customer by capturing end-user search patterns and feedback.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds support for configuring cross-region and cross-account replication of your Amazon ECR images.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This release adds support for Amazon EMR on EKS, a simple way to run Spark on Kubernetes.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - This release adds support for the Amazon Forecast Weather Index which can increase forecasting accuracy by automatically including weather forecasts in demand forecasts.
+
+## __Amazon HealthLake__
+  - ### Features
+    - This release introduces Amazon HealthLake (preview), a HIPAA-eligible service that enables healthcare and life sciences customers to store, transform, query, and analyze health data in the AWS Cloud.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added new parameters for join optimization.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - This feature allows customers to invoke their endpoint with an inference ID. If used and data capture for the endpoint is enabled, this ID will be captured along with request data.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This feature helps you monitor model performance characteristics such as accuracy, identify undesired bias in your ML models, and explain model decisions better with explainability drift detection.
+
+## __Amazon Sagemaker Edge Manager__
+  - ### Features
+    - Amazon SageMaker Edge Manager makes it easy to optimize, secure, monitor, and maintain machine learning (ML) models across fleets of edge devices such as smart cameras, smart speakers, and robots.
+
+# __2.15.41__ __2020-12-07__
+## __AWS Common Runtime HTTP Client__
+  - ### Features
+    - Bump up `aws-crt` version to `0.9.0`
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Added PreserveTransaction setting to preserve order of CDC for S3 as target. Added CsvNoSupValue setting to replace empty value for columns not included in the supplemental log for S3 as target.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added amz-sdk-request and removed amz-sdk-retry header. The new header matches the behavior of the other SDKs.
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - AWS Service Catalog AppRegistry now supports adding, removing, and listing tags on resources after they are created.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed the issue where certain handshake errors manifested as acquire connection timeout error when using TLS1.3 and proxy.
+
+# __2.15.40__ __2020-12-04__
+## __AWS Directory Service__
+  - ### Features
+    - Documentation updates for ds - updated descriptions
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports black video and audio silence as new conditions to trigger automatic input failover.
+
+## __AWS Lambda__
+  - ### Features
+    - Added the additional enum InvalidImage to StateReasonCode and LastUpdateStatusReasonCode fields.
+
+## __AWS License Manager__
+  - ### Features
+    - Automated Discovery now has support for custom tags, and detects software uninstalls.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Avoid costly metrics collection when metric collector is NoOpMetricCollector.
+        - Contributed by: @croudet
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces tag-on-create capability for the CreateImage API. A user can now specify tags that will be applied to the new resources (image, snapshots or both), during creation time.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for Amazon RDS Cross-Region Automated Backups, the ability to setup automatic replication of snapshots and transaction logs from a primary AWS Region to a secondary AWS Region.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager Patch Manager MAC OS Support and OpsMetadata Store APIs to store operational metadata for an Application.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Update the import-workspace-image API to have "BYOL_REGULAR_WSP" as a valid input string for ingestion-process.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Adding HEALING to ClusterState.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+@croudet
 # __2.15.39__ __2020-12-03__
 ## __AWS Batch__
   - ### Features
@@ -9835,5 +10085,5 @@ Special thanks to the following contributors to this release:
 # __2.0.0-preview-1__ __2017-06-28__
 ## __AWS SDK for Java v2__
   - ### Features
-    - Initial release of the AWS SDK for Java v2. See our [blog post](https://aws.amazon.com/blogs/developer/aws-sdk-for-java-2-0-developer-preview) for information about this new major veresion. This release is considered a developer preview and is not intended for production use cases.
+    - Initial release of the AWS SDK for Java v2. See our [blog post](https://aws.amazon.com/blogs/developer/aws-sdk-for-java-2-0-developer-preview) for information about this new major version. This release is considered a developer preview and is not intended for production use cases.
 

@@ -22,6 +22,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.CLOSED_CHANNEL_MESSAGE;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -310,7 +311,7 @@ public final class NettyRequestExecutor {
         } else if (originalCause instanceof WriteTimeoutException) {
             return new IOException("Write timed out", originalCause);
         } else if (originalCause instanceof ClosedChannelException) {
-            return new IOException(getMessageForClosedChannel(), originalCause);
+            return new IOException(CLOSED_CHANNEL_MESSAGE, originalCause);
         }
 
         return originalCause;
@@ -367,12 +368,6 @@ public final class NettyRequestExecutor {
                 + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
                 + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
                 + "AWS, or by increasing the number of hosts sending requests.";
-    }
-
-    private String getMessageForClosedChannel() {
-        return "The channel was closed. This may have been done by the client (e.g. because the request was aborted), " +
-               "by the service (e.g. because the request took too long or the client tried to write on a read-only socket), " +
-               "or by an intermediary party (e.g. because the channel was idle for too long).";
     }
 
     /**

@@ -1,0 +1,72 @@
+{
+    "version": "2.15.42",
+    "date": "2020-12-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Added new parameters for join optimization."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon HealthLake",
+            "contributor": "",
+            "description": "This release introduces Amazon HealthLake (preview), a HIPAA-eligible service that enables healthcare and life sciences customers to store, transform, query, and analyze health data in the AWS Cloud."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Sagemaker Edge Manager",
+            "contributor": "",
+            "description": "Amazon SageMaker Edge Manager makes it easy to optimize, secure, monitor, and maintain machine learning (ML) models across fleets of edge devices such as smart cameras, smart speakers, and robots."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR Containers",
+            "contributor": "",
+            "description": "This release adds support for Amazon EMR on EKS, a simple way to run Spark on Kubernetes."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "The SDK will now retry on `TransactionInProgressException` error code."
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "1. Amazon Kendra connector for Google Drive repositories 2. Amazon Kendra's relevance ranking models are regularly tuned for each customer by capturing end-user search patterns and feedback."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Audit Manager",
+            "contributor": "",
+            "description": "AWS Audit Manager helps you continuously audit your AWS usage to simplify how you manage risk and compliance. This update releases the first version of the AWS Audit Manager APIs and SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "contributor": "",
+            "description": "This release adds support for configuring cross-region and cross-account replication of your Amazon ECR images."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Service",
+            "contributor": "",
+            "description": "This release adds support for the Amazon Forecast Weather Index which can increase forecasting accuracy by automatically including weather forecasts in demand forecasts."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This feature helps you monitor model performance characteristics such as accuracy, identify undesired bias in your ML models, and explain model decisions better with explainability drift detection."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Runtime",
+            "contributor": "",
+            "description": "This feature allows customers to invoke their endpoint with an inference ID. If used and data capture for the endpoint is enabled, this ID will be captured along with request data."
+        }
+    ]
+}
