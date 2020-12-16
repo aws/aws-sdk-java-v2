@@ -1,3 +1,28 @@
+# __2.15.48__ __2020-12-16__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release updates the "MonitorArnList" from a list of String to be a list of Arn for both CreateAnomalySubscription and UpdateAnomalySubscription APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This is the first release of AWS Well-Architected Tool API support, use to review your workload and compare against the latest AWS architectural best practices.
+
+## __Amazon Location Service__
+  - ### Features
+    - Initial release of Amazon Location Service. A new geospatial service providing capabilities to render maps, geocode/reverse geocode, track device locations, and detect geofence entry/exit events.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Documentation updates for Amazon Managed Service for Prometheus
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight now supports connecting to federated data sources of Athena
+
 # __2.15.47__ __2020-12-15__
 ## __AWS IoT__
   - ### Features
