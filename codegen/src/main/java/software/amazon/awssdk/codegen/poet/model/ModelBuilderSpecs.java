@@ -27,7 +27,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -216,9 +215,6 @@ class ModelBuilderSpecs {
                       accessors.add(accessorsFactory.beanStyleGetter(m));
 
                       List<MethodSpec> fluentSetters = accessorsFactory.fluentSetters(m, builderInterfaceName());
-                      if (isEvent()) {
-                          fluentSetters = stripAnnotation(fluentSetters, SafeVarargs.class);
-                      }
                       accessors.addAll(fluentSetters);
 
                       accessors.addAll(accessorsFactory.beanStyleSetters(m));
@@ -294,23 +290,5 @@ class ModelBuilderSpecs {
         superInterfaces.add(ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
                 classToBuild().nestedClass("Builder"), classToBuild()));
         return superInterfaces;
-    }
-
-    private MethodSpec stripAnnotation(MethodSpec methodSpec, Class<?> annotation) {
-        MethodSpec.Builder builder = methodSpec.toBuilder();
-        builder.annotations.clear();
-        methodSpec.annotations.forEach(a -> {
-            if (!a.type.equals(ClassName.get(annotation))) {
-                builder.addAnnotation(a);
-            }
-        });
-
-        return builder.build();
-    }
-
-    private List<MethodSpec> stripAnnotation(List<MethodSpec> methodSpecs, Class<?> annotation) {
-        return methodSpecs.stream()
-                .map(m -> stripAnnotation(m, annotation))
-                .collect(Collectors.toList());
     }
 }
