@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Well-Architected Tool",
+    "contributor": "",
+    "description": "This is the first release of AWS Well-Architected Tool API support, use to review your workload and compare against the latest AWS architectural best practices."
+}
