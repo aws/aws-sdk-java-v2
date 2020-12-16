@@ -174,6 +174,15 @@ public class CustomizationConfig {
     private boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations = false;
 
     /**
+     * Customization to instruct the code generator to use the legacy model generation scheme for the given events.
+     * <p>
+     * <b>NOTE</b>This customization is primarily here to preserve backwards compatibility with existing code before the
+     * generation scheme for the visitor methods was changed. There should be no good reason to use this customization
+     * for any other purpose.
+     */
+    private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
+
+    /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
@@ -439,6 +448,14 @@ public class CustomizationConfig {
         boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations) {
         this.allowEndpointOverrideForEndpointDiscoveryRequiredOperations =
             allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
+    }
+
+    public Map<String, List<String>> getUseLegacyEventGenerationScheme() {
+        return useLegacyEventGenerationScheme;
+    }
+
+    public void setUseLegacyEventGenerationScheme(Map<String, List<String>> useLegacyEventGenerationScheme) {
+        this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
     }
 
     public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {

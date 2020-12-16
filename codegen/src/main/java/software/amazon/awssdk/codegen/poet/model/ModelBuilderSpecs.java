@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static java.util.stream.Collectors.toList;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -25,7 +27,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -47,6 +48,7 @@ class ModelBuilderSpecs {
     private final TypeProvider typeProvider;
     private final PoetExtensions poetExtensions;
     private final AccessorsFactory accessorsFactory;
+    private final ShapeModelSpec shapeModelSpec;
 
     ModelBuilderSpecs(IntermediateModel intermediateModel,
                       ShapeModel shapeModel,
@@ -56,6 +58,7 @@ class ModelBuilderSpecs {
         this.typeProvider = typeProvider;
         this.poetExtensions = new PoetExtensions(this.intermediateModel);
         this.accessorsFactory = new AccessorsFactory(this.shapeModel, this.intermediateModel, this.typeProvider, poetExtensions);
+        this.shapeModelSpec = new ShapeModelSpec(shapeModel, typeProvider, poetExtensions, intermediateModel);
     }
 
     public ClassName builderInterfaceName() {
@@ -102,22 +105,19 @@ class ModelBuilderSpecs {
         return builder.build();
     }
 
-    private ClassName parentExceptionBuilder() {
-        String customExceptionBase = intermediateModel.getCustomizationConfig()
-                .getSdkModeledExceptionBaseClassName();
-        if (customExceptionBase != null) {
-            return poetExtensions.getModelClass(customExceptionBase);
-        }
-        return poetExtensions.getModelClass(intermediateModel.getSdkModeledExceptionBaseClassName());
-    }
-
     public TypeSpec beanStyleBuilder() {
         TypeSpec.Builder builderClassBuilder = TypeSpec.classBuilder(builderImplName())
                 .addSuperinterface(builderInterfaceName())
                 // TODO: Uncomment this once property shadowing is fixed
                 //.addSuperinterface(copyableBuilderSuperInterface())
                 .superclass(builderImplSuperClass())
-                .addModifiers(Modifier.STATIC, Modifier.FINAL);
+                .addModifiers(Modifier.STATIC);
+
+        if (!isEvent()) {
+            builderClassBuilder.addModifiers(Modifier.FINAL);
+        } else {
+            builderClassBuilder.addModifiers(Modifier.PROTECTED);
+        }
 
         if (isException()) {
             builderClassBuilder.superclass(parentExceptionBuilder().nestedClass("BuilderImpl"));
@@ -129,8 +129,16 @@ class ModelBuilderSpecs {
         builderClassBuilder.addMethods(accessors());
         builderClassBuilder.addMethod(buildMethod());
         builderClassBuilder.addMethod(sdkFieldsMethod());
-
         return builderClassBuilder.build();
+    }
+
+    private ClassName parentExceptionBuilder() {
+        String customExceptionBase = intermediateModel.getCustomizationConfig()
+                .getSdkModeledExceptionBaseClassName();
+        if (customExceptionBase != null) {
+            return poetExtensions.getModelClass(customExceptionBase);
+        }
+        return poetExtensions.getModelClass(intermediateModel.getSdkModeledExceptionBaseClassName());
     }
 
     private MethodSpec sdkFieldsMethod() {
@@ -170,20 +178,22 @@ class ModelBuilderSpecs {
                                 .build();
                     }
                     return fieldSpec;
-                }).collect(Collectors.toList());
+                }).collect(toList());
 
         return fields;
     }
 
     private MethodSpec noargConstructor() {
+        Modifier modifier = isEvent() ? Modifier.PROTECTED : Modifier.PRIVATE;
         MethodSpec.Builder ctorBuilder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE);
+                .addModifiers(modifier);
         return ctorBuilder.build();
     }
 
     private MethodSpec modelCopyConstructor() {
+        Modifier modifier = isEvent() ? Modifier.PROTECTED : Modifier.PRIVATE;
         MethodSpec.Builder copyBuilderCtor = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE)
+                .addModifiers(modifier)
                 .addParameter(classToBuild(), "model");
 
         if (isRequest() || isResponse() || isException()) {
@@ -203,7 +213,10 @@ class ModelBuilderSpecs {
         shapeModel.getNonStreamingMembers()
                   .forEach(m -> {
                       accessors.add(accessorsFactory.beanStyleGetter(m));
-                      accessors.addAll(accessorsFactory.fluentSetters(m, builderInterfaceName()));
+
+                      List<MethodSpec> fluentSetters = accessorsFactory.fluentSetters(m, builderInterfaceName());
+                      accessors.addAll(fluentSetters);
+
                       accessors.addAll(accessorsFactory.beanStyleSetters(m));
                       accessors.addAll(accessorsFactory.convenienceSetters(m, builderInterfaceName()));
                   });
@@ -246,7 +259,7 @@ class ModelBuilderSpecs {
     }
 
     private ClassName classToBuild() {
-        return poetExtensions.getModelClass(shapeModel.getShapeName());
+        return shapeModelSpec.className();
     }
 
     private boolean isException() {
@@ -259,6 +272,10 @@ class ModelBuilderSpecs {
 
     private boolean isResponse() {
         return shapeModel.getShapeType() == ShapeType.Response;
+    }
+
+    private boolean isEvent() {
+        return shapeModel.isEvent();
     }
 
     private List<TypeName> builderSuperInterfaces() {

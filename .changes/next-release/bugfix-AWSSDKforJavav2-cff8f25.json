@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "This change fixes a bug in the code generation related to eventstreams that prevents multiple events to share the same shape."
+}
