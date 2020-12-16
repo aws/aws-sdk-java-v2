@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "contributor": "",
+    "description": "This release updates the \"MonitorArnList\" from a list of String to be a list of Arn for both CreateAnomalySubscription and UpdateAnomalySubscription APIs"
+}
