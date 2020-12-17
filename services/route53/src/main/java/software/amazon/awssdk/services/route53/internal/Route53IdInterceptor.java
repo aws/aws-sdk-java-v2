@@ -21,14 +21,20 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.services.route53.model.ActivateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.AliasTarget;
 import software.amazon.awssdk.services.route53.model.ChangeInfo;
 import software.amazon.awssdk.services.route53.model.ChangeResourceRecordSetsResponse;
 import software.amazon.awssdk.services.route53.model.CreateHealthCheckResponse;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;
+import software.amazon.awssdk.services.route53.model.CreateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.CreateReusableDelegationSetResponse;
+import software.amazon.awssdk.services.route53.model.DeactivateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.DelegationSet;
 import software.amazon.awssdk.services.route53.model.DeleteHostedZoneResponse;
+import software.amazon.awssdk.services.route53.model.DeleteKeySigningKeyResponse;
+import software.amazon.awssdk.services.route53.model.DisableHostedZoneDnssecResponse;
+import software.amazon.awssdk.services.route53.model.EnableHostedZoneDnssecResponse;
 import software.amazon.awssdk.services.route53.model.GetChangeResponse;
 import software.amazon.awssdk.services.route53.model.GetHealthCheckResponse;
 import software.amazon.awssdk.services.route53.model.GetHostedZoneResponse;
@@ -140,6 +146,40 @@ public final class Route53IdInterceptor implements ExecutionInterceptor {
                                                .map(this::removePrefix)
                                                .collect(Collectors.toList()))
                          .build();
+
+        } else if (response instanceof CreateKeySigningKeyResponse) {
+            CreateKeySigningKeyResponse result = (CreateKeySigningKeyResponse) response;
+            return result.toBuilder()
+                    .changeInfo(removePrefix(result.changeInfo()))
+                    .build();
+
+        } else if (response instanceof DeleteKeySigningKeyResponse) {
+            DeleteKeySigningKeyResponse result = (DeleteKeySigningKeyResponse) response;
+            return result.toBuilder()
+                    .changeInfo(removePrefix(result.changeInfo()))
+                    .build();
+
+        } else if (response instanceof ActivateKeySigningKeyResponse) {
+            ActivateKeySigningKeyResponse result = (ActivateKeySigningKeyResponse) response;
+            return result.toBuilder()
+                    .changeInfo(removePrefix(result.changeInfo()))
+                    .build();
+        } else if (response instanceof DeactivateKeySigningKeyResponse) {
+            DeactivateKeySigningKeyResponse result = (DeactivateKeySigningKeyResponse) response;
+            return result.toBuilder()
+                    .changeInfo(removePrefix(result.changeInfo()))
+                    .build();
+
+        } else if (response instanceof EnableHostedZoneDnssecResponse) {
+            EnableHostedZoneDnssecResponse result = (EnableHostedZoneDnssecResponse) response;
+            return result.toBuilder()
+                    .changeInfo(removePrefix(result.changeInfo()))
+                    .build();
+        } else if (response instanceof DisableHostedZoneDnssecResponse) {
+            DisableHostedZoneDnssecResponse result = (DisableHostedZoneDnssecResponse) response;
+            return result.toBuilder()
+                    .changeInfo(removePrefix(result.changeInfo()))
+                    .build();
         }
 
         return response;
