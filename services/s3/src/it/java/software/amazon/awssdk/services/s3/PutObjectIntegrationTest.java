@@ -38,7 +38,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
  * Integration tests for {@code PutObject}.
  */
 public class PutObjectIntegrationTest extends S3IntegrationTestBase {
-    private static final String BUCKET = temporaryBucketName(UploadLargeObjectIntegrationTest.class);
+    private static final String BUCKET = temporaryBucketName(PutObjectIntegrationTest.class);
     private static final String KEY = "key";
     private static final byte[] CONTENT = "Hello".getBytes(StandardCharsets.UTF_8);
 
