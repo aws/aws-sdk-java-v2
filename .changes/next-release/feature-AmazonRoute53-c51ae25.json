@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53",
+    "contributor": "",
+    "description": "This release adds support for DNSSEC signing in Amazon Route 53."
+}
