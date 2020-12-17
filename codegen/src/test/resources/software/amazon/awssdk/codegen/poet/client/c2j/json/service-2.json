@@ -414,6 +414,9 @@
         },
         "EventTheSecond": {
           "shape": "EventTwo"
+        },
+        "secondEventOne": {
+          "shape": "EventOne"
         }
       },
       "eventstream": true

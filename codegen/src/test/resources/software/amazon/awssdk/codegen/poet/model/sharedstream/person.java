@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkField;
@@ -22,14 +23,14 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.Builder, Person>, EventStream {
+public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.Builder, Person>, EventStream {
     private static final SdkField<String> NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Name")
-                                                                                                        .getter(getter(Person::name)).setter(setter(Builder::name))
-                                                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
+            .getter(getter(Person::name)).setter(setter(Builder::name))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
 
     private static final SdkField<Instant> BIRTHDAY_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-        .memberName("Birthday").getter(getter(Person::birthday)).setter(setter(Builder::birthday))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
+            .memberName("Birthday").getter(getter(Person::birthday)).setter(setter(Builder::birthday))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NAME_FIELD, BIRTHDAY_FIELD));
 
@@ -39,26 +40,26 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
 
     private final Instant birthday;
 
-    private Person(BuilderImpl builder) {
+    protected Person(BuilderImpl builder) {
         this.name = builder.name;
         this.birthday = builder.birthday;
     }
 
     /**
      * Returns the value of the Name property for this object.
-     *
+     * 
      * @return The value of the Name property for this object.
      */
-    public String name() {
+    public final String name() {
         return name;
     }
 
     /**
      * Returns the value of the Birthday property for this object.
-     *
+     * 
      * @return The value of the Birthday property for this object.
      */
-    public Instant birthday() {
+    public final Instant birthday() {
         return birthday;
     }
 
@@ -76,7 +77,7 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(name());
         hashCode = 31 * hashCode + Objects.hashCode(birthday());
@@ -84,12 +85,12 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -108,23 +109,28 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
      * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("Person").add("Name", name()).add("Birthday", birthday()).build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "Name":
-                return Optional.ofNullable(clazz.cast(name()));
-            case "Birthday":
-                return Optional.ofNullable(clazz.cast(birthday()));
-            default:
-                return Optional.empty();
+        case "Name":
+            return Optional.ofNullable(clazz.cast(name()));
+        case "Birthday":
+            return Optional.ofNullable(clazz.cast(birthday()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final Person copy(Consumer<? super Builder> modifier) {
+        return ToCopyableBuilder.super.copy(modifier);
+    }
+
+    @Override
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -144,7 +150,7 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
      */
     @Override
     public void accept(StreamBirthsResponseHandler.Visitor visitor) {
-        visitor.visit(this);
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -155,7 +161,7 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
      */
     @Override
     public void accept(StreamDeathsResponseHandler.Visitor visitor) {
-        visitor.visit(this);
+        throw new UnsupportedOperationException();
     }
 
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, Person> {
@@ -178,15 +184,15 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
         Builder birthday(Instant birthday);
     }
 
-    static final class BuilderImpl implements Builder {
+    protected static class BuilderImpl implements Builder {
         private String name;
 
         private Instant birthday;
 
-        private BuilderImpl() {
+        protected BuilderImpl() {
         }
 
-        private BuilderImpl(Person model) {
+        protected BuilderImpl(Person model) {
             name(model.name);
             birthday(model.birthday);
         }
@@ -230,3 +236,4 @@ public final class Person implements SdkPojo, Serializable, ToCopyableBuilder<Pe
         }
     }
 }
+

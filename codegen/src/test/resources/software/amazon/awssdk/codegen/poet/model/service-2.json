@@ -409,7 +409,16 @@
         "EventOne": {
           "shape": "EventOne"
         },
+        "SecondEventOne": {
+          "shape": "EventOne"
+        },
         "EventTwo": {
+          "shape": "EventTwo"
+        },
+        "SecondEventTwo": {
+          "shape": "EventTwo"
+        },
+        "eventthree": {
           "shape": "EventTwo"
         }
       },
