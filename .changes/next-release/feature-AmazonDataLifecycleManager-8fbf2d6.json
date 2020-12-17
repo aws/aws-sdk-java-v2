@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Data Lifecycle Manager",
+    "contributor": "",
+    "description": "Provide Cross-account copy event based policy support in DataLifecycleManager (DLM)"
+}
