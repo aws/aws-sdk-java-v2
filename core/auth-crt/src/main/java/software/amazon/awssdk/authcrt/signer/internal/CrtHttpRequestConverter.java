@@ -36,18 +36,17 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
-
 @SdkInternalApi
-public final class CrtHttpUtils {
+public final class CrtHttpRequestConverter {
 
     private static final String SLASH = "/";
     private static final String HOST_HEADER = "Host";
     private static final int READ_BUFFER_SIZE = 4096;
 
-    private CrtHttpUtils() {
+    public CrtHttpRequestConverter() {
     }
 
-    public static HttpRequest createCrtRequest(SdkHttpFullRequest inputRequest) {
+    public HttpRequest createCrtRequest(SdkHttpFullRequest inputRequest) {
         String method = inputRequest.method().name();
         String encodedPath = encodedPathToCrtFormat(inputRequest.encodedPath());
 
@@ -60,13 +59,65 @@ public final class CrtHttpUtils {
         Optional<ContentStreamProvider> contentProvider = inputRequest.contentStreamProvider();
         HttpRequestBodyStream crtInputStream = null;
         if (contentProvider.isPresent()) {
-            crtInputStream = new CrtHttpUtils.CrtInputStream(contentProvider.get());
+            crtInputStream = new CrtHttpRequestConverter.CrtInputStream(contentProvider.get());
         }
 
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtInputStream);
     }
 
-    private static HttpHeader[] createHttpHeaderArray(SdkHttpFullRequest request) {
+    public SdkHttpFullRequest createSignedSdkRequest(SdkHttpFullRequest inputRequest, HttpRequest signedCrtRequest) {
+        SdkHttpFullRequest.Builder builder = inputRequest.toBuilder();
+
+        builder.clearHeaders();
+        for (HttpHeader header : signedCrtRequest.getHeaders()) {
+            builder.appendHeader(header.getName(), header.getValue());
+        }
+
+        URI fullUri = null;
+        try {
+            String portString = SdkHttpUtils.isUsingStandardPort(builder.protocol(), builder.port()) ? "" : ":" + builder.port();
+            String encodedPath = encodedPathFromCrtFormat(inputRequest.encodedPath(), signedCrtRequest.getEncodedPath());
+            String fullUriString = builder.protocol() + "://" + builder.host() + portString + encodedPath;
+            fullUri = new URI(fullUriString);
+        } catch (URISyntaxException e) {
+            return null;
+        }
+
+        builder.encodedPath(fullUri.getRawPath());
+        String remainingQuery = fullUri.getQuery();
+
+        builder.clearQueryParameters();
+        while (remainingQuery != null && remainingQuery.length() > 0) {
+            int nextQuery = remainingQuery.indexOf('&');
+            int nextAssign = remainingQuery.indexOf('=');
+            if (nextAssign < nextQuery || (nextAssign >= 0 && nextQuery < 0)) {
+                String queryName = remainingQuery.substring(0, nextAssign);
+                String queryValue = remainingQuery.substring(nextAssign + 1);
+                if (nextQuery >= 0) {
+                    queryValue = remainingQuery.substring(nextAssign + 1, nextQuery);
+                }
+
+                builder.appendRawQueryParameter(queryName, queryValue);
+            } else {
+                String queryName = remainingQuery;
+                if (nextQuery >= 0) {
+                    queryName = remainingQuery.substring(0, nextQuery);
+                }
+
+                builder.appendRawQueryParameter(queryName, null);
+            }
+
+            if (nextQuery >= 0) {
+                remainingQuery = remainingQuery.substring(nextQuery + 1);
+            } else {
+                break;
+            }
+        }
+
+        return builder.build();
+    }
+
+    private HttpHeader[] createHttpHeaderArray(SdkHttpFullRequest request) {
         List<HttpHeader> crtHeaderList = new ArrayList<>(request.headers().size() + 2);
 
         // Set Host Header if needed
@@ -85,6 +136,21 @@ public final class CrtHttpUtils {
         return crtHeaderList.toArray(new HttpHeader[0]);
     }
 
+    //TODO When CRT can work with SDK format empty paths, this method can be removed
+    private static String encodedPathToCrtFormat(String sdkEncodedPath) {
+        if (StringUtils.isEmpty(sdkEncodedPath)) {
+            return "/";
+        }
+        return sdkEncodedPath;
+    }
+
+    //TODO When CRT can work with SDK empty paths, this method can be removed
+    private static String encodedPathFromCrtFormat(String sdkEncodedPath, String crtEncodedPath) {
+        if (SLASH.equals(crtEncodedPath) && StringUtils.isEmpty(sdkEncodedPath)) {
+            return "";
+        }
+        return crtEncodedPath;
+    }
 
     private static class CrtInputStream implements HttpRequestBodyStream {
         private ContentStreamProvider provider;
@@ -137,73 +203,4 @@ public final class CrtHttpUtils {
             providerStream = provider.newStream();
         }
     }
-
-    public static SdkHttpFullRequest createSignedSdkRequest(SdkHttpFullRequest inputRequest, HttpRequest signedCrtRequest) {
-        SdkHttpFullRequest.Builder builder = inputRequest.toBuilder();
-
-        builder.clearHeaders();
-        for (HttpHeader header : signedCrtRequest.getHeaders()) {
-            builder.appendHeader(header.getName(), header.getValue());
-        }
-
-        URI fullUri = null;
-        try {
-            String portString = SdkHttpUtils.isUsingStandardPort(builder.protocol(), builder.port()) ? "" : ":" + builder.port();
-            String encodedPath = encodedPathFromCrtFormat(inputRequest.encodedPath(), signedCrtRequest.getEncodedPath());
-            String fullUriString = builder.protocol() + "://" + builder.host() + portString + encodedPath;
-            fullUri = new URI(fullUriString);
-        } catch (URISyntaxException e) {
-            return null;
-        }
-
-        builder.encodedPath(fullUri.getRawPath());
-        String remainingQuery = fullUri.getQuery();
-
-        builder.clearQueryParameters();
-        while (remainingQuery != null && remainingQuery.length() > 0) {
-            int nextQuery = remainingQuery.indexOf('&');
-            int nextAssign = remainingQuery.indexOf('=');
-            if (nextAssign < nextQuery || (nextAssign >= 0 && nextQuery < 0)) {
-                String queryName = remainingQuery.substring(0, nextAssign);
-                String queryValue = remainingQuery.substring(nextAssign + 1);
-                if (nextQuery >= 0) {
-                    queryValue = remainingQuery.substring(nextAssign + 1, nextQuery);
-                }
-
-                builder.appendRawQueryParameter(queryName, queryValue);
-            } else {
-                String queryName = remainingQuery;
-                if (nextQuery >= 0) {
-                    queryName = remainingQuery.substring(0, nextQuery);
-                }
-
-                builder.appendRawQueryParameter(queryName, null);
-            }
-
-            if (nextQuery >= 0) {
-                remainingQuery = remainingQuery.substring(nextQuery + 1);
-            } else {
-                break;
-            }
-        }
-
-        return builder.build();
-    }
-
-    //TODO When CRT can work with SDK format empty paths, this method can be removed
-    private static String encodedPathToCrtFormat(String sdkEncodedPath) {
-        if (StringUtils.isEmpty(sdkEncodedPath)) {
-            return "/";
-        }
-        return sdkEncodedPath;
-    }
-
-    //TODO When CRT can work with SDK empty paths, this method can be removed
-    private static String encodedPathFromCrtFormat(String sdkEncodedPath, String crtEncodedPath) {
-        if (SLASH.equals(crtEncodedPath) && StringUtils.isEmpty(sdkEncodedPath)) {
-            return "";
-        }
-        return crtEncodedPath;
-    }
-
 }

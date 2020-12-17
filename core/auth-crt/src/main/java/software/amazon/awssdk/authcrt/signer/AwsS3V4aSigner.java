@@ -15,79 +15,38 @@
 
 package software.amazon.awssdk.authcrt.signer;
 
-import java.util.Optional;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
-import software.amazon.awssdk.authcrt.signer.internal.AbstractAws4aSigner;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsS3V4ASigner;
+import software.amazon.awssdk.core.signer.Presigner;
+import software.amazon.awssdk.core.signer.Signer;
 
 /**
- * s3-specific signer implementation that signs requests with the asymmetric AWS4 (aws4a) signing protocol.
+ * Enables signing and presigning for S3 using Sigv4a (Asymmetric Sigv4) through an external API call to the AWS CRT
+ *  (Common RunTime) library.
+ * <p/><b>S3 signing specifics</b><br>
+ * For S3, the header "x-amz-sha256" must always be set for a request.
+ * <p/>
+ * S3 signs the payload signing if:
+ * <ol>
+ * <li> there's a body and an insecure protocol (HTTP) is used.</li>
+ * <li> explicitly asked to via configuration/interceptor.</li>
+ * </ol>
+ * Otherwise, the body hash value will be UNSIGNED-PAYLOAD.
+ *  <p/>
+ *  See <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html">
+ *      Amazon S3 Sigv4 documentation</a> for more detailed information.
  */
 @SdkPublicApi
-public class AwsS3V4aSigner extends AbstractAws4aSigner {
-
-    private AwsS3V4aSigner() {
-    }
+@Immutable
+@ThreadSafe
+public interface AwsS3V4aSigner extends Signer, Presigner {
 
     /**
-     * Creates a new AwsS3V4aSigner instance
-     * @return a new AwsS3V4aSigner instance
+     * Create a default AwsS34aSigner.
      */
-    public static AwsS3V4aSigner create() {
-        return new AwsS3V4aSigner();
-    }
-
-    @Override
-    protected void fillInCrtSigningConfig(AwsSigningConfig signingConfig,
-                                          SdkHttpFullRequest request,
-                                          ExecutionAttributes executionAttributes) {
-        super.fillInCrtSigningConfig(signingConfig, request, executionAttributes);
-
-        /*
-         * Always add x-amz-content-sha256 to s3 requests
-         */
-        signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
-
-        /*
-         * S3 Payload signing rules:
-         *
-         *  (1) Sign payload if there's a body and we're over an insecure protocol
-         *  (2) Sign payload if explicitly asked to via execution attribute
-         *
-         * otherwise use UNSIGNED-PAYLOAD for the body hash value
-         *
-         */
-        boolean signPayload = false;
-        if (!request.protocol().equals("https") && request.contentStreamProvider() != null) {
-            signPayload = true;
-        }
-
-        /*
-         * Sha256 the body if requested via execution attributes, otherwise use UNSIGNED_PAYLOAD
-         * In CRT signing, Sha256 will be done by default unless an override value is specified.
-         */
-        Optional<Boolean> signPayloadAttribute = Optional.ofNullable(executionAttributes.getAttribute(
-                S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
-        if (signPayloadAttribute != null && signPayloadAttribute.isPresent() && signPayloadAttribute.get() == true) {
-            signPayload = true;
-        }
-
-        if (!signPayload) {
-            signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
-        }
-    }
-
-    @Override
-    protected void fillInCrtPresigningConfig(AwsSigningConfig signingConfig,
-                                             SdkHttpFullRequest request,
-                                             ExecutionAttributes executionAttributes) {
-
-        super.fillInCrtPresigningConfig(signingConfig, request, executionAttributes);
-
-        signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
-        signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
+    static AwsS3V4aSigner create() {
+        return DefaultAwsS3V4ASigner.create();
     }
 }

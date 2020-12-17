@@ -22,7 +22,7 @@ import java.net.URI;
 import java.util.Optional;
 import org.junit.Test;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
-import software.amazon.awssdk.authcrt.signer.AwsS3V4aSigner;
+import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsS3V4ASigner;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -50,7 +50,7 @@ public class SignerOverrideInterceptorTest {
                                                        createExecutionParameters(false));
 
         assertThat(request.overrideConfiguration()).isPresent();
-        assertThat(request.overrideConfiguration().get().signer().get()).isInstanceOf(AwsS3V4aSigner.class);
+        assertThat(request.overrideConfiguration().get().signer().get()).isInstanceOf(DefaultAwsS3V4ASigner.class);
     }
 
     @Test
