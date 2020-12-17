@@ -17,20 +17,32 @@ package software.amazon.awssdk.authcrt.signer.internal;
 
 import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 
-
 @SdkInternalApi
 public class SigningUtils {
+
+    /**
+     * Attribute allowing the user to inject a clock that will be used for the signing timestamp
+     */
+    public static final ExecutionAttribute<Clock> SIGNING_CLOCK = new ExecutionAttribute<>("SigningClock");
 
     private static final String BODY_HASH_NAME = "x-amz-content-sha256";
     private static final String DATE_NAME = "X-Amz-Date";
@@ -43,12 +55,39 @@ public class SigningUtils {
     private static final String SIGNED_HEADERS_NAME = "X-Amz-SignedHeaders";
     private static final String EXPIRES_NAME = "X-Amz-Expires";
 
-    private static Set<String> FORBIDDEN_HEADERS = buildForbiddenHeaderSet();
-    private static Set<String> FORBIDDEN_PARAMS = buildForbiddenQueryParamSet();
+    private static final Set<String> FORBIDDEN_HEADERS = buildForbiddenHeaderSet();
+    private static final Set<String> FORBIDDEN_PARAMS = buildForbiddenQueryParamSet();
 
     private static final String HOST_HEADER = "Host";
 
     private SigningUtils() {
+    }
+
+    public static Credentials buildCredentials(ExecutionAttributes executionAttributes) {
+        AwsCredentials sdkCredentials = SigningUtils.sanitizeCredentials(
+            executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS));
+        byte[] sessionToken = null;
+        if (sdkCredentials instanceof AwsSessionCredentials) {
+            AwsSessionCredentials sessionCreds = (AwsSessionCredentials) sdkCredentials;
+            sessionToken = sessionCreds.sessionToken().getBytes(StandardCharsets.UTF_8);
+        }
+
+        return new Credentials(sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8),
+                               sdkCredentials.secretAccessKey().getBytes(StandardCharsets.UTF_8), sessionToken);
+    }
+
+    public static Clock getSigningClock(ExecutionAttributes executionAttributes) {
+        Clock clock = executionAttributes.getAttribute(SIGNING_CLOCK);
+        if (clock != null) {
+            return clock;
+        }
+
+        Clock baseClock = Clock.systemUTC();
+        Optional<Integer> timeOffset = Optional.ofNullable(executionAttributes.getAttribute(
+            AwsSignerExecutionAttribute.TIME_OFFSET));
+        return timeOffset
+            .map(offset -> Clock.offset(baseClock, Duration.ofSeconds(-offset)))
+            .orElse(baseClock);
     }
 
     public static AwsCredentials sanitizeCredentials(AwsCredentials credentials) {

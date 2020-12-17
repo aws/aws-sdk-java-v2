@@ -156,7 +156,7 @@
 
     <Match>
         <Or>
-            <Class name="software.amazon.awssdk.authcrt.signer.AwsS3V4aSigner"/>
+            <Class name="software.amazon.awssdk.authcrt.signer.internal.DefaultAwsS3V4ASigner"/>
             <Class name="software.amazon.awssdk.authcrt.signer.internal.BaseCrtAws4aSigner"/>
         </Or>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>

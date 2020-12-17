@@ -15,23 +15,28 @@
 
 package software.amazon.awssdk.authcrt.signer;
 
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.authcrt.signer.internal.AbstractAws4aSigner;
+import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsV4ASigner;
+import software.amazon.awssdk.core.signer.Presigner;
+import software.amazon.awssdk.core.signer.Signer;
 
 /**
- * Signer implementation that signs requests with the asymmetric AWS4 (aws4a) signing protocol.
+ * Enables signing and presigning using Sigv4a (Asymmetric Sigv4) through an external API call to the AWS CRT
+ *  (Common RunTime) library.
+ *  <p/>
+ * In CRT signing, payload signing is the default unless an override value is specified.
  */
 @SdkPublicApi
-public final class Aws4aSigner extends AbstractAws4aSigner {
-
-    private Aws4aSigner() {
-    }
+@Immutable
+@ThreadSafe
+public interface AwsV4aSigner extends Signer, Presigner {
 
     /**
-     * Creates an instance of an Aws Sigv4a signer
-     * @return an instance of an Aws Sigv4a signer
+     * Create a default Aws4aSigner.
      */
-    public static Aws4aSigner create() {
-        return new Aws4aSigner();
+    static AwsV4aSigner create() {
+        return DefaultAwsV4ASigner.create();
     }
 }
