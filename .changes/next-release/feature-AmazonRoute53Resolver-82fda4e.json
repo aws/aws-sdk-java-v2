@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Route 53 Resolver",
-    "contributor": "",
-    "description": "Route 53 Resolver adds support for enabling resolver DNSSEC validation in virtual private cloud (VPC)."
-}

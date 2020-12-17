@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Key Management Service",
-    "contributor": "",
-    "description": "Added CreationDate and LastUpdatedDate timestamps to ListAliases API response"
-}

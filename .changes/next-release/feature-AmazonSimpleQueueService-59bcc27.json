@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Queue Service",
-    "contributor": "",
-    "description": "Amazon SQS adds queue attributes to enable high throughput FIFO."
-}

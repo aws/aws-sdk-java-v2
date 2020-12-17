@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "This release adds support for building and distributing container images within EC2 Image Builder."
-}
