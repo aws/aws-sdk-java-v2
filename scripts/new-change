@@ -61,7 +61,7 @@ type: {change_type}
 # or "AWS SDK for Java v2" if it's an SDK change to the core, runtime etc
 category: {category}
 
-# Your GitHub user name to be included in the CHANGELOG.
+# Your GitHub username (without '@') to be included in the CHANGELOG.
 # Every contribution counts and we would like to recognize
 # your contribution!
 # Leave it empty if you would prefer not to be mentioned.
@@ -148,7 +148,8 @@ def write_new_change(parsed_values):
 
     contributor = parsed_values['contributor']
     if contributor and contributor.strip:
-        parsed_values['contributor'] = "@" + contributor
+        contributor = remove_prefix(contributor, '@')
+        parsed_values['contributor'] = contributor
 
     short_summary = ''.join(filter(lambda x: x in VALID_CHARS, category))
     contents = json.dumps(parsed_values, indent=4) + "\n"
@@ -162,6 +163,10 @@ def write_new_change(parsed_values):
         f.write(contents)
     return filename
 
+def remove_prefix(text, prefix):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
 
 def parse_filled_in_contents(contents):
     """Parse filled in file contents and returns parsed dict.

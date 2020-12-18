@@ -1,3 +1,67 @@
+# __2.15.50__ __2020-12-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Upgrading jackson.databind.version to 2.10.5.1
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EBS io2 volumes now supports Multi-Attach
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Updated FilterValues regex pattern to align with Filter Expression.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds IAM DB authentication information to the PendingModifiedValues output of the DescribeDBInstances API. Adds ClusterPendingModifiedValues information to the output of the DescribeDBClusters API.
+
+# __2.15.49__ __2020-12-17__
+## __AWS Config__
+  - ### Features
+    - Adding PutExternalEvaluation API which grants permission to deliver evaluation result to AWS Config
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added CreationDate and LastUpdatedDate timestamps to ListAliases API response
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - This change fixes a bug in the code generation related to eventstreams that prevents multiple events to share the same shape.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Support TagOptions sharing with Service Catalog portfolio sharing.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Provide Cross-account copy event based policy support in DataLifecycleManager (DLM)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - C6gn instances are powered by AWS Graviton2 processors and offer 100 Gbps networking bandwidth. These instances deliver up to 40% better price-performance benefit versus comparable x86-based instances
+
+## __Amazon Route 53__
+  - ### Features
+    - This release adds support for DNSSEC signing in Amazon Route 53.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Route 53 Resolver adds support for enabling resolver DNSSEC validation in virtual private cloud (VPC).
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Amazon SQS adds queue attributes to enable high throughput FIFO.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for building and distributing container images within EC2 Image Builder.
+
 # __2.15.48__ __2020-12-16__
 ## __AWS Cost Explorer Service__
   - ### Features
@@ -222,7 +286,7 @@
 ## __AWS SDK for Java v2__
   - ### Bugfixes
     - Avoid costly metrics collection when metric collector is NoOpMetricCollector.
-        - Contributed by: @croudet
+        - Contributed by: [@croudet](https://github.com/croudet)
 
 ## __Amazon Elastic Compute Cloud__
   - ### Features
@@ -247,7 +311,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-@croudet
+[@croudet](https://github.com/croudet)
 # __2.15.39__ __2020-12-03__
 ## __AWS Batch__
   - ### Features
@@ -801,7 +865,7 @@ Special thanks to the following contributors to this release:
 ## __AWS SDK for Java v2__
   - ### Bugfixes
     - Fix default client error to have spaces between words.
-        - Contributed by: @frosforever
+        - Contributed by: [@frosforever](https://github.com/frosforever)
     - Replaced class loading from Thread.currentThread().getContextClassLoader() to ClassLoaderHelper in ProfileCredentialsUtils and WebIdentityCredentialsUtils, since it was causing Class not found error.
 
 ## __Amazon Elastic Compute Cloud__
@@ -823,7 +887,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-@frosforever
+[@frosforever](https://github.com/frosforever)
 # __2.15.24__ __2020-11-09__
 ## __AWS DataSync__
   - ### Features

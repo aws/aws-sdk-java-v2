@@ -23,9 +23,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilder<SubTypeOne.Builder, SubTypeOne> {
     private static final SdkField<String> SUB_TYPE_ONE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-        .memberName("SubTypeOneMember").getter(getter(SubTypeOne::subTypeOneMember))
-        .setter(setter(Builder::subTypeOneMember))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SubTypeOneMember").build()).build();
+            .memberName("SubTypeOneMember").getter(getter(SubTypeOne::subTypeOneMember))
+            .setter(setter(Builder::subTypeOneMember))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SubTypeOneMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(SUB_TYPE_ONE_MEMBER_FIELD));
 
@@ -39,10 +39,10 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
 
     /**
      * Returns the value of the SubTypeOneMember property for this object.
-     *
+     * 
      * @return The value of the SubTypeOneMember property for this object.
      */
-    public String subTypeOneMember() {
+    public final String subTypeOneMember() {
         return subTypeOneMember;
     }
 
@@ -60,19 +60,19 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(subTypeOneMember());
         return hashCode;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -91,21 +91,21 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
      * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("SubTypeOne").add("SubTypeOneMember", subTypeOneMember()).build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "SubTypeOneMember":
-                return Optional.ofNullable(clazz.cast(subTypeOneMember()));
-            default:
-                return Optional.empty();
+        case "SubTypeOneMember":
+            return Optional.ofNullable(clazz.cast(subTypeOneMember()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -163,3 +163,4 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
         }
     }
 }
+

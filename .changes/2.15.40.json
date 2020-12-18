@@ -29,7 +29,7 @@
         {
             "type": "bugfix",
             "category": "AWS SDK for Java v2",
-            "contributor": "@croudet",
+            "contributor": "croudet",
             "description": "Avoid costly metrics collection when metric collector is NoOpMetricCollector."
         },
         {
