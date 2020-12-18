@@ -26,7 +26,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
-import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsS3V4ASigner;
+import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtS3V4aSigner;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.signer.Signer;
@@ -86,7 +86,7 @@ public class MultiRegionAccessPointSigningFunctionalTest {
 
     @Test
     public void multiRegionArn_requestAndClientSignerOverride_usesRequestOverrideSigner() {
-        S3Client s3Client = clientBuilderWithOverrideSigner(DefaultAwsS3V4ASigner.create()).build();
+        S3Client s3Client = clientBuilderWithOverrideSigner(DefaultAwsCrtS3V4aSigner.create()).build();
         s3Client.listObjects(ListObjectsRequest.builder()
                                                .bucket(MRAP_ARN)
                                                .overrideConfiguration(s -> s.signer(AwsS3V4Signer.create()))

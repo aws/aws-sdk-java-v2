@@ -18,7 +18,7 @@ package software.amazon.awssdk.authcrt.signer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsV4ASigner;
+import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtV4aSigner;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 
@@ -31,12 +31,12 @@ import software.amazon.awssdk.core.signer.Signer;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface AwsV4aSigner extends Signer, Presigner {
+public interface AwsCrtV4aSigner extends Signer, Presigner {
 
     /**
      * Create a default Aws4aSigner.
      */
-    static AwsV4aSigner create() {
-        return DefaultAwsV4ASigner.create();
+    static AwsCrtV4aSigner create() {
+        return DefaultAwsCrtV4aSigner.create();
     }
 }

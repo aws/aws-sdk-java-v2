@@ -18,6 +18,7 @@ package software.amazon.awssdk.authcrt.signer.internal;
 import static java.lang.Math.min;
 import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
@@ -46,7 +48,7 @@ public final class CrtHttpRequestConverter {
     public CrtHttpRequestConverter() {
     }
 
-    public HttpRequest createCrtRequest(SdkHttpFullRequest inputRequest) {
+    public HttpRequest requestToCrt(SdkHttpFullRequest inputRequest) {
         String method = inputRequest.method().name();
         String encodedPath = encodedPathToCrtFormat(inputRequest.encodedPath());
 
@@ -65,7 +67,7 @@ public final class CrtHttpRequestConverter {
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtInputStream);
     }
 
-    public SdkHttpFullRequest createSignedSdkRequest(SdkHttpFullRequest inputRequest, HttpRequest signedCrtRequest) {
+    public SdkHttpFullRequest crtRequestToHttp(SdkHttpFullRequest inputRequest, HttpRequest signedCrtRequest) {
         SdkHttpFullRequest.Builder builder = inputRequest.toBuilder();
 
         builder.clearHeaders();
@@ -117,6 +119,15 @@ public final class CrtHttpRequestConverter {
         return builder.build();
     }
 
+    public SdkSigningResult crtResultToAws(SdkHttpFullRequest originalRequest, AwsSigningResult signingResult) {
+        SdkHttpFullRequest sdkHttpFullRequest = crtRequestToHttp(originalRequest, signingResult.getSignedRequest());
+        return new SdkSigningResult(signingResult.getSignature(), sdkHttpFullRequest);
+    }
+
+    public HttpRequestBodyStream toCrtStream(byte[] data) {
+        return new CrtByteArrayInputStream(data);
+    }
+
     private HttpHeader[] createHttpHeaderArray(SdkHttpFullRequest request) {
         List<HttpHeader> crtHeaderList = new ArrayList<>(request.headers().size() + 2);
 
@@ -150,6 +161,56 @@ public final class CrtHttpRequestConverter {
             return "";
         }
         return crtEncodedPath;
+    }
+
+    private static class CrtByteArrayInputStream implements HttpRequestBodyStream {
+        private byte[] data;
+        private byte[] readBuffer;
+        private ByteArrayInputStream providerStream;
+
+        CrtByteArrayInputStream(byte[] data) {
+            this.data = data;
+            this.readBuffer = new byte[READ_BUFFER_SIZE];
+        }
+
+        @Override
+        public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
+            int read = 0;
+
+            try {
+                if (providerStream == null) {
+                    createNewStream();
+                }
+                int toRead = min(READ_BUFFER_SIZE, bodyBytesOut.remaining());
+                read = providerStream.read(readBuffer, 0, toRead);
+
+                if (read > 0) {
+                    bodyBytesOut.put(readBuffer, 0, read);
+                }
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+
+            return read < 0;
+        }
+
+        @Override
+        public boolean resetPosition() {
+            try {
+                createNewStream();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+
+            return true;
+        }
+
+        private void createNewStream() throws IOException {
+            if (providerStream != null) {
+                providerStream.close();
+            }
+            providerStream = new ByteArrayInputStream(data);
+        }
     }
 
     private static class CrtInputStream implements HttpRequestBodyStream {
@@ -186,6 +247,9 @@ public final class CrtHttpRequestConverter {
 
         @Override
         public boolean resetPosition() {
+            if (provider == null) {
+                throw new IllegalStateException("Cannot reset position while provider is null");
+            }
             try {
                 createNewStream();
             } catch (IOException ioe) {
@@ -196,10 +260,12 @@ public final class CrtHttpRequestConverter {
         }
 
         private void createNewStream() throws IOException {
+            if (provider == null) {
+                throw new IllegalStateException("Cannot create a new stream while provider is null");
+            }
             if (providerStream != null) {
                 providerStream.close();
             }
-
             providerStream = provider.newStream();
         }
     }
