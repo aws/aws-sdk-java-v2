@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize Runtime",
+    "contributor": "",
+    "description": "Updated FilterValues regex pattern to align with Filter Expression."
+}
