@@ -1,3 +1,23 @@
+# __2.15.50__ __2020-12-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Upgrading jackson.databind.version to 2.10.5.1
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EBS io2 volumes now supports Multi-Attach
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Updated FilterValues regex pattern to align with Filter Expression.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds IAM DB authentication information to the PendingModifiedValues output of the DescribeDBInstances API. Adds ClusterPendingModifiedValues information to the output of the DescribeDBClusters API.
+
 # __2.15.49__ __2020-12-17__
 ## __AWS Config__
   - ### Features
@@ -266,7 +286,7 @@
 ## __AWS SDK for Java v2__
   - ### Bugfixes
     - Avoid costly metrics collection when metric collector is NoOpMetricCollector.
-        - Contributed by: @croudet
+        - Contributed by: [@croudet](https://github.com/croudet)
 
 ## __Amazon Elastic Compute Cloud__
   - ### Features
@@ -291,7 +311,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-@croudet
+[@croudet](https://github.com/croudet)
 # __2.15.39__ __2020-12-03__
 ## __AWS Batch__
   - ### Features
@@ -845,7 +865,7 @@ Special thanks to the following contributors to this release:
 ## __AWS SDK for Java v2__
   - ### Bugfixes
     - Fix default client error to have spaces between words.
-        - Contributed by: @frosforever
+        - Contributed by: [@frosforever](https://github.com/frosforever)
     - Replaced class loading from Thread.currentThread().getContextClassLoader() to ClassLoaderHelper in ProfileCredentialsUtils and WebIdentityCredentialsUtils, since it was causing Class not found error.
 
 ## __Amazon Elastic Compute Cloud__
@@ -867,7 +887,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-@frosforever
+[@frosforever](https://github.com/frosforever)
 # __2.15.24__ __2020-11-09__
 ## __AWS DataSync__
   - ### Features
