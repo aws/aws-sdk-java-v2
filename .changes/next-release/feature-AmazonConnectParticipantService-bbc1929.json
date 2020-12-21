@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Participant Service",
-    "contributor": "",
-    "description": "This release adds three new APIs: StartAttachmentUpload, CompleteAttachmentUpload, and GetAttachment. For Amazon Connect Chat, you can use these APIs to share files in chat conversations."
-}

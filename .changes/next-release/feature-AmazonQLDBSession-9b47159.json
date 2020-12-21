@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QLDB Session",
-    "contributor": "",
-    "description": "Adds \"TimingInformation\" to all SendCommand API results and \"IOUsage\" to ExecuteStatementResult, FetchPageResult and CommitTransactionResult."
-}

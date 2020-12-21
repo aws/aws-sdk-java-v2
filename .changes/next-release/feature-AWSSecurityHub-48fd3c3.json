@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SecurityHub",
-    "contributor": "",
-    "description": "Finding providers can now use BatchImportFindings to update Confidence, Criticality, RelatedFindings, Severity, and Types."
-}
