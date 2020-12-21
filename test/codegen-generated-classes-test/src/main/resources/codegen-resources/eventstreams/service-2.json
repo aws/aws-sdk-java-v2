@@ -75,7 +75,7 @@
     "EventStream": {
       "type": "structure",
       "members": {
-        "EventOne": {
+        "TheEventOne": {
           "shape": "EventOne"
         },
         "LegacyGeneratedEvent": {
