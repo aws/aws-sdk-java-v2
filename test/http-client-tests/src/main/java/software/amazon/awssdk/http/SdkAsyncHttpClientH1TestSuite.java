@@ -118,6 +118,15 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
         assertThat(server.channels.size()).isEqualTo(2);
     }
 
+    @Test
+    public void headRequestResponsesHaveNoPayload() {
+        byte[] responseData = HttpTestUtils.sendHeadRequest(server.port(), client).join();
+
+        // The SDK core differentiates between NO data and ZERO bytes of data. Core expects it to be NO data, not ZERO bytes of
+        // data for head requests.
+        assertThat(responseData).isNull();
+    }
+
     private static class Server extends ChannelInitializer<Channel> {
         private static final byte[] CONTENT = "helloworld".getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;
