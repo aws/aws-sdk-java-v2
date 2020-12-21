@@ -46,7 +46,7 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
     private final EventStreamSpecHelper eventStreamSpecHelper;
 
     public EventStreamVisitorBuilderImplSpec(GeneratorTaskParams params, OperationModel operationModel) {
-        super(params.getPoetExtensions(), operationModel);
+        super(params.getPoetExtensions(), params.getModel(), operationModel);
         this.intermediateModel = params.getModel();
         this.poetExt = params.getPoetExtensions();
         this.opModel = operationModel;
@@ -108,7 +108,7 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
                                                                         MemberModel event) {
             ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
             TypeName eventConsumerType = consumerType(eventSubType);
-            FieldSpec consumerField = FieldSpec.builder(eventConsumerType, eventConsumerName(event))
+            FieldSpec consumerField = FieldSpec.builder(eventConsumerType, eventStreamSpecHelper.eventConsumerName(event))
                                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                                                .build();
             typeBuilder.addField(consumerField);
@@ -138,7 +138,7 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
                                                                  MemberModel event) {
         ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
         TypeName eventConsumerType = consumerType(eventSubType);
-        FieldSpec consumerField = FieldSpec.builder(eventConsumerType, eventConsumerName(event))
+        FieldSpec consumerField = FieldSpec.builder(eventConsumerType, eventStreamSpecHelper.eventConsumerName(event))
                                            .addModifiers(Modifier.PRIVATE)
                                            .build();
         typeBuilder.addField(consumerField);

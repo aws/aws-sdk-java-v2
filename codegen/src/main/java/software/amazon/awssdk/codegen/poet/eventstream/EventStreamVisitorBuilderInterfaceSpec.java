@@ -23,13 +23,14 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
+import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 
 /**
  * Spec for builder interface for visitor.
@@ -39,12 +40,16 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
     private final OperationModel operationModel;
     private final ShapeModel eventStreamShape;
     private final ClassName visitorBuilderType;
+    private final EventStreamSpecHelper eventStreamSpecHelper;
 
-    EventStreamVisitorBuilderInterfaceSpec(PoetExtensions poetExt, OperationModel opModel) {
+    EventStreamVisitorBuilderInterfaceSpec(PoetExtensions poetExt,
+                                           IntermediateModel intermediateModel,
+                                           OperationModel opModel) {
         this.poetExt = poetExt;
         this.operationModel = opModel;
         this.eventStreamShape = EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape());
         this.visitorBuilderType = poetExt.eventStreamResponseHandlerVisitorBuilderType(opModel);
+        this.eventStreamSpecHelper = new EventStreamSpecHelper(eventStreamShape, intermediateModel);
     }
 
     @Override
@@ -121,13 +126,9 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
     private MethodSpec.Builder createOnSubTypeMethodSpec(MemberModel event) {
         ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
         ParameterizedTypeName eventConsumerType = ParameterizedTypeName.get(ClassName.get(Consumer.class), eventSubType);
-        return MethodSpec.methodBuilder(eventConsumerName(event))
+        return MethodSpec.methodBuilder(eventStreamSpecHelper.eventConsumerName(event))
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(ParameterSpec.builder(eventConsumerType, "c").build())
                          .returns(visitorBuilderType);
-    }
-
-    protected final String eventConsumerName(MemberModel event) {
-        return "on" + CodegenNamingUtils.pascalCase(event.getName());
     }
 }

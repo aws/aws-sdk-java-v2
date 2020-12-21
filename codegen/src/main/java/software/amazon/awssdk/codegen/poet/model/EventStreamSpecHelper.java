@@ -96,4 +96,11 @@ public final class EventStreamSpecHelper {
     public String eventBuilderMethodName(MemberModel eventModel) {
         return String.format("%sBuilder", StringUtils.uncapitalize(eventModel.getName()));
     }
+
+    public String eventConsumerName(MemberModel eventModel) {
+        if (useLegacyGenerationScheme(eventModel)) {
+            return "on" + eventModel.getShape().getShapeName();
+        }
+        return "on" + eventModel.getName();
+    }
 }

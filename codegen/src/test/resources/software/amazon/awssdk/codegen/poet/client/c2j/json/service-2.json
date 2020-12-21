@@ -417,6 +417,10 @@
         },
         "secondEventOne": {
           "shape": "EventOne"
+        },
+        // Legacy generation uses shape name == event name
+        "eventThree": {
+          "shape": "LegacyEventThree"
         }
       },
       "eventstream": true
@@ -434,6 +438,15 @@
       "type": "structure",
       "members": {
         "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "LegacyEventThree": {
+      "type": "structure",
+      "members": {
+        "Baz": {
           "shape": "String"
         }
       },

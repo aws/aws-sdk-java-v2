@@ -305,6 +305,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventStream::eventOneBuilder)
                             .putSdkPojoSupplier("EventTheSecond", EventStream::eventTheSecondBuilder)
                             .putSdkPojoSupplier("secondEventOne", EventStream::secondEventOneBuilder)
+                            .putSdkPojoSupplier("eventThree", EventStream::eventThreeBuilder)
                             .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
@@ -468,6 +469,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventStream::eventOneBuilder)
                             .putSdkPojoSupplier("EventTheSecond", EventStream::eventTheSecondBuilder)
                             .putSdkPojoSupplier("secondEventOne", EventStream::secondEventOneBuilder)
+                            .putSdkPojoSupplier("eventThree", EventStream::eventThreeBuilder)
                             .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
