@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "contributor": "",
+    "description": "AWS Config adds support to save advanced queries. New API operations - GetStoredQuery, PutStoredQuery, ListStoredQueries, DeleteStoredQuery"
+}
