@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog App Registry",
+    "contributor": "",
+    "description": "New API `SyncResouce` to update AppRegistry system tags."
+}
