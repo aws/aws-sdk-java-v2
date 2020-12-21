@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "AWS DMS launches support for AWS Secrets Manager to manage source and target database credentials."
+}
