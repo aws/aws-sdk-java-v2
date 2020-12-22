@@ -197,7 +197,8 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
                + "      \"" + HASH_KEY_NAME + "\":{  \n"
                + "         \"S\":\"" + HASH_KEY_VALUE + "\"\n"
                + "      }\n"
-               + "   }\n"
+               + "   },\n"
+               + "   \"ConsistentRead\": true"
                + "}".trim();
     }
 
@@ -221,6 +222,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
         Map<String, AttributeValue> item =
             client.getItem(GetItemRequest.builder()
                                          .tableName(TABLE_NAME)
+                                         .consistentRead(true)
                                          .key(Collections.singletonMap(HASH_KEY_NAME, AttributeValue.builder()
                                                                                                     .s(HASH_KEY_VALUE)
                                                                                                     .build()))
