@@ -35,6 +35,7 @@ import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
  */
 class EventStreamVisitorInterfaceSpec implements ClassSpec {
     private final PoetExtensions poetExt;
+    private final IntermediateModel intermediateModel;
     private final OperationModel operationModel;
     private final ShapeModel eventStreamShape;
     private final ClassName eventStreamBaseClass;
@@ -42,6 +43,7 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
 
     EventStreamVisitorInterfaceSpec(IntermediateModel intermediateModel, PoetExtensions poetExt, OperationModel operationModel) {
         this.poetExt = poetExt;
+        this.intermediateModel = intermediateModel;
         this.operationModel = operationModel;
         this.eventStreamShape = EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape());
         this.eventStreamBaseClass = poetExt.getModelClassFromShape(eventStreamShape);
@@ -72,7 +74,8 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                         .addJavadoc("Visitor for subtypes of {@link $T}.", eventStreamBaseClass)
                         .addMethod(createBuilderMethodSpec())
-                        .addType(new EventStreamVisitorBuilderInterfaceSpec(poetExt, operationModel).poetSpec());
+                        .addType(new EventStreamVisitorBuilderInterfaceSpec(poetExt, intermediateModel, operationModel)
+                                .poetSpec());
     }
 
     protected TypeSpec.Builder finalizeTypeSpec(TypeSpec.Builder builder) {

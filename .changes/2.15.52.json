@@ -1,0 +1,54 @@
+{
+    "version": "2.15.52",
+    "date": "2020-12-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Documentation updates for elasticache"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds support for quick connects. For details, see the Release Notes in the Amazon Connect Administrator Guide."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue Find Matches machine learning transforms now support column importance scores."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "SSM Maintenance Window support for registering/updating maintenance window tasks without targets."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release adds additional metadata that may be applicable to the Rightsizing Recommendations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Adding the ability to use Fingerprint in GetPartnerAccount and ListPartnerAccounts API responses to protect sensitive customer account information."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds customer-owned IP address (CoIP) support to Amazon RDS on AWS Outposts."
+        }
+    ]
+}
