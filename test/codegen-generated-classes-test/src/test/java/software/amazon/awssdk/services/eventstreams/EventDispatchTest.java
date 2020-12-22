@@ -47,7 +47,7 @@ public class EventDispatchTest {
     private Consumer<EventStream> onDefaultConsumer;
 
     @Mock
-    private Consumer<EventOne> eventOneConsumer;
+    private Consumer<EventOne> theEventOneConsumer;
 
     @Mock
     private Consumer<EventOne> legacyGeneratedEventConsumer;
@@ -62,28 +62,28 @@ public class EventDispatchTest {
     public ExpectedException expected = ExpectedException.none();
 
     @Test
-    public void test_acceptEventOne_correctVisitorMethodCalled() {
-        EventStream eventStream = EventStream.eventOneBuilder().build();
+    public void test_acceptTheEventOne_correctVisitorMethodCalled() {
+        EventStream eventStream = EventStream.theEventOneBuilder().build();
         eventStream.accept(visitor);
 
-        verify(visitor).visitEventOne(Mockito.eq((EventOne) eventStream));
+        verify(visitor).visitTheEventOne(Mockito.eq((EventOne) eventStream));
         verifyNoMoreInteractions(visitor);
     }
 
     @Test
-    public void test_acceptEventOne_visitorBuiltWithBuilder_correctVisitorMethodCalled() {
+    public void test_acceptTheEventOne_visitorBuiltWithBuilder_correctVisitorMethodCalled() {
         EventStreamOperationResponseHandler.Visitor visitor = visitorBuiltWithBuilder();
-        EventStream eventStream = EventStream.eventOneBuilder().build();
+        EventStream eventStream = EventStream.theEventOneBuilder().build();
 
         eventStream.accept(visitor);
 
-        verify(eventOneConsumer).accept(eq((EventOne) eventStream));
+        verify(theEventOneConsumer).accept(eq((EventOne) eventStream));
         verifyNoMoreConsumerInteractions();
     }
 
     @Test
     public void test_acceptLegacyGeneratedEvent_correctVisitorMethodCalled() {
-        EventStream eventStream = EventStream.legacyGeneratedEventBuilder().build();
+        EventStream eventStream = EventOne.builder().build();
         eventStream.accept(visitor);
 
         // Note: notice the visit() method rather than visitLegacyGeneratedEvent()
@@ -94,7 +94,7 @@ public class EventDispatchTest {
     @Test
     public void test_acceptLegacyGeneratedEvent_visitorBuiltWithBuilder_correctVisitorMethodCalled() {
         EventStreamOperationResponseHandler.Visitor visitor = visitorBuiltWithBuilder();
-        EventStream eventStream = EventStream.legacyGeneratedEventBuilder().build();
+        EventStream eventStream = EventOne.builder().build();
 
         eventStream.accept(visitor);
 
@@ -155,15 +155,15 @@ public class EventDispatchTest {
     private EventStreamOperationResponseHandler.Visitor visitorBuiltWithBuilder() {
         return EventStreamOperationResponseHandler.Visitor.builder()
                 .onDefault(onDefaultConsumer)
-                .onEventOne(eventOneConsumer)
+                .onTheEventOne(theEventOneConsumer)
                 .onEventTwo(eventTwoConsumer)
-                .onLegacyGeneratedEvent(legacyGeneratedEventConsumer)
+                .onEventOne(legacyGeneratedEventConsumer)
                 .onSecondEventTwo(secondEventTwoConsumer)
                 .build();
     }
 
     private void verifyNoMoreConsumerInteractions() {
-        verifyNoMoreInteractions(onDefaultConsumer, eventOneConsumer, eventTwoConsumer, legacyGeneratedEventConsumer,
+        verifyNoMoreInteractions(onDefaultConsumer, theEventOneConsumer, eventTwoConsumer, legacyGeneratedEventConsumer,
                 secondEventTwoConsumer);
     }
 }

@@ -15,6 +15,8 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
 
     private Consumer<EventOne> onSecondEventOne;
 
+    private Consumer<LegacyEventThree> onLegacyEventThree;
+
     @Override
     public EventStreamOperationResponseHandler.Visitor.Builder onDefault(Consumer<EventStream> c) {
         this.onDefault = c;
@@ -44,6 +46,12 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
         return this;
     }
 
+    @Override
+    public EventStreamOperationResponseHandler.Visitor.Builder onLegacyEventThree(Consumer<LegacyEventThree> c) {
+        this.onLegacyEventThree = c;
+        return this;
+    }
+
     @Generated("software.amazon.awssdk:codegen")
     static class VisitorFromBuilder implements EventStreamOperationResponseHandler.Visitor {
         private final Consumer<EventStream> onDefault;
@@ -54,6 +62,8 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
 
         private final Consumer<EventOne> onSecondEventOne;
 
+        private final Consumer<LegacyEventThree> onLegacyEventThree;
+
         VisitorFromBuilder(DefaultEventStreamOperationVisitorBuilder builder) {
             this.onDefault = builder.onDefault != null ? builder.onDefault
                     : EventStreamOperationResponseHandler.Visitor.super::visitDefault;
@@ -63,6 +73,8 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
                     : EventStreamOperationResponseHandler.Visitor.super::visitEventTheSecond;
             this.onSecondEventOne = builder.onSecondEventOne != null ? builder.onSecondEventOne
                     : EventStreamOperationResponseHandler.Visitor.super::visitSecondEventOne;
+            this.onLegacyEventThree = builder.onLegacyEventThree != null ? builder.onLegacyEventThree
+                    : EventStreamOperationResponseHandler.Visitor.super::visit;
         }
 
         @Override
@@ -83,6 +95,11 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
         @Override
         public void visitSecondEventOne(EventOne event) {
             onSecondEventOne.accept(event);
+        }
+
+        @Override
+        public void visit(LegacyEventThree event) {
+            onLegacyEventThree.accept(event);
         }
     }
 }

@@ -108,6 +108,17 @@ public interface EventStreamOperationResponseHandler extends
         }
 
         /**
+         * Invoked when a {@link LegacyEventThree} is encountered. If this is not overridden, the event will be given to
+         * {@link #visitDefault(EventStream)}.
+         *
+         * @param event
+         *        Event being visited
+         */
+        default void visit(LegacyEventThree event) {
+            visitDefault(event);
+        }
+
+        /**
          * Builder for {@link Visitor}. The {@link Visitor} class may also be extended for a more traditional style but
          * this builder allows for a more functional way of creating a visitor will callback methods.
          */
@@ -153,6 +164,15 @@ public interface EventStreamOperationResponseHandler extends
              * @return This builder for method chaining.
              */
             Builder onSecondEventOne(Consumer<EventOne> c);
+
+            /**
+             * Callback to invoke when a {@link LegacyEventThree} is visited.
+             *
+             * @param c
+             *        Callback to process the event.
+             * @return This builder for method chaining.
+             */
+            Builder onLegacyEventThree(Consumer<LegacyEventThree> c);
         }
     }
 }
