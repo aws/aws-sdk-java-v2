@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "contributor": "",
+    "description": "SSM Maintenance Window support for registering/updating maintenance window tasks without targets."
+}
