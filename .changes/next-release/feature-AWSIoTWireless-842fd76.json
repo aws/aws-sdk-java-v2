@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Wireless",
+    "contributor": "",
+    "description": "Adding the ability to use Fingerprint in GetPartnerAccount and ListPartnerAccounts API responses to protect sensitive customer account information."
+}
