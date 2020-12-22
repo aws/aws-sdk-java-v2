@@ -525,6 +525,7 @@
                             <excludeModule>aws-sdk-java</excludeModule>
                             <excludModeule>archetype-lambda</excludModeule>
                             <excludeModule>sdk-benchmarks</excludeModule>
+                            <excludeModule>iotwireless</excludeModule>
                             <excludeModule>bundle</excludeModule>
                             <excludeModule>transcribestreaming</excludeModule>
                             <!-- ignore crt because it's in preview TODO: remove this when CRT is GA -->
