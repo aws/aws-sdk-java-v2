@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "Adds customer-owned IP address (CoIP) support to Amazon RDS on AWS Outposts."
+}
