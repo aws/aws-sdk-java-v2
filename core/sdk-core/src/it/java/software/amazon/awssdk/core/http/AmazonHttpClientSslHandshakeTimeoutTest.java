@@ -20,10 +20,9 @@ import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
+import java.io.IOException;
 import java.time.Duration;
 
-import org.apache.http.conn.ConnectTimeoutException;
-import org.junit.Assert;
 import org.junit.Test;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -76,11 +75,7 @@ public class AmazonHttpClientSslHandshakeTimeoutTest extends UnresponsiveMockSer
              * {@link DefaultHttpClientConnectionOperator#connect(ManagedHttpClientConnection, HttpHost,
              * InetSocketAddress, int, SocketConfig, HttpContext)}
              */
-            assertThat(e).hasCauseInstanceOf(ConnectTimeoutException.class);
-
-            ConnectTimeoutException cte = (ConnectTimeoutException) e.getCause();
-            Assert.assertThat(cte.getMessage(), org.hamcrest.Matchers
-                    .containsString("Read timed out"));
+            assertThat(e).hasCauseInstanceOf(IOException.class);
         }
     }
 }
