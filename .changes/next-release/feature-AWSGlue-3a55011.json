@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "AWS Glue Find Matches machine learning transforms now support column importance scores."
+}
