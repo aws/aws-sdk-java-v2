@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.http;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
@@ -41,7 +42,7 @@ import utils.HttpTestUtils;
  *
  * @link https://issues.apache.org/jira/browse/HTTPCLIENT-1478
  */
-public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends UnresponsiveMockServerTestBase {
+public class AmazonHttpClientSslHandshakeTimeoutTest extends UnresponsiveMockServerTestBase {
 
     private static final Duration CLIENT_SOCKET_TO = Duration.ofSeconds(1);
 
@@ -68,13 +69,14 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
             fail("Client-side socket read timeout is expected!");
 
         } catch (SdkClientException e) {
+            e.printStackTrace();
             /**
              * Http client catches the SocketTimeoutException and throws a
              * ConnectTimeoutException.
              * {@link DefaultHttpClientConnectionOperator#connect(ManagedHttpClientConnection, HttpHost,
              * InetSocketAddress, int, SocketConfig, HttpContext)}
              */
-            Assert.assertTrue(e.getCause() instanceof ConnectTimeoutException);
+            assertThat(e).hasCauseInstanceOf(ConnectTimeoutException.class);
 
             ConnectTimeoutException cte = (ConnectTimeoutException) e.getCause();
             Assert.assertThat(cte.getMessage(), org.hamcrest.Matchers
