@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Resource Groups",
-    "contributor": "",
-    "description": "Add operation `PutGroupConfiguration`. Support dedicated hosts and add `Pending` in operations `Un/GroupResources`. Add `Resources` in `ListGroupResources` and deprecate `ResourceIdentifiers`."
-}
