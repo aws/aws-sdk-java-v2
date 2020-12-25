@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fix for [#1684](https://github.com/aws/aws-sdk-java-v2/issues/1684) Some of the Retry attempts which failed due to the API TimeOuts did not successfully retried but ended up with AbortedException."
+}
