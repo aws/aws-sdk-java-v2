@@ -1,3 +1,8 @@
+# __2.15.54__ __2020-12-28__
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront has deprecated the CreateStreamingDistribution and CreateStreamingDistributionWithTags APIs as part of discontinuing support for Real-Time Messaging Protocol (RTMP) distributions.
+
 # __2.15.53__ __2020-12-23__
 ## __AWS Compute Optimizer__
   - ### Features
