@@ -57,6 +57,12 @@
       "members": {
         "InputEvent": {
           "shape": "InputEvent"
+        },
+        "InputEventB": {
+          "shape": "InputEvent"
+        },
+        "InputEventTwo": {
+          "shape": "InputEventTwo"
         }
       },
       "eventstream": true
@@ -71,6 +77,17 @@
       },
       "event": true
     },
+    "InputEventTwo": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadMember": {
+          "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        }
+      },
+      "event": true
+    },
+
     "ExplicitPayloadMember":{"type":"blob"},
     "EventStream": {
       "type": "structure",

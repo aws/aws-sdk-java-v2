@@ -52,6 +52,7 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMars
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
@@ -60,6 +61,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
@@ -358,16 +360,17 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     private CodeBlock createEventStreamTaggedUnionJsonMarshaller(ShapeModel eventStreamShape) {
+        EventStreamSpecHelper specHelper = new EventStreamSpecHelper(eventStreamShape, model);
+
         CodeBlock.Builder builder = CodeBlock.builder().add("$1T eventMarshaller = $1T.builder()",
                                                             EventStreamTaggedUnionJsonMarshaller.class);
 
-        List<String> eventNames = EventStreamUtils.getEventMembers(eventStreamShape)
-                                                  .map(m -> m.getShape().getShapeName())
+        List<MemberModel> eventMembers = EventStreamUtils.getEventMembers(eventStreamShape)
                                                   .collect(Collectors.toList());
 
-        eventNames.forEach(event -> builder.add(".putMarshaller($T.class, new $T(protocolFactory))",
-                                                poetExtensions.getModelClass(event),
-                                                poetExtensions.getTransformClass(event + "Marshaller")));
+        eventMembers.forEach(event -> builder.add(".putMarshaller($T.class, new $T(protocolFactory))",
+                                                specHelper.eventClassName(event),
+                                                poetExtensions.getTransformClass(event.getShape() + "Marshaller")));
 
         builder.add(".build();");
         return builder.build();
