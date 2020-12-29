@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonApiGatewayV2",
+    "contributor": "",
+    "description": "Amazon API Gateway now supports data mapping for HTTP APIs which allows customers to modify HTTP Request before sending it to their integration and HTTP Response before sending it to the invoker."
+}
