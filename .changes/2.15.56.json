@@ -1,0 +1,24 @@
+{
+    "version": "2.15.56",
+    "date": "2020-12-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Documentation updates for elasticache"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
