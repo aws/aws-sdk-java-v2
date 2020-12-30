@@ -1,3 +1,16 @@
+# __2.15.56__ __2020-12-30__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation updates for elasticache
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation.
+
 # __2.15.55__ __2020-12-29__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
