@@ -1,3 +1,8 @@
+# __2.15.57__ __2020-12-31__
+## __AWS Service Catalog__
+  - ### Features
+    - Enhanced Service Catalog DescribeProvisioningParameters API to return new parameter constraints, i.e., MinLength, MaxLength, MinValue, MaxValue, ConstraintDescription and AllowedPattern
+
 # __2.15.56__ __2020-12-30__
 ## __AWS SDK for Java v2__
   - ### Features

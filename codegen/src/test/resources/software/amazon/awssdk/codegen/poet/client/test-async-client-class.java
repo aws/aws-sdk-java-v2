@@ -68,10 +68,8 @@ import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOu
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponseHandler;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
-import software.amazon.awssdk.services.json.model.InputEvent;
 import software.amazon.awssdk.services.json.model.InputEventStream;
 import software.amazon.awssdk.services.json.model.InputEventStreamTwo;
-import software.amazon.awssdk.services.json.model.InputEventTwo;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.JsonRequest;
@@ -87,6 +85,9 @@ import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationR
 import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
+import software.amazon.awssdk.services.json.model.inputeventstream.DefaultInputEvent;
+import software.amazon.awssdk.services.json.model.inputeventstreamtwo.DefaultInputEventOne;
+import software.amazon.awssdk.services.json.model.inputeventstreamtwo.DefaultInputEventTwo;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher;
 import software.amazon.awssdk.services.json.transform.APostOperationRequestMarshaller;
@@ -311,7 +312,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                     operationMetadata);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
-                    .putMarshaller(InputEvent.class, new InputEventMarshaller(protocolFactory)).build();
+                    .putMarshaller(DefaultInputEvent.class, new InputEventMarshaller(protocolFactory)).build();
             SdkPublisher<InputEventStream> eventPublisher = SdkPublisher.adapt(requestStream);
             Publisher<ByteBuffer> adapted = eventPublisher.map(event -> eventMarshaller.marshall(event)).map(
                     AwsClientHandlerUtils::encodeEventStreamRequestToByteBuffer);
@@ -398,8 +399,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                     operationMetadata);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
-                    .putMarshaller(InputEvent.class, new InputEventMarshaller(protocolFactory))
-                    .putMarshaller(InputEventTwo.class, new InputEventTwoMarshaller(protocolFactory)).build();
+                    .putMarshaller(DefaultInputEventOne.class, new InputEventMarshaller(protocolFactory))
+                    .putMarshaller(DefaultInputEventTwo.class, new InputEventTwoMarshaller(protocolFactory)).build();
             SdkPublisher<InputEventStreamTwo> eventPublisher = SdkPublisher.adapt(requestStream);
             Publisher<ByteBuffer> adapted = eventPublisher.map(event -> eventMarshaller.marshall(event)).map(
                     AwsClientHandlerUtils::encodeEventStreamRequestToByteBuffer);
