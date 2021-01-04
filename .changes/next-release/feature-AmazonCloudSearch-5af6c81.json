@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudSearch",
+    "contributor": "",
+    "description": "This release adds support for new Amazon CloudSearch instances."
+}
