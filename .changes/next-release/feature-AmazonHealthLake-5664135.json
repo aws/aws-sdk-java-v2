@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon HealthLake",
+    "contributor": "",
+    "description": "Amazon HealthLake now supports exporting data from FHIR Data Stores in Preview."
+}
