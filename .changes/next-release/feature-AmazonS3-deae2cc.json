@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "`S3Utilities#getUrl` now supports versionId. See [#2224](https://github.com/aws/aws-sdk-java-v2/issues/2224)"
+}
