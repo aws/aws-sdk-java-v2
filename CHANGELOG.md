@@ -1,3 +1,16 @@
+# __2.15.58__ __2021-01-04__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix for [#1684](https://github.com/aws/aws-sdk-java-v2/issues/1684) Some of the Retry attempts which failed due to the API TimeOuts did not successfully retried but ended up with AbortedException.
+
+## __Amazon CloudSearch__
+  - ### Features
+    - This release adds support for new Amazon CloudSearch instances.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Amazon HealthLake now supports exporting data from FHIR Data Stores in Preview.
+
 # __2.15.57__ __2020-12-31__
 ## __AWS Service Catalog__
   - ### Features
