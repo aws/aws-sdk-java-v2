@@ -124,7 +124,7 @@ public final class S3Utilities {
      *
      * @param getUrlRequest A {@link Consumer} that will call methods on {@link GetUrlRequest.Builder} to create a request.
      * @return A URL for an object stored in Amazon S3.
-     * @throws MalformedURLException Generated Url is malformed
+     * @throws SdkException Generated Url is malformed
      */
     public URL getUrl(Consumer<GetUrlRequest.Builder> getUrlRequest) {
         return getUrl(GetUrlRequest.builder().applyMutation(getUrlRequest).build());
@@ -143,7 +143,7 @@ public final class S3Utilities {
      *
      * @param getUrlRequest request to construct url
      * @return A URL for an object stored in Amazon S3.
-     * @throws MalformedURLException Generated Url is malformed
+     * @throws SdkException Generated Url is malformed
      */
     public URL getUrl(GetUrlRequest getUrlRequest) {
         Region resolvedRegion = resolveRegionForGetUrl(getUrlRequest);
@@ -155,6 +155,7 @@ public final class S3Utilities {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                             .bucket(getUrlRequest.bucket())
                                                             .key(getUrlRequest.key())
+                                                            .versionId(getUrlRequest.versionId())
                                                             .build();
 
         S3EndpointResolverContext resolverContext = S3EndpointResolverContext.builder()
@@ -215,6 +216,10 @@ public final class S3Utilities {
         // encode key
         builder.encodedPath(PathMarshaller.GREEDY.marshall(builder.encodedPath(), "Key", getUrlRequest.key()));
 
+        if (getUrlRequest.versionId() != null) {
+            builder.appendRawQueryParameter("versionId", getUrlRequest.versionId());
+        }
+
         return builder.build();
     }
 
@@ -258,9 +263,9 @@ public final class S3Utilities {
         }
 
         /**
-         * The profile file from the {@link ClientOverrideConfiguration#profileFile()}. This is private and only used when the
-         * utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less confusing
-         * to support the full {@link ClientOverrideConfiguration} object in the future.
+         * The profile file from the {@link ClientOverrideConfiguration#defaultProfileFile()}. This is private and only used
+         * when the utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less
+         * confusing to support the full {@link ClientOverrideConfiguration} object in the future.
          */
         private Builder profileFile(ProfileFile profileFile) {
             this.profileFile = profileFile;
@@ -268,9 +273,9 @@ public final class S3Utilities {
         }
 
         /**
-         * The profile name from the {@link ClientOverrideConfiguration#profileName()}. This is private and only used when the
-         * utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less confusing
-         * to support the full {@link ClientOverrideConfiguration} object in the future.
+         * The profile name from the {@link ClientOverrideConfiguration#defaultProfileFile()}. This is private and only used
+         * when the utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less
+         * confusing to support the full {@link ClientOverrideConfiguration} object in the future.
          */
         private Builder profileName(String profileName) {
             this.profileName = profileName;
