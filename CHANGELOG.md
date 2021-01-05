@@ -1,3 +1,16 @@
+# __2.15.59__ __2021-01-05__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - - ### Features - Add new GetCostcategories API - Support filter for GetDimensions, GetTags and GetCostcategories api - Support sortBy metrics for GetDimensions, GetTags and GetCostcategories api
+
+## __Amazon S3__
+  - ### Features
+    - `S3Utilities#getUrl` now supports versionId. See [#2224](https://github.com/aws/aws-sdk-java-v2/issues/2224)
+
+## __Application Auto Scaling__
+  - ### Features
+    - Documentation updates for Application Auto Scaling
+
 # __2.15.58__ __2021-01-04__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
