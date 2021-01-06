@@ -1,0 +1,24 @@
+{
+    "version": "2.15.60",
+    "date": "2021-01-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "This update increases the number of instance types that can be added to the overrides within an mixed instances group configuration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This release adds support for Amazon EFS, so customers can transfer files over SFTP, FTPS and FTP in and out of Amazon S3 as well as Amazon EFS."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Auto Scaling Plans",
+            "contributor": "",
+            "description": "Documentation updates for AWS Auto Scaling"
+        }
+    ]
+}
