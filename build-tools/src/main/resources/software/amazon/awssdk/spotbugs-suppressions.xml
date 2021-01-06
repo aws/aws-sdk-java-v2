@@ -130,6 +130,12 @@
     </Match>
 
     <Match>
+        <Class name="software.amazon.awssdk.authcrt.signer.internal.SdkSigningResult" />
+        <Method name="getSignature" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
         <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
         <Method name="unmarshallStructured" />
         <Bug pattern="BC_UNCONFIRMED_CAST" />
@@ -152,14 +158,6 @@
         <Class name="software.amazon.awssdk.services.protocolec2.DefaultProtocolEc2Client" />
         <Method name="init" />
         <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
-    </Match>
-
-    <Match>
-        <Or>
-            <Class name="software.amazon.awssdk.authcrt.signer.internal.DefaultAwsS3V4ASigner"/>
-            <Class name="software.amazon.awssdk.authcrt.signer.internal.BaseCrtAws4aSigner"/>
-        </Or>
-        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 
     <!-- https://github.com/spotbugs/spotbugs/issues/600 -->

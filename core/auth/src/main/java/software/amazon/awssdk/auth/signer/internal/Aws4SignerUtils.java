@@ -15,10 +15,15 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Utility methods that is used by the different AWS Signer implementations.
@@ -63,5 +68,41 @@ public final class Aws4SignerUtils {
 
     public static String formatTimestamp(Instant instant) {
         return TIME_FORMATTER.format(instant);
+    }
+
+    /**
+     * Calculates the content length of a request. If the content-length isn't in the header,
+     * the method reads the whole input stream to get the length.
+     */
+    public static long calculateRequestContentLength(SdkHttpFullRequest.Builder mutableRequest) {
+        String contentLength = mutableRequest.firstMatchingHeader(Header.CONTENT_LENGTH)
+                                             .orElse(null);
+        long originalContentLength;
+        if (contentLength != null) {
+            originalContentLength = Long.parseLong(contentLength);
+        } else {
+            try {
+                originalContentLength = getContentLength(mutableRequest.contentStreamProvider().newStream());
+            } catch (IOException e) {
+                throw SdkClientException.builder()
+                                        .message("Cannot get the content-length of the request content.")
+                                        .cause(e)
+                                        .build();
+            }
+        }
+        return originalContentLength;
+    }
+
+    /**
+     * Read a stream to get the length.
+     */
+    private static long getContentLength(InputStream content) throws IOException {
+        long contentLength = 0;
+        byte[] tmp = new byte[4096];
+        int read;
+        while ((read = content.read(tmp)) != -1) {
+            contentLength += read;
+        }
+        return contentLength;
     }
 }

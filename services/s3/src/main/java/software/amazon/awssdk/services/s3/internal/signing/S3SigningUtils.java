@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.Lazy;
 @SdkInternalApi
 public final class S3SigningUtils {
 
-    private static final String SIGV4A_SIGNER_CLASS = "software.amazon.awssdk.authcrt.signer.AwsS3V4aSigner";
+    private static final String SIGV4A_SIGNER_CLASS = "software.amazon.awssdk.authcrt.signer.AwsCrtS3V4aSigner";
     private static final Lazy<Signer> SIGV4A_SIGNER = new Lazy<>(S3SigningUtils::initializeV4aSigner);
 
     private S3SigningUtils() {
@@ -61,7 +61,8 @@ public final class S3SigningUtils {
             Object o = m.invoke(null);
             return (Signer) o;
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("To invoke a request that requires a SigV4a signer, such as region independent " +
+            throw new IllegalStateException("Cannot find the " + SIGV4A_SIGNER_CLASS + " class."
+                                            + " To invoke a request that requires a SigV4a signer, such as region independent " +
                                             "signing, the 'auth-crt' core module must be on the class path. ", e);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new IllegalStateException("Failed to create an S3 SigV4a signer.", e);
