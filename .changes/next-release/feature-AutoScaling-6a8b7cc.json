@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Auto Scaling",
+    "contributor": "",
+    "description": "This update increases the number of instance types that can be added to the overrides within an mixed instances group configuration."
+}
