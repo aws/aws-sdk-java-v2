@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DevOps Guru",
-    "contributor": "",
-    "description": "Add resourceHours field in GetAccountHealth API to show total number of resource hours AWS Dev Ops Guru has done work for in the last hour."
-}
