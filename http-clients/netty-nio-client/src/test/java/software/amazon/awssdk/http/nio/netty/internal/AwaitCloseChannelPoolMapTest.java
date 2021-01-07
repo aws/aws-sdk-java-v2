@@ -224,10 +224,11 @@ public class AwaitCloseChannelPoolMapTest {
                 .build();
 
         channelPoolMap = AwaitCloseChannelPoolMap.builder()
-                .sdkChannelOptions(new SdkChannelOptions())
-                .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
-                .configuration(new NettyConfiguration(config.merge(GLOBAL_HTTP_DEFAULTS)))
-                .build();
+                                                 .sdkChannelOptions(new SdkChannelOptions())
+                                                 .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                                 .protocol(Protocol.HTTP1_1)
+                                                 .configuration(new NettyConfiguration(config.merge(GLOBAL_HTTP_DEFAULTS)))
+                                                 .build();
 
         ChannelPool channelPool = channelPoolMap.newPool(URI.create("https://localhost:" + mockProxy.port()));
         channelPool.acquire().awaitUninterruptibly();
