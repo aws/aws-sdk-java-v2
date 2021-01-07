@@ -31,6 +31,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,6 +91,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private final SslProvider sslProvider;
     private final ProxyConfiguration proxyConfiguration;
     private final BootstrapProvider bootstrapProvider;
+    private final SslContextProvider sslContextProvider;
 
     private AwaitCloseChannelPoolMap(Builder builder, Function<Builder, BootstrapProvider> createBootStrapProvider) {
         this.configuration = builder.configuration;
@@ -100,6 +102,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         this.sslProvider = builder.sslProvider;
         this.proxyConfiguration = builder.proxyConfiguration;
         this.bootstrapProvider = createBootStrapProvider.apply(builder);
+        this.sslContextProvider = new SslContextProvider(configuration, protocol, sslProvider);
     }
 
     private AwaitCloseChannelPoolMap(Builder builder) {
@@ -123,8 +126,11 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
     @Override
     protected SimpleChannelPoolAwareChannelPool newPool(URI key) {
-        SslContext sslContext = sslContext(key);
-        
+        SslContext sslContext = null;
+        if (needSslContext(key)) {
+            sslContext = sslContextProvider.sslContext();
+        }
+
         Bootstrap bootstrap = createBootstrap(key);
 
         AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
@@ -259,53 +265,12 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         return sdkChannelPool;
     }
 
-    private SslContext sslContext(URI targetAddress) {
+    private boolean needSslContext(URI targetAddress) {
         URI proxyAddress = proxyAddress(targetAddress);
-
         boolean needContext = targetAddress.getScheme().equalsIgnoreCase("https")
-                || proxyAddress != null && proxyAddress.getScheme().equalsIgnoreCase("https");
+                              || proxyAddress != null && proxyAddress.getScheme().equalsIgnoreCase("https");
 
-        if (!needContext) {
-            return null;
-        }
-
-        try {
-            return SslContextBuilder.forClient()
-                                    .sslProvider(sslProvider)
-                                    .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                                    .trustManager(getTrustManager())
-                                    .keyManager(getKeyManager())
-                                    .build();
-        } catch (SSLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private TrustManagerFactory getTrustManager() {
-        Validate.isTrue(configuration.tlsTrustManagersProvider() == null || !configuration.trustAllCertificates(),
-                        "A TlsTrustManagerProvider can't be provided if TrustAllCertificates is also set");
-
-        if (configuration.tlsTrustManagersProvider() != null) {
-            return StaticTrustManagerFactory.create(configuration.tlsTrustManagersProvider().trustManagers());
-        }
-
-        if (configuration.trustAllCertificates()) {
-            log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
-                           + "used for testing.");
-            return InsecureTrustManagerFactory.INSTANCE;
-        }
-
-        return null;
-    }
-
-    private KeyManagerFactory getKeyManager() {
-        if (configuration.tlsKeyManagersProvider() != null) {
-            KeyManager[] keyManagers = configuration.tlsKeyManagersProvider().keyManagers();
-            if (keyManagers != null) {
-                return StaticKeyManagerFactory.create(keyManagers);
-            }
-        }
-        return null;
+        return needContext;
     }
 
     public static class Builder {
