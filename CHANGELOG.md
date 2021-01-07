@@ -1,3 +1,20 @@
+# __2.15.61__ __2021-01-07__
+## __AWS CodePipeline__
+  - ### Features
+    - Adding cancelled status and summary for executions aborted by pipeline updates.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for I-Frame-only HLS manifest generation in CMAF outputs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Add resourceHours field in GetAccountHealth API to show total number of resource hours AWS Dev Ops Guru has done work for in the last hour.
+
 # __2.15.60__ __2021-01-06__
 ## __AWS Auto Scaling Plans__
   - ### Features
