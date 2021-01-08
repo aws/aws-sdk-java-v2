@@ -90,6 +90,7 @@ import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -97,10 +98,12 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3Presigner {
+    private static final Logger log = Logger.loggerFor(DefaultS3Presigner.class);
+
     private static final AwsS3V4Signer DEFAULT_SIGNER = AwsS3V4Signer.create();
     private static final S3Configuration DEFAULT_S3_CONFIGURATION = S3Configuration.builder()
-            .checksumValidationEnabled(false)
-            .build();
+                                                                                   .checksumValidationEnabled(false)
+                                                                                   .build();
     private static final String SERVICE_NAME = "s3";
     private static final String SIGNING_NAME = "s3";
 
@@ -117,6 +120,11 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         super(b);
 
         this.serviceConfiguration = b.serviceConfiguration != null ? b.serviceConfiguration : DEFAULT_S3_CONFIGURATION;
+        if (serviceConfiguration.checksumValidationEnabled()) {
+            log.debug(() -> "The provided S3Configuration has ChecksumValidationEnabled set to true. Please note that "
+                           + "the pre-signed request can't be executed using a web browser if checksum validation is enabled.");
+        }
+
 
         this.clientInterceptors = initializeInterceptors();
 
