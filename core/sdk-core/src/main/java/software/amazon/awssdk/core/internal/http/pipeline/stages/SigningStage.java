@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -24,9 +25,13 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Sign the marshalled request (if applicable).
@@ -52,15 +57,21 @@ public class SigningStage implements RequestToRequestPipeline {
     /**
      * Sign the request if the signer if provided and credentials are present.
      */
-    private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
+    private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         updateInterceptorContext(request, context.executionContext());
 
         Signer signer = context.signer();
+        MetricCollector metricCollector = context.attemptMetricCollector();
 
         if (shouldSign(signer)) {
             adjustForClockSkew(context.executionAttributes());
 
-            SdkHttpFullRequest signedRequest = signer.sign(request, context.executionAttributes());
+            Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(() ->
+                    signer.sign(request, context.executionAttributes()));
+
+            metricCollector.reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
+
+            SdkHttpFullRequest signedRequest = measuredSign.left();
 
             if (signer instanceof AsyncRequestBodySigner) {
                 //Transform request body provider with signing operator
@@ -69,6 +80,7 @@ public class SigningStage implements RequestToRequestPipeline {
                         .signAsyncRequestBody(signedRequest, context.requestProvider(), context.executionAttributes());
                 context.requestProvider(transformedRequestProvider);
             }
+            updateInterceptorContext(signedRequest, context.executionContext());
             return signedRequest;
         }
 

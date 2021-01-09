@@ -1,0 +1,21 @@
+{
+    "version": "2.13.50",
+    "date": "2020-07-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "description": "Documentation updates for elasticache"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "description": "Documentation updates for Amazon Connect."
+        }
+    ]
+}

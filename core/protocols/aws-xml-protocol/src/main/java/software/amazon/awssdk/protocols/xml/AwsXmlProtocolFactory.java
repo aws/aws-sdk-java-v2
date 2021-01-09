@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,14 +20,19 @@ import static java.util.Collections.unmodifiableList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.MetricCollectingHttpResponseHandler;
+import software.amazon.awssdk.core.internal.http.CombinedResponseHandler;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -37,7 +42,10 @@ import software.amazon.awssdk.protocols.query.unmarshall.AwsXmlErrorProtocolUnma
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlGenerator;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlProtocolMarshaller;
+import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlErrorTransformer;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlResponseHandler;
+import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlResponseTransformer;
+import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlUnmarshallingContext;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlProtocolUnmarshaller;
 
 /**
@@ -62,26 +70,29 @@ public class AwsXmlProtocolFactory {
     public static final OperationMetadataAttribute<String> ROOT_MARSHALL_LOCATION_ATTRIBUTE =
         new OperationMetadataAttribute<>(String.class);
 
+    private static final XmlProtocolUnmarshaller XML_PROTOCOL_UNMARSHALLER = XmlProtocolUnmarshaller.create();
+
     private final List<ExceptionMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
-    private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
+    private final HttpResponseHandler<AwsServiceException> errorUnmarshaller;
     private final SdkClientConfiguration clientConfiguration;
 
     AwsXmlProtocolFactory(Builder<?> builder) {
         this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.clientConfiguration = builder.clientConfiguration;
-        this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
-            .builder()
-            .defaultExceptionSupplier(defaultServiceExceptionSupplier)
-            .exceptions(modeledExceptions)
-            .errorUnmarshaller(XmlProtocolUnmarshaller.builder().build())
-            .errorRootExtractor(this::getErrorRoot)
-            .build();
+
+        this.errorUnmarshaller = timeUnmarshalling(
+            AwsXmlErrorProtocolUnmarshaller.builder()
+                                           .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+                                           .exceptions(modeledExceptions)
+                                           .errorUnmarshaller(XML_PROTOCOL_UNMARSHALLER)
+                                           .errorRootExtractor(this::getErrorRoot)
+                                           .build());
     }
 
     /**
-     * Creates an instance of {@link XmlProtocolMarshaller} to be used for marshalling the requess.
+     * Creates an instance of {@link XmlProtocolMarshaller} to be used for marshalling the request.
      *
      * @param operationInfo Info required to marshall the request
      */
@@ -95,13 +106,38 @@ public class AwsXmlProtocolFactory {
 
     public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,
                                                                                 XmlOperationMetadata staxOperationMetadata) {
-        return new AwsXmlResponseHandler<>(
-            XmlProtocolUnmarshaller.builder().build(), r -> pojoSupplier.get(),
-            staxOperationMetadata.isHasStreamingSuccessResponse());
+        return timeUnmarshalling(new AwsXmlResponseHandler<>(XML_PROTOCOL_UNMARSHALLER, r -> pojoSupplier.get(),
+                                                             staxOperationMetadata.isHasStreamingSuccessResponse()));
+    }
+
+    protected <T extends AwsResponse> Function<AwsXmlUnmarshallingContext, T> createResponseTransformer(
+        Supplier<SdkPojo> pojoSupplier) {
+
+        return new AwsXmlResponseTransformer<>(
+            XML_PROTOCOL_UNMARSHALLER, r -> pojoSupplier.get());
+    }
+
+    protected Function<AwsXmlUnmarshallingContext, AwsServiceException> createErrorTransformer() {
+        return AwsXmlErrorTransformer.builder()
+                                     .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+                                     .exceptions(modeledExceptions)
+                                     .errorUnmarshaller(XML_PROTOCOL_UNMARSHALLER)
+                                     .build();
     }
 
     public HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
         return errorUnmarshaller;
+    }
+
+    private <T> MetricCollectingHttpResponseHandler<T> timeUnmarshalling(HttpResponseHandler<T> delegate) {
+        return MetricCollectingHttpResponseHandler.create(CoreMetric.UNMARSHALLING_DURATION, delegate);
+    }
+
+    public <T extends AwsResponse> HttpResponseHandler<Response<T>> createCombinedResponseHandler(
+        Supplier<SdkPojo> pojoSupplier, XmlOperationMetadata staxOperationMetadata) {
+
+        return new CombinedResponseHandler<>(createResponseHandler(pojoSupplier, staxOperationMetadata),
+                                             createErrorResponseHandler());
     }
 
     /**

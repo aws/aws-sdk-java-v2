@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.Arrays;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -26,7 +25,8 @@ public enum AuthType {
     IAM("iam"),
     V4("v4"),
     V4_UNSIGNED_BODY("v4-unsigned-body"),
-    S3("s3")
+    S3("s3"),
+    S3V4("s3v4")
     ;
 
     private final String value;
@@ -35,7 +35,6 @@ public enum AuthType {
         this.value = value;
     }
 
-    @JsonCreator
     public static AuthType fromValue(String value) {
         String normalizedValue = StringUtils.lowerCase(value);
         return Arrays.stream(values())

@@ -11,6 +11,25 @@
     "uid":"elasticfilesystem-2015-02-01"
   },
   "operations":{
+    "CreateAccessPoint":{
+      "name":"CreateAccessPoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2015-02-01/access-points",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateAccessPointRequest"},
+      "output":{"shape":"AccessPointDescription"},
+      "errors":[
+        {"shape":"BadRequest"},
+        {"shape":"AccessPointAlreadyExists"},
+        {"shape":"IncorrectFileSystemLifeCycleState"},
+        {"shape":"InternalServerError"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"AccessPointLimitExceeded"}
+      ],
+      "documentation":"<p>Creates an EFS access point. An access point is an application-specific view into an EFS file system that applies an operating system user and group, and a file system path, to any file system request made through the access point. The operating system user and group override any identity information provided by the NFS client. The file system path is exposed as the access point's root directory. Applications using the access point can only access data in its own directory and below. To learn more, see <a href=\"https://docs.aws.amazon.com/efs/latest/ug/efs-access-points.html\">Mounting a File System Using EFS Access Points</a>.</p> <p>This operation requires permissions for the <code>elasticfilesystem:CreateAccessPoint</code> action.</p>"
+    },
     "CreateFileSystem":{
       "name":"CreateFileSystem",
       "http":{
@@ -68,7 +87,24 @@
         {"shape":"InternalServerError"},
         {"shape":"FileSystemNotFound"}
       ],
-      "documentation":"<p>Creates or overwrites tags associated with a file system. Each tag is a key-value pair. If a tag key specified in the request already exists on the file system, this operation overwrites its value with the value provided in the request. If you add the <code>Name</code> tag to your file system, Amazon EFS returns it in the response to the <a>DescribeFileSystems</a> operation. </p> <p>This operation requires permission for the <code>elasticfilesystem:CreateTags</code> action.</p>"
+      "documentation":"<p>Creates or overwrites tags associated with a file system. Each tag is a key-value pair. If a tag key specified in the request already exists on the file system, this operation overwrites its value with the value provided in the request. If you add the <code>Name</code> tag to your file system, Amazon EFS returns it in the response to the <a>DescribeFileSystems</a> operation. </p> <p>This operation requires permission for the <code>elasticfilesystem:CreateTags</code> action.</p>",
+      "deprecated":true,
+      "deprecatedMessage":"Use TagResource."
+    },
+    "DeleteAccessPoint":{
+      "name":"DeleteAccessPoint",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2015-02-01/access-points/{AccessPointId}",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteAccessPointRequest"},
+      "errors":[
+        {"shape":"BadRequest"},
+        {"shape":"InternalServerError"},
+        {"shape":"AccessPointNotFound"}
+      ],
+      "documentation":"<p>Deletes the specified access point. After deletion is complete, new clients can no longer connect to the access points. Clients connected to the access point at the time of deletion will continue to function until they terminate their connection.</p> <p>This operation requires permissions for the <code>elasticfilesystem:DeleteAccessPoint</code> action.</p>"
     },
     "DeleteFileSystem":{
       "name":"DeleteFileSystem",
@@ -85,6 +121,21 @@
         {"shape":"FileSystemInUse"}
       ],
       "documentation":"<p>Deletes a file system, permanently severing access to its contents. Upon return, the file system no longer exists and you can't access any contents of the deleted file system.</p> <p> You can't delete a file system that is in use. That is, if the file system has any mount targets, you must first delete them. For more information, see <a>DescribeMountTargets</a> and <a>DeleteMountTarget</a>. </p> <note> <p>The <code>DeleteFileSystem</code> call returns while the file system state is still <code>deleting</code>. You can check the file system deletion status by calling the <a>DescribeFileSystems</a> operation, which returns a list of file systems in your account. If you pass file system ID or creation token for the deleted file system, the <a>DescribeFileSystems</a> returns a <code>404 FileSystemNotFound</code> error.</p> </note> <p>This operation requires permissions for the <code>elasticfilesystem:DeleteFileSystem</code> action.</p>"
+    },
+    "DeleteFileSystemPolicy":{
+      "name":"DeleteFileSystemPolicy",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2015-02-01/file-systems/{FileSystemId}/policy",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteFileSystemPolicyRequest"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"IncorrectFileSystemLifeCycleState"}
+      ],
+      "documentation":"<p>Deletes the <code>FileSystemPolicy</code> for the specified file system. The default <code>FileSystemPolicy</code> goes into effect once the existing policy is deleted. For more information about the default file system policy, see <a href=\"https://docs.aws.amazon.com/efs/latest/ug/res-based-policies-efs.html\">Using Resource-based Policies with EFS</a>.</p> <p>This operation requires permissions for the <code>elasticfilesystem:DeleteFileSystemPolicy</code> action.</p>"
     },
     "DeleteMountTarget":{
       "name":"DeleteMountTarget",
@@ -115,7 +166,60 @@
         {"shape":"InternalServerError"},
         {"shape":"FileSystemNotFound"}
       ],
-      "documentation":"<p>Deletes the specified tags from a file system. If the <code>DeleteTags</code> request includes a tag key that doesn't exist, Amazon EFS ignores it and doesn't cause an error. For more information about tags and related restrictions, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html\">Tag Restrictions</a> in the <i>AWS Billing and Cost Management User Guide</i>.</p> <p>This operation requires permissions for the <code>elasticfilesystem:DeleteTags</code> action.</p>"
+      "documentation":"<p>Deletes the specified tags from a file system. If the <code>DeleteTags</code> request includes a tag key that doesn't exist, Amazon EFS ignores it and doesn't cause an error. For more information about tags and related restrictions, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html\">Tag Restrictions</a> in the <i>AWS Billing and Cost Management User Guide</i>.</p> <p>This operation requires permissions for the <code>elasticfilesystem:DeleteTags</code> action.</p>",
+      "deprecated":true,
+      "deprecatedMessage":"Use UntagResource."
+    },
+    "DescribeAccessPoints":{
+      "name":"DescribeAccessPoints",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-02-01/access-points",
+        "responseCode":200
+      },
+      "input":{"shape":"DescribeAccessPointsRequest"},
+      "output":{"shape":"DescribeAccessPointsResponse"},
+      "errors":[
+        {"shape":"BadRequest"},
+        {"shape":"InternalServerError"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"AccessPointNotFound"}
+      ],
+      "documentation":"<p>Returns the description of a specific Amazon EFS access point if the <code>AccessPointId</code> is provided. If you provide an EFS <code>FileSystemId</code>, it returns descriptions of all access points for that file system. You can provide either an <code>AccessPointId</code> or a <code>FileSystemId</code> in the request, but not both. </p> <p>This operation requires permissions for the <code>elasticfilesystem:DescribeAccessPoints</code> action.</p>"
+    },
+    "DescribeBackupPolicy":{
+      "name":"DescribeBackupPolicy",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-02-01/file-systems/{FileSystemId}/backup-policy",
+        "responseCode":200
+      },
+      "input":{"shape":"DescribeBackupPolicyRequest"},
+      "output":{"shape":"BackupPolicyDescription"},
+      "errors":[
+        {"shape":"BadRequest"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"InternalServerError"},
+        {"shape":"PolicyNotFound"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Returns the backup policy for the specified EFS file system.</p>"
+    },
+    "DescribeFileSystemPolicy":{
+      "name":"DescribeFileSystemPolicy",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-02-01/file-systems/{FileSystemId}/policy",
+        "responseCode":200
+      },
+      "input":{"shape":"DescribeFileSystemPolicyRequest"},
+      "output":{"shape":"FileSystemPolicyDescription"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"PolicyNotFound"}
+      ],
+      "documentation":"<p>Returns the <code>FileSystemPolicy</code> for the specified EFS file system.</p> <p>This operation requires permissions for the <code>elasticfilesystem:DescribeFileSystemPolicy</code> action.</p>"
     },
     "DescribeFileSystems":{
       "name":"DescribeFileSystems",
@@ -179,7 +283,8 @@
         {"shape":"BadRequest"},
         {"shape":"InternalServerError"},
         {"shape":"FileSystemNotFound"},
-        {"shape":"MountTargetNotFound"}
+        {"shape":"MountTargetNotFound"},
+        {"shape":"AccessPointNotFound"}
       ],
       "documentation":"<p>Returns the descriptions of all the current mount targets, or a specific mount target, for a file system. When requesting all of the current mount targets, the order of mount targets returned in the response is unspecified.</p> <p>This operation requires permissions for the <code>elasticfilesystem:DescribeMountTargets</code> action, on either the file system ID that you specify in <code>FileSystemId</code>, or on the file system of the mount target that you specify in <code>MountTargetId</code>.</p>"
     },
@@ -197,7 +302,26 @@
         {"shape":"InternalServerError"},
         {"shape":"FileSystemNotFound"}
       ],
-      "documentation":"<p>Returns the tags associated with a file system. The order of tags returned in the response of one <code>DescribeTags</code> call and the order of tags returned across the responses of a multiple-call iteration (when using pagination) is unspecified. </p> <p> This operation requires permissions for the <code>elasticfilesystem:DescribeTags</code> action. </p>"
+      "documentation":"<p>Returns the tags associated with a file system. The order of tags returned in the response of one <code>DescribeTags</code> call and the order of tags returned across the responses of a multiple-call iteration (when using pagination) is unspecified. </p> <p> This operation requires permissions for the <code>elasticfilesystem:DescribeTags</code> action. </p>",
+      "deprecated":true,
+      "deprecatedMessage":"Use ListTagsForResource."
+    },
+    "ListTagsForResource":{
+      "name":"ListTagsForResource",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-02-01/resource-tags/{ResourceId}",
+        "responseCode":200
+      },
+      "input":{"shape":"ListTagsForResourceRequest"},
+      "output":{"shape":"ListTagsForResourceResponse"},
+      "errors":[
+        {"shape":"BadRequest"},
+        {"shape":"InternalServerError"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"AccessPointNotFound"}
+      ],
+      "documentation":"<p>Lists all tags for a top-level EFS resource. You must provide the ID of the resource that you want to retrieve the tags for.</p> <p>This operation requires permissions for the <code>elasticfilesystem:DescribeAccessPoints</code> action.</p>"
     },
     "ModifyMountTargetSecurityGroups":{
       "name":"ModifyMountTargetSecurityGroups",
@@ -217,6 +341,41 @@
       ],
       "documentation":"<p>Modifies the set of security groups in effect for a mount target.</p> <p>When you create a mount target, Amazon EFS also creates a new network interface. For more information, see <a>CreateMountTarget</a>. This operation replaces the security groups in effect for the network interface associated with a mount target, with the <code>SecurityGroups</code> provided in the request. This operation requires that the network interface of the mount target has been created and the lifecycle state of the mount target is not <code>deleted</code>. </p> <p>The operation requires permissions for the following actions:</p> <ul> <li> <p> <code>elasticfilesystem:ModifyMountTargetSecurityGroups</code> action on the mount target's file system. </p> </li> <li> <p> <code>ec2:ModifyNetworkInterfaceAttribute</code> action on the mount target's network interface. </p> </li> </ul>"
     },
+    "PutBackupPolicy":{
+      "name":"PutBackupPolicy",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2015-02-01/file-systems/{FileSystemId}/backup-policy",
+        "responseCode":200
+      },
+      "input":{"shape":"PutBackupPolicyRequest"},
+      "output":{"shape":"BackupPolicyDescription"},
+      "errors":[
+        {"shape":"BadRequest"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"IncorrectFileSystemLifeCycleState"},
+        {"shape":"InternalServerError"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Updates the file system's backup policy. Use this action to start or stop automatic backups of the file system. </p>"
+    },
+    "PutFileSystemPolicy":{
+      "name":"PutFileSystemPolicy",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2015-02-01/file-systems/{FileSystemId}/policy",
+        "responseCode":200
+      },
+      "input":{"shape":"PutFileSystemPolicyRequest"},
+      "output":{"shape":"FileSystemPolicyDescription"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"InvalidPolicyException"},
+        {"shape":"IncorrectFileSystemLifeCycleState"}
+      ],
+      "documentation":"<p>Applies an Amazon EFS <code>FileSystemPolicy</code> to an Amazon EFS file system. A file system policy is an IAM resource-based policy and can contain multiple policy statements. A file system always has exactly one file system policy, which can be the default policy or an explicit policy set or updated using this API operation. When an explicit policy is set, it overrides the default policy. For more information about the default file system policy, see <a href=\"https://docs.aws.amazon.com/efs/latest/ug/iam-access-control-nfs-efs.html#default-filesystempolicy\">Default EFS File System Policy</a>. </p> <p>This operation requires permissions for the <code>elasticfilesystem:PutFileSystemPolicy</code> action.</p>"
+    },
     "PutLifecycleConfiguration":{
       "name":"PutLifecycleConfiguration",
       "http":{
@@ -233,6 +392,38 @@
         {"shape":"IncorrectFileSystemLifeCycleState"}
       ],
       "documentation":"<p>Enables lifecycle management by creating a new <code>LifecycleConfiguration</code> object. A <code>LifecycleConfiguration</code> object defines when files in an Amazon EFS file system are automatically transitioned to the lower-cost EFS Infrequent Access (IA) storage class. A <code>LifecycleConfiguration</code> applies to all files in a file system.</p> <p>Each Amazon EFS file system supports one lifecycle configuration, which applies to all files in the file system. If a <code>LifecycleConfiguration</code> object already exists for the specified file system, a <code>PutLifecycleConfiguration</code> call modifies the existing configuration. A <code>PutLifecycleConfiguration</code> call with an empty <code>LifecyclePolicies</code> array in the request body deletes any existing <code>LifecycleConfiguration</code> and disables lifecycle management.</p> <p>In the request, specify the following: </p> <ul> <li> <p>The ID for the file system for which you are enabling, disabling, or modifying lifecycle management.</p> </li> <li> <p>A <code>LifecyclePolicies</code> array of <code>LifecyclePolicy</code> objects that define when files are moved to the IA storage class. The array can contain only one <code>LifecyclePolicy</code> item.</p> </li> </ul> <p>This operation requires permissions for the <code>elasticfilesystem:PutLifecycleConfiguration</code> operation.</p> <p>To apply a <code>LifecycleConfiguration</code> object to an encrypted file system, you need the same AWS Key Management Service (AWS KMS) permissions as when you created the encrypted file system. </p>"
+    },
+    "TagResource":{
+      "name":"TagResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2015-02-01/resource-tags/{ResourceId}",
+        "responseCode":200
+      },
+      "input":{"shape":"TagResourceRequest"},
+      "errors":[
+        {"shape":"BadRequest"},
+        {"shape":"InternalServerError"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"AccessPointNotFound"}
+      ],
+      "documentation":"<p>Creates a tag for an EFS resource. You can create tags for EFS file systems and access points using this API operation.</p> <p>This operation requires permissions for the <code>elasticfilesystem:TagResource</code> action.</p>"
+    },
+    "UntagResource":{
+      "name":"UntagResource",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2015-02-01/resource-tags/{ResourceId}",
+        "responseCode":200
+      },
+      "input":{"shape":"UntagResourceRequest"},
+      "errors":[
+        {"shape":"BadRequest"},
+        {"shape":"InternalServerError"},
+        {"shape":"FileSystemNotFound"},
+        {"shape":"AccessPointNotFound"}
+      ],
+      "documentation":"<p>Removes tags from an EFS resource. You can remove tags from EFS file systems and access points using this API operation.</p> <p>This operation requires permissions for the <code>elasticfilesystem:UntagResource</code> action.</p>"
     },
     "UpdateFileSystem":{
       "name":"UpdateFileSystem",
@@ -256,7 +447,122 @@
     }
   },
   "shapes":{
-    "AwsAccountId":{"type":"string"},
+    "AccessPointAlreadyExists":{
+      "type":"structure",
+      "required":[
+        "ErrorCode",
+        "AccessPointId"
+      ],
+      "members":{
+        "ErrorCode":{"shape":"ErrorCode"},
+        "Message":{"shape":"ErrorMessage"},
+        "AccessPointId":{"shape":"AccessPointId"}
+      },
+      "documentation":"<p>Returned if the access point you are trying to create already exists, with the creation token you provided in the request.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "AccessPointArn":{"type":"string"},
+    "AccessPointDescription":{
+      "type":"structure",
+      "members":{
+        "ClientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>The opaque string specified in the request to ensure idempotent creation.</p>"
+        },
+        "Name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the access point. This is the value of the <code>Name</code> tag.</p>"
+        },
+        "Tags":{
+          "shape":"Tags",
+          "documentation":"<p>The tags associated with the access point, presented as an array of Tag objects.</p>"
+        },
+        "AccessPointId":{
+          "shape":"AccessPointId",
+          "documentation":"<p>The ID of the access point, assigned by Amazon EFS.</p>"
+        },
+        "AccessPointArn":{
+          "shape":"AccessPointArn",
+          "documentation":"<p>The unique Amazon Resource Name (ARN) associated with the access point.</p>"
+        },
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>The ID of the EFS file system that the access point applies to.</p>"
+        },
+        "PosixUser":{
+          "shape":"PosixUser",
+          "documentation":"<p>The full POSIX identity, including the user ID, group ID, and secondary group IDs on the access point that is used for all file operations by NFS clients using the access point.</p>"
+        },
+        "RootDirectory":{
+          "shape":"RootDirectory",
+          "documentation":"<p>The directory on the Amazon EFS file system that the access point exposes as the root directory to NFS clients using the access point.</p>"
+        },
+        "OwnerId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>Identified the AWS account that owns the access point resource.</p>"
+        },
+        "LifeCycleState":{
+          "shape":"LifeCycleState",
+          "documentation":"<p>Identifies the lifecycle phase of the access point.</p>"
+        }
+      },
+      "documentation":"<p>Provides a description of an EFS file system access point.</p>"
+    },
+    "AccessPointDescriptions":{
+      "type":"list",
+      "member":{"shape":"AccessPointDescription"}
+    },
+    "AccessPointId":{"type":"string"},
+    "AccessPointLimitExceeded":{
+      "type":"structure",
+      "required":["ErrorCode"],
+      "members":{
+        "ErrorCode":{"shape":"ErrorCode"},
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>Returned if the AWS account has already created the maximum number of access points allowed per file system.</p>",
+      "error":{"httpStatusCode":403},
+      "exception":true
+    },
+    "AccessPointNotFound":{
+      "type":"structure",
+      "required":["ErrorCode"],
+      "members":{
+        "ErrorCode":{"shape":"ErrorCode"},
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>Returned if the specified <code>AccessPointId</code> value doesn't exist in the requester's AWS account.</p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
+    "AvailabilityZoneId":{"type":"string"},
+    "AvailabilityZoneName":{"type":"string"},
+    "AwsAccountId":{
+      "type":"string",
+      "max":14,
+      "pattern":"^(\\d{12})|(\\d{4}-\\d{4}-\\d{4})$"
+    },
+    "BackupPolicy":{
+      "type":"structure",
+      "required":["Status"],
+      "members":{
+        "Status":{
+          "shape":"Status",
+          "documentation":"<p>Describes the status of the file system's backup policy.</p> <ul> <li> <p> <i> <code>ENABLED</code> - EFS is automatically backing up the file system.</i> </p> </li> <li> <p> <i> <code>ENABLING</code> - EFS is turning on automatic backups for the file system.</i> </p> </li> <li> <p> <i> <code>DISABLED</code> - automatic back ups are turned off for the file system.</i> </p> </li> <li> <p> <i> <code>DISABLED</code> - EFS is turning off automatic backups for the file system.</i> </p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The backup policy for the file system, showing the curent status. If <code>ENABLED</code>, the file system is being backed up.</p>"
+    },
+    "BackupPolicyDescription":{
+      "type":"structure",
+      "members":{
+        "BackupPolicy":{
+          "shape":"BackupPolicy",
+          "documentation":"<p>Describes the file system's backup policy, indicating whether automatic backups are turned on or off..</p>"
+        }
+      }
+    },
     "BadRequest":{
       "type":"structure",
       "required":["ErrorCode"],
@@ -268,13 +574,50 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "BypassPolicyLockoutSafetyCheck":{"type":"boolean"},
+    "ClientToken":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "CreateAccessPointRequest":{
+      "type":"structure",
+      "required":[
+        "ClientToken",
+        "FileSystemId"
+      ],
+      "members":{
+        "ClientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A string of up to 64 ASCII characters that Amazon EFS uses to ensure idempotent creation.</p>",
+          "idempotencyToken":true
+        },
+        "Tags":{
+          "shape":"Tags",
+          "documentation":"<p>Creates tags associated with the access point. Each tag is a key-value pair.</p>"
+        },
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>The ID of the EFS file system that the access point provides access to.</p>"
+        },
+        "PosixUser":{
+          "shape":"PosixUser",
+          "documentation":"<p>The operating system user and group applied to all file system requests made using the access point.</p>"
+        },
+        "RootDirectory":{
+          "shape":"RootDirectory",
+          "documentation":"<p>Specifies the directory on the Amazon EFS file system that the access point exposes as the root directory of your file system to NFS clients using the access point. The clients using the access point can only access the root directory and below. If the <code>RootDirectory</code> &gt; <code>Path</code> specified does not exist, EFS creates it and applies the <code>CreationInfo</code> settings when a client connects to an access point. When specifying a <code>RootDirectory</code>, you need to provide the <code>Path</code>, and the <code>CreationInfo</code> is optional.</p>"
+        }
+      }
+    },
     "CreateFileSystemRequest":{
       "type":"structure",
       "required":["CreationToken"],
       "members":{
         "CreationToken":{
           "shape":"CreationToken",
-          "documentation":"<p>A string of up to 64 ASCII characters. Amazon EFS uses this to ensure idempotent creation.</p>"
+          "documentation":"<p>A string of up to 64 ASCII characters. Amazon EFS uses this to ensure idempotent creation.</p>",
+          "idempotencyToken":true
         },
         "PerformanceMode":{
           "shape":"PerformanceMode",
@@ -286,7 +629,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The ID of the AWS KMS CMK to be used to protect the encrypted file system. This parameter is only required if you want to use a nondefault CMK. If this parameter is not specified, the default CMK for Amazon EFS is used. This ID can be in one of the following formats:</p> <ul> <li> <p>Key ID - A unique identifier of the key, for example <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>ARN - An Amazon Resource Name (ARN) for the key, for example <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Key alias - A previously created display name for a key, for example <code>alias/projectKey1</code>.</p> </li> <li> <p>Key alias ARN - An ARN for a key alias, for example <code>arn:aws:kms:us-west-2:444455556666:alias/projectKey1</code>.</p> </li> </ul> <p>If <code>KmsKeyId</code> is specified, the <a>CreateFileSystemRequest$Encrypted</a> parameter must be set to true.</p>"
+          "documentation":"<p>The ID of the AWS KMS CMK to be used to protect the encrypted file system. This parameter is only required if you want to use a nondefault CMK. If this parameter is not specified, the default CMK for Amazon EFS is used. This ID can be in one of the following formats:</p> <ul> <li> <p>Key ID - A unique identifier of the key, for example <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>ARN - An Amazon Resource Name (ARN) for the key, for example <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Key alias - A previously created display name for a key, for example <code>alias/projectKey1</code>.</p> </li> <li> <p>Key alias ARN - An ARN for a key alias, for example <code>arn:aws:kms:us-west-2:444455556666:alias/projectKey1</code>.</p> </li> </ul> <p>If <code>KmsKeyId</code> is specified, the <a>CreateFileSystemRequest$Encrypted</a> parameter must be set to true.</p> <important> <p>EFS accepts only symmetric CMKs. You cannot use asymmetric CMKs with EFS file systems.</p> </important>"
         },
         "ThroughputMode":{
           "shape":"ThroughputMode",
@@ -348,10 +691,58 @@
       },
       "documentation":"<p/>"
     },
+    "CreationInfo":{
+      "type":"structure",
+      "required":[
+        "OwnerUid",
+        "OwnerGid",
+        "Permissions"
+      ],
+      "members":{
+        "OwnerUid":{
+          "shape":"OwnerUid",
+          "documentation":"<p>Specifies the POSIX user ID to apply to the <code>RootDirectory</code>. Accepts values from 0 to 2^32 (4294967295).</p>"
+        },
+        "OwnerGid":{
+          "shape":"OwnerGid",
+          "documentation":"<p>Specifies the POSIX group ID to apply to the <code>RootDirectory</code>. Accepts values from 0 to 2^32 (4294967295).</p>"
+        },
+        "Permissions":{
+          "shape":"Permissions",
+          "documentation":"<p>Specifies the POSIX permissions to apply to the <code>RootDirectory</code>, in the format of an octal number representing the file's mode bits.</p>"
+        }
+      },
+      "documentation":"<p>Required if the <code>RootDirectory</code> &gt; <code>Path</code> specified does not exist. Specifies the POSIX IDs and permissions to apply to the access point's <code>RootDirectory</code> &gt; <code>Path</code>. If the access point root directory does not exist, EFS creates it with these settings when a client connects to the access point. When specifying <code>CreationInfo</code>, you must include values for all properties. </p> <important> <p>If you do not provide <code>CreationInfo</code> and the specified <code>RootDirectory</code> does not exist, attempts to mount the file system using the access point will fail.</p> </important>"
+    },
     "CreationToken":{
       "type":"string",
       "max":64,
-      "min":1
+      "min":1,
+      "pattern":".+"
+    },
+    "DeleteAccessPointRequest":{
+      "type":"structure",
+      "required":["AccessPointId"],
+      "members":{
+        "AccessPointId":{
+          "shape":"AccessPointId",
+          "documentation":"<p>The ID of the access point that you want to delete.</p>",
+          "location":"uri",
+          "locationName":"AccessPointId"
+        }
+      }
+    },
+    "DeleteFileSystemPolicyRequest":{
+      "type":"structure",
+      "required":["FileSystemId"],
+      "members":{
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>Specifies the EFS file system for which to delete the <code>FileSystemPolicy</code>.</p>",
+          "location":"uri",
+          "locationName":"FileSystemId"
+        }
+      }
     },
     "DeleteFileSystemRequest":{
       "type":"structure",
@@ -410,12 +801,78 @@
       "error":{"httpStatusCode":504},
       "exception":true
     },
+    "DescribeAccessPointsRequest":{
+      "type":"structure",
+      "members":{
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>(Optional) When retrieving all access points for a file system, you can optionally specify the <code>MaxItems</code> parameter to limit the number of objects returned in a response. The default value is 100. </p>",
+          "location":"querystring",
+          "locationName":"MaxResults"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p> <code>NextToken</code> is present if the response is paginated. You can use <code>NextMarker</code> in the subsequent request to fetch the next page of access point descriptions.</p>",
+          "location":"querystring",
+          "locationName":"NextToken"
+        },
+        "AccessPointId":{
+          "shape":"AccessPointId",
+          "documentation":"<p>(Optional) Specifies an EFS access point to describe in the response; mutually exclusive with <code>FileSystemId</code>.</p>",
+          "location":"querystring",
+          "locationName":"AccessPointId"
+        },
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>(Optional) If you provide a <code>FileSystemId</code>, EFS returns all access points for that file system; mutually exclusive with <code>AccessPointId</code>.</p>",
+          "location":"querystring",
+          "locationName":"FileSystemId"
+        }
+      }
+    },
+    "DescribeAccessPointsResponse":{
+      "type":"structure",
+      "members":{
+        "AccessPoints":{
+          "shape":"AccessPointDescriptions",
+          "documentation":"<p>An array of access point descriptions.</p>"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p>Present if there are more access points than returned in the response. You can use the NextMarker in the subsequent request to fetch the additional descriptions.</p>"
+        }
+      }
+    },
+    "DescribeBackupPolicyRequest":{
+      "type":"structure",
+      "required":["FileSystemId"],
+      "members":{
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>Specifies which EFS file system to retrieve the <code>BackupPolicy</code> for.</p>",
+          "location":"uri",
+          "locationName":"FileSystemId"
+        }
+      }
+    },
+    "DescribeFileSystemPolicyRequest":{
+      "type":"structure",
+      "required":["FileSystemId"],
+      "members":{
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>Specifies which EFS file system to retrieve the <code>FileSystemPolicy</code> for.</p>",
+          "location":"uri",
+          "locationName":"FileSystemId"
+        }
+      }
+    },
     "DescribeFileSystemsRequest":{
       "type":"structure",
       "members":{
         "MaxItems":{
           "shape":"MaxItems",
-          "documentation":"<p>(Optional) Specifies the maximum number of file systems to return in the response (integer). Currently, this number is automatically set to 10, and other values are ignored. The response is paginated at 10 per page if you have more than 10 file systems. </p>",
+          "documentation":"<p>(Optional) Specifies the maximum number of file systems to return in the response (integer). This number is automatically set to 100. The response is paginated at 100 per page if you have more than 100 file systems. </p>",
           "location":"querystring",
           "locationName":"MaxItems"
         },
@@ -497,7 +954,7 @@
       "members":{
         "MaxItems":{
           "shape":"MaxItems",
-          "documentation":"<p>(Optional) Maximum number of mount targets to return in the response. Currently, this number is automatically set to 10, and other values are ignored. The response is paginated at 10 per page if you have more than 10 mount targets.</p>",
+          "documentation":"<p>(Optional) Maximum number of mount targets to return in the response. Currently, this number is automatically set to 10, and other values are ignored. The response is paginated at 100 per page if you have more than 100 mount targets.</p>",
           "location":"querystring",
           "locationName":"MaxItems"
         },
@@ -509,15 +966,21 @@
         },
         "FileSystemId":{
           "shape":"FileSystemId",
-          "documentation":"<p>(Optional) ID of the file system whose mount targets you want to list (String). It must be included in your request if <code>MountTargetId</code> is not included.</p>",
+          "documentation":"<p>(Optional) ID of the file system whose mount targets you want to list (String). It must be included in your request if an <code>AccessPointId</code> or <code>MountTargetId</code> is not included. Accepts either a file system ID or ARN as input.</p>",
           "location":"querystring",
           "locationName":"FileSystemId"
         },
         "MountTargetId":{
           "shape":"MountTargetId",
-          "documentation":"<p>(Optional) ID of the mount target that you want to have described (String). It must be included in your request if <code>FileSystemId</code> is not included.</p>",
+          "documentation":"<p>(Optional) ID of the mount target that you want to have described (String). It must be included in your request if <code>FileSystemId</code> is not included. Accepts either a mount target ID or ARN as input.</p>",
           "location":"querystring",
           "locationName":"MountTargetId"
+        },
+        "AccessPointId":{
+          "shape":"AccessPointId",
+          "documentation":"<p>(Optional) The ID of the access point whose mount targets that you want to list. It must be included in your request if a <code>FileSystemId</code> or <code>MountTargetId</code> is not included in your request. Accepts either an access point ID or ARN as input.</p>",
+          "location":"querystring",
+          "locationName":"AccessPointId"
         }
       },
       "documentation":"<p/>"
@@ -546,7 +1009,7 @@
       "members":{
         "MaxItems":{
           "shape":"MaxItems",
-          "documentation":"<p>(Optional) The maximum number of file system tags to return in the response. Currently, this number is automatically set to 10, and other values are ignored. The response is paginated at 10 per page if you have more than 10 tags.</p>",
+          "documentation":"<p>(Optional) The maximum number of file system tags to return in the response. Currently, this number is automatically set to 100, and other values are ignored. The response is paginated at 100 per page if you have more than 100 tags.</p>",
           "location":"querystring",
           "locationName":"MaxItems"
         },
@@ -605,6 +1068,7 @@
       "error":{"httpStatusCode":409},
       "exception":true
     },
+    "FileSystemArn":{"type":"string"},
     "FileSystemDescription":{
       "type":"structure",
       "required":[
@@ -630,6 +1094,10 @@
         "FileSystemId":{
           "shape":"FileSystemId",
           "documentation":"<p>The ID of the file system, assigned by Amazon EFS.</p>"
+        },
+        "FileSystemArn":{
+          "shape":"FileSystemArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the EFS file system, in the format <code>arn:aws:elasticfilesystem:<i>region</i>:<i>account-id</i>:file-system/<i>file-system-id</i> </code>. Example with sample data: <code>arn:aws:elasticfilesystem:us-west-2:1111333322228888:file-system/fs-01234567</code> </p>"
         },
         "CreationTime":{
           "shape":"Timestamp",
@@ -682,7 +1150,11 @@
       "type":"list",
       "member":{"shape":"FileSystemDescription"}
     },
-    "FileSystemId":{"type":"string"},
+    "FileSystemId":{
+      "type":"string",
+      "max":128,
+      "pattern":"^(arn:aws[-a-z]*:elasticfilesystem:[0-9a-z-:]+:file-system/fs-[0-9a-f]{8,40}|fs-[0-9a-f]{8,40})$"
+    },
     "FileSystemInUse":{
       "type":"structure",
       "required":["ErrorCode"],
@@ -720,6 +1192,19 @@
       "type":"long",
       "min":0
     },
+    "FileSystemPolicyDescription":{
+      "type":"structure",
+      "members":{
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>Specifies the EFS file system to which the <code>FileSystemPolicy</code> applies.</p>"
+        },
+        "Policy":{
+          "shape":"Policy",
+          "documentation":"<p>The JSON formatted <code>FileSystemPolicy</code> for the EFS file system.</p>"
+        }
+      }
+    },
     "FileSystemSize":{
       "type":"structure",
       "required":["Value"],
@@ -745,6 +1230,11 @@
     },
     "FileSystemSizeValue":{
       "type":"long",
+      "min":0
+    },
+    "Gid":{
+      "type":"long",
+      "max":4294967295,
       "min":0
     },
     "IncorrectFileSystemLifeCycleState":{
@@ -791,7 +1281,22 @@
       "error":{"httpStatusCode":500},
       "exception":true
     },
-    "IpAddress":{"type":"string"},
+    "InvalidPolicyException":{
+      "type":"structure",
+      "members":{
+        "ErrorCode":{"shape":"ErrorCode"},
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>Returned if the <code>FileSystemPolicy</code> is is malformed or contains an error such as an invalid parameter value or a missing required parameter. Returned in the case of a policy lockout safety check error.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "IpAddress":{
+      "type":"string",
+      "max":15,
+      "min":7,
+      "pattern":"^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$"
+    },
     "IpAddressInUse":{
       "type":"structure",
       "required":["ErrorCode"],
@@ -806,7 +1311,7 @@
     "KmsKeyId":{
       "type":"string",
       "max":2048,
-      "min":1
+      "pattern":"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|alias/[a-zA-Z0-9/_-]+|(arn:aws[-a-z]*:kms:[a-z0-9-]+:\\d{12}:((key/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})|(alias/[a-zA-Z0-9/_-]+))))$"
     },
     "LifeCycleState":{
       "type":"string",
@@ -841,8 +1346,54 @@
       },
       "documentation":"<p>Describes a policy used by EFS lifecycle management to transition files to the Infrequent Access (IA) storage class.</p>"
     },
-    "Marker":{"type":"string"},
+    "ListTagsForResourceRequest":{
+      "type":"structure",
+      "required":["ResourceId"],
+      "members":{
+        "ResourceId":{
+          "shape":"ResourceId",
+          "documentation":"<p>Specifies the EFS resource you want to retrieve tags for. You can retrieve tags for EFS file systems and access points using this API endpoint.</p>",
+          "location":"uri",
+          "locationName":"ResourceId"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>(Optional) Specifies the maximum number of tag objects to return in the response. The default value is 100.</p>",
+          "location":"querystring",
+          "locationName":"MaxResults"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p>You can use <code>NextToken</code> in a subsequent request to fetch the next page of access point descriptions if the response payload was paginated.</p>",
+          "location":"querystring",
+          "locationName":"NextToken"
+        }
+      }
+    },
+    "ListTagsForResourceResponse":{
+      "type":"structure",
+      "members":{
+        "Tags":{
+          "shape":"Tags",
+          "documentation":"<p>An array of the tags for the specified EFS resource.</p>"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p> <code>NextToken</code> is present if the response payload is paginated. You can use <code>NextToken</code> in a subsequent request to fetch the next page of access point descriptions.</p>"
+        }
+      }
+    },
+    "Marker":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":".+"
+    },
     "MaxItems":{
+      "type":"integer",
+      "min":1
+    },
+    "MaxResults":{
       "type":"integer",
       "min":1
     },
@@ -914,6 +1465,18 @@
         "NetworkInterfaceId":{
           "shape":"NetworkInterfaceId",
           "documentation":"<p>The ID of the network interface that Amazon EFS created when it created the mount target.</p>"
+        },
+        "AvailabilityZoneId":{
+          "shape":"AvailabilityZoneId",
+          "documentation":"<p>The unique and consistent identifier of the Availability Zone (AZ) that the mount target resides in. For example, <code>use1-az1</code> is an AZ ID for the us-east-1 Region and it has the same location in every AWS account.</p>"
+        },
+        "AvailabilityZoneName":{
+          "shape":"AvailabilityZoneName",
+          "documentation":"<p>The name of the Availability Zone (AZ) that the mount target resides in. AZs are independently mapped to names for each AWS account. For example, the Availability Zone <code>us-east-1a</code> for your AWS account might not be the same location as <code>us-east-1a</code> for another AWS account.</p>"
+        },
+        "VpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The Virtual Private Cloud (VPC) ID that the mount target is configured in.</p>"
         }
       },
       "documentation":"<p>Provides a description of a mount target.</p>"
@@ -922,7 +1485,12 @@
       "type":"list",
       "member":{"shape":"MountTargetDescription"}
     },
-    "MountTargetId":{"type":"string"},
+    "MountTargetId":{
+      "type":"string",
+      "max":45,
+      "min":13,
+      "pattern":"^fsmt-[0-9a-f]{8,40}$"
+    },
     "MountTargetNotFound":{
       "type":"structure",
       "required":["ErrorCode"],
@@ -934,6 +1502,7 @@
       "error":{"httpStatusCode":404},
       "exception":true
     },
+    "Name":{"type":"string"},
     "NetworkInterfaceId":{"type":"string"},
     "NetworkInterfaceLimitExceeded":{
       "type":"structure",
@@ -957,6 +1526,21 @@
       "error":{"httpStatusCode":409},
       "exception":true
     },
+    "OwnerGid":{
+      "type":"long",
+      "max":4294967295,
+      "min":0
+    },
+    "OwnerUid":{
+      "type":"long",
+      "max":4294967295,
+      "min":0
+    },
+    "Path":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
     "PerformanceMode":{
       "type":"string",
       "enum":[
@@ -964,9 +1548,88 @@
         "maxIO"
       ]
     },
+    "Permissions":{
+      "type":"string",
+      "pattern":"^[0-7]{3,4}$"
+    },
+    "Policy":{"type":"string"},
+    "PolicyNotFound":{
+      "type":"structure",
+      "members":{
+        "ErrorCode":{"shape":"ErrorCode"},
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>Returned if the default file system policy is in effect for the EFS file system specified.</p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
+    "PosixUser":{
+      "type":"structure",
+      "required":[
+        "Uid",
+        "Gid"
+      ],
+      "members":{
+        "Uid":{
+          "shape":"Uid",
+          "documentation":"<p>The POSIX user ID used for all file system operations using this access point.</p>"
+        },
+        "Gid":{
+          "shape":"Gid",
+          "documentation":"<p>The POSIX group ID used for all file system operations using this access point.</p>"
+        },
+        "SecondaryGids":{
+          "shape":"SecondaryGids",
+          "documentation":"<p>Secondary POSIX group IDs used for all file system operations using this access point.</p>"
+        }
+      },
+      "documentation":"<p>The full POSIX identity, including the user ID, group ID, and any secondary group IDs, on the access point that is used for all file system operations performed by NFS clients using the access point.</p>"
+    },
     "ProvisionedThroughputInMibps":{
       "type":"double",
       "min":1.0
+    },
+    "PutBackupPolicyRequest":{
+      "type":"structure",
+      "required":[
+        "FileSystemId",
+        "BackupPolicy"
+      ],
+      "members":{
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>Specifies which EFS file system to update the backup policy for.</p>",
+          "location":"uri",
+          "locationName":"FileSystemId"
+        },
+        "BackupPolicy":{
+          "shape":"BackupPolicy",
+          "documentation":"<p>The backup policy included in the <code>PutBackupPolicy</code> request.</p>"
+        }
+      }
+    },
+    "PutFileSystemPolicyRequest":{
+      "type":"structure",
+      "required":[
+        "FileSystemId",
+        "Policy"
+      ],
+      "members":{
+        "FileSystemId":{
+          "shape":"FileSystemId",
+          "documentation":"<p>The ID of the EFS file system that you want to create or update the <code>FileSystemPolicy</code> for.</p>",
+          "location":"uri",
+          "locationName":"FileSystemId"
+        },
+        "Policy":{
+          "shape":"Policy",
+          "documentation":"<p>The <code>FileSystemPolicy</code> that you're creating. Accepts a JSON formatted policy definition. To find out more about the elements that make up a file system policy, see <a href=\"https://docs.aws.amazon.com/efs/latest/ug/access-control-overview.html#access-control-manage-access-intro-resource-policies\">EFS Resource-based Policies</a>. </p>"
+        },
+        "BypassPolicyLockoutSafetyCheck":{
+          "shape":"BypassPolicyLockoutSafetyCheck",
+          "documentation":"<p>(Optional) A flag to indicate whether to bypass the <code>FileSystemPolicy</code> lockout safety check. The policy lockout safety check determines whether the policy in the request will prevent the principal making the request will be locked out from making future <code>PutFileSystemPolicy</code> requests on the file system. Set <code>BypassPolicyLockoutSafetyCheck</code> to <code>True</code> only when you intend to prevent the principal that is making the request from making a subsequent <code>PutFileSystemPolicy</code> request on the file system. The default value is False. </p>"
+        }
+      }
     },
     "PutLifecycleConfigurationRequest":{
       "type":"structure",
@@ -987,7 +1650,33 @@
         }
       }
     },
-    "SecurityGroup":{"type":"string"},
+    "ResourceId":{"type":"string"},
+    "RootDirectory":{
+      "type":"structure",
+      "members":{
+        "Path":{
+          "shape":"Path",
+          "documentation":"<p>Specifies the path on the EFS file system to expose as the root directory to NFS clients using the access point to access the EFS file system. A path can have up to four subdirectories. If the specified path does not exist, you are required to provide the <code>CreationInfo</code>.</p>"
+        },
+        "CreationInfo":{
+          "shape":"CreationInfo",
+          "documentation":"<p>(Optional) Specifies the POSIX IDs and permissions to apply to the access point's <code>RootDirectory</code>. If the <code>RootDirectory</code> &gt; <code>Path</code> specified does not exist, EFS creates the root directory using the <code>CreationInfo</code> settings when a client connects to an access point. When specifying the <code>CreationInfo</code>, you must provide values for all properties. </p> <important> <p>If you do not provide <code>CreationInfo</code> and the specified <code>RootDirectory</code> &gt; <code>Path</code> does not exist, attempts to mount the file system using the access point will fail.</p> </important>"
+        }
+      },
+      "documentation":"<p>Specifies the directory on the Amazon EFS file system that the access point provides access to. The access point exposes the specified file system path as the root directory of your file system to applications using the access point. NFS clients using the access point can only access data in the access point's <code>RootDirectory</code> and it's subdirectories.</p>"
+    },
+    "SecondaryGids":{
+      "type":"list",
+      "member":{"shape":"Gid"},
+      "max":16,
+      "min":0
+    },
+    "SecurityGroup":{
+      "type":"string",
+      "max":43,
+      "min":11,
+      "pattern":"^sg-[0-9a-f]{8,40}"
+    },
     "SecurityGroupLimitExceeded":{
       "type":"structure",
       "required":["ErrorCode"],
@@ -1015,7 +1704,21 @@
       "member":{"shape":"SecurityGroup"},
       "max":5
     },
-    "SubnetId":{"type":"string"},
+    "Status":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "ENABLING",
+        "DISABLED",
+        "DISABLING"
+      ]
+    },
+    "SubnetId":{
+      "type":"string",
+      "max":47,
+      "min":15,
+      "pattern":"^subnet-[0-9a-f]{8,40}$"
+    },
     "SubnetNotFound":{
       "type":"structure",
       "required":["ErrorCode"],
@@ -1048,15 +1751,38 @@
     "TagKey":{
       "type":"string",
       "max":128,
-      "min":1
+      "min":1,
+      "pattern":"^(?![aA]{1}[wW]{1}[sS]{1}:)([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]+)$"
     },
     "TagKeys":{
       "type":"list",
-      "member":{"shape":"TagKey"}
+      "member":{"shape":"TagKey"},
+      "max":50,
+      "min":1
+    },
+    "TagResourceRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceId",
+        "Tags"
+      ],
+      "members":{
+        "ResourceId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID specifying the EFS resource that you want to create a tag for. </p>",
+          "location":"uri",
+          "locationName":"ResourceId"
+        },
+        "Tags":{
+          "shape":"Tags",
+          "documentation":"<p/>"
+        }
+      }
     },
     "TagValue":{
       "type":"string",
-      "max":256
+      "max":256,
+      "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$"
     },
     "Tags":{
       "type":"list",
@@ -1081,6 +1807,7 @@
       ]
     },
     "Timestamp":{"type":"timestamp"},
+    "Token":{"type":"string"},
     "TooManyRequests":{
       "type":"structure",
       "required":["ErrorCode"],
@@ -1095,11 +1822,17 @@
     "TransitionToIARules":{
       "type":"string",
       "enum":[
+        "AFTER_7_DAYS",
         "AFTER_14_DAYS",
         "AFTER_30_DAYS",
         "AFTER_60_DAYS",
         "AFTER_90_DAYS"
       ]
+    },
+    "Uid":{
+      "type":"long",
+      "max":4294967295,
+      "min":0
     },
     "UnsupportedAvailabilityZone":{
       "type":"structure",
@@ -1111,6 +1844,27 @@
       "documentation":"<p/>",
       "error":{"httpStatusCode":400},
       "exception":true
+    },
+    "UntagResourceRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceId",
+        "TagKeys"
+      ],
+      "members":{
+        "ResourceId":{
+          "shape":"ResourceId",
+          "documentation":"<p>Specifies the EFS resource that you want to remove tags from.</p>",
+          "location":"uri",
+          "locationName":"ResourceId"
+        },
+        "TagKeys":{
+          "shape":"TagKeys",
+          "documentation":"<p>The keys of the key:value tag pairs that you want to remove from the specified EFS resource.</p>",
+          "location":"querystring",
+          "locationName":"tagKeys"
+        }
+      }
     },
     "UpdateFileSystemRequest":{
       "type":"structure",
@@ -1131,7 +1885,19 @@
           "documentation":"<p>(Optional) The amount of throughput, in MiB/s, that you want to provision for your file system. Valid values are 1-1024. Required if <code>ThroughputMode</code> is changed to <code>provisioned</code> on update. If you're not updating the amount of provisioned throughput for your file system, you don't need to provide this value in your request. </p>"
         }
       }
-    }
+    },
+    "ValidationException":{
+      "type":"structure",
+      "required":["ErrorCode"],
+      "members":{
+        "ErrorCode":{"shape":"ErrorCode"},
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>Returned if the AWS Backup service is not available in the region that the request was made.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "VpcId":{"type":"string"}
   },
   "documentation":"<fullname>Amazon Elastic File System</fullname> <p>Amazon Elastic File System (Amazon EFS) provides simple, scalable file storage for use with Amazon EC2 instances in the AWS Cloud. With Amazon EFS, storage capacity is elastic, growing and shrinking automatically as you add and remove files, so your applications have the storage they need, when they need it. For more information, see the <a href=\"https://docs.aws.amazon.com/efs/latest/ug/api-reference.html\">User Guide</a>.</p>"
 }

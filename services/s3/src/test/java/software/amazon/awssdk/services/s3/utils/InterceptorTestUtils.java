@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -35,6 +35,23 @@ import software.amazon.awssdk.utils.StringInputStream;
 public final class InterceptorTestUtils {
 
     private InterceptorTestUtils() {
+    }
+
+    public static SdkHttpFullRequest sdkHttpFullRequest() {
+        return SdkHttpFullRequest.builder()
+                                 .uri(URI.create("http://localhost:8080"))
+                                 .method(SdkHttpMethod.GET)
+                                 .build();
+    }
+
+    public static SdkHttpRequest sdkHttpRequest(URI customUri) {
+        return SdkHttpFullRequest.builder()
+                                 .protocol(customUri.getScheme())
+                                 .host(customUri.getHost())
+                                 .port(customUri.getPort())
+                                 .method(SdkHttpMethod.GET)
+                                 .encodedPath(customUri.getPath())
+                                 .build();
     }
 
     public static Context.ModifyHttpResponse modifyHttpResponse(SdkRequest request, SdkHttpResponse sdkHttpResponse) {
@@ -114,13 +131,6 @@ public final class InterceptorTestUtils {
                 return request;
             }
         };
-    }
-
-    public static SdkHttpFullRequest sdkHttpFullRequest() {
-        return SdkHttpFullRequest.builder()
-                                 .uri(URI.create("http://localhost:8080"))
-                                 .method(SdkHttpMethod.GET)
-                                 .build();
     }
 
     public static Context.ModifyResponse modifyResponseContext(SdkRequest request, SdkResponse response, SdkHttpResponse sdkHttpResponse) {

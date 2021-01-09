@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
+import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
 import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 import software.amazon.awssdk.utils.builder.Buildable;
@@ -121,11 +122,11 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
-        SdkField<?> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
+        SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
         Map<String, Object> map = new HashMap<>();
         jsonContent.fields().forEach((fieldName, value) -> {
             JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
-            map.put(fieldName, unmarshaller.unmarshall(context, value, (SdkField<Object>) valueInfo));
+            map.put(fieldName, unmarshaller.unmarshall(context, value, valueInfo));
         });
         return map;
     }
@@ -137,10 +138,10 @@ public final class JsonProtocolUnmarshaller {
         return jsonContent.items()
                           .stream()
                           .map(item -> {
-                              SdkField<?> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
+                              SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
                               JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(),
                                                                                               memberInfo.marshallingType());
-                              return unmarshaller.unmarshall(context, item, (SdkField<Object>) memberInfo);
+                              return unmarshaller.unmarshall(context, item, memberInfo);
                           })
                           .collect(Collectors.toList());
     }
@@ -163,8 +164,8 @@ public final class JsonProtocolUnmarshaller {
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response) throws IOException {
-        if (hasPayloadMembers(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo)) {
-            SdkJsonNode jsonNode = parser.parse(ReleasableInputStream.wrap(response.content().orElse(null)).disableClose());
+        if (hasPayloadMembersOnUnmarshall(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo) && response.content().isPresent()) {
+            SdkJsonNode jsonNode = parser.parse(ReleasableInputStream.wrap(response.content().get()).disableClose());
             return unmarshall(sdkPojo, response, jsonNode);
         } else {
             return unmarshall(sdkPojo, response, null);
@@ -181,10 +182,11 @@ public final class JsonProtocolUnmarshaller {
         return f.containsTrait(PayloadTrait.class);
     }
 
-    private boolean hasPayloadMembers(SdkPojo sdkPojo) {
+    private boolean hasPayloadMembersOnUnmarshall(SdkPojo sdkPojo) {
         return sdkPojo.sdkFields()
-                      .stream()
-                      .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD);
+                .stream()
+                .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD
+                        || MarshallerUtil.locationInUri(f.location()));
     }
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
@@ -202,8 +204,9 @@ public final class JsonProtocolUnmarshaller {
                                                                       SdkJsonNode jsonContent,
                                                                       JsonUnmarshallerContext context) {
         for (SdkField<?> field : sdkPojo.sdkFields()) {
-            if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
-                field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().orElse(null)));
+            if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES &&
+                context.response().content().isPresent()) {
+                field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
             } else {
                 SdkJsonNode jsonFieldContent = getSdkJsonNode(jsonContent, field);
                 JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(field.location(), field.marshallingType());

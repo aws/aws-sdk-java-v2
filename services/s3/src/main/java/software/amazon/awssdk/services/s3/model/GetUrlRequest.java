@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -42,20 +42,29 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 public final class GetUrlRequest implements SdkPojo, ToCopyableBuilder<GetUrlRequest.Builder, GetUrlRequest> {
     private static final SdkField<String> BUCKET_FIELD = SdkField
-        .<String>builder(MarshallingType.STRING)
+        .builder(MarshallingType.STRING)
         .getter(getter(GetUrlRequest::bucket))
         .setter(setter(Builder::bucket))
         .traits(LocationTrait.builder().location(MarshallLocation.PATH).locationName("Bucket")
                              .unmarshallLocationName("Bucket").build()).build();
 
     private static final SdkField<String> KEY_FIELD = SdkField
-        .<String>builder(MarshallingType.STRING)
+        .builder(MarshallingType.STRING)
         .getter(getter(GetUrlRequest::key))
         .setter(setter(Builder::key))
         .traits(LocationTrait.builder().location(MarshallLocation.GREEDY_PATH).locationName("Key")
                              .unmarshallLocationName("Key").build()).build();
 
-    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BUCKET_FIELD, KEY_FIELD));
+    private static final SdkField<String> VERSION_ID_FIELD = SdkField
+        .builder(MarshallingType.STRING)
+        .memberName("VersionId")
+        .getter(getter(GetUrlRequest::versionId))
+        .setter(setter(Builder::versionId))
+        .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("versionId")
+                             .unmarshallLocationName("versionId").build()).build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BUCKET_FIELD, KEY_FIELD,
+                                                                                                   VERSION_ID_FIELD));
 
     private final String bucket;
 
@@ -65,11 +74,14 @@ public final class GetUrlRequest implements SdkPojo, ToCopyableBuilder<GetUrlReq
 
     private final URI endpoint;
 
+    private final String versionId;
+
     private GetUrlRequest(BuilderImpl builder) {
         this.bucket = Validate.paramNotBlank(builder.bucket, "Bucket");
         this.key = Validate.paramNotBlank(builder.key, "Key");
         this.region = builder.region;
         this.endpoint = builder.endpoint;
+        this.versionId = builder.versionId;
     }
 
     /**
@@ -100,6 +112,15 @@ public final class GetUrlRequest implements SdkPojo, ToCopyableBuilder<GetUrlReq
         return endpoint;
     }
 
+    /**
+     * VersionId used to reference a specific version of the object.
+     *
+     * @return VersionId used to reference a specific version of the object.
+     */
+    public String versionId() {
+        return versionId;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -115,6 +136,8 @@ public final class GetUrlRequest implements SdkPojo, ToCopyableBuilder<GetUrlReq
                 return Optional.ofNullable(clazz.cast(bucket()));
             case "Key":
                 return Optional.ofNullable(clazz.cast(key()));
+            case "VersionId":
+                return Optional.ofNullable(clazz.cast(versionId()));
             default:
                 return Optional.empty();
         }
@@ -153,6 +176,15 @@ public final class GetUrlRequest implements SdkPojo, ToCopyableBuilder<GetUrlReq
         Builder key(String key);
 
         /**
+         * VersionId used to reference a specific version of the object.
+         *
+         * @param versionId
+         *        VersionId used to reference a specific version of the object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder versionId(String versionId);
+
+        /**
          * Sets the region to use for constructing the URL.
          *
          * @param region
@@ -181,6 +213,8 @@ public final class GetUrlRequest implements SdkPojo, ToCopyableBuilder<GetUrlReq
 
         private URI endpoint;
 
+        private String versionId;
+
         private BuilderImpl() {
         }
 
@@ -200,6 +234,12 @@ public final class GetUrlRequest implements SdkPojo, ToCopyableBuilder<GetUrlReq
         @Override
         public Builder key(String key) {
             this.key = key;
+            return this;
+        }
+
+        @Override
+        public Builder versionId(String versionId) {
+            this.versionId = versionId;
             return this;
         }
 

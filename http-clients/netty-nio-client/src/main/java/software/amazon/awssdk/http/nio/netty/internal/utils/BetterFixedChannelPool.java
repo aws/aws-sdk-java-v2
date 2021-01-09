@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
+
 import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.DefaultPromise;
@@ -28,21 +30,25 @@ import io.netty.util.internal.ThrowableUtil;
 import java.nio.channels.ClosedChannelException;
 import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * {@link ChannelPool} implementation that takes another {@link ChannelPool} implementation and enforce a maximum
  * number of concurrent connections.
  */
 //TODO: Contribute me back to Netty
-public class BetterFixedChannelPool implements ChannelPool {
+public class BetterFixedChannelPool implements SdkChannelPool {
     private static final IllegalStateException FULL_EXCEPTION = ThrowableUtil.unknownStackTrace(
         new IllegalStateException("Too many outstanding acquire operations"),
         BetterFixedChannelPool.class, "acquire0(...)");
     private static final TimeoutException TIMEOUT_EXCEPTION = ThrowableUtil.unknownStackTrace(
-        new TimeoutException("Acquire operation took longer then configured maximum time"),
+        new TimeoutException("Acquire operation took longer than configured maximum time"),
         BetterFixedChannelPool.class, "<init>(...)");
     static final IllegalStateException POOL_CLOSED_ON_RELEASE_EXCEPTION = ThrowableUtil.unknownStackTrace(
         new IllegalStateException("BetterFixedChannelPooled was closed"),
@@ -66,11 +72,11 @@ public class BetterFixedChannelPool implements ChannelPool {
     private final EventExecutor executor;
     private final long acquireTimeoutNanos;
     private final Runnable timeoutTask;
-    private final ChannelPool delegateChannelPool;
+    private final SdkChannelPool delegateChannelPool;
 
     // There is no need to worry about synchronization as everything that modified the queue or counts is done
     // by the above EventExecutor.
-    private final Queue<AcquireTask> pendingAcquireQueue = new ArrayDeque<AcquireTask>();
+    private final Queue<AcquireTask> pendingAcquireQueue = new ArrayDeque<>();
     private final int maxConnections;
     private final int maxPendingAcquires;
     private int acquiredChannelCount;
@@ -137,17 +143,28 @@ public class BetterFixedChannelPool implements ChannelPool {
             if (executor.inEventLoop()) {
                 acquire0(promise);
             } else {
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        acquire0(promise);
-                    }
-                });
+                executor.execute(() -> acquire0(promise));
             }
         } catch (Throwable cause) {
             promise.setFailure(cause);
         }
         return promise;
+    }
+
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        CompletableFuture<Void> delegateMetricResult = delegateChannelPool.collectChannelPoolMetrics(metrics);
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        doInEventLoop(executor, () -> {
+            try {
+                metrics.reportMetric(HttpMetric.MAX_CONCURRENCY, this.maxConnections);
+                metrics.reportMetric(HttpMetric.PENDING_CONCURRENCY_ACQUIRES, this.pendingAcquireCount);
+                metrics.reportMetric(HttpMetric.LEASED_CONCURRENCY, this.acquiredChannelCount);
+                result.complete(null);
+            } catch (Throwable t) {
+                result.completeExceptionally(t);
+            }
+        });
+        return CompletableFuture.allOf(result, delegateMetricResult);
     }
 
     private void acquire0(final Promise<Channel> promise) {
@@ -348,12 +365,7 @@ public class BetterFixedChannelPool implements ChannelPool {
         if (executor.inEventLoop()) {
             close0();
         } else {
-            executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    close0();
-                }
-            }).awaitUninterruptibly();
+            executor.submit(() -> close0()).awaitUninterruptibly();
         }
     }
 
@@ -376,12 +388,7 @@ public class BetterFixedChannelPool implements ChannelPool {
 
             // Ensure we dispatch this on another Thread as close0 will be called from the EventExecutor and we need
             // to ensure we will not block in a EventExecutor.
-            GlobalEventExecutor.INSTANCE.execute(new Runnable() {
-                @Override
-                public void run() {
-                    delegateChannelPool.close();
-                }
-            });
+            GlobalEventExecutor.INSTANCE.execute(() -> delegateChannelPool.close());
         }
     }
 
@@ -391,7 +398,7 @@ public class BetterFixedChannelPool implements ChannelPool {
 
     public static final class Builder {
 
-        private ChannelPool channelPool;
+        private SdkChannelPool channelPool;
         private EventExecutor executor;
         private AcquireTimeoutAction action;
         private long acquireTimeoutMillis;
@@ -401,7 +408,7 @@ public class BetterFixedChannelPool implements ChannelPool {
         private Builder() {
         }
 
-        public Builder channelPool(ChannelPool channelPool) {
+        public Builder channelPool(SdkChannelPool channelPool) {
             this.channelPool = channelPool;
             return this;
         }

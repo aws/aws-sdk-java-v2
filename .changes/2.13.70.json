@@ -1,0 +1,41 @@
+{
+    "version": "2.13.70",
+    "date": "2020-08-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime Service",
+            "description": "Amazon Lex supports intent classification confidence scores along with a list of the top five intents."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release supports Wavelength resources, including carrier gateways, and carrier IP addresses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Events",
+            "description": "Adds support implicit and explicit impression input"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "description": "Adds support for implicit impressions"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "description": "Amazon Lex supports the option to enable accuracy improvements and specify an intent classification confidence score threshold."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "description": "Add 'exploration' functionality"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

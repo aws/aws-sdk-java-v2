@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
      * Define the signer that should be used when authenticating with AWS.
      */
     public static final SdkAdvancedClientOption<Signer> SIGNER = new SdkAdvancedClientOption<>(Signer.class);
-
 
     /**
      * SDK uses endpoint trait and hostPrefix trait specified in service model to modify

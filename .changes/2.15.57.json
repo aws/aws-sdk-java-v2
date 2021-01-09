@@ -1,0 +1,12 @@
+{
+    "version": "2.15.57",
+    "date": "2020-12-31",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "Enhanced Service Catalog DescribeProvisioningParameters API to return new parameter constraints, i.e., MinLength, MaxLength, MinValue, MaxValue, ConstraintDescription and AllowedPattern"
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "version": "2.10.4",
+    "date": "2019-10-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "description": "Adds support for providing domain names that can embed streaming sessions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud9",
+            "description": "Added CREATING and CREATE_FAILED environment lifecycle statuses."
+        }
+    ]
+}

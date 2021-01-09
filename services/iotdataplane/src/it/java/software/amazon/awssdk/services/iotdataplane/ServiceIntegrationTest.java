@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@ import static org.junit.Assert.assertThat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowRequest;
 import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowResponse;
 import software.amazon.awssdk.services.iotdataplane.model.GetThingShadowRequest;
@@ -73,7 +75,13 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     @Before
     public void setup() throws Exception {
-        iot = IotDataPlaneClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_EAST_1).build();
+        IotClient client = IotClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_EAST_1).build();
+        String endpoint = client.describeEndpoint(r -> r.endpointType("iot:Data-ATS")).endpointAddress();
+        iot = IotDataPlaneClient.builder()
+                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                .endpointOverride(URI.create("https://" + endpoint))
+                                .region(Region.US_EAST_1)
+                                .build();
     }
 
     @Test

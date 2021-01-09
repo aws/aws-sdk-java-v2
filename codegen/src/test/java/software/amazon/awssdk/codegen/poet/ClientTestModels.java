@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -55,6 +55,20 @@ public class ClientTestModels {
                 .customizationConfig(getCustomizationConfig(customizationModel))
                 .waitersModel(getWaiters(waitersModel))
                 .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel xmlServiceModels() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/xml/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/xml/customization.config").getFile());
+
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
 
         return new IntermediateModelBuilder(models).build();
     }

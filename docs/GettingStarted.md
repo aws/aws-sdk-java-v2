@@ -8,17 +8,17 @@
 
 ### Development Environment Setup Tips
 If you use IntelliJ IDEA, we include some helpful config files that will make your development experience smoother:
-- [intellij-codestyle.xml](https://github.com/aws/aws-sdk-java-v2/blob/master/build-tools/src/main/resources/software/amazon/awssdk/intellij-codestyle.xml)
+- [intellij-codestyle.xml](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/build-tools/src/main/resources/software/amazon/awssdk/intellij-codestyle.xml)
 
   This will help ensure your code follows our code style guidelines.
 
-- [intellij-copyright-profile.xml](https://github.com/aws/aws-sdk-java-v2/blob/master/build-tools/src/main/resources/software/amazon/awssdk/intellij-copyright-profile.xml)
+- [intellij-copyright-profile.xml](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/build-tools/src/main/resources/software/amazon/awssdk/intellij-copyright-profile.xml)
 
   This automatically inserts the license header to the top of source files that you create.
 
 If you have Checkstyle integrated with your IDE, we also recommend
 configuring it with our
-[Checkstyle config](https://github.com/aws/aws-sdk-java-v2/blob/master/build-tools/src/main/resources/software/amazon/awssdk/checkstyle.xml)
+[Checkstyle config](https://raw.githubusercontent.com/aws/aws-sdk-java-v2/master/build-tools/src/main/resources/software/amazon/awssdk/checkstyle.xml)
 so you can see any violations in line with the code.
 
 ### Building

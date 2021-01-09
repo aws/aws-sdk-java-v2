@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkField;
@@ -21,8 +22,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventTwo.Builder, EventTwo>, EventStream {
-    private static final SdkField<String> BAR_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventTwo.Builder, EventTwo>, EventStream {
+    private static final SdkField<String> BAR_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Bar")
             .getter(getter(EventTwo::bar)).setter(setter(Builder::bar))
             .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Bar").build()).build();
 
@@ -32,7 +33,7 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
 
     private final String bar;
 
-    private EventTwo(BuilderImpl builder) {
+    protected EventTwo(BuilderImpl builder) {
         this.bar = builder.bar;
     }
 
@@ -41,7 +42,7 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
      * 
      * @return The value of the Bar property for this object.
      */
-    public String bar() {
+    public final String bar() {
         return bar;
     }
 
@@ -59,19 +60,19 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(bar());
         return hashCode;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -90,11 +91,11 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
      * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("EventTwo").add("Bar", bar()).build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
         case "Bar":
             return Optional.ofNullable(clazz.cast(bar()));
@@ -104,7 +105,12 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final EventTwo copy(Consumer<? super Builder> modifier) {
+        return ToCopyableBuilder.super.copy(modifier);
+    }
+
+    @Override
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -124,7 +130,7 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
      */
     @Override
     public void accept(EventStreamOperationResponseHandler.Visitor visitor) {
-        visitor.visit(this);
+        throw new UnsupportedOperationException();
     }
 
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, EventTwo> {
@@ -138,13 +144,13 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
         Builder bar(String bar);
     }
 
-    static final class BuilderImpl implements Builder {
+    protected static class BuilderImpl implements Builder {
         private String bar;
 
-        private BuilderImpl() {
+        protected BuilderImpl() {
         }
 
-        private BuilderImpl(EventTwo model) {
+        protected BuilderImpl(EventTwo model) {
             bar(model.bar);
         }
 
@@ -173,3 +179,4 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
         }
     }
 }
+

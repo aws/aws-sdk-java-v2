@@ -28,9 +28,15 @@ decided.*
   \- Automatically reconnects to an event streaming session when they are
   interrupted by a network error.
 
-**Completed**
+**Released**
 
-None
+*These features are considered "mostly implemented". Development on new features 
+is never "done". These features are considered "done enough" that any remaining 
+design elements or features can be implemented incrementally based on customer 
+demand.*
+
+* [Request Presigners](core/presigners/README.md) - Makes it possible to sign 
+  requests to be executed at a later time. 
 
 **Rejected**
 
@@ -42,7 +48,7 @@ None
 
 None
  
-**Completed**
+**Accepted**
 
 * [Class Initialization](FavorStaticFactoryMethods.md) - Conventions
   used to initialize a class.

@@ -1,0 +1,31 @@
+{
+    "version": "2.10.60",
+    "date": "2020-02-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "description": "This release adds support for simulation job batches"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Documentation updates for RDS: when restoring a DB cluster from a snapshot, must create DB instances"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "description": "This version of the SDK includes bug fixes and documentation updates."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "Improves discoverability by renaming the table and index interfaces to be consistent with the client interface naming, and by adding operation methods for createTable(), scan() and query(), as applicable. These methods take a request object as parameter. Execute() methods for the index interface is removed since they are no longer needed."
+        }
+    ]
+}

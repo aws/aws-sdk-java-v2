@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,30 +20,29 @@ import static software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallAttemptMetricCollectionStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTimeoutTrackingStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncBeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncSigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeAsyncHttpRequestStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
-import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -57,14 +56,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
     public AmazonAsyncHttpClient(SdkClientConfiguration clientConfiguration) {
         this.httpClientDependencies = HttpClientDependencies.builder()
                                                             .clientConfiguration(clientConfiguration)
-                                                            .capacityManager(createCapacityManager())
                                                             .build();
-    }
-
-    private CapacityManager createCapacityManager() {
-        // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
-        // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
-        return new CapacityManager(SdkDefaultRetrySetting.RETRY_THROTTLING_COST * SdkDefaultRetrySetting.THROTTLED_RETRIES);
     }
 
     /**
@@ -107,15 +99,6 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         RequestExecutionBuilder request(SdkHttpFullRequest request);
 
         /**
-         * Fluent setter for the error response handler
-         *
-         * @param errorResponseHandler Error response handler
-         * @return This builder for method chaining.
-         */
-        RequestExecutionBuilder errorResponseHandler(
-                TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler);
-
-        /**
          * Fluent setter for the execution context
          *
          * @param executionContext Execution context
@@ -139,14 +122,13 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
          * @param <OutputT>       Result type
          * @return Unmarshalled result type.
          */
-        <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<OutputT> responseHandler);
+        <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler);
     }
 
     private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
         private AsyncRequestBody requestProvider;
         private SdkHttpFullRequest request;
-        private TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
@@ -159,13 +141,6 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         @Override
         public RequestExecutionBuilder request(SdkHttpFullRequest request) {
             this.request = request;
-            return this;
-        }
-
-        @Override
-        public RequestExecutionBuilder errorResponseHandler(
-                TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler) {
-            this.errorResponseHandler = errorResponseHandler;
             return this;
         }
 
@@ -183,7 +158,9 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         }
 
         @Override
-        public <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<OutputT> responseHandler) {
+        public <OutputT> CompletableFuture<OutputT> execute(
+            TransformingAsyncResponseHandler<Response<OutputT>> responseHandler) {
+
             try {
                 return RequestPipelineBuilder
                         .first(RequestPipelineBuilder
@@ -192,17 +169,18 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(ApplyUserAgentStage::new)
                                 .then(MergeCustomHeadersStage::new)
                                 .then(MergeCustomQueryParamsStage::new)
-                                .then(MoveParametersToBodyStage::new)
                                 .then(MakeRequestImmutableStage::new)
                                 .then(RequestPipelineBuilder
-                                        .first(SigningStage::new)
-                                        .then(BeforeTransmissionExecutionInterceptorsStage::new)
-                                        .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
+                                        .first(AsyncSigningStage::new)
+                                        .then(AsyncBeforeTransmissionExecutionInterceptorsStage::new)
+                                        .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, d))
+                                        .wrappedWith(AsyncApiCallAttemptMetricCollectionStage::new)
                                         .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps, wrapped))
                                         .then(async(() -> new UnwrapResponseContainer<>()))
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
-                                        .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)::build)::build)
+                                        .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)
+                                        .wrappedWith(AsyncApiCallMetricCollectionStage::new)::build)::build)
                         .build(httpClientDependencies)
                         .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {
@@ -221,5 +199,4 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         }
 
     }
-
 }

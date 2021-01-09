@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  */
 
 package software.amazon.awssdk.codegen.docs;
+
+import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME;
+import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_SOURCE_PATH_PARAM_NAME;
 
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -101,12 +104,12 @@ class SyncOperationDocProvider extends OperationDocProvider {
         protected void applyParams(DocumentationBuilder docBuilder) {
             emitRequestParm(docBuilder);
             if (opModel.hasStreamingInput()) {
-                docBuilder.param("sourcePath", SIMPLE_FILE_INPUT_DOCS + getStreamingInputDocs())
+                docBuilder.param(SYNC_CLIENT_SOURCE_PATH_PARAM_NAME, SIMPLE_FILE_INPUT_DOCS + getStreamingInputDocs())
                           // Link to non-simple method for discoverability
                           .see("#%s(%s, RequestBody)", opModel.getMethodName(), opModel.getInput().getVariableType());
             }
             if (opModel.hasStreamingOutput()) {
-                docBuilder.param("destinationPath", SIMPLE_FILE_OUTPUT_DOCS + getStreamingOutputDocs())
+                docBuilder.param(SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME, SIMPLE_FILE_OUTPUT_DOCS + getStreamingOutputDocs())
                           // Link to non-simple method for discoverability
                           .see("#%s(%s, ResponseTransformer)", opModel.getMethodName(),
                                opModel.getInput().getVariableType());

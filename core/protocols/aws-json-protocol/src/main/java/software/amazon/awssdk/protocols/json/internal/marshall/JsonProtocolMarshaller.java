@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
+import static software.amazon.awssdk.core.internal.util.Mimetype.MIMETYPE_EVENT_STREAM;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
@@ -59,6 +60,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final boolean hasStreamingInput;
 
     private final JsonMarshallerContext marshallerContext;
+    private final boolean hasEventStreamingInput;
+    private final boolean hasEvent;
 
     JsonProtocolMarshaller(URI endpoint,
                            StructuredJsonGenerator jsonGenerator,
@@ -69,6 +72,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         this.contentType = contentType;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
         this.hasStreamingInput = operationInfo.hasStreamingInput();
+        this.hasEventStreamingInput = operationInfo.hasEventStreamingInput();
+        this.hasEvent = operationInfo.hasEvent();
         this.request = fillBasicRequestParams(operationInfo);
         this.marshallerContext = JsonMarshallerContext.builder()
                                                       .jsonGenerator(jsonGenerator)
@@ -196,17 +201,27 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             }
 
             byte[] content = jsonGenerator.getBytes();
-            request.contentStreamProvider(() -> new ByteArrayInputStream(content));
-            if (content.length > 0) {
-                request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
+
+            if (content != null) {
+                request.contentStreamProvider(() -> new ByteArrayInputStream(content));
+                if (content.length > 0) {
+                    request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
+                }
             }
         }
 
         // We skip setting the default content type if the request is streaming as
         // content-type is determined based on the body of the stream
-        if (!request.headers().containsKey(CONTENT_TYPE) && contentType != null && !hasStreamingInput) {
-            request.putHeader(CONTENT_TYPE, contentType);
+        // TODO: !request.headers().containsKey(CONTENT_TYPE) does not work because request is created from line 77
+        // and not from the original request
+        if (!request.headers().containsKey(CONTENT_TYPE) && !hasEvent) {
+            if (hasEventStreamingInput) {
+                request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
+            } else if (contentType != null && !hasStreamingInput && request.contentStreamProvider() != null) {
+                request.putHeader(CONTENT_TYPE, contentType);
+            }
         }
+
         return request.build();
     }
 

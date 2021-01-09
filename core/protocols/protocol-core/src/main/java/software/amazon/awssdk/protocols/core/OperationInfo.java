@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ public final class OperationInfo {
     private final boolean hasExplicitPayloadMember;
     private final boolean hasPayloadMembers;
     private final boolean hasStreamingInput;
+    private final boolean hasEventStreamingInput;
+    private final boolean hasEvent;
     private final AttributeMap additionalMetadata;
 
     private OperationInfo(Builder builder) {
@@ -43,6 +45,8 @@ public final class OperationInfo {
         this.hasPayloadMembers = builder.hasPayloadMembers;
         this.hasStreamingInput = builder.hasStreamingInput;
         this.additionalMetadata = builder.additionalMetadata.build();
+        this.hasEventStreamingInput = builder.hasEventStreamingInput;
+        this.hasEvent = builder.hasEvent;
     }
 
     /**
@@ -99,6 +103,20 @@ public final class OperationInfo {
     }
 
     /**
+     * @return True if the operation has event streaming input.
+     */
+    public boolean hasEventStreamingInput() {
+        return hasEventStreamingInput;
+    }
+
+    /**
+     * @return True if the operation has event.
+     */
+    public boolean hasEvent() {
+        return hasEvent;
+    }
+
+    /**
      * Gets an unmodeled piece of metadata. Useful for protocol specific options.
      *
      * @param key Key the metadata was registered under.
@@ -128,6 +146,8 @@ public final class OperationInfo {
         private boolean hasExplicitPayloadMember;
         private boolean hasPayloadMembers;
         private boolean hasStreamingInput;
+        private boolean hasEventStreamingInput;
+        private boolean hasEvent;
         private AttributeMap.Builder additionalMetadata = AttributeMap.builder();
 
         private Builder() {
@@ -165,6 +185,16 @@ public final class OperationInfo {
 
         public Builder hasStreamingInput(boolean hasStreamingInput) {
             this.hasStreamingInput = hasStreamingInput;
+            return this;
+        }
+
+        public Builder hasEventStreamingInput(boolean hasEventStreamingInput) {
+            this.hasEventStreamingInput = hasEventStreamingInput;
+            return this;
+        }
+
+        public Builder hasEvent(boolean hasEvent) {
+            this.hasEvent = hasEvent;
             return this;
         }
 

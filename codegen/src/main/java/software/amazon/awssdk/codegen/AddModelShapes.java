@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ final class AddModelShapes extends AddShapes implements IntermediateModelShapePr
             ShapeType shapeType = getModelShapeType(shape);
 
             if (shapeType != null) {
-                String javaClassName = getNamingStrategy().getJavaClassName(shapeName);
+                String javaClassName = getNamingStrategy().getShapeClassName(shapeName);
                 if (shapesToSkip.contains(javaClassName)) {
                     continue;
                 }

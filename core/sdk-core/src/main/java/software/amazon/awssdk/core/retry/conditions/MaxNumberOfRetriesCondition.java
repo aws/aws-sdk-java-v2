@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package software.amazon.awssdk.core.retry.conditions;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -32,13 +34,17 @@ public final class MaxNumberOfRetriesCondition implements RetryCondition {
         this.maxNumberOfRetries = Validate.isNotNegative(maxNumberOfRetries, "maxNumberOfRetries");
     }
 
+    public static MaxNumberOfRetriesCondition create(int maxNumberOfRetries) {
+        return new MaxNumberOfRetriesCondition(maxNumberOfRetries);
+    }
+
+    public static MaxNumberOfRetriesCondition forRetryMode(RetryMode retryMode) {
+        return create(SdkDefaultRetrySetting.maxAttempts(retryMode));
+    }
+
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
         return context.retriesAttempted() < maxNumberOfRetries;
-    }
-
-    public static MaxNumberOfRetriesCondition create(int maxNumberOfRetries) {
-        return new MaxNumberOfRetriesCondition(maxNumberOfRetries);
     }
 
     @Override

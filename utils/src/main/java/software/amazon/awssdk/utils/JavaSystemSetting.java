@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -34,7 +34,12 @@ public enum JavaSystemSetting implements SystemSetting {
     USER_HOME("user.home"),
     USER_LANGUAGE("user.language"),
     USER_REGION("user.region"),
-    USER_NAME("user.name");
+    USER_NAME("user.name"),
+
+    SSL_KEY_STORE("javax.net.ssl.keyStore"),
+    SSL_KEY_STORE_PASSWORD("javax.net.ssl.keyStorePassword"),
+    SSL_KEY_STORE_TYPE("javax.net.ssl.keyStoreType")
+    ;
 
     private final String systemProperty;
 

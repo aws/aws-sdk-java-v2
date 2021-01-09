@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,9 +17,13 @@ package software.amazon.awssdk.auth.credentials;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.ToString;
@@ -33,9 +37,9 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 public final class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
+    private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
 
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
-    private final ResourcesEndpointProvider credentialsEndpointProvider = new InstanceProviderCredentialsEndpointProvider();
 
     /**
      * @see #builder()
@@ -62,7 +66,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
 
     @Override
     protected ResourcesEndpointProvider getCredentialsEndpointProvider() {
-        return credentialsEndpointProvider;
+        return new InstanceProviderCredentialsEndpointProvider(getToken());
     }
 
     @Override
@@ -75,13 +79,45 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
         return ToString.create("InstanceProfileCredentialsProvider");
     }
 
+    private String getToken() {
+        return EC2MetadataUtils.getToken();
+    }
+
+    private static ResourcesEndpointProvider includeTokenHeader(ResourcesEndpointProvider provider, String token) {
+        return new ResourcesEndpointProvider() {
+            @Override
+            public URI endpoint() throws IOException {
+                return provider.endpoint();
+            }
+
+            @Override
+            public Map<String, String> headers() {
+                Map<String, String> headers = new HashMap<>(provider.headers());
+                headers.put(EC2_METADATA_TOKEN_HEADER, token);
+                return headers;
+            }
+        };
+    }
+
     private static final class InstanceProviderCredentialsEndpointProvider implements ResourcesEndpointProvider {
+        private final String metadataToken;
+
+        private InstanceProviderCredentialsEndpointProvider(String metadataToken) {
+            this.metadataToken = metadataToken;
+        }
+
         @Override
         public URI endpoint() throws IOException {
             String host = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
 
             URI endpoint = URI.create(host + SECURITY_CREDENTIALS_RESOURCE);
-            String securityCredentialsList = HttpResourcesUtils.instance().readResource(endpoint);
+            ResourcesEndpointProvider endpointProvider = () -> endpoint;
+
+            if (metadataToken != null) {
+                endpointProvider = includeTokenHeader(endpointProvider, metadataToken);
+            }
+
+            String securityCredentialsList = HttpResourcesUtils.instance().readResource(endpointProvider);
             String[] securityCredentials = securityCredentialsList.trim().split("\n");
 
             if (securityCredentials.length == 0) {
@@ -90,7 +126,22 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
 
             return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
         }
+
+        @Override
+        public Map<String, String> headers() {
+            Map<String, String> requestHeaders = new HashMap<>();
+            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("Accept", "*/*");
+            requestHeaders.put("Connection", "keep-alive");
+
+            if (metadataToken != null) {
+                requestHeaders.put(EC2_METADATA_TOKEN_HEADER, metadataToken);
+            }
+
+            return requestHeaders;
+        }
     }
+
 
     /**
      * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.

@@ -21,8 +21,8 @@ final class RecursiveListTypeCopier {
     }
 
     static List<RecursiveStructType> copyFromBuilder(Collection<? extends RecursiveStructType.Builder> recursiveListTypeParam) {
-        if (recursiveListTypeParam == null) {
-            return null;
+        if (recursiveListTypeParam == null || recursiveListTypeParam instanceof DefaultSdkAutoConstructList) {
+            return DefaultSdkAutoConstructList.getInstance();
         }
         return copy(recursiveListTypeParam.stream().map(RecursiveStructType.Builder::build).collect(toList()));
     }

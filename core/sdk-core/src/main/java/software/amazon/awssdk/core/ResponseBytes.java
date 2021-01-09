@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,10 +15,15 @@
 
 package software.amazon.awssdk.core;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -31,13 +36,36 @@ import software.amazon.awssdk.utils.Validate;
 public final class ResponseBytes<ResponseT> extends BytesWrapper {
     private final ResponseT response;
 
-    ResponseBytes(ResponseT response, byte[] bytes) {
+    private ResponseBytes(ResponseT response, byte[] bytes) {
         super(bytes);
         this.response = Validate.paramNotNull(response, "response");
     }
 
+    /**
+     * Create {@link ResponseBytes} from a Byte array. This will copy the contents of the byte array.
+     */
+    public static <ResponseT> ResponseBytes<ResponseT> fromInputStream(ResponseT response, InputStream stream)
+            throws UncheckedIOException {
+        return new ResponseBytes<>(response, invokeSafely(() -> IoUtils.toByteArray(stream)));
+    }
+
+    /**
+     * Create {@link ResponseBytes} from a Byte array. This will copy the contents of the byte array.
+     */
     public static <ResponseT> ResponseBytes<ResponseT> fromByteArray(ResponseT response, byte[] bytes) {
         return new ResponseBytes<>(response, Arrays.copyOf(bytes, bytes.length));
+    }
+
+    /**
+     * Create {@link ResponseBytes} from a Byte array <b>without</b> copying the contents of the byte array. This introduces
+     * concurrency risks, allowing: (1) the caller to modify the byte array stored in this {@code SdkBytes} implementation AND
+     * (2) any users of {@link #asByteArrayUnsafe()} to modify the byte array passed into this {@code SdkBytes} implementation.
+     *
+     * <p>As the method name implies, this is unsafe. Use {@link #fromByteArray(Object, byte[])} unless you're sure you know the
+     * risks.
+     */
+    public static <ResponseT> ResponseBytes<ResponseT> fromByteArrayUnsafe(ResponseT response, byte[] bytes) {
+        return new ResponseBytes<>(response, bytes);
     }
 
     /**
@@ -51,7 +79,7 @@ public final class ResponseBytes<ResponseT> extends BytesWrapper {
     public String toString() {
         return ToString.builder("ResponseBytes")
                        .add("response", response)
-                       .add("bytes", wrappedBytes())
+                       .add("bytes", asByteArrayUnsafe())
                        .build();
     }
 

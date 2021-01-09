@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.xml.internal.marshall;
 
 import java.io.StringWriter;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -47,6 +48,16 @@ public final class XmlGenerator {
 
     public void startElement(String element) {
         xmlWriter.startElement(element);
+    }
+
+    /**
+     * Start to write the element
+     *
+     * @param element the element to write
+     * @param attributes the attributes
+     */
+    public void  startElement(String element, Map<String, String> attributes) {
+        xmlWriter.startElement(element, attributes);
     }
 
     public void endElement() {

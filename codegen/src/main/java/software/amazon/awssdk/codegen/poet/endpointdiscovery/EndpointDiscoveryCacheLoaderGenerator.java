@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryCacheLoader;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryEndpoint;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
+import software.amazon.awssdk.utils.Validate;
 
 public class EndpointDiscoveryCacheLoaderGenerator implements ClassSpec {
 
@@ -101,14 +103,18 @@ public class EndpointDiscoveryCacheLoaderGenerator implements ClassSpec {
                                                      .returns(returnType);
 
         if (!opModel.getInputShape().isHasHeaderMember()) {
+            ClassName endpointClass = poetExtensions.getModelClass("Endpoint");
             methodBuilder.addCode("return $T.supplyAsync(() -> {", CompletableFuture.class)
                          .addStatement("$T response = $L.$L($L.builder().build())",
                                        poetExtensions.getModelClass(opModel.getOutputShape().getC2jName()),
                                        CLIENT_FIELD,
                                        opModel.getMethodName(),
                                        poetExtensions.getModelClass(opModel.getInputShape().getC2jName()))
-                         .addStatement("$T endpoint = response.endpoints().get(0)",
-                                       poetExtensions.getModelClass("Endpoint"))
+                         .addStatement("$T<$T> endpoints = response.endpoints()", List.class, endpointClass)
+                         .addStatement("$T.notEmpty(endpoints, \"Endpoints returned by service for endpoint discovery must "
+                                       + "not be empty.\")", Validate.class)
+                         .addStatement("$T endpoint = endpoints.get(0)",
+                                       endpointClass)
                          .addStatement("return $T.builder().endpoint(toUri(endpoint.address(), $L.defaultEndpoint()))" +
                                        ".expirationTime($T.now().plus(endpoint.cachePeriodInMinutes(), $T.MINUTES)).build()",
                                        EndpointDiscoveryEndpoint.class,

@@ -19,7 +19,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class EventTwoMarshaller implements Marshaller<EventTwo> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().hasExplicitPayloadMember(false)
-                                                                            .hasPayloadMembers(true).httpMethod(SdkHttpMethod.GET).build();
+            .hasPayloadMembers(true).httpMethod(SdkHttpMethod.GET).hasEvent(true).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 
@@ -32,11 +32,13 @@ public class EventTwoMarshaller implements Marshaller<EventTwo> {
         Validate.paramNotNull(eventTwo, "eventTwo");
         try {
             ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
-                .createProtocolMarshaller(SDK_OPERATION_BINDING);
+                    .createProtocolMarshaller(SDK_OPERATION_BINDING);
             return protocolMarshaller.marshall(eventTwo).toBuilder().putHeader(":message-type", "event")
-                                     .putHeader(":event-type", "EventTwo").putHeader(":content-type", "application/json").build();
+                    .putHeader(":event-type", eventTwo.sdkEventType().toString()).putHeader(":content-type", "application/json")
+                    .build();
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
+

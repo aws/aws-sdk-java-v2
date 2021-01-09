@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -80,8 +80,9 @@ abstract class AddShapes {
         shapeModel.setRequired(shape.getRequired());
         shapeModel.setDeprecated(shape.isDeprecated());
         shapeModel.setWrapper(shape.isWrapper());
-        shapeModel.withIsEventStream(shape.isEventStream());
+        shapeModel.withIsEventStream(shape.isEventstream());
         shapeModel.withIsEvent(shape.isEvent());
+        shapeModel.withXmlNamespace(shape.getXmlNamespace());
 
         boolean hasHeaderMember = false;
         boolean hasStatusCodeMember = false;
@@ -158,7 +159,6 @@ abstract class AddShapes {
                                                variableType + " type.");
         }
 
-
         MemberModel memberModel = new MemberModel();
 
         memberModel.withC2jName(c2jMemberName)
@@ -169,7 +169,7 @@ abstract class AddShapes {
                    .withSetterModel(new VariableModel(variableName, variableType, variableDeclarationType))
                    .withGetterModel(new ReturnTypeModel(variableType))
                    .withTimestampFormat(resolveTimestampFormat(c2jMemberDefinition, shape))
-                   .withJsonValue(c2jMemberDefinition.getJsonValue());
+                   .withJsonValue(c2jMemberDefinition.getJsonvalue());
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
         memberModel.setSensitive(isSensitiveShapeOrContainer(c2jMemberDefinition, allC2jShapes));
@@ -178,12 +178,14 @@ abstract class AddShapes {
                 .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, parentShape, shape))
                 .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName, parentShape, shape))
                 .withFluentEnumSetterMethodName(namingStrategy.getFluentEnumSetterMethodName(c2jMemberName, parentShape, shape))
+                .withExistenceCheckMethodName(namingStrategy.getExistenceCheckMethodName(c2jMemberName, parentShape))
                 .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName, parentShape, shape))
                 .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName, parentShape, shape));
         memberModel.setIdempotencyToken(c2jMemberDefinition.isIdempotencyToken());
-        memberModel.setEventPayload(c2jMemberDefinition.isEventPayload());
-        memberModel.setEventHeader(c2jMemberDefinition.isEventHeader());
-        memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointDiscoveryId());
+        memberModel.setEventPayload(c2jMemberDefinition.isEventpayload());
+        memberModel.setEventHeader(c2jMemberDefinition.isEventheader());
+        memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointdiscoveryid());
+        memberModel.setXmlAttribute(c2jMemberDefinition.isXmlAttribute());
 
         // Pass the xmlNameSpace from the member reference
         if (c2jMemberDefinition.getXmlNamespace() != null) {
@@ -193,6 +195,20 @@ abstract class AddShapes {
         // Additional member model metadata for list/map/enum types
         fillContainerTypeMemberMetadata(allC2jShapes, c2jMemberDefinition.getShape(), memberModel,
                                         protocol);
+
+
+        String deprecatedName = c2jMemberDefinition.getDeprecatedName();
+        if (StringUtils.isNotBlank(deprecatedName)) {
+            checkForValidDeprecatedName(c2jMemberName, shape);
+
+            memberModel.setDeprecatedName(deprecatedName);
+            memberModel.setDeprecatedFluentGetterMethodName(
+                namingStrategy.getFluentGetterMethodName(deprecatedName, parentShape, shape));
+            memberModel.setDeprecatedFluentSetterMethodName(
+                namingStrategy.getFluentSetterMethodName(deprecatedName, parentShape, shape));
+            memberModel.setDeprecatedBeanStyleSetterMethodName(
+                namingStrategy.getBeanStyleSetterMethodName(deprecatedName, parentShape, shape));
+        }
 
         ParameterHttpMapping httpMapping = generateParameterHttpMapping(parentShape,
                                                                               c2jMemberName,
@@ -214,6 +230,26 @@ abstract class AddShapes {
         memberModel.setHttp(httpMapping);
 
         return memberModel;
+    }
+
+    private void checkForValidDeprecatedName(String c2jMemberName, Shape memberShape) {
+        if (memberShape.getEnumValues() != null) {
+            throw new IllegalStateException(String.format(
+                "Member %s has enum values and a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
+
+        if (isListShape(memberShape)) {
+            throw new IllegalStateException(String.format(
+                "Member %s is a list and has a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
+
+        if (isMapShape(memberShape)) {
+            throw new IllegalStateException(String.format(
+                "Member %s is a map and has a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
     }
 
     private boolean isSensitiveShapeOrContainer(Member member, Map<String, Shape> allC2jShapes) {
@@ -406,7 +442,7 @@ abstract class AddShapes {
                                                  mapValueModel));
 
         } else if (memberC2jShape.getEnumValues() != null) { // enum values
-            memberModel.withEnumType(getNamingStrategy().getJavaClassName(memberC2jShapeName));
+            memberModel.withEnumType(getNamingStrategy().getShapeClassName(memberC2jShapeName));
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Optional;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -138,7 +137,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @return AsyncRequestBody instance.
      */
     static AsyncRequestBody fromBytes(byte[] bytes) {
-        return new ByteArrayAsyncRequestBody(Arrays.copyOf(bytes, bytes.length));
+        return new ByteArrayAsyncRequestBody(bytes);
     }
 
     /**

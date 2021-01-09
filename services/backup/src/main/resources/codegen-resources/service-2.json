@@ -26,7 +26,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Backup plans are documents that contain information that AWS Backup uses to schedule tasks that create recovery points of resources.</p> <p>If you call <code>CreateBackupPlan</code> with a plan that already exists, the existing <code>backupPlanId</code> is returned.</p>",
+      "documentation":"<p>Creates a backup plan using a backup plan name and backup rules. A backup plan is a document that contains information that AWS Backup uses to schedule tasks that create recovery points for resources.</p> <p>If you call <code>CreateBackupPlan</code> with a plan that already exists, an <code>AlreadyExistsException</code> is returned.</p>",
       "idempotent":true
     },
     "CreateBackupSelection":{
@@ -44,7 +44,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Creates a JSON document that specifies a set of resources to assign to a backup plan. Resources can be included by specifying patterns for a <code>ListOfTags</code> and selected <code>Resources</code>. </p> <p>For example, consider the following patterns:</p> <ul> <li> <p> <code>Resources: \"arn:aws:ec2:region:account-id:volume/volume-id\"</code> </p> </li> <li> <p> <code>ConditionKey:\"department\"</code> </p> <p> <code>ConditionValue:\"finance\"</code> </p> <p> <code>ConditionType:\"StringEquals\"</code> </p> </li> <li> <p> <code>ConditionKey:\"importance\"</code> </p> <p> <code>ConditionValue:\"critical\"</code> </p> <p> <code>ConditionType:\"StringEquals\"</code> </p> </li> </ul> <p>Using these patterns would back up all Amazon Elastic Block Store (Amazon EBS) volumes that are tagged as <code>\"department=finance\"</code>, <code>\"importance=critical\"</code>, in addition to an EBS volume with the specified volume Id.</p> <p>Resources and conditions are additive in that all resources that match the pattern are selected. This shouldn't be confused with a logical AND, where all conditions must match. The matching patterns are logically 'put together using the OR operator. In other words, all patterns that match are selected for backup.</p>",
+      "documentation":"<p>Creates a JSON document that specifies a set of resources to assign to a backup plan. Resources can be included by specifying patterns for a <code>ListOfTags</code> and selected <code>Resources</code>. </p> <p>For example, consider the following patterns:</p> <ul> <li> <p> <code>Resources: \"arn:aws:ec2:region:account-id:volume/volume-id\"</code> </p> </li> <li> <p> <code>ConditionKey:\"department\"</code> </p> <p> <code>ConditionValue:\"finance\"</code> </p> <p> <code>ConditionType:\"StringEquals\"</code> </p> </li> <li> <p> <code>ConditionKey:\"importance\"</code> </p> <p> <code>ConditionValue:\"critical\"</code> </p> <p> <code>ConditionType:\"StringEquals\"</code> </p> </li> </ul> <p>Using these patterns would back up all Amazon Elastic Block Store (Amazon EBS) volumes that are tagged as <code>\"department=finance\"</code>, <code>\"importance=critical\"</code>, in addition to an EBS volume with the specified volume ID.</p> <p>Resources and conditions are additive in that all resources that match the pattern are selected. This shouldn't be confused with a logical AND, where all conditions must match. The matching patterns are logically put together using the OR operator. In other words, all patterns that match are selected for backup.</p>",
       "idempotent":true
     },
     "CreateBackupVault":{
@@ -177,7 +177,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"DependencyFailureException"}
       ],
-      "documentation":"<p>Returns metadata associated with creating a backup of a resource.</p>",
+      "documentation":"<p>Returns backup job details for the specified <code>BackupJobId</code>.</p>",
       "idempotent":true
     },
     "DescribeBackupVault":{
@@ -197,6 +197,36 @@
       "documentation":"<p>Returns metadata about a backup vault specified by its name.</p>",
       "idempotent":true
     },
+    "DescribeCopyJob":{
+      "name":"DescribeCopyJob",
+      "http":{
+        "method":"GET",
+        "requestUri":"/copy-jobs/{copyJobId}"
+      },
+      "input":{"shape":"DescribeCopyJobInput"},
+      "output":{"shape":"DescribeCopyJobOutput"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"MissingParameterValueException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Returns metadata associated with creating a copy of a resource.</p>",
+      "idempotent":true
+    },
+    "DescribeGlobalSettings":{
+      "name":"DescribeGlobalSettings",
+      "http":{
+        "method":"GET",
+        "requestUri":"/global-settings"
+      },
+      "input":{"shape":"DescribeGlobalSettingsInput"},
+      "output":{"shape":"DescribeGlobalSettingsOutput"},
+      "errors":[
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>The current feature settings for the AWS Account.</p>"
+    },
     "DescribeProtectedResource":{
       "name":"DescribeProtectedResource",
       "http":{
@@ -211,7 +241,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Returns information about a saved resource, including the last time it was backed-up, its Amazon Resource Name (ARN), and the AWS service type of the saved resource.</p>",
+      "documentation":"<p>Returns information about a saved resource, including the last time it was backed up, its Amazon Resource Name (ARN), and the AWS service type of the saved resource.</p>",
       "idempotent":true
     },
     "DescribeRecoveryPoint":{
@@ -230,6 +260,19 @@
       ],
       "documentation":"<p>Returns metadata associated with a recovery point, including ID, status, encryption, and lifecycle.</p>",
       "idempotent":true
+    },
+    "DescribeRegionSettings":{
+      "name":"DescribeRegionSettings",
+      "http":{
+        "method":"GET",
+        "requestUri":"/account-settings"
+      },
+      "input":{"shape":"DescribeRegionSettingsInput"},
+      "output":{"shape":"DescribeRegionSettingsOutput"},
+      "errors":[
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Returns the current service opt-in settings for the Region. If service-opt-in is enabled for a service, AWS Backup tries to protect that service's resources in this Region, when the resource is included in an on-demand backup or scheduled backup plan. Otherwise, AWS Backup does not try to protect that service's resources in this Region, AWS Backup does not try to protect that service's resources in this Region.</p>"
     },
     "DescribeRestoreJob":{
       "name":"DescribeRestoreJob",
@@ -279,7 +322,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Returns the body of a backup plan in JSON format, in addition to plan metadata.</p>",
+      "documentation":"<p>Returns <code>BackupPlan</code> details for the specified <code>BackupPlanId</code>. Returns the body of a backup plan in JSON format, in addition to plan metadata.</p>",
       "idempotent":true
     },
     "GetBackupPlanFromJSON":{
@@ -380,7 +423,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Returns two sets of metadata key-value pairs. The first set lists the metadata that the recovery point was created with. The second set lists the metadata key-value pairs that are required to restore the recovery point.</p> <p>These sets can be the same, or the restore metadata set can contain different values if the target service to be restored has changed since the recovery point was created and now requires additional or different information in order to be restored.</p>",
+      "documentation":"<p>Returns a set of metadata key-value pairs that were used to create the backup.</p>",
       "idempotent":true
     },
     "GetSupportedResourceTypes":{
@@ -407,7 +450,7 @@
         {"shape":"InvalidParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Returns metadata about your backup jobs.</p>",
+      "documentation":"<p>Returns a list of existing backup jobs for an authenticated account.</p>",
       "idempotent":true
     },
     "ListBackupPlanTemplates":{
@@ -457,7 +500,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Returns metadata of your saved backup plans, including Amazon Resource Names (ARNs), plan IDs, creation and deletion dates, version IDs, plan names, and creator request IDs.</p>",
+      "documentation":"<p>Returns a list of existing backup plans for an authenticated account. The list is populated only if the advanced option is set for the backup plan. The list contains information such as Amazon Resource Names (ARNs), plan IDs, creation and deletion dates, version IDs, plan names, and creator request IDs.</p>",
       "idempotent":true
     },
     "ListBackupSelections":{
@@ -493,6 +536,20 @@
       ],
       "documentation":"<p>Returns a list of recovery point storage containers along with information about them.</p>",
       "idempotent":true
+    },
+    "ListCopyJobs":{
+      "name":"ListCopyJobs",
+      "http":{
+        "method":"GET",
+        "requestUri":"/copy-jobs/"
+      },
+      "input":{"shape":"ListCopyJobsInput"},
+      "output":{"shape":"ListCopyJobsOutput"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Returns metadata about your copy jobs.</p>"
     },
     "ListProtectedResources":{
       "name":"ListProtectedResources",
@@ -574,7 +631,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Returns a list of key-value pairs assigned to a target recovery point, backup plan, or backup vault.</p>",
+      "documentation":"<p>Returns a list of key-value pairs assigned to a target recovery point, backup plan, or backup vault.</p> <note> <p> <code>ListTags</code> are currently only supported with Amazon EFS backups.</p> </note>",
       "idempotent":true
     },
     "PutBackupVaultAccessPolicy":{
@@ -621,10 +678,29 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingParameterValueException"},
+        {"shape":"InvalidRequestException"},
         {"shape":"ServiceUnavailableException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Starts a job to create a one-time backup of the specified resource.</p>",
+      "documentation":"<p>Starts an on-demand backup job for the specified resource.</p>",
+      "idempotent":true
+    },
+    "StartCopyJob":{
+      "name":"StartCopyJob",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/copy-jobs"
+      },
+      "input":{"shape":"StartCopyJobInput"},
+      "output":{"shape":"StartCopyJobOutput"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"MissingParameterValueException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"LimitExceededException"}
+      ],
+      "documentation":"<p>Starts a job to create a one-time copy of the specified resource.</p>",
       "idempotent":true
     },
     "StartRestoreJob":{
@@ -641,7 +717,7 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Recovers the saved resource identified by an Amazon Resource Name (ARN). </p> <p>If the resource ARN is included in the request, then the last complete backup of that resource is recovered. If the ARN of a recovery point is supplied, then that recovery point is restored.</p>",
+      "documentation":"<p>Recovers the saved resource identified by an Amazon Resource Name (ARN). </p>",
       "idempotent":true
     },
     "StopBackupJob":{
@@ -707,8 +783,23 @@
         {"shape":"MissingParameterValueException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Replaces the body of a saved backup plan identified by its <code>backupPlanId</code> with the input document in JSON format. The new version is uniquely identified by a <code>VersionId</code>.</p>",
+      "documentation":"<p>Updates an existing backup plan identified by its <code>backupPlanId</code> with the input document in JSON format. The new version is uniquely identified by a <code>VersionId</code>.</p>",
       "idempotent":true
+    },
+    "UpdateGlobalSettings":{
+      "name":"UpdateGlobalSettings",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/global-settings"
+      },
+      "input":{"shape":"UpdateGlobalSettingsInput"},
+      "errors":[
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"MissingParameterValueException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Updates the current global settings for the AWS Account. Use the <code>DescribeGlobalSettings</code> API to determine the current settings.</p>"
     },
     "UpdateRecoveryPointLifecycle":{
       "name":"UpdateRecoveryPointLifecycle",
@@ -726,10 +817,46 @@
       ],
       "documentation":"<p>Sets the transition lifecycle of a recovery point.</p> <p>The lifecycle defines when a protected resource is transitioned to cold storage and when it expires. AWS Backup transitions and expires backups automatically according to the lifecycle that you define. </p> <p>Backups transitioned to cold storage must be stored in cold storage for a minimum of 90 days. Therefore, the “expire after days” setting must be 90 days greater than the “transition to cold after days” setting. The “transition to cold after days” setting cannot be changed after a backup has been transitioned to cold. </p>",
       "idempotent":true
+    },
+    "UpdateRegionSettings":{
+      "name":"UpdateRegionSettings",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/account-settings"
+      },
+      "input":{"shape":"UpdateRegionSettingsInput"},
+      "errors":[
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"MissingParameterValueException"},
+        {"shape":"InvalidParameterValueException"}
+      ],
+      "documentation":"<p>Updates the current service opt-in settings for the Region. If service-opt-in is enabled for a service, AWS Backup tries to protect that service's resources in this Region, when the resource is included in an on-demand backup or scheduled backup plan. Otherwise, AWS Backup does not try to protect that service's resources in this Region. Use the <code>DescribeRegionSettings</code> API to determine the resource types that are supported.</p>"
     }
   },
   "shapes":{
     "ARN":{"type":"string"},
+    "AccountId":{
+      "type":"string",
+      "pattern":"^[0-9]{12}$"
+    },
+    "AdvancedBackupSetting":{
+      "type":"structure",
+      "members":{
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The type of AWS resource to be backed up. For VSS Windows backups, the only supported resource type is Amazon EC2.</p> <p>Valid values: <code>EC2</code>.</p>"
+        },
+        "BackupOptions":{
+          "shape":"BackupOptions",
+          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid values: </p> <p>Set to <code>\"WindowsVSS\":\"enabled\"</code> to enable the WindowsVSS backup option and create a VSS Windows backup. </p> <p>Set to <code>\"WindowsVSS\":\"disabled\"</code> to create a regular backup. The WindowsVSS option is not enabled by default.</p> <p>If you specify an invalid option, you get an <code>InvalidParameterValueException</code> exception.</p> <p>For more information about Windows VSS backups, see <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/windows-backups.html\">Creating a VSS-Enabled Windows Backup</a>.</p>"
+        }
+      },
+      "documentation":"<p>A list of backup options for each resource type.</p>"
+    },
+    "AdvancedBackupSettings":{
+      "type":"list",
+      "member":{"shape":"AdvancedBackupSetting"}
+    },
     "AlreadyExistsException":{
       "type":"structure",
       "members":{
@@ -758,6 +885,10 @@
     "BackupJob":{
       "type":"structure",
       "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID that owns the backup job.</p>"
+        },
         "BackupJobId":{
           "shape":"string",
           "documentation":"<p>Uniquely identifies a request to AWS Backup to back up a resource.</p>"
@@ -820,11 +951,19 @@
         },
         "ResourceType":{
           "shape":"ResourceType",
-          "documentation":"<p>The type of AWS resource to be backed-up; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database.</p>"
+          "documentation":"<p>The type of AWS resource to be backed up; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database. For VSS Windows backups, the only supported resource type is Amazon EC2.</p>"
         },
         "BytesTransferred":{
           "shape":"Long",
           "documentation":"<p>The size in bytes transferred to a backup vault at the time that the job status was queried.</p>"
+        },
+        "BackupOptions":{
+          "shape":"BackupOptions",
+          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid values: Set to <code>\"WindowsVSS”:“enabled\"</code> to enable WindowsVSS backup option and create a VSS Windows backup. Set to “WindowsVSS”:”disabled” to create a regular backup. If you specify an invalid option, you get an <code>InvalidParameterValueException</code> exception.</p>"
+        },
+        "BackupType":{
+          "shape":"string",
+          "documentation":"<p>Represents the type of backup for a backup job.</p>"
         }
       },
       "documentation":"<p>Contains detailed information about a backup job.</p>"
@@ -846,6 +985,19 @@
       "type":"list",
       "member":{"shape":"BackupJob"}
     },
+    "BackupOptionKey":{
+      "type":"string",
+      "pattern":"^[a-zA-Z0-9\\-\\_\\.]{1,50}$"
+    },
+    "BackupOptionValue":{
+      "type":"string",
+      "pattern":"^[a-zA-Z0-9\\-\\_\\.]{1,50}$"
+    },
+    "BackupOptions":{
+      "type":"map",
+      "key":{"shape":"BackupOptionKey"},
+      "value":{"shape":"BackupOptionValue"}
+    },
     "BackupPlan":{
       "type":"structure",
       "required":[
@@ -859,7 +1011,11 @@
         },
         "Rules":{
           "shape":"BackupRules",
-          "documentation":"<p>An array of <code>BackupRule</code> objects, each of which specifies a scheduled task that is used to back up a selection of resources.</p>"
+          "documentation":"<p>An array of <code>BackupRule</code> objects, each of which specifies a scheduled task that is used to back up a selection of resources. </p>"
+        },
+        "AdvancedBackupSettings":{
+          "shape":"AdvancedBackupSettings",
+          "documentation":"<p>Contains a list of <code>BackupOptions</code> for each resource type.</p>"
         }
       },
       "documentation":"<p>Contains an optional backup plan display name and an array of <code>BackupRule</code> objects, each of which specifies a backup rule. Each rule in a backup plan is a separate scheduled task and can back up a different selection of AWS resources.</p>"
@@ -873,14 +1029,18 @@
       "members":{
         "BackupPlanName":{
           "shape":"BackupPlanName",
-          "documentation":"<p>The display name of a backup plan.</p>"
+          "documentation":"<p>The optional display name of a backup plan.</p>"
         },
         "Rules":{
           "shape":"BackupRulesInput",
           "documentation":"<p>An array of <code>BackupRule</code> objects, each of which specifies a scheduled task that is used to back up a selection of resources.</p>"
+        },
+        "AdvancedBackupSettings":{
+          "shape":"AdvancedBackupSettings",
+          "documentation":"<p>Specifies a list of <code>BackupOptions</code> for each resource type. These settings are only available for Windows VSS backup jobs.</p>"
         }
       },
-      "documentation":"<p>Contains an optional backup plan display name and an array of <code>BackupRule</code> objects, each of which specifies a backup rule. Each rule in a backup plan is a separate scheduled task and can back up a different selection of AWS resources.</p>"
+      "documentation":"<p>Contains an optional backup plan display name and an array of <code>BackupRule</code> objects, each of which specifies a backup rule. Each rule in a backup plan is a separate scheduled task and can back up a different selection of AWS resources. </p>"
     },
     "BackupPlanName":{"type":"string"},
     "BackupPlanTemplatesList":{
@@ -938,11 +1098,15 @@
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of executing the operation twice.</p>"
+          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.</p>"
         },
         "LastExecutionDate":{
           "shape":"timestamp",
-          "documentation":"<p>The last time a job to back up resources was executed with this rule. A date and time, in Unix format and Coordinated Universal Time (UTC). The value of <code>LastExecutionDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+          "documentation":"<p>The last time a job to back up resources was run with this rule. A date and time, in Unix format and Coordinated Universal Time (UTC). The value of <code>LastExecutionDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+        },
+        "AdvancedBackupSettings":{
+          "shape":"AdvancedBackupSettings",
+          "documentation":"<p>Contains a list of <code>BackupOptions</code> for a resource type.</p>"
         }
       },
       "documentation":"<p>Contains metadata about a backup plan.</p>"
@@ -964,15 +1128,15 @@
         },
         "ScheduleExpression":{
           "shape":"CronExpression",
-          "documentation":"<p>A CRON expression specifying when AWS Backup initiates a backup job.</p>"
+          "documentation":"<p>A CRON expression specifying when AWS Backup initiates a backup job. For more information about cron expressions, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html\">Schedule Expressions for Rules</a> in the <i>Amazon CloudWatch Events User Guide.</i>. Prior to specifying a value for this parameter, we recommend testing your cron expression using one of the many available cron generator and testing tools.</p>"
         },
         "StartWindowMinutes":{
           "shape":"WindowMinutes",
-          "documentation":"<p>An optional value that specifies a period of time in minutes after a backup is scheduled before a job is canceled if it doesn't start successfully.</p>"
+          "documentation":"<p>A value in minutes after a backup is scheduled before a job will be canceled if it doesn't start successfully. This value is optional.</p>"
         },
         "CompletionWindowMinutes":{
           "shape":"WindowMinutes",
-          "documentation":"<p>A value in minutes after a backup job is successfully started before it must be completed or it is canceled by AWS Backup. This value is optional.</p>"
+          "documentation":"<p>A value in minutes after a backup job is successfully started before it must be completed or it will be canceled by AWS Backup. This value is optional.</p>"
         },
         "Lifecycle":{
           "shape":"Lifecycle",
@@ -985,6 +1149,10 @@
         "RuleId":{
           "shape":"string",
           "documentation":"<p>Uniquely identifies a rule that is used to schedule the backup of a selection of resources.</p>"
+        },
+        "CopyActions":{
+          "shape":"CopyActions",
+          "documentation":"<p>An array of <code>CopyAction</code> objects, which contains the details of the copy operation.</p>"
         }
       },
       "documentation":"<p>Specifies a scheduled task used to back up a selection of resources.</p>"
@@ -998,7 +1166,7 @@
       "members":{
         "RuleName":{
           "shape":"BackupRuleName",
-          "documentation":"<p>&gt;An optional display name for a backup rule.</p>"
+          "documentation":"<p>An optional display name for a backup rule.</p>"
         },
         "TargetBackupVaultName":{
           "shape":"BackupVaultName",
@@ -1010,19 +1178,23 @@
         },
         "StartWindowMinutes":{
           "shape":"WindowMinutes",
-          "documentation":"<p>The amount of time in minutes before beginning a backup.</p>"
+          "documentation":"<p>A value in minutes after a backup is scheduled before a job will be canceled if it doesn't start successfully. This value is optional.</p>"
         },
         "CompletionWindowMinutes":{
           "shape":"WindowMinutes",
-          "documentation":"<p>The amount of time AWS Backup attempts a backup before canceling the job and returning an error.</p>"
+          "documentation":"<p>A value in minutes after a backup job is successfully started before it must be completed or it will be canceled by AWS Backup. This value is optional.</p>"
         },
         "Lifecycle":{
           "shape":"Lifecycle",
-          "documentation":"<p>The lifecycle defines when a protected resource is transitioned to cold storage and when it expires. AWS Backup will transition and expire backups automatically according to the lifecycle that you define. </p> <p>Backups transitioned to cold storage must be stored in cold storage for a minimum of 90 days. Therefore, the “expire after days” setting must be 90 days greater than the “transition to cold after days”. The “transition to cold after days” setting cannot be changed after a backup has been transitioned to cold. </p>"
+          "documentation":"<p>The lifecycle defines when a protected resource is transitioned to cold storage and when it expires. AWS Backup will transition and expire backups automatically according to the lifecycle that you define. </p> <p>Backups transitioned to cold storage must be stored in cold storage for a minimum of 90 days. Therefore, the “expire after days” setting must be 90 days greater than the “transition to cold after days” setting. The “transition to cold after days” setting cannot be changed after a backup has been transitioned to cold. </p>"
         },
         "RecoveryPointTags":{
           "shape":"Tags",
           "documentation":"<p>To help organize your resources, you can assign your own metadata to the resources that you create. Each tag is a key-value pair.</p>"
+        },
+        "CopyActions":{
+          "shape":"CopyActions",
+          "documentation":"<p>An array of <code>CopyAction</code> objects, which contains the details of the copy operation.</p>"
         }
       },
       "documentation":"<p>Specifies a scheduled task used to back up a selection of resources.</p>"
@@ -1052,11 +1224,11 @@
         },
         "IamRoleArn":{
           "shape":"IAMRoleArn",
-          "documentation":"<p>The ARN of the IAM role that AWS Backup uses to authenticate when restoring the target resource; for example, <code>arn:aws:iam::123456789012:role/S3Access</code>.</p>"
+          "documentation":"<p>The ARN of the IAM role that AWS Backup uses to authenticate when backing up the target resource; for example, <code>arn:aws:iam::123456789012:role/S3Access</code>.</p>"
         },
         "Resources":{
           "shape":"ResourceArns",
-          "documentation":"<p>An array of strings that either contain Amazon Resource Names (ARNs) or match patterns such as \"<code>arn:aws:ec2:us-east-1:123456789012:volume/*</code>\" of resources to assign to a backup plan.</p>"
+          "documentation":"<p>An array of strings that contain Amazon Resource Names (ARNs) of resources to assign to a backup plan.</p>"
         },
         "ListOfTags":{
           "shape":"ListOfTags",
@@ -1094,7 +1266,7 @@
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of executing the operation twice.</p>"
+          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.</p>"
         },
         "IamRoleArn":{
           "shape":"IAMRoleArn",
@@ -1108,8 +1280,16 @@
       "enum":[
         "BACKUP_JOB_STARTED",
         "BACKUP_JOB_COMPLETED",
+        "BACKUP_JOB_SUCCESSFUL",
+        "BACKUP_JOB_FAILED",
+        "BACKUP_JOB_EXPIRED",
         "RESTORE_JOB_STARTED",
         "RESTORE_JOB_COMPLETED",
+        "RESTORE_JOB_SUCCESSFUL",
+        "RESTORE_JOB_FAILED",
+        "COPY_JOB_STARTED",
+        "COPY_JOB_SUCCESSFUL",
+        "COPY_JOB_FAILED",
         "RECOVERY_POINT_MODIFIED",
         "BACKUP_PLAN_CREATED",
         "BACKUP_PLAN_MODIFIED"
@@ -1144,7 +1324,7 @@
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of executing the operation twice.</p>"
+          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.</p>"
         },
         "NumberOfRecoveryPoints":{
           "shape":"long",
@@ -1155,7 +1335,7 @@
     },
     "BackupVaultName":{
       "type":"string",
-      "pattern":"^[a-zA-Z0-9\\-\\_\\.]{1,50}$"
+      "pattern":"^[a-zA-Z0-9\\-\\_]{2,50}$"
     },
     "Boolean":{"type":"boolean"},
     "CalculatedLifecycle":{
@@ -1170,7 +1350,7 @@
           "documentation":"<p>A timestamp that specifies when to delete a recovery point.</p>"
         }
       },
-      "documentation":"<p>Contains <code>DeleteAt</code> and <code>MoveToColdStorageAt</code> timestamps, which are used to specify a lifecycle for a recovery point.</p> <p>The lifecycle defines when a protected resource is transitioned to cold storage and when it expires. AWS Backup transitions and expires backups automatically according to the lifecycle that you define. </p> <p>Backups transitioned to cold storage must be stored in cold storage for a minimum of 90 days. Therefore, the “expire after days” setting must be 90 days greater than the “transition to cold after days” setting. The “transition to cold after days” setting cannot be changed after a backup has been transitioned to cold. </p>"
+      "documentation":"<p>Contains <code>DeleteAt</code> and <code>MoveToColdStorageAt</code> timestamps, which are used to specify a lifecycle for a recovery point.</p> <p>The lifecycle defines when a protected resource is transitioned to cold storage and when it expires. AWS Backup transitions and expires backups automatically according to the lifecycle that you define.</p> <p>Backups transitioned to cold storage must be stored in cold storage for a minimum of 90 days. Therefore, the “expire after days” setting must be 90 days greater than the “transition to cold after days” setting. The “transition to cold after days” setting cannot be changed after a backup has been transitioned to cold.</p>"
     },
     "Condition":{
       "type":"structure",
@@ -1201,6 +1381,98 @@
       "enum":["STRINGEQUALS"]
     },
     "ConditionValue":{"type":"string"},
+    "CopyAction":{
+      "type":"structure",
+      "required":["DestinationBackupVaultArn"],
+      "members":{
+        "Lifecycle":{"shape":"Lifecycle"},
+        "DestinationBackupVaultArn":{
+          "shape":"ARN",
+          "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies the destination backup vault for the copied backup. For example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>.</p>"
+        }
+      },
+      "documentation":"<p>The details of the copy operation.</p>"
+    },
+    "CopyActions":{
+      "type":"list",
+      "member":{"shape":"CopyAction"}
+    },
+    "CopyJob":{
+      "type":"structure",
+      "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID that owns the copy job.</p>"
+        },
+        "CopyJobId":{
+          "shape":"string",
+          "documentation":"<p>Uniquely identifies a copy job.</p>"
+        },
+        "SourceBackupVaultArn":{
+          "shape":"ARN",
+          "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies a source copy vault; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>. </p>"
+        },
+        "SourceRecoveryPointArn":{
+          "shape":"ARN",
+          "documentation":"<p>An ARN that uniquely identifies a source recovery point; for example, <code>arn:aws:backup:us-east-1:123456789012:recovery-point:1EB3B5E7-9EB0-435A-A80B-108B488B0D45</code>.</p>"
+        },
+        "DestinationBackupVaultArn":{
+          "shape":"ARN",
+          "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies a destination copy vault; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>.</p>"
+        },
+        "DestinationRecoveryPointArn":{
+          "shape":"ARN",
+          "documentation":"<p>An ARN that uniquely identifies a destination recovery point; for example, <code>arn:aws:backup:us-east-1:123456789012:recovery-point:1EB3B5E7-9EB0-435A-A80B-108B488B0D45</code>.</p>"
+        },
+        "ResourceArn":{
+          "shape":"ARN",
+          "documentation":"<p>The AWS resource to be copied; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database.</p>"
+        },
+        "CreationDate":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time a copy job is created, in Unix format and Coordinated Universal Time (UTC). The value of <code>CreationDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+        },
+        "CompletionDate":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time a copy job is completed, in Unix format and Coordinated Universal Time (UTC). The value of <code>CompletionDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+        },
+        "State":{
+          "shape":"CopyJobState",
+          "documentation":"<p>The current state of a copy job.</p>"
+        },
+        "StatusMessage":{
+          "shape":"string",
+          "documentation":"<p>A detailed message explaining the status of the job to copy a resource.</p>"
+        },
+        "BackupSizeInBytes":{
+          "shape":"Long",
+          "documentation":"<p>The size, in bytes, of a copy job.</p>"
+        },
+        "IamRoleArn":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>Specifies the IAM role ARN used to copy the target recovery point; for example, <code>arn:aws:iam::123456789012:role/S3Access</code>.</p>"
+        },
+        "CreatedBy":{"shape":"RecoveryPointCreator"},
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The type of AWS resource to be copied; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database. </p>"
+        }
+      },
+      "documentation":"<p>Contains detailed information about a copy job.</p>"
+    },
+    "CopyJobState":{
+      "type":"string",
+      "enum":[
+        "CREATED",
+        "RUNNING",
+        "COMPLETED",
+        "FAILED"
+      ]
+    },
+    "CopyJobsList":{
+      "type":"list",
+      "member":{"shape":"CopyJob"}
+    },
     "CreateBackupPlanInput":{
       "type":"structure",
       "required":["BackupPlan"],
@@ -1215,7 +1487,7 @@
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>Identifies the request and allows failed requests to be retried without the risk of executing the operation twice. If the request includes a <code>CreatorRequestId</code> that matches an existing backup plan, that plan is returned. This parameter is optional.</p>"
+          "documentation":"<p>Identifies the request and allows failed requests to be retried without the risk of running the operation twice. If the request includes a <code>CreatorRequestId</code> that matches an existing backup plan, that plan is returned. This parameter is optional.</p>"
         }
       }
     },
@@ -1236,7 +1508,11 @@
         },
         "VersionId":{
           "shape":"string",
-          "documentation":"<p>Unique, randomly generated, Unicode, UTF-8 encoded strings that are at most 1024 bytes long. They cannot be edited.</p>"
+          "documentation":"<p>Unique, randomly generated, Unicode, UTF-8 encoded strings that are at most 1,024 bytes long. They cannot be edited.</p>"
+        },
+        "AdvancedBackupSettings":{
+          "shape":"AdvancedBackupSettings",
+          "documentation":"<p>A list of <code>BackupOptions</code> settings for a resource type. This option is only available for Windows VSS backup jobs.</p>"
         }
       }
     },
@@ -1255,11 +1531,11 @@
         },
         "BackupSelection":{
           "shape":"BackupSelection",
-          "documentation":"<p>Specifies the body of a request to assign a set of resources to a backup plan.</p> <p>It includes an array of resources, an optional array of patterns to exclude resources, an optional role to provide access to the AWS service the resource belongs to, and an optional array of tags used to identify a set of resources.</p>"
+          "documentation":"<p>Specifies the body of a request to assign a set of resources to a backup plan.</p>"
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of executing the operation twice.</p>"
+          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.</p>"
         }
       }
     },
@@ -1300,7 +1576,7 @@
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of executing the operation twice.</p>"
+          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.</p>"
         }
       }
     },
@@ -1347,11 +1623,11 @@
         },
         "DeletionDate":{
           "shape":"timestamp",
-          "documentation":"<p>The date and time a backup plan is deleted, in Unix format and Coordinated Universal Time (UTC). The value of <code>CreationDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+          "documentation":"<p>The date and time a backup plan is deleted, in Unix format and Coordinated Universal Time (UTC). The value of <code>DeletionDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         },
         "VersionId":{
           "shape":"string",
-          "documentation":"<p>Unique, randomly generated, Unicode, UTF-8 encoded strings that are at most 1,024 bytes long. Version Ids cannot be edited.</p>"
+          "documentation":"<p>Unique, randomly generated, Unicode, UTF-8 encoded strings that are at most 1,024 bytes long. Version IDs cannot be edited.</p>"
         }
       }
     },
@@ -1394,7 +1670,7 @@
       "members":{
         "BackupVaultName":{
           "shape":"string",
-          "documentation":"<p>The name of a logical container where backups are stored. Backup vaults are identified by names that are unique to the account used to create them and theAWS Region where they are created. They consist of lowercase letters, numbers, and hyphens.</p>",
+          "documentation":"<p>The name of a logical container where backups are stored. Backup vaults are identified by names that are unique to the account used to create them and the AWS Region where they are created. They consist of lowercase letters, numbers, and hyphens.</p>",
           "location":"uri",
           "locationName":"backupVaultName"
         }
@@ -1466,6 +1742,10 @@
     "DescribeBackupJobOutput":{
       "type":"structure",
       "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>Returns the account ID that owns the backup job.</p>"
+        },
         "BackupJobId":{
           "shape":"string",
           "documentation":"<p>Uniquely identifies a request to AWS Backup to back up a resource.</p>"
@@ -1492,7 +1772,7 @@
         },
         "CompletionDate":{
           "shape":"timestamp",
-          "documentation":"<p>The date and time that a job to create a backup job is completed, in Unix format and Coordinated Universal Time (UTC). The value of <code>CreationDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+          "documentation":"<p>The date and time that a job to create a backup job is completed, in Unix format and Coordinated Universal Time (UTC). The value of <code>CompletionDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         },
         "State":{
           "shape":"BackupJobState",
@@ -1520,7 +1800,7 @@
         },
         "ResourceType":{
           "shape":"ResourceType",
-          "documentation":"<p>The type of AWS resource to be backed-up; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database.</p>"
+          "documentation":"<p>The type of AWS resource to be backed up; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database.</p>"
         },
         "BytesTransferred":{
           "shape":"Long",
@@ -1533,6 +1813,14 @@
         "StartBy":{
           "shape":"timestamp",
           "documentation":"<p>Specifies the time in Unix format and Coordinated Universal Time (UTC) when a backup job must be started before it is canceled. The value is calculated by adding the start window to the scheduled time. So if the scheduled time were 6:00 PM and the start window is 2 hours, the <code>StartBy</code> time would be 8:00 PM on the date specified. The value of <code>StartBy</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+        },
+        "BackupOptions":{
+          "shape":"BackupOptions",
+          "documentation":"<p>Represents the options specified as part of backup plan or on-demand backup job.</p>"
+        },
+        "BackupType":{
+          "shape":"string",
+          "documentation":"<p>Represents the actual backup type selected for a backup job. For example, if a successful WindowsVSS backup was taken, <code>BackupType</code> returns \"WindowsVSS\". If <code>BackupType</code> is empty, then the backup type that was is a regular backup.</p>"
         }
       }
     },
@@ -1569,11 +1857,50 @@
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of executing the operation twice.</p>"
+          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.</p>"
         },
         "NumberOfRecoveryPoints":{
           "shape":"long",
           "documentation":"<p>The number of recovery points that are stored in a backup vault.</p>"
+        }
+      }
+    },
+    "DescribeCopyJobInput":{
+      "type":"structure",
+      "required":["CopyJobId"],
+      "members":{
+        "CopyJobId":{
+          "shape":"string",
+          "documentation":"<p>Uniquely identifies a copy job.</p>",
+          "location":"uri",
+          "locationName":"copyJobId"
+        }
+      }
+    },
+    "DescribeCopyJobOutput":{
+      "type":"structure",
+      "members":{
+        "CopyJob":{
+          "shape":"CopyJob",
+          "documentation":"<p>Contains detailed information about a copy job.</p>"
+        }
+      }
+    },
+    "DescribeGlobalSettingsInput":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "DescribeGlobalSettingsOutput":{
+      "type":"structure",
+      "members":{
+        "GlobalSettings":{
+          "shape":"GlobalSettings",
+          "documentation":"<p>A list of resources along with the opt-in preferences for the account.</p>"
+        },
+        "LastUpdateTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time that the global settings was last updated. This update is in Unix format and Coordinated Universal Time (UTC). The value of <code>LastUpdateTime</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         }
       }
     },
@@ -1642,6 +1969,10 @@
           "shape":"ARN",
           "documentation":"<p>An ARN that uniquely identifies a backup vault; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>.</p>"
         },
+        "SourceBackupVaultArn":{
+          "shape":"ARN",
+          "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies the source vault where the resource was originally backed up in; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:BackupVault</code>. If the recovery is restored to the same AWS account or Region, this value will be <code>null</code>.</p>"
+        },
         "ResourceArn":{
           "shape":"ARN",
           "documentation":"<p>An ARN that uniquely identifies a saved resource. The format of the ARN depends on the resource type.</p>"
@@ -1700,6 +2031,20 @@
         }
       }
     },
+    "DescribeRegionSettingsInput":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "DescribeRegionSettingsOutput":{
+      "type":"structure",
+      "members":{
+        "ResourceTypeOptInPreference":{
+          "shape":"ResourceTypeOptInPreference",
+          "documentation":"<p>Returns a list of all services along with the opt-in preferences in the Region.</p>"
+        }
+      }
+    },
     "DescribeRestoreJobInput":{
       "type":"structure",
       "required":["RestoreJobId"],
@@ -1715,6 +2060,10 @@
     "DescribeRestoreJobOutput":{
       "type":"structure",
       "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>Returns the account ID that owns the restore job.</p>"
+        },
         "RestoreJobId":{
           "shape":"string",
           "documentation":"<p>Uniquely identifies the job that restores a recovery point.</p>"
@@ -1737,7 +2086,7 @@
         },
         "StatusMessage":{
           "shape":"string",
-          "documentation":"<p>A detailed message explaining the status of a job to restore a recovery point.</p>"
+          "documentation":"<p>A message showing the status of a job to restore a recovery point.</p>"
         },
         "PercentDone":{
           "shape":"string",
@@ -1758,6 +2107,10 @@
         "CreatedResourceArn":{
           "shape":"ARN",
           "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies a resource whose recovery point is being restored. The format of the ARN depends on the resource type of the backed-up resource.</p>"
+        },
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>Returns metadata associated with a restore job listed by resource type.</p>"
         }
       }
     },
@@ -1861,7 +2214,7 @@
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of executing the operation twice.</p>"
+          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.</p>"
         },
         "CreationDate":{
           "shape":"timestamp",
@@ -1869,11 +2222,15 @@
         },
         "DeletionDate":{
           "shape":"timestamp",
-          "documentation":"<p>The date and time that a backup plan is deleted, in Unix format and Coordinated Universal Time (UTC). The value of <code>CreationDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+          "documentation":"<p>The date and time that a backup plan is deleted, in Unix format and Coordinated Universal Time (UTC). The value of <code>DeletionDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
         },
         "LastExecutionDate":{
           "shape":"timestamp",
-          "documentation":"<p>The last time a job to back up resources was executed with this backup plan. A date and time, in Unix format and Coordinated Universal Time (UTC). The value of <code>LastExecutionDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+          "documentation":"<p>The last time a job to back up resources was run with this backup plan. A date and time, in Unix format and Coordinated Universal Time (UTC). The value of <code>LastExecutionDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+        },
+        "AdvancedBackupSettings":{
+          "shape":"AdvancedBackupSettings",
+          "documentation":"<p>Contains a list of <code>BackupOptions</code> for each resource type. The list is populated only if the advanced option is set for the backup plan.</p>"
         }
       }
     },
@@ -1903,7 +2260,7 @@
       "members":{
         "BackupSelection":{
           "shape":"BackupSelection",
-          "documentation":"<p>Specifies the body of a request to assign a set of resources to a backup plan.</p> <p>It includes an array of resources, an optional array of patterns to exclude resources, an optional role to provide access to the AWS service that the resource belongs to, and an optional array of tags used to identify a set of resources.</p>"
+          "documentation":"<p>Specifies the body of a request to assign a set of resources to a backup plan.</p>"
         },
         "SelectionId":{
           "shape":"string",
@@ -1919,7 +2276,7 @@
         },
         "CreatorRequestId":{
           "shape":"string",
-          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of executing the operation twice.</p>"
+          "documentation":"<p>A unique string that identifies the request and allows failed requests to be retried without the risk of running the operation twice.</p>"
         }
       }
     },
@@ -2019,7 +2376,7 @@
         },
         "RestoreMetadata":{
           "shape":"Metadata",
-          "documentation":"<p>A set of metadata key-value pairs that lists the metadata key-value pairs that are required to restore the recovery point.</p>"
+          "documentation":"<p>The set of metadata key-value pairs that describe the original configuration of the backed-up resource. These values vary depending on the service that is being restored.</p>"
         }
       }
     },
@@ -2028,10 +2385,17 @@
       "members":{
         "ResourceTypes":{
           "shape":"ResourceTypes",
-          "documentation":"<p>Contains a string with the supported AWS resource types:</p> <ul> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>SGW</code> for AWS Storage Gateway</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>DDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> </ul>"
+          "documentation":"<p>Contains a string with the supported AWS resource types:</p> <ul> <li> <p> <code>DynamoDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>EC2</code> for Amazon Elastic Compute Cloud</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>Storage Gateway</code> for AWS Storage Gateway</p> </li> </ul>"
         }
       }
     },
+    "GlobalSettings":{
+      "type":"map",
+      "key":{"shape":"GlobalSettingsName"},
+      "value":{"shape":"GlobalSettingsValue"}
+    },
+    "GlobalSettingsName":{"type":"string"},
+    "GlobalSettingsValue":{"type":"string"},
     "IAMPolicy":{"type":"string"},
     "IAMRoleArn":{"type":"string"},
     "InvalidParameterValueException":{
@@ -2068,6 +2432,7 @@
       "documentation":"<p>Indicates that something is wrong with the input to the request. For example, a parameter is of the wrong type.</p>",
       "exception":true
     },
+    "IsEnabled":{"type":"boolean"},
     "Lifecycle":{
       "type":"structure",
       "members":{
@@ -2077,10 +2442,10 @@
         },
         "DeleteAfterDays":{
           "shape":"Long",
-          "documentation":"<p>Specifies the number of days after creation that a recovery point is deleted. Must be greater than <code>MoveToColdStorageAfterDays</code>.</p>"
+          "documentation":"<p>Specifies the number of days after creation that a recovery point is deleted. Must be greater than 90 days plus <code>MoveToColdStorageAfterDays</code>.</p>"
         }
       },
-      "documentation":"<p>Contains an array of <code>Transition</code> objects specifying how long in days before a recovery point transitions to cold storage or is deleted.</p>"
+      "documentation":"<p>Contains an array of <code>Transition</code> objects specifying how long in days before a recovery point transitions to cold storage or is deleted.</p> <p>Backups transitioned to cold storage must be stored in cold storage for a minimum of 90 days. Therefore, on the console, the “expire after days” setting must be 90 days greater than the “transition to cold after days” setting. The “transition to cold after days” setting cannot be changed after a backup has been transitioned to cold.</p>"
     },
     "LimitExceededException":{
       "type":"structure",
@@ -2146,9 +2511,15 @@
         },
         "ByResourceType":{
           "shape":"ResourceType",
-          "documentation":"<p>Returns only backup jobs for the specified resources:</p> <ul> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>SGW</code> for AWS Storage Gateway</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>DDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> </ul>",
+          "documentation":"<p>Returns only backup jobs for the specified resources:</p> <ul> <li> <p> <code>DynamoDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>EC2</code> for Amazon Elastic Compute Cloud</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>Storage Gateway</code> for AWS Storage Gateway</p> </li> </ul>",
           "location":"querystring",
           "locationName":"resourceType"
+        },
+        "ByAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID to list the jobs from. Returns only backup jobs associated with the specified account ID.</p>",
+          "location":"querystring",
+          "locationName":"accountId"
         }
       }
     },
@@ -2335,6 +2706,78 @@
         }
       }
     },
+    "ListCopyJobsInput":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"string",
+          "documentation":"<p>The next item following a partial list of returned items. For example, if a request is made to return maxResults number of items, NextToken allows you to return more items in your list starting at the location pointed to by the next token. </p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of items to be returned.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "ByResourceArn":{
+          "shape":"ARN",
+          "documentation":"<p>Returns only copy jobs that match the specified resource Amazon Resource Name (ARN). </p>",
+          "location":"querystring",
+          "locationName":"resourceArn"
+        },
+        "ByState":{
+          "shape":"CopyJobState",
+          "documentation":"<p>Returns only copy jobs that are in the specified state.</p>",
+          "location":"querystring",
+          "locationName":"state"
+        },
+        "ByCreatedBefore":{
+          "shape":"timestamp",
+          "documentation":"<p>Returns only copy jobs that were created before the specified date.</p>",
+          "location":"querystring",
+          "locationName":"createdBefore"
+        },
+        "ByCreatedAfter":{
+          "shape":"timestamp",
+          "documentation":"<p>Returns only copy jobs that were created after the specified date.</p>",
+          "location":"querystring",
+          "locationName":"createdAfter"
+        },
+        "ByResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>Returns only backup jobs for the specified resources:</p> <ul> <li> <p> <code>DynamoDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>EC2</code> for Amazon Elastic Compute Cloud</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>Storage Gateway</code> for AWS Storage Gateway</p> </li> </ul>",
+          "location":"querystring",
+          "locationName":"resourceType"
+        },
+        "ByDestinationVaultArn":{
+          "shape":"string",
+          "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies a source backup vault to copy from; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>. </p>",
+          "location":"querystring",
+          "locationName":"destinationVaultArn"
+        },
+        "ByAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID to list the jobs from. Returns only copy jobs associated with the specified account ID.</p>",
+          "location":"querystring",
+          "locationName":"accountId"
+        }
+      }
+    },
+    "ListCopyJobsOutput":{
+      "type":"structure",
+      "members":{
+        "CopyJobs":{
+          "shape":"CopyJobsList",
+          "documentation":"<p>An array of structures containing metadata about your copy jobs returned in JSON format. </p>"
+        },
+        "NextToken":{
+          "shape":"string",
+          "documentation":"<p>The next item following a partial list of returned items. For example, if a request is made to return maxResults number of items, NextToken allows you to return more items in your list starting at the location pointed to by the next token. </p>"
+        }
+      }
+    },
     "ListOfTags":{
       "type":"list",
       "member":{"shape":"Condition"}
@@ -2487,6 +2930,30 @@
           "documentation":"<p>The maximum number of items to be returned.</p>",
           "location":"querystring",
           "locationName":"maxResults"
+        },
+        "ByAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID to list the jobs from. Returns only restore jobs associated with the specified account ID.</p>",
+          "location":"querystring",
+          "locationName":"accountId"
+        },
+        "ByCreatedBefore":{
+          "shape":"timestamp",
+          "documentation":"<p>Returns only restore jobs that were created before the specified date.</p>",
+          "location":"querystring",
+          "locationName":"createdBefore"
+        },
+        "ByCreatedAfter":{
+          "shape":"timestamp",
+          "documentation":"<p>Returns only restore jobs that were created after the specified date.</p>",
+          "location":"querystring",
+          "locationName":"createdAfter"
+        },
+        "ByStatus":{
+          "shape":"RestoreJobStatus",
+          "documentation":"<p>Returns only restore jobs associated with the specified job status.</p>",
+          "location":"querystring",
+          "locationName":"status"
         }
       }
     },
@@ -2549,7 +3016,8 @@
     "Metadata":{
       "type":"map",
       "key":{"shape":"MetadataKey"},
-      "value":{"shape":"MetadataValue"}
+      "value":{"shape":"MetadataValue"},
+      "sensitive":true
     },
     "MetadataKey":{"type":"string"},
     "MetadataValue":{"type":"string"},
@@ -2579,7 +3047,7 @@
         },
         "ResourceType":{
           "shape":"ResourceType",
-          "documentation":"<p>The type of AWS resource; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database.</p>"
+          "documentation":"<p>The type of AWS resource; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database. For VSS Windows backups, the only supported resource type is Amazon EC2.</p>"
         },
         "LastBackupTime":{
           "shape":"timestamp",
@@ -2647,13 +3115,17 @@
           "shape":"ARN",
           "documentation":"<p>An ARN that uniquely identifies a backup vault; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>.</p>"
         },
+        "SourceBackupVaultArn":{
+          "shape":"ARN",
+          "documentation":"<p>The backup vault where the recovery point was originally copied from. If the recovery point is restored to the same account this value will be <code>null</code>.</p>"
+        },
         "ResourceArn":{
           "shape":"ARN",
           "documentation":"<p>An ARN that uniquely identifies a resource. The format of the ARN depends on the resource type.</p>"
         },
         "ResourceType":{
           "shape":"ResourceType",
-          "documentation":"<p>The type of AWS resource saved as a recovery point; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database.</p>"
+          "documentation":"<p>The type of AWS resource saved as a recovery point; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database. For VSS Windows backups, the only supported resource type is Amazon EC2.</p>"
         },
         "CreatedBy":{
           "shape":"RecoveryPointCreator",
@@ -2796,6 +3268,11 @@
       "type":"string",
       "pattern":"^[a-zA-Z0-9\\-\\_\\.]{1,50}$"
     },
+    "ResourceTypeOptInPreference":{
+      "type":"map",
+      "key":{"shape":"ResourceType"},
+      "value":{"shape":"IsEnabled"}
+    },
     "ResourceTypes":{
       "type":"list",
       "member":{"shape":"ResourceType"}
@@ -2818,6 +3295,10 @@
     "RestoreJobsListMember":{
       "type":"structure",
       "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID that owns the restore job.</p>"
+        },
         "RestoreJobId":{
           "shape":"string",
           "documentation":"<p>Uniquely identifies the job that restores a recovery point.</p>"
@@ -2861,6 +3342,10 @@
         "CreatedResourceArn":{
           "shape":"ARN",
           "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies a resource. The format of the ARN depends on the resource type.</p>"
+        },
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The resource type of the listed restore jobs; for example, an Amazon Elastic Block Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS) database. For VSS Windows backups, the only supported resource type is Amazon EC2.</p>"
         }
       },
       "documentation":"<p>Contains metadata about a restore job.</p>"
@@ -2905,15 +3390,15 @@
         },
         "IdempotencyToken":{
           "shape":"string",
-          "documentation":"<p>A customer chosen string that can be used to distinguish between calls to <code>StartBackupJob</code>. Idempotency tokens time out after one hour. Therefore, if you call <code>StartBackupJob</code> multiple times with the same idempotency token within one hour, AWS Backup recognizes that you are requesting only one backup job and initiates only one. If you change the idempotency token for each call, AWS Backup recognizes that you are requesting to start multiple backups.</p>"
+          "documentation":"<p>A customer chosen string that can be used to distinguish between calls to <code>StartBackupJob</code>.</p>"
         },
         "StartWindowMinutes":{
           "shape":"WindowMinutes",
-          "documentation":"<p>The amount of time in minutes before beginning a backup.</p>"
+          "documentation":"<p>A value in minutes after a backup is scheduled before a job will be canceled if it doesn't start successfully. This value is optional.</p>"
         },
         "CompleteWindowMinutes":{
           "shape":"WindowMinutes",
-          "documentation":"<p>The amount of time AWS Backup attempts a backup before canceling the job and returning an error.</p>"
+          "documentation":"<p>A value in minutes after a backup job is successfully started before it must be completed or it will be canceled by AWS Backup. This value is optional.</p>"
         },
         "Lifecycle":{
           "shape":"Lifecycle",
@@ -2922,6 +3407,10 @@
         "RecoveryPointTags":{
           "shape":"Tags",
           "documentation":"<p>To help organize your resources, you can assign your own metadata to the resources that you create. Each tag is a key-value pair.</p>"
+        },
+        "BackupOptions":{
+          "shape":"BackupOptions",
+          "documentation":"<p>Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs.</p> <p>Valid values: Set to <code>\"WindowsVSS”:“enabled\"</code> to enable WindowsVSS backup option and create a VSS Windows backup. Set to “WindowsVSS”:”disabled” to create a regular backup. The WindowsVSS option is not enabled by default.</p>"
         }
       }
     },
@@ -2942,6 +3431,51 @@
         }
       }
     },
+    "StartCopyJobInput":{
+      "type":"structure",
+      "required":[
+        "RecoveryPointArn",
+        "SourceBackupVaultName",
+        "DestinationBackupVaultArn",
+        "IamRoleArn"
+      ],
+      "members":{
+        "RecoveryPointArn":{
+          "shape":"ARN",
+          "documentation":"<p>An ARN that uniquely identifies a recovery point to use for the copy job; for example, arn:aws:backup:us-east-1:123456789012:recovery-point:1EB3B5E7-9EB0-435A-A80B-108B488B0D45. </p>"
+        },
+        "SourceBackupVaultName":{
+          "shape":"BackupVaultName",
+          "documentation":"<p>The name of a logical source container where backups are stored. Backup vaults are identified by names that are unique to the account used to create them and the AWS Region where they are created. They consist of lowercase letters, numbers, and hyphens.</p>"
+        },
+        "DestinationBackupVaultArn":{
+          "shape":"ARN",
+          "documentation":"<p>An Amazon Resource Name (ARN) that uniquely identifies a destination backup vault to copy to; for example, <code>arn:aws:backup:us-east-1:123456789012:vault:aBackupVault</code>.</p>"
+        },
+        "IamRoleArn":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>Specifies the IAM role ARN used to copy the target recovery point; for example, <code>arn:aws:iam::123456789012:role/S3Access</code>.</p>"
+        },
+        "IdempotencyToken":{
+          "shape":"string",
+          "documentation":"<p>A customer chosen string that can be used to distinguish between calls to <code>StartCopyJob</code>.</p>"
+        },
+        "Lifecycle":{"shape":"Lifecycle"}
+      }
+    },
+    "StartCopyJobOutput":{
+      "type":"structure",
+      "members":{
+        "CopyJobId":{
+          "shape":"string",
+          "documentation":"<p>Uniquely identifies a copy job.</p>"
+        },
+        "CreationDate":{
+          "shape":"timestamp",
+          "documentation":"<p>The date and time that a copy job is started, in Unix format and Coordinated Universal Time (UTC). The value of <code>CreationDate</code> is accurate to milliseconds. For example, the value 1516925490.087 represents Friday, January 26, 2018 12:11:30.087 AM.</p>"
+        }
+      }
+    },
     "StartRestoreJobInput":{
       "type":"structure",
       "required":[
@@ -2956,7 +3490,7 @@
         },
         "Metadata":{
           "shape":"Metadata",
-          "documentation":"<p>A set of metadata key-value pairs. Lists the metadata that the recovery point was created with.</p>"
+          "documentation":"<p>A set of metadata key-value pairs. Contains information, such as a resource name, required to restore a recovery point.</p> <p> You can get configuration metadata about a resource at the time it was backed up by calling <code>GetRecoveryPointRestoreMetadata</code>. However, values in addition to those provided by <code>GetRecoveryPointRestoreMetadata</code> might be required to restore a resource. For example, you might need to provide a new resource name if the original already exists.</p> <p>You need to specify specific metadata to restore an Amazon Elastic File System (Amazon EFS) instance:</p> <ul> <li> <p> <code>file-system-id</code>: The ID of the Amazon EFS file system that is backed up by AWS Backup. Returned in <code>GetRecoveryPointRestoreMetadata</code>.</p> </li> <li> <p> <code>Encrypted</code>: A Boolean value that, if true, specifies that the file system is encrypted. If <code>KmsKeyId</code> is specified, <code>Encrypted</code> must be set to <code>true</code>.</p> </li> <li> <p> <code>KmsKeyId</code>: Specifies the AWS KMS key that is used to encrypt the restored file system. You can specify a key from another AWS account provided that key it is properly shared with your account via AWS KMS.</p> </li> <li> <p> <code>PerformanceMode</code>: Specifies the throughput mode of the file system.</p> </li> <li> <p> <code>CreationToken</code>: A user-supplied value that ensures the uniqueness (idempotency) of the request.</p> </li> <li> <p> <code>newFileSystem</code>: A Boolean value that, if true, specifies that the recovery point is restored to a new Amazon EFS file system.</p> </li> <li> <p> <code>ItemsToRestore </code>: A serialized list of up to five strings where each string is a file path. Use <code>ItemsToRestore</code> to restore specific files or directories rather than the entire file system. This parameter is optional.</p> </li> </ul>"
         },
         "IamRoleArn":{
           "shape":"IAMRoleArn",
@@ -2964,11 +3498,11 @@
         },
         "IdempotencyToken":{
           "shape":"string",
-          "documentation":"<p>A customer chosen string that can be used to distinguish between calls to <code>StartRestoreJob</code>. Idempotency tokens time out after one hour. Therefore, if you call <code>StartRestoreJob</code> multiple times with the same idempotency token within one hour, AWS Backup recognizes that you are requesting only one restore job and initiates only one. If you change the idempotency token for each call, AWS Backup recognizes that you are requesting to start multiple restores. </p>"
+          "documentation":"<p>A customer chosen string that can be used to distinguish between calls to <code>StartRestoreJob</code>.</p>"
         },
         "ResourceType":{
           "shape":"ResourceType",
-          "documentation":"<p>Starts a job to restore a recovery point for one of the following resources:</p> <ul> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>SGW</code> for AWS Storage Gateway</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>DDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> </ul>"
+          "documentation":"<p>Starts a job to restore a recovery point for one of the following resources:</p> <ul> <li> <p> <code>DynamoDB</code> for Amazon DynamoDB</p> </li> <li> <p> <code>EBS</code> for Amazon Elastic Block Store</p> </li> <li> <p> <code>EC2</code> for Amazon Elastic Compute Cloud</p> </li> <li> <p> <code>EFS</code> for Amazon Elastic File System</p> </li> <li> <p> <code>RDS</code> for Amazon Relational Database Service</p> </li> <li> <p> <code>Storage Gateway</code> for AWS Storage Gateway</p> </li> </ul>"
         }
       }
     },
@@ -3089,6 +3623,19 @@
         "VersionId":{
           "shape":"string",
           "documentation":"<p>Unique, randomly generated, Unicode, UTF-8 encoded strings that are at most 1,024 bytes long. Version Ids cannot be edited.</p>"
+        },
+        "AdvancedBackupSettings":{
+          "shape":"AdvancedBackupSettings",
+          "documentation":"<p>Contains a list of <code>BackupOptions</code> for each resource type.</p>"
+        }
+      }
+    },
+    "UpdateGlobalSettingsInput":{
+      "type":"structure",
+      "members":{
+        "GlobalSettings":{
+          "shape":"GlobalSettings",
+          "documentation":"<p>A list of resources along with the opt-in preferences for the account.</p>"
         }
       }
     },
@@ -3135,6 +3682,15 @@
         "CalculatedLifecycle":{
           "shape":"CalculatedLifecycle",
           "documentation":"<p>A <code>CalculatedLifecycle</code> object containing <code>DeleteAt</code> and <code>MoveToColdStorageAt</code> timestamps.</p>"
+        }
+      }
+    },
+    "UpdateRegionSettingsInput":{
+      "type":"structure",
+      "members":{
+        "ResourceTypeOptInPreference":{
+          "shape":"ResourceTypeOptInPreference",
+          "documentation":"<p>Updates the list of services along with the opt-in preferences for the Region.</p>"
         }
       }
     },

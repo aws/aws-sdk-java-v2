@@ -1,0 +1,36 @@
+{
+    "version": "2.15.46",
+    "date": "2020-12-14",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Treat zero-byte responses from async HTTP clients as not having a payload, regardless of the response content-length. This fixes an issue that could cause HEAD responses (e.g. s3's headObject responses) with a content-length specified from being treated as having a payload. This fixes issues like [#1216](https://github.com/aws/aws-sdk-java-v2/issues/1216) where the SDK attempts to read data from the response based on the content-length, not based on whether there was actually a payload."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add c5n.metal to ec2 instance types list"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DevOps Guru",
+            "contributor": "",
+            "description": "Documentation updates for DevOps Guru."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "contributor": "",
+            "description": "This release adds support for custom routing accelerators"
+        }
+    ]
+}

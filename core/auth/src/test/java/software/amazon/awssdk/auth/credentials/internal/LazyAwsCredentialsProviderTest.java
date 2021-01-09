@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class LazyAwsCredentialsProviderTest {
     @SuppressWarnings("unchecked")
@@ -48,4 +49,30 @@ public class LazyAwsCredentialsProviderTest {
         Mockito.verify(credentialsConstructor, Mockito.times(1)).get();
         Mockito.verify(credentials, Mockito.times(2)).resolveCredentials();
     }
+
+    @Test
+    public void delegatesClosesInitializerAndValue() {
+        CloseableSupplier initializer = Mockito.mock(CloseableSupplier.class);
+        CloseableCredentialsProvider value = Mockito.mock(CloseableCredentialsProvider.class);
+
+        Mockito.when(initializer.get()).thenReturn(value);
+
+        LazyAwsCredentialsProvider.create(initializer).close();
+
+        Mockito.verify(initializer).close();
+        Mockito.verify(value).close();
+    }
+
+    @Test
+    public void delegatesClosesInitializerEvenIfGetFails() {
+        CloseableSupplier initializer = Mockito.mock(CloseableSupplier.class);
+        Mockito.when(initializer.get()).thenThrow(new RuntimeException());
+
+        LazyAwsCredentialsProvider.create(initializer).close();
+
+        Mockito.verify(initializer).close();
+    }
+
+    private interface CloseableSupplier extends Supplier<AwsCredentialsProvider>, SdkAutoCloseable {}
+    private interface CloseableCredentialsProvider extends SdkAutoCloseable, AwsCredentialsProvider {}
 }

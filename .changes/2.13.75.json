@@ -1,0 +1,46 @@
+{
+    "version": "2.13.75",
+    "date": "2020-08-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Braket",
+            "description": "Amazon Braket general availability with Device and Quantum Task operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "description": "Adding ability to customize expiry for Refresh, Access and ID tokens."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "description": "This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "description": "Documentation update for AWS AppSync support for Direct Lambda Resolvers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Added MapCustomerOwnedIpOnLaunch and CustomerOwnedIpv4Pool to ModifySubnetAttribute to allow CoIP auto assign. Fields are returned in DescribeSubnets and DescribeNetworkInterfaces responses."
+        },
+        {
+            "type": "bugfix",
+            "category": "CloudWatch Metrics Publisher",
+            "description": "Fixed a bug where `CloudWatchPublisher#close` would not always complete flushing pending metrics before returning."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "This release allows customers to specify a replica mode when creating or modifying a Read Replica, for DB engines which support this feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "description": "Adding support for customer provided EC2 launch templates and AMIs to EKS Managed Nodegroups. Also adds support for Arm-based instances to EKS Managed Nodegroups."
+        }
+    ]
+}

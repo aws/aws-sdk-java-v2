@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.client.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class ClientOverrideConfigurationTest {
@@ -107,5 +109,75 @@ public class ClientOverrideConfigurationTest {
         assertThat(configurationBuilder.headers().size()).isEqualTo(1);
         assertThat(configurationBuilder.headers().get("foo")).containsExactly("bar");
         assertThat(configurationBuilder.executionInterceptors()).containsExactly(slowExecutionInterceptor);
+    }
+
+    @Test
+    public void metricPublishers_createsCopy() {
+        List<MetricPublisher> publishers = new ArrayList<>();
+        publishers.add(mock(MetricPublisher.class));
+        List<MetricPublisher> toModify = new ArrayList<>(publishers);
+
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+                .metricPublishers(toModify)
+                .build();
+
+        toModify.clear();
+
+        assertThat(overrideConfig.metricPublishers()).isEqualTo(publishers);
+    }
+
+    @Test
+    public void addMetricPublisher_maintainsAllAdded() {
+        List<MetricPublisher> publishers = new ArrayList<>();
+        publishers.add(mock(MetricPublisher.class));
+        publishers.add(mock(MetricPublisher.class));
+        publishers.add(mock(MetricPublisher.class));
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        publishers.forEach(builder::addMetricPublisher);
+
+        ClientOverrideConfiguration overrideConfig = builder.build();
+
+        assertThat(overrideConfig.metricPublishers()).isEqualTo(publishers);
+    }
+
+    @Test
+    public void metricPublishers_overwritesPreviouslyAdded() {
+        MetricPublisher firstAdded = mock(MetricPublisher.class);
+
+        List<MetricPublisher> publishers = new ArrayList<>();
+
+        publishers.add(mock(MetricPublisher.class));
+        publishers.add(mock(MetricPublisher.class));
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        builder.addMetricPublisher(firstAdded);
+
+        builder.metricPublishers(publishers);
+
+        ClientOverrideConfiguration overrideConfig = builder.build();
+
+        assertThat(overrideConfig.metricPublishers()).isEqualTo(publishers);
+    }
+
+    @Test
+    public void addMetricPublisher_listPreviouslyAdded_appendedToList() {
+        List<MetricPublisher> publishers = new ArrayList<>();
+
+        publishers.add(mock(MetricPublisher.class));
+        publishers.add(mock(MetricPublisher.class));
+
+        MetricPublisher thirdAdded = mock(MetricPublisher.class);
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        builder.metricPublishers(publishers);
+        builder.addMetricPublisher(thirdAdded);
+
+        ClientOverrideConfiguration overrideConfig = builder.build();
+
+        assertThat(overrideConfig.metricPublishers()).containsExactly(publishers.get(0), publishers.get(1), thirdAdded);
     }
 }

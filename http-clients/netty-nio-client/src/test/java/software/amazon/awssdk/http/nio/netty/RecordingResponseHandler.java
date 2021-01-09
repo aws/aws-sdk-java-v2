@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,12 +30,15 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 public final class RecordingResponseHandler implements SdkAsyncHttpResponseHandler {
 
     List<SdkHttpResponse> responses = new ArrayList<>();
     private StringBuilder bodyParts = new StringBuilder();
     CompletableFuture<Void> completeFuture = new CompletableFuture<>();
+    CompletableFuture<Void> executionFuture = null;
+    MetricCollector collector = MetricCollector.create("test");
 
     @Override
     public void onHeaders(SdkHttpResponse response) {

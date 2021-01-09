@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -117,11 +118,11 @@ class ListSetters extends AbstractMemberSetters {
     }
 
     @Override
-    public MethodSpec beanStyle() {
+    public List<MethodSpec> beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
             .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : beanCopySetterBody());
 
-        return builder.build();
+        return Collections.singletonList(builder.build());
 
     }
 

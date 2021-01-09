@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,18 +23,22 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.internal.EndpointUtils;
+import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.internal.S3EndpointUtils;
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverContext;
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverFactory;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.utils.Validate;
 
@@ -46,8 +50,8 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <pre>
  * S3Utilities utilities = S3Utilities.builder().region(Region.US_WEST_2).build()
- * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build()
- * URL url = pathStyleUtilities.getUrl(request);
+ * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
+ * URL url = utilities.getUrl(request);
  * </pre>
  * </p>
  *
@@ -58,8 +62,8 @@ import software.amazon.awssdk.utils.Validate;
  * <pre>
  * S3Client s3client = S3Client.create();
  * S3Utilities utilities = s3client.utilities();
- * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build()
- * URL url = pathStyleUtilities.getUrl(request);
+ * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
+ * URL url = utilities.getUrl(request);
  * </pre>
  * </p>
  *
@@ -68,10 +72,10 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @SdkPublicApi
 public final class S3Utilities {
-
     private final Region region;
-
     private final S3Configuration s3Configuration;
+    private final ProfileFile profileFile;
+    private final String profileName;
 
     /**
      * SDK currently validates that region is present while constructing {@link S3Utilities} object.
@@ -80,6 +84,8 @@ public final class S3Utilities {
     private S3Utilities(Builder builder) {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.s3Configuration = builder.s3Configuration;
+        this.profileFile = builder.profileFile;
+        this.profileName = builder.profileName;
     }
 
     /**
@@ -95,6 +101,8 @@ public final class S3Utilities {
         return S3Utilities.builder()
                           .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
                           .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
+                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE))
+                          .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME))
                           .build();
     }
 
@@ -116,7 +124,7 @@ public final class S3Utilities {
      *
      * @param getUrlRequest A {@link Consumer} that will call methods on {@link GetUrlRequest.Builder} to create a request.
      * @return A URL for an object stored in Amazon S3.
-     * @throws MalformedURLException Generated Url is malformed
+     * @throws SdkException Generated Url is malformed
      */
     public URL getUrl(Consumer<GetUrlRequest.Builder> getUrlRequest) {
         return getUrl(GetUrlRequest.builder().applyMutation(getUrlRequest).build());
@@ -135,24 +143,37 @@ public final class S3Utilities {
      *
      * @param getUrlRequest request to construct url
      * @return A URL for an object stored in Amazon S3.
-     * @throws MalformedURLException Generated Url is malformed
+     * @throws SdkException Generated Url is malformed
      */
     public URL getUrl(GetUrlRequest getUrlRequest) {
         Region resolvedRegion = resolveRegionForGetUrl(getUrlRequest);
         URI resolvedEndpoint = resolveEndpoint(getUrlRequest.endpoint(), resolvedRegion);
+        boolean endpointOverridden = getUrlRequest.endpoint() != null;
 
         SdkHttpFullRequest marshalledRequest = createMarshalledRequest(getUrlRequest, resolvedEndpoint);
 
-        SdkHttpRequest httpRequest = S3EndpointUtils.applyEndpointConfiguration(marshalledRequest,
-                                                                                getUrlRequest,
-                                                                                resolvedRegion,
-                                                                                s3Configuration,
-                                                                                getUrlRequest.bucket());
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket(getUrlRequest.bucket())
+                                                            .key(getUrlRequest.key())
+                                                            .versionId(getUrlRequest.versionId())
+                                                            .build();
+
+        S3EndpointResolverContext resolverContext = S3EndpointResolverContext.builder()
+                                                                             .request(marshalledRequest)
+                                                                             .originalRequest(getObjectRequest)
+                                                                             .region(resolvedRegion)
+                                                                             .endpointOverridden(endpointOverridden)
+                                                                             .serviceConfiguration(s3Configuration)
+                                                                             .build();
+
+        SdkHttpRequest httpRequest = S3EndpointResolverFactory.getEndpointResolver(getObjectRequest.bucket())
+                                                              .applyEndpointConfiguration(resolverContext)
+                                                              .sdkHttpRequest();
 
         try {
             return httpRequest.getUri().toURL();
         } catch (MalformedURLException exception) {
-            throw SdkException.create(String.format("Generated URI is malformed: " + httpRequest.getUri()),
+            throw SdkException.create("Generated URI is malformed: " + httpRequest.getUri(),
                                       exception);
         }
     }
@@ -170,7 +191,10 @@ public final class S3Utilities {
      */
     private URI resolveEndpoint(URI endpoint, Region region) {
         return endpoint != null ? endpoint
-                                : EndpointUtils.buildEndpoint("https", "s3", region);
+                                : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
+                                                                                  .withProfileFile(profileFile)
+                                                                                  .withProfileName(profileName)
+                                                                                  .getServiceEndpoint();
     }
 
     /**
@@ -192,6 +216,10 @@ public final class S3Utilities {
         // encode key
         builder.encodedPath(PathMarshaller.GREEDY.marshall(builder.encodedPath(), "Key", getUrlRequest.key()));
 
+        if (getUrlRequest.versionId() != null) {
+            builder.appendRawQueryParameter("versionId", getUrlRequest.versionId());
+        }
+
         return builder.build();
     }
 
@@ -202,6 +230,8 @@ public final class S3Utilities {
         private Region region;
 
         private S3Configuration s3Configuration;
+        private ProfileFile profileFile;
+        private String profileName;
 
         private Builder() {
         }
@@ -229,6 +259,26 @@ public final class S3Utilities {
          */
         public Builder s3Configuration(S3Configuration s3Configuration) {
             this.s3Configuration = s3Configuration;
+            return this;
+        }
+
+        /**
+         * The profile file from the {@link ClientOverrideConfiguration#defaultProfileFile()}. This is private and only used
+         * when the utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less
+         * confusing to support the full {@link ClientOverrideConfiguration} object in the future.
+         */
+        private Builder profileFile(ProfileFile profileFile) {
+            this.profileFile = profileFile;
+            return this;
+        }
+
+        /**
+         * The profile name from the {@link ClientOverrideConfiguration#defaultProfileFile()}. This is private and only used
+         * when the utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less
+         * confusing to support the full {@link ClientOverrideConfiguration} object in the future.
+         */
+        private Builder profileName(String profileName) {
+            this.profileName = profileName;
             return this;
         }
 

@@ -24,6 +24,7 @@ if __name__ == "__main__":
     parser.add_argument('--release-version', '-v', dest='release_version', required=True, help="The version that the changes desrcribe. Must be in the form MAJOR.MINOR.PATCH")
     parser.add_argument('--release-date', '-d', dest='release_date', required=True, help="The date for the release, in ISO 8601 format (YYYY-MM-DD). Defaults to the current date.")
     parser.add_argument('--generate-changelog', '-g', dest='generate_changelog_now', action='store_true', help="Generate the change log now.")
+    parser.add_argument('--dry-run', '-r', dest='dry_run', action='store_true', help="Whether it is a dry run to finalize the change log.")
     args = parser.parse_args()
 
     validate_args(args)
@@ -43,6 +44,10 @@ if __name__ == "__main__":
     if os.path.isfile(filename):
         print("The file %s already exists!" % filename)
         exit(1)
+
+    if args.dry_run:
+        print("Dry run succeeded")
+        exit(0)
 
     with open(filename, 'w') as f:
         f.write(next_release_json)

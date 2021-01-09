@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.EventLoop;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -23,15 +28,27 @@ import io.netty.util.concurrent.SucceededFuture;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class NettyUtils {
-
     /**
      * Completed succeed future.
      */
     public static final SucceededFuture<?> SUCCEEDED_FUTURE = new SucceededFuture<>(null, null);
+
+    // TODO: add a link to the guide on how to diagnose this error here once it's available
+    public static final String CLOSED_CHANNEL_MESSAGE = "The channel was closed. This may have been done by the client (e.g. "
+                                                        + "because the request was aborted), " +
+                                                        "by the service (e.g. because there was a handshake error, the request "
+                                                        + "took too long, or the client tried to write on a read-only socket), " +
+                                                        "or by an intermediary party (e.g. because the channel was idle for too"
+                                                        + " long).";
+
+    private static final Logger log = Logger.loggerFor(NettyUtils.class);
 
     private NettyUtils() {
     }
@@ -55,7 +72,7 @@ public final class NettyUtils {
             } else {
                 try {
                     promise.setSuccess(successFunction.apply(success));
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     promise.setFailure(e);
                 }
             }
@@ -82,7 +99,7 @@ public final class NettyUtils {
             } else {
                 try {
                     successConsumer.accept(success, promise);
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     // If the successConsumer fails synchronously then we can notify the promise. If it fails asynchronously
                     // it's up to the successConsumer to notify.
                     promise.setFailure(e);
@@ -132,9 +149,66 @@ public final class NettyUtils {
      */
     public static void doInEventLoop(EventExecutor eventExecutor, Runnable runnable, Promise<?> promise) {
         try {
-            doInEventLoop(eventExecutor, runnable);
-        } catch (Exception e) {
+            if (eventExecutor.inEventLoop()) {
+                runnable.run();
+            } else {
+                eventExecutor.submit(() -> {
+                    try {
+                        runnable.run();
+                    } catch (Throwable e) {
+                        promise.setFailure(e);
+                    }
+                });
+            }
+        } catch (Throwable e) {
             promise.setFailure(e);
         }
+    }
+
+    public static void warnIfNotInEventLoop(EventLoop loop) {
+        assert loop.inEventLoop();
+        if (!loop.inEventLoop()) {
+            Exception exception =
+                new IllegalStateException("Execution is not in the expected event loop. Please report this issue to the "
+                                          + "AWS SDK for Java team on GitHub, because it could result in race conditions.");
+            log.warn(() -> "Execution is happening outside of the expected event loop.", exception);
+        }
+    }
+
+    /**
+     * @return an {@code AttributeKey} for {@code attr}. This returns an existing instance if it was previously created.
+     */
+    public static <T> AttributeKey<T> getOrCreateAttributeKey(String attr) {
+        if (AttributeKey.exists(attr)) {
+            return AttributeKey.valueOf(attr);
+        }
+        //CHECKSTYLE:OFF - This is the only place allowed to call AttributeKey.newInstance()
+        return AttributeKey.newInstance(attr);
+        //CHECKSTYLE:ON
+    }
+
+    /**
+     * @return a new {@link SslHandler} with ssl engine configured
+     */
+    public static SslHandler newSslHandler(SslContext sslContext, ByteBufAllocator alloc,  String peerHost, int peerPort) {
+        // Need to provide host and port to enable SNI
+        // https://github.com/netty/netty/issues/3801#issuecomment-104274440
+        SslHandler sslHandler = sslContext.newHandler(alloc, peerHost, peerPort);
+        configureSslEngine(sslHandler.engine());
+        return sslHandler;
+    }
+
+    /**
+     * Enable Hostname verification.
+     *
+     * See https://netty.io/4.0/api/io/netty/handler/ssl/SslContext.html#newHandler-io.netty.buffer.ByteBufAllocator-java.lang
+     * .String-int-
+     *
+     * @param sslEngine the sslEngine to configure
+     */
+    private static void configureSslEngine(SSLEngine sslEngine) {
+        SSLParameters sslParameters = sslEngine.getSSLParameters();
+        sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+        sslEngine.setSSLParameters(sslParameters);
     }
 }

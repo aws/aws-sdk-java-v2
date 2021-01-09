@@ -1,5 +1,7 @@
 package software.amazon.awssdk.services.json;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -8,16 +10,24 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
@@ -32,6 +42,8 @@ import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRespo
 import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.JsonRequest;
+import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
+import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -47,12 +59,14 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 import software.amazon.awssdk.services.json.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.HostnameValidator;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Internal implementation of {@link JsonClient}.
@@ -62,6 +76,8 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultJsonClient implements JsonClient {
+    private static final Logger log = Logger.loggerFor(DefaultJsonClient.class);
+
     private final SyncClientHandler clientHandler;
 
     private final AwsJsonProtocolFactory protocolFactory;
@@ -102,9 +118,6 @@ final class DefaultJsonClient implements JsonClient {
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                      AwsServiceException, SdkClientException, JsonException {
-        String hostPrefix = "{StringMember}-foo.";
-        Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
-        String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                                                                        .isPayloadJson(true).build();
 
@@ -113,12 +126,26 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
+            String hostPrefix = "{StringMember}-foo.";
+            HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
+                                                        "aPostOperationRequest");
+            String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
 
-        return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                         .withOperationName("APostOperation")
-                                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                         .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest)
-                                         .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
+                                             .withOperationName("APostOperation").withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
+                                             .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -153,13 +180,23 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
 
-        return clientHandler
-            .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                         .withOperationName("APostOperationWithOutput")
-                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                         .withInput(aPostOperationWithOutputRequest)
-                         .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+            return clientHandler
+                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                             .withOperationName("APostOperationWithOutput").withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationWithOutputRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -194,13 +231,74 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getWithoutRequiredMembersRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetWithoutRequiredMembers");
 
-        return clientHandler
-            .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                         .withOperationName("GetWithoutRequiredMembers")
-                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                         .withInput(getWithoutRequiredMembersRequest)
-                         .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
+            return clientHandler
+                .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
+                             .withOperationName("GetWithoutRequiredMembers").withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withInput(getWithoutRequiredMembersRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the OperationWithChecksumRequired operation.
+     *
+     * @param operationWithChecksumRequiredRequest
+     * @return Result of the OperationWithChecksumRequired operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.OperationWithChecksumRequired
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public OperationWithChecksumRequiredResponse operationWithChecksumRequired(
+        OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
+                                                                                          SdkClientException, JsonException {
+        JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                       .isPayloadJson(true).build();
+
+        HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
+            operationMetadata, OperationWithChecksumRequiredResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                   operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithChecksumRequired");
+
+            return clientHandler
+                .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
+                             .withOperationName("OperationWithChecksumRequired")
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withInput(operationWithChecksumRequiredRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
+                                                    HttpChecksumRequired.create())
+                             .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -231,13 +329,23 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         paginatedOperationWithResultKeyRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PaginatedOperationWithResultKey");
 
-        return clientHandler
-            .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
-                         .withOperationName("PaginatedOperationWithResultKey")
-                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                         .withInput(paginatedOperationWithResultKeyRequest)
-                         .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
+            return clientHandler
+                .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
+                             .withOperationName("PaginatedOperationWithResultKey").withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withInput(paginatedOperationWithResultKeyRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -288,6 +396,10 @@ final class DefaultJsonClient implements JsonClient {
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -342,13 +454,23 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         paginatedOperationWithoutResultKeyRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PaginatedOperationWithoutResultKey");
 
-        return clientHandler
-            .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
-                         .withOperationName("PaginatedOperationWithoutResultKey")
-                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                         .withInput(paginatedOperationWithoutResultKeyRequest)
-                         .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
+            return clientHandler
+                .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
+                             .withOperationName("PaginatedOperationWithoutResultKey").withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withInput(paginatedOperationWithoutResultKeyRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -399,6 +521,10 @@ final class DefaultJsonClient implements JsonClient {
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
+     * <p>
+     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
+     * paginator. It only limits the number of results in each page.</b>
+     * </p>
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
@@ -464,17 +590,29 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
 
-        return clientHandler.execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                                         .withOperationName("StreamingInputOperation")
-                                         .withResponseHandler(responseHandler)
-                                         .withErrorResponseHandler(errorResponseHandler)
-                                         .withInput(streamingInputOperationRequest)
-                                         .withRequestBody(requestBody)
-                                         .withMarshaller(
-                                             StreamingRequestMarshaller.builder()
-                                                                       .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                                                       .requestBody(requestBody).build()));
+            return clientHandler
+                .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                             .withOperationName("StreamingInputOperation")
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withInput(streamingInputOperationRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withRequestBody(requestBody)
+                             .withMarshaller(
+                                 StreamingRequestMarshaller.builder()
+                                                           .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                                           .requestBody(requestBody).build()));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -494,11 +632,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
-     *        to the callback. The callback may return a transformed type which will be the return value of this method.
-     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
-     *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
-     *        service documentation for the response content is as follows 'This be a stream'.
+     *        StreamingInputOutputOperationResponse and an InputStream to the response content are provided as
+     *        parameters to the callback. The callback may return a transformed type which will be the return value of
+     *        this method. See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing
+     *        this interface and for links to pre-canned implementations for common scenarios like downloading to a
+     *        file. The service documentation for the response content is as follows 'This be a stream'.
      * @return The transformed result of the ResponseTransformer.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
@@ -526,18 +664,31 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         streamingInputOutputOperationRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOutputOperation");
 
-        return clientHandler.execute(
-            new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
-                .withOperationName("StreamingInputOutputOperation")
-                .withResponseHandler(responseHandler)
-                .withErrorResponseHandler(errorResponseHandler)
-                .withInput(streamingInputOutputOperationRequest)
-                .withRequestBody(requestBody)
-                .withMarshaller(
-                    StreamingRequestMarshaller.builder()
-                                              .delegateMarshaller(new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
-                                              .requestBody(requestBody).transferEncoding(true).build()), responseTransformer);
+            return clientHandler.execute(
+                new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
+                    .withOperationName("StreamingInputOutputOperation")
+                    .withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler)
+                    .withInput(streamingInputOutputOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .withRequestBody(requestBody)
+                    .withMarshaller(
+                        StreamingRequestMarshaller
+                            .builder()
+                            .delegateMarshaller(
+                                new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
+                            .requestBody(requestBody).transferEncoding(true).build()), responseTransformer);
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -546,8 +697,8 @@ final class DefaultJsonClient implements JsonClient {
      * @param streamingOutputOperationRequest
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
-     *        StreamingInputOutputOperationRequest and an InputStream to the response content are provided as parameters
-     *        to the callback. The callback may return a transformed type which will be the return value of this method.
+     *        StreamingOutputOperationResponse and an InputStream to the response content are provided as parameters to
+     *        the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
      *        service documentation for the response content is as follows 'This be a stream'.
@@ -575,13 +726,38 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
 
-        return clientHandler.execute(
-            new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                .withOperationName("StreamingOutputOperation")
-                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                .withInput(streamingOutputOperationRequest)
-                .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
+            return clientHandler.execute(
+                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                    .withOperationName("StreamingOutputOperation").withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).withInput(streamingOutputOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
+                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+        List<MetricPublisher> publishers = null;
+        if (requestOverrideConfiguration != null) {
+            publishers = requestOverrideConfiguration.metricPublishers();
+        }
+        if (publishers == null || publishers.isEmpty()) {
+            publishers = clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS);
+        }
+        if (publishers == null) {
+            publishers = Collections.emptyList();
+        }
+        return publishers;
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

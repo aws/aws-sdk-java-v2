@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -35,11 +34,8 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
-    private final IntermediateModel intermediateModel;
-
     public EventStreamJsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
         super(shapeModel);
-        this.intermediateModel = model;
     }
 
     @Override
@@ -50,8 +46,8 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
                      .addStatement("$T<$T> protocolMarshaller = protocolFactory.createProtocolMarshaller(SDK_OPERATION_BINDING)",
                                    ProtocolMarshaller.class, SdkHttpFullRequest.class)
                      .add("return protocolMarshaller.marshall($L).toBuilder()", variableName)
-                     .add(".putHeader(\":message-type\", \"event\")")
-                     .add(".putHeader(\":event-type\", \"$L\")", getMemberNameFromEventStream());
+                     .add(".putHeader($S, $S)", ":message-type", "event")
+                     .add(".putHeader($S, $N.sdkEventType().toString())", ":event-type", variableName);
 
         // Add :content-type header only if payload is present
         if (!shapeModel.hasNoEventPayload()) {
@@ -73,6 +69,7 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers())
                      // Adding httpMethod to avoid validation failure while creating the SdkHttpFullRequest
                      .add(".httpMethod($T.GET)", SdkHttpMethod.class)
+                     .add(".hasEvent(true)")
                      .add(".build()");
 
 
@@ -80,16 +77,6 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
                         .initializer(builder.build())
                         .build();
-    }
-
-    private String getMemberNameFromEventStream() {
-        ShapeModel eventStream = EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel);
-        return eventStream.getMembers().stream()
-                          .filter(memberModel -> memberModel.getShape().equals(shapeModel))
-                          .findAny()
-                          .map(MemberModel::getC2jName)
-                          .orElseThrow(() -> new IllegalStateException(
-                              String.format("Unable to find %s from its parent event stream", shapeModel.getC2jName())));
     }
 
     private String determinePayloadContentType() {

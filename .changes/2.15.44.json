@@ -1,0 +1,24 @@
+{
+    "version": "2.15.44",
+    "date": "2020-12-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "TGW connect simplifies connectivity of SD-WAN appliances; IGMP support for TGW multicast; VPC Reachability Analyzer for VPC resources connectivity analysis."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Manager",
+            "contributor": "",
+            "description": "This release adds API support for Transit Gateway Connect integration into AWS Network Manager."
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now supports adding synonyms to an index through the new Thesaurus resource."
+        }
+    ]
+}

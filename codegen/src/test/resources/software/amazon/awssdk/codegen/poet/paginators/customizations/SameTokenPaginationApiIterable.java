@@ -63,6 +63,10 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct;
  * }
  * </pre>
  * <p>
+ * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the paginator.
+ * It only limits the number of results in each page.</b>
+ * </p>
+ * <p>
  * <b>Note: If you prefer to have control on service calls, use the
  * {@link #sameTokenPaginationApi(software.amazon.awssdk.services.jsonprotocoltests.model.SameTokenPaginationApiRequest)}
  * operation.</b>
@@ -99,7 +103,8 @@ public class SameTokenPaginationApiIterable implements SdkIterable<SameTokenPagi
             }
             return Collections.emptyIterator();
         };
-        return PaginatedItemsIterable.builder().pagesIterable(this).itemIteratorFunction(getIterator).build();
+        return PaginatedItemsIterable.<SameTokenPaginationApiResponse, SimpleStruct> builder().pagesIterable(this)
+                                                                                              .itemIteratorFunction(getIterator).build();
     }
 
     private class SameTokenPaginationApiResponseFetcher implements SyncPageFetcher<SameTokenPaginationApiResponse> {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  *     start to be refreshed. This allows the credentials to be refreshed *before* they are reported to expire. Default: 15
  *     seconds.</li>
  *     <li>ProcessOutputLimit - The maximum amount of data that can be returned by the external process before an exception is
- *     raised. Default: 1024 bytes.</li>
+ *     raised. Default: 64000 bytes (64KB).</li>
  * </ul>
  */
 @SdkPublicApi
@@ -222,12 +222,13 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
         private Boolean asyncCredentialUpdateEnabled = false;
         private String command;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
-        private long processOutputLimit = 1024;
+        private long processOutputLimit = 64000;
 
         /**
          * @see #builder()
          */
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Configure whether the provider should fetch credentials asynchronously in the background. If this is true, threads are
@@ -264,7 +265,7 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
          * Configure the maximum amount of data that can be returned by the external process before an exception is
          * raised.
          *
-         * <p>Default: 1024 bytes.</p>
+         * <p>Default: 64000 bytes (64KB).</p>
          */
         public Builder processOutputLimit(long outputByteLimit) {
             this.processOutputLimit = outputByteLimit;

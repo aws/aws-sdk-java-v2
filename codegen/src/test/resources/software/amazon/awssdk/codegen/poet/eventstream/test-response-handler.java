@@ -92,7 +92,29 @@ public interface EventStreamOperationResponseHandler extends
          * @param event
          *        Event being visited
          */
-        default void visit(EventTwo event) {
+        default void visitEventTheSecond(EventTwo event) {
+            visitDefault(event);
+        }
+
+        /**
+         * Invoked when a {@link EventOne} is encountered. If this is not overridden, the event will be given to
+         * {@link #visitDefault(EventStream)}.
+         *
+         * @param event
+         *        Event being visited
+         */
+        default void visitSecondEventOne(EventOne event) {
+            visitDefault(event);
+        }
+
+        /**
+         * Invoked when a {@link LegacyEventThree} is encountered. If this is not overridden, the event will be given to
+         * {@link #visitDefault(EventStream)}.
+         *
+         * @param event
+         *        Event being visited
+         */
+        default void visit(LegacyEventThree event) {
             visitDefault(event);
         }
 
@@ -132,7 +154,26 @@ public interface EventStreamOperationResponseHandler extends
              *        Callback to process the event.
              * @return This builder for method chaining.
              */
-            Builder onEventTwo(Consumer<EventTwo> c);
+            Builder onEventTheSecond(Consumer<EventTwo> c);
+
+            /**
+             * Callback to invoke when a {@link EventOne} is visited.
+             *
+             * @param c
+             *        Callback to process the event.
+             * @return This builder for method chaining.
+             */
+            Builder onSecondEventOne(Consumer<EventOne> c);
+
+            /**
+             * Callback to invoke when a {@link LegacyEventThree} is visited.
+             *
+             * @param c
+             *        Callback to process the event.
+             * @return This builder for method chaining.
+             */
+            Builder onLegacyEventThree(Consumer<LegacyEventThree> c);
         }
     }
 }
+

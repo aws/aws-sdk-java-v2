@@ -63,6 +63,10 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct;
  * }
  * </pre>
  * <p>
+ * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the paginator.
+ * It only limits the number of results in each page.</b>
+ * </p>
+ * <p>
  * <b>Note: If you prefer to have control on service calls, use the
  * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyRequest)}
  * operation.</b>
@@ -104,7 +108,8 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
             }
             return Collections.emptyIterator();
         };
-        return PaginatedItemsIterable.builder().pagesIterable(this).itemIteratorFunction(getIterator).build();
+        return PaginatedItemsIterable.<PaginatedOperationWithResultKeyResponse, SimpleStruct> builder().pagesIterable(this)
+                                                                                                       .itemIteratorFunction(getIterator).build();
     }
 
     private class PaginatedOperationWithResultKeyResponseFetcher implements

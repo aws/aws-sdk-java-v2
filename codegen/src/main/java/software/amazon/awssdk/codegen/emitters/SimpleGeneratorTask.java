@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.io.Writer;
 /**
  * Simple generator task that writes a string to a file.
  */
-public final class SimpleGeneratorTask implements GeneratorTask {
+public final class SimpleGeneratorTask extends GeneratorTask {
 
     private final Writer writer;
     private final String fileHeader;
@@ -41,7 +41,7 @@ public final class SimpleGeneratorTask implements GeneratorTask {
     }
 
     @Override
-    public void execute() {
+    public void compute() {
         try {
             writer.write(fileHeader + "\n");
             writer.write(contents);

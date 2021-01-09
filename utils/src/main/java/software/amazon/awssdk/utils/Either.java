@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -104,6 +104,20 @@ public final class Either<L, R> {
      */
     public static <L, R> Either<L, R> right(R value) {
         return new Either<>(Optional.empty(), Optional.of(value));
+    }
+
+    /**
+     * @return the left value
+     */
+    public Optional<L> left() {
+        return left;
+    }
+
+    /**
+     * @return the right value
+     */
+    public Optional<R> right() {
+        return right;
     }
 
     /**

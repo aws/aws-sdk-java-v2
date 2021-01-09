@@ -1,0 +1,31 @@
+{
+    "version": "2.13.13",
+    "date": "2020-05-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "This release adds a new parameter (EnableInterContainerTrafficEncryption) to CreateProcessingJob API to allow for enabling inter-container traffic encryption on processing jobs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "description": "Documentation updates for resourcegroupstaggingapi"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "A helpful error message is now raised when an obviously-invalid region name is given to the SDK, instead of the previous NullPointerException. Fixes [#1642](https://github.com/aws/aws-sdk-java-v2/issues/1642)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "description": "Documentation updates for GuardDuty"
+        }
+    ]
+}

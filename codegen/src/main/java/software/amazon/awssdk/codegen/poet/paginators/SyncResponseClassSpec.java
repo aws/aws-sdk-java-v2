@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -180,8 +180,9 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
                                                                                       resultKeyType)))
                          .addCode(getIteratorLambdaBlock(resultKey, resultKeyModel))
                          .addCode("\n")
-                         .addStatement("return $T.builder().pagesIterable(this).itemIteratorFunction(getIterator).build()",
-                                       PaginatedItemsIterable.class)
+                         .addStatement("return $T.<$T, $T>builder().pagesIterable(this).itemIteratorFunction(getIterator).build"
+                                       + "()",
+                                       PaginatedItemsIterable.class, responseType(), resultKeyType)
                          .addJavadoc(CodeBlock.builder()
                                               .add("Returns an iterable to iterate through the paginated {@link $T#$L()} member."
                                                    + " The returned iterable is used to iterate through the results across all "

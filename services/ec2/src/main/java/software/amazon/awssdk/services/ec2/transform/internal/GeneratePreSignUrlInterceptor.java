@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package software.amazon.awssdk.services.ec2.transform.internal;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
+import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
@@ -40,20 +42,32 @@ import software.amazon.awssdk.services.ec2.transform.CopySnapshotRequestMarshall
 
 /**
  * ExecutionInterceptor that generates a pre-signed URL for copying encrypted snapshots
- * TODO: Is this actually right? What if a different interceptor modifies the message? Should this be treated as a signer?
  */
 @SdkInternalApi
 public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
+
+    private static final URI CUSTOM_ENDPOINT_LOCALHOST = URI.create("http://localhost");
 
     private static final AwsEc2ProtocolFactory PROTOCOL_FACTORY = AwsEc2ProtocolFactory
         .builder()
         // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
         .clientConfiguration(SdkClientConfiguration.builder()
-                                                   .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                                   .option(SdkClientOption.ENDPOINT, CUSTOM_ENDPOINT_LOCALHOST)
                                                    .build())
         .build();
 
     private static final CopySnapshotRequestMarshaller MARSHALLER = new CopySnapshotRequestMarshaller(PROTOCOL_FACTORY);
+
+    private final Clock testClock; // for testing only
+
+    public GeneratePreSignUrlInterceptor() {
+        testClock = null;
+    }
+
+    @SdkTestInternalApi
+    GeneratePreSignUrlInterceptor(Clock testClock) {
+        this.testClock = testClock;
+    }
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
@@ -120,6 +134,7 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                                   .signingRegion(Region.of(signingRegion))
                                   .signingName(signingName)
                                   .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
+                                  .signingClockOverride(testClock)
                                   .build();
     }
 
@@ -150,6 +165,10 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                                     .build();
         }
 
-        return Ec2Client.serviceMetadata().endpointFor(region);
+        URI endpoint = Ec2Client.serviceMetadata().endpointFor(region);
+        if (endpoint.getScheme() == null) {
+            return URI.create("https://" + endpoint);
+        }
+        return endpoint;
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -16,6 +16,20 @@
 
 <FindBugsFilter>
 
+    <!-- Ignore Java "Serializable" problems in the code generator. -->
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.codegen.*"/>
+        <Bug pattern="SE_BAD_FIELD,SE_NO_SERIALVERSIONID,SE_BAD_FIELD_STORE"/>
+    </Match>
+
+
+    <!-- Ignore "confusing name" problems that result of needing to match the inconsistent naming in
+    the service model. -->
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.codegen\.model.*"/>
+        <Bug pattern="NM_CONFUSING"/>
+    </Match>
+
     <Match>
         <!-- PZLA_PREFER_ZERO_LENGTH_ARRAYS: This rule causes many false positives, because sometimes we want to return
              null for arrays. -->
@@ -30,6 +44,13 @@
             <Class name="software.amazon.awssdk.protocols.json.JsonContent" />
         </Or>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Explicitly an unsafe option that the customer must opt into. -->
+        <Class name="software.amazon.awssdk.core.BytesWrapper" />
+        <Method name="asByteArrayUnsafe" />
+        <Bug pattern="EI_EXPOSE_REP" />
     </Match>
 
     <!-- Delegate closes input stream. -->
@@ -142,5 +163,59 @@
             <Class name="software.amazon.awssdk.protocol.asserts.marshalling.XmlAsserts" />
         </Or>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+
+    <!-- See SpotBugs bug: https://github.com/spotbugs/spotbugs/issues/600, https://github.com/spotbugs/spotbugs/issues/756 -->
+    <Match>
+        <Class name="software.amazon.awssdk.internal.http.AbstractFileStoreTlsKeyManagersProvider"/>
+        <Method name="createKeyStore"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <!-- See SpotBugs bug: https://github.com/spotbugs/spotbugs/issues/600, https://github.com/spotbugs/spotbugs/issues/756 -->
+    <Match>
+        <Class name="software.amazon.awssdk.codegen.emitters.CodeWriter"/>
+        <Method name="flush"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+
+    <!-- If we're not sure about the RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT, skip the warning. -->
+    <Match>
+        <Package name="~software.amazon.awssdk.http.nio.netty.*"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+        <Not>
+            <Confidence value="1"/>
+        </Not>
+    </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.core.internal.waiters.ResponseOrException"/>
+        <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+    </Match>
+
+    <Match>
+        <Package name="~software.amazon.awssdk.http.*"/>
+        <Bug pattern="URF_UNREAD_FIELD, RV_RETURN_VALUE_IGNORED"/>
+    </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.internal.AwsCrtResponseBodyPublisher" />
+        <Method name="subscribe"/>
+        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
+    </Match>
+
+    <!-- on some java versions, the try-with-resources byte code is getting flagged by this -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient" />
+        <Method name="execute"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <!-- For forward-compatibility with this having members (i.e. the checksum type) -->
+    <Match>
+        <Class name="software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired"/>
+        <Method name="create"/>
+        <Bug pattern="ISC_INSTANTIATE_STATIC_CLASS"/>
     </Match>
 </FindBugsFilter>

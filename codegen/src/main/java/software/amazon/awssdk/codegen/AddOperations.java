@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -49,12 +49,12 @@ final class AddOperations {
     AddOperations(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
-        this.paginators = builder.getPaginators().getPaginators();
+        this.paginators = builder.getPaginators().getPagination();
         this.deprecatedShapes = builder.getCustomConfig().getDeprecatedShapes();
     }
 
     private static boolean isAuthenticated(Operation op) {
-        return op.getAuthType() == null || !op.getAuthType().equals(AuthType.NONE);
+        return op.getAuthtype() == null || !op.getAuthtype().equals(AuthType.NONE);
     }
 
     private static String getOperationDocumentation(final Output output, final Shape outputShape) {
@@ -143,7 +143,7 @@ final class AddOperations {
 
     public Map<String, OperationModel> constructOperations() {
 
-        Map<String, OperationModel> javaOperationModels = new TreeMap<String, OperationModel>();
+        Map<String, OperationModel> javaOperationModels = new TreeMap<>();
         Map<String, Shape> c2jShapes = serviceModel.getShapes();
 
         for (Map.Entry<String, Operation> entry : serviceModel.getOperations().entrySet()) {
@@ -157,11 +157,12 @@ final class AddOperations {
             operationModel.setDeprecated(op.isDeprecated());
             operationModel.setDocumentation(op.getDocumentation());
             operationModel.setIsAuthenticated(isAuthenticated(op));
-            operationModel.setAuthType(op.getAuthType());
+            operationModel.setAuthType(op.getAuthtype());
             operationModel.setPaginated(isPaginated(op));
-            operationModel.setEndpointOperation(op.isEndpointOperation());
-            operationModel.setEndpointDiscovery(op.getEndpointDiscovery());
+            operationModel.setEndpointOperation(op.isEndpointoperation());
+            operationModel.setEndpointDiscovery(op.getEndpointdiscovery());
             operationModel.setEndpointTrait(op.getEndpoint());
+            operationModel.setHttpChecksumRequired(op.isHttpChecksumRequired());
 
             Input input = op.getInput();
             if (input != null) {
@@ -221,8 +222,8 @@ final class AddOperations {
      * @return HTTP status code or null if not present.
      */
     private Integer getHttpStatusCode(ErrorMap error, Shape shape) {
-        Integer httpStatusCode = getHttpStatusCode(error.getErrorTrait());
-        return httpStatusCode == null ? getHttpStatusCode(shape.getErrorTrait()) : httpStatusCode;
+        Integer httpStatusCode = getHttpStatusCode(error.getError());
+        return httpStatusCode == null ? getHttpStatusCode(shape.getError()) : httpStatusCode;
     }
 
     /**
@@ -234,6 +235,6 @@ final class AddOperations {
     }
 
     private boolean isPaginated(Operation op) {
-        return paginators.keySet().contains(op.getName()) && paginators.get(op.getName()).isValid();
+        return paginators.containsKey(op.getName()) && paginators.get(op.getName()).isValid();
     }
 }

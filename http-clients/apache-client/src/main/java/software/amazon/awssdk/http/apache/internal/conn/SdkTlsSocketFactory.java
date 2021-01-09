@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -65,8 +65,8 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
             // Append the preferred protocols in descending order of preference
             // but only do so if the protocols are supported
             TlsProtocol[] values = TlsProtocol.values();
-            for (int i = 0; i < values.length; i++) {
-                String pname = values[i].getProtocolName();
+            for (TlsProtocol value : values) {
+                String pname = value.getProtocolName();
                 if (existsIn(pname, supported)) {
                     target.add(pname);
                 }
@@ -82,7 +82,7 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
             }
         }
         if (target.size() > 0) {
-            String[] enabling = target.toArray(new String[target.size()]);
+            String[] enabling = target.toArray(new String[0]);
             socket.setEnabledProtocols(enabling);
             log.debug(() -> "TLS protocol enabled for SSL handshake: " + Arrays.toString(enabling));
         }

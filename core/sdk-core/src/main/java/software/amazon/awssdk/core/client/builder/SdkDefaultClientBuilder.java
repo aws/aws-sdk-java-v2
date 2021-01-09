@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,9 +27,15 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.SIGNER_OVERRIDDEN;
+import static software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -57,12 +63,16 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -186,17 +196,22 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Apply global default configuration
      */
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
+        // Don't load the default profile file if the customer already gave us one.
+        ProfileFile configuredProfileFile = configuration.option(PROFILE_FILE);
+        ProfileFile profileFile = configuredProfileFile != null ? configuredProfileFile : ProfileFile.defaultProfileFile();
+
         return configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                          .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
-                                         .option(RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
+                                         .option(PROFILE_FILE, profileFile)
+                                         .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
                                          .option(USER_AGENT_PREFIX, UserAgentUtils.getUserAgent())
                                          .option(USER_AGENT_SUFFIX, "")
                                          .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     /**
-     * Optionally overidden by child implementations to derive implementation-specific configuration from the default-applied
-     * configuration. (eg. AWS's endpoint, derived from the region).
+     * Optionally overridden by child implementations to derive implementation-specific configuration from the
+     * default-applied configuration. (eg. AWS's endpoint, derived from the region).
      */
     protected SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
         return configuration;
@@ -230,7 +245,21 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return config.toBuilder()
                      .option(SCHEDULED_EXECUTOR_SERVICE, resolveScheduledExecutorService())
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
+                     .option(RETRY_POLICY, resolveRetryPolicy(config))
                      .build();
+    }
+
+    private RetryPolicy resolveRetryPolicy(SdkClientConfiguration config) {
+        RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
+        if (policy != null) {
+            return policy;
+        }
+
+        RetryMode retryMode = RetryMode.resolver()
+                                       .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                       .resolve();
+        return RetryPolicy.forRetryMode(retryMode);
     }
 
     /**
@@ -264,16 +293,20 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Finalize which async executor service will be used for the created client.
+     * Finalize which async executor service will be used for the created client. The default async executor
+     * service has at least 8 core threads and can scale up to at least 64 threads when needed depending
+     * on the number of processors available.
      */
     private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
         Supplier<Executor> defaultExecutor = () -> {
-            ThreadPoolExecutor executor = new ThreadPoolExecutor(50, 50,
+            int processors = Runtime.getRuntime().availableProcessors();
+            int corePoolSize = Math.max(8, processors);
+            int maxPoolSize = Math.max(64, processors * 2);
+            ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
                                                                  10, TimeUnit.SECONDS,
-                                                                 new LinkedBlockingQueue<>(10_000),
+                                                                 new LinkedBlockingQueue<>(1_000),
                                                                  new ThreadFactoryBuilder()
                                                                      .threadNamePrefix("sdk-async-response").build());
-
             // Allow idle core threads to time out
             executor.allowCoreThreadTimeOut(true);
             return executor;
@@ -305,6 +338,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         Validate.paramNotNull(endpointOverride, "endpointOverride");
         Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
         clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
+        clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
         return thisBuilder();
     }
 
@@ -333,6 +367,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientConfiguration.option(API_CALL_ATTEMPT_TIMEOUT, overrideConfig.apiCallAttemptTimeout().orElse(null));
         clientConfiguration.option(DISABLE_HOST_PREFIX_INJECTION,
                                    overrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION).orElse(null));
+        clientConfiguration.option(PROFILE_FILE, overrideConfig.defaultProfileFile().orElse(null));
+        clientConfiguration.option(PROFILE_NAME, overrideConfig.defaultProfileName().orElse(null));
+        clientConfiguration.option(METRIC_PUBLISHERS, overrideConfig.metricPublishers());
+        overrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
+            clientConfiguration.option(ENDPOINT_OVERRIDDEN, value);
+        });
+        overrideConfig.advancedOption(SIGNER).ifPresent(s -> clientConfiguration.option(SIGNER_OVERRIDDEN, true));
         return thisBuilder();
     }
 
@@ -357,6 +398,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     public final B httpClientBuilder(SdkAsyncHttpClient.Builder httpClientBuilder) {
         this.asyncHttpClientBuilder = httpClientBuilder;
+        return thisBuilder();
+    }
+
+    public final B metricPublishers(List<MetricPublisher> metricPublishers) {
+        clientConfiguration.option(METRIC_PUBLISHERS, metricPublishers);
         return thisBuilder();
     }
 
@@ -420,5 +466,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             // Do nothing, this client is managed by the customer.
         }
     }
+
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  */
 
 package software.amazon.awssdk.codegen;
-
-import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +56,7 @@ public class AddEmptyOutputShape implements IntermediateModelShapeProcessor {
 
             Output output = operation.getOutput();
             if (output == null) {
-                String outputShape = operationName + RESPONSE_CLASS_SUFFIX;
+                String outputShape = namingStrategy.getResponseClassName(operationName);
                 OperationModel operationModel = currentOperations.get(operationName);
 
                 operationModel.setReturnType(new ReturnTypeModel(outputShape));

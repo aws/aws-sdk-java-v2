@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,9 +23,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.util.DefaultAttributeMap;
 import java.io.IOException;
 import java.util.concurrent.CancellationException;
@@ -53,7 +51,7 @@ public class FutureCancelHandlerTest {
     private Channel channel;
 
     @Mock
-    private ChannelPool channelPool;
+    private SdkChannelPool channelPool;
 
     private RequestContext requestContext;
 

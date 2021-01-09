@@ -1,0 +1,26 @@
+{
+    "version": "2.13.67",
+    "date": "2020-08-03",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Fixed an issue where, under rare circumstances, streaming request bytes could be misordered."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "description": "Fixed an issue that could cause \"Data read has a different checksum than expected\" errors."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Adds a waiter for CommandExecuted and paginators for various other APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -98,6 +98,18 @@ public class EitherTest {
         assertThat(Either.fromNullable(null, "right")).contains(Either.right("right"));
         assertThat(Either.fromNullable(null, null)).isEmpty();
         assertThatThrownBy(() -> Either.fromNullable("left", "right")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void eitherLeft_returnLeft() {
+        assertThat(Either.left("test").left()).contains("test");
+        assertThat(Either.left("test").right()).isEmpty();
+    }
+
+    @Test
+    public void eitherRight_returnRight() {
+        assertThat(Either.right("test").right()).contains("test");
+        assertThat(Either.right("test").left()).isEmpty();
     }
 
     private <InT, OutT> OutT assertNotCalled(InT in) {

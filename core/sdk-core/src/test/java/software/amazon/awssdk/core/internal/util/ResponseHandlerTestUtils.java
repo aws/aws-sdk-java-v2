@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,14 +15,17 @@
 
 package software.amazon.awssdk.core.internal.util;
 
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.internal.http.CombinedResponseHandler;
 
 public final class ResponseHandlerTestUtils {
     private ResponseHandlerTestUtils() {
     }
 
-    public static HttpResponseHandler noOpResponseHandler() {
+    public static <T> HttpResponseHandler<T> noOpSyncResponseHandler() {
         return (response, executionAttributes) -> null;
     }
 
@@ -31,5 +34,14 @@ public final class ResponseHandlerTestUtils {
             Thread.sleep(sleepInMills);
             return null;
         };
+    }
+
+    public static <T> HttpResponseHandler<Response<T>> combinedSyncResponseHandler(
+        HttpResponseHandler<T> successResponseHandler,
+        HttpResponseHandler<? extends SdkException> failureResponseHandler) {
+
+        return new CombinedResponseHandler<>(
+            successResponseHandler == null ? noOpSyncResponseHandler() : successResponseHandler,
+            failureResponseHandler == null ? noOpSyncResponseHandler() : failureResponseHandler);
     }
 }

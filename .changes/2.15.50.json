@@ -1,0 +1,36 @@
+{
+    "version": "2.15.50",
+    "date": "2020-12-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Upgrading jackson.databind.version to 2.10.5.1"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds IAM DB authentication information to the PendingModifiedValues output of the DescribeDBInstances API. Adds ClusterPendingModifiedValues information to the output of the DescribeDBClusters API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "contributor": "",
+            "description": "Updated FilterValues regex pattern to align with Filter Expression."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "EBS io2 volumes now supports Multi-Attach"
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ public class Waiters {
 
     private static final Waiters NONE = new Waiters(Collections.emptyMap());
 
-    private final Map<String, WaiterDefinition> waiters;
+    private Map<String, WaiterDefinition> waiters;
 
     // Needed for JSON deserialization
     private Waiters() {
@@ -42,7 +42,12 @@ public class Waiters {
         return waiters;
     }
 
+    public void setWaiters(Map<String, WaiterDefinition> waiters) {
+        this.waiters = waiters;
+    }
+
     public WaiterDefinition getWaiterDefinition(String waiterName) {
         return waiters.get(waiterName);
     }
+
 }

@@ -15,10 +15,12 @@ phases:
   build:
     commands:
     - mvn install -P quick -T1C
-    - mvn install javadoc:aggregate -B -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl '!:dynamodbdocument-v1,!:dynamodbmapper-v1,!:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:test-utils,!:http-client-tests,!:tests-coverage-reporting'
+    - mvn install javadoc:aggregate -B -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl '!:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:test-utils,!:http-client-tests,!:tests-coverage-reporting'
     - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
     -
     - aws s3 sync target/site/apidocs/ $DOC_PATH/$RELEASE_VERSION/
     - aws s3 sync $DOC_PATH/$RELEASE_VERSION/ $DOC_PATH/latest/ --acl=public-read --delete
     - jar cf aws-java-sdk-v2-docs.jar -C target/site/apidocs .
     - aws s3 cp aws-java-sdk-v2-docs.jar $DOC_PATH/ --acl="public-read"
+    - python ./scripts/doc_crosslinks/generate_cross_link_data.py --apiDefinitionsBasePath ./services/ --apiDefinitionsRelativeFilePath src/main/resources/codegen-resources/service-2.json  --templateFilePath ./scripts/doc_crosslinks/crosslink_redirect.html --outputFilePath ./scripts/crosslink_redirect.html
+    - aws s3 cp ./scripts/crosslink_redirect.html $DOC_PATH/latest/ --acl="public-read"

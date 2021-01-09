@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -109,5 +109,12 @@ public class EC2MetadataUtilsIntegrationTest {
         Assert.assertEquals("us-east-1b", info.getAvailabilityZone());
         Assert.assertEquals("10.201.215.38", info.getPrivateIp());
         Assert.assertEquals("bar", info.getDevpayProductCodes()[0]);
+        Assert.assertEquals("qaz", info.getMarketplaceProductCodes()[0]);
+    }
+
+    @Test
+    public void testInstanceSignature() {
+        String signature = EC2MetadataUtils.getInstanceSignature();
+        Assert.assertEquals("foobar", signature);
     }
 }

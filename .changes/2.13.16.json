@@ -1,0 +1,21 @@
+{
+    "version": "2.13.16",
+    "date": "2020-05-13",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix a race condition in `FileAsyncResponseTransformer` where the future fails to complete when onComplete event is dispatched on the same thread that executed request"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "description": "This release introduces a new major version of the Amazon Macie API. You can use this version of the API to develop tools and applications that interact with the new Amazon Macie."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "description": "Amazon ElastiCache now supports auto-update of ElastiCache clusters after the \"recommended apply by date\" of service update has passed. ElastiCache will use your maintenance window to schedule the auto-update of applicable clusters. For more information, see https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/Self-Service-Updates.html and https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Self-Service-Updates.html"
+        }
+    ]
+}

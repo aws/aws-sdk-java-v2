@@ -1,0 +1,36 @@
+{
+    "version": "2.10.53",
+    "date": "2020-01-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "description": "The ConnectCustomKeyStore operation now provides new error codes (USER_LOGGED_IN and USER_NOT_FOUND) for customers to better troubleshoot if their connect custom key store operation fails. Password length validation during CreateCustomKeyStore now also occurs on the client side."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "description": "Updating DescribeAnomalyDetectors API to return AnomalyDetector Status value in response."
+        },
+        {
+            "type": "feature",
+            "category": "Alexa For Business",
+            "description": "Add support for CreatedTime and ConnectionStatusUpdatedTime in response of SearchDevices API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release provides support for a preview of bringing your own IPv6 addresses (BYOIP for IPv6) for use in AWS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Insights",
+            "description": "This release adds support for a list API to retrieve the configuration events logged during periodic updates to an application by Amazon CloudWatch Application Insights."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "description": "Added reason codes to StateReasonCode (InvalidSubnet, InvalidSecurityGroup) and LastUpdateStatusReasonCode (SubnetOutOfIPAddresses, InvalidSubnet, InvalidSecurityGroup) for functions that connect to a VPC."
+        }
+    ]
+}

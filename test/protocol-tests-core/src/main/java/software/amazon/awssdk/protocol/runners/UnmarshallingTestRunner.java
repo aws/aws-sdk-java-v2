@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import java.lang.reflect.Method;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -31,6 +31,7 @@ import software.amazon.awssdk.protocol.asserts.unmarshalling.UnmarshallingTestCo
 import software.amazon.awssdk.protocol.model.GivenResponse;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
+import software.amazon.awssdk.protocol.reflect.ShapeModelReflector;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -51,13 +52,14 @@ class UnmarshallingTestRunner {
     void runTest(TestCase testCase) throws Exception {
         resetWireMock(testCase.getGiven().getResponse());
         String operationName = testCase.getWhen().getOperationName();
+        ShapeModelReflector shapeModelReflector = createShapeModelReflector(testCase);
         if (!hasStreamingMember(operationName)) {
-            Object actualResult = clientReflector.invokeMethod(testCase, createRequestObject(operationName));
+            Object actualResult = clientReflector.invokeMethod(testCase, shapeModelReflector.createShapeObject());
             testCase.getThen().getUnmarshallingAssertion().assertMatches(createContext(operationName), actualResult);
         } else {
             CapturingResponseTransformer responseHandler = new CapturingResponseTransformer();
             Object actualResult = clientReflector
-                    .invokeStreamingMethod(testCase, createRequestObject(operationName), responseHandler);
+                    .invokeStreamingMethod(testCase, shapeModelReflector.createShapeObject(), responseHandler);
             testCase.getThen().getUnmarshallingAssertion()
                     .assertMatches(createContext(operationName, responseHandler.captured), actualResult);
         }
@@ -112,35 +114,11 @@ class UnmarshallingTestRunner {
         return responseBuilder;
     }
 
-    /**
-     * @return An empty request object to call the operation method with.
-     */
-    private Object createRequestObject(String operationName) throws Exception {
-        String requestClassName = getModelFqcn(getOperationRequestClassName(operationName));
-
-        Class<?> requestClass = Class.forName(requestClassName);
-
-        Method builderMethod = null;
-
-        try {
-            builderMethod = requestClass.getDeclaredMethod("builder");
-        } catch (NoSuchMethodException ignored) {
-            // Ignored
-        }
-
-        if (builderMethod != null) {
-            builderMethod.setAccessible(true);
-
-            Object builderInstance = builderMethod.invoke(null);
-
-            Method buildMethod = builderInstance.getClass().getDeclaredMethod("build");
-            buildMethod.setAccessible(true);
-
-            return buildMethod.invoke(builderInstance);
-        } else {
-            return requestClass.newInstance();
-        }
-
+    private ShapeModelReflector createShapeModelReflector(TestCase testCase) {
+        String operationName = testCase.getWhen().getOperationName();
+        String requestClassName = getOperationRequestClassName(operationName);
+        JsonNode input = testCase.getGiven().getInput();
+        return new ShapeModelReflector(model, requestClassName, input);
     }
 
     private UnmarshallingTestContext createContext(String operationName) {
@@ -152,14 +130,6 @@ class UnmarshallingTestRunner {
                 .withModel(model)
                 .withOperationName(operationName)
                 .withStreamedResponse(streamedResponse);
-    }
-
-    /**
-     * @param simpleClassName Class name to fully qualify.
-     * @return Fully qualified name of class in the client's model package.
-     */
-    private String getModelFqcn(String simpleClassName) {
-        return String.format("%s.%s", metadata.getFullModelPackageName(), simpleClassName);
     }
 
     /**

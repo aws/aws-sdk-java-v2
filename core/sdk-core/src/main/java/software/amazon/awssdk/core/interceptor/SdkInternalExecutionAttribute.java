@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
 
 package software.amazon.awssdk.core.interceptor;
 
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 
 /**
- * Attributes that can be applied to all sdk requests. Only SDK is allowed to set these values.
- * Customer should not be using this class.
+ * Attributes that can be applied to all sdk requests. Only generated code from the SDK clients should set these values.
  */
 @SdkProtectedApi
 public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
@@ -32,12 +30,8 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> IS_FULL_DUPLEX = new ExecutionAttribute<>("IsFullDuplex");
 
-    /**
-     * The key to store the {@link CompletableFuture} returned by {@link AsyncResponseTransformer#prepare()} method
-     * in the first attempt of a request. This is used only for async streaming requests
-     */
-    public static final ExecutionAttribute<CompletableFuture<?>> ASYNC_RESPONSE_TRANSFORMER_FUTURE =
-        new ExecutionAttribute<>("AsyncResponseTransformerFuture");
+    public static final ExecutionAttribute<HttpChecksumRequired> HTTP_CHECKSUM_REQUIRED =
+        new ExecutionAttribute<>("HttpChecksumRequired");
 
     private SdkInternalExecutionAttribute() {
     }

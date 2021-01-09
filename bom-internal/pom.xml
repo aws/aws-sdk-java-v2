@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this file except in compliance with the License.
+  ~ A copy of the License is located at
+  ~
+  ~  http://aws.amazon.com/apache2.0
+  ~
+  ~ or in the "license" file accompanying this file. This file is distributed
+  ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  ~ express or implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>aws-sdk-java-pom</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.7.16-SNAPSHOT</version>
+        <version>2.15.62-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -27,7 +42,12 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.jr</groupId>
                 <artifactId>jackson-jr-objects</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jacksonjr.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jr</groupId>
+                <artifactId>jackson-jr-stree</artifactId>
+                <version>${jacksonjr.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -37,7 +57,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson.databind.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -47,7 +67,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.annotations.version}</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -186,7 +206,7 @@
             <dependency>
                 <groupId>com.puppycrawl.tools</groupId>
                 <artifactId>checkstyle</artifactId>
-                <version>8.7</version>
+                <version>8.38</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -286,6 +306,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-all</artifactId>
                 <version>${hamcrest.version}</version>
@@ -313,6 +339,53 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-tcnative-boringssl-static</artifactId>
                 <version>${netty-open-ssl-version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>DynamoDBLocal</artifactId>
+                <version>${dynamodb-local.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>sqlite4java</artifactId>
+                <version>${sqllite.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>sqlite4java-win32-x86</artifactId>
+                <version>${sqllite.version}</version>
+                <type>dll</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>sqlite4java-win32-x64</artifactId>
+                <version>${sqllite.version}</version>
+                <type>dll</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>libsqlite4java-osx</artifactId>
+                <version>${sqllite.version}</version>
+                <type>dylib</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>libsqlite4java-linux-i386</artifactId>
+                <version>${sqllite.version}</version>
+                <type>so</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>libsqlite4java-linux-amd64</artifactId>
+                <version>${sqllite.version}</version>
+                <type>so</type>
                 <scope>test</scope>
             </dependency>
         </dependencies>

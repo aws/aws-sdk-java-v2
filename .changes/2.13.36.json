@@ -1,0 +1,31 @@
+{
+    "version": "2.13.36",
+    "date": "2020-06-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "description": "The following parameters now return the organization root ID or organizational unit (OU) IDs that you specified for DeploymentTargets: the OrganizationalUnitIds parameter on StackSet and the OrganizationalUnitId parameter on StackInstance, StackInstanceSummary, and StackSetOperationResultSummary"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "You can now choose to crawl the entire table or just a sample of records in DynamoDB when using AWS Glue crawlers. Additionally, you can also specify a scanning rate for crawling DynamoDB tables."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 DynamoDB Enhanced Client",
+            "description": "Added ClientRequestToken in class TransactWriteItemsEnhancedRequest."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "description": "Display EndpointType in DescribeGatewayInformation"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "description": "Documentation updates for Amazon API Gateway"
+        }
+    ]
+}

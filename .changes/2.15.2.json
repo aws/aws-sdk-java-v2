@@ -1,0 +1,46 @@
+{
+    "version": "2.15.2",
+    "date": "2020-10-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "description": "Amazon S3 Object Ownership is a new S3 feature that enables bucket owners to automatically assume ownership of objects that are uploaded to their buckets by other AWS Accounts."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "description": "This release adds support for tagging listeners, rules, and target groups on creation. This release also supported tagging operations through tagging api's for listeners and rules."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud Map",
+            "description": "Added support for optional parameters for DiscoverInstances API in AWS Cloud Map"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Events",
+            "description": "Adds new APIs to write item and user records to Datasets."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "description": "Support tagging for Batch resources (compute environment, job queue, job definition and job) and tag based access control on Batch APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Adds the NCHAR Character Set ID parameter to the CreateDbInstance API for RDS Oracle."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache HTTP Client",
+            "description": "Fixed an issue in Apache HTTP client where a request with path parameter as a single slash threw invalid host name error."
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class Policy {
 
     private String id;
     private String version = DEFAULT_POLICY_VERSION;
-    private List<Statement> statements = new ArrayList<Statement>();
+    private List<Statement> statements = new ArrayList<>();
 
     /**
      * Constructs an empty AWS access control policy ready to be populated with
@@ -193,7 +193,7 @@ public class Policy {
      *            The collection of statements included in this policy.
      */
     public void setStatements(Collection<Statement> statements) {
-        this.statements = new ArrayList<Statement>(statements);
+        this.statements = new ArrayList<>(statements);
         assignUniqueStatementIds();
     }
 
@@ -231,7 +231,7 @@ public class Policy {
     }
 
     private void assignUniqueStatementIds() {
-        Set<String> usedStatementIds = new HashSet<String>();
+        Set<String> usedStatementIds = new HashSet<>();
         for (Statement statement : statements) {
             if (statement.getId() != null) {
                 usedStatementIds.add(statement.getId());

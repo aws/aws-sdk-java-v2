@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
 
     private Map<String, ShapeModel> constructExceptionShapes() {
         // Java shape models, to be constructed
-        Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> javaShapes = new HashMap<>();
 
         for (Map.Entry<String, Shape> shape : getServiceModel().getShapes().entrySet()) {
             if (shape.getValue().isException()) {
@@ -72,20 +72,20 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
      * query or rest the error code should just be the shape name
      */
     private String getErrorCode(String errorShapeName) {
-        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getErrorTrait();
+        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getError();
         if (isErrorCodeOverridden(errorTrait)) {
-            return errorTrait.getErrorCode();
+            return errorTrait.getCode();
         } else {
             return errorShapeName;
         }
     }
 
     private boolean isErrorCodeOverridden(ErrorTrait errorTrait) {
-        return errorTrait != null && !Utils.isNullOrEmpty(errorTrait.getErrorCode());
+        return errorTrait != null && !Utils.isNullOrEmpty(errorTrait.getCode());
     }
 
     private Integer getHttpStatusCode(String errorShapeName) {
-        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getErrorTrait();
+        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getError();
         return errorTrait != null ? errorTrait.getHttpStatusCode() : null;
     }
 }

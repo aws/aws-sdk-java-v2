@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.core.util.IdempotentUtils;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
 import software.amazon.awssdk.protocol.wiremock.WireMockUtils;
@@ -48,7 +47,6 @@ public final class ProtocolTestRunner {
         this.clientReflector = new ClientReflector(model);
         this.marshallingTestRunner = new MarshallingTestRunner(model, clientReflector);
         this.unmarshallingTestRunner = new UnmarshallingTestRunner(model, clientReflector);
-        IdempotentUtils.setGenerator(() -> "00000000-0000-4000-8000-000000000000");
     }
 
     private IntermediateModel loadModel(String intermedidateModelLocation) {
@@ -62,19 +60,23 @@ public final class ProtocolTestRunner {
 
     public void runTests(List<TestCase> tests) throws Exception {
         for (TestCase testCase : tests) {
-            log.info("Running test: {}", testCase.getDescription());
-            switch (testCase.getWhen().getAction()) {
-                case MARSHALL:
-                    marshallingTestRunner.runTest(testCase);
-                    break;
-                case UNMARSHALL:
-                    unmarshallingTestRunner.runTest(testCase);
-                    break;
-                default:
-                    throw new IllegalArgumentException(
-                            "Unsupported action " + testCase.getWhen().getAction());
-            }
+            runTest(testCase);
         }
         clientReflector.close();
+    }
+
+    public void runTest(TestCase testCase) throws Exception {
+        log.info("Running test: {}", testCase.getDescription());
+        switch (testCase.getWhen().getAction()) {
+            case MARSHALL:
+                marshallingTestRunner.runTest(testCase);
+                break;
+            case UNMARSHALL:
+                unmarshallingTestRunner.runTest(testCase);
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        "Unsupported action " + testCase.getWhen().getAction());
+        }
     }
 }

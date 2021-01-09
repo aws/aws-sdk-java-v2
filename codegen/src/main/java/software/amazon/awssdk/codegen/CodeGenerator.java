@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,19 +15,17 @@
 
 package software.amazon.awssdk.codegen;
 
+import com.squareup.javapoet.ClassName;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import software.amazon.awssdk.codegen.emitters.CodeEmitter;
+import java.util.concurrent.ForkJoinTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
-import software.amazon.awssdk.codegen.emitters.GeneratorTaskExecutor;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
-import software.amazon.awssdk.codegen.emitters.tasks.ApiGatewayGeneratorTasks;
 import software.amazon.awssdk.codegen.emitters.tasks.AwsGeneratorTasks;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 
 public class CodeGenerator {
 
@@ -36,10 +34,18 @@ public class CodeGenerator {
     private final C2jModels models;
     private final String sourcesDirectory;
     private final String testsDirectory;
+
     /**
      * The prefix for the file name that contains the intermediate model.
      */
     private final String fileNamePrefix;
+
+    static {
+        // Make sure ClassName is statically initialized before we do anything in parallel.
+        // Parallel static initialization of ClassName and TypeName can result in a deadlock:
+        // https://github.com/square/javapoet/issues/799
+        ClassName.get(Object.class);
+    }
 
     public CodeGenerator(Builder builder) {
         this.models = builder.models;
@@ -69,8 +75,9 @@ public class CodeGenerator {
         try {
             IntermediateModel intermediateModel = new IntermediateModelBuilder(models).build();
 
-            // Dump the intermediate model to a file
-            writeIntermediateModel(intermediateModel);
+            if (fileNamePrefix != null) {
+                writeIntermediateModel(intermediateModel);
+            }
 
             emitCode(intermediateModel);
 
@@ -81,8 +88,7 @@ public class CodeGenerator {
         }
     }
 
-    private void writeIntermediateModel(IntermediateModel model)
-            throws IOException {
+    private void writeIntermediateModel(IntermediateModel model) throws IOException {
         File modelDir = getModelDirectory(sourcesDirectory);
         PrintWriter writer = null;
         try {
@@ -104,7 +110,7 @@ public class CodeGenerator {
             }
 
             writer = new PrintWriter(outputFile, "UTF-8");
-            Jackson.write(model, writer);
+            Jackson.writeWithObjectMapper(model, writer);
         } finally {
             if (writer != null) {
                 writer.flush();
@@ -114,21 +120,12 @@ public class CodeGenerator {
     }
 
     private void emitCode(IntermediateModel intermediateModel) {
-        Iterable<GeneratorTask> generatorTasks = createGeneratorTasks(intermediateModel);
-        try (CodeEmitter emitter = new CodeEmitter(generatorTasks, new GeneratorTaskExecutor())) {
-            emitter.emit();
-        }
+        ForkJoinTask.invokeAll(createGeneratorTasks(intermediateModel));
     }
 
-    private Iterable<GeneratorTask> createGeneratorTasks(IntermediateModel intermediateModel) {
-        // For clients built internally, the output directory and source directory are the same.
-        GeneratorTaskParams params = GeneratorTaskParams.create(intermediateModel, sourcesDirectory, testsDirectory);
+    private GeneratorTask createGeneratorTasks(IntermediateModel intermediateModel) {
+        return new AwsGeneratorTasks(GeneratorTaskParams.create(intermediateModel, sourcesDirectory, testsDirectory));
 
-        if (params.getModel().getMetadata().getProtocol() == Protocol.API_GATEWAY) {
-            return new ApiGatewayGeneratorTasks(params);
-        } else {
-            return new AwsGeneratorTasks(params);
-        }
     }
 
     /**
@@ -159,7 +156,7 @@ public class CodeGenerator {
             return this;
         }
 
-        public Builder fileNamePrefix(String fileNamePrefix) {
+        public Builder intermediateModelFileNamePrefix(String fileNamePrefix) {
             this.fileNamePrefix = fileNamePrefix;
             return this;
         }

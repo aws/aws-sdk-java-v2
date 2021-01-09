@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() {
-        info("Emitting marshaller classes");
         return model.getShapes().entrySet().stream()
                     .filter(e -> shouldGenerate(e.getValue()))
                     .flatMap(safeFunction(e -> createTask(e.getKey(), e.getValue())))
@@ -48,7 +47,7 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 
     private boolean shouldGenerate(ShapeModel shapeModel) {
         if (shapeModel.getCustomization().isSkipGeneratingMarshaller()) {
-            info("Skip generating marshaller class for " + shapeModel.getShapeName());
+            info("Skipping generating marshaller class for " + shapeModel.getShapeName());
             return false;
         }
 

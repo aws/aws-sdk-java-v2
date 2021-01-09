@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -44,6 +44,8 @@ public final class AwsErrorCode {
         throttlingErrorCodes.add("BandwidthLimitExceeded");
         throttlingErrorCodes.add("RequestThrottled");
         throttlingErrorCodes.add("RequestThrottledException");
+        throttlingErrorCodes.add("EC2ThrottledException");
+        throttlingErrorCodes.add("TransactionInProgressException");
         THROTTLING_ERROR_CODES = unmodifiableSet(throttlingErrorCodes);
 
         Set<String> definiteClockSkewErrorCodes = new HashSet<>(3);
@@ -60,6 +62,8 @@ public final class AwsErrorCode {
 
         Set<String> retryableErrorCodes = new HashSet<>(1);
         retryableErrorCodes.add("PriorRequestNotComplete");
+        retryableErrorCodes.add("RequestTimeout");
+        retryableErrorCodes.add("RequestTimeoutException");
         RETRYABLE_ERROR_CODES = unmodifiableSet(retryableErrorCodes);
     }
 

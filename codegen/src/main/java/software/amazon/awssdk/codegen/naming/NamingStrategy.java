@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.naming;
 
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 
@@ -51,6 +52,11 @@ public interface NamingStrategy {
      * Retrieve the paginators package name that should be used based on the service name.
      */
     String getPaginatorsPackageName(String serviceName);
+
+    /**
+     * Retrieve the waiters package name that should be used based on the service name.
+     */
+    String getWaitersPackageName(String serviceName);
 
     /**
      * Retrieve the smote test package name that should be used based on the service name.
@@ -92,13 +98,7 @@ public interface NamingStrategy {
      * @param shapeName Name of structure used to derive Java class name.
      * @return Appropriate name to use for a Java class for an arbitrary (not a request, response, error) structure.
      */
-    String getJavaClassName(String shapeName);
-
-    /**
-     * @param shapeName Name of an authorizer shape used to derive the authorizer name
-     * @return Appropriate name to use for a Java class for an Authorizer
-     */
-    String getAuthorizerClassName(String shapeName);
+    String getShapeClassName(String shapeName);
 
     /**
      * @param memberName Member name to name getter for.
@@ -146,4 +146,18 @@ public interface NamingStrategy {
      * @return Name of field for {@link SdkField} pojo.
      */
     String getSdkFieldFieldName(MemberModel memberModel);
+
+    /**
+     * Names a method that would check for existence of the member in the response.
+     *
+     * @param memberName The member name to get the method name for.
+     * @param parentShape The shape containing the member.
+     * @return Name of an existence check method.
+     */
+    String getExistenceCheckMethodName(String memberName, Shape parentShape);
+
+    /**
+     * Verify the customer-visible naming in the provided intermediate model will compile and is idiomatic to Java.
+     */
+    void validateCustomerVisibleNaming(IntermediateModel trimmedModel);
 }

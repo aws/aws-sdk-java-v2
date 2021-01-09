@@ -1,0 +1,31 @@
+{
+    "version": "2.13.41",
+    "date": "2020-06-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Adds support to tag elastic-gpu on the RunInstances api"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "description": "Documentation updates for elasticache"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "description": "AWS Elemental MediaLive now supports Input Prepare schedule actions. This feature improves existing input switching by allowing users to prepare an input prior to switching to it."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks CM",
+            "description": "Documentation updates for AWS OpsWorks CM."
+        }
+    ]
+}

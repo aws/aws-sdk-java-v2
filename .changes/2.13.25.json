@@ -1,0 +1,26 @@
+{
+    "version": "2.13.25",
+    "date": "2020-05-27",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "description": "Check the `x-amz-content-range` header for `GetObject` responses when the `Content-Range` header is not returned by the service. Fixes [#1209](https://github.com/aws/aws-sdk-java-v2/issues/1209)."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "description": "This release added support for HTTP/2 ALPN preference lists for Network Load Balancers"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "description": "Documentation updates for GuardDuty"
+        }
+    ]
+}

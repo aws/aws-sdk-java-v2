@@ -1,0 +1,26 @@
+{
+    "version": "2.10.51",
+    "date": "2020-01-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Client VPN now supports Port Configuration for VPN Endpoints, allowing usage of either port 443 or port 1194."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Directory Service",
+            "description": "To reduce the number of errors our customers are facing, we have modified the requirements of input parameters for two of Directory Service APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "This release adds two new APIs (UpdateWorkforce and DescribeWorkforce) to SageMaker Ground Truth service for workforce IP whitelisting."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

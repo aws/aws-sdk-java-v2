@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -186,6 +186,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         EnvironmentVariableHelper.run(helper -> {
             helper.set("AWS_ACCESS_KEY_ID", userCredentials.accessKeyId());
             helper.set("AWS_SECRET_ACCESS_KEY", userCredentials.secretAccessKey());
+            helper.remove("AWS_SESSION_TOKEN");
 
             String ASSUME_ROLE_PROFILE =
                 "[test]\n"
@@ -218,36 +219,39 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         System.setProperty("aws.accessKeyId", userCredentials.accessKeyId());
         System.setProperty("aws.secretAccessKey", userCredentials.secretAccessKey());
 
-        EnvironmentVariableHelper.run(helper -> {
-            helper.remove("AWS_ACCESS_KEY_ID");
-            helper.remove("AWS_SECRET_ACCESS_KEY");
+        try {
+            EnvironmentVariableHelper.run(helper -> {
+                helper.remove("AWS_ACCESS_KEY_ID");
+                helper.remove("AWS_SECRET_ACCESS_KEY");
+                helper.remove("AWS_SESSION_TOKEN");
 
-            String ASSUME_ROLE_PROFILE =
-                "[test]\n"
-                + "region = us-west-1\n"
-                + "credential_source = Environment\n"
-                + "role_arn = " + ROLE_ARN;
+                String ASSUME_ROLE_PROFILE =
+                    "[test]\n"
+                    + "region = us-west-1\n"
+                    + "credential_source = Environment\n"
+                    + "role_arn = " + ROLE_ARN;
 
-            ProfileFile profiles = ProfileFile.builder()
-                                              .content(new StringInputStream(ASSUME_ROLE_PROFILE))
-                                              .type(ProfileFile.Type.CREDENTIALS)
-                                              .build();
-            Optional<Profile> profile = profiles.profile("test");
-            AwsCredentialsProvider awsCredentialsProvider =
-                new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
+                ProfileFile profiles = ProfileFile.builder()
+                                                  .content(new StringInputStream(ASSUME_ROLE_PROFILE))
+                                                  .type(ProfileFile.Type.CREDENTIALS)
+                                                  .build();
+                Optional<Profile> profile = profiles.profile("test");
+                AwsCredentialsProvider awsCredentialsProvider =
+                    new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
 
 
-            // Try to assume the role until the eventual consistency catches up.
-            AwsCredentials awsCredentials = Waiter.run(awsCredentialsProvider::resolveCredentials)
-                                                  .ignoringException(StsException.class)
-                                                  .orFail();
+                // Try to assume the role until the eventual consistency catches up.
+                AwsCredentials awsCredentials = Waiter.run(awsCredentialsProvider::resolveCredentials)
+                                                      .ignoringException(StsException.class)
+                                                      .orFail();
 
-            assertThat(awsCredentials.accessKeyId()).isNotBlank();
-            assertThat(awsCredentials.secretAccessKey()).isNotBlank();
-            ((SdkAutoCloseable) awsCredentialsProvider).close();
-        });
-
-        System.clearProperty("aws.accessKeyId");
-        System.clearProperty("aws.secretAccessKey");
+                assertThat(awsCredentials.accessKeyId()).isNotBlank();
+                assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+                ((SdkAutoCloseable) awsCredentialsProvider).close();
+            });
+        } finally {
+            System.clearProperty("aws.accessKeyId");
+            System.clearProperty("aws.secretAccessKey");
+        }
     }
 }

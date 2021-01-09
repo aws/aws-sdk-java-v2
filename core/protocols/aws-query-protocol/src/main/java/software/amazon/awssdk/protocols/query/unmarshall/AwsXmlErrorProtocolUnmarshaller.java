@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,25 +15,21 @@
 
 package software.amazon.awssdk.protocols.query.unmarshall;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
+import software.amazon.awssdk.protocols.query.internal.unmarshall.AwsXmlErrorUnmarshaller;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -86,17 +82,16 @@ import software.amazon.awssdk.utils.Pair;
 @SdkProtectedApi
 public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
-    private final List<ExceptionMetadata> exceptions;
-    private final Supplier<SdkPojo> defaultExceptionSupplier;
+    private final AwsXmlErrorUnmarshaller awsXmlErrorUnmarshaller;
     private final Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
 
-    private final XmlErrorUnmarshaller errorUnmarshaller;
-
     private AwsXmlErrorProtocolUnmarshaller(Builder builder) {
-        this.exceptions = builder.exceptions;
         this.errorRootExtractor = builder.errorRootExtractor;
-        this.errorUnmarshaller = builder.errorUnmarshaller;
-        this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
+        this.awsXmlErrorUnmarshaller = AwsXmlErrorUnmarshaller.builder()
+                                                              .defaultExceptionSupplier(builder.defaultExceptionSupplier)
+                                                              .exceptions(builder.exceptions)
+                                                              .errorUnmarshaller(builder.errorUnmarshaller)
+                                                              .build();
     }
 
     @Override
@@ -104,32 +99,8 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
         Pair<XmlElement, SdkBytes> xmlAndBytes = parseXml(response);
         XmlElement document = xmlAndBytes.left();
         Optional<XmlElement> errorRoot = errorRootExtractor.apply(document);
-        String errorCode = getErrorCode(errorRoot);
-
-        AwsServiceException.Builder builder = errorRoot
-            .map(e -> invokeSafely(() -> unmarshallFromErrorCode(response, e, errorCode)))
-            .orElseGet(this::defaultException);
-
-        AwsErrorDetails awsErrorDetails =
-            AwsErrorDetails.builder()
-                           .errorCode(errorCode)
-                           .errorMessage(builder.message())
-                           .rawResponse(xmlAndBytes.right())
-                           .sdkHttpResponse(response)
-                           .serviceName(executionAttributes.getAttribute(AwsExecutionAttribute.SERVICE_NAME))
-                           .build();
-
-        builder.requestId(getRequestId(response, document))
-               .statusCode(response.statusCode())
-               .clockSkew(getClockSkew(executionAttributes))
-               .awsErrorDetails(awsErrorDetails);
-
-        return builder.build();
-    }
-
-    private Duration getClockSkew(ExecutionAttributes executionAttributes) {
-        Integer timeOffset = executionAttributes.getAttribute(SdkExecutionAttribute.TIME_OFFSET);
-        return timeOffset == null ? null : Duration.ofSeconds(timeOffset);
+        return awsXmlErrorUnmarshaller.unmarshall(document, errorRoot, Optional.of(xmlAndBytes.right()), response,
+                                                  executionAttributes);
     }
 
     /**
@@ -173,79 +144,6 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
         return SdkBytes.fromUtf8String("<eof/>");
     }
 
-    /**
-     * @return Builder for the default service exception. Used when the error code doesn't match
-     * any known modeled exception or when we can't determine the error code.
-     */
-    private AwsServiceException.Builder defaultException() {
-        return (AwsServiceException.Builder) defaultExceptionSupplier.get();
-    }
-
-    /**
-     * Unmarshalls the XML into the appropriate modeled exception based on the error code. If the error code
-     * is not present or does not match any known exception we unmarshall into the base service exception.
-     *
-     * @param errorRoot Root of <Error/> element. Contains any modeled fields of the exception.
-     * @param errorCode Error code identifying the modeled exception.
-     * @return Unmarshalled exception builder.
-     */
-    private AwsServiceException.Builder unmarshallFromErrorCode(SdkHttpFullResponse response,
-                                                                XmlElement errorRoot,
-                                                                String errorCode) {
-        SdkPojo sdkPojo = exceptions.stream()
-                                    .filter(e -> e.errorCode().equals(errorCode))
-                                    .map(ExceptionMetadata::exceptionBuilderSupplier)
-                                    .findAny()
-                                    .orElse(defaultExceptionSupplier)
-                                    .get();
-
-        AwsServiceException.Builder builder =
-            ((AwsServiceException) errorUnmarshaller.unmarshall(sdkPojo, errorRoot, response)).toBuilder();
-        builder.message(getMessage(errorRoot));
-        return builder;
-    }
-
-    /**
-     * Extracts the error code (used to identify the modeled exception) from the <Error/>
-     * element.
-     *
-     * @param errorRoot Error element root.
-     * @return Error code or null if not present.
-     */
-    private String getErrorCode(Optional<XmlElement> errorRoot) {
-        return errorRoot.map(e -> e.getOptionalElementByName("Code")
-                                   .map(XmlElement::textContent)
-                                   .orElse(null))
-                        .orElse(null);
-    }
-
-    /**
-     * Extracts the error message from the XML document. The message is in the <Error/>
-     * element for all services.
-     *
-     * @param errorRoot Error element root.
-     * @return Error message or null if not present.
-     */
-    private String getMessage(XmlElement errorRoot) {
-        return errorRoot.getOptionalElementByName("Message")
-                        .map(XmlElement::textContent)
-                        .orElse(null);
-    }
-
-    /**
-     * Extracts the request ID from the XML document. Request ID is a top level element
-     * for all protocols, it may be RequestId or RequestID depending on the service.
-     *
-     * @param document Root XML document.
-     * @return Request ID string or null if not present.
-     */
-    private String getRequestId(SdkHttpFullResponse response, XmlElement document) {
-        XmlElement requestId = document.getOptionalElementByName("RequestId")
-                                       .orElse(document.getElementByName("RequestID"));
-        return requestId != null ?
-               requestId.textContent() :
-               response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null);
-    }
 
     /**
      * @return New Builder instance.

@@ -1,0 +1,16 @@
+{
+    "version": "2.9.20",
+    "date": "2019-10-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "description": "Documentation updates for WorkSpaces"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "description": "AWS Personalize: Adds ability to create a solution version using FULL or UPDATE training mode"
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import static org.junit.Assert.assertThat;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -190,8 +188,8 @@ public class KinesisIntegrationTests extends AbstractTestCase {
             if (records.size() > 0) {
                 long arrivalTime = records.get(0).approximateArrivalTimestamp().toEpochMilli();
                 Long delta = Math.abs(Instant.now().minusMillis(arrivalTime).toEpochMilli());
-                // Assert that the arrival date is within a minute of the current date to make sure it unmarshalled correctly.
-                assertThat(delta, Matchers.lessThan(60 * 1000L));
+                // Assert that the arrival date is within 5 minutes of the current date to make sure it unmarshalled correctly.
+                assertThat(delta, Matchers.lessThan(60 * 5000L));
                 break;
             }
 

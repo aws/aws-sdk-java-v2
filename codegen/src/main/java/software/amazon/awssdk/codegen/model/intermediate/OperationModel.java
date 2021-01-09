@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ public class OperationModel extends DocumentationModel {
 
     private boolean endpointOperation;
 
+    private boolean endpointCacheRequired;
+
     private EndpointDiscovery endpointDiscovery;
 
     @JsonIgnore
@@ -59,6 +61,8 @@ public class OperationModel extends DocumentationModel {
     private ShapeModel outputShape;
 
     private EndpointTrait endpointTrait;
+
+    private boolean httpChecksumRequired;
 
     public String getOperationName() {
         return operationName;
@@ -207,6 +211,14 @@ public class OperationModel extends DocumentationModel {
         this.endpointOperation = endpointOperation;
     }
 
+    public boolean isEndpointCacheRequired() {
+        return endpointCacheRequired;
+    }
+
+    public void setEndpointCacheRequired(boolean endpointCacheRequired) {
+        this.endpointCacheRequired = endpointCacheRequired;
+    }
+
     public boolean isPaginated() {
         return isPaginated;
     }
@@ -261,5 +273,13 @@ public class OperationModel extends DocumentationModel {
                && shapeModel.getMembers().stream()
                             .filter(m -> m.getShape() != null)
                             .anyMatch(m -> m.getShape().isEventStream());
+    }
+
+    public boolean isHttpChecksumRequired() {
+        return httpChecksumRequired;
+    }
+
+    public void setHttpChecksumRequired(boolean httpChecksumRequired) {
+        this.httpChecksumRequired = httpChecksumRequired;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sts.auth;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -118,5 +117,11 @@ public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvid
         public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
             return refreshRequest(AssumeRoleRequest.builder().applyMutation(assumeRoleRequest).build());
         }
+
+        @Override
+        public StsAssumeRoleCredentialsProvider build() {
+            return super.build();
+        }
+
     }
 }

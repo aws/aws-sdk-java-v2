@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -9,7 +9,7 @@
  *
  * or in the "license" file accompanying this file. This file is distributed
  * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governings3
+ * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
 
@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -157,6 +158,19 @@ public class S3UtilitiesTest {
     @Test (expected = NullPointerException.class)
     public void failIfRegionIsNotSetOnS3UtilitiesObject() throws MalformedURLException {
         S3Utilities.builder().build();
+    }
+
+    @Test
+    public void getUrlWithVersionId() {
+        S3Utilities utilities = S3Utilities.builder().region(Region.US_WEST_2).build();
+
+        assertThat(utilities.getUrl(b -> b.bucket("foo").key("bar").versionId("1"))
+                            .toExternalForm())
+            .isEqualTo("https://foo.s3.us-west-2.amazonaws.com/bar?versionId=1");
+
+        assertThat(utilities.getUrl(b -> b.bucket("foo").key("bar").versionId("@1"))
+                            .toExternalForm())
+            .isEqualTo("https://foo.s3.us-west-2.amazonaws.com/bar?versionId=%401");
     }
 
     private static GetUrlRequest requestWithoutSpaces() {

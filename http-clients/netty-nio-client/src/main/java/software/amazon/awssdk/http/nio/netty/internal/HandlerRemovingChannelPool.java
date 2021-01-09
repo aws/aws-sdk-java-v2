@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,26 +18,28 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.removeIfExists;
 
-import com.typesafe.netty.http.HttpStreamsClientHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Removes any per request {@link ChannelHandler} from the pipeline prior to releasing
  * it to the pool.
  */
 @SdkInternalApi
-public class HandlerRemovingChannelPool implements ChannelPool {
+public class HandlerRemovingChannelPool implements SdkChannelPool {
 
-    private final ChannelPool delegate;
+    private final SdkChannelPool delegate;
 
-    public HandlerRemovingChannelPool(ChannelPool delegate) {
+    public HandlerRemovingChannelPool(SdkChannelPool delegate) {
         this.delegate = delegate;
     }
 
@@ -78,9 +80,16 @@ public class HandlerRemovingChannelPool implements ChannelPool {
         if (channel.isOpen() || channel.isRegistered()) {
             removeIfExists(channel.pipeline(),
                            HttpStreamsClientHandler.class,
+                           LastHttpContentHandler.class,
+                           FlushOnReadHandler.class,
                            ResponseHandler.class,
                            ReadTimeoutHandler.class,
                            WriteTimeoutHandler.class);
         }
+    }
+
+    @Override
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        return delegate.collectChannelPoolMetrics(metrics);
     }
 }

@@ -114,5 +114,27 @@
         "StatusCodeMember": 201
       }
     }
+  },
+  {
+    "description": "Members declared to be in the query parameters or path on response are unmarshalled from the payload",
+    "given": {
+      "input": {
+        "PathParam": "param"
+      },
+      "response": {
+        "status_code": 200,
+        "body": "{\"PathParam\": \"Found PathParam in the payload! Yay!\", \"QueryParamOne\":\"Found QueryParamOne in the payload! Yay!\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MultiLocationOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "PathParam": "Found PathParam in the payload! Yay!",
+        "QueryParamOne": "Found QueryParamOne in the payload! Yay!"
+      }
+    }
   }
 ]

@@ -1,0 +1,21 @@
+{
+    "version": "2.14.9",
+    "date": "2020-09-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "description": "Added a PatchSummary object for security findings. The PatchSummary object provides details about the patch compliance status of an instance."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Code Generator test failures on Windows systems were fixed."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "description": "Add support for repository analysis based code reviews"
+        }
+    ]
+}
