@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Key Management Service",
-    "contributor": "",
-    "description": "Adds support for filtering grants by grant ID and grantee principal in ListGrants requests to AWS KMS."
-}
