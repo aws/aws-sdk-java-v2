@@ -512,6 +512,7 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
+                            <exclude>software.amazon.awssdk.regions.servicemetadata.IotfleethubServiceMetadata</exclude>
                         </excludes>
                         <excludeModules>
                             <excludeModule>codegen-lite-maven-plugin</excludeModule>
