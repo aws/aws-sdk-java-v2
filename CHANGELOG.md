@@ -1,3 +1,21 @@
+# __2.15.62__ __2021-01-11__
+## __AWS Key Management Service__
+  - ### Features
+    - Adds support for filtering grants by grant ID and grantee principal in ListGrants requests to AWS KMS.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This releases adds support for Major Version Upgrades on Aurora MySQL Global Clusters. Customers will be able to upgrade their whole Aurora MySQL Global Cluster to a new major engine version.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Correctly select the cipher suites based on the HTTP protocol. See [#2159](https://github.com/aws/aws-sdk-java-v2/issues/2159)
+    - Use `SystemPropretyTlsKeyManagersProvider` if no `KeyManger` is provided.
+
 # __2.15.61__ __2021-01-07__
 ## __AWS CodePipeline__
   - ### Features
