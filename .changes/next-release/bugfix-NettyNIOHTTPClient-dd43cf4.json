@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Use `SystemPropretyTlsKeyManagersProvider` if no `KeyManger` is provided."
-}
