@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 package software.amazon.awssdk.protocols.query.unmarshall;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -59,6 +63,11 @@ public final class XmlDomParser {
     private static XmlElement parseElement(StartElement startElement, XMLEventReader reader) throws XMLStreamException {
         XmlElement.Builder elementBuilder = XmlElement.builder()
                                                       .elementName(startElement.getName().getLocalPart());
+
+        if (startElement.getAttributes().hasNext()) {
+            parseAttributes(startElement, elementBuilder);
+        }
+
         XMLEvent nextEvent;
         do {
             nextEvent = reader.nextEvent();
@@ -69,6 +78,21 @@ public final class XmlDomParser {
             }
         } while (!nextEvent.isEndElement());
         return elementBuilder.build();
+    }
+
+    /**
+     * Parse the attributes of the element.
+     */
+    @SuppressWarnings("unchecked")
+    private static void parseAttributes(StartElement startElement, XmlElement.Builder elementBuilder) {
+        Iterator<Attribute> iterator = startElement.getAttributes();
+        Map<String, String> attributes = new HashMap<>();
+        iterator.forEachRemaining(a -> {
+            String key = a.getName().getPrefix() + ":" + a.getName().getLocalPart();
+            attributes.put(key, a.getValue());
+        });
+
+        elementBuilder.attributes(attributes);
     }
 
     /**

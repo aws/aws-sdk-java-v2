@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.internal.async.EmptySubscription;
 
 @SdkProtectedApi
 public class LimitingSubscriber<T> extends DelegatingSubscriber<T, T> {
@@ -35,19 +36,25 @@ public class LimitingSubscriber<T> extends DelegatingSubscriber<T, T> {
 
     @Override
     public void onSubscribe(Subscription subscription) {
-        super.onSubscribe(subscription);
         this.subscription = subscription;
+        if (limit == 0) {
+            subscription.cancel();
+            super.onSubscribe(new EmptySubscription(super.subscriber));
+        } else {
+            super.onSubscribe(subscription);
+        }
     }
 
     @Override
     public void onNext(T t) {
+        int deliveredItems = delivered.incrementAndGet();
         // We may get more events even after cancelling so we ignore them.
-        if (delivered.get() < limit) {
+        if (deliveredItems <= limit) {
             subscriber.onNext(t);
-        }
-        // If we've met the limit then we can cancel the subscription
-        if (delivered.incrementAndGet() >= limit) {
-            subscription.cancel();
+            if (deliveredItems == limit) {
+                subscription.cancel();
+                subscriber.onComplete();
+            }
         }
     }
 }

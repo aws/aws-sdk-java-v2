@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -35,12 +35,14 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
     private InterceptorContext interceptorContext;
     private final ExecutionInterceptorChain interceptorChain;
     private final ExecutionAttributes executionAttributes;
+    private final MetricCollector metricCollector;
 
     private ExecutionContext(final Builder builder) {
-        this.signer = Validate.paramNotNull(builder.signer, "signer");
-        this.interceptorContext = Validate.paramNotNull(builder.interceptorContext, "interceptorContext");
-        this.interceptorChain = Validate.paramNotNull(builder.interceptorChain, "interceptorChain");
-        this.executionAttributes = Validate.paramNotNull(builder.executionAttributes, "executionAttributes");
+        this.signer = builder.signer;
+        this.interceptorContext = builder.interceptorContext;
+        this.interceptorChain = builder.interceptorChain;
+        this.executionAttributes = builder.executionAttributes;
+        this.metricCollector = builder.metricCollector;
     }
 
     public static ExecutionContext.Builder builder() {
@@ -70,6 +72,10 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
         return signer;
     }
 
+    public MetricCollector metricCollector() {
+        return metricCollector;
+    }
+
     @Override
     public Builder toBuilder() {
         return new Builder(this);
@@ -80,6 +86,7 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
         private ExecutionInterceptorChain interceptorChain;
         private ExecutionAttributes executionAttributes;
         private Signer signer;
+        private MetricCollector metricCollector;
 
         private Builder() {
         }
@@ -108,6 +115,11 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
 
         public Builder signer(Signer signer) {
             this.signer = signer;
+            return this;
+        }
+
+        public Builder metricCollector(MetricCollector metricCollector) {
+            this.metricCollector = metricCollector;
             return this;
         }
 

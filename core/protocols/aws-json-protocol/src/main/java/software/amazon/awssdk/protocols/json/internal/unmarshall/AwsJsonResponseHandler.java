@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class AwsJsonResponseHandler<T> implements HttpResponseHandler<T> {
@@ -57,7 +58,9 @@ public final class AwsJsonResponseHandler<T> implements HttpResponseHandler<T> {
     private AwsResponseMetadata generateResponseMetadata(SdkHttpResponse response) {
         Map<String, String> metadata = new HashMap<>();
 
-        metadata.put(AWS_REQUEST_ID, response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null));
+        metadata.put(AWS_REQUEST_ID, SdkHttpUtils.firstMatchingHeaderFromCollection(response.headers(),
+                                                                                    X_AMZN_REQUEST_ID_HEADERS)
+                                                 .orElse(null));
         response.headers().forEach((key, value) -> metadata.put(key, value.get(0)));
 
         return DefaultAwsResponseMetadata.create(metadata);

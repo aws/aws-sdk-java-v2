@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -128,8 +128,6 @@ public class MarshallerSpec implements ClassSpec {
             case REST_XML:
                 return new XmlMarshallerSpec(intermediateModel, shapeModel);
 
-            case API_GATEWAY:
-                throw new UnsupportedOperationException("Not yet supported.");
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());
         }

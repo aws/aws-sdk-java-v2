@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -51,14 +51,6 @@ public class TypeProvider {
 
     public ClassName listImplClassName() {
         return ClassName.get(ArrayList.class);
-    }
-
-    public boolean useAutoConstructLists() {
-        return intermediateModel.getCustomizationConfig().isUseAutoConstructList();
-    }
-
-    public boolean useAutoConstructMaps() {
-        return intermediateModel.getCustomizationConfig().isUseAutoConstructMap();
     }
 
     public TypeName enumReturnType(MemberModel memberModel) {

@@ -63,6 +63,10 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct;
  *
  * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
  * <p>
+ * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the paginator.
+ * It only limits the number of results in each page.</b>
+ * </p>
+ * <p>
  * <b>Note: If you prefer to have control on service calls, use the
  * {@link #sameTokenPaginationApi(software.amazon.awssdk.services.jsonprotocoltests.model.SameTokenPaginationApiRequest)}
  * operation.</b>

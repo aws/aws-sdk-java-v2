@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public final class HttpResourcesUtils {
      * @throws SdkClientException If the requested service is not found.
      */
     public String readResource(URI endpoint) throws IOException {
-        return readResource(() -> endpoint);
+        return readResource(() -> endpoint, "GET");
     }
 
     /**
@@ -86,13 +86,30 @@ public final class HttpResourcesUtils {
      * @throws SdkClientException If the requested service is not found.
      */
     public String readResource(ResourcesEndpointProvider endpointProvider) throws IOException {
+        return readResource(endpointProvider, "GET");
+    }
+
+    /**
+     * Connects to the given endpoint to read the resource
+     * and returns the text contents.
+     *
+     * @param endpointProvider The endpoint provider.
+     * @param method The HTTP request method to use.
+     * @return The text payload returned from the container metadata endpoint
+     * service for the specified resource path.
+     * @throws IOException If any problems were encountered while connecting to the
+     * service for the requested resource path.
+     * @throws SdkClientException If the requested service is not found.
+     */
+    public String readResource(ResourcesEndpointProvider endpointProvider, String method) throws IOException {
         int retriesAttempted = 0;
         InputStream inputStream = null;
 
         while (true) {
             try {
                 HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider.endpoint(),
-                                                                                 endpointProvider.headers());
+                                                                                 endpointProvider.headers(),
+                                                                                 method);
 
                 int statusCode = connection.getResponseCode();
 
@@ -129,6 +146,7 @@ public final class HttpResourcesUtils {
         }
 
     }
+
 
     private void handleErrorResponse(InputStream errorStream, int statusCode, String responseMessage) throws IOException {
         // Parse the error stream returned from the service.

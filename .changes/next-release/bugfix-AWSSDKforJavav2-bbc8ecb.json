@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "Fix the issue where the `content-length` set on the request is not honored for streaming operations."
-}

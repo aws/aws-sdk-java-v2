@@ -1,0 +1,175 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "json-service",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Json Service",
+    "serviceFullName": "Some Service That Uses Json Protocol",
+    "serviceId":"Json Service",
+    "signatureVersion": "v4",
+    "uid": "json-service-2010-05-08",
+    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "input": {
+        "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
+    },
+    "EventStreamOperationWithOnlyInput": {
+      "name": "EventStreamOperationWithOnlyInput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/EventStreamOperationWithOnlyInput"
+      },
+      "input": {
+        "shape": "EventStreamOperationWithOnlyInputRequest"
+      }
+    },
+    "EventStreamOperationWithOnlyOutput": {
+      "name": "EventStreamOperationWithOnlyOutput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/EventStreamOperationWithOnlyOutput"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
+    }
+  },
+  "shapes": {
+    "EventStreamOperationRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStream"
+      ],
+      "members": {
+        "InputEventStream": {
+          "shape": "InputEventStream"
+        }
+      },
+      "payload":"InputEventStream"
+    },
+    "EventStreamOutput": {
+      "type": "structure",
+      "required": [
+        "EventStream"
+      ],
+      "members": {
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "InputEventStream": {
+      "type": "structure",
+      "members": {
+        "InputEvent": {
+          "shape": "InputEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "InputEvent": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadMember": {
+          "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        }
+      },
+      "event": true
+    },
+    "ExplicitPayloadMember":{"type":"blob"},
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventOne": {
+          "shape": "EventOne"
+        },
+        "EventTwo": {
+          "shape": "EventTwo"
+        },
+        "secondEventOne": {
+          "shape": "EventOne"
+        },
+        "secondeventtwo": {
+          "shape": "EventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "EventOne": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventTwo": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventStreamOperationWithOnlyInputRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStreamTwo"
+      ],
+      "members": {
+        "InputEventStreamTwo": {
+          "shape": "InputEventStreamTwo"
+        }
+      }
+    },
+    "InputEventStreamTwo": {
+      "type": "structure",
+      "members": {
+        "InputEventOne": {
+          "shape": "InputEvent"
+        },
+        "InputEventTwo": {
+          "shape": "InputEventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "InputEventTwo": {
+      "type": "structure",
+      "members": {
+        "ImplicitPayloadMemberOne": {
+          "shape": "ImplicitPayloadMemberOne"
+        },
+        "ImplicitPayloadMemberTwo": {
+          "shape": "String"
+        },
+        "EventHeaderMember": {
+          "shape":"String",
+          "eventheader":true
+        }
+      },
+      "event": true
+    },
+    "ImplicitPayloadMemberOne":{"type":"blob"},
+     "String": {
+       "type": "string"
+    }
+  },
+  "documentation": "A service that is implemented using the query protocol"
+}

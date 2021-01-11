@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class ExceptionModel {
 
     private String exceptionName;
@@ -25,9 +23,10 @@ public class ExceptionModel {
 
     private Integer httpStatusCode;
 
-    public ExceptionModel(
-            @JsonProperty("exceptionName") String exceptionName) {
-        super();
+    public ExceptionModel() {
+    }
+
+    public ExceptionModel(String exceptionName) {
         this.exceptionName = exceptionName;
     }
 

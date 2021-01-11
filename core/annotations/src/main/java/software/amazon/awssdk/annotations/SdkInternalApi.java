@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker interface for 'internal' APIs that should not be used outside the core module. Breaking
+ * Marker interface for 'internal' APIs that should not be used outside the same module. Breaking
  * changes can and will be introduced to elements marked as {@link SdkInternalApi}. Users of the SDK
  * and the generated clients themselves should not depend on any packages, types, fields,
  * constructors, or methods with this annotation.

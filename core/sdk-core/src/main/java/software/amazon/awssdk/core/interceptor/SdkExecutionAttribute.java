@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Contains attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
@@ -45,6 +46,19 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<ClientType> CLIENT_TYPE = new ExecutionAttribute<>("ClientType");
 
     public static final ExecutionAttribute<String> OPERATION_NAME = new ExecutionAttribute<>("OperationName");
+
+    /**
+     * The {@link MetricCollector} associated with the current, ongoing API call attempt. This is not set until the actual
+     * internal API call attempt starts.
+     */
+    public static final ExecutionAttribute<MetricCollector> API_CALL_ATTEMPT_METRIC_COLLECTOR =
+        new ExecutionAttribute<>("ApiCallAttemptMetricCollector");
+
+    /**
+     * If true indicates that the configured endpoint of the client is a value that was supplied as an override and not
+     * generated from regional metadata.
+     */
+    public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverride");
     
     protected SdkExecutionAttribute() {
     }

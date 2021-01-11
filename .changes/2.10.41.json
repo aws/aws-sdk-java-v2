@@ -1,0 +1,21 @@
+{
+    "version": "2.10.41",
+    "date": "2019-12-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Detective",
+            "description": "Updated the documentation for Amazon Detective."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "description": "This release adds a new family of APIs (create-data-repository-task, describe-data-repository-task, and cancel-data-repository-task) that allow users to perform operations between their file system and its linked data repository."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "description": "With this release, you can now centrally aggregate AWS Health events from all accounts in your AWS organization. Visit AWS Health documentation to learn more about enabling and using this feature: https://docs.aws.amazon.com/health/latest/ug/organizational-view-health.html."
+        }
+    ]
+}

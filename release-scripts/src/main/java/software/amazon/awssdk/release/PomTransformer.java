@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -72,6 +72,19 @@ public abstract class PomTransformer {
         }
 
         throw new IllegalArgumentException(parent + " has no child element named " + childName);
+    }
+
+    protected final void addChild(Node parent, Element childToAdd) {
+        NodeList children = parent.getChildNodes();
+        for (int i = 0; i < children.getLength(); ++i) {
+            Node existingChild = children.item(i);
+            if (existingChild.isEqualNode(childToAdd)) {
+                // Child already exists, skip.
+                return;
+            }
+        }
+
+        parent.appendChild(childToAdd);
     }
 
     protected final Element textElement(Document doc, String name, String value) {

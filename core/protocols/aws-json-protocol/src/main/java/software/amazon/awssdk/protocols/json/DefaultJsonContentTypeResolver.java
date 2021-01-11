@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ public class DefaultJsonContentTypeResolver implements JsonContentTypeResolver {
 
     @Override
     public String resolveContentType(AwsJsonProtocolMetadata protocolMetadata) {
+        //Changing this to 'application/json' may break clients expecting 'application/x-amz-json-1.1'
         return prefix + protocolMetadata.protocolVersion();
     }
 }

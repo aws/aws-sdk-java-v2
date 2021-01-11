@@ -1,0 +1,26 @@
+{
+    "version": "2.13.14",
+    "date": "2020-05-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "M6g instances are our next-generation general purpose instances powered by AWS Graviton2 processors"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "description": "Add Bitbucket integration APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "description": "Amazon Kendra is now generally available. As part of general availability, we are launching Metrics for query & storage utilization"
+        }
+    ]
+}

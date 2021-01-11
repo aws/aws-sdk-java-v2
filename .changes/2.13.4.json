@@ -1,0 +1,36 @@
+{
+    "version": "2.13.4",
+    "date": "2020-04-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "description": "Adding minimum replication engine version for describe-endpoint-types api."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Various performance improvements."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "Change to the input, ResourceSpec, changing EnvironmentArn to SageMakerImageArn. This affects the following preview APIs: CreateDomain, DescribeDomain, UpdateDomain, CreateUserProfile, DescribeUserProfile, UpdateUserProfile, CreateApp and DescribeApp."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Data Exchange",
+            "description": "This release introduces AWS Data Exchange support for configurable encryption parameters when exporting data sets to Amazon S3."
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "description": "This release adds support for inclusion of S3 Access Point policies in IAM Access Analyzer evaluation of S3 bucket access. IAM Access Analyzer now reports findings for buckets shared through access points and identifies the access point that permits access."
+        }
+    ]
+}

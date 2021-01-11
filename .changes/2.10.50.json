@@ -1,0 +1,36 @@
+{
+    "version": "2.10.50",
+    "date": "2020-01-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon Transcribe Service",
+            "description": "Fixed an issue where streaming transcriptions would fail with signature validation errors if the date changed during the request."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Document updates for Patch Manager 'NoReboot' feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "General Update to EC2 Docs and SDKs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "Updated description for PolicyID parameter and ConstraintViolationException."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "description": "Add support for DescribeStandardsControls and UpdateStandardsControl. These new Security Hub API operations are used to track and manage whether a compliance standards control is enabled."
+        }
+    ]
+}

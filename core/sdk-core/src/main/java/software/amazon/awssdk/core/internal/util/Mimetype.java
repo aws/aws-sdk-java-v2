@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -67,6 +67,8 @@ public final class Mimetype {
 
     public static final String MIMETYPE_TEXT_PLAIN = "text/plain; charset=UTF-8";
 
+    public static final String MIMETYPE_EVENT_STREAM = "application/vnd.amazon.eventstream";
+
     private static final Logger LOG = LoggerFactory.getLogger(Mimetype.class);
 
     private static final String MIME_TYPE_PATH = "software/amazon/awssdk/core/util/mime.types";
@@ -114,10 +116,6 @@ public final class Mimetype {
      * to find the corresponding mime type. If the file has no extension, or the extension is not
      * available in the listing contained in this class, the default mimetype
      * <code>application/octet-stream</code> is returned.
-     * <p>
-     * A file extension is one or more characters that occur after the last period (.) in the file's name.
-     * If a file has no extension,
-     * Guesses the mimetype of file data based on the file's extension.
      *
      * @param path the file whose extension may match a known mimetype.
      * @return the file's mimetype based on its extension, or a default value of
@@ -130,7 +128,7 @@ public final class Mimetype {
         if (file != null) {
             return getMimetype(file.toString());
         }
-        return null;
+        return MIMETYPE_OCTET_STREAM;
     }
 
     /**
@@ -138,10 +136,6 @@ public final class Mimetype {
      * to find the corresponding mime type. If the file has no extension, or the extension is not
      * available in the listing contained in this class, the default mimetype
      * <code>application/octet-stream</code> is returned.
-     * <p>
-     * A file extension is one or more characters that occur after the last period (.) in the file's name.
-     * If a file has no extension,
-     * Guesses the mimetype of file data based on the file's extension.
      *
      * @param file the file whose extension may match a known mimetype.
      * @return the file's mimetype based on its extension, or a default value of
@@ -157,10 +151,6 @@ public final class Mimetype {
      * no extension, or the extension is not available in the listing contained
      * in this class, the default mimetype <code>application/octet-stream</code>
      * is returned.
-     * <p>
-     * A file extension is one or more characters that occur after the last
-     * period (.) in the file's name. If a file has no extension, Guesses the
-     * mimetype of file data based on the file's extension.
      *
      * @param fileName The name of the file whose extension may match a known
      * mimetype.

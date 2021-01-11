@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,18 +15,22 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -55,14 +59,25 @@ public class MakeHttpRequestStage
     }
 
     private HttpExecuteResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
+        MetricCollector attemptMetricCollector = context.attemptMetricCollector();
+
+        MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
+
         ExecutableHttpRequest requestCallable = sdkHttpClient
             .prepareRequest(HttpExecuteRequest.builder()
                                               .request(request)
+                                              .metricCollector(httpMetricCollector)
                                               .contentStreamProvider(request.contentStreamProvider().orElse(null))
                                               .build());
 
         context.apiCallTimeoutTracker().abortable(requestCallable);
         context.apiCallAttemptTimeoutTracker().abortable(requestCallable);
-        return requestCallable.call();
+
+        Pair<HttpExecuteResponse, Duration> measuredExecute = MetricUtils.measureDurationUnsafe(requestCallable);
+
+        attemptMetricCollector.reportMetric(CoreMetric.SERVICE_CALL_DURATION, measuredExecute.right());
+
+        return measuredExecute.left();
     }
+
 }

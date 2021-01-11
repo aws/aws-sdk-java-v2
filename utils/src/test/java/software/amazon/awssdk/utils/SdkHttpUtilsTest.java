@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,12 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.entry;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -148,4 +153,71 @@ public class SdkHttpUtilsTest {
         assertThat(SdkHttpUtils.firstMatchingHeader(headers, null)).isNotPresent();
         assertThat(SdkHttpUtils.firstMatchingHeader(headers, "nothing")).isNotPresent();
     }
+
+    @Test
+    public void headersFromCollectionWorksCorrectly() {
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("FOO", asList("bar", "baz"));
+        headers.put("foo", singletonList(null));
+        headers.put("other", singletonList("foo"));
+        headers.put("Foo", singletonList("baz2"));
+
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("nothing"))).isEmpty();
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("foo")))
+            .containsExactlyInAnyOrder("bar", "baz", null, "baz2");
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("nothing", "foo")))
+            .containsExactlyInAnyOrder("bar", "baz", null, "baz2");
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("foo", "nothing")))
+            .containsExactlyInAnyOrder("bar", "baz", null, "baz2");
+        assertThat(SdkHttpUtils.allMatchingHeadersFromCollection(headers, asList("foo", "other")))
+            .containsExactlyInAnyOrder("bar", "baz", null, "foo", "baz2");
+
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("nothing"))).isEmpty();
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("foo"))).hasValue("bar");
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("nothing", "foo"))).hasValue("bar");
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("foo", "nothing"))).hasValue("bar");
+        assertThat(SdkHttpUtils.firstMatchingHeaderFromCollection(headers, asList("foo", "other"))).hasValue("foo");
+    }
+
+    @Test
+    public void isSingleHeader() {
+        assertThat(SdkHttpUtils.isSingleHeader("age")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("authorization")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("content-length")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("content-location")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("content-md5")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("content-range")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("content-type")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("date")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("etag")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("expires")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("from")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("host")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("if-modified-since")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("if-range")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("if-unmodified-since")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("last-modified")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("location")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("max-forwards")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("proxy-authorization")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("range")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("referer")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("retry-after")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("server")).isTrue();
+        assertThat(SdkHttpUtils.isSingleHeader("user-agent")).isTrue();
+
+        assertThat(SdkHttpUtils.isSingleHeader("custom")).isFalse();
+    }
+
+    @Test
+    public void uriParams() throws URISyntaxException {
+        URI uri = URI.create("https://github.com/aws/aws-sdk-java-v2/issues/2034?reqParam=1234&oParam=3456&reqParam=5678&noval"
+                          + "&decoded%26Part=equals%3Dval");
+        Map<String, List<String>> uriParams = SdkHttpUtils.uriParams(uri);
+        assertThat(uriParams).contains(entry("reqParam", Arrays.asList("1234", "5678")),
+                                       entry("oParam", Collections.singletonList("3456")),
+                                       entry("noval", Arrays.asList((String)null)),
+                                       entry("decoded&Part", Arrays.asList("equals=val")));
+    }
+
 }

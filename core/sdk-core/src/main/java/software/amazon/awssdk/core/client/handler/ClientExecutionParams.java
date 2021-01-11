@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,12 +18,16 @@ package software.amazon.awssdk.core.client.handler;
 import java.net.URI;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Encapsulates parameters needed for a particular API call. Captures input and output pojo types.
@@ -41,10 +45,13 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private Marshaller<InputT> marshaller;
     private HttpResponseHandler<OutputT> responseHandler;
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
+    private HttpResponseHandler<Response<OutputT>> combinedResponseHandler;
     private boolean fullDuplex;
     private String hostPrefixExpression;
     private String operationName;
     private URI discoveredEndpoint;
+    private MetricCollector metricCollector;
+    private final ExecutionAttributes attributes = new ExecutionAttributes();
 
     public Marshaller<InputT> getMarshaller() {
         return marshaller;
@@ -81,6 +88,23 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     public ClientExecutionParams<InputT, OutputT> withErrorResponseHandler(
             HttpResponseHandler<? extends SdkException> errorResponseHandler) {
         this.errorResponseHandler = errorResponseHandler;
+        return this;
+    }
+
+    /**
+     * Non-streaming requests can use handlers that handle both error and success as a single handler instead of
+     * submitting individual success and error handlers. This allows the protocol to have more control over how to
+     * determine success and failure from a given HTTP response. This handler is mutually exclusive to
+     * {@link #getResponseHandler()} and {@link #getErrorResponseHandler()} and an exception will be thrown if this
+     * constraint is violated.
+     */
+    public HttpResponseHandler<Response<OutputT>> getCombinedResponseHandler() {
+        return combinedResponseHandler;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withCombinedResponseHandler(
+            HttpResponseHandler<Response<OutputT>> combinedResponseHandler) {
+        this.combinedResponseHandler = combinedResponseHandler;
         return this;
     }
 
@@ -146,5 +170,23 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     public ClientExecutionParams<InputT, OutputT> discoveredEndpoint(URI discoveredEndpoint) {
         this.discoveredEndpoint = discoveredEndpoint;
         return this;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withMetricCollector(MetricCollector metricCollector) {
+        this.metricCollector = metricCollector;
+        return this;
+    }
+
+    public <T> ClientExecutionParams<InputT, OutputT> putExecutionAttribute(ExecutionAttribute<T> attribute, T value) {
+        this.attributes.putAttribute(attribute, value);
+        return this;
+    }
+
+    public ExecutionAttributes executionAttributes() {
+        return attributes;
+    }
+
+    public MetricCollector getMetricCollector() {
+        return metricCollector;
     }
 }

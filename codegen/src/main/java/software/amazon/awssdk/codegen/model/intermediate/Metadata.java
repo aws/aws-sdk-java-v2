@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -66,6 +66,8 @@ public class Metadata {
     private String paginatorsPackageName;
 
     private String authPolicyPackageName;
+
+    private String waitersPackageName;
 
     private String serviceAbbreviation;
 
@@ -509,7 +511,6 @@ public class Metadata {
         return protocol == Protocol.CBOR ||
                protocol == Protocol.ION ||
                protocol == Protocol.AWS_JSON ||
-               protocol == Protocol.API_GATEWAY ||
                protocol == Protocol.REST_JSON;
     }
 
@@ -519,12 +520,16 @@ public class Metadata {
                protocol == Protocol.REST_XML;
     }
 
+    public boolean isQueryProtocol() {
+        return protocol == Protocol.EC2 ||
+               protocol == Protocol.QUERY;
+    }
+
     /**
      * @return True for RESTful protocols. False for all other protocols (RPC, Query, etc).
      */
     public static boolean isNotRestProtocol(String protocol) {
         switch (Protocol.fromValue(protocol)) {
-            case API_GATEWAY:
             case REST_JSON:
             case REST_XML:
                 return false;
@@ -656,5 +661,26 @@ public class Metadata {
     public Metadata withServiceId(String serviceId) {
         setServiceId(serviceId);
         return this;
+    }
+
+    public String getWaitersPackageName() {
+        return waitersPackageName;
+    }
+
+    public void setWaitersPackageName(String waitersPackageName) {
+        this.waitersPackageName = waitersPackageName;
+    }
+
+    public Metadata withWaitersPackageName(String waitersPackageName) {
+        setWaitersPackageName(waitersPackageName);
+        return this;
+    }
+
+    public String getFullWaitersPackageName() {
+        return joinPackageNames(rootPackageName, getWaitersPackageName());
+    }
+
+    public String getFullWaitersInternalPackageName() {
+        return joinPackageNames(getFullWaitersPackageName(), "internal");
     }
 }

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd" name="zoewanglambdatesting"
+    xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <fileSets>
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>**/*.java</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/test/java</directory>
+      <includes>
+        <include>**/*.java</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory/>
+      <includes>
+        <include>.gitignore</include>
+        <include>template.yaml</include>
+        <include>README.md</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <requiredProperties>
+    <requiredProperty key="handlerClassName">
+      <defaultValue>App</defaultValue>
+    </requiredProperty>
+    <requiredProperty key="javaSdkVersion">
+      <defaultValue>${project.version}</defaultValue>
+      <validationRegex>\d+\.\d+.\d+</validationRegex>
+    </requiredProperty>
+    <requiredProperty key="service">
+    </requiredProperty>
+    <requiredProperty key="httpClient">
+      <defaultValue>url-connection-client</defaultValue>
+      <validationRegex>(url-connection-client|apache-client|netty-nio-client)</validationRegex>
+    </requiredProperty>
+    <requiredProperty key="region">
+     <defaultValue>null</defaultValue>
+     <validationRegex>^\w+-(\w+-)+\d+$</validationRegex>
+    </requiredProperty>
+    <!-- Required to pass the netty-open-ssl-version property from parent pom to velocity-->
+    <requiredProperty key="nettyOpenSslVersion">
+      <defaultValue>${netty-open-ssl-version}</defaultValue>
+    </requiredProperty>
+  </requiredProperties>
+</archetype-descriptor>

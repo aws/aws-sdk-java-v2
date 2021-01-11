@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -105,12 +105,12 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
         int read = -1;
 
         if (lengthRead < strippedLength) {
-            long maxRead = Math.min((long) Integer.MAX_VALUE, strippedLength - lengthRead);
-            int maxIterRead = (int) Math.min(maxRead, (long) len);
+            long maxRead = Math.min(Integer.MAX_VALUE, strippedLength - lengthRead);
+            int maxIterRead = (int) Math.min(maxRead, len);
 
             read = inputStream.read(buf, off, maxIterRead);
 
-            int toUpdate = (int) Math.min(strippedLength - lengthRead, (long) read);
+            int toUpdate = (int) Math.min(strippedLength - lengthRead, read);
 
             if (toUpdate > 0) {
                 checkSum.update(buf, off, toUpdate);

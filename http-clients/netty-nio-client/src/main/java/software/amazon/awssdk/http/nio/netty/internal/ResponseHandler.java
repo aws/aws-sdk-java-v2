@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatch;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatchFinally;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.CLOSED_CHANNEL_MESSAGE;
 
-import com.typesafe.netty.http.HttpStreamsClientHandler;
-import com.typesafe.netty.http.StreamedHttpResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -38,7 +39,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
-import io.netty.util.AttributeKey;
+import io.netty.util.ReferenceCountUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -53,24 +54,21 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpResponse;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.async.DelegatingSubscription;
 
 @Sharable
 @SdkInternalApi
 public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
-
-    /**
-     * {@link AttributeKey} to keep track of whether we should close the connection after this request
-     * has completed.
-     */
-    private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
 
@@ -90,7 +88,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                                              .statusCode(response.status().code())
                                                              .statusText(response.status().reasonPhrase())
                                                              .build();
-            channelContext.channel().attr(KEEP_ALIVE).set(HttpUtil.isKeepAlive(response));
+            channelContext.channel().attr(KEEP_ALIVE).set(shouldKeepAlive(response));
             requestContext.handler().onHeaders(sdkResponse);
         }
 
@@ -133,6 +131,13 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         }
     }
 
+    private boolean shouldKeepAlive(HttpResponse response) {
+        if (HttpStatusFamily.of(response.status().code()) == HttpStatusFamily.SERVER_ERROR) {
+            return false;
+        }
+        return HttpUtil.isKeepAlive(response);
+    }
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
@@ -144,12 +149,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext handlerCtx) throws Exception {
-        notifyIfResponseNotCompleted(handlerCtx);
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext handlerCtx) throws Exception {
+    public void channelInactive(ChannelHandlerContext handlerCtx) {
         notifyIfResponseNotCompleted(handlerCtx);
     }
 
@@ -164,6 +164,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
      */
     private static void closeAndRelease(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
+        channel.attr(KEEP_ALIVE).set(false);
         RequestContext requestContext = channel.attr(REQUEST_CONTEXT_KEY).get();
         ctx.close();
         requestContext.channelPool().release(channel);
@@ -252,6 +253,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 public void onNext(HttpContent httpContent) {
                     // isDone may be true if the subscriber cancelled
                     if (isDone.get()) {
+                        ReferenceCountUtil.release(httpContent);
                         return;
                     }
 
@@ -391,9 +393,12 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private void notifyIfResponseNotCompleted(ChannelHandlerContext handlerCtx) {
         RequestContext requestCtx = handlerCtx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
-        if (!responseCompleted) {
-            IOException err = new IOException("Server failed to send complete response");
+        Boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
+        Boolean lastHttpContentReceived = handlerCtx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).get();
+        handlerCtx.channel().attr(KEEP_ALIVE).set(false);
+
+        if (!Boolean.TRUE.equals(responseCompleted) && !Boolean.TRUE.equals(lastHttpContentReceived)) {
+            IOException err = new IOException("Server failed to send complete response. " + CLOSED_CHANNEL_MESSAGE);
             runAndLogError("Fail to execute SdkAsyncHttpResponseHandler#onError", () -> requestCtx.handler().onError(err));
             executeFuture(handlerCtx).completeExceptionally(err);
             runAndLogError("Could not release channel", () -> closeAndRelease(handlerCtx));

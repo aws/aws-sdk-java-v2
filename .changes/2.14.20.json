@@ -1,0 +1,46 @@
+{
+    "version": "2.14.20",
+    "date": "2020-09-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "description": "Amazon Comprehend now supports detecting Personally Identifiable Information (PII) entities in a document."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "description": "Adds support for mutual TLS authentication for public regional REST Apis"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Streaming Service",
+            "description": "Amazon Transcribe now supports channel identification in real-time streaming, which enables you to transcribe multi-channel streaming audio."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "description": "Adds support for mutual TLS authentication and disableAPIExecuteEndpoint for public regional HTTP Apis"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "description": "Amazon Kendra now supports additional file formats and metadata for FAQs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "description": "Adds support for data plane audit logging in Amazon Elasticsearch Service."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "description": "Documentation updates for CloudFront"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

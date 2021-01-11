@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,15 +15,29 @@
 
 package software.amazon.awssdk.protocol.tests;
 
+import java.io.IOException;
+import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import software.amazon.awssdk.protocol.ProtocolTestSuiteLoader;
+import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.runners.ProtocolTestRunner;
 
-public class AwsJsonProtocolTest {
+@RunWith(Parameterized.class)
+public class AwsJsonProtocolTest extends ProtocolTestBase {
 
     private static final ProtocolTestSuiteLoader TEST_SUITE_LOADER = new ProtocolTestSuiteLoader();
     private static ProtocolTestRunner testRunner;
+
+    @Parameterized.Parameter
+    public TestCase testCase;
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<TestCase> data() throws IOException {
+        return TEST_SUITE_LOADER.load("jsonrpc-suite.json");
+    }
 
     @BeforeClass
     public static void setupFixture() {
@@ -31,7 +45,7 @@ public class AwsJsonProtocolTest {
     }
 
     @Test
-    public void run() throws Exception {
-        testRunner.runTests(TEST_SUITE_LOADER.load("jsonrpc-suite.json"));
+    public void runProtocolTest() throws Exception {
+        testRunner.runTest(testCase);
     }
 }

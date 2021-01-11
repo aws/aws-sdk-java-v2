@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -119,10 +119,6 @@ public class CustomizationConfig {
 
     private Map<String, String> modelMarshallerDefaultValueSupplier = new HashMap<>();
 
-    private boolean useAutoConstructList = true;
-
-    private boolean useAutoConstructMap = true;
-
     /**
      * Custom Retry Policy
      */
@@ -158,6 +154,38 @@ public class CustomizationConfig {
      * Config to generate a utilities() in the low-level client
      */
     private UtilitiesMethod utilitiesMethod;
+
+    /**
+     * Force generation of deprecated client builder method 'enableEndpointDiscovery'. Only services that already had
+     * this method when it was deprecated require this flag to be set.
+     */
+    private boolean enableEndpointDiscoveryMethodRequired = false;
+
+    /**
+     * Arnable fields used in s3 control
+     */
+    private Map<String, S3ArnableFieldConfig> s3ArnableFields;
+
+    /**
+     * Allow a customer to set an endpoint override AND bypass endpoint discovery on their client even when endpoint discovery
+     * enabled is true and endpoint discovery is required for an operation. This customization should almost never be "true"
+     * because it creates a confusing customer experience.
+     */
+    private boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations = false;
+
+    /**
+     * Customization to instruct the code generator to use the legacy model generation scheme for the given events.
+     * <p>
+     * <b>NOTE</b>This customization is primarily here to preserve backwards compatibility with existing code before the
+     * generation scheme for the visitor methods was changed. There should be no good reason to use this customization
+     * for any other purpose.
+     */
+    private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
+
+    /**
+     * How the code generator should behave when it encounters shapes with underscores in the name.
+     */
+    private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private CustomizationConfig() {
     }
@@ -335,22 +363,6 @@ public class CustomizationConfig {
         this.modelMarshallerDefaultValueSupplier = modelMarshallerDefaultValueSupplier;
     }
 
-    public boolean isUseAutoConstructList() {
-        return useAutoConstructList;
-    }
-
-    public void setUseAutoConstructList(boolean useAutoConstructList) {
-        this.useAutoConstructList = useAutoConstructList;
-    }
-
-    public boolean isUseAutoConstructMap() {
-        return useAutoConstructMap;
-    }
-
-    public void setUseAutoConstructMap(boolean useAutoConstructMap) {
-        this.useAutoConstructMap = useAutoConstructMap;
-    }
-
     public String getCustomRetryPolicy() {
         return customRetryPolicy;
     }
@@ -405,5 +417,57 @@ public class CustomizationConfig {
 
     public void setUtilitiesMethod(UtilitiesMethod utilitiesMethod) {
         this.utilitiesMethod = utilitiesMethod;
+    }
+
+    public boolean isEnableEndpointDiscoveryMethodRequired() {
+        return enableEndpointDiscoveryMethodRequired;
+    }
+
+    public void setEnableEndpointDiscoveryMethodRequired(boolean enableEndpointDiscoveryMethodRequired) {
+        this.enableEndpointDiscoveryMethodRequired = enableEndpointDiscoveryMethodRequired;
+    }
+
+    public Map<String, S3ArnableFieldConfig> getS3ArnableFields() {
+        return s3ArnableFields;
+    }
+
+    public CustomizationConfig withS3ArnableFields(Map<String, S3ArnableFieldConfig> s3ArnableFields) {
+        this.s3ArnableFields = s3ArnableFields;
+        return this;
+    }
+
+    public void setS3ArnableFields(Map<String, S3ArnableFieldConfig> s3ArnableFields) {
+        this.s3ArnableFields = s3ArnableFields;
+    }
+
+    public boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations() {
+        return allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
+    }
+
+    public void setAllowEndpointOverrideForEndpointDiscoveryRequiredOperations(
+        boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations) {
+        this.allowEndpointOverrideForEndpointDiscoveryRequiredOperations =
+            allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
+    }
+
+    public Map<String, List<String>> getUseLegacyEventGenerationScheme() {
+        return useLegacyEventGenerationScheme;
+    }
+
+    public void setUseLegacyEventGenerationScheme(Map<String, List<String>> useLegacyEventGenerationScheme) {
+        this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
+    }
+
+    public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {
+        return underscoresInNameBehavior;
+    }
+
+    public void setUnderscoresInNameBehavior(UnderscoresInNameBehavior behavior) {
+        this.underscoresInNameBehavior = behavior;
+    }
+
+    public CustomizationConfig withUnderscoresInShapeNameBehavior(UnderscoresInNameBehavior behavior) {
+        this.underscoresInNameBehavior = behavior;
+        return this;
     }
 }

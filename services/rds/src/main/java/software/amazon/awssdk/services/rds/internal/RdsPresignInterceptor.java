@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import java.net.URI;
 import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
-import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -48,11 +48,13 @@ import software.amazon.awssdk.services.rds.model.RdsRequest;
 @SdkInternalApi
 public abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionInterceptor {
 
+    private static final URI CUSTOM_ENDPOINT_LOCALHOST = URI.create("http://localhost");
+
     protected static final AwsQueryProtocolFactory PROTOCOL_FACTORY = AwsQueryProtocolFactory
         .builder()
         // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
         .clientConfiguration(SdkClientConfiguration.builder()
-                                                   .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                                   .option(SdkClientOption.ENDPOINT, CUSTOM_ENDPOINT_LOCALHOST)
                                                    .build())
         .build();
 
@@ -101,16 +103,10 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
             return request;
         }
 
-        String destinationRegion =
-                AwsHostNameUtils.parseSigningRegion(request.host(), SERVICE_NAME)
-                                .orElseThrow(() -> new IllegalArgumentException("Could not determine region for " +
-                                                                                request.host()))
-                                .id();
+        String destinationRegion = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id();
 
         URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME);
-        SdkHttpFullRequest.Builder marshalledRequest = presignableRequest.marshall()
-                                                                         .toBuilder()
-                                                                         .uri(endpoint);
+        SdkHttpFullRequest.Builder marshalledRequest = presignableRequest.marshall().toBuilder().uri(endpoint);
 
         SdkHttpFullRequest requestToPresign =
                 marshalledRequest.method(SdkHttpMethod.GET)

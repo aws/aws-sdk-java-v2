@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public final class SdkBytes extends BytesWrapper implements Serializable {
      * @see #fromUtf8String(String)
      * @see #fromString(String, Charset)
      */
-    SdkBytes(byte[] bytes) {
+    private SdkBytes(byte[] bytes) {
         super(bytes);
     }
 
@@ -70,6 +70,18 @@ public final class SdkBytes extends BytesWrapper implements Serializable {
     public static SdkBytes fromByteArray(byte[] bytes) {
         Validate.paramNotNull(bytes, "bytes");
         return new SdkBytes(Arrays.copyOf(bytes, bytes.length));
+    }
+
+    /**
+     * Create {@link SdkBytes} from a Byte array <b>without</b> copying the contents of the byte array. This introduces
+     * concurrency risks, allowing: (1) the caller to modify the byte array stored in this {@code SdkBytes} implementation AND
+     * (2) any users of {@link #asByteArrayUnsafe()} to modify the byte array passed into this {@code SdkBytes} implementation.
+     *
+     * <p>As the method name implies, this is unsafe. Use {@link #fromByteArray(byte[])} unless you're sure you know the risks.
+     */
+    public static SdkBytes fromByteArrayUnsafe(byte[] bytes) {
+        Validate.paramNotNull(bytes, "bytes");
+        return new SdkBytes(bytes);
     }
 
     /**
@@ -100,7 +112,7 @@ public final class SdkBytes extends BytesWrapper implements Serializable {
     @Override
     public String toString() {
         return ToString.builder("SdkBytes")
-                       .add("bytes", wrappedBytes())
+                       .add("bytes", asByteArrayUnsafe())
                        .build();
     }
 }

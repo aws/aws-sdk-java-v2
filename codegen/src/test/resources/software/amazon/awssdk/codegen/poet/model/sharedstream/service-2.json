@@ -1,0 +1,85 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "shared-event-stream-service",
+    "globalEndpoint": "shared-event-stream.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Shared Event Stream Service",
+    "serviceFullName": "Service that shares event streams",
+    "serviceId":"Shared Event Stream Service",
+    "signatureVersion": "v4",
+    "uid": "shared-event-stream-service-2010-05-08",
+    "xmlNamespace": "https://shared-event-stream-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "StreamBirths" : {
+      "name": "StreamBirths",
+      "http": {
+        "method": "GET",
+        "requestUri": "/births"
+      },
+      "output": {
+        "shape": "PeopleOutput"
+      }
+    },
+    "StreamDeaths" : {
+      "name": "StreamDeaths",
+      "http": {
+        "method": "GET",
+        "requestUri": "/deaths"
+      },
+      "output": {
+        "shape": "PeopleOutput"
+      }
+    },
+    "GetRandomPerson" : {
+      "name" : "GetRandomPerson",
+      "http": {
+        "method": "GET",
+        "requestUri": "/randomPerson"
+      },
+      "output": {
+        "shape": "Person"
+      }
+    }
+  },
+  "shapes": {
+    "dateType": {
+      "type": "timestamp"
+    },
+    "String": {
+      "type": "string"
+    },
+    "PeopleOutput": {
+      "type": "structure",
+      "members": {
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "Person": {
+          "shape": "Person"
+        }
+      },
+      "eventstream": true
+    },
+    "Person": {
+      "type": "structure",
+      "members": {
+        "Name": {
+          "shape": "String"
+        },
+        "Birthday": {
+          "shape": "dateType"
+        }
+      },
+      "event": true
+    }
+  },
+  "documentation": "A service that streams births and deaths"
+}

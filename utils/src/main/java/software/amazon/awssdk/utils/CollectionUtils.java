@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,12 +15,9 @@
 
 package software.amazon.awssdk.utils;
 
-import static java.util.Collections.unmodifiableList;
-import static java.util.Collections.unmodifiableMap;
-
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +45,7 @@ public final class CollectionUtils {
      * Returns a new list containing the second list appended to the first list.
      */
     public static <T> List<T> mergeLists(List<T> list1, List<T> list2) {
-        List<T> merged = new LinkedList<T>();
+        List<T> merged = new LinkedList<>();
         if (list1 != null) {
             merged.addAll(list1);
         }
@@ -78,7 +75,7 @@ public final class CollectionUtils {
      * desired.
      */
     public static <T, U> Map<T, List<U>> deepCopyMap(Map<T, ? extends List<U>> map) {
-        return deepCopyMap(map, () -> new HashMap<>());
+        return deepCopyMap(map, () -> new LinkedHashMap<>());
     }
 
     /**
@@ -87,29 +84,32 @@ public final class CollectionUtils {
      * desired.
      */
     public static <T, U> Map<T, List<U>> deepCopyMap(Map<T, ? extends List<U>> map, Supplier<Map<T, List<U>>> mapConstructor) {
-        return map.entrySet().stream()
-                  .collect(Collectors.toMap(Map.Entry::getKey, e -> new ArrayList<>(e.getValue()),
-                                 CollectionUtils::throwIllegalStateException, mapConstructor));
+        Map<T, List<U>> result = mapConstructor.get();
+        map.forEach((k, v) -> result.put(k, new ArrayList<>(v)));
+        return result;
+    }
+
+    public static <T, U> Map<T, List<U>> unmodifiableMapOfLists(Map<T, List<U>> map) {
+        return new UnmodifiableMapOfLists<>(map);
     }
 
     /**
      * Perform a deep copy of the provided map of lists, and make the result unmodifiable.
+     *
+     * This is equivalent to calling {@link #deepCopyMap} followed by {@link #unmodifiableMapOfLists}.
      */
     public static <T, U> Map<T, List<U>> deepUnmodifiableMap(Map<T, ? extends List<U>> map) {
-        return deepUnmodifiableMap(map, () -> new HashMap<>());
+        return unmodifiableMapOfLists(deepCopyMap(map));
     }
 
     /**
      * Perform a deep copy of the provided map of lists, and make the result unmodifiable.
+     *
+     * This is equivalent to calling {@link #deepCopyMap} followed by {@link #unmodifiableMapOfLists}.
      */
     public static <T, U> Map<T, List<U>> deepUnmodifiableMap(Map<T, ? extends List<U>> map,
                                                              Supplier<Map<T, List<U>>> mapConstructor) {
-        return unmodifiableMap(map.entrySet().stream()
-                                  .collect(Collectors.toMap(
-                                      Map.Entry::getKey,
-                                      e -> unmodifiableList(new ArrayList<>(e.getValue())),
-                                      CollectionUtils::throwIllegalStateException,
-                                      mapConstructor)));
+        return unmodifiableMapOfLists(deepCopyMap(map, mapConstructor));
     }
 
 
@@ -125,12 +125,5 @@ public final class CollectionUtils {
 
     public static <K, VInT, VOutT> Map<K, VOutT> mapValues(Map<K, VInT> inputMap, Function<VInT, VOutT> mapper) {
         return inputMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapper.apply(e.getValue())));
-    }
-
-    /**
-     * Dummy merger since there can't be a conflict when collecting from a map.
-     */
-    private static <T> T throwIllegalStateException(T left, T right) {
-        throw new IllegalStateException("Duplicate keys are impossible when collecting from a map");
     }
 }

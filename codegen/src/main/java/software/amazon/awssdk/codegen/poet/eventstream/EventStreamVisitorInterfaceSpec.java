@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,27 +21,33 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 
 /**
  * Spec for generated visitor interface.
  */
 class EventStreamVisitorInterfaceSpec implements ClassSpec {
-
     private final PoetExtensions poetExt;
+    private final IntermediateModel intermediateModel;
     private final OperationModel operationModel;
     private final ShapeModel eventStreamShape;
     private final ClassName eventStreamBaseClass;
+    private final EventStreamSpecHelper eventStreamSpecHelper;
 
-    EventStreamVisitorInterfaceSpec(PoetExtensions poetExt, OperationModel operationModel) {
+    EventStreamVisitorInterfaceSpec(IntermediateModel intermediateModel, PoetExtensions poetExt, OperationModel operationModel) {
         this.poetExt = poetExt;
+        this.intermediateModel = intermediateModel;
         this.operationModel = operationModel;
         this.eventStreamShape = EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape());
         this.eventStreamBaseClass = poetExt.getModelClassFromShape(eventStreamShape);
+        this.eventStreamSpecHelper = new EventStreamSpecHelper(eventStreamShape, intermediateModel);
     }
 
     @Override
@@ -50,8 +56,8 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
             .addMethod(applyVisitDefaultMethodSpecUpdates(createVisitDefaultMethodSpec()).build());
 
         EventStreamUtils.getEvents(eventStreamShape)
-                        .forEach(s -> typeBuilder.addMethod(
-                            applyVisitSubTypeMethodSpecUpdates(typeBuilder, createVisitSubTypeMethodSpec(s), s)
+                        .forEach(e -> typeBuilder.addMethod(
+                            applyVisitSubTypeMethodSpecUpdates(typeBuilder, createVisitSubTypeMethodSpec(e), e)
                                 .build()));
 
 
@@ -68,7 +74,8 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                         .addJavadoc("Visitor for subtypes of {@link $T}.", eventStreamBaseClass)
                         .addMethod(createBuilderMethodSpec())
-                        .addType(new EventStreamVisitorBuilderInterfaceSpec(poetExt, operationModel).poetSpec());
+                        .addType(new EventStreamVisitorBuilderInterfaceSpec(poetExt, intermediateModel, operationModel)
+                                .poetSpec());
     }
 
     protected TypeSpec.Builder finalizeTypeSpec(TypeSpec.Builder builder) {
@@ -98,17 +105,17 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
                       .addJavadoc(javadocs, eventStreamBaseClass);
     }
 
-    private MethodSpec.Builder createVisitSubTypeMethodSpec(ShapeModel s) {
-        ClassName eventSubType = poetExt.getModelClass(s.getShapeName());
-        return MethodSpec.methodBuilder("visit")
+    private MethodSpec.Builder createVisitSubTypeMethodSpec(MemberModel event) {
+        ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
+        return MethodSpec.methodBuilder(visitorMethodName(event))
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(ParameterSpec.builder(eventSubType, "event").build());
     }
 
     protected MethodSpec.Builder applyVisitSubTypeMethodSpecUpdates(TypeSpec.Builder typeBuilder,
                                                                     MethodSpec.Builder methodBuilder,
-                                                                    ShapeModel eventShape) {
-        ClassName eventSubType = poetExt.getModelClass(eventShape.getShapeName());
+                                                                    MemberModel event) {
+        ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
         String javadocs = new DocumentationBuilder()
             .description("Invoked when a {@link $T} is encountered. If this is not overridden, the event will "
                          + "be given to {@link #visitDefault($T)}.")
@@ -117,6 +124,10 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
         return methodBuilder.addModifiers(Modifier.DEFAULT)
                             .addStatement("visitDefault(event)")
                             .addJavadoc(javadocs, eventSubType, eventStreamBaseClass);
+    }
+
+    protected String visitorMethodName(MemberModel event) {
+        return eventStreamSpecHelper.visitMethodName(event);
     }
 
     private MethodSpec createBuilderMethodSpec() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,14 +18,17 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
+import io.netty.util.Attribute;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -49,9 +52,10 @@ import software.amazon.awssdk.utils.AttributeMap;
 public class HealthCheckedChannelPoolTest {
     private EventLoopGroup eventLoopGroup = Mockito.mock(EventLoopGroup.class);
     private EventLoop eventLoop = Mockito.mock(EventLoop.class);
-    private ChannelPool downstreamChannelPool = Mockito.mock(ChannelPool.class);
+    private SdkChannelPool downstreamChannelPool = Mockito.mock(SdkChannelPool.class);
     private List<Channel> channels = new ArrayList<>();
     private ScheduledFuture<?> scheduledFuture = Mockito.mock(ScheduledFuture.class);
+    private Attribute<Boolean> attribute = mock(Attribute.class);
 
     private static final NettyConfiguration NETTY_CONFIGURATION =
             new NettyConfiguration(AttributeMap.builder()
@@ -64,7 +68,7 @@ public class HealthCheckedChannelPoolTest {
 
     @Before
     public void reset() {
-        Mockito.reset(eventLoopGroup, eventLoop, downstreamChannelPool, scheduledFuture);
+        Mockito.reset(eventLoopGroup, eventLoop, downstreamChannelPool, scheduledFuture, attribute);
         channels.clear();
 
         Mockito.when(eventLoopGroup.next()).thenReturn(eventLoop);
@@ -102,6 +106,39 @@ public class HealthCheckedChannelPoolTest {
         assertThat(acquire.getNow()).isEqualTo(channels.get(4));
 
         Mockito.verify(downstreamChannelPool, Mockito.times(5)).acquire(any());
+    }
+
+    @Test
+    public void acquireActiveAndKeepAliveTrue_shouldAcquireOnce() throws Exception {
+        stubForIgnoredTimeout();
+        stubAcquireActiveAndKeepAlive();
+
+        Future<Channel> acquire = channelPool.acquire();
+
+        acquire.get(5, TimeUnit.SECONDS);
+
+        assertThat(acquire.isDone()).isTrue();
+        assertThat(acquire.isSuccess()).isTrue();
+        assertThat(acquire.getNow()).isEqualTo(channels.get(0));
+
+        Mockito.verify(downstreamChannelPool, Mockito.times(1)).acquire(any());
+    }
+
+
+    @Test
+    public void acquire_firstChannelKeepAliveFalse_shouldAcquireAnother() throws Exception {
+        stubForIgnoredTimeout();
+        stubAcquireTwiceFirstTimeNotKeepAlive();
+
+        Future<Channel> acquire = channelPool.acquire();
+
+        acquire.get(5, TimeUnit.SECONDS);
+
+        assertThat(acquire.isDone()).isTrue();
+        assertThat(acquire.isSuccess()).isTrue();
+        assertThat(acquire.getNow()).isEqualTo(channels.get(1));
+
+        Mockito.verify(downstreamChannelPool, Mockito.times(2)).acquire(any());
     }
 
     @Test
@@ -154,6 +191,7 @@ public class HealthCheckedChannelPoolTest {
     public void releaseHealthyDoesNotClose() {
         Channel channel = Mockito.mock(Channel.class);
         Mockito.when(channel.isActive()).thenReturn(true);
+        stubKeepAliveAttribute(channel, null);
 
         channelPool.release(channel);
 
@@ -165,7 +203,7 @@ public class HealthCheckedChannelPoolTest {
     public void releaseHealthyCloses() {
         Channel channel = Mockito.mock(Channel.class);
         Mockito.when(channel.isActive()).thenReturn(false);
-
+        stubKeepAliveAttribute(channel, null);
         channelPool.release(channel);
 
         Mockito.verify(channel, times(1)).close();
@@ -179,11 +217,32 @@ public class HealthCheckedChannelPoolTest {
                 Promise<Channel> promise = invocation.getArgumentAt(0, Promise.class);
                 Channel channel = Mockito.mock(Channel.class);
                 Mockito.when(channel.isActive()).thenReturn(shouldAcquireBeHealthy);
+                stubKeepAliveAttribute(channel, null);
                 channels.add(channel);
                 promise.setSuccess(channel);
                 return promise;
             });
         }
+    }
+
+    private void stubAcquireActiveAndKeepAlive() {
+        OngoingStubbing<Future<Channel>> stubbing = Mockito.when(downstreamChannelPool.acquire(any()));
+        stubbing = stubbing.thenAnswer(invocation -> {
+            Promise<Channel> promise = invocation.getArgumentAt(0, Promise.class);
+            Channel channel = Mockito.mock(Channel.class);
+            Mockito.when(channel.isActive()).thenReturn(true);
+
+            stubKeepAliveAttribute(channel, true);
+
+            channels.add(channel);
+            promise.setSuccess(channel);
+            return promise;
+        });
+    }
+
+    private void stubKeepAliveAttribute(Channel channel, Boolean isKeepAlive) {
+        Mockito.when(channel.attr(KEEP_ALIVE)).thenReturn(attribute);
+        when(attribute.get()).thenReturn(isKeepAlive);
     }
 
     public void stubBadDownstreamAcquire() {
@@ -201,5 +260,28 @@ public class HealthCheckedChannelPoolTest {
     public void stubForIgnoredTimeout() {
         Mockito.when(eventLoopGroup.schedule(any(Runnable.class), anyLong(), any()))
                .thenAnswer(i -> scheduledFuture);
+    }
+
+    private void stubAcquireTwiceFirstTimeNotKeepAlive() {
+        OngoingStubbing<Future<Channel>> stubbing = Mockito.when(downstreamChannelPool.acquire(any()));
+        stubbing = stubbing.thenAnswer(invocation -> {
+            Promise<Channel> promise = invocation.getArgumentAt(0, Promise.class);
+            Channel channel = Mockito.mock(Channel.class);
+            stubKeepAliveAttribute(channel, false);
+            Mockito.when(channel.isActive()).thenReturn(true);
+            channels.add(channel);
+            promise.setSuccess(channel);
+            return promise;
+        });
+
+        stubbing.thenAnswer(invocation -> {
+            Promise<Channel> promise = invocation.getArgumentAt(0, Promise.class);
+            Channel channel = Mockito.mock(Channel.class);
+            Mockito.when(channel.isActive()).thenReturn(true);
+            channels.add(channel);
+            promise.setSuccess(channel);
+            stubKeepAliveAttribute(channel, true);
+            return promise;
+        });
     }
 }

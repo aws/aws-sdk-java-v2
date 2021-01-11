@@ -1,0 +1,11 @@
+{
+    "version": "2.9.21",
+    "date": "2019-10-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Archived Media",
+            "description": "Add ON_DISCONTINUITY mode to the GetHLSStreamingSessionURL API"
+        }
+    ]
+}

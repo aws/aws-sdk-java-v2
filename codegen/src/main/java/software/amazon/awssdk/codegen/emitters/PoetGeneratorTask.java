@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.Writer;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 
-public final class PoetGeneratorTask implements GeneratorTask {
+public final class PoetGeneratorTask extends GeneratorTask {
 
     private final Writer writer;
     private final ClassSpec classSpec;
@@ -35,9 +35,10 @@ public final class PoetGeneratorTask implements GeneratorTask {
     }
 
     @Override
-    public void execute() {
+    public void compute() {
         try {
-            writer.write(fileHeader + "\n");
+            writer.write(fileHeader);
+            writer.write("\n");
             buildJavaFile(classSpec).writeTo(writer);
             writer.flush();
         } catch (IOException e) {

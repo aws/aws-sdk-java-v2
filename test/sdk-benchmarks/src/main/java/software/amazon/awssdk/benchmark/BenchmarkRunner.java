@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,7 +25,8 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyClientH1NonTlsBenchmark;
+import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.ApacheHttpClientBenchmark;
@@ -36,6 +37,14 @@ import software.amazon.awssdk.benchmark.apicall.protocol.QueryProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.XmlProtocolBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetOverheadBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutOverheadBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientQueryV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientScanV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientUpdateV1MapperComparisonBenchmark;
 import software.amazon.awssdk.utils.Logger;
 
 
@@ -48,7 +57,7 @@ public class BenchmarkRunner {
     private static final List<String> ASYNC_BENCHMARKS = Arrays.asList(
         NettyHttpClientH2Benchmark.class.getSimpleName(),
         NettyHttpClientH1Benchmark.class.getSimpleName(),
-        NettyClientH1NonTlsBenchmark.class.getSimpleName());
+        AwsCrtClientBenchmark.class.getSimpleName());
 
     private static final List<String> SYNC_BENCHMARKS = Arrays.asList(
         ApacheHttpClientBenchmark.class.getSimpleName(),
@@ -57,6 +66,19 @@ public class BenchmarkRunner {
     private static final List<String> COLD_START_BENCHMARKS = Arrays.asList(
         V2OptimizedClientCreationBenchmark.class.getSimpleName(),
         V2DefaultClientCreationBenchmark.class.getSimpleName());
+
+    private static final List<String> MAPPER_BENCHMARKS = Arrays.asList(
+            EnhancedClientGetOverheadBenchmark.class.getSimpleName(),
+            EnhancedClientPutOverheadBenchmark.class.getSimpleName(),
+            EnhancedClientGetV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientPutV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientUpdateV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientDeleteV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientScanV1MapperComparisonBenchmark.class.getSimpleName(),
+            EnhancedClientQueryV1MapperComparisonBenchmark.class.getSimpleName()
+    );
+
+    private static final List<String> METRIC_BENCHMARKS = Arrays.asList(MetricsEnabledBenchmark.class.getSimpleName());
 
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
 
@@ -74,6 +96,9 @@ public class BenchmarkRunner {
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
         benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
         benchmarksToRun.addAll(COLD_START_BENCHMARKS);
+
+        log.info(() -> "Skipping tests, to reduce benchmark times: \n" + MAPPER_BENCHMARKS + "\n" + METRIC_BENCHMARKS);
+
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
 

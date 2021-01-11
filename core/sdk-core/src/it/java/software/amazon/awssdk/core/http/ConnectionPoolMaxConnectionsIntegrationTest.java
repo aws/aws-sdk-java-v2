@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,13 +16,16 @@
 package software.amazon.awssdk.core.http;
 
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import java.time.Duration;
+
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
@@ -70,7 +73,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
                   .request(request)
                   .originalRequest(NoopTestRequest.builder().build())
                   .executionContext(executionContext(request))
-                  .execute(new EmptySdkResponseHandler());
+                  .execute(combinedSyncResponseHandler(new EmptySdkResponseHandler(), null));
 
         try {
             // A new connection will be leased here which would fail in
@@ -79,7 +82,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
                       .request(request)
                       .originalRequest(NoopTestRequest.builder().build())
                       .executionContext(executionContext(request))
-                      .execute();
+                      .execute(combinedSyncResponseHandler(null, null));
             Assert.fail("Connection pool timeout exception is expected!");
         } catch (SdkClientException e) {
             Assert.assertTrue(e.getCause() instanceof ConnectionPoolTimeoutException);

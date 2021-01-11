@@ -1,0 +1,21 @@
+{
+    "version": "2.10.88",
+    "date": "2020-03-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "AWS Elemental MediaConvert SDK has added support for: AV1 encoding in File Group MP4, DASH and CMAF DASH outputs; PCM/WAV audio output in MPEG2-TS containers; and Opus audio in Webm inputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix an issue where the signing key is created only once at the start of the request for event streaming requests. This causes requests that span two or more days to have signing errors once the date changes because the signing key was derived only once using the date at the beginning of the request."
+        }
+    ]
+}

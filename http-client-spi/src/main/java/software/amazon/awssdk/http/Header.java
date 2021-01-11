@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -32,6 +32,12 @@ public final class Header {
     public static final String TRANSFER_ENCODING = "Transfer-Encoding";
 
     public static final String CHUNKED = "chunked";
+
+    public static final String HOST = "Host";
+
+    public static final String CONNECTION = "Connection";
+
+    public static final String KEEP_ALIVE_VALUE = "keep-alive";
 
     private Header() {
     }

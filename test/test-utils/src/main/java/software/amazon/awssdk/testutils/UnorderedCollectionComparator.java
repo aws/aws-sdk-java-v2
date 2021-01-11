@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -54,10 +54,8 @@ public final class UnorderedCollectionComparator {
         }
 
         // Add all elements into sets to remove duplicates.
-        Set<A> setA = new HashSet<A>();
-        setA.addAll(colA);
-        Set<B> setB = new HashSet<B>();
-        setB.addAll(colB);
+        Set<A> setA = new HashSet<>(colA);
+        Set<B> setB = new HashSet<>(colB);
 
         if (setA.size() != setB.size()) {
             return false;

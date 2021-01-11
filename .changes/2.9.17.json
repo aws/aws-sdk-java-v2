@@ -1,0 +1,31 @@
+{
+    "version": "2.9.17",
+    "date": "2019-10-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "AWS Elemental MediaConvert SDK has added support for Dolby Atmos encoding, up to 36 outputs, accelerated transcoding with frame capture and preferred acceleration feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Expose instance signature through EC2MetadataUtils"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "description": "Amazon ElastiCache now allows you to apply available service updates on demand to your Memcached and Redis Cache Clusters. Features included: (1) Access to the list of applicable service updates and their priorities. (2) Service update monitoring and regular status updates. (3) Recommended apply-by-dates for scheduling the service updates. (4) Ability to stop and later re-apply updates. For more information, see https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/Self-Service-Updates.html and https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Self-Service-Updates.html"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "description": "Updated documentation for Amazon Managed Streaming for Kafka service."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix the implementations of `equals(Object)` and `hashCode()` for `DefaultSdkAutoConstructList` and `DefaultSdkAutoConstructMap` so that they follow the Java `equals` and `hashCode` contract. In addition, ensure that these implementations' `toString()` methods return nicely readable results. Fixes [#1445](https://github.com/aws/aws-sdk-java-v2/issues/1445)"
+        }
+    ]
+}

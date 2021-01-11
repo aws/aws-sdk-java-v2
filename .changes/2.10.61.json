@@ -1,0 +1,21 @@
+{
+    "version": "2.10.61",
+    "date": "2020-02-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "description": "Added clarifying information that Amazon DocumentDB shares operational technology with Amazon RDS and Amazon Neptune."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "description": "The ConnectCustomKeyStore API now provides a new error code (SUBNET_NOT_FOUND) for customers to better troubleshoot if their \"connect-custom-key-store\" operation fails."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

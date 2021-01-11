@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,15 +15,19 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
+
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.ScheduledFuture;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * An implementation of {@link ChannelPool} that validates the health of its connections.
@@ -38,14 +42,14 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * {@link NettyConfiguration#connectionAcquireTimeoutMillis()} timeout is reached.
  */
 @SdkInternalApi
-public class HealthCheckedChannelPool implements ChannelPool {
+public class HealthCheckedChannelPool implements SdkChannelPool {
     private final EventLoopGroup eventLoopGroup;
     private final int acquireTimeoutMillis;
-    private final ChannelPool delegate;
+    private final SdkChannelPool delegate;
 
     public HealthCheckedChannelPool(EventLoopGroup eventLoopGroup,
                                     NettyConfiguration configuration,
-                                    ChannelPool delegate) {
+                                    SdkChannelPool delegate) {
         this.eventLoopGroup = eventLoopGroup;
         this.acquireTimeoutMillis = configuration.connectionAcquireTimeoutMillis();
         this.delegate = delegate;
@@ -159,6 +163,17 @@ public class HealthCheckedChannelPool implements ChannelPool {
      * Determine whether the provided channel is 'healthy' enough to use.
      */
     private boolean isHealthy(Channel channel) {
+        // There might be cases where the channel is not reusable but still active at the moment
+        // See https://github.com/aws/aws-sdk-java-v2/issues/1380
+        if (channel.attr(KEEP_ALIVE).get() != null && !channel.attr(KEEP_ALIVE).get()) {
+            return false;
+        }
+
         return channel.isActive();
+    }
+
+    @Override
+    public CompletableFuture<Void> collectChannelPoolMetrics(MetricCollector metrics) {
+        return delegate.collectChannelPoolMetrics(metrics);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -45,9 +45,10 @@ public final class Service {
     /**
      * Returns true if the service is regionalized.
      */
-    private boolean isRegionalized;
+    private Boolean isRegionalized;
 
-    public Service() {}
+    public Service() {
+    }
 
     public Service(@JsonProperty(value = "endpoints") Map<String, Endpoint> endpoints) {
         this.endpoints = Validate.paramNotNull(endpoints, "endpoints");
@@ -99,7 +100,7 @@ public final class Service {
     /**
      * returns true if the service is regionalized.
      */
-    public boolean isRegionalized() {
+    public Boolean isRegionalized() {
         return isRegionalized;
     }
 
@@ -107,7 +108,7 @@ public final class Service {
      * sets the regionalized property for a service..
      */
     @JsonProperty(value = "isRegionalized")
-    public void setIsRegionalized(boolean regionalized) {
+    public void setIsRegionalized(Boolean regionalized) {
         isRegionalized = regionalized;
     }
 

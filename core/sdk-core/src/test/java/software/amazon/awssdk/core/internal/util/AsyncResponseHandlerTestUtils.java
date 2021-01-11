@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,13 +15,17 @@
 
 package software.amazon.awssdk.core.internal.util;
 
-import org.reactivestreams.Publisher;
-import software.amazon.awssdk.core.async.DrainingSubscriber;
-import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
-import software.amazon.awssdk.http.SdkHttpResponse;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+
+import org.reactivestreams.Publisher;
+
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.async.DrainingSubscriber;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.internal.http.async.CombinedResponseAsyncHttpResponseHandler;
+import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 public class AsyncResponseHandlerTestUtils {
     private AsyncResponseHandlerTestUtils() {
@@ -41,6 +45,16 @@ public class AsyncResponseHandlerTestUtils {
 
     public static <T> TransformingAsyncResponseHandler<T> superSlowResponseHandler(T result, long sleepInMillis) {
         return new SuperSlowResponseHandler<>(result, sleepInMillis);
+    }
+
+
+    public static <T> TransformingAsyncResponseHandler<Response<T>> combinedAsyncResponseHandler(
+        TransformingAsyncResponseHandler<T> successResponseHandler,
+        TransformingAsyncResponseHandler<? extends SdkException> failureResponseHandler) {
+
+        return new CombinedResponseAsyncHttpResponseHandler<>(
+            successResponseHandler == null ? noOpResponseHandler() : successResponseHandler,
+            failureResponseHandler == null ? noOpResponseHandler() : failureResponseHandler);
     }
 
     private static class NoOpResponseHandler<T> implements TransformingAsyncResponseHandler<T> {

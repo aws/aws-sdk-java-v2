@@ -1,0 +1,76 @@
+{
+    "version": "2.11.2",
+    "date": "2020-03-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Reduced the number of times the profile file configuration is read from disk on client creation from 3-5 to 1."
+        },
+        {
+            "type": "feature",
+            "category": "AWS X-Ray",
+            "description": "GetTraceSummaries - Now provides additional root cause attribute ClientImpacting which indicates whether root cause impacted trace client."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "description": "Adding support for customer packages (dictionary files) to Amazon Elasticsearch Service"
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB",
+            "description": "Fixed an issue that could cause a null-pointer-exception when using anonymous credentials with endpoint discovery enabled."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Blockchain",
+            "description": "Amazon Managed Blockchain now has support to publish Hyperledger Fabric peer node, chaincode, and certificate authority (CA) logs to Amazon CloudWatch Logs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "Performance improvements."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "description": "Customers can now receive Savings Plans recommendations at the member (linked) account level."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Detective",
+            "description": "The new ACCEPTED_BUT_DISABLED member account status indicates that a member account that accepted the invitation is blocked from contributing data to the behavior graph. The reason is provided in the new DISABLED_REASON property. The new StartMonitoringMember operation enables a blocked member account."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Insights",
+            "description": "Amazon CloudWatch Application Insights for .NET and SQL Server now integrates with Amazon CloudWatch Events (AWS CodeDeploy, AWS Health and Amazon EC2 state changes). This feature enables customers to view events related to problems detected by CloudWatch Application Insights, and reduce mean-time-to-resolution (MTTR)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Added a `defaultProfileFile` and `defaultProfileName` option to the client override configuration. Setting this configuration value is equivalent to setting the environment or system properties for the profile file and profile name. Specifically, it sets the default profile file and profile name used by the client."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "description": "Fixed a bug where explicitly disabling use-arn-region on S3Configuration would have lower priority than the environment variable, system property or profile property."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB",
+            "description": "Fixed an issue where endpoint discovery configuration specified in the profile file was being ignored."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "description": "When endpoint discovery is enabled, the endpoint discovery process is now initialized with the first request, instead of 60 seconds after the first request."
+        }
+    ]
+}

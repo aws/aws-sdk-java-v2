@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
 
 package software.amazon.awssdk.profiles;
 
+import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
+
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.JavaSystemSetting;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * A collection of static methods for loading the location for configuration and credentials files.
@@ -46,7 +45,7 @@ public final class ProfileFileLocation {
     public static Path configurationFilePath() {
         return resolveProfileFilePath(
             ProfileFileSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                                    .orElse(Paths.get(ProfileFileLocation.userHomeDirectory(),
+                                                    .orElse(Paths.get(userHomeDirectory(),
                                                                       ".aws", "config").toString()));
     }
 
@@ -76,43 +75,6 @@ public final class ProfileFileLocation {
      */
     public static Optional<Path> credentialsFileLocation() {
         return resolveIfExists(credentialsFilePath());
-    }
-
-    /**
-     * Load the home directory that should be used for the profile file. This will check the same environment variables as the CLI
-     * to identify the location of home, before falling back to java-specific resolution.
-     */
-    @SdkInternalApi
-    static String userHomeDirectory() {
-        boolean isWindows = JavaSystemSetting.OS_NAME.getStringValue()
-                                                     .map(s -> StringUtils.lowerCase(s).startsWith("windows"))
-                                                     .orElse(false);
-
-        // To match the logic of the CLI we have to consult environment variables directly.
-        // CHECKSTYLE:OFF
-        String home = System.getenv("HOME");
-
-        if (home != null) {
-            return home;
-        }
-
-        if (isWindows) {
-            String userProfile = System.getenv("USERPROFILE");
-
-            if (userProfile != null) {
-                return userProfile;
-            }
-
-            String homeDrive = System.getenv("HOMEDRIVE");
-            String homePath = System.getenv("HOMEPATH");
-
-            if (homeDrive != null && homePath != null) {
-                return homeDrive + homePath;
-            }
-        }
-
-        return JavaSystemSetting.USER_HOME.getStringValueOrThrow();
-        // CHECKSTYLE:ON
     }
 
     private static Path resolveProfileFilePath(String path) {

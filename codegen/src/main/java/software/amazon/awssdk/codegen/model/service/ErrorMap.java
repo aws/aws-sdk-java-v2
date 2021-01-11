@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class ErrorMap {
 
     private String shape;
@@ -27,8 +25,7 @@ public class ErrorMap {
 
     private boolean fault;
 
-    @JsonProperty("error")
-    private ErrorTrait errorTrait;
+    private ErrorTrait error;
 
     public String getShape() {
         return shape;
@@ -62,11 +59,11 @@ public class ErrorMap {
         this.fault = fault;
     }
 
-    public ErrorTrait getErrorTrait() {
-        return errorTrait;
+    public ErrorTrait getError() {
+        return error;
     }
 
-    public void setErrorTrait(ErrorTrait errorTrait) {
-        this.errorTrait = errorTrait;
+    public void setError(ErrorTrait error) {
+        this.error = error;
     }
 }

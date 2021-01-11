@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -65,7 +65,8 @@ public class AwsServiceException extends SdkServiceException {
             return awsErrorDetails().errorMessage() +
                     " (Service: " + awsErrorDetails().serviceName() +
                     ", Status Code: " + statusCode() +
-                    ", Request ID: " + requestId() + ")";
+                    ", Request ID: " + requestId() +
+                    ", Extended Request ID: " + extendedRequestId() + ")";
         }
 
         return super.getMessage();
@@ -165,6 +166,9 @@ public class AwsServiceException extends SdkServiceException {
         Builder requestId(String requestId);
 
         @Override
+        Builder extendedRequestId(String extendedRequestId);
+
+        @Override
         Builder statusCode(int statusCode);
 
         @Override
@@ -229,6 +233,12 @@ public class AwsServiceException extends SdkServiceException {
         @Override
         public Builder requestId(String requestId) {
             this.requestId = requestId;
+            return this;
+        }
+
+        @Override
+        public Builder extendedRequestId(String extendedRequestId) {
+            this.extendedRequestId = extendedRequestId;
             return this;
         }
 

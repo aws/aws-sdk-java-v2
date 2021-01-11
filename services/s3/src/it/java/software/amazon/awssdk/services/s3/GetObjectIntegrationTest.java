@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
         }
     }
 
-
     @Test
     public void toInputStream_loadFromProperties() throws IOException {
         s3.putObject(b -> b.bucket(BUCKET).key(PROPERTY_KEY), RequestBody.fromString("test: test"));
@@ -115,6 +114,13 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
             });
             assertThat(result).isEqualTo("result");
         }
+    }
+
+    @Test
+    public void contentRangeIsReturnedForRangeRequests() {
+        ResponseInputStream<GetObjectResponse> stream = s3.getObject(getObjectRequest.copy(r -> r.range("bytes=0-1")));
+        stream.abort();
+        assertThat(stream.response().contentRange()).isEqualTo("bytes 0-1/10000");
     }
 
     private S3Client createClientWithInterceptor(ExecutionInterceptor interceptor) {

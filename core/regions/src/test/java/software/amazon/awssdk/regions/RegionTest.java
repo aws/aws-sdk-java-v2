@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -59,5 +59,11 @@ public class RegionTest {
         someMap.put(Region.of("key"), "A Value");
 
         assertThat(someMap.get(Region.of("key"))).isEqualTo("A Value");
+    }
+
+    @Test
+    public void idIsUrlEncoded() {
+        Region region = Region.of("http://my-host.com/?");
+        assertThat(region.id()).isEqualTo("http%3A%2F%2Fmy-host.com%2F%3F");
     }
 }

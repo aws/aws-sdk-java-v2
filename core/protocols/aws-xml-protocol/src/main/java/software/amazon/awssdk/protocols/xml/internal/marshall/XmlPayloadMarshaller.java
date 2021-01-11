@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package software.amazon.awssdk.protocols.xml.internal.marshall;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -26,6 +28,8 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.XmlAttributeTrait;
+import software.amazon.awssdk.core.traits.XmlAttributesTrait;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
@@ -35,7 +39,7 @@ public class XmlPayloadMarshaller {
 
     public static final XmlMarshaller<String> STRING = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_STRING);
 
-    public static final XmlMarshaller<Integer> INTEGER =  new BasePayloadMarshaller<>(ValueToStringConverter.FROM_INTEGER);
+    public static final XmlMarshaller<Integer> INTEGER = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_INTEGER);
 
     public static final XmlMarshaller<Long> LONG = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_LONG);
 
@@ -164,7 +168,26 @@ public class XmlPayloadMarshaller {
                 return;
             }
 
-            context.xmlGenerator().startElement(paramName);
+            // Should ignore marshalling for xml attribute
+            if (isXmlAttribute(sdkField)) {
+                return;
+            }
+
+            if (sdkField != null && sdkField.getOptionalTrait(XmlAttributesTrait.class).isPresent()) {
+                XmlAttributesTrait attributeTrait = sdkField.getTrait(XmlAttributesTrait.class);
+                Map<String, String> attributes = attributeTrait.attributes()
+                                                               .entrySet()
+                                                               .stream()
+                                                               .collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(),
+                                                                                                            e.getValue()
+                                                                                                             .attributeGetter()
+                                                                                                             .apply(val)),
+                                                                        HashMap::putAll);
+                context.xmlGenerator().startElement(paramName, attributes);
+            } else {
+                context.xmlGenerator().startElement(paramName);
+            }
+
             marshall(val, context, paramName, sdkField, converter);
             context.xmlGenerator().endElement();
         }
@@ -176,6 +199,10 @@ public class XmlPayloadMarshaller {
 
         protected boolean shouldEmit(T val, String paramName) {
             return val != null && paramName != null;
+        }
+
+        private boolean isXmlAttribute(SdkField<T> sdkField) {
+            return sdkField != null && sdkField.getOptionalTrait(XmlAttributeTrait.class).isPresent();
         }
     }
 

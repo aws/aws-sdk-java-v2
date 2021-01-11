@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -47,7 +47,10 @@ public final class ApiCallTimeoutTracker implements TimeoutTracker {
 
     @Override
     public void cancel() {
+        // Best-effort attempt to ensure that if the future hasn't started running already, don't run it.
         future.cancel(false);
+        // Ensure that if the future hasn't executed its timeout logic already, it won't do so.
+        timeoutTask.cancel();
     }
 
     @Override

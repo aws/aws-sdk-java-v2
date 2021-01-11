@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -61,6 +62,11 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
         if (audioFileInputStream == null) {
             throw new RuntimeException("fail to get the audio input stream");
         }
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        transcribeStreamingClient.close();
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)

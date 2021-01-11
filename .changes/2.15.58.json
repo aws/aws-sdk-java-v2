@@ -1,0 +1,24 @@
+{
+    "version": "2.15.58",
+    "date": "2021-01-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon HealthLake",
+            "contributor": "",
+            "description": "Amazon HealthLake now supports exporting data from FHIR Data Stores in Preview."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix for [#1684](https://github.com/aws/aws-sdk-java-v2/issues/1684) Some of the Retry attempts which failed due to the API TimeOuts did not successfully retried but ended up with AbortedException."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudSearch",
+            "contributor": "",
+            "description": "This release adds support for new Amazon CloudSearch instances."
+        }
+    ]
+}

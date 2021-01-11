@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,6 +27,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
+import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.combinedAsyncResponseHandler;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -33,18 +37,23 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.MetricCollector;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -71,19 +80,76 @@ public class MakeAsyncHttpRequestStageTest {
 
     @Test
     public void apiCallAttemptTimeoutEnabled_shouldInvokeExecutor() throws Exception {
-        stage = new MakeAsyncHttpRequestStage<>(AsyncResponseHandlerTestUtils.noOpResponseHandler(), AsyncResponseHandlerTestUtils.noOpResponseHandler(),
-                                              clientDependencies(Duration.ofMillis(1000)));
-        stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(Duration.ofMillis(1000)));
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
+                ValidSdkObjects.sdkHttpFullRequest().build());
+        stage.execute(requestFuture, requestContext());
 
         verify(timeoutExecutor, times(1)).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
     }
 
     @Test
     public void apiCallAttemptTimeoutNotEnabled_shouldNotInvokeExecutor() throws Exception {
-        stage = new MakeAsyncHttpRequestStage<>(AsyncResponseHandlerTestUtils.noOpResponseHandler(), AsyncResponseHandlerTestUtils.noOpResponseHandler(), clientDependencies(null));
-        stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null));
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
+                ValidSdkObjects.sdkHttpFullRequest().build());
+
+        stage.execute(requestFuture, requestContext());
 
         verify(timeoutExecutor, never()).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+    }
+
+    @Test
+    public void testExecute_contextContainsMetricCollector_addsChildToExecuteRequest() {
+        stage = new MakeAsyncHttpRequestStage<>(
+                combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                        AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+                clientDependencies(null));
+
+        SdkHttpFullRequest sdkHttpRequest = SdkHttpFullRequest.builder()
+                .method(SdkHttpMethod.GET)
+                .host("mybucket.s3.us-west-2.amazonaws.com")
+                .protocol("https")
+                .build();
+
+        MetricCollector mockCollector = mock(MetricCollector.class);
+        MetricCollector childCollector = mock(MetricCollector.class);
+
+        when(mockCollector.createChild(any(String.class))).thenReturn(childCollector);
+
+        ExecutionContext executionContext = ExecutionContext.builder()
+                .executionAttributes(new ExecutionAttributes())
+                .build();
+
+        RequestExecutionContext context = RequestExecutionContext.builder()
+                .originalRequest(ValidSdkObjects.sdkRequest())
+                .executionContext(executionContext)
+                .build();
+
+        context.attemptMetricCollector(mockCollector);
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(sdkHttpRequest);
+
+        try {
+            stage.execute(requestFuture, context);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // ignored, don't really care about successful execution of the stage in this case
+        } finally {
+            ArgumentCaptor<AsyncExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+
+            verify(mockCollector).createChild(eq("HttpClient"));
+            verify(sdkAsyncHttpClient).execute(httpRequestCaptor.capture());
+            assertThat(httpRequestCaptor.getValue().metricCollector()).contains(childCollector);
+        }
     }
 
     private HttpClientDependencies clientDependencies(Duration timeout) {
@@ -97,7 +163,6 @@ public class MakeAsyncHttpRequestStageTest {
 
         return HttpClientDependencies.builder()
                                      .clientConfiguration(configuration)
-                                     .capacityManager(new CapacityManager(2))
                                      .build();
     }
 

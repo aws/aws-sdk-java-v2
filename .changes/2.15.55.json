@@ -1,0 +1,18 @@
+{
+    "version": "2.15.55",
+    "date": "2020-12-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "contributor": "",
+            "description": "Amazon API Gateway now supports data mapping for HTTP APIs which allows customers to modify HTTP Request before sending it to their integration and HTTP Response before sending it to the invoker."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "This release adds a new parameter \"CsrExtensions\" in the \"CertificateAuthorityConfiguration\" data structure, which allows customers to add the addition of KU and SIA into the CA CSR."
+        }
+    ]
+}

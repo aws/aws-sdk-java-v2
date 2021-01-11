@@ -1,0 +1,41 @@
+{
+    "version": "2.14.2",
+    "date": "2020-08-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "description": "Adding additional field in ListPermissions API response to return RAM resource share ARN if a resource were shared through AWS RAM service."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Streaming Service",
+            "description": "Amazon Transcribe and Amazon Transcribe Medical now enable you to identify different speakers in your real-time streams with speaker identification."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "description": "Minor documentation updates for AWS Organizations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "description": "Enhance SearchProvisionedProducts API to allow queries using productName and provisioningArtifactName. Added lastProvisioningRecordId and lastSuccessfulRecordId to Read ProvisionedProduct APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "description": "Amazon Interactive Video Service (IVS) now offers customers the ability to create private channels, allowing customers to restrict their streams by channel or viewer."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "description": "Added WORM, tape retention lock, and custom pool features for virtual tapes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

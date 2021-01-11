@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.async.BufferingSubscriber;
-import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 import software.amazon.awssdk.utils.async.FilteringSubscriber;
 import software.amazon.awssdk.utils.async.FlatteningSubscriber;
 import software.amazon.awssdk.utils.async.LimitingSubscriber;
 import software.amazon.awssdk.utils.async.SequentialSubscriber;
+import software.amazon.awssdk.utils.internal.MappingSubscriber;
 
 /**
  * Interface that is implemented by the Async auto-paginated responses.
@@ -79,12 +79,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
      * @return New publisher with events mapped according to the given function.
      */
     default <U> SdkPublisher<U> map(Function<T, U> mapper) {
-        return subscriber -> subscribe(new DelegatingSubscriber<T, U>(subscriber) {
-            @Override
-            public void onNext(T t) {
-                subscriber.onNext(mapper.apply(t));
-            }
-        });
+        return subscriber -> subscribe(MappingSubscriber.create(subscriber, mapper));
     }
 
     /**

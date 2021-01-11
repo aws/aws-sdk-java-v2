@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@ public final class DefaultSdkAsyncHttpClientBuilder implements SdkAsyncHttpClien
                 .map(f -> f.buildWithDefaults(serviceDefaults))
                 .orElseThrow(
                     () -> SdkClientException.builder()
-                                            .message("Unable to load an HTTP implementation from any provider in the" +
-                                                    "chain. You must declare a dependency on an appropriate HTTP" +
-                                                    "implementation or pass in an SdkHttpClient explicitly to the" +
+                                            .message("Unable to load an HTTP implementation from any provider in the " +
+                                                    "chain. You must declare a dependency on an appropriate HTTP " +
+                                                    "implementation or pass in an SdkHttpClient explicitly to the " +
                                                     "client builder.")
                                             .build());
     }

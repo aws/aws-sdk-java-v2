@@ -1,0 +1,30 @@
+{
+    "version": "2.15.36",
+    "date": "2020-11-30",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed a resource leak that could occur when closing the default credentials provider (or a client using the default credentials provider), when `closeable` credentials like STS or SSO were in use. Fixes [#2149](https://github.com/aws/aws-sdk-java-v2/issues/2149)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release introduces Amazon EC2 Mac1 instances, a new Amazon EC2 instance family built on Apple Mac mini computers, powered by AWS Nitro System, and support running macOS workloads on Amazon EC2"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add LICENSE.txt and NOTICE.txt to META-INF directory of generated JARs"
+        }
+    ]
+}

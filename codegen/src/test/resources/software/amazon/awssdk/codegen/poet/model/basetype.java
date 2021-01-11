@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<BaseType.Builder, BaseType> {
     private static final SdkField<String> BASE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(BaseType::baseMember)).setter(setter(Builder::baseMember))
+            .memberName("BaseMember").getter(getter(BaseType::baseMember)).setter(setter(Builder::baseMember))
             .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BaseMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BASE_MEMBER_FIELD));
@@ -41,7 +41,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
      * 
      * @return The value of the BaseMember property for this object.
      */
-    public String baseMember() {
+    public final String baseMember() {
         return baseMember;
     }
 
@@ -59,19 +59,19 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(baseMember());
         return hashCode;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -90,11 +90,11 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
      * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("BaseType").add("BaseMember", baseMember()).build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
         case "BaseMember":
             return Optional.ofNullable(clazz.cast(baseMember()));
@@ -104,7 +104,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -162,3 +162,4 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
         }
     }
 }
+

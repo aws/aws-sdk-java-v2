@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -85,17 +85,31 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("MaxConnectionAcquires", Integer.class);
 
     /**
-     * Option to disable SSL cert validation and SSL host name verification. By default, this option is off.
-     * Only enable this option for testing purposes.
-     */
-    public static final SdkHttpConfigurationOption<Boolean> TRUST_ALL_CERTIFICATES =
-            new SdkHttpConfigurationOption<>("TrustAllCertificates", Boolean.class);
-
-    /**
      * Whether idle connection should be removed after the {@link #CONNECTION_MAX_IDLE_TIMEOUT} has passed.
      */
     public static final SdkHttpConfigurationOption<Boolean> REAP_IDLE_CONNECTIONS =
             new SdkHttpConfigurationOption<>("ReapIdleConnections", Boolean.class);
+
+    /**
+     * The {@link TlsKeyManagersProvider} that will be used by the HTTP client when authenticating with a
+     * TLS host.
+     */
+    public static final SdkHttpConfigurationOption<TlsKeyManagersProvider> TLS_KEY_MANAGERS_PROVIDER =
+            new SdkHttpConfigurationOption<>("TlsKeyManagersProvider", TlsKeyManagersProvider.class);
+
+    /**
+     * Option to disable SSL cert validation and SSL host name verification. By default, this option is off.
+     * Only enable this option for testing purposes.
+     */
+    public static final SdkHttpConfigurationOption<Boolean> TRUST_ALL_CERTIFICATES =
+        new SdkHttpConfigurationOption<>("TrustAllCertificates", Boolean.class);
+
+    /**
+     * The {@link TlsTrustManagersProvider} that will be used by the HTTP client when authenticating with a
+     * TLS host.
+     */
+    public static final SdkHttpConfigurationOption<TlsTrustManagersProvider> TLS_TRUST_MANAGERS_PROVIDER =
+        new SdkHttpConfigurationOption<>("TlsTrustManagersProvider", TlsTrustManagersProvider.class);
 
     private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(30);
@@ -110,6 +124,9 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
 
+    private static final TlsTrustManagersProvider DEFAULT_TLS_TRUST_MANAGERS_PROVIDER = null;
+    private static final TlsKeyManagersProvider DEFAULT_TLS_KEY_MANAGERS_PROVIDER = SystemPropertyTlsKeyManagersProvider.create();
+
     public static final AttributeMap GLOBAL_HTTP_DEFAULTS = AttributeMap
             .builder()
             .put(READ_TIMEOUT, DEFAULT_SOCKET_READ_TIMEOUT)
@@ -123,6 +140,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .put(REAP_IDLE_CONNECTIONS, DEFAULT_REAP_IDLE_CONNECTIONS)
+            .put(TLS_KEY_MANAGERS_PROVIDER, DEFAULT_TLS_KEY_MANAGERS_PROVIDER)
+            .put(TLS_TRUST_MANAGERS_PROVIDER, DEFAULT_TLS_TRUST_MANAGERS_PROVIDER)
             .build();
 
     private final String name;

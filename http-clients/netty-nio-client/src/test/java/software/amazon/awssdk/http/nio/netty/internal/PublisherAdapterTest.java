@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,27 +20,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 
-import com.typesafe.netty.http.DefaultStreamedHttpResponse;
-import com.typesafe.netty.http.StreamedHttpResponse;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.EmptyByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.util.AttributeKey;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -49,11 +45,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.DefaultStreamedHttpResponse;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PublisherAdapterTest {
@@ -64,7 +63,7 @@ public class PublisherAdapterTest {
     private MockChannel channel;
 
     @Mock
-    private ChannelPool channelPool;
+    private SdkChannelPool channelPool;
 
     @Mock
     private EventLoopGroup eventLoopGroup;
@@ -157,6 +156,75 @@ public class PublisherAdapterTest {
         verify(channelPool).release(channel);
         assertThat(executeFuture).isCompletedExceptionally();
         verify(responseHandler).onError(exception);
+    }
+
+    @Test
+    public void subscriptionCancelled_upstreamPublisherCallsOnNext_httpContentReleased() {
+        HttpContent firstContent = mock(HttpContent.class);
+        when(firstContent.content()).thenReturn(Unpooled.EMPTY_BUFFER);
+
+        HttpContent[] contentToIgnore = new HttpContent[8];
+        for (int i = 0; i < contentToIgnore.length; ++i) {
+            contentToIgnore[i] = mock(HttpContent.class);
+            when(contentToIgnore[i].content()).thenReturn(Unpooled.EMPTY_BUFFER);
+        }
+
+        Publisher<HttpContent> publisher = subscriber -> subscriber.onSubscribe(new Subscription() {
+            @Override
+            public void request(long l) {
+                // We ignore any cancel signal and just publish all the content
+                subscriber.onNext(firstContent);
+
+                for (int i = 0; i < l && i < contentToIgnore.length; ++i) {
+                    subscriber.onNext(contentToIgnore[i]);
+                }
+            }
+
+            @Override
+            public void cancel() {
+                // no-op
+            }
+        });
+
+        DefaultStreamedHttpResponse streamedResponse = new DefaultStreamedHttpResponse(HttpVersion.HTTP_1_1,
+                HttpResponseStatus.OK, publisher);
+
+        Subscriber<ByteBuffer> subscriber = new Subscriber<ByteBuffer>() {
+            private Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                this.subscription = subscription;
+                subscription.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(ByteBuffer byteBuffer) {
+                subscription.cancel();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        };
+
+        ResponseHandler.PublisherAdapter publisherAdapter = new ResponseHandler.PublisherAdapter(streamedResponse, ctx,
+                requestContext, executeFuture);
+
+        publisherAdapter.subscribe(subscriber);
+
+        // First one should be accessed as normal
+        verify(firstContent).content();
+        verify(firstContent).release();
+
+        for (int i = 0; i < contentToIgnore.length; ++i) {
+            verify(contentToIgnore[i]).release();
+            verifyNoMoreInteractions(contentToIgnore[i]);
+        }
     }
 
     static final class TestSubscriber implements Subscriber<ByteBuffer> {

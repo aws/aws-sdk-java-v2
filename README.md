@@ -16,6 +16,7 @@ artifact source.
 * [Sample Code](#sample-code)
 * [API Docs][docs-api]
 * [Developer Guide][docs-guide] ([source][docs-guide-source])
+* [Maven Archetypes](archetypes/README.md)
 * [Issues][sdk-issues]
 * [SDK Blog][blog]
 * [Giving Feedback](#giving-feedback)
@@ -36,7 +37,7 @@ section of the developer guide.
 
 ## Using the SDK
 
-The recommended way to use the AWS SDK for Java in your project is to consume it from Maven. 
+The recommended way to use the AWS SDK for Java in your project is to consume it from Maven Central. 
 
 #### Importing the BOM ####
 
@@ -48,7 +49,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.7.15</version>
+      <version>2.15.61</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -82,12 +83,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.7.15</version>
+  <version>2.15.61</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.7.15</version>
+  <version>2.15.61</version>
 </dependency>
 ```
 
@@ -99,7 +100,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.7.15</version>
+  <version>2.15.61</version>
 </dependency>
 ```
 
@@ -131,13 +132,19 @@ You can find sample code for v2 in the following places:
 * [aws-doc-sdk-examples] repo.
 * Integration tests in this repo. They are located in the `it` directory under each service module, eg: [s3-integration-tests]
 
-## Giving Feedback
-We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels.
+## Maintenance and Support for SDK Major Versions
+For information about maintenance and support for SDK major versions and their underlying dependencies, see the following in the AWS SDKs and Tools Shared Configuration and Credentials Reference Guide:
 
-* Come join the AWS Java community chat on [Gitter][gitter].
-* Articulate your feature request or upvote existing ones on our [Issues][features] page.
-* Submit [issues][sdk-issues].
-* Send feedback directly to the team at aws-java-sdk-v2-feedback@amazon.com.
+* [AWS SDKs and Tools Maintenance Policy][maintenance-policy]
+* [AWS SDKs and Tools Version Support Matrix][version-matrix]
+
+## Giving Feedback
+We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels:
+
+* Submit [issues][sdk-issues] - this is the preferred channel to interact with our team
+* Come join the AWS Java community chat on [Gitter][gitter]
+* Articulate your feature request or upvote existing ones on our [Issues][features] page
+* Send feedback directly to the team at aws-java-sdk-v2-feedback@amazon.com
 
 [aws-iam-credentials]: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/java-dg-roles.html
 [aws]: http://aws.amazon.com/
@@ -154,9 +161,11 @@ We need your help in making this SDK great. Please participate in the community 
 [aws-java-sdk-bom]: https://github.com/aws/aws-sdk-java-v2/tree/master/bom
 [stack-overflow]: http://stackoverflow.com/questions/tagged/aws-java-sdk
 [gitter]: https://gitter.im/aws/aws-sdk-java-v2
-[features]: https://github.com/aws/aws-sdk-java-v2/issues?q=is%3Aopen+is%3Aissue+label%3A%22Feature+Request%22
+[features]: https://github.com/aws/aws-sdk-java-v2/issues?q=is%3Aopen+is%3Aissue+label%3A%22feature-request%22
 [support-center]: https://console.aws.amazon.com/support/
 [console]: https://console.aws.amazon.com
 [bom]: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22software.amazon.awssdk%22%20AND%20a%3A%22bom%22
 [aws-doc-sdk-examples]: https://github.com/awsdocs/aws-doc-sdk-examples/tree/master/javav2
 [s3-integration-tests]: https://github.com/aws/aws-sdk-java-v2/tree/master/services/s3/src/it/java/software/amazon/awssdk/services/s3
+[maintenance-policy]: https://docs.aws.amazon.com/credref/latest/refdocs/maint-policy.html
+[version-matrix]: https://docs.aws.amazon.com/credref/latest/refdocs/version-support-matrix.html

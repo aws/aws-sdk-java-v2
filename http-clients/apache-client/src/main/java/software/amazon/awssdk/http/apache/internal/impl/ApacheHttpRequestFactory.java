@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -47,14 +47,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public class ApacheHttpRequestFactory {
 
-    private static final String DEFAULT_ENCODING = "UTF-8";
-
     private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST);
 
     public HttpRequestBase create(final HttpExecuteRequest request, final ApacheHttpRequestConfig requestConfig) {
-        URI uri = request.httpRequest().getUri();
-
-        HttpRequestBase base = createApacheRequest(request, sanitizeUri(uri));
+        HttpRequestBase base = createApacheRequest(request, sanitizeUri(request.httpRequest()));
         addHeadersToRequest(base, request.httpRequest());
         addRequestConfig(base, request.httpRequest(), requestConfig);
 
@@ -66,12 +62,28 @@ public class ApacheHttpRequestFactory {
      * and other AWS services, this is allowed and required. This methods replaces
      * any occurrence of "//" in the URI path with "/%2F".
      *
-     * @param uri The existing URI with double slashes not sanitized for Apache.
+     * @see SdkHttpRequest#getUri()
+     * @param request The existing request
      * @return a new String containing the modified URI
      */
-    private String sanitizeUri(URI uri) {
-        String newPath = uri.getPath().replace("//", "/%2F");
-        return uri.toString().replace(uri.getPath(), newPath);
+    private String sanitizeUri(SdkHttpRequest request) {
+        String path = request.encodedPath();
+        if (path.contains("//")) {
+            int port = request.port();
+            String protocol = request.protocol();
+            String newPath = path.replace("//", "/%2F");
+            String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(request.rawQueryParameters())
+                                                    .map(value -> "?" + value)
+                                                    .orElse("");
+
+            // Do not include the port in the URI when using the default port for the protocol.
+            String portString = SdkHttpUtils.isUsingStandardPort(protocol, port) ?
+                                "" : ":" + port;
+
+            return URI.create(protocol + "://" + request.host() + portString + newPath + encodedQueryString).toString();
+        }
+
+        return request.getUri().toString();
     }
 
     private void addRequestConfig(final HttpRequestBase base,

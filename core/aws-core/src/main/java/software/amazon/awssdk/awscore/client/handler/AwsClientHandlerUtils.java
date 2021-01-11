@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.CollectionUtils.firstIfPresent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -41,8 +43,10 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.eventstream.HeaderValue;
@@ -57,7 +61,8 @@ public final class AwsClientHandlerUtils {
 
     static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
         ClientExecutionParams<InputT, OutputT> executionParams,
-        SdkClientConfiguration clientConfig) {
+        SdkClientConfiguration clientConfig,
+        ExecutionAttributes executionAttributes) {
 
         SdkRequest originalRequest = executionParams.getInput();
         AwsCredentialsProvider clientCredentials = clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER);
@@ -67,21 +72,28 @@ public final class AwsClientHandlerUtils {
                                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
                                                                     .orElse(clientCredentials);
 
+        long credentialsResolveStart = System.nanoTime();
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        Duration fetchDuration = Duration.ofNanos(System.nanoTime() - credentialsResolveStart);
+        MetricCollector metricCollector = resolveMetricCollector(executionParams);
+        metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, fetchDuration);
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
-        ExecutionAttributes executionAttributes = new ExecutionAttributes()
+        executionAttributes
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
             .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
                           clientConfig.option(AwsClientOption.SERVICE_SIGNING_NAME))
             .putAttribute(AwsExecutionAttribute.AWS_REGION, clientConfig.option(AwsClientOption.AWS_REGION))
+            .putAttribute(AwsExecutionAttribute.ENDPOINT_PREFIX, clientConfig.option(AwsClientOption.ENDPOINT_PREFIX))
             .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, clientConfig.option(AwsClientOption.SIGNING_REGION))
             .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, executionParams.isFullDuplex())
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, clientConfig.option(SdkClientOption.CLIENT_TYPE))
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfig.option(SdkClientOption.SERVICE_NAME))
-            .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName());
+            .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
+            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
+                          clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN));
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
@@ -94,6 +106,7 @@ public final class AwsClientHandlerUtils {
                                                                      .build())
                                .executionAttributes(executionAttributes)
                                .signer(computeSigner(originalRequest, clientConfig))
+                               .metricCollector(metricCollector)
                                .build();
     }
 
@@ -125,7 +138,15 @@ public final class AwsClientHandlerUtils {
     private static Signer computeSigner(SdkRequest originalRequest,
                                         SdkClientConfiguration clientConfiguration) {
         return originalRequest.overrideConfiguration()
-                              .flatMap(config -> config.signer())
+                              .flatMap(RequestOverrideConfiguration::signer)
                               .orElse(clientConfiguration.option(AwsAdvancedClientOption.SIGNER));
+    }
+
+    private static MetricCollector resolveMetricCollector(ClientExecutionParams<?, ?> params) {
+        MetricCollector metricCollector = params.getMetricCollector();
+        if (metricCollector == null) {
+            metricCollector = MetricCollector.create("ApiCall");
+        }
+        return metricCollector;
     }
 }

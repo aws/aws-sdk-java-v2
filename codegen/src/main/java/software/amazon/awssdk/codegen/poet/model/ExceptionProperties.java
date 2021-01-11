@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@ package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
-
 import java.util.Arrays;
 import java.util.List;
 import javax.lang.model.element.Modifier;
-
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 
 public class ExceptionProperties {
 
-    private ExceptionProperties() {}
+    private ExceptionProperties() {
+    }
 
     public static List<MethodSpec> builderInterfaceMethods(ClassName className) {
         return Arrays.asList(

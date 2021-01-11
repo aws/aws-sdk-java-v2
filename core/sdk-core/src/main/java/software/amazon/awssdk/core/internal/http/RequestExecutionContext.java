@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http;
 
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.ASYNC_RESPONSE_TRANSFORMER_FUTURE;
-
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -26,9 +23,11 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -44,6 +43,7 @@ public final class RequestExecutionContext {
     private final ExecutionContext executionContext;
     private TimeoutTracker apiCallTimeoutTracker;
     private TimeoutTracker apiCallAttemptTimeoutTracker;
+    private MetricCollector attemptMetricCollector;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
@@ -118,6 +118,15 @@ public final class RequestExecutionContext {
         this.apiCallAttemptTimeoutTracker = timeoutTracker;
     }
 
+    public MetricCollector attemptMetricCollector() {
+        return attemptMetricCollector;
+    }
+
+    public void attemptMetricCollector(MetricCollector metricCollector) {
+        executionAttributes().putAttribute(SdkExecutionAttribute.API_CALL_ATTEMPT_METRIC_COLLECTOR, metricCollector);
+        this.attemptMetricCollector = metricCollector;
+    }
+
     /**
      * Sets the request body provider.
      * Used for transforming the original body provider to sign events for
@@ -125,10 +134,6 @@ public final class RequestExecutionContext {
      */
     public void requestProvider(AsyncRequestBody publisher) {
         requestProvider = publisher;
-    }
-
-    public CompletableFuture asyncResponseTransformerFuture() {
-        return executionAttributes().getAttribute(ASYNC_RESPONSE_TRANSFORMER_FUTURE);
     }
 
     /**

@@ -1,0 +1,72 @@
+{
+    "version": "2.15.22",
+    "date": "2020-11-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "Added support for deleting resources like Variables, ExternalModels, Outcomes, Models, ModelVersions, Labels, EventTypes and EntityTypes. Updated DeleteEvent operation to catch missing exceptions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS App Mesh",
+            "contributor": "",
+            "description": "This release adds circuit breaking capabilities to your mesh with connection pooling and outlier detection support."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "This release adds a new ReplicaStatus INACCESSIBLE_ENCRYPTION_CREDENTIALS for the Table description, indicating when a key used to encrypt a regional replica table is not accessible."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "With this release, customers can now reprocess past events by storing the events published on event bus in an encrypted archive."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "contributor": "",
+            "description": "With this release, customers can now reprocess past events by storing the events published on event bus in an encrypted archive."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Amazon Elasticsearch Service now provides the ability to define a custom endpoint for your domain and link an SSL certificate from ACM, making it easier to refer to Kibana and the domain endpoint."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Supports a new parameter to set the max allocated storage in gigabytes for the CreateDBInstanceReadReplica API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Support Amazon MQ as an Event Source."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for EC2."
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now supports providing user context in your query requests, Tokens can be JSON or JWT format. This release also introduces support for Confluence cloud datasources."
+        }
+    ]
+}

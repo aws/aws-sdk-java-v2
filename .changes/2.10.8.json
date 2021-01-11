@@ -1,0 +1,21 @@
+{
+    "version": "2.10.8",
+    "date": "2019-11-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "description": "RoboMaker Fleet Management launch a feature to verify your robot is ready to download and install the new robot application using a download condition file, which is a script run on the robot prior to downloading the new deployment."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Accelerator (DAX)",
+            "description": "Documentation updates for dax"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Documentation updates for ec2"
+        }
+    ]
+}

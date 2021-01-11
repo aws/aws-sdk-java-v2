@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -41,19 +41,43 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
 
     @Test
     public void cachingDoesNotApplyToExpiredSession() {
-        callClientWithCredentialsProvider(Instant.now().minus(Duration.ofSeconds(5)), 2);
+        callClientWithCredentialsProvider(Instant.now().minus(Duration.ofSeconds(5)), 2, false);
+        callClient(verify(stsClient, times(2)), Mockito.any());
+    }
+
+    @Test
+    public void cachingDoesNotApplyToExpiredSession_OverridePrefetchAndStaleTimes() {
+        callClientWithCredentialsProvider(Instant.now().minus(Duration.ofSeconds(5)), 2, true);
         callClient(verify(stsClient, times(2)), Mockito.any());
     }
 
     @Test
     public void cachingAppliesToNonExpiredSession() {
-        callClientWithCredentialsProvider(Instant.now().plus(Duration.ofHours(5)), 2);
+        callClientWithCredentialsProvider(Instant.now().plus(Duration.ofHours(5)), 2, false);
+        callClient(verify(stsClient, times(1)), Mockito.any());
+    }
+
+    @Test
+    public void cachingAppliesToNonExpiredSession_OverridePrefetchAndStaleTimes() {
+        callClientWithCredentialsProvider(Instant.now().plus(Duration.ofHours(5)), 2, true);
         callClient(verify(stsClient, times(1)), Mockito.any());
     }
 
     @Test
     public void distantExpiringCredentialsUpdatedInBackground() throws InterruptedException {
-        callClientWithCredentialsProvider(Instant.now().plusSeconds(90), 2);
+        callClientWithCredentialsProvider(Instant.now().plusSeconds(90), 2, false);
+
+        Instant endCheckTime = Instant.now().plus(Duration.ofSeconds(5));
+        while (Mockito.mockingDetails(stsClient).getInvocations().size() < 2 && endCheckTime.isAfter(Instant.now())) {
+            Thread.sleep(100);
+        }
+
+        callClient(verify(stsClient, times(2)), Mockito.any());
+    }
+
+    @Test
+    public void distantExpiringCredentialsUpdatedInBackground_OverridePrefetchAndStaleTimes() throws InterruptedException {
+        callClientWithCredentialsProvider(Instant.now().plusSeconds(90), 2, true);
 
         Instant endCheckTime = Instant.now().plus(Duration.ofSeconds(5));
         while (Mockito.mockingDetails(stsClient).getInvocations().size() < 2 && endCheckTime.isAfter(Instant.now())) {
@@ -72,14 +96,32 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
 
     protected abstract ResponseT callClient(StsClient client, RequestT request);
 
-    public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider) {
+    public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider, boolean overrideStaleAndPrefetchTimes) {
         Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();
         RequestT request = getRequest();
         ResponseT response = getResponse(credentials);
 
         when(callClient(stsClient, request)).thenReturn(response);
 
-        try (StsCredentialsProvider credentialsProvider = createCredentialsProviderBuilder(request).stsClient(stsClient).build()) {
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder = createCredentialsProviderBuilder(request);
+
+        if(overrideStaleAndPrefetchTimes) {
+            //do the same values as we would do without overriding the stale and prefetch times
+            credentialsProviderBuilder.staleTime(Duration.ofMinutes(2));
+            credentialsProviderBuilder.prefetchTime(Duration.ofMinutes(4));
+        }
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            if(overrideStaleAndPrefetchTimes) {
+                //validate that we actually stored the override values in the build provider
+                assertThat(credentialsProvider.staleTime()).as("stale time").isEqualTo(Duration.ofMinutes(2));
+                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isEqualTo(Duration.ofMinutes(4));
+            } else {
+                //validate that the default values are used
+                assertThat(credentialsProvider.staleTime()).as("stale time").isEqualTo(Duration.ofMinutes(1));
+                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isEqualTo(Duration.ofMinutes(5));
+            }
+
             for (int i = 0; i < numTimesInvokeCredentialsProvider; ++i) {
                 AwsSessionCredentials providedCredentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
                 assertThat(providedCredentials.accessKeyId()).isEqualTo("a");

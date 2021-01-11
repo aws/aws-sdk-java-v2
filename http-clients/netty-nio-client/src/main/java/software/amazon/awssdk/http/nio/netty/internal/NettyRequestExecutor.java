@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static software.amazon.awssdk.http.Protocol.HTTP1_1;
-import static software.amazon.awssdk.http.Protocol.HTTP2;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.CLOSED_CHANNEL_MESSAGE;
 
-import com.typesafe.netty.http.HttpStreamsClientHandler;
-import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -55,7 +54,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -63,19 +61,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2StreamExceptionHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpRequest;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
 public final class NettyRequestExecutor {
     private static final Logger log = LoggerFactory.getLogger(NettyRequestExecutor.class);
-    private static final RequestAdapter REQUEST_ADAPTER = new RequestAdapter();
+    private static final RequestAdapter REQUEST_ADAPTER_HTTP2 = new RequestAdapter(Protocol.HTTP2);
+    private static final RequestAdapter REQUEST_ADAPTER_HTTP1_1 = new RequestAdapter(Protocol.HTTP1_1);
     private static final AtomicLong EXECUTION_COUNTER = new AtomicLong(0L);
     private final long executionId = EXECUTION_COUNTER.incrementAndGet();
     private final RequestContext context;
     private CompletableFuture<Void> executeFuture;
     private Channel channel;
+    private RequestAdapter requestAdapter;
 
     public NettyRequestExecutor(RequestContext context) {
         this.context = context;
@@ -84,8 +89,8 @@ public final class NettyRequestExecutor {
     @SuppressWarnings("unchecked")
     public CompletableFuture<Void> execute() {
         Promise<Channel> channelFuture = context.eventLoopGroup().next().newPromise();
+        executeFuture = createExecutionFuture(channelFuture);
         context.channelPool().acquire(channelFuture);
-        executeFuture = createExecuteFuture(channelFuture);
         channelFuture.addListener((GenericFutureListener) this::makeRequestListener);
         return executeFuture;
     }
@@ -97,10 +102,13 @@ public final class NettyRequestExecutor {
      *
      * @return The created execution future.
      */
-    private CompletableFuture<Void> createExecuteFuture(Promise<Channel> channelPromise) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
+    private CompletableFuture<Void> createExecutionFuture(Promise<Channel> channelPromise) {
+        CompletableFuture<Void> metricsFuture = initiateMetricsCollection();
 
+        CompletableFuture<Void> future = new CompletableFuture<>();
         future.whenComplete((r, t) -> {
+            verifyMetricsWereCollected(metricsFuture);
+
             if (t == null) {
                 return;
             }
@@ -128,6 +136,31 @@ public final class NettyRequestExecutor {
         return future;
     }
 
+    private CompletableFuture<Void> initiateMetricsCollection() {
+        MetricCollector metricCollector = context.metricCollector();
+        if (!NettyRequestMetrics.metricsAreEnabled(metricCollector)) {
+            return null;
+        }
+        return context.channelPool().collectChannelPoolMetrics(metricCollector);
+    }
+
+    private void verifyMetricsWereCollected(CompletableFuture<Void> metricsFuture) {
+        if (metricsFuture == null) {
+            return;
+        }
+
+        if (!metricsFuture.isDone()) {
+            log.debug("HTTP request metric collection did not finish in time, so results may be incomplete.");
+            metricsFuture.cancel(false);
+            return;
+        }
+
+        metricsFuture.exceptionally(t -> {
+            log.debug("HTTP request metric collection failed, so results may be incomplete.", t);
+            return null;
+        });
+    }
+
     private void makeRequestListener(Future<Channel> channelFuture) {
         if (channelFuture.isSuccess()) {
             channel = channelFuture.getNow();
@@ -145,6 +178,7 @@ public final class NettyRequestExecutor {
         channel.attr(EXECUTE_FUTURE_KEY).set(executeFuture);
         channel.attr(REQUEST_CONTEXT_KEY).set(context);
         channel.attr(RESPONSE_COMPLETE_KEY).set(false);
+        channel.attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(false);
         channel.attr(IN_USE).set(true);
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
@@ -152,16 +186,28 @@ public final class NettyRequestExecutor {
     private boolean tryConfigurePipeline() {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
-        if (HTTP2.equals(protocol)) {
-            pipeline.addLast(new Http2ToHttpInboundAdapter());
-            pipeline.addLast(new HttpToHttp2OutboundAdapter());
-        } else if (!HTTP1_1.equals(protocol)) {
-            String errorMsg = "Unknown protocol: " + protocol;
-            closeAndRelease(channel);
-            handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
-            return false;
+
+        switch (protocol) {
+            case HTTP2:
+                pipeline.addLast(new Http2ToHttpInboundAdapter());
+                pipeline.addLast(new HttpToHttp2OutboundAdapter());
+                pipeline.addLast(Http2StreamExceptionHandler.create());
+                requestAdapter = REQUEST_ADAPTER_HTTP2;
+                break;
+            case HTTP1_1:
+                requestAdapter = REQUEST_ADAPTER_HTTP1_1;
+                break;
+            default:
+                String errorMsg = "Unknown protocol: " + protocol;
+                closeAndRelease(channel);
+                handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
+                return false;
         }
 
+        pipeline.addLast(LastHttpContentHandler.create());
+        if (Protocol.HTTP2.equals(protocol)) {
+            pipeline.addLast(FlushOnReadHandler.getInstance());
+        }
         pipeline.addLast(new HttpStreamsClientHandler());
         pipeline.addLast(ResponseHandler.getInstance());
 
@@ -179,7 +225,7 @@ public final class NettyRequestExecutor {
     }
 
     private void makeRequest() {
-        HttpRequest request = REQUEST_ADAPTER.adapt(context.executeRequest().request());
+        HttpRequest request = requestAdapter.adapt(context.executeRequest().request());
         writeRequest(request);
     }
 
@@ -193,6 +239,8 @@ public final class NettyRequestExecutor {
                    // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
+                       NettyRequestMetrics.publishHttp2StreamMetrics(context.metricCollector(), channel);
+
                        if (context.executeRequest().fullDuplex()) {
                            return;
                        }
@@ -200,7 +248,6 @@ public final class NettyRequestExecutor {
                        channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                           TimeUnit.MILLISECONDS));
                        channel.read();
-
                    } else {
                        // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);
@@ -264,7 +311,7 @@ public final class NettyRequestExecutor {
         } else if (originalCause instanceof WriteTimeoutException) {
             return new IOException("Write timed out", originalCause);
         } else if (originalCause instanceof ClosedChannelException) {
-            return new IOException(getMessageForClosedChannel(), originalCause);
+            return new IOException(CLOSED_CHANNEL_MESSAGE, originalCause);
         }
 
         return originalCause;
@@ -323,12 +370,6 @@ public final class NettyRequestExecutor {
                 + "AWS, or by increasing the number of hosts sending requests.";
     }
 
-    private String getMessageForClosedChannel() {
-        return "The channel was closed. This may have been done by the client (e.g. because the request was aborted), " +
-               "by the service (e.g. because the request took too long or the client tried to write on a read-only socket), " +
-               "or by an intermediary party (e.g. because the channel was idle for too long).";
-    }
-
     /**
      * Close and release the channel back to the pool.
      *
@@ -336,6 +377,7 @@ public final class NettyRequestExecutor {
      */
     private void closeAndRelease(Channel channel) {
         log.trace("closing and releasing channel {}", channel.id().asLongText());
+        channel.attr(KEEP_ALIVE).set(false);
         channel.close();
         context.channelPool().release(channel);
     }

@@ -1,11 +1,14 @@
 package software.amazon.awssdk.services.endpointdiscoverytest;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -14,6 +17,10 @@ import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCac
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -31,6 +38,7 @@ import software.amazon.awssdk.services.endpointdiscoverytest.transform.DescribeE
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryIdentifiersRequiredRequestMarshaller;
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryOptionalRequestMarshaller;
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryRequiredRequestMarshaller;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Internal implementation of {@link EndpointDiscoveryTestClient}.
@@ -40,6 +48,8 @@ import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDisco
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestClient {
+    private static final Logger log = Logger.loggerFor(DefaultEndpointDiscoveryTestClient.class);
+
     private final SyncClientHandler clientHandler;
 
     private final AwsJsonProtocolFactory protocolFactory;
@@ -54,7 +64,7 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache.create(EndpointDiscoveryTestEndpointDiscoveryCacheLoader
-                    .create(this));
+                                                                                   .create(this));
         }
     }
 
@@ -79,20 +89,31 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
      */
     @Override
     public DescribeEndpointsResponse describeEndpoints(DescribeEndpointsRequest describeEndpointsRequest)
-            throws AwsServiceException, SdkClientException, EndpointDiscoveryTestException {
+        throws AwsServiceException, SdkClientException, EndpointDiscoveryTestException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<DescribeEndpointsResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                DescribeEndpointsResponse::builder);
+                                                                                                               DescribeEndpointsResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, describeEndpointsRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "DescribeEndpoints");
 
-        return clientHandler.execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
-                .withOperationName("DescribeEndpoints").withResponseHandler(responseHandler)
-                .withErrorResponseHandler(errorResponseHandler).withInput(describeEndpointsRequest)
-                .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
+                                             .withOperationName("DescribeEndpoints").withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).withInput(describeEndpointsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -111,31 +132,51 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
      */
     @Override
     public TestDiscoveryIdentifiersRequiredResponse testDiscoveryIdentifiersRequired(
-            TestDiscoveryIdentifiersRequiredRequest testDiscoveryIdentifiersRequiredRequest) throws AwsServiceException,
-            SdkClientException, EndpointDiscoveryTestException {
+        TestDiscoveryIdentifiersRequiredRequest testDiscoveryIdentifiersRequiredRequest) throws AwsServiceException,
+                                                                                                SdkClientException, EndpointDiscoveryTestException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<TestDiscoveryIdentifiersRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, TestDiscoveryIdentifiersRequiredResponse::builder);
+            operationMetadata, TestDiscoveryIdentifiersRequiredResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata);
+        boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
+        boolean endpointOverridden = clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE;
+        if (endpointOverridden) {
+            throw new IllegalStateException(
+                "This operation requires endpoint discovery, but an endpoint override was specified when the client was created. This is not supported.");
+        }
+        if (!endpointDiscoveryEnabled) {
+            throw new IllegalStateException(
+                "This operation requires endpoint discovery, but endpoint discovery was disabled on the client.");
+        }
         URI cachedEndpoint = null;
-        if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
+        if (endpointDiscoveryEnabled) {
 
             String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
-                    .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
+                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryIdentifiersRequired");
 
-        return clientHandler
+            return clientHandler
                 .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
-                        .withOperationName("TestDiscoveryIdentifiersRequired").withResponseHandler(responseHandler)
-                        .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                        .withInput(testDiscoveryIdentifiersRequiredRequest)
-                        .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
+                             .withOperationName("TestDiscoveryIdentifiersRequired").withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
+                             .withInput(testDiscoveryIdentifiersRequiredRequest).withMetricCollector(apiCallMetricCollector)
+                             .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -154,29 +195,41 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
      */
     @Override
     public TestDiscoveryOptionalResponse testDiscoveryOptional(TestDiscoveryOptionalRequest testDiscoveryOptionalRequest)
-            throws AwsServiceException, SdkClientException, EndpointDiscoveryTestException {
+        throws AwsServiceException, SdkClientException, EndpointDiscoveryTestException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<TestDiscoveryOptionalResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, TestDiscoveryOptionalResponse::builder);
+            operationMetadata, TestDiscoveryOptionalResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata);
+        boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
+        boolean endpointOverridden = clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE;
         URI cachedEndpoint = null;
-        if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
+        if (endpointDiscoveryEnabled) {
 
             String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(false)
-                    .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
+                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryOptionalRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryOptional");
 
-        return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
-                .withOperationName("TestDiscoveryOptional").withResponseHandler(responseHandler)
-                .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                .withInput(testDiscoveryOptionalRequest)
-                .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
+                                             .withOperationName("TestDiscoveryOptional").withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
+                                             .withInput(testDiscoveryOptionalRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**
@@ -195,40 +248,75 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
      */
     @Override
     public TestDiscoveryRequiredResponse testDiscoveryRequired(TestDiscoveryRequiredRequest testDiscoveryRequiredRequest)
-            throws AwsServiceException, SdkClientException, EndpointDiscoveryTestException {
+        throws AwsServiceException, SdkClientException, EndpointDiscoveryTestException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<TestDiscoveryRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, TestDiscoveryRequiredResponse::builder);
+            operationMetadata, TestDiscoveryRequiredResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata);
+        boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
+        boolean endpointOverridden = clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE;
+        if (endpointOverridden) {
+            throw new IllegalStateException(
+                "This operation requires endpoint discovery, but an endpoint override was specified when the client was created. This is not supported.");
+        }
+        if (!endpointDiscoveryEnabled) {
+            throw new IllegalStateException(
+                "This operation requires endpoint discovery, but endpoint discovery was disabled on the client.");
+        }
         URI cachedEndpoint = null;
-        if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
+        if (endpointDiscoveryEnabled) {
 
             String key = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER).resolveCredentials().accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
-                    .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
+                                                                                        .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT)).build();
             cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
         }
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryRequiredRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryRequired");
 
-        return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
-                .withOperationName("TestDiscoveryRequired").withResponseHandler(responseHandler)
-                .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                .withInput(testDiscoveryRequiredRequest)
-                .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
+                                             .withOperationName("TestDiscoveryRequired").withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
+                                             .withInput(testDiscoveryRequiredRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
+                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+        List<MetricPublisher> publishers = null;
+        if (requestOverrideConfiguration != null) {
+            publishers = requestOverrideConfiguration.metricPublishers();
+        }
+        if (publishers == null || publishers.isEmpty()) {
+            publishers = clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS);
+        }
+        if (publishers == null) {
+            publishers = Collections.emptyList();
+        }
+        return publishers;
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-            JsonOperationMetadata operationMetadata) {
+                                                                                JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration)
-                .defaultServiceExceptionSupplier(EndpointDiscoveryTestException::builder).protocol(AwsJsonProtocol.AWS_JSON)
-                .protocolVersion("1.1");
+                      .defaultServiceExceptionSupplier(EndpointDiscoveryTestException::builder).protocol(AwsJsonProtocol.AWS_JSON)
+                      .protocolVersion("1.1");
     }
 
     @Override

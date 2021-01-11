@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public interface ProtocolSpec {
 
     CodeBlock responseHandler(IntermediateModel model, OperationModel opModel);
 
-    CodeBlock errorResponseHandler(OperationModel opModel);
+    Optional<CodeBlock> errorResponseHandler(OperationModel opModel);
 
     CodeBlock executionHandler(OperationModel opModel);
 
@@ -97,7 +97,6 @@ public interface ProtocolSpec {
                ? ".discoveredEndpoint(cachedEndpoint)\n"
                : "";
     }
-
 
     /**
      * For sync streaming operations, wrap request marshaller in {@link StreamingRequestMarshaller} class.
@@ -155,7 +154,8 @@ public interface ProtocolSpec {
                              + "         runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\", () "
                              + "-> %s.exceptionOccurred(e));%n"
                              + "     }%n"
-                             + "})", responseHandlerName);
+                             + "%s"
+                             + "})", responseHandlerName, publishMetrics());
 
     }
 
@@ -176,5 +176,15 @@ public interface ProtocolSpec {
      */
     default TypeName getPojoResponseType(OperationModel opModel, PoetExtensions poetExtensions) {
         return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+    }
+
+    default String publishMetricsWhenComplete() {
+        return String.format(".whenComplete((r, e) -> {%n"
+                             + "%s%n"
+                             + "})", publishMetrics());
+    }
+
+    default String publishMetrics() {
+        return "metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));";
     }
 }

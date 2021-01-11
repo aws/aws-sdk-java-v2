@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.internal;
 
+import java.nio.file.Path;
+
 public final class Constant {
 
     public static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
@@ -26,6 +28,18 @@ public final class Constant {
 
     public static final String SYNC_CLIENT_INTERFACE_NAME_PATTERN = "%sClient";
     public static final String SYNC_CLIENT_CLASS_NAME_PATTERN = "Default%sClient";
+
+    /**
+     * Name of the source {@link Path}-typed formal method parameters of streaming input operations.
+     */
+    public static final String SYNC_CLIENT_SOURCE_PATH_PARAM_NAME = "sourcePath";
+
+    /**
+     * Name of the destination {@link Path}-typed formal method parameters of streaming output
+     * operations.
+     */
+    public static final String SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME = "destinationPath";
+
     public static final String SYNC_BUILDER_INTERFACE_NAME_PATTERN = "%sClientBuilder";
     public static final String SYNC_BUILDER_CLASS_NAME_PATTERN = "Default%sClientBuilder";
 
@@ -51,6 +65,8 @@ public final class Constant {
     public static final String PACKAGE_NAME_TRANSFORM_PATTERN = "%s.transform";
 
     public static final String PACKAGE_NAME_PAGINATORS_PATTERN = "%s.paginators";
+
+    public static final String PACKAGE_NAME_WAITERS_PATTERN = "%s.waiters";
 
     public static final String PACKAGE_NAME_SMOKE_TEST_PATTERN = "%s.smoketests";
 

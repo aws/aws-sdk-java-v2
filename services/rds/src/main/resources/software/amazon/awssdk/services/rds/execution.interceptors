@@ -1,2 +1,5 @@
+software.amazon.awssdk.services.rds.internal.CopyDbClusterSnapshotPresignInterceptor
 software.amazon.awssdk.services.rds.internal.CopyDbSnapshotPresignInterceptor
+software.amazon.awssdk.services.rds.internal.CreateDbClusterPresignInterceptor
 software.amazon.awssdk.services.rds.internal.CreateDbInstanceReadReplicaPresignInterceptor
+software.amazon.awssdk.services.rds.internal.StartDbInstanceAutomatedBackupsReplicationPresignInterceptor

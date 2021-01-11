@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sts.internal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Supplier;
@@ -31,7 +32,10 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.conditions.OrRetryCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 import software.amazon.awssdk.profiles.Profile;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.StsClientBuilder;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.IdpCommunicationErrorException;
@@ -66,6 +70,7 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                                                                       RetryCondition.defaultRetryCondition());
 
             this.stsClient = StsClient.builder()
+                                      .applyMutation(this::configureEndpoint)
                                       .credentialsProvider(AnonymousCredentialsProvider.create())
                                       .overrideConfiguration(o -> o.retryPolicy(r -> r.retryCondition(retryCondition)))
                                       .build();
@@ -95,6 +100,22 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
         public void close() {
             IoUtils.closeQuietly(credentialsProvider, null);
             IoUtils.closeQuietly(stsClient, null);
+        }
+
+        private void configureEndpoint(StsClientBuilder stsClientBuilder) {
+            Region stsRegion;
+            try {
+                stsRegion = new DefaultAwsRegionProviderChain().getRegion();
+            } catch (RuntimeException e) {
+                stsRegion = null;
+            }
+
+            if (stsRegion != null) {
+                stsClientBuilder.region(stsRegion);
+            } else {
+                stsClientBuilder.region(Region.US_EAST_1);
+                stsClientBuilder.endpointOverride(URI.create("https://sts.amazonaws.com"));
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -74,6 +74,25 @@ public class PoetExtensions {
      */
     public ClassName getResponseClassForPaginatedSyncOperation(String operationName) {
         return ClassName.get(model.getMetadata().getFullPaginatorsPackageName(), operationName + "Iterable");
+    }
+
+    public ClassName getSyncWaiterInterface() {
+        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), model.getMetadata().getServiceName() + "Waiter");
+    }
+
+    public ClassName getSyncWaiterClass() {
+        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), "Default" + model.getMetadata().getServiceName() +
+                                                                              "Waiter");
+    }
+
+    public ClassName getAsyncWaiterInterface() {
+        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), model.getMetadata().getServiceName() +
+                                                                              "AsyncWaiter");
+    }
+
+    public ClassName getAsyncWaiterClass() {
+        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), "Default" + model.getMetadata().getServiceName() +
+                                                                              "AsyncWaiter");
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -57,18 +57,24 @@ public interface SdkHttpFullRequest
      */
     interface Builder extends SdkHttpRequest.Builder {
         /**
-         * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()}, and
-         * {@link #encodedPath()} from a {@link URI} object.
+         * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()},
+         * {@link #encodedPath()} and extracts query parameters from a {@link URI} object.
          *
          * @param uri URI containing protocol, host, port and path.
          * @return This builder for method chaining.
          */
         @Override
         default Builder uri(URI uri) {
-            return this.protocol(uri.getScheme())
+            Builder builder =  this.protocol(uri.getScheme())
                        .host(uri.getHost())
                        .port(uri.getPort())
                        .encodedPath(SdkHttpUtils.appendUri(uri.getRawPath(), encodedPath()));
+            if (uri.getRawQuery() != null) {
+                builder.clearQueryParameters();
+                SdkHttpUtils.uriParams(uri)
+                            .forEach(this::putRawQueryParameter);
+            }
+            return builder;
         }
 
         /**

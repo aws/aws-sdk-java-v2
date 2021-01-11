@@ -1,0 +1,46 @@
+{
+    "version": "2.13.12",
+    "date": "2020-05-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "description": "Amazon CloudWatch Logs now offers the ability to interact with Logs Insights queries via the new PutQueryDefinition, DescribeQueryDefinitions, and DeleteQueryDefinition APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "description": "Add COMMIT_MESSAGE enum for webhook filter types"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Amazon EC2 now adds warnings to identify issues when creating a launch template or launch template version."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "description": "Amazon Route 53 now supports the EU (Milan) Region (eu-south-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "description": "This release adds support for the following options in instance public ports: Specify source IP addresses, specify ICMP protocol like PING, and enable/disable the Lightsail browser-based SSH and RDP clients' access to your instance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "This Patch Manager release supports creating patch baselines for Oracle Linux and Debian"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "description": "The description of the AWS AppConfig GetConfiguration API action was amended to include important information about calling ClientConfigurationVersion when you configure clients to call GetConfiguration."
+        }
+    ]
+}

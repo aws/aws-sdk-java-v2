@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(SimpleStruct::stringMember)).setter(setter(Builder::stringMember))
+            .memberName("StringMember").getter(getter(SimpleStruct::stringMember)).setter(setter(Builder::stringMember))
             .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD));
@@ -41,7 +41,7 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
      * 
      * @return The value of the StringMember property for this object.
      */
-    public String stringMember() {
+    public final String stringMember() {
         return stringMember;
     }
 
@@ -59,19 +59,19 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(stringMember());
         return hashCode;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -90,21 +90,21 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
      * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("SimpleStruct").add("StringMember", stringMember()).build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "StringMember":
-                return Optional.ofNullable(clazz.cast(stringMember()));
-            default:
-                return Optional.empty();
+        case "StringMember":
+            return Optional.ofNullable(clazz.cast(stringMember()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -162,3 +162,4 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
         }
     }
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
@@ -62,7 +63,8 @@ public class AsyncResponseThreadingTest {
                 client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
                                                 AsyncResponseTransformer.toBytes()).join();
 
-        verify(mockExecutor).execute(any());
+        // #1 reporting metrics, #2 completing response
+        verify(mockExecutor, atLeast(1)).execute(any());
 
         byte[] arrayCopy = response.asByteArray();
         assertThat(arrayCopy).containsExactly('t', 'e', 's', 't');

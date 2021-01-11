@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -118,6 +118,11 @@ public final class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentia
          */
         public Builder refreshRequest(Consumer<AssumeRoleWithSamlRequest.Builder> assumeRoleWithSamlRequest) {
             return refreshRequest(AssumeRoleWithSamlRequest.builder().applyMutation(assumeRoleWithSamlRequest).build());
+        }
+
+        @Override
+        public StsAssumeRoleWithSamlCredentialsProvider build() {
+            return super.build();
         }
     }
 }

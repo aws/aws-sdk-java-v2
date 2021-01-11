@@ -42,6 +42,15 @@
         "requestUri":"/"
       }
     },
+    "DeprecatedRename": {
+      "name": "DeprecatedRename",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "DeprecatedRenameRequest"},
+      "output": {"shape": "DeprecatedRenameResponse"}
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -80,6 +89,19 @@
       "input": {
         "shape": "EventStreamOperationWithOnlyInputRequest"
       }
+    },
+    "ExistenceCheckNaming": {
+      "name": "ExistenceCheckNaming",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/ExistenceCheckNaming"
+      },
+      "input": {
+        "shape": "ExistenceCheckNamingRequest"
+      },
+      "output": {
+        "shape": "ExistenceCheckNamingResponse"
+      }
     }
   },
   "shapes":{
@@ -115,7 +137,8 @@
         "RecursiveStruct":{"shape":"RecursiveStructType"},
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
-        "EnumType":{"shape":"EnumType"}
+        "EnumType":{"shape":"EnumType"},
+        "Underscore_Name_Type":{"shape":"Underscore_Name_Type"}
       }
     },
     "BaseType":{
@@ -131,12 +154,44 @@
     },
     "BlobType":{"type":"blob"},
     "Boolean":{"type":"boolean"},
+    "DeprecatedRenameRequest":{
+      "type": "structure",
+      "members": {
+        "OriginalNameNoDeprecation":{"shape": "String"},
+        "OriginalNameDeprecated": {"shape": "String"}
+      }
+    },
+    "DeprecatedRenameResponse":{
+      "type": "structure",
+      "members": {
+        "OriginalNameNoDeprecation":{"shape": "String"},
+        "OriginalNameDeprecated": {"shape": "String"}
+      }
+    },
     "Double":{"type":"double"},
     "EmptyModeledException":{
       "type":"structure",
       "members":{
       },
       "exception":true
+    },
+    "ExistenceCheckNamingRequest": {
+      "type": "structure",
+      "members": {
+        "Build":{"shape": "ListOfStrings"},
+        "super":{"shape": "ListOfStrings"},
+        "toString":{"shape": "MapOfStringToString"},
+        "equals":{"shape": "MapOfStringToString"}
+      }
+    },
+    "ExistenceCheckNamingResponse": {
+      "type": "structure",
+      "members": {
+        "Build":{"shape": "ListOfStrings"},
+        "super":{"shape": "ListOfStrings"},
+        "toString":{"shape": "MapOfStringToString"},
+        "equals":{"shape": "MapOfStringToString"}
+      }
     },
     "Float":{"type":"float"},
     "IdempotentOperationStructure":{
@@ -354,7 +409,16 @@
         "EventOne": {
           "shape": "EventOne"
         },
+        "SecondEventOne": {
+          "shape": "EventOne"
+        },
         "EventTwo": {
+          "shape": "EventTwo"
+        },
+        "SecondEventTwo": {
+          "shape": "EventTwo"
+        },
+        "eventthree": {
           "shape": "EventTwo"
         }
       },
@@ -414,6 +478,9 @@
       },
       "event": true
     },
-    "ImplicitPayloadMemberOne":{"type":"blob"}
+    "ImplicitPayloadMemberOne":{"type":"blob"},
+    "Underscore_Name_Type": {
+      "type": "structure"
+    }
   }
 }

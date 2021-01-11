@@ -273,7 +273,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Creates a proposal to associate the specified virtual private gateway or transit gateway with the specified Direct Connect gateway.</p> <p>You can only associate a Direct Connect gateway and virtual private gateway or transit gateway when the account that owns the Direct Connect gateway and the account that owns the virtual private gateway or transit gateway have the same AWS Payer ID.</p>"
+      "documentation":"<p>Creates a proposal to associate the specified virtual private gateway or transit gateway with the specified Direct Connect gateway.</p> <p>You can associate a Direct Connect gateway and virtual private gateway or transit gateway that is owned by any AWS account. </p>"
     },
     "CreateInterconnect":{
       "name":"CreateInterconnect",
@@ -305,7 +305,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Creates a link aggregation group (LAG) with the specified number of bundled physical connections between the customer network and a specific AWS Direct Connect location. A LAG is a logical interface that uses the Link Aggregation Control Protocol (LACP) to aggregate multiple interfaces, enabling you to treat them as a single interface.</p> <p>All connections in a LAG must use the same bandwidth and must terminate at the same AWS Direct Connect endpoint.</p> <p>You can have up to 10 connections per LAG. Regardless of this limit, if you request more connections for the LAG than AWS Direct Connect can allocate on a single endpoint, no LAG is created.</p> <p>You can specify an existing physical connection or interconnect to include in the LAG (which counts towards the total number of connections). Doing so interrupts the current physical connection or hosted connections, and re-establishes them as a member of the LAG. The LAG will be created on the same AWS Direct Connect endpoint to which the connection terminates. Any virtual interfaces associated with the connection are automatically disassociated and re-associated with the LAG. The connection ID does not change.</p> <p>If the AWS account used to create a LAG is a registered AWS Direct Connect Partner, the LAG is automatically enabled to host sub-connections. For a LAG owned by a partner, any associated virtual interfaces cannot be directly configured.</p>"
+      "documentation":"<p>Creates a link aggregation group (LAG) with the specified number of bundled physical dedicated connections between the customer network and a specific AWS Direct Connect location. A LAG is a logical interface that uses the Link Aggregation Control Protocol (LACP) to aggregate multiple interfaces, enabling you to treat them as a single interface.</p> <p>All connections in a LAG must use the same bandwidth (either 1Gbps or 10Gbps) and must terminate at the same AWS Direct Connect endpoint.</p> <p>You can have up to 10 dedicated connections per LAG. Regardless of this limit, if you request more connections for the LAG than AWS Direct Connect can allocate on a single endpoint, no LAG is created.</p> <p>You can specify an existing physical dedicated connection or interconnect to include in the LAG (which counts towards the total number of connections). Doing so interrupts the current physical dedicated connection, and re-establishes them as a member of the LAG. The LAG will be created on the same AWS Direct Connect endpoint to which the dedicated connection terminates. Any virtual interfaces associated with the dedicated connection are automatically disassociated and re-associated with the LAG. The connection ID does not change.</p> <p>If the AWS account used to create a LAG is a registered AWS Direct Connect Partner, the LAG is automatically enabled to host sub-connections. For a LAG owned by a partner, any associated virtual interfaces cannot be directly configured.</p>"
     },
     "CreatePrivateVirtualInterface":{
       "name":"CreatePrivateVirtualInterface",
@@ -321,7 +321,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Creates a private virtual interface. A virtual interface is the VLAN that transports AWS Direct Connect traffic. A private virtual interface can be connected to either a Direct Connect gateway or a Virtual Private Gateway (VGW). Connecting the private virtual interface to a Direct Connect gateway enables the possibility for connecting to multiple VPCs, including VPCs in different AWS Regions. Connecting the private virtual interface to a VGW only provides access to a single VPC within the same Region.</p>"
+      "documentation":"<p>Creates a private virtual interface. A virtual interface is the VLAN that transports AWS Direct Connect traffic. A private virtual interface can be connected to either a Direct Connect gateway or a Virtual Private Gateway (VGW). Connecting the private virtual interface to a Direct Connect gateway enables the possibility for connecting to multiple VPCs, including VPCs in different AWS Regions. Connecting the private virtual interface to a VGW only provides access to a single VPC within the same Region.</p> <p>Setting the MTU of a virtual interface to 9001 (jumbo frames) can cause an update to the underlying physical connection if it wasn't updated to support jumbo frames. Updating the connection disrupts network connectivity for all virtual interfaces associated with the connection for up to 30 seconds. To check whether your connection supports jumbo frames, call <a>DescribeConnections</a>. To check whether your virtual interface supports jumbo frames, call <a>DescribeVirtualInterfaces</a>.</p>"
     },
     "CreatePublicVirtualInterface":{
       "name":"CreatePublicVirtualInterface",
@@ -353,7 +353,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Creates a transit virtual interface. A transit virtual interface should be used to access one or more transit gateways associated with Direct Connect gateways. A transit virtual interface enables the connection of multiple VPCs attached to a transit gateway to a Direct Connect gateway.</p> <important> <p>If you associate your transit gateway with one or more Direct Connect gateways, the Autonomous System Number (ASN) used by the transit gateway and the Direct Connect gateway must be different. For example, if you use the default ASN 64512 for both your the transit gateway and Direct Connect gateway, the association request fails.</p> </important>"
+      "documentation":"<p>Creates a transit virtual interface. A transit virtual interface should be used to access one or more transit gateways associated with Direct Connect gateways. A transit virtual interface enables the connection of multiple VPCs attached to a transit gateway to a Direct Connect gateway.</p> <important> <p>If you associate your transit gateway with one or more Direct Connect gateways, the Autonomous System Number (ASN) used by the transit gateway and the Direct Connect gateway must be different. For example, if you use the default ASN 64512 for both your the transit gateway and Direct Connect gateway, the association request fails.</p> </important> <p>Setting the MTU of a virtual interface to 8500 (jumbo frames) can cause an update to the underlying physical connection if it wasn't updated to support jumbo frames. Updating the connection disrupts network connectivity for all virtual interfaces associated with the connection for up to 30 seconds. To check whether your connection supports jumbo frames, call <a>DescribeConnections</a>. To check whether your virtual interface supports jumbo frames, call <a>DescribeVirtualInterfaces</a>.</p>"
     },
     "DeleteBGPPeer":{
       "name":"DeleteBGPPeer",
@@ -395,7 +395,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Deletes the specified Direct Connect gateway. You must first delete all virtual interfaces that are attached to the Direct Connect gateway and disassociate all virtual private gateways that are associated with the Direct Connect gateway.</p>"
+      "documentation":"<p>Deletes the specified Direct Connect gateway. You must first delete all virtual interfaces that are attached to the Direct Connect gateway and disassociate all virtual private gateways associated with the Direct Connect gateway.</p>"
     },
     "DeleteDirectConnectGatewayAssociation":{
       "name":"DeleteDirectConnectGatewayAssociation",
@@ -409,7 +409,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Deletes the association between the specified Direct Connect gateway and virtual private gateway.</p>"
+      "documentation":"<p>Deletes the association between the specified Direct Connect gateway and virtual private gateway.</p> <p>We recommend that you specify the <code>associationID</code> to delete the association. Alternatively, if you own virtual gateway and a Direct Connect gateway association, you can specify the <code>virtualGatewayId</code> and <code>directConnectGatewayId</code> to delete an association.</p>"
     },
     "DeleteDirectConnectGatewayAssociationProposal":{
       "name":"DeleteDirectConnectGatewayAssociationProposal",
@@ -706,6 +706,48 @@
       ],
       "documentation":"<p>Disassociates a connection from a link aggregation group (LAG). The connection is interrupted and re-established as a standalone connection (the connection is not deleted; to delete the connection, use the <a>DeleteConnection</a> request). If the LAG has associated virtual interfaces or hosted connections, they remain associated with the LAG. A disassociated connection owned by an AWS Direct Connect Partner is automatically converted to an interconnect.</p> <p>If disassociating the connection would cause the LAG to fall below its setting for minimum number of operational connections, the request fails, except when it's the last member of the LAG. If all connections are disassociated, the LAG continues to exist as an empty LAG with no physical connections. </p>"
     },
+    "ListVirtualInterfaceTestHistory":{
+      "name":"ListVirtualInterfaceTestHistory",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListVirtualInterfaceTestHistoryRequest"},
+      "output":{"shape":"ListVirtualInterfaceTestHistoryResponse"},
+      "errors":[
+        {"shape":"DirectConnectServerException"},
+        {"shape":"DirectConnectClientException"}
+      ],
+      "documentation":"<p>Lists the virtual interface failover test history.</p>"
+    },
+    "StartBgpFailoverTest":{
+      "name":"StartBgpFailoverTest",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartBgpFailoverTestRequest"},
+      "output":{"shape":"StartBgpFailoverTestResponse"},
+      "errors":[
+        {"shape":"DirectConnectServerException"},
+        {"shape":"DirectConnectClientException"}
+      ],
+      "documentation":"<p>Starts the virtual interface failover test that verifies your configuration meets your resiliency requirements by placing the BGP peering session in the DOWN state. You can then send traffic to verify that there are no outages.</p> <p>You can run the test on public, private, transit, and hosted virtual interfaces.</p> <p>You can use <a href=\"https://docs.aws.amazon.com/directconnect/latest/APIReference/API_ListVirtualInterfaceTestHistory.html\">ListVirtualInterfaceTestHistory</a> to view the virtual interface test history.</p> <p>If you need to stop the test before the test interval completes, use <a href=\"https://docs.aws.amazon.com/directconnect/latest/APIReference/API_StopBgpFailoverTest.html\">StopBgpFailoverTest</a>.</p>"
+    },
+    "StopBgpFailoverTest":{
+      "name":"StopBgpFailoverTest",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StopBgpFailoverTestRequest"},
+      "output":{"shape":"StopBgpFailoverTestResponse"},
+      "errors":[
+        {"shape":"DirectConnectServerException"},
+        {"shape":"DirectConnectClientException"}
+      ],
+      "documentation":"<p>Stops the virtual interface failover test.</p>"
+    },
     "TagResource":{
       "name":"TagResource",
       "http":{
@@ -776,7 +818,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Updates the specified attributes of the specified virtual private interface.</p> <p>Setting the MTU of a virtual interface to 9001 (jumbo frames) can cause an update to the underlying physical connection if it wasn't updated to support jumbo frames. Updating the connection disrupts network connectivity for all virtual interfaces associated with the connection for up to 30 seconds. To check whether your connection supports jumbo frames, call <a>DescribeConnections</a>. To check whether your virtual interface supports jumbo frames, call <a>DescribeVirtualInterfaces</a>.</p>"
+      "documentation":"<p>Updates the specified attributes of the specified virtual private interface.</p> <p>Setting the MTU of a virtual interface to 9001 (jumbo frames) can cause an update to the underlying physical connection if it wasn't updated to support jumbo frames. Updating the connection disrupts network connectivity for all virtual interfaces associated with the connection for up to 30 seconds. To check whether your connection supports jumbo frames, call <a>DescribeConnections</a>. To check whether your virtual q interface supports jumbo frames, call <a>DescribeVirtualInterfaces</a>.</p>"
     }
   },
   "shapes":{
@@ -884,7 +926,7 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to assign to the hosted connection.</p>"
+          "documentation":"<p>The tags associated with the connection.</p>"
         }
       }
     },
@@ -1088,6 +1130,10 @@
       "documentation":"<p>Information about a BGP peer.</p>"
     },
     "BGPPeerId":{"type":"string"},
+    "BGPPeerIdList":{
+      "type":"list",
+      "member":{"shape":"BGPPeerId"}
+    },
     "BGPPeerList":{
       "type":"list",
       "member":{"shape":"BGPPeer"}
@@ -1269,7 +1315,11 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the connection.</p>"
+          "documentation":"<p>The tags associated with the connection.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the connection.</p>"
         }
       },
       "documentation":"<p>Information about an AWS Direct Connect connection.</p>"
@@ -1352,7 +1402,11 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to assign to the connection.</p>"
+          "documentation":"<p>The tags to associate with the lag.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the requested connection.</p>"
         }
       }
     },
@@ -1409,7 +1463,7 @@
         },
         "addAllowedPrefixesToDirectConnectGateway":{
           "shape":"RouteFilterPrefixList",
-          "documentation":"<p>The Amazon VPC prefixes to advertise to the Direct Connect gateway</p> <p>For information about how to set the prefixes, see <a href=\"https://docs.aws.amazon.com/directconnect/latest/UserGuide/multi-account-associate-vgw.html#allowed-prefixes\">Allowed Prefixes</a> in the <i>AWS Direct Connect User Guide</i>.</p>"
+          "documentation":"<p>The Amazon VPC prefixes to advertise to the Direct Connect gateway</p> <p>This parameter is required when you create an association to a transit gateway.</p> <p>For information about how to set the prefixes, see <a href=\"https://docs.aws.amazon.com/directconnect/latest/UserGuide/multi-account-associate-vgw.html#allowed-prefixes\">Allowed Prefixes</a> in the <i>AWS Direct Connect User Guide</i>.</p>"
         },
         "virtualGatewayId":{
           "shape":"VirtualGatewayId",
@@ -1475,7 +1529,11 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to assign to the interconnect,</p>"
+          "documentation":"<p>The tags to associate with the interconnect.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the interconnect.</p>"
         }
       }
     },
@@ -1490,7 +1548,7 @@
       "members":{
         "numberOfConnections":{
           "shape":"Count",
-          "documentation":"<p>The number of physical connections initially provisioned and bundled by the LAG.</p>"
+          "documentation":"<p>The number of physical dedicated connections initially provisioned and bundled by the LAG.</p>"
         },
         "location":{
           "shape":"LocationCode",
@@ -1498,7 +1556,7 @@
         },
         "connectionsBandwidth":{
           "shape":"Bandwidth",
-          "documentation":"<p>The bandwidth of the individual physical connections bundled by the LAG. The possible values are 50Mbps, 100Mbps, 200Mbps, 300Mbps, 400Mbps, 500Mbps, 1Gbps, 2Gbps, 5Gbps, and 10Gbps. </p>"
+          "documentation":"<p>The bandwidth of the individual physical dedicated connections bundled by the LAG. The possible values are 1Gbps and 10Gbps. </p>"
         },
         "lagName":{
           "shape":"LagName",
@@ -1506,15 +1564,19 @@
         },
         "connectionId":{
           "shape":"ConnectionId",
-          "documentation":"<p>The ID of an existing connection to migrate to the LAG.</p>"
+          "documentation":"<p>The ID of an existing dedicated connection to migrate to the LAG.</p>"
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to assign to the link aggregation group (LAG).</p>"
+          "documentation":"<p>The tags to associate with the LAG.</p>"
         },
         "childConnectionTags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to assign to the child connections of the LAG. Only newly created child connections as the result of creating a LAG connection are assigned the provided tags. The tags are not assigned to an existing connection that is provided via the “connectionId” parameter that will be migrated to the LAG.</p>"
+          "documentation":"<p>The tags to associate with the automtically created LAGs.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the LAG.</p>"
         }
       }
     },
@@ -2194,7 +2256,7 @@
         },
         "attachmentType":{
           "shape":"DirectConnectGatewayAttachmentType",
-          "documentation":"<p>The interface type.</p>"
+          "documentation":"<p>The type of attachment.</p>"
         },
         "stateChangeError":{
           "shape":"StateChangeError",
@@ -2270,7 +2332,9 @@
       "documentation":"<p>A tag key was specified more than once.</p>",
       "exception":true
     },
+    "EndTime":{"type":"timestamp"},
     "ErrorMessage":{"type":"string"},
+    "FailureTestHistoryStatus":{"type":"string"},
     "GatewayIdToAssociate":{"type":"string"},
     "GatewayIdentifier":{"type":"string"},
     "GatewayType":{
@@ -2341,7 +2405,11 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the interconnect.</p>"
+          "documentation":"<p>The tags associated with the interconnect.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the interconnect.</p>"
         }
       },
       "documentation":"<p>Information about an interconnect.</p>"
@@ -2383,7 +2451,7 @@
         },
         "numberOfConnections":{
           "shape":"Count",
-          "documentation":"<p>The number of physical connections bundled by the LAG, up to a maximum of 10.</p>"
+          "documentation":"<p>The number of physical dedicated connections bundled by the LAG, up to a maximum of 10.</p>"
         },
         "lagId":{
           "shape":"LagId",
@@ -2411,7 +2479,7 @@
         },
         "minimumLinks":{
           "shape":"Count",
-          "documentation":"<p>The minimum number of physical connections that must be operational for the LAG itself to be operational.</p>"
+          "documentation":"<p>The minimum number of physical dedicated connections that must be operational for the LAG itself to be operational.</p>"
         },
         "awsDevice":{
           "shape":"AwsDevice",
@@ -2439,7 +2507,11 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to link aggregation group (LAG).</p>"
+          "documentation":"<p>The tags associated with the LAG.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the LAG.</p>"
         }
       },
       "documentation":"<p>Information about a link aggregation group (LAG).</p>"
@@ -2468,6 +2540,48 @@
         "lags":{
           "shape":"LagList",
           "documentation":"<p>The LAGs.</p>"
+        }
+      }
+    },
+    "ListVirtualInterfaceTestHistoryRequest":{
+      "type":"structure",
+      "members":{
+        "testId":{
+          "shape":"TestId",
+          "documentation":"<p>The ID of the virtual interface failover test.</p>"
+        },
+        "virtualInterfaceId":{
+          "shape":"VirtualInterfaceId",
+          "documentation":"<p>The ID of the virtual interface that was tested.</p>"
+        },
+        "bgpPeers":{
+          "shape":"BGPPeerIdList",
+          "documentation":"<p>The BGP peers that were placed in the DOWN state during the virtual interface failover test.</p>"
+        },
+        "status":{
+          "shape":"FailureTestHistoryStatus",
+          "documentation":"<p>The status of the virtual interface failover test.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResultSetSize",
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p> <p>If <code>MaxResults</code> is given a value larger than 100, only 100 results are returned.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The token for the next page of results.</p>"
+        }
+      }
+    },
+    "ListVirtualInterfaceTestHistoryResponse":{
+      "type":"structure",
+      "members":{
+        "virtualInterfaceTestHistory":{
+          "shape":"VirtualInterfaceTestHistoryList",
+          "documentation":"<p>The ID of the tested virtual interface.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
         }
       }
     },
@@ -2509,6 +2623,10 @@
         "availablePortSpeeds":{
           "shape":"AvailablePortSpeeds",
           "documentation":"<p>The available port speeds for the location.</p>"
+        },
+        "availableProviders":{
+          "shape":"ProviderList",
+          "documentation":"<p>The name of the service provider for the location.</p>"
         }
       },
       "documentation":"<p>Information about an AWS Direct Connect location.</p>"
@@ -2570,7 +2688,7 @@
       "members":{
         "virtualInterfaceName":{
           "shape":"VirtualInterfaceName",
-          "documentation":"<p>The name of the virtual interface assigned by the customer network.</p>"
+          "documentation":"<p>The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).</p>"
         },
         "vlan":{
           "shape":"VLAN",
@@ -2578,7 +2696,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "mtu":{
           "shape":"MTU",
@@ -2610,7 +2728,7 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the private virtual interface.</p>"
+          "documentation":"<p>The tags associated with the private virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a private virtual interface.</p>"
@@ -2625,7 +2743,7 @@
       "members":{
         "virtualInterfaceName":{
           "shape":"VirtualInterfaceName",
-          "documentation":"<p>The name of the virtual interface assigned by the customer network.</p>"
+          "documentation":"<p>The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).</p>"
         },
         "vlan":{
           "shape":"VLAN",
@@ -2633,7 +2751,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "mtu":{
           "shape":"MTU",
@@ -2657,7 +2775,7 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the private virtual interface to be provisioned on a connection.</p>"
+          "documentation":"<p>The tags associated with the private virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a private virtual interface to be provisioned on a connection.</p>"
@@ -2672,7 +2790,7 @@
       "members":{
         "virtualInterfaceName":{
           "shape":"VirtualInterfaceName",
-          "documentation":"<p>The name of the virtual interface assigned by the customer network.</p>"
+          "documentation":"<p>The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).</p>"
         },
         "vlan":{
           "shape":"VLAN",
@@ -2680,7 +2798,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "authKey":{
           "shape":"BGPAuthKey",
@@ -2704,7 +2822,7 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the public virtual interface.</p>"
+          "documentation":"<p>The tags associated with the public virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a public virtual interface.</p>"
@@ -2719,7 +2837,7 @@
       "members":{
         "virtualInterfaceName":{
           "shape":"VirtualInterfaceName",
-          "documentation":"<p>The name of the virtual interface assigned by the customer network.</p>"
+          "documentation":"<p>The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).</p>"
         },
         "vlan":{
           "shape":"VLAN",
@@ -2727,7 +2845,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "authKey":{
           "shape":"BGPAuthKey",
@@ -2751,7 +2869,7 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the public virtual interface to be provisioned on a connection.</p>"
+          "documentation":"<p>The tags associated with the public virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a public virtual interface to be provisioned on a connection.</p>"
@@ -2761,7 +2879,7 @@
       "members":{
         "virtualInterfaceName":{
           "shape":"VirtualInterfaceName",
-          "documentation":"<p>The name of the virtual interface assigned by the customer network.</p>"
+          "documentation":"<p>The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).</p>"
         },
         "vlan":{
           "shape":"VLAN",
@@ -2769,15 +2887,15 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "mtu":{
           "shape":"MTU",
-          "documentation":"<p>The maximum transmission unit (MTU), in bytes. The supported values are 1500 and 8500. The default value is 1500. </p>"
+          "documentation":"<p>The maximum transmission unit (MTU), in bytes. The supported values are 1500 and 9001. The default value is 1500.</p>"
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -2797,17 +2915,17 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the transit virtual interface.</p>"
+          "documentation":"<p>The tags associated with the transitive virtual interface.</p>"
         }
       },
-      "documentation":"<p>Information about the transit virtual interface.</p>"
+      "documentation":"<p>Information about a transit virtual interface.</p>"
     },
     "NewTransitVirtualInterfaceAllocation":{
       "type":"structure",
       "members":{
         "virtualInterfaceName":{
           "shape":"VirtualInterfaceName",
-          "documentation":"<p>The name of the virtual interface assigned by the customer network.</p>"
+          "documentation":"<p>The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).</p>"
         },
         "vlan":{
           "shape":"VLAN",
@@ -2815,15 +2933,15 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "mtu":{
           "shape":"MTU",
-          "documentation":"<p>The maximum transmission unit (MTU), in bytes. The supported values are 1500 and 8500. The default value is 1500. </p>"
+          "documentation":"<p>The maximum transmission unit (MTU), in bytes. The supported values are 1500 and 9001. The default value is 1500. </p>"
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -2839,15 +2957,19 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the transit virtual interface.</p>"
+          "documentation":"<p>The tags associated with the transitive virtual interface.</p>"
         }
       },
-      "documentation":"<p>Information about a transit virtual interface.</p>"
+      "documentation":"<p>Information about a transit virtual interface to be provisioned on a connection.</p>"
     },
     "OwnerAccount":{"type":"string"},
     "PaginationToken":{"type":"string"},
     "PartnerName":{"type":"string"},
     "PortSpeed":{"type":"string"},
+    "ProviderList":{
+      "type":"list",
+      "member":{"shape":"ProviderName"}
+    },
     "ProviderName":{"type":"string"},
     "Region":{"type":"string"},
     "ResourceArn":{"type":"string"},
@@ -2888,7 +3010,54 @@
       "member":{"shape":"RouteFilterPrefix"}
     },
     "RouterConfig":{"type":"string"},
+    "StartBgpFailoverTestRequest":{
+      "type":"structure",
+      "required":["virtualInterfaceId"],
+      "members":{
+        "virtualInterfaceId":{
+          "shape":"VirtualInterfaceId",
+          "documentation":"<p>The ID of the virtual interface you want to test.</p>"
+        },
+        "bgpPeers":{
+          "shape":"BGPPeerIdList",
+          "documentation":"<p>The BGP peers to place in the DOWN state.</p>"
+        },
+        "testDurationInMinutes":{
+          "shape":"TestDuration",
+          "documentation":"<p>The time in minutes that the virtual interface failover test will last.</p> <p>Maximum value: 180 minutes (3 hours).</p> <p>Default: 180 minutes (3 hours).</p>"
+        }
+      }
+    },
+    "StartBgpFailoverTestResponse":{
+      "type":"structure",
+      "members":{
+        "virtualInterfaceTest":{
+          "shape":"VirtualInterfaceTestHistory",
+          "documentation":"<p>Information about the virtual interface failover test.</p>"
+        }
+      }
+    },
+    "StartTime":{"type":"timestamp"},
     "StateChangeError":{"type":"string"},
+    "StopBgpFailoverTestRequest":{
+      "type":"structure",
+      "required":["virtualInterfaceId"],
+      "members":{
+        "virtualInterfaceId":{
+          "shape":"VirtualInterfaceId",
+          "documentation":"<p>The ID of the virtual interface you no longer want to test.</p>"
+        }
+      }
+    },
+    "StopBgpFailoverTestResponse":{
+      "type":"structure",
+      "members":{
+        "virtualInterfaceTest":{
+          "shape":"VirtualInterfaceTestHistory",
+          "documentation":"<p>Information about the virtual interface failover test.</p>"
+        }
+      }
+    },
     "Tag":{
       "type":"structure",
       "required":["key"],
@@ -2932,7 +3101,7 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to assign.</p>"
+          "documentation":"<p>The tags to add.</p>"
         }
       }
     },
@@ -2947,6 +3116,11 @@
       "min":0,
       "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$"
     },
+    "TestDuration":{
+      "type":"integer",
+      "box":true
+    },
+    "TestId":{"type":"string"},
     "TooManyTagsException":{
       "type":"structure",
       "members":{
@@ -3046,10 +3220,7 @@
       },
       "documentation":"<p>Information about a virtual private gateway for a private virtual interface.</p>"
     },
-    "VirtualGatewayId":{
-      "type":"string",
-      "deprecated":true
-    },
+    "VirtualGatewayId":{"type":"string"},
     "VirtualGatewayList":{
       "type":"list",
       "member":{"shape":"VirtualGateway"}
@@ -3093,7 +3264,7 @@
         },
         "virtualInterfaceName":{
           "shape":"VirtualInterfaceName",
-          "documentation":"<p>The name of the virtual interface assigned by the customer network.</p>"
+          "documentation":"<p>The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).</p>"
         },
         "vlan":{
           "shape":"VLAN",
@@ -3101,7 +3272,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "amazonSideAsn":{
           "shape":"LongAsn",
@@ -3165,7 +3336,7 @@
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p>Any tags assigned to the virtual interface.</p>"
+          "documentation":"<p>The tags associated with the virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a virtual interface.</p>"
@@ -3190,6 +3361,48 @@
         "rejected",
         "unknown"
       ]
+    },
+    "VirtualInterfaceTestHistory":{
+      "type":"structure",
+      "members":{
+        "testId":{
+          "shape":"TestId",
+          "documentation":"<p>The ID of the virtual interface failover test.</p>"
+        },
+        "virtualInterfaceId":{
+          "shape":"VirtualInterfaceId",
+          "documentation":"<p>The ID of the tested virtual interface.</p>"
+        },
+        "bgpPeers":{
+          "shape":"BGPPeerIdList",
+          "documentation":"<p>The BGP peers that were put in the DOWN state as part of the virtual interface failover test.</p>"
+        },
+        "status":{
+          "shape":"FailureTestHistoryStatus",
+          "documentation":"<p>The status of the virtual interface failover test.</p>"
+        },
+        "ownerAccount":{
+          "shape":"OwnerAccount",
+          "documentation":"<p>The owner ID of the tested virtual interface.</p>"
+        },
+        "testDurationInMinutes":{
+          "shape":"TestDuration",
+          "documentation":"<p>The time that the virtual interface failover test ran in minutes.</p>"
+        },
+        "startTime":{
+          "shape":"StartTime",
+          "documentation":"<p>The time that the virtual interface moves to the DOWN state.</p>"
+        },
+        "endTime":{
+          "shape":"EndTime",
+          "documentation":"<p>The time that the virtual interface moves out of the DOWN state.</p>"
+        }
+      },
+      "documentation":"<p>Information about the virtual interface failover test.</p>"
+    },
+    "VirtualInterfaceTestHistoryList":{
+      "type":"list",
+      "member":{"shape":"VirtualInterfaceTestHistory"}
     },
     "VirtualInterfaceType":{"type":"string"},
     "VirtualInterfaces":{

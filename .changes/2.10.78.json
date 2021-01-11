@@ -1,0 +1,16 @@
+{
+    "version": "2.10.78",
+    "date": "2020-03-03",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Fix an issue where the Netty client was prematurely considering an HTTP/2 request body as sent, but was still in the process of being transferred to the remote endpoint."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Amazon VPC Flow Logs adds support for tags and tagging on resource creation."
+        }
+    ]
+}

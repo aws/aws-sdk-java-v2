@@ -1,0 +1,72 @@
+{
+    "version": "2.15.49",
+    "date": "2020-12-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "Route 53 Resolver adds support for enabling resolver DNSSEC validation in virtual private cloud (VPC)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Adding PutExternalEvaluation API which grants permission to deliver evaluation result to AWS Config"
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "This release adds support for building and distributing container images within EC2 Image Builder."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "This release adds support for DNSSEC signing in Amazon Route 53."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "This change fixes a bug in the code generation related to eventstreams that prevents multiple events to share the same shape."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "Support TagOptions sharing with Service Catalog portfolio sharing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "C6gn instances are powered by AWS Graviton2 processors and offer 100 Gbps networking bandwidth. These instances deliver up to 40% better price-performance benefit versus comparable x86-based instances"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Data Lifecycle Manager",
+            "contributor": "",
+            "description": "Provide Cross-account copy event based policy support in DataLifecycleManager (DLM)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Amazon SQS adds queue attributes to enable high throughput FIFO."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Added CreationDate and LastUpdatedDate timestamps to ListAliases API response"
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -73,6 +73,10 @@ abstract class AbstractMemberSetters implements MemberSetters {
         return fluentSetterBuilder(memberAsParameter(), returnType);
     }
 
+    protected MethodSpec.Builder fluentSetterBuilder(String methodName, TypeName returnType) {
+        return fluentSetterBuilder(methodName, memberAsParameter(), returnType);
+    }
+
     protected MethodSpec.Builder fluentSetterBuilder(ParameterSpec setterParam, TypeName returnType) {
         return fluentSetterBuilder(memberModel().getFluentSetterMethodName(), setterParam, returnType);
     }
@@ -86,11 +90,15 @@ abstract class AbstractMemberSetters implements MemberSetters {
     }
 
     protected MethodSpec.Builder beanStyleSetterBuilder() {
-        return beanStyleSetterBuilder(memberAsBeanStyleParameter());
+        return beanStyleSetterBuilder(memberAsBeanStyleParameter(), memberModel().getBeanStyleSetterMethodName());
     }
 
-    protected MethodSpec.Builder beanStyleSetterBuilder(ParameterSpec setterParam) {
-        return MethodSpec.methodBuilder(memberModel().getBeanStyleSetterMethodName())
+    protected MethodSpec.Builder deprecatedBeanStyleSetterBuilder() {
+        return beanStyleSetterBuilder(memberAsBeanStyleParameter(), memberModel().getDeprecatedBeanStyleSetterMethodName());
+    }
+
+    protected MethodSpec.Builder beanStyleSetterBuilder(ParameterSpec setterParam, String methodName) {
+        return MethodSpec.methodBuilder(methodName)
                 .addParameter(setterParam)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
     }

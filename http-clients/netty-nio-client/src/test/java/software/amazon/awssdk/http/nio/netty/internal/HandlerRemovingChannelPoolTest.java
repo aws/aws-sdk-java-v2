@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,11 +21,10 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
-import com.typesafe.netty.http.HttpStreamsClientHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -42,7 +41,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 @RunWith(MockitoJUnitRunner.class)
 public class HandlerRemovingChannelPoolTest {
     @Mock
-    private ChannelPool channelPool;
+    private SdkChannelPool channelPool;
 
     @Mock
     private SdkAsyncHttpResponseHandler responseHandler;

@@ -1,0 +1,21 @@
+{
+    "version": "2.11.7",
+    "date": "2020-04-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "description": "You can now send content from your virtual private cloud (VPC) to your MediaConnect flow without going over the public internet."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "description": "This release introduces Dimensions for AWS IoT Device Defender. Dimensions can be used in Security Profiles to collect and monitor fine-grained metrics."
+        }
+    ]
+}

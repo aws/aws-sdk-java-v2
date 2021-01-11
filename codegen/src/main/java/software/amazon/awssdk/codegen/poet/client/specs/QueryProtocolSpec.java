@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,18 +24,21 @@ import com.squareup.javapoet.TypeName;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class QueryProtocolSpec implements ProtocolSpec {
 
     protected final PoetExtensions poetExtensions;
-    private final IntermediateModel intermediateModel;
+    protected final IntermediateModel intermediateModel;
 
     public QueryProtocolSpec(IntermediateModel intermediateModel, PoetExtensions poetExtensions) {
         this.intermediateModel = intermediateModel;
@@ -84,10 +87,12 @@ public class QueryProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock errorResponseHandler(OperationModel opModel) {
-        return CodeBlock.builder().add("\n\n$T errorResponseHandler = protocolFactory.createErrorResponseHandler();",
-                                       ParameterizedTypeName.get(HttpResponseHandler.class, AwsServiceException.class))
-                        .build();
+    public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
+        return Optional.of(
+            CodeBlock.builder()
+                     .add("\n\n$T errorResponseHandler = protocolFactory.createErrorResponseHandler();",
+                          ParameterizedTypeName.get(HttpResponseHandler.class, AwsServiceException.class))
+                     .build());
     }
 
     @Override
@@ -95,22 +100,19 @@ public class QueryProtocolSpec implements ProtocolSpec {
         TypeName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
-        CodeBlock.Builder codeBlock = CodeBlock
-            .builder()
-            .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()" +
-                 ".withOperationName(\"$N\")\n" +
-                 ".withResponseHandler($N)" +
-                 ".withErrorResponseHandler($N)" +
-                 hostPrefixExpression(opModel) +
-                 discoveredEndpoint(opModel) +
-                 ".withInput($L)",
-                 ClientExecutionParams.class,
-                 requestType,
-                 responseType,
-                 opModel.getOperationName(),
-                 "responseHandler",
-                 "errorResponseHandler",
-                 opModel.getInput().getVariableName());
+        CodeBlock.Builder codeBlock =
+            CodeBlock.builder()
+                     .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()",
+                          ClientExecutionParams.class, requestType, responseType)
+                     .add(".withOperationName($S)\n", opModel.getOperationName())
+                     .add(".withResponseHandler(responseHandler)\n")
+                     .add(".withErrorResponseHandler(errorResponseHandler)\n")
+                     .add(hostPrefixExpression(opModel))
+                     .add(discoveredEndpoint(opModel))
+                     .add(".withInput($L)", opModel.getInput().getVariableName())
+                     .add(".withMetricCollector(apiCallMetricCollector)")
+                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
+
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withRequestBody(requestBody)")
                             .add(".withMarshaller($L));", syncStreamingMarshaller(intermediateModel, opModel, marshaller))
@@ -129,31 +131,37 @@ public class QueryProtocolSpec implements ProtocolSpec {
         String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
                                                               : "";
         TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
-        CodeBlock.Builder builder = CodeBlock.builder().add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()"
-                                                            + "\n" +
-                                                            ".withOperationName(\"$N\")\n" +
-                                                            ".withMarshaller($L)" +
-                                                            ".withResponseHandler(responseHandler)" +
-                                                            ".withErrorResponseHandler($N)\n" +
-                                                            hostPrefixExpression(opModel) +
-                                                            asyncRequestBody +
-                                                            ".withInput($L) $L);",
-                                                            CompletableFuture.class,
-                                                            executeFutureValueType,
-                                                            ClientExecutionParams.class,
-                                                            requestType,
-                                                            pojoResponseType,
-                                                            opModel.getOperationName(),
-                                                            asyncMarshaller(intermediateModel, opModel, marshaller,
-                                                                            "protocolFactory"),
-                                                            "errorResponseHandler",
-                                                            opModel.getInput().getVariableName(),
-                                                            opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
+        CodeBlock.Builder builder =
+            CodeBlock.builder()
+                     .add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n",
+                          CompletableFuture.class, executeFutureValueType, ClientExecutionParams.class,
+                          requestType, pojoResponseType)
+                     .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
+                     .add(".withMarshaller($L)\n",
+                          asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"))
+                     .add(".withResponseHandler(responseHandler)\n")
+                     .add(".withErrorResponseHandler(errorResponseHandler)\n")
+                     .add(".withMetricCollector(apiCallMetricCollector)\n")
+                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel));
 
+        builder.add(hostPrefixExpression(opModel) + asyncRequestBody + ".withInput($L)$L);",
+                    opModel.getInput().getVariableName(),
+                    opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
+
+        builder.addStatement("$T requestOverrideConfig = $L.overrideConfiguration().orElse(null)",
+                             AwsRequestOverrideConfiguration.class, opModel.getInput().getVariableName());
+
+        String whenCompleteFutureName = "whenCompleteFuture";
+        builder.addStatement("$T $N = null", ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                executeFutureValueType), whenCompleteFutureName);
         if (opModel.hasStreamingOutput()) {
-            builder.add("executeFuture$L;", streamingOutputWhenComplete("asyncResponseTransformer"));
+            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName,
+                    streamingOutputWhenComplete("asyncResponseTransformer"));
+        } else {
+            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName, publishMetricsWhenComplete());
         }
-        builder.addStatement("return executeFuture");
+        builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
+                whenCompleteFutureName);
         return builder.build();
     }
 

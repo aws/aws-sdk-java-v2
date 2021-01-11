@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -80,10 +80,11 @@ public final class AsyncResponseHandler<T> implements TransformingAsyncResponseH
     public CompletableFuture<T> prepare() {
         streamFuture = new CompletableFuture<>();
         return streamFuture.thenCompose(baos -> {
-            ByteArrayInputStream content = new ByteArrayInputStream(baos.toByteArray());
-            // Ignore aborts - we already have all of the content.
-            AbortableInputStream abortableContent = AbortableInputStream.create(content);
-            httpResponse.content(abortableContent);
+            if (baos != null) {
+                // Ignore aborts - we already have all of the content.
+                httpResponse.content(AbortableInputStream.create(new ByteArrayInputStream(baos.toByteArray())));
+            }
+
             try {
                 return CompletableFuture.completedFuture(responseHandler.handle(crc32Validator.apply(httpResponse.build()),
                                                                                 executionAttributes));
@@ -97,6 +98,7 @@ public final class AsyncResponseHandler<T> implements TransformingAsyncResponseH
         private final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         private final CompletableFuture<ByteArrayOutputStream> streamFuture;
         private Subscription subscription;
+        private boolean dataWritten = false;
 
         private BaosSubscriber(CompletableFuture<ByteArrayOutputStream> streamFuture) {
             this.streamFuture = streamFuture;
@@ -110,9 +112,10 @@ public final class AsyncResponseHandler<T> implements TransformingAsyncResponseH
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
+            dataWritten = true;
             try {
                 baos.write(BinaryUtils.copyBytesFrom(byteBuffer));
-                this.subscription.request(Long.MAX_VALUE);
+                this.subscription.request(1);
             } catch (IOException e) {
                 // Should never happen
                 streamFuture.completeExceptionally(e);
@@ -126,7 +129,7 @@ public final class AsyncResponseHandler<T> implements TransformingAsyncResponseH
 
         @Override
         public void onComplete() {
-            streamFuture.complete(baos);
+            streamFuture.complete(dataWritten ? baos : null);
         }
     }
 }

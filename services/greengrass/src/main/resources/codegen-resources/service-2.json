@@ -1096,6 +1096,29 @@
       } ],
       "documentation" : "Retrieves information about a subscription definition version."
     },
+    "GetThingRuntimeConfiguration" : {
+      "name" : "GetThingRuntimeConfiguration",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/greengrass/things/{ThingName}/runtimeconfig",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetThingRuntimeConfigurationRequest"
+      },
+      "output" : {
+        "shape" : "GetThingRuntimeConfigurationResponse",
+        "documentation" : "Success. The response contains the runtime configuration for the given thing."
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "invalid request"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "server error"
+      } ],
+      "documentation" : "Get the runtime configuration of a thing."
+    },
     "ListBulkDeploymentDetailedReports" : {
       "name" : "ListBulkDeploymentDetailedReports",
       "http" : {
@@ -1558,7 +1581,7 @@
         "shape" : "BadRequestException",
         "documentation" : "invalid request"
       } ],
-      "documentation" : "Add resource tags to a Greengrass Resource. Valid resources are Group, Connector, Core, Device, Function, Logger, Subscription, and Resource Defintions, and also BulkDeploymentIds."
+      "documentation" : "Adds tags to a Greengrass resource. Valid resources are 'Group', 'ConnectorDefinition', 'CoreDefinition', 'DeviceDefinition', 'FunctionDefinition', 'LoggerDefinition', 'SubscriptionDefinition', 'ResourceDefinition', and 'BulkDeployment'."
     },
     "UntagResource" : {
       "name" : "UntagResource",
@@ -1781,6 +1804,29 @@
         "documentation" : "invalid request"
       } ],
       "documentation" : "Updates a subscription definition."
+    },
+    "UpdateThingRuntimeConfiguration" : {
+      "name" : "UpdateThingRuntimeConfiguration",
+      "http" : {
+        "method" : "PUT",
+        "requestUri" : "/greengrass/things/{ThingName}/runtimeconfig",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UpdateThingRuntimeConfigurationRequest"
+      },
+      "output" : {
+        "shape" : "UpdateThingRuntimeConfigurationResponse",
+        "documentation" : "success"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "invalid request"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "server error"
+      } ],
+      "documentation" : "Updates the runtime configuration of a thing."
     }
   },
   "shapes" : {
@@ -1936,6 +1982,10 @@
       "member" : {
         "shape" : "BulkDeployment"
       }
+    },
+    "ConfigurationSyncStatus" : {
+      "type" : "string",
+      "enum" : [ "InSync", "OutOfSync" ]
     },
     "ConnectivityInfo" : {
       "type" : "structure",
@@ -2112,11 +2162,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       }
     },
@@ -2212,11 +2262,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       }
     },
@@ -2354,11 +2404,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       }
     },
@@ -2458,11 +2508,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       }
     },
@@ -2608,11 +2658,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       }
     },
@@ -2707,11 +2757,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       }
     },
@@ -2806,11 +2856,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       }
     },
@@ -2854,6 +2904,10 @@
         "IotJobId" : {
           "shape" : "__string",
           "documentation" : "The IoT Job Id corresponding to this update."
+        },
+        "PlatformSoftwareVersion" : {
+          "shape" : "__string",
+          "documentation" : "The software version installed on the device or devices after the update."
         }
       }
     },
@@ -2948,11 +3002,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       }
     },
@@ -4097,11 +4151,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the group version."
+          "documentation" : "The ID of the group that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID for the version of the group."
+          "documentation" : "The ID of the group version."
         }
       }
     },
@@ -4411,6 +4465,27 @@
         "Version" : {
           "shape" : "__string",
           "documentation" : "The version of the subscription definition version."
+        }
+      }
+    },
+    "GetThingRuntimeConfigurationRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ThingName" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "ThingName",
+          "documentation" : "The thing name."
+        }
+      },
+      "required" : [ "ThingName" ]
+    },
+    "GetThingRuntimeConfigurationResponse" : {
+      "type" : "structure",
+      "members" : {
+        "RuntimeConfiguration" : {
+          "shape" : "RuntimeConfiguration",
+          "documentation" : "Runtime configuration for a thing."
         }
       }
     },
@@ -5447,12 +5522,50 @@
       },
       "documentation" : "Information about a resource definition version."
     },
+    "ResourceDownloadOwnerSetting" : {
+      "type" : "structure",
+      "members" : {
+        "GroupOwner" : {
+          "shape" : "__string",
+          "documentation" : "The group owner of the resource. This is the name of an existing Linux OS group on the system or a GID. The group's permissions are added to the Lambda process."
+        },
+        "GroupPermission" : {
+          "shape" : "Permission",
+          "documentation" : "The permissions that the group owner has to the resource. Valid values are ''rw'' (read/write) or ''ro'' (read-only)."
+        }
+      },
+      "documentation" : "The owner setting for downloaded machine learning resources.",
+      "required" : [ "GroupOwner", "GroupPermission" ]
+    },
+    "RuntimeConfiguration" : {
+      "type" : "structure",
+      "members" : {
+        "TelemetryConfiguration" : {
+          "shape" : "TelemetryConfiguration",
+          "documentation" : "Configuration for telemetry service."
+        }
+      },
+      "documentation" : "Runtime configuration for a thing."
+    },
+    "RuntimeConfigurationUpdate" : {
+      "type" : "structure",
+      "members" : {
+        "TelemetryConfiguration" : {
+          "shape" : "TelemetryConfigurationUpdate",
+          "documentation" : "Configuration for telemetry service."
+        }
+      },
+      "documentation" : "Runtime configuration for a thing."
+    },
     "S3MachineLearningModelResourceData" : {
       "type" : "structure",
       "members" : {
         "DestinationPath" : {
           "shape" : "__string",
           "documentation" : "The absolute local path of the resource inside the Lambda environment."
+        },
+        "OwnerSetting" : {
+          "shape" : "ResourceDownloadOwnerSetting"
         },
         "S3Uri" : {
           "shape" : "__string",
@@ -5471,6 +5584,9 @@
         "DestinationPath" : {
           "shape" : "__string",
           "documentation" : "The absolute local path of the resource inside the Lambda environment."
+        },
+        "OwnerSetting" : {
+          "shape" : "ResourceDownloadOwnerSetting"
         },
         "SageMakerJobArn" : {
           "shape" : "__string",
@@ -5609,6 +5725,36 @@
       "value" : {
         "shape" : "__string"
       }
+    },
+    "Telemetry" : {
+      "type" : "string",
+      "enum" : [ "On", "Off" ]
+    },
+    "TelemetryConfiguration" : {
+      "type" : "structure",
+      "members" : {
+        "ConfigurationSyncStatus" : {
+          "shape" : "ConfigurationSyncStatus",
+          "documentation" : "Synchronization status of the device reported configuration with the desired configuration."
+        },
+        "Telemetry" : {
+          "shape" : "Telemetry",
+          "documentation" : "Configure telemetry to be on or off."
+        }
+      },
+      "documentation" : "Configuration settings for running telemetry.",
+      "required" : [ "Telemetry" ]
+    },
+    "TelemetryConfigurationUpdate" : {
+      "type" : "structure",
+      "members" : {
+        "Telemetry" : {
+          "shape" : "Telemetry",
+          "documentation" : "Configure telemetry to be on or off."
+        }
+      },
+      "documentation" : "Configuration settings for running telemetry.",
+      "required" : [ "Telemetry" ]
     },
     "UntagResourceRequest" : {
       "type" : "structure",
@@ -5867,12 +6013,32 @@
     "UpdateTargetsArchitecture" : {
       "type" : "string",
       "documentation" : "The architecture of the cores which are the targets of an update.",
-      "enum" : [ "armv7l", "x86_64", "aarch64", "openwrt" ]
+      "enum" : [ "armv6l", "armv7l", "x86_64", "aarch64" ]
     },
     "UpdateTargetsOperatingSystem" : {
       "type" : "string",
       "documentation" : "The operating system of the cores which are the targets of an update.",
-      "enum" : [ "ubuntu", "raspbian", "amazon_linux" ]
+      "enum" : [ "ubuntu", "raspbian", "amazon_linux", "openwrt" ]
+    },
+    "UpdateThingRuntimeConfigurationRequest" : {
+      "type" : "structure",
+      "members" : {
+        "TelemetryConfiguration" : {
+          "shape" : "TelemetryConfigurationUpdate",
+          "documentation" : "Configuration for telemetry service."
+        },
+        "ThingName" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "ThingName",
+          "documentation" : "The thing name."
+        }
+      },
+      "required" : [ "ThingName" ]
+    },
+    "UpdateThingRuntimeConfigurationResponse" : {
+      "type" : "structure",
+      "members" : { }
     },
     "VersionInformation" : {
       "type" : "structure",
@@ -5887,11 +6053,11 @@
         },
         "Id" : {
           "shape" : "__string",
-          "documentation" : "The ID of the version."
+          "documentation" : "The ID of the parent definition that the version is associated with."
         },
         "Version" : {
           "shape" : "__string",
-          "documentation" : "The unique ID of the version."
+          "documentation" : "The ID of the version."
         }
       },
       "documentation" : "Information about a version."

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -29,6 +31,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.Input;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
@@ -201,9 +204,10 @@ public final class Utils {
 
     public static void createDirectory(File dir) {
         if (!(dir.exists())) {
-            if (!dir.mkdirs()) {
-                throw new RuntimeException("Not able to create directory. "
-                        + dir.getAbsolutePath());
+            try {
+                Files.createDirectories(dir.toPath());
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to create " + dir, e);
             }
         }
     }
@@ -287,6 +291,28 @@ public final class Utils {
             }
         }
         return null;
+    }
+
+    /**
+     * Search for a shape model by its C2J name, excluding request and response shapes, which are not candidates to be members
+     * of another shape.
+     *
+     * @return ShapeModel or null if the shape doesn't exist (if it's primitive or container type for example)
+     */
+    public static ShapeModel findMemberShapeModelByC2jNameIfExists(IntermediateModel intermediateModel, String shapeC2jName) {
+        ShapeModel candidate = null;
+        for (ShapeModel shape : intermediateModel.getShapes().values()) {
+            if (shape.getShapeType() != ShapeType.Request
+                    && shape.getShapeType() != ShapeType.Response
+                    && shape.getC2jName().equals(shapeC2jName)) {
+                if (candidate != null) {
+                    throw new IllegalStateException("Conflicting candidates for member model with C2J name " + shapeC2jName + ": "
+                                                    + candidate + " and " + shape);
+                }
+                candidate = shape;
+            }
+        }
+        return candidate;
     }
 
     public static List<ShapeModel> findShapesByC2jName(IntermediateModel intermediateModel, String shapeC2jName) {

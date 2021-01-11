@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public final class DefaultSdkAutoConstructList<T> implements SdkAutoConstructList<T> {
     private static final DefaultSdkAutoConstructList INSTANCE = new DefaultSdkAutoConstructList();
 
-    private final List impl = Collections.unmodifiableList(Collections.emptyList());
+    private final List impl = Collections.emptyList();
 
     private DefaultSdkAutoConstructList() {
     }
@@ -156,6 +156,21 @@ public final class DefaultSdkAutoConstructList<T> implements SdkAutoConstructLis
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
         return impl.subList(fromIndex, toIndex);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return impl.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return impl.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return impl.toString();
     }
 
 }

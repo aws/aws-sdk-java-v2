@@ -1,0 +1,11 @@
+{
+    "version": "2.7.18",
+    "date": "2019-08-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "description": "Documentation updates for AWS Batch"
+        }
+    ]
+}

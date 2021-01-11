@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -92,13 +92,9 @@ public class RegionGenerationMojo extends AbstractMojo {
     public void generateServiceMetadata(Path baseSourcesDirectory, Partitions partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(SERVICE_METADATA_BASE.replace(".", "/"));
         Set<String> services = new HashSet<>();
-        partitions.getPartitions().stream().forEach(p -> services.addAll(p.getServices().keySet()));
+        partitions.getPartitions().forEach(p -> services.addAll(p.getServices().keySet()));
 
-        services.stream()
-                // Use hardcoded file for elasticache until the incorrect fips endpoint is fixed
-                //TODO Remove once elasticache endpoints are fixed at source
-                .filter(s -> !"elasticache".equals(s))
-                .forEach(s -> new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataGenerator(partitions,
+        services.forEach(s -> new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataGenerator(partitions,
                                                                                                           s,
                                                                                                           SERVICE_METADATA_BASE,
                                                                                                           REGION_BASE))

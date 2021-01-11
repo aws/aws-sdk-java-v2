@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.XmlAttributeTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -49,12 +49,13 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
     private XmlProtocolUnmarshaller() {
     }
 
+    public static XmlProtocolUnmarshaller create() {
+        return new XmlProtocolUnmarshaller();
+    }
+
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                                                     SdkHttpFullResponse response) {
-
-        XmlElement document = hasPayloadMembers(sdkPojo) && response.content().isPresent()
-                              ? XmlDomParser.parse(response.content().get()) : null;
-
+        XmlElement document = XmlResponseParserUtils.parse(sdkPojo, response);
         return unmarshall(sdkPojo, document, response);
     }
 
@@ -79,30 +80,43 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             XmlUnmarshaller<Object> unmarshaller = REGISTRY.getUnmarshaller(field.location(), field.marshallingType());
 
             if (root != null && field.location() == MarshallLocation.PAYLOAD) {
-                List<XmlElement> element = isExplicitPayloadMember(field) ?
-                                           singletonList(root) :
-                                           root.getElementsByName(field.unmarshallLocationName());
-                if (!CollectionUtils.isNullOrEmpty(element)) {
-                    Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
-                    field.set(sdkPojo, unmarshalled);
+                if (!context.response().content().isPresent()) {
+                    // This is a payload field, but the service sent no content. Do not populate this field (leave it null).
+                    continue;
+                }
+
+                if (isAttribute(field)) {
+                    root.getOptionalAttributeByName(field.unmarshallLocationName())
+                        .ifPresent(e -> field.set(sdkPojo, e));
+                } else {
+                    List<XmlElement> element = isExplicitPayloadMember(field) ?
+                                               singletonList(root) :
+                                               root.getElementsByName(field.unmarshallLocationName());
+
+                    if (!CollectionUtils.isNullOrEmpty(element)) {
+                        Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
+                        field.set(sdkPojo, unmarshalled);
+                    }
                 }
             } else {
                 Object unmarshalled = unmarshaller.unmarshall(context, null, (SdkField<Object>) field);
                 field.set(sdkPojo, unmarshalled);
             }
         }
+
+        if (!(sdkPojo instanceof Buildable)) {
+            throw new RuntimeException("The sdkPojo passed to the unmarshaller is not buildable (must implement "
+                                       + "Buildable)");
+        }
         return (SdkPojo) ((Buildable) sdkPojo).build();
+    }
+
+    private boolean isAttribute(SdkField<?> field) {
+        return field.containsTrait(XmlAttributeTrait.class);
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
         return field.containsTrait(PayloadTrait.class);
-    }
-
-    private boolean hasPayloadMembers(SdkPojo sdkPojo) {
-        return sdkPojo.sdkFields().stream()
-                      .filter(f -> f.location() == MarshallLocation.PAYLOAD)
-                      .findAny()
-                      .isPresent();
     }
 
     private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
@@ -138,28 +152,5 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             .payloadUnmarshaller(MarshallingType.LIST, XmlPayloadUnmarshaller::unmarshallList)
             .payloadUnmarshaller(MarshallingType.MAP, XmlPayloadUnmarshaller::unmarshallMap)
             .build();
-    }
-
-    /**
-     * @return New {@link Builder} instance.
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Builder for {@link XmlProtocolUnmarshaller}.
-     */
-    public static final class Builder {
-
-        private Builder() {
-        }
-
-        /**
-         * @return New instance of {@link XmlProtocolUnmarshaller}.
-         */
-        public XmlProtocolUnmarshaller build() {
-            return new XmlProtocolUnmarshaller();
-        }
     }
 }

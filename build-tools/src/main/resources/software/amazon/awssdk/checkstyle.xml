@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
     <!-- Files must contain a copyright header. -->
     <module name="Header">
         <property name="header"
-                  value="/*\n * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;).\n * You may not use this file except in compliance with the License.\n * A copy of the License is located at\n *\n *  http://aws.amazon.com/apache2.0\n *\n * or in the &quot;license&quot; file accompanying this file. This file is distributed\n * on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either\n * express or implied. See the License for the specific language governing\n * permissions and limitations under the License.\n */"/>
+                  value="/*\n * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;).\n * You may not use this file except in compliance with the License.\n * A copy of the License is located at\n *\n *  http://aws.amazon.com/apache2.0\n *\n * or in the &quot;license&quot; file accompanying this file. This file is distributed\n * on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either\n * express or implied. See the License for the specific language governing\n * permissions and limitations under the License.\n */"/>
     </module>
 
     <module name="SuppressionFilter">
@@ -67,12 +67,6 @@
             <property name="allowEscapesForControlCharacters" value="true"/>
             <property name="allowByTailComment" value="true"/>
             <property name="allowNonPrintableEscapes" value="true"/>
-        </module>
-
-        <!-- Enforce maximum line lengths. -->
-        <module name="LineLength">
-            <property name="max" value="130"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
         </module>
 
         <!-- Stars must not be used in import statements. -->
@@ -371,6 +365,32 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use sslContext.newHandler directly -->
+        <module name="Regexp">
+            <property name="format" value="\sslContext.newHandler\b"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message"
+                      value="Don't use sslContext.newHandler directly, use NettyUtils.newSslHandler instead"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+
+        <!-- Checks that we don't use AttributeKey.newInstance directly -->
+        <module name="Regexp">
+            <property name="format" value="AttributeKey\.newInstance"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Use NettyUtils.getOrCreateAttributeKey to safely declare AttributeKeys"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- Checks that we don't use Thread.currentThread().getContextClassLoader() directly -->
+        <module name="Regexp">
+            <property name="format" value="Thread\s*\.\s*currentThread\s*\(\s*\)\s*(\.|::)\s*getContextClassLoader"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Use software.amazon.awssdk.core.internal.util.ClassLoaderHelper Class to load the class."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks that we don't use plural enum names -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.PluralEnumNames"/>
 
@@ -386,4 +406,11 @@
         <!-- Checks that no 'final' are added on local variables -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.UnnecessaryFinalOnLocalVariableCheck" />
     </module>
+
+        <!-- Enforce maximum line lengths. -->
+    <module name="LineLength">
+        <property name="max" value="130"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
 </module>

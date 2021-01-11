@@ -88,7 +88,7 @@ Please keep the following in mind when considering a code contribution:
 
    Any code you submit will be released under this license. If you are
    contributing a large/substantial feature, you may be asked to sign a
-   [Contributor License Agreement (CLA)][cla].
+   Contributor License Agreement (CLA).
 * For anything but very small or quick changes, you should always start by
   checking the [Issues][issues] page to see if the work is already being done
   by another person.
@@ -123,7 +123,7 @@ checklist below:
 * [ ] If the change is related to an existing Bug Report or Feature Request,
   the issue number is referenced
 * [ ] A short description of the change added to
-  [CHANGELOG.md](./CHANGELOG.md). Adding a new entry can be accomplished by
+  [CHANGELOG.md](./CHANGELOG.md). Adding a new entry must be accomplished by
   running the `scripts/new-change` script and following the instructions.
   Commit the new file created by the script in `.changes/next-release` with
   your changes.
@@ -165,7 +165,6 @@ when contributing to the SDK.
 [markdown]: https://guides.github.com/features/mastering-markdown/
 [issues]: https://github.com/aws/aws-sdk-java-v2/issues
 [pull-requests]: https://github.com/aws/aws-sdk-java-v2/pulls
-[cla]: https://github.com/aws/aws-cla
 [label-bug]: https://github.com/aws/aws-sdk-java-v2/labels/Bug
 [label-doc-issue]: https://github.com/aws/aws-sdk-java-v2/labels/Documentation%20Issue
 [label-feature-request]: https://github.com/aws/aws-sdk-java-v2/labels/Feature%20Request

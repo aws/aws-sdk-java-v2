@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
+import software.amazon.awssdk.codegen.model.service.XmlNamespace;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.SdkField;
@@ -44,6 +46,10 @@ import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.XmlAttributeTrait;
+import software.amazon.awssdk.core.traits.XmlAttributesTrait;
+import software.amazon.awssdk.core.traits.XmlAttributesTrait.AttributeAccessors;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Provides Poet specs related to shape models.
@@ -122,6 +128,7 @@ class ShapeModelSpec {
                         .add("$T.<$T>builder($T.$L)\n",
                              sdkFieldType, typeProvider.fieldType(m),
                              ClassName.get(MarshallingType.class), m.getMarshallingType())
+                        .add(".memberName($S)\n", m.getC2jName())
                         .add(".getter(getter($T::$L))\n",
                              className(), m.getFluentGetterMethodName())
                         .add(".setter(setter($T::$L))\n",
@@ -169,6 +176,15 @@ class ShapeModelSpec {
         if (m.getTimestampFormat() != null) {
             traits.add(createTimestampFormatTrait(m));
         }
+
+        if (m.getShape() != null && m.getShape().getXmlNamespace() != null) {
+            traits.add(createXmlAttributesTrait(m));
+        }
+
+        if (m.isXmlAttribute()) {
+            traits.add(createXmlAttributeTrait());
+        }
+
         if (!traits.isEmpty()) {
             return CodeBlock.builder()
                             .add(".traits(" + traits.stream().map(t -> "$L").collect(Collectors.joining(", ")) + ")",
@@ -276,6 +292,45 @@ class ShapeModelSpec {
                              m.getListModel().getMemberLocationName(),
                              containerSdkFieldInitializer(m.getListModel().getListMemberModel()))
                         .build();
+    }
+
+    private CodeBlock createXmlAttributeTrait() {
+        return CodeBlock.builder()
+                        .add("$T.create()", ClassName.get(XmlAttributeTrait.class))
+                        .build();
+    }
+
+    private CodeBlock createXmlAttributesTrait(MemberModel model) {
+        ShapeModel shape = model.getShape();
+        XmlNamespace xmlNamespace = shape.getXmlNamespace();
+        String uri = xmlNamespace.getUri();
+        String prefix = xmlNamespace.getPrefix();
+        CodeBlock.Builder codeBlockBuilder = CodeBlock.builder()
+                                         .add("$T.create(", ClassName.get(XmlAttributesTrait.class));
+
+        String namespacePrefix = "xmlns:" + prefix;
+        codeBlockBuilder.add("$T.of($S, $T.builder().attributeGetter((ignore) -> $S).build())",
+                             Pair.class, namespacePrefix, AttributeAccessors.class, uri);
+
+        Optional<MemberModel> memberWithXmlAttribute = findMemberWithXmlAttribute(shape);
+        memberWithXmlAttribute.ifPresent(m -> {
+            String attributeLocation = m.getHttp().getMarshallLocationName();
+            codeBlockBuilder
+                .add(", $T.of($S, ", Pair.class, attributeLocation)
+                .add("$T.builder()", AttributeAccessors.class)
+                .add(".attributeGetter(t -> (($T)t).$L())\n",
+                     typeProvider.fieldType(model),
+                     m.getFluentGetterMethodName())
+                .add(".build())");
+        });
+
+        codeBlockBuilder.add(")");
+
+        return codeBlockBuilder.build();
+    }
+
+    private static Optional<MemberModel> findMemberWithXmlAttribute(ShapeModel shapeModel) {
+        return shapeModel.getMembers().stream().filter(MemberModel::isXmlAttribute).findAny();
     }
 
     private String isFlattened(MemberModel m) {

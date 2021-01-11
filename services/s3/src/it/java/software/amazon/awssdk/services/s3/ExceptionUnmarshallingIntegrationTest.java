@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
+import java.nio.charset.StandardCharsets;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
@@ -161,6 +164,17 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
             }
         }).hasCauseInstanceOf(S3Exception.class)
           .satisfies(e -> assertThat(((S3Exception) (e.getCause())).statusCode()).isEqualTo(301));
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void errorResponseContainsRawBytes() {
+        assertThatThrownBy(() -> s3.getObjectAcl(b -> b.bucket(BUCKET + KEY).key(KEY)))
+            .isInstanceOf(NoSuchBucketException.class)
+            .satisfies(e -> assertThat(
+                ((NoSuchBucketException) e).awsErrorDetails().rawResponse().asString(StandardCharsets.UTF_8))
+                .startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>NoSuchBucket</Code><Message>The "
+                            + "specified bucket does not exist</Message>"));
     }
 
     private void assertMetadata(S3Exception e, String expectedErrorCode) {
