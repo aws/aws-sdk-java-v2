@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "contributor": "",
-    "description": "This release adds IPv6 support for Amazon Lightsail instances, container services, CDN distributions, and load balancers."
-}
