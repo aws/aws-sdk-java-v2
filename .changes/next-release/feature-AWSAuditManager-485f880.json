@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Audit Manager",
+    "contributor": "",
+    "description": "This release introduces tag support for assessment frameworks. You can now add, remove, and get tags from existing frameworks, and specify the tags to apply when creating a custom framework."
+}
