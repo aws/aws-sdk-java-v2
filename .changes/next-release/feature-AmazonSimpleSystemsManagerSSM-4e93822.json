@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "contributor": "",
+    "description": "AWS Systems Manager adds pagination support for DescribeDocumentPermission API"
+}
