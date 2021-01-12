@@ -1,6 +1,0 @@
-{
-    "category": "AWS Commont Runtime HTTP Client", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Upgrade `aws-crt` to version `0.9.3`"
-}

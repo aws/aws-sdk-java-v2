@@ -1,0 +1,42 @@
+{
+    "version": "2.15.63",
+    "date": "2021-01-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "AWS Systems Manager adds pagination support for DescribeDocumentPermission API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Documentation updates for elasticache"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "This release adds IPv6 support for Amazon Lightsail instances, container services, CDN distributions, and load balancers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Audit Manager",
+            "contributor": "",
+            "description": "This release introduces tag support for assessment frameworks. You can now add, remove, and get tags from existing frameworks, and specify the tags to apply when creating a custom framework."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Commont Runtime HTTP Client",
+            "contributor": "",
+            "description": "Upgrade `aws-crt` to version `0.9.3`"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Adds support for the Smart Card Redirection feature"
+        }
+    ]
+}

@@ -1,3 +1,28 @@
+# __2.15.63__ __2021-01-12__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces tag support for assessment frameworks. You can now add, remove, and get tags from existing frameworks, and specify the tags to apply when creating a custom framework.
+
+## __AWS Commont Runtime HTTP Client__
+  - ### Features
+    - Upgrade `aws-crt` to version `0.9.3`
+
+## __Amazon AppStream__
+  - ### Features
+    - Adds support for the Smart Card Redirection feature
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation updates for elasticache
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds IPv6 support for Amazon Lightsail instances, container services, CDN distributions, and load balancers.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager adds pagination support for DescribeDocumentPermission API
+
 # __2.15.62__ __2021-01-11__
 ## __AWS Key Management Service__
   - ### Features
