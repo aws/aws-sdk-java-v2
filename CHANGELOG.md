@@ -1,3 +1,16 @@
+# __2.15.64__ __2021-01-13__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Reverting synchronization of eventsToDeliver Object in onComplete() [PR#1971](https://github.com/aws/aws-sdk-java-v2/pull/1971) since it was causing latency.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Added support for cancelling a model version that is TRAINING_IN_PROGRESS.
+
+## __Amazon Personalize__
+  - ### Features
+    - Miscellaneous updates and improvements to the documentation
+
 # __2.15.63__ __2021-01-12__
 ## __AWS Audit Manager__
   - ### Features
