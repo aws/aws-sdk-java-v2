@@ -1,0 +1,24 @@
+{
+    "version": "2.15.64",
+    "date": "2021-01-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "Added support for cancelling a model version that is TRAINING_IN_PROGRESS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "Miscellaneous updates and improvements to the documentation"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Reverting synchronization of eventsToDeliver Object in onComplete() [PR#1971](https://github.com/aws/aws-sdk-java-v2/pull/1971) since it was causing latency."
+        }
+    ]
+}
