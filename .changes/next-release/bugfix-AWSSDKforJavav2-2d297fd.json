@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Add support for content-type in AsyncRequestBody."
+}
