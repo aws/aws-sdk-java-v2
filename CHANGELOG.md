@@ -1,3 +1,20 @@
+# __2.15.65__ __2021-01-14__
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 Batch Operations now supports restoring objects from the S3 Intelligent-Tiering Archive Access and Deep Archive Access tiers.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - Add Attributes For Access Control support for Amazon Cognito Identity Pools to facilitate access to AWS resources based on attributes from social and corporate identity providers
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Customers can create segments using 5 new filters. Filters can check for the presence of a substring in attributes and can perform time-based comparisons formatted as ISO_INSTANT datetimes.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This feature allows customers to enable/disable model caching on Multi-Model endpoints.
+
 # __2.15.64__ __2021-01-13__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
