@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint",
+    "contributor": "",
+    "description": "Customers can create segments using 5 new filters. Filters can check for the presence of a substring in attributes and can perform time-based comparisons formatted as ISO_INSTANT datetimes."
+}
