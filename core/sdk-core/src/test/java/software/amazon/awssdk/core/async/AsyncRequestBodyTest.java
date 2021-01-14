@@ -15,24 +15,39 @@
 
 package software.amazon.awssdk.core.async;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import org.assertj.core.util.Lists;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 
 @RunWith(Parameterized.class)
 public class AsyncRequestBodyTest {
@@ -94,6 +109,48 @@ public class AsyncRequestBodyTest {
         provider.subscribe(subscriber);
         done.await();
         assertThat(sb.toString()).isEqualTo(testString);
+    }
+
+    @Test
+    public void stringConstructorHasCorrectContentType() {
+        AsyncRequestBody requestBody = AsyncRequestBody.fromString("hello world");
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN);
+    }
+
+    @Test
+    public void fileConstructorHasCorrectContentType() {
+        AsyncRequestBody requestBody = AsyncRequestBody.fromFile(path);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void bytesArrayConstructorHasCorrectContentType() {
+        AsyncRequestBody requestBody = AsyncRequestBody.fromBytes("hello world".getBytes());
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void bytesBufferConstructorHasCorrectContentType() {
+        ByteBuffer byteBuffer = ByteBuffer.wrap("hello world".getBytes());
+        AsyncRequestBody requestBody = AsyncRequestBody.fromByteBuffer(byteBuffer);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void emptyBytesConstructorHasCorrectContentType() {
+        AsyncRequestBody requestBody = AsyncRequestBody.empty();
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void publisherConstructorHasCorrectContentType() {
+        List<String> requestBodyStrings = Lists.newArrayList("A", "B", "C");
+        List<ByteBuffer> bodyBytes = requestBodyStrings.stream()
+                                                .map(s -> ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8)))
+                                                .collect(Collectors.toList());
+        Publisher<ByteBuffer> bodyPublisher = Flowable.fromIterable(bodyBytes);
+        AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(bodyPublisher);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test

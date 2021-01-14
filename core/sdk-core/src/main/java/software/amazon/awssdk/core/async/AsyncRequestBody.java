@@ -26,6 +26,7 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -56,6 +57,13 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @return The content length of the data being produced.
      */
     Optional<Long> contentLength();
+
+    /**
+     * @return The content type of the data being produced.
+     */
+    default String contentType() {
+        return Mimetype.MIMETYPE_OCTET_STREAM;
+    }
 
     /**
      * Creates an {@link AsyncRequestBody} the produces data from the input ByteBuffer publisher.
@@ -115,7 +123,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @see ByteArrayAsyncRequestBody
      */
     static AsyncRequestBody fromString(String string, Charset cs) {
-        return new ByteArrayAsyncRequestBody(string.getBytes(cs));
+        return new ByteArrayAsyncRequestBody(string.getBytes(cs), Mimetype.MIMETYPE_TEXT_PLAIN);
     }
 
     /**
@@ -137,7 +145,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @return AsyncRequestBody instance.
      */
     static AsyncRequestBody fromBytes(byte[] bytes) {
-        return new ByteArrayAsyncRequestBody(bytes);
+        return new ByteArrayAsyncRequestBody(bytes, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -148,7 +156,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @return AsyncRequestBody instance.
      */
     static AsyncRequestBody fromByteBuffer(ByteBuffer byteBuffer) {
-        return new ByteArrayAsyncRequestBody(BinaryUtils.copyAllBytesFrom(byteBuffer));
+        return fromBytes(BinaryUtils.copyAllBytesFrom(byteBuffer));
     }
 
     /**
