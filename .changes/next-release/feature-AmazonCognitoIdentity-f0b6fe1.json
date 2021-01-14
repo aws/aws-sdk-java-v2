@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity",
+    "contributor": "",
+    "description": "Add Attributes For Access Control support for Amazon Cognito Identity Pools to facilitate access to AWS resources based on attributes from social and corporate identity providers"
+}
