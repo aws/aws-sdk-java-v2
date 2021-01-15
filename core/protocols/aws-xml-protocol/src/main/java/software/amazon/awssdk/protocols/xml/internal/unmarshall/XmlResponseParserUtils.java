@@ -19,8 +19,11 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
@@ -49,7 +52,7 @@ public final class XmlResponseParserUtils {
             // In some cases the responseContent is present but empty, so when we are not expecting a body we should
             // not attempt to parse it even if the body appears to be present.
             if ((!response.isSuccessful() || hasPayloadMembers(sdkPojo)) && responseContent.isPresent() &&
-                !contentLengthZero(response)) {
+                    !contentLengthZero(response) && !getBlobTypePayloadMemberToUnmarshal(sdkPojo).isPresent()) {
                 return XmlDomParser.parse(responseContent.get());
             } else {
                 return XmlElement.empty();
@@ -63,6 +66,21 @@ public final class XmlResponseParserUtils {
         }
     }
 
+    /**
+     * Gets the Member which is a Payload and which is of Blob Type.
+     * @param sdkPojo
+     * @return Optional of SdkField member if member is Blob type payload else returns Empty.
+     */
+    public static Optional<SdkField<?>> getBlobTypePayloadMemberToUnmarshal(SdkPojo sdkPojo) {
+        return sdkPojo.sdkFields().stream()
+                .filter(e -> isExplicitPayloadMember(e))
+                .filter(f -> f.marshallingType() == MarshallingType.SDK_BYTES).findFirst();
+    }
+
+    private static boolean isExplicitPayloadMember(SdkField<?> f) {
+        return f.containsTrait(PayloadTrait.class);
+    }
+
     private static boolean hasPayloadMembers(SdkPojo sdkPojo) {
         return sdkPojo.sdkFields().stream()
                       .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD);
@@ -71,4 +89,6 @@ public final class XmlResponseParserUtils {
     private static boolean contentLengthZero(SdkHttpFullResponse response) {
         return response.firstMatchingHeader(CONTENT_LENGTH).map(l -> Long.parseLong(l) == 0).orElse(false);
     }
+
+
 }
