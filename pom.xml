@@ -513,8 +513,6 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.regions.servicemetadata.IotfleethubServiceMetadata</exclude>
-                            <exclude>software.amazon.awssdk.services.lightsail.model.Instance$Builder#ipv6Address(java.lang.String)</exclude>
-                            <exclude>software.amazon.awssdk.services.lightsail.model.Instance#ipv6Address()</exclude>
                         </excludes>
                         <excludeModules>
                             <excludeModule>codegen-lite-maven-plugin</excludeModule>
