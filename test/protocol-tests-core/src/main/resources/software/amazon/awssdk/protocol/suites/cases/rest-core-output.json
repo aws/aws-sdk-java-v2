@@ -119,8 +119,26 @@
       "deserializedAs": {
       }
     }
-  }
+  },
   // TODO header maps, service models supports this but Java SDK does not (not currently exercised)
   // TODO header maps with prefix, services models do not support this, only used by S3
   // TODO List of strings bound to header, service  models supports this, not currently exercised by any service
+  {
+    "description": "Operation with explicit payload blob in output is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "contents"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "OperationWithExplicitPayloadBlob"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": "contents"
+      }
+    }
+  }
 ]
