@@ -16,13 +16,16 @@
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
 import static java.util.Collections.singletonList;
+import static software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlResponseParserUtils.getBlobTypePayloadMemberToUnmarshal;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -76,6 +79,7 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
     }
 
     SdkPojo unmarshall(XmlUnmarshallerContext context, SdkPojo sdkPojo, XmlElement root) {
+        Optional<SdkField<?>> payloadMemberAsBlobType = getBlobTypePayloadMemberToUnmarshal(sdkPojo);
         for (SdkField<?> field : sdkPojo.sdkFields()) {
             XmlUnmarshaller<Object> unmarshaller = REGISTRY.getUnmarshaller(field.location(), field.marshallingType());
 
@@ -94,8 +98,15 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
                                                root.getElementsByName(field.unmarshallLocationName());
 
                     if (!CollectionUtils.isNullOrEmpty(element)) {
-                        Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
-                        field.set(sdkPojo, unmarshalled);
+                        boolean isFieldBlobTypePayload = payloadMemberAsBlobType.isPresent()
+                                && payloadMemberAsBlobType.get().equals(field);
+
+                        if (isFieldBlobTypePayload) {
+                            field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
+                        } else {
+                            Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
+                            field.set(sdkPojo, unmarshalled);
+                        }
                     }
                 }
             } else {
