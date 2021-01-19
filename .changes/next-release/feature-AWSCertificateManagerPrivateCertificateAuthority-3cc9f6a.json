@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Certificate Manager Private Certificate Authority",
-    "contributor": "",
-    "description": "ACM Private CA is launching additional certificate templates and API parameters. This allows customers to create custom certificates for their identity and secure communication use cases."
-}

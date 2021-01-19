@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "contributor": "",
-    "description": "This release adds support to include task definition metadata information such as registeredAt, deregisteredAt, registeredBy as part of DescribeTaskDefinition API."
-}
