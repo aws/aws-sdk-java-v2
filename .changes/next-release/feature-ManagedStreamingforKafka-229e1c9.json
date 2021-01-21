@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka",
-    "contributor": "",
-    "description": "Amazon MSK has added a new API that allows you to update all the brokers in the cluster to the specified type."
-}
