@@ -268,6 +268,11 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
         public Optional<Long> contentLength() {
             return transformedRequestBody.contentLength();
         }
+
+        @Override
+        public String contentType() {
+            return transformedRequestBody.contentType();
+        }
     }
 
     static String toDebugString(Message m, boolean truncatePayload) {

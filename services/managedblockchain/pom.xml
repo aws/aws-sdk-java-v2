@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.15.67</version>
+        <version>2.15.68</version>
     </parent>
     <artifactId>managedblockchain</artifactId>
     <name>AWS Java SDK :: Services :: ManagedBlockchain</name>
