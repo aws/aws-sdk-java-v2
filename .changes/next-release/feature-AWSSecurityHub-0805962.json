@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "contributor": "",
+    "description": "This release of ASFF adds a new Action object and a new resource details object - AwsSsmPatchCompliance. It also adds several new attributes for the AwsEc2NetworkInterface resource type."
+}
