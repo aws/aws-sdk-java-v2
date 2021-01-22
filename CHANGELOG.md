@@ -1,3 +1,49 @@
+# __2.15.69__ __2021-01-22__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Documentation updates that improve clarity and fix broken links.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introducing startDate field for CapacityReservation object for the date and time which the reservation started and adding reserved parameter for ModifyCapacityReservation.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for Amazon Lex V2 APIs for model building.
+
+## __Amazon Lex Runtime V2__
+  - ### Features
+    - This release adds support for Amazon Lex V2 APIs for runtime, including Streaming APIs for conversation management.
+
+## __Amazon Redshift__
+  - ### Features
+    - Update VPC endpoint field names.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for Amazon RDS
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Documentation updates for the ListDocumentFilters API action.
+
+# __2.15.68__ __2021-01-21__
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - This release adds a new parameter ResourceARNList to Resource Groups Tagging api GetResources api to allow customers retrieve tag data for specific resources.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add support for content-type in AsyncRequestBody.
+
+## __AWS SecurityHub__
+  - ### Features
+    - This release of ASFF adds a new Action object and a new resource details object - AwsSsmPatchCompliance. It also adds several new attributes for the AwsEc2NetworkInterface resource type.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK has added a new API that allows you to update all the brokers in the cluster to the specified type.
+
 # __2.15.67__ __2021-01-19__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
