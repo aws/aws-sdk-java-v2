@@ -513,7 +513,9 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.regions.servicemetadata.IotfleethubServiceMetadata</exclude>
+                            <exclude>software.amazon.awssdk.services.redshift.model.*</exclude>
                         </excludes>
+
                         <excludeModules>
                             <excludeModule>codegen-lite-maven-plugin</excludeModule>
                             <excludeModule>codegen-maven-plugin</excludeModule>
