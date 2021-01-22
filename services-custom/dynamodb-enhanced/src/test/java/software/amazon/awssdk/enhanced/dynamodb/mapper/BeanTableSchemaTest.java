@@ -846,6 +846,35 @@ public class BeanTableSchemaTest {
     }
 
     @Test
+    public void mapBean_mapWithNullValue() {
+        BeanTableSchema<MapBean> beanTableSchema = BeanTableSchema.create(MapBean.class);
+        MapBean mapBean = new MapBean();
+        mapBean.setId("id-value");
+
+        Map<String, String> testMap = new HashMap<>();
+        testMap.put("one", null);
+        testMap.put("three", "four");
+
+        mapBean.setStringMap(testMap);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true);
+
+        Map<String, AttributeValue> expectedMap = new HashMap<>();
+        expectedMap.put("one", AttributeValues.nullAttributeValue());
+        expectedMap.put("three", stringValue("four"));
+        AttributeValue expectedMapValue = AttributeValue.builder()
+                                                        .m(expectedMap)
+                                                        .build();
+
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("stringMap", expectedMapValue));
+
+        MapBean reverse = beanTableSchema.mapToItem(itemMap);
+        assertThat(reverse, is(equalTo(mapBean)));
+    }
+
+    @Test
     public void mapBean_nestedStringMap() {
         BeanTableSchema<MapBean> beanTableSchema = BeanTableSchema.create(MapBean.class);
         MapBean mapBean = new MapBean();

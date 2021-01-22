@@ -1217,6 +1217,24 @@ public class StaticTableSchemaTest {
     }
 
     @Test
+    public void mapperCanHandleMapWithNullValue() {
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("one", null);
+        stringMap.put("two", "three");
+
+        Map<String, AttributeValue> attributeValueMap = new HashMap<>();
+        attributeValueMap.put("one", AttributeValue.builder().nul(true).build());
+        attributeValueMap.put("two", AttributeValue.builder().s("three").build());
+
+        verifyNullableAttribute(EnhancedType.mapOf(String.class, String.class),
+                                a -> a.name("value")
+                                      .getter(FakeMappedItem::getAStringMap)
+                                      .setter(FakeMappedItem::setAStringMap),
+                                FakeMappedItem.builder().aStringMap(stringMap).build(),
+                                AttributeValue.builder().m(attributeValueMap).build());
+    }
+
+    @Test
     public void mapperCanHandleIntDoubleMap() {
         Map<Integer, Double> intDoubleMap = new ConcurrentHashMap<>();
         intDoubleMap.put(1, 1.0);
