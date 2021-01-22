@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Runtime V2",
-    "contributor": "",
-    "description": "This release adds support for Amazon Lex V2 APIs for runtime, including Streaming APIs for conversation management."
-}
