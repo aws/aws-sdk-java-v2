@@ -118,14 +118,25 @@ Once you check out the code from GitHub, you can build it using Maven.
 
 Note: The `archetypes/archetype-lambda` project requires that you have Python 3 in your path as `python`.
 
+### Build a Specific Service Module
+
+This is the fastest option if you only need to build a certain sub-project like S3 or the DynamoDB Enhanced Client.
+
 ```sh
+# Build a specific service module; Skip tests, checkstyles, findbugs, etc
+mvn clean install -pl :s3 -P quick --am
+```
+
+### Build the Entire Project
+
+Note that this can take quite a long time to complete.
+
+```sh
+# Build the entire project
 mvn clean install
 
-# Skip tests, checkstyles, findbugs, etc for quick build
+# Build the entire project; Skip tests, checkstyles, findbugs, etc
 mvn clean install -P quick
-
-# Build a specific service module
-mvn clean install -pl :s3 -P quick --am
 ```
 
 ### Code Generation
