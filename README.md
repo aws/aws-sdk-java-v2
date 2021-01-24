@@ -116,6 +116,8 @@ See the [Set up the AWS SDK for Java][docs-setup] section of the developer guide
 
 Once you check out the code from GitHub, you can build it using Maven.
 
+Note: The `archetypes/archetype-lambda` project requires that you have Python 3 in your path as `python`.
+
 ```sh
 mvn clean install
 
@@ -125,6 +127,17 @@ mvn clean install -P quick
 # Build a specific service module
 mvn clean install -pl :s3 -P quick --am
 ```
+
+### Code Generation
+
+The SDK makes significant use of code generation which takes place at build time. During a Maven build, the 
+`build-helper-maven-plugin` takes care of making these additional generated source files available for compilation. 
+
+However, your IDE may not automatically detect the generated code which can lead to class not found errors. 
+To fix this, you may need to instruct your IDE where to find the generated code: namely, in the 
+`target/generated-sources` of many of the projects in this repo. For example, in IntelliJ IDEA, you can do this by 
+opening `File | Settings | Build, Execution, Deployment | Build Tools | Maven | Importing` and setting
+"Generated sources folders"	to "target/generated-sources".
 
 ## Sample Code
 You can find sample code for v2 in the following places:
