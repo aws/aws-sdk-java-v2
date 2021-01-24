@@ -1,0 +1,6 @@
+{
+    "category": "Amazon Neptune", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Cross-Region Copying Pre-Signer for CopyDBClusterSnapshot and CreateDBCluster API of Neptune."
+}
