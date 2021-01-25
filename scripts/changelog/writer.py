@@ -29,6 +29,7 @@ class ChangelogWriter(object):
             self.write_items_for_category(s, self.bugfixes, "Bugfixes")
             self.write_items_for_category(s, self.deprecations, "Deprecations")
             self.write_items_for_category(s, self.removals, "Removals")
+            self.write_items_for_category(s, self.documentations, "Documentations")
         self.write_contributors()
 
     def write_contributors(self):
@@ -57,6 +58,7 @@ class ChangelogWriter(object):
         self.bugfixes = {}
         self.deprecations = {}
         self.removals = {}
+        self.documentations = {}
         self.categories = set()
 
     def group_entries(self):
@@ -117,6 +119,8 @@ class ChangelogWriter(object):
             return self.deprecations
         elif t == 'removal':
             return self.removals
+        elif t == 'documentation':
+            return self.documentations
         else:
             raise Exception("Unknown entry type %s!" % t)
 

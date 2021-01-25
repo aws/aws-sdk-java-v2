@@ -16,7 +16,7 @@ To generate a new changelog entry::
 
 This will open up a file in your editor (via the ``EDITOR`` env  var).
 You'll see this template::
-    # Type should be one of: feature, bugfix, deprecation, removal
+    # Type should be one of: feature, bugfix, deprecation, removal, documentation
     type: {change_type}
 
     # The marketing name of the service this change applies to
@@ -53,7 +53,7 @@ CHANGES_DIR = os.path.join(
 )
 CHANGE_PARTS = ['type', 'category', 'description']
 TEMPLATE = """\
-# Type should be one of: feature, bugfix, deprecation, removal
+# Type should be one of: feature, bugfix, deprecation, removal, documentation
 type: {change_type}
 
 # The marketing name of the service this change applies to
@@ -189,7 +189,8 @@ def parse_filled_in_contents(contents):
             continue
         if 'type' not in parsed and line.startswith('type:'):
             t = line[len('type:'):].strip()
-            if t not in ['feature', 'bugfix', 'deprecation', 'removal']:
+            if t not in ['feature', 'bugfix', 'deprecation', 'removal',
+                         'documentation']:
                 raise Exception("Unsupported category %s" % t)
             parsed['type'] = t
         elif 'category' not in parsed and line.startswith('category:'):
@@ -210,7 +211,8 @@ def parse_filled_in_contents(contents):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--type', dest='change_type',
-                        default='', choices=('bugfix', 'feature', 'deprecation'))
+                        default='', choices=('bugfix', 'feature',
+                                             'deprecation', 'documentation'))
     parser.add_argument('-c', '--category', dest='category',
                         default='')
     parser.add_argument('-u', '--contributor', dest='contributor',
