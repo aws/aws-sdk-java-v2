@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.15.70</version>
+        <version>2.15.71-SNAPSHOT</version>
     </parent>
     <artifactId>kinesisvideosignaling</artifactId>
     <name>AWS Java SDK :: Services :: Kinesis Video Signaling</name>
