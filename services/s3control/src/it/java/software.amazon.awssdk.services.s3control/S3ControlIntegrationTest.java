@@ -16,7 +16,6 @@ package software.amazon.awssdk.services.s3control;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -86,7 +85,7 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
                                                             .publicAccessBlockConfiguration(r2 -> r2.restrictPublicBuckets(true))));
             fail("Expected exception");
         } catch (S3ControlException e) {
-            assertEquals("AccessDenied", e.awsErrorDetails().errorCode());
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("AccessDenied");
             assertNotNull(e.requestId());
         }
     }
@@ -97,7 +96,41 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
             client.getPublicAccessBlock(r -> r.accountId(INVALID_ACCOUNT_ID));
             fail("Expected exception");
         } catch (S3ControlException e) {
-            assertEquals("AccessDenied", e.awsErrorDetails().errorCode());
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("AccessDenied");
+            assertNotNull(e.requestId());
+        }
+    }
+
+    @Test
+    public void getPublicAccessBlock_NoSuchPublicAccessBlock() {
+        try {
+            client.getPublicAccessBlock(r -> r.accountId(accountId));
+            fail("Expected exception");
+        } catch (S3ControlException e) {
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("NoSuchPublicAccessBlockConfiguration");
+            assertThat(e).isInstanceOf(NoSuchPublicAccessBlockConfigurationException.class);
+            assertNotNull(e.requestId());
+        }
+    }
+
+    @Test
+    public void listJobs_InvalidRequest() {
+        try {
+            client.listJobs(r -> r.accountId(accountId).jobStatusesWithStrings("test"));
+            fail("Expected exception");
+        } catch (S3ControlException e) {
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("InvalidRequest");
+            assertNotNull(e.requestId());
+        }
+    }
+
+    @Test
+    public void describeJob_InvalidRequest() {
+        try {
+            client.describeJob(r -> r.accountId(accountId).jobId("someid"));
+            fail("Expected exception");
+        } catch (S3ControlException e) {
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("InvalidRequest");
             assertNotNull(e.requestId());
         }
     }
@@ -108,7 +141,7 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
             client.deletePublicAccessBlock(r -> r.accountId(INVALID_ACCOUNT_ID));
             fail("Expected exception");
         } catch (S3ControlException e) {
-            assertEquals("AccessDenied", e.awsErrorDetails().errorCode());
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("AccessDenied");
             assertNotNull(e.requestId());
         }
     }
