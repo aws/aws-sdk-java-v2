@@ -1,6 +1,0 @@
-{
-    "category": "DynamoDB Enhanced Client", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Converts string to NULL attribute if it's null. See [#2243](https://github.com/aws/aws-sdk-java-v2/issues/2243)"
-}

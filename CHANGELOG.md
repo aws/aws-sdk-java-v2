@@ -1,3 +1,24 @@
+# __2.15.70__ __2021-01-26__
+## __AWS Backup__
+  - ### Features
+    - Documentation updates for AWS Backup
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Cross-Region Copying Pre-Signer for CopyDBClusterSnapshot and CreateDBCluster API of DocDB.
+
+## __Amazon Neptune__
+  - ### Features
+    - Cross-Region Copying Pre-Signer for CopyDBClusterSnapshot and CreateDBCluster API of Neptune.
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Converts string to NULL attribute if it's null. See [#2243](https://github.com/aws/aws-sdk-java-v2/issues/2243)
+
 # __2.15.69__ __2021-01-22__
 ## __AWS IoT Greengrass V2__
   - ### Features
