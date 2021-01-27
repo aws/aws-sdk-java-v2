@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elasticsearch Service",
+    "contributor": "",
+    "description": "Amazon Elasticsearch Service adds support for node-to-node encryption and encryption at rest for existing domains running Elasticsearch version 6.7 and above"
+}
