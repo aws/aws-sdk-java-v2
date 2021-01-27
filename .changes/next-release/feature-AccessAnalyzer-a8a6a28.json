@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Access Analyzer",
-    "contributor": "",
-    "description": "This release adds Secrets Manager secrets as a supported resource in IAM Access Analyzer to help you identify secrets that can be accessed from outside your account or AWS organization."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon ElastiCache",
-    "contributor": "",
-    "description": "Add support to pass ParameterGroup name as part updating Engine Version of Global Datastore."
-}

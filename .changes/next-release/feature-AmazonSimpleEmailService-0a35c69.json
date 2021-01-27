@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Email Service",
-    "contributor": "",
-    "description": "This release includes the ability to assign a configuration set to an email identity (a domain or email address), which allows the settings from the configuration set to be applied to the identity."
-}
