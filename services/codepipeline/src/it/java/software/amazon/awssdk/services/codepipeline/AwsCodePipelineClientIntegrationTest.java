@@ -66,11 +66,6 @@ public class AwsCodePipelineClientIntegrationTest extends AwsTestBase {
         return false;
     }
 
-    @Test(expected = InvalidNextTokenException.class)
-    public void listPipelines_WithInvalidNextToken_ThrowsInvalidNextTokenException() {
-        client.listPipelines(ListPipelinesRequest.builder().nextToken("invalid_next_token").build());
-    }
-
     @Test
     public void listActionTypes_WithNoFilter_ReturnsNonEmptyList() {
         assertThat(client.listActionTypes(ListActionTypesRequest.builder().build()).actionTypes().size(), greaterThan(0));
