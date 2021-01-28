@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch",
-    "contributor": "",
-    "description": "Update to SDK to support label time zones in CloudWatch GetMetricData"
-}

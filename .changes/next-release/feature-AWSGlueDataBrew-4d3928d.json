@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue DataBrew",
-    "contributor": "",
-    "description": "This SDK release adds support for specifying a custom delimiter for input CSV datasets and for CSV job outputs."
-}
