@@ -72,7 +72,7 @@
       "members":{
         "AudioChunk":{
           "shape":"AudioChunk",
-          "documentation":"<p>An audio blob that contains the next part of the audio that you want to transcribe.</p>",
+          "documentation":"<p>An audio blob that contains the next part of the audio that you want to transcribe. The maximum audio chunk size is 32 KB.</p>",
           "eventpayload":true
         }
       },
@@ -84,7 +84,7 @@
       "members":{
         "AudioEvent":{
           "shape":"AudioEvent",
-          "documentation":"<p>A blob of audio from your application. You audio stream consists of one or more audio events.</p>"
+          "documentation":"<p>A blob of audio from your application. You audio stream consists of one or more audio events. For information on audio encoding formats, see <a>input</a>. For more information on stream encoding, see <a>event-stream</a>.</p>"
         }
       },
       "documentation":"<p>Represents the audio stream from your application to Amazon Transcribe.</p>",
@@ -210,6 +210,10 @@
         "Items":{
           "shape":"MedicalItemList",
           "documentation":"<p>A list of objects that contains words and punctuation marks that represents one or more interpretations of the input audio.</p>"
+        },
+        "Entities":{
+          "shape":"MedicalEntityList",
+          "documentation":"<p>Contains the medical entities identified as personal health information in the transcription output.</p>"
         }
       },
       "documentation":"<p>A list of possible transcriptions for the audio.</p>"
@@ -217,6 +221,40 @@
     "MedicalAlternativeList":{
       "type":"list",
       "member":{"shape":"MedicalAlternative"}
+    },
+    "MedicalContentIdentificationType":{
+      "type":"string",
+      "enum":["PHI"]
+    },
+    "MedicalEntity":{
+      "type":"structure",
+      "members":{
+        "StartTime":{
+          "shape":"Double",
+          "documentation":"<p>The start time of the speech that was identified as a medical entity.</p>"
+        },
+        "EndTime":{
+          "shape":"Double",
+          "documentation":"<p>The end time of the speech that was identified as a medical entity.</p>"
+        },
+        "Category":{
+          "shape":"String",
+          "documentation":"<p>The type of personal health information of the medical entity.</p>"
+        },
+        "Content":{
+          "shape":"String",
+          "documentation":"<p>The word or words in the transcription output that have been identified as a medical entity.</p>"
+        },
+        "Confidence":{
+          "shape":"Confidence",
+          "documentation":"<p>A value between zero and one that Amazon Transcribe Medical assigned to the personal health information that it identified in the source audio. Larger values indicate that Amazon Transcribe Medical has higher confidence in the personal health information that it identified.</p>"
+        }
+      },
+      "documentation":"<p>The medical entity identified as personal health information.</p>"
+    },
+    "MedicalEntityList":{
+      "type":"list",
+      "member":{"shape":"MedicalEntity"}
     },
     "MedicalItem":{
       "type":"structure",
@@ -459,6 +497,12 @@
           "documentation":"<p>The number of channels that are in your audio stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-number-of-channels"
+        },
+        "ContentIdentificationType":{
+          "shape":"MedicalContentIdentificationType",
+          "documentation":"<p>Set this field to <code>PHI</code> to identify personal health information in the transcription output.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-identification-type"
         }
       },
       "payload":"AudioStream"
@@ -535,6 +579,12 @@
           "documentation":"<p>The number of channels identified in the stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-number-of-channels"
+        },
+        "ContentIdentificationType":{
+          "shape":"MedicalContentIdentificationType",
+          "documentation":"<p>If the value is <code>PHI</code>, indicates that you've configured your stream to identify personal health information.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-identification-type"
         }
       },
       "payload":"TranscriptResultStream"
