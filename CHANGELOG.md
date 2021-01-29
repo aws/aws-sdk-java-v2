@@ -1,3 +1,24 @@
+# __2.15.73__ __2021-01-29__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - "AWS Elemental MediaLive now supports output to a private VPC. When this property is specified, the output will egress from a user specified VPC."
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added API to manage queues or get hours of operation for a queue programmatically, which can be used to create new/update queues, or take actions when skills are outside of their hours of operation.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API adds support for using object prefixes to refine the scope of a classification job.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe Streaming Medical now supports Protected Health Information (PHI) identification which enables you to identify PHI entities based on HIPAA Privacy Rule.
+
 # __2.15.72__ __2021-01-28__
 ## __AWS Glue DataBrew__
   - ### Features
