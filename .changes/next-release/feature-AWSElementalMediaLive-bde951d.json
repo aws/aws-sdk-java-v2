@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "\"AWS Elemental MediaLive now supports output to a private VPC. When this property is specified, the output will egress from a user specified VPC.\""
-}
