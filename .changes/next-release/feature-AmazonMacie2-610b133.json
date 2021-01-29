@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Macie 2",
+    "contributor": "",
+    "description": "This release of the Amazon Macie API adds support for using object prefixes to refine the scope of a classification job."
+}
