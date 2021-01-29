@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.BooleanStringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.ByteArrayStringConverter;
@@ -64,7 +65,7 @@ public final class StringAttributeConverter implements AttributeConverter<String
 
     @Override
     public AttributeValue transformFrom(String input) {
-        return AttributeValue.builder().s(input).build();
+        return input == null ? AttributeValues.nullAttributeValue() : AttributeValue.builder().s(input).build();
     }
 
     @Override

@@ -1,0 +1,48 @@
+{
+    "version": "2.15.69",
+    "date": "2021-01-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Introducing startDate field for CapacityReservation object for the date and time which the reservation started and adding reserved parameter for ModifyCapacityReservation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "This release adds support for Amazon Lex V2 APIs for model building."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Documentation updates for the ListDocumentFilters API action."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Update VPC endpoint field names."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon RDS"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Greengrass V2",
+            "contributor": "",
+            "description": "Documentation updates that improve clarity and fix broken links."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime V2",
+            "contributor": "",
+            "description": "This release adds support for Amazon Lex V2 APIs for runtime, including Streaming APIs for conversation management."
+        }
+    ]
+}
