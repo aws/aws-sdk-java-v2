@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Wireless",
-    "contributor": "",
-    "description": "Add enum value MqttTopic for Destination ExpressionType, add LoRaWANNetworkServerCertificateId for GetWirelessGatewayCertificate API"
-}

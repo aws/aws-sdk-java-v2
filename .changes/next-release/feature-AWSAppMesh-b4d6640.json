@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS App Mesh",
-    "contributor": "",
-    "description": "App Mesh now supports mutual TLS with two-way peer authentication. You can specify client certificates, server-side TLS validation, and matching of Subject Alternative Names."
-}
