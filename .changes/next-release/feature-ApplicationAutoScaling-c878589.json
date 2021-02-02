@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Application Auto Scaling",
+    "contributor": "",
+    "description": "With this release, scheduled actions of Application Auto Scaling can be created in the local time zone and automatically adjusted according to daylight saving changes."
+}
