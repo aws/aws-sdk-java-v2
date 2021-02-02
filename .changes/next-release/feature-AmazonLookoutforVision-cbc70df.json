@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lookout for Vision",
+    "contributor": "",
+    "description": "This release includes the General Availability (GA) SDK for Amazon Lookout for Vision. New for GA is tagging support for Amazon Lookout for Vision models."
+}
