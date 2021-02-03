@@ -1,0 +1,72 @@
+{
+    "version": "2.15.75",
+    "date": "2021-02-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue DataBrew",
+            "contributor": "",
+            "description": "This release adds the DescribeJobRun API to allow customers retrieve details of a given job run"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Audit Manager",
+            "contributor": "",
+            "description": "This release adds AccessDeniedException to GetServicesInScope API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Added a ProductArn parameter to DescribeProducts. ProductArn is used to identify the integration to return details for."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "contributor": "",
+            "description": "Increased maximum length of ipRanges values for Access Control Rules from 10 to 1024."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "Documentation updates for Compute Optimizer"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Update AccessPolicy API input to support IAM role for IAM mode. Iam role is added as part of accessPolicyIdentity."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Amazon S3 now supports AWS PrivateLink, providing direct access to S3 via a private endpoint within your virtual private network."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Support for creating Lambda Functions using 'nodejs14.x'"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Documentation updates for codebuild"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Clarify valid values for the filter parameter for certain APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "EC2 Public IP now supports API for setting PTR records on Elastic IP address."
+        }
+    ]
+}
