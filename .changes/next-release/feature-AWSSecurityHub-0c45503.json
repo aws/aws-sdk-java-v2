@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "contributor": "",
+    "description": "Added a ProductArn parameter to DescribeProducts. ProductArn is used to identify the integration to return details for."
+}
