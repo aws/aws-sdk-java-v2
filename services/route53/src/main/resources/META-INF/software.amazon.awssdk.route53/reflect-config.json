@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.route53.internal.Route53IdInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

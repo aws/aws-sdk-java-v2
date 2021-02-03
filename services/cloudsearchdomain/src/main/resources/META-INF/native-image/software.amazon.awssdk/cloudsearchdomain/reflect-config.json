@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.cloudsearchdomain.internal.SwitchToPostInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

@@ -78,6 +78,7 @@
         <module>test/module-path-tests</module>
         <module>test/tests-coverage-reporting</module>
         <module>test/stability-tests</module>
+        <module>test/sdk-native-image-test</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
@@ -527,6 +528,8 @@
                             <excludeModule>tests-coverage-reporting</excludeModule>
                             <excludeModule>aws-sdk-java</excludeModule>
                             <excludModeule>archetype-lambda</excludModeule>
+                            <excludeModule>archetype-app-quickstart</excludeModule>
+                            <excludeModule>archetype-tools</excludeModule>
                             <excludeModule>sdk-benchmarks</excludeModule>
                             <excludeModule>bundle</excludeModule>
                             <!-- ignore crt because it's in preview TODO: remove this when CRT is GA -->

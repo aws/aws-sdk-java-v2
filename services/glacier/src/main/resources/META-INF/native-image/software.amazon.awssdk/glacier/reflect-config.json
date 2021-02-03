@@ -1,0 +1,20 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.glacier.internal.AcceptJsonInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.glacier.internal.GlacierExecutionInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

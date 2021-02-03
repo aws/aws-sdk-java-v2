@@ -1,0 +1,28 @@
+[
+  {
+    "name": "software.amazon.awssdk.http.apache.ApacheSdkHttpService",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "org.apache.http.client.config.RequestConfig$Builder",
+    "methods": [
+      {
+        "name": "setNormalizeUri"
+      }
+    ]
+  },
+  {
+    "name": "org.apache.commons.logging.LogFactory",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.apigateway.internal.AcceptJsonInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

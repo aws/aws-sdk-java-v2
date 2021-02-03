@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.http.nio.netty.NettySdkAsyncHttpService",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]
