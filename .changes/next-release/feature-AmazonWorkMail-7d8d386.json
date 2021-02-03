@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkMail",
+    "contributor": "",
+    "description": "Increased maximum length of ipRanges values for Access Control Rules from 10 to 1024."
+}
