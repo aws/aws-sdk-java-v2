@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue DataBrew",
+    "contributor": "",
+    "description": "This release adds the DescribeJobRun API to allow customers retrieve details of a given job run"
+}
