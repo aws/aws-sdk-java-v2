@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "contributor": "",
-    "description": "Update AccessPolicy API input to support IAM role for IAM mode. Iam role is added as part of accessPolicyIdentity."
-}

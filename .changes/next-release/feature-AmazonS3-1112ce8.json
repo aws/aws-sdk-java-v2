@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Amazon S3 now supports AWS PrivateLink, providing direct access to S3 via a private endpoint within your virtual private network."
-}

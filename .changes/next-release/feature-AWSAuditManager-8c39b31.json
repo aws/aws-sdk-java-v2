@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Audit Manager",
-    "contributor": "",
-    "description": "This release adds AccessDeniedException to GetServicesInScope API."
-}
