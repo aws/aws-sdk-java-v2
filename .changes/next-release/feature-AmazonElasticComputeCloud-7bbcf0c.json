@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "EC2 Public IP now supports API for setting PTR records on Elastic IP address."
+}
