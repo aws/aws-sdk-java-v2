@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "contributor": "",
+    "description": "Clarify valid values for the filter parameter for certain APIs."
+}
