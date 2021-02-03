@@ -1,0 +1,7 @@
+{
+  "resources": [
+    {
+      "pattern": "\\Qsoftware.amazon.awssdk.http.async\\E"
+    }
+  ]
+}

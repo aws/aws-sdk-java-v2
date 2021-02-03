@@ -27,6 +27,8 @@
     <name>AWS Java SDK :: Archetypes</name>
     <modules>
         <module>archetype-lambda</module>
+        <module>archetype-app-quickstart</module>
+        <module>archetype-tools</module>
     </modules>
     <packaging>pom</packaging>
     <description>

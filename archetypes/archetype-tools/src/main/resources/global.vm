@@ -20,7 +20,7 @@
 #end
 #set ( $serviceClientVariable = $serviceClientPrefix.substring(0,1).toLowerCase() + $serviceClientPrefix.substring(1))
 #set( $regionEnum = $region.replace("-", "_").toUpperCase() )
-## map the client module name to the client class name and pacakge name
+## map the client module name to the client class name and package name
 #if( $httpClient == 'url-connection-client')
     #set ($httpClientClassName = 'UrlConnectionHttpClient')
     #set ($httpClientPackageName = 'urlconnection.' + $httpClientClassName)
