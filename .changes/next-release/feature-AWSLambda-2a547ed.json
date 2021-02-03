@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Support for creating Lambda Functions using 'nodejs14.x'"
+}
