@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Data Lifecycle Manager",
-    "contributor": "",
-    "description": "Provide support for EBS Local Snapshots on AWS Outpost in Data Lifecycle Manager (DLM)."
-}
