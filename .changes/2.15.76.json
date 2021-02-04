@@ -1,0 +1,48 @@
+{
+    "version": "2.15.76",
+    "date": "2021-02-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "Adding schedule offset as an input for scheduled flows in CreateFlow API. Also, adding data pull start time and data pull end time for DescribeFlowExecutionRecords API response."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Data Lifecycle Manager",
+            "contributor": "",
+            "description": "Provide support for EBS Local Snapshots on AWS Outpost in Data Lifecycle Manager (DLM)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "API release for field folders feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "Adds the Athena ListEngineVersions action and the EngineVersion data type. ListEngineVersions returns the available Athena engine versions, including Auto, as a list of EngineVersion objects."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "AWS Outposts now supports EBS local snapshots on Outposts that allows customers to store snapshots of EBS volumes and AMIs locally on S3 on Outposts."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR Containers",
+            "contributor": "",
+            "description": "This release is to correct the timestamp format to ISO8601 for the date parameters in the describe and list API response objects of Job Run and Virtual Clusters."
+        }
+    ]
+}
