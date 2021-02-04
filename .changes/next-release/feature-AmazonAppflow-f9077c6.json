@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Appflow",
-    "contributor": "",
-    "description": "Adding schedule offset as an input for scheduled flows in CreateFlow API. Also, adding data pull start time and data pull end time for DescribeFlowExecutionRecords API response."
-}

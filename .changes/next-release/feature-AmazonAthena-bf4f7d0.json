@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Athena",
-    "contributor": "",
-    "description": "Adds the Athena ListEngineVersions action and the EngineVersion data type. ListEngineVersions returns the available Athena engine versions, including Auto, as a list of EngineVersion objects."
-}

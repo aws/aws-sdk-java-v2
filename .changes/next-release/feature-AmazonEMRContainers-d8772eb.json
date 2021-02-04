@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR Containers",
-    "contributor": "",
-    "description": "This release is to correct the timestamp format to ISO8601 for the date parameters in the describe and list API response objects of Job Run and Virtual Clusters."
-}
