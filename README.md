@@ -19,6 +19,7 @@ artifact source.
 * [Maven Archetypes](archetypes/README.md)
 * [Issues][sdk-issues]
 * [SDK Blog][blog]
+* [Getting Help](#getting-help)
 * [Giving Feedback](#giving-feedback)
 
 ## Getting Started
@@ -138,6 +139,21 @@ For information about maintenance and support for SDK major versions and their u
 * [AWS SDKs and Tools Maintenance Policy][maintenance-policy]
 * [AWS SDKs and Tools Version Support Matrix][version-matrix]
 
+## Getting Help
+
+The best way to interact with our team is through GitHub. You can
+[open an issue](https://github.com/aws/aws-sdk-java-v2/issues/new/choose) and choose
+from one of our templates for guidance, bug reports, or feature requests.
+
+You may find help from the community on [Stack Overflow](stack-overflow) with the
+tag [#aws-java-sdk-2.x](stack-overflow-tag) or on the
+[AWS Discussion Forum for Java](https://forums.aws.amazon.com/forum.jspa?forumID=70).
+If you have s support plan with [AWS Support](https://aws.amazon.com/premiumsupport),
+you can also create a new support case.
+
+Please check for open [similar issues](https://github.com/aws/aws-sdk-java-v2/issues/)
+before opening another one.
+
 ## Giving Feedback
 We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels:
 
@@ -169,3 +185,5 @@ We need your help in making this SDK great. Please participate in the community 
 [s3-integration-tests]: https://github.com/aws/aws-sdk-java-v2/tree/master/services/s3/src/it/java/software/amazon/awssdk/services/s3
 [maintenance-policy]: https://docs.aws.amazon.com/credref/latest/refdocs/maint-policy.html
 [version-matrix]: https://docs.aws.amazon.com/credref/latest/refdocs/version-support-matrix.html
+[stack-overflow]: https://stackoverflow.com
+[stack-overflow-tag]: https://stackoverflow.com/questions/tagged/aws-java-sdk-2.x
