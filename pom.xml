@@ -513,6 +513,7 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.regions.servicemetadata.IotfleethubServiceMetadata</exclude>
+                            <exclude>software.amazon.awssdk.services.ec2.model.*</exclude>
                         </excludes>
 
                         <excludeModules>
