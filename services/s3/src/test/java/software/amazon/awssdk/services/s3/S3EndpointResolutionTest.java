@@ -34,13 +34,10 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInterceptor;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-import software.amazon.awssdk.testutils.service.http.MockHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
@@ -53,12 +50,12 @@ public class S3EndpointResolutionTest {
     private static final String ENDPOINT_WITHOUT_BUCKET = "https://s3.ap-south-1.amazonaws.com";
     private static final String ENDPOINT_WITH_BUCKET = String.format("https://%s.s3.ap-south-1.amazonaws.com", BUCKET);
 
-    private MockHttpClient mockHttpClient;
+    private MockSyncHttpClient mockHttpClient;
     private Signer mockSigner;
 
     @Before
     public void setup() {
-        mockHttpClient = new MockHttpClient();
+        mockHttpClient = new MockSyncHttpClient();
         mockSigner = (request, executionAttributes) -> request;
     }
 
@@ -124,18 +121,6 @@ public class S3EndpointResolutionTest {
         s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
 
         assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
-    }
-
-    @Test
-    public void accessPointArn_customEndpoint_throwsIllegalArgumentException() throws Exception {
-        URI customEndpoint = URI.create("https://foobar.amazonaws.com");
-        mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
-        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
-
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("endpoint override");
     }
 
     @Test

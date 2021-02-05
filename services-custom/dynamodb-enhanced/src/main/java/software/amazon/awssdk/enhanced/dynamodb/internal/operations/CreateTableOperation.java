@@ -114,13 +114,14 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
                             .map(attribute ->
                                      AttributeDefinition.builder()
                                                         .attributeName(attribute)
-                                                        .attributeType(tableSchema.tableMetadata()
-                                                                                  .scalarAttributeType(attribute)
-                                                                                  .orElseThrow(() ->
-                                        new IllegalArgumentException("Could not map the key attribute '" + attribute +
-                                                                     "' to a valid scalar type.")))
-                                                        .build())
-                            .collect(Collectors.toList());
+                                                        .attributeType(tableSchema
+                                                                .tableMetadata().scalarAttributeType(attribute)
+                                                                .orElseThrow(() ->
+                                                                        new IllegalArgumentException(
+                                                                                "Could not map the key attribute '" + attribute +
+                                                                                        "' to a valid scalar type.")))
+                                             .build())
+                    .collect(Collectors.toList());
 
         BillingMode billingMode = this.request.provisionedThroughput() == null ?
                                   BillingMode.PAY_PER_REQUEST :

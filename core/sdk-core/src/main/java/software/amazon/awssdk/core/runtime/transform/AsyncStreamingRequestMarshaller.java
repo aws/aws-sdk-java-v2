@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.core.runtime.transform;
 
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
+
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.transform.AbstractStreamingRequestMarshaller;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Augments a {@link Marshaller} to add contents for an async streamed request.
@@ -42,6 +45,10 @@ public final class AsyncStreamingRequestMarshaller<T> extends AbstractStreamingR
     @Override
     public SdkHttpFullRequest marshall(T in) {
         SdkHttpFullRequest.Builder marshalled = delegateMarshaller.marshall(in).toBuilder();
+        String contentType = marshalled.firstMatchingHeader(CONTENT_TYPE).orElse(null);
+        if (StringUtils.isEmpty(contentType)) {
+            marshalled.putHeader(CONTENT_TYPE, asyncRequestBody.contentType());
+        }
 
         addHeaders(marshalled, asyncRequestBody.contentLength(), requiresLength, transferEncoding, useHttp2);
 

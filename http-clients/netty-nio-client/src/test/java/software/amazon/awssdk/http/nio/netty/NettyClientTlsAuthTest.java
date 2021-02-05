@@ -22,6 +22,7 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.io.IOException;
@@ -33,6 +34,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider;
+import software.amazon.awssdk.http.HttpTestUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
@@ -166,6 +168,17 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
             System.clearProperty("javax.net.ssl.keyStoreType");
             System.clearProperty("javax.net.ssl.keyStorePassword");
         }
+    }
+
+    @Test
+    public void nonProxy_noKeyManagerGiven_shouldThrowException() {
+        thrown.expectCause(instanceOf(IOException.class));
+        thrown.expectMessage("The channel was closed");
+
+        netty = NettyNioAsyncHttpClient.builder()
+                                       .buildWithDefaults(DEFAULTS);
+
+        HttpTestUtils.sendGetRequest(mockProxy.httpsPort(), netty).join();
     }
 
     private void sendRequest(SdkAsyncHttpClient client, SdkAsyncHttpResponseHandler responseHandler) {

@@ -1,0 +1,2 @@
+software.amazon.awssdk.services.docdb.internal.CopyDbClusterSnapshotPresignInterceptor
+software.amazon.awssdk.services.docdb.internal.CreateDbClusterPresignInterceptor

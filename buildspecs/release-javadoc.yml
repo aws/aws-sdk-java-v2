@@ -22,3 +22,5 @@ phases:
     - aws s3 sync $DOC_PATH/$RELEASE_VERSION/ $DOC_PATH/latest/ --acl=public-read --delete
     - jar cf aws-java-sdk-v2-docs.jar -C target/site/apidocs .
     - aws s3 cp aws-java-sdk-v2-docs.jar $DOC_PATH/ --acl="public-read"
+    - python ./scripts/doc_crosslinks/generate_cross_link_data.py --apiDefinitionsBasePath ./services/ --apiDefinitionsRelativeFilePath src/main/resources/codegen-resources/service-2.json  --templateFilePath ./scripts/doc_crosslinks/crosslink_redirect.html --outputFilePath ./scripts/crosslink_redirect.html
+    - aws s3 cp ./scripts/crosslink_redirect.html $DOC_PATH/latest/ --acl="public-read"

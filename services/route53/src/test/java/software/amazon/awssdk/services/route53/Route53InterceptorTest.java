@@ -23,10 +23,17 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.services.route53.internal.Route53IdInterceptor;
+import software.amazon.awssdk.services.route53.model.ActivateKeySigningKeyResponse;
+import software.amazon.awssdk.services.route53.model.ChangeInfo;
+import software.amazon.awssdk.services.route53.model.CreateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneRequest;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;
 import software.amazon.awssdk.services.route53.model.CreateReusableDelegationSetResponse;
+import software.amazon.awssdk.services.route53.model.DeactivateKeySigningKeyResponse;
 import software.amazon.awssdk.services.route53.model.DelegationSet;
+import software.amazon.awssdk.services.route53.model.DeleteKeySigningKeyResponse;
+import software.amazon.awssdk.services.route53.model.DisableHostedZoneDnssecResponse;
+import software.amazon.awssdk.services.route53.model.EnableHostedZoneDnssecResponse;
 import software.amazon.awssdk.services.route53.model.GetHostedZoneResponse;
 import software.amazon.awssdk.services.route53.model.GetReusableDelegationSetResponse;
 import software.amazon.awssdk.services.route53.model.ListReusableDelegationSetsResponse;
@@ -38,10 +45,13 @@ import software.amazon.awssdk.services.route53.model.ListReusableDelegationSetsR
 public class Route53InterceptorTest {
 
     private static final String delegationPrefix = "delegationset";
+    private static final String changeInfoPrefix = "change";
 
     private static final String id = "delegationSetId";
+    private static final String changeInfoId = "changeInfoId";
 
     private static final String delegationSetId = "/" + delegationPrefix + "/" + id;
+    private static final String changeInfoIdWithPrefix = "/" + changeInfoPrefix + "/" + changeInfoId;
 
     /**
      * Tests if the request handler strips the delegation set prefixes. Asserts
@@ -112,5 +122,43 @@ public class Route53InterceptorTest {
                                                             .response(responseObject)
                                                             .build(),
                                           new ExecutionAttributes());
+    }
+
+    @Test
+    public void testChangeInfoPrefixRemoval() {
+
+        Route53IdInterceptor interceptor = new Route53IdInterceptor();
+
+        ChangeInfo changeInfo = ChangeInfo.builder().id(changeInfoIdWithPrefix).build();
+
+        CreateKeySigningKeyResponse createKeySigningKeyResponse = CreateKeySigningKeyResponse.builder()
+                .changeInfo(changeInfo).build();
+        createKeySigningKeyResponse = (CreateKeySigningKeyResponse) modifyResponse(interceptor, createKeySigningKeyResponse);
+        assertEquals(createKeySigningKeyResponse.changeInfo().id(), changeInfoId);
+
+        DeleteKeySigningKeyResponse deleteKeySigningKeyResponse = DeleteKeySigningKeyResponse.builder()
+                .changeInfo(changeInfo).build();
+        deleteKeySigningKeyResponse = (DeleteKeySigningKeyResponse) modifyResponse(interceptor, deleteKeySigningKeyResponse);
+        assertEquals(deleteKeySigningKeyResponse.changeInfo().id(), changeInfoId);
+
+        ActivateKeySigningKeyResponse activateKeySigningKeyResponse = ActivateKeySigningKeyResponse.builder()
+                .changeInfo(changeInfo).build();
+        activateKeySigningKeyResponse = (ActivateKeySigningKeyResponse) modifyResponse(interceptor, activateKeySigningKeyResponse);
+        assertEquals(activateKeySigningKeyResponse.changeInfo().id(), changeInfoId);
+
+        DeactivateKeySigningKeyResponse deactivateKeySigningKeyResponse = DeactivateKeySigningKeyResponse.builder()
+                .changeInfo(changeInfo).build();
+        deactivateKeySigningKeyResponse = (DeactivateKeySigningKeyResponse) modifyResponse(interceptor, deactivateKeySigningKeyResponse);
+        assertEquals(deactivateKeySigningKeyResponse.changeInfo().id(), changeInfoId);
+
+        EnableHostedZoneDnssecResponse enableHostedZoneDnssecResponse = EnableHostedZoneDnssecResponse.builder()
+                .changeInfo(changeInfo).build();
+        enableHostedZoneDnssecResponse = (EnableHostedZoneDnssecResponse) modifyResponse(interceptor, enableHostedZoneDnssecResponse);
+        assertEquals(enableHostedZoneDnssecResponse.changeInfo().id(), changeInfoId);
+
+        DisableHostedZoneDnssecResponse disableHostedZoneDnssecResponse = DisableHostedZoneDnssecResponse.builder()
+                .changeInfo(changeInfo).build();
+        disableHostedZoneDnssecResponse = (DisableHostedZoneDnssecResponse) modifyResponse(interceptor, disableHostedZoneDnssecResponse);
+        assertEquals(disableHostedZoneDnssecResponse.changeInfo().id(), changeInfoId);
     }
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkField;
@@ -21,10 +22,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventOne.Builder, EventOne>, EventStream {
+public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventOne.Builder, EventOne>, EventStream {
     private static final SdkField<String> FOO_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Foo")
-                                                                                                       .getter(getter(EventOne::foo)).setter(setter(Builder::foo))
-                                                                                                       .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Foo").build()).build();
+            .getter(getter(EventOne::foo)).setter(setter(Builder::foo))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Foo").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(FOO_FIELD));
 
@@ -32,16 +33,16 @@ public final class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<
 
     private final String foo;
 
-    private EventOne(BuilderImpl builder) {
+    protected EventOne(BuilderImpl builder) {
         this.foo = builder.foo;
     }
 
     /**
      * Returns the value of the Foo property for this object.
-     *
+     * 
      * @return The value of the Foo property for this object.
      */
-    public String foo() {
+    public final String foo() {
         return foo;
     }
 
@@ -59,19 +60,19 @@ public final class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(foo());
         return hashCode;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -90,21 +91,26 @@ public final class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<
      * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("EventOne").add("Foo", foo()).build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "Foo":
-                return Optional.ofNullable(clazz.cast(foo()));
-            default:
-                return Optional.empty();
+        case "Foo":
+            return Optional.ofNullable(clazz.cast(foo()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final EventOne copy(Consumer<? super Builder> modifier) {
+        return ToCopyableBuilder.super.copy(modifier);
+    }
+
+    @Override
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -124,7 +130,7 @@ public final class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<
      */
     @Override
     public void accept(EventStreamOperationResponseHandler.Visitor visitor) {
-        visitor.visit(this);
+        throw new UnsupportedOperationException();
     }
 
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, EventOne> {
@@ -138,13 +144,13 @@ public final class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<
         Builder foo(String foo);
     }
 
-    static final class BuilderImpl implements Builder {
+    protected static class BuilderImpl implements Builder {
         private String foo;
 
-        private BuilderImpl() {
+        protected BuilderImpl() {
         }
 
-        private BuilderImpl(EventOne model) {
+        protected BuilderImpl(EventOne model) {
             foo(model.foo);
         }
 
@@ -173,3 +179,4 @@ public final class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<
         }
     }
 }
+

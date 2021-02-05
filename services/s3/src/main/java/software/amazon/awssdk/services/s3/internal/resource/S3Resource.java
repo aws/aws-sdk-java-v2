@@ -16,13 +16,13 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.signer.Signer;
 
 /**
  * A representation of an AWS S3 resource. See {@link S3ResourceType} for a list and description of all valid types.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public interface S3Resource extends AwsResource {
     /**
      * Gets the type of S3 resource represented by this object (e.g.: 'bucket_name'). See {@link S3ResourceType} for

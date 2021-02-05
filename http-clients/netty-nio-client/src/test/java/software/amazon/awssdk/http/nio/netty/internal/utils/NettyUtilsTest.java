@@ -17,8 +17,14 @@ package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.netty.channel.Channel;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
+import javax.net.ssl.SSLEngine;
 import org.junit.Test;
+import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
 public class NettyUtilsTest {
     @Test
@@ -26,5 +32,22 @@ public class NettyUtilsTest {
         String attr = "NettyUtilsTest.Foo";
         AttributeKey<String> fooAttr = NettyUtils.getOrCreateAttributeKey(attr);
         assertThat(NettyUtils.getOrCreateAttributeKey(attr)).isSameAs(fooAttr);
+    }
+
+    @Test
+    public void newSslHandler_sslEngineShouldBeConfigured() throws Exception {
+        SslContext sslContext = SslContextBuilder.forClient().build();
+        Channel channel = null;
+        try {
+            channel = new MockChannel();
+            SslHandler sslHandler = NettyUtils.newSslHandler(sslContext, channel.alloc(), "localhost", 80);
+            SSLEngine engine = sslHandler.engine();
+            assertThat(engine.getSSLParameters().getEndpointIdentificationAlgorithm()).isEqualTo("HTTPS");
+        } finally {
+            if (channel != null) {
+                channel.close();
+            }
+        }
+
     }
 }

@@ -18,42 +18,33 @@ package software.amazon.awssdk.services.s3.internal.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.services.s3.S3MockUtils.mockListBucketsResponse;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInterceptor;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-import software.amazon.awssdk.testutils.service.http.MockHttpClient;
-import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
 /**
  * Functional tests for outpost access point ARN
  */
 public class OutpostAccessPointArnEndpointResolutionTest {
 
-    private MockHttpClient mockHttpClient;
+    private MockSyncHttpClient mockHttpClient;
     private Signer mockSigner;
 
     @Before
     public void setup() {
-        mockHttpClient = new MockHttpClient();
+        mockHttpClient = new MockSyncHttpClient();
         mockSigner = (request, executionAttributes) -> request;
     }
 
@@ -68,18 +59,6 @@ public class OutpostAccessPointArnEndpointResolutionTest {
 
         assertThat(mockHttpClient.getLastRequest().firstMatchingHeader("Authorization").get()).contains("s3-outposts/aws4_request");
         assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
-    }
-
-    @Test
-    public void outpostArn_customEndpoint_throwsIllegalArgumentException() throws Exception {
-        URI customEndpoint = URI.create("https://foobar.amazonaws.com");
-        mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
-        String outpostArn = "arn:aws:s3-outposts:ap-south-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
-
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(outpostArn).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("endpoint override");
     }
 
     @Test

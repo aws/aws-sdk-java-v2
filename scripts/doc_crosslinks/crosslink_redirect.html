@@ -1,0 +1,68 @@
+<DOCTYPE HTML>
+    <html lang="en-US">
+    <head>
+        <meta charset="UTF-8">
+        <script type="text/javascript">
+
+            var uidServiceData = '${UID_SERVICE_MAPPING}';
+            var uidToServiceName = JSON.parse(uidServiceData);
+            var uidClientNameData = '${UID_CLIENT_CLASS_MAPPING}';
+            var uidToClientName = JSON.parse(uidClientNameData);
+            var baseUri = window.location.href;
+            var serviceFolderPath = "software/amazon/awssdk/services/";
+
+            function getQueryStringParameter(name, url) {
+
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
+                name = name.replace(/[\[\]]/g, "\\$&");
+                results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+
+            function camelize(str) {
+                return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+                    return index === 0 ? word.toLowerCase() : word.toUpperCase();
+                }).replace(/\s+/g, '');
+            }
+
+            function checkResourceExists(url) {
+                try {
+                    var xmlHttp = new XMLHttpRequest();
+                    xmlHttp.open( "GET", url, false );
+                    xmlHttp.send( null );
+                    return xmlHttp.status == 200;
+                }
+                catch(err) {
+                    return false;
+                }
+            }
+
+            var typeName = getQueryStringParameter("type", window.location.href);
+            var operation = getQueryStringParameter("operation", window.location.href);
+            var uid = getQueryStringParameter("uid", window.location.href);
+            var clientObjectName =  uidToClientName[uid];
+            var serviceName =  uidToServiceName[uid];
+            var redirectSuffixLink = "index.html"
+
+            if(clientObjectName != null && serviceName != null) {
+                redirectServiceSuffixLink = serviceFolderPath + serviceName + "/model/" + typeName + ".html" ;
+                if(checkResourceExists( baseUri.replace(/crosslink_redirect.*/gi, redirectServiceSuffixLink) )) {
+                    redirectSuffixLink =  redirectServiceSuffixLink;
+                }
+                else
+                {
+                    redirectServiceSuffixLink =  serviceFolderPath + serviceName + "/" + clientObjectName + ".html" ;
+                    if(typeName != null)
+                        redirectServiceSuffixLink  = redirectServiceSuffixLink + "#" + camelize(typeName) + "--";
+                    if(checkResourceExists( baseUri.replace(/crosslink_redirect.*/gi, redirectServiceSuffixLink) ))
+                        redirectSuffixLink =  redirectServiceSuffixLink;
+                }
+            }
+            window.location.href = redirectSuffixLink ;
+        </script>
+    </head>
+    <body>
+    </body>
+</html>

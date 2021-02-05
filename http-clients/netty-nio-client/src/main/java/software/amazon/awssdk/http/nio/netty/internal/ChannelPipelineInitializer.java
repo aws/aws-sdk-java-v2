@@ -19,6 +19,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_INITIAL_WINDOW_SIZE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.HTTP2_CONNECTION_PING_TIMEOUT_SECONDS;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.newSslHandler;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
@@ -44,8 +45,6 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2GoAwayEventListener;
@@ -93,10 +92,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
 
-            // Need to provide host and port to enable SNI
-            // https://github.com/netty/netty/issues/3801#issuecomment-104274440
-            SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), poolKey.getHost(), poolKey.getPort());
-            configureSslEngine(sslHandler.engine());
+            SslHandler sslHandler = newSslHandler(sslCtx, ch.alloc(), poolKey.getHost(), poolKey.getPort());
 
             pipeline.addLast(sslHandler);
             pipeline.addLast(SslCloseCompletionEventHandler.getInstance());
@@ -132,20 +128,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         }
 
         pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
-    }
-
-    /**
-     * Enable HostName verification.
-     *
-     * See https://netty.io/4.0/api/io/netty/handler/ssl/SslContext.html#newHandler-io.netty.buffer.ByteBufAllocator-java.lang
-     * .String-int-
-     *
-     * @param sslEngine the sslEngine to configure
-     */
-    private void configureSslEngine(SSLEngine sslEngine) {
-        SSLParameters sslParameters = sslEngine.getSSLParameters();
-        sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
-        sslEngine.setSSLParameters(sslParameters);
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {

@@ -55,6 +55,8 @@ public final class AwsExecutionContextBuilder {
     public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
                                                     SdkClientConfiguration clientConfig) {
+        // Note: This is currently copied to DefaultS3Presigner and other presigners. Don't edit this without considering those
+        // as well. TODO: Probably don't copy all of this manually.
 
         SdkRequest originalRequest = executionParams.getInput();
         MetricCollector metricCollector = resolveMetricCollector(executionParams);
@@ -73,8 +75,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, clientConfig.option(SdkClientOption.CLIENT_TYPE))
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfig.option(SdkClientOption.SERVICE_NAME))
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
-            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
-                          clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfig.option(SdkClientOption.ENDPOINT))
+            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
             .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN));
 
         ExecutionInterceptorChain executionInterceptorChain =

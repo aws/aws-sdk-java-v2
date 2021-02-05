@@ -11,7 +11,11 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
 
     private Consumer<EventOne> onEventOne;
 
-    private Consumer<EventTwo> onEventTwo;
+    private Consumer<EventTwo> onEventTheSecond;
+
+    private Consumer<EventOne> onSecondEventOne;
+
+    private Consumer<LegacyEventThree> onLegacyEventThree;
 
     @Override
     public EventStreamOperationResponseHandler.Visitor.Builder onDefault(Consumer<EventStream> c) {
@@ -31,8 +35,20 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
     }
 
     @Override
-    public EventStreamOperationResponseHandler.Visitor.Builder onEventTwo(Consumer<EventTwo> c) {
-        this.onEventTwo = c;
+    public EventStreamOperationResponseHandler.Visitor.Builder onEventTheSecond(Consumer<EventTwo> c) {
+        this.onEventTheSecond = c;
+        return this;
+    }
+
+    @Override
+    public EventStreamOperationResponseHandler.Visitor.Builder onSecondEventOne(Consumer<EventOne> c) {
+        this.onSecondEventOne = c;
+        return this;
+    }
+
+    @Override
+    public EventStreamOperationResponseHandler.Visitor.Builder onLegacyEventThree(Consumer<LegacyEventThree> c) {
+        this.onLegacyEventThree = c;
         return this;
     }
 
@@ -42,14 +58,22 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
 
         private final Consumer<EventOne> onEventOne;
 
-        private final Consumer<EventTwo> onEventTwo;
+        private final Consumer<EventTwo> onEventTheSecond;
+
+        private final Consumer<EventOne> onSecondEventOne;
+
+        private final Consumer<LegacyEventThree> onLegacyEventThree;
 
         VisitorFromBuilder(DefaultEventStreamOperationVisitorBuilder builder) {
             this.onDefault = builder.onDefault != null ? builder.onDefault
                     : EventStreamOperationResponseHandler.Visitor.super::visitDefault;
             this.onEventOne = builder.onEventOne != null ? builder.onEventOne
                     : EventStreamOperationResponseHandler.Visitor.super::visit;
-            this.onEventTwo = builder.onEventTwo != null ? builder.onEventTwo
+            this.onEventTheSecond = builder.onEventTheSecond != null ? builder.onEventTheSecond
+                    : EventStreamOperationResponseHandler.Visitor.super::visitEventTheSecond;
+            this.onSecondEventOne = builder.onSecondEventOne != null ? builder.onSecondEventOne
+                    : EventStreamOperationResponseHandler.Visitor.super::visitSecondEventOne;
+            this.onLegacyEventThree = builder.onLegacyEventThree != null ? builder.onLegacyEventThree
                     : EventStreamOperationResponseHandler.Visitor.super::visit;
         }
 
@@ -64,8 +88,19 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
         }
 
         @Override
-        public void visit(EventTwo event) {
-            onEventTwo.accept(event);
+        public void visitEventTheSecond(EventTwo event) {
+            onEventTheSecond.accept(event);
+        }
+
+        @Override
+        public void visitSecondEventOne(EventOne event) {
+            onSecondEventOne.accept(event);
+        }
+
+        @Override
+        public void visit(LegacyEventThree event) {
+            onLegacyEventThree.accept(event);
         }
     }
 }
+

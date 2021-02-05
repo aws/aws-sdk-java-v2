@@ -25,30 +25,37 @@ import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 
 /**
  * Generates the implementation for the builder of an event stream visitor.
  */
 public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilderInterfaceSpec {
-
+    private final IntermediateModel intermediateModel;
     private final PoetExtensions poetExt;
     private final OperationModel opModel;
     private final ClassName visitorType;
     private final ClassName visitorBuilderType;
     private final ClassName eventStreamBaseClass;
+    private final EventStreamSpecHelper eventStreamSpecHelper;
 
     public EventStreamVisitorBuilderImplSpec(GeneratorTaskParams params, OperationModel operationModel) {
-        super(params.getPoetExtensions(), operationModel);
+        super(params.getPoetExtensions(), params.getModel(), operationModel);
+        this.intermediateModel = params.getModel();
         this.poetExt = params.getPoetExtensions();
         this.opModel = operationModel;
         this.visitorType = poetExt.eventStreamResponseHandlerVisitorType(opModel);
         this.visitorBuilderType = poetExt.eventStreamResponseHandlerVisitorBuilderType(opModel);
-        this.eventStreamBaseClass = poetExt.getModelClassFromShape(
-            EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape()));
+
+        ShapeModel eventStream = EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape());
+        this.eventStreamBaseClass = poetExt.getModelClassFromShape(eventStream);
+        this.eventStreamSpecHelper = new EventStreamSpecHelper(eventStream, intermediateModel);
     }
 
     @Override
@@ -68,7 +75,7 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
         private final MethodSpec.Builder constrBuilder;
 
         VisitorFromBuilderImplSpec() {
-            super(poetExt, opModel);
+            super(intermediateModel, poetExt, opModel);
             this.constrBuilder = MethodSpec.constructorBuilder()
                                            .addParameter(enclosingClassName(), "builder")
                                            .addStatement("this.onDefault = builder.onDefault != null ?\n"
@@ -98,17 +105,18 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
         @Override
         protected MethodSpec.Builder applyVisitSubTypeMethodSpecUpdates(TypeSpec.Builder typeBuilder,
                                                                         MethodSpec.Builder methodBuilder,
-                                                                        ShapeModel s) {
-            ClassName eventSubType = poetExt.getModelClass(s.getShapeName());
+                                                                        MemberModel event) {
+            ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
             TypeName eventConsumerType = consumerType(eventSubType);
-            FieldSpec consumerField = FieldSpec.builder(eventConsumerType, "on" + eventSubType.simpleName())
+            FieldSpec consumerField = FieldSpec.builder(eventConsumerType, eventStreamSpecHelper.eventConsumerName(event))
                                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                                                .build();
             typeBuilder.addField(consumerField);
 
             constrBuilder.addStatement("this.$1L = builder.$1L != null ?\n"
                                        + "builder.$1L :\n"
-                                       + "$2T.super::visit", consumerField.name, visitorType);
+                                       + "$2T.super::$3N", consumerField.name, visitorType,
+                    eventStreamSpecHelper.visitMethodName(event));
             return methodBuilder
                 .addAnnotation(Override.class)
                 .addStatement("$L.accept(event)", consumerField.name);
@@ -127,10 +135,10 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
     @Override
     protected MethodSpec.Builder applyOnSubTypeMethodSpecUpdates(TypeSpec.Builder typeBuilder,
                                                                  MethodSpec.Builder methodBuilder,
-                                                                 ShapeModel eventSubTypeShape) {
-        ClassName eventSubType = poetExt.getModelClass(eventSubTypeShape.getShapeName());
+                                                                 MemberModel event) {
+        ClassName eventSubType = poetExt.getModelClass(event.getShape().getShapeName());
         TypeName eventConsumerType = consumerType(eventSubType);
-        FieldSpec consumerField = FieldSpec.builder(eventConsumerType, "on" + eventSubType.simpleName())
+        FieldSpec consumerField = FieldSpec.builder(eventConsumerType, eventStreamSpecHelper.eventConsumerName(event))
                                            .addModifiers(Modifier.PRIVATE)
                                            .build();
         typeBuilder.addField(consumerField);

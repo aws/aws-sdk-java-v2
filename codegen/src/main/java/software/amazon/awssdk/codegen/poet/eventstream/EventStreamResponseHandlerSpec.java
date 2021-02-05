@@ -23,6 +23,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
  */
 public class EventStreamResponseHandlerSpec implements ClassSpec {
 
+    private final IntermediateModel intermediateModel;
     private final PoetExtensions poetExt;
     private final OperationModel operationModel;
     private final String apiName;
@@ -41,6 +43,7 @@ public class EventStreamResponseHandlerSpec implements ClassSpec {
     private final ClassName eventStreamBaseClass;
 
     public EventStreamResponseHandlerSpec(GeneratorTaskParams params, OperationModel operationModel) {
+        this.intermediateModel = params.getModel();
         this.poetExt = params.getPoetExtensions();
         this.operationModel = operationModel;
         this.apiName = poetExt.getApiName(operationModel);
@@ -61,7 +64,7 @@ public class EventStreamResponseHandlerSpec implements ClassSpec {
                         .addJavadoc("Response handler for the $L API.", apiName)
                         .addMethod(builderMethodSpec())
                         .addType(new EventStreamResponseHandlerBuilderInterfaceSpec(poetExt, operationModel).poetSpec())
-                        .addType(new EventStreamVisitorInterfaceSpec(poetExt, operationModel).poetSpec())
+                        .addType(new EventStreamVisitorInterfaceSpec(intermediateModel, poetExt, operationModel).poetSpec())
                         .build();
     }
 

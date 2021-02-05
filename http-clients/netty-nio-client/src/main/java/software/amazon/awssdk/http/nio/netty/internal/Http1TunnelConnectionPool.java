@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.newSslHandler;
+
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -119,7 +121,6 @@ public class Http1TunnelConnectionPool implements ChannelPool {
             ch.pipeline().addLast(sslHandler);
         }
         ch.pipeline().addLast(initHandlerSupplier.newInitHandler(delegate, remoteAddress, tunnelEstablishedPromise));
-
         tunnelEstablishedPromise.addListener((Future<Channel> f) -> {
             if (f.isSuccess()) {
                 Channel tunnel = f.getNow();
@@ -148,7 +149,7 @@ public class Http1TunnelConnectionPool implements ChannelPool {
             return null;
         }
 
-        return sslContext.newHandler(alloc, proxyAddress.getHost(), proxyAddress.getPort());
+        return newSslHandler(sslContext, alloc, proxyAddress.getHost(), proxyAddress.getPort());
     }
 
     private static boolean isTunnelEstablished(Channel ch) {

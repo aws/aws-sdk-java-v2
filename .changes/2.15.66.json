@@ -1,0 +1,12 @@
+{
+    "version": "2.15.66",
+    "date": "2021-01-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Notification Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon SNS."
+        }
+    ]
+}

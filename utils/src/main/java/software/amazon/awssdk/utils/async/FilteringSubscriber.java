@@ -34,8 +34,8 @@ public class FilteringSubscriber<T> extends DelegatingSubscriber<T, T> {
 
     @Override
     public void onSubscribe(Subscription subscription) {
-        super.onSubscribe(subscription);
         this.subscription = subscription;
+        super.onSubscribe(subscription);
     }
 
     @Override

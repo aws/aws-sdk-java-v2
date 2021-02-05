@@ -59,7 +59,7 @@ public class InvalidRegionTest {
                                                         .key("test")))
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("US_EAST_1")
-            .hasMessageContaining("region");
+            .hasMessageContaining("URI");
     }
 
     @Test
@@ -84,6 +84,6 @@ public class InvalidRegionTest {
                                                                   .signatureDuration(Duration.ofMinutes(15))))
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("US_EAST_1")
-            .hasMessageContaining("region");
+            .hasMessageContaining("URI");
     }
 }

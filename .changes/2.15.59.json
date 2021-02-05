@@ -1,0 +1,24 @@
+{
+    "version": "2.15.59",
+    "date": "2021-01-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "- ### Features - Add new GetCostcategories API - Support filter for GetDimensions, GetTags and GetCostcategories api - Support sortBy metrics for GetDimensions, GetTags and GetCostcategories api"
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "contributor": "",
+            "description": "Documentation updates for Application Auto Scaling"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "`S3Utilities#getUrl` now supports versionId. See [#2224](https://github.com/aws/aws-sdk-java-v2/issues/2224)"
+        }
+    ]
+}

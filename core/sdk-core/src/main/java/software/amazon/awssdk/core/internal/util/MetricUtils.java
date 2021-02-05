@@ -67,7 +67,7 @@ public final class MetricUtils {
     }
 
     public static void collectHttpMetrics(MetricCollector metricCollector, SdkHttpFullResponse httpResponse) {
-        if (metricCollector != null && httpResponse != null) {
+        if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector) && httpResponse != null) {
             metricCollector.reportMetric(HttpMetric.HTTP_STATUS_CODE, httpResponse.statusCode());
             SdkHttpUtils.allMatchingHeadersFromCollection(httpResponse.headers(), X_AMZN_REQUEST_ID_HEADERS)
                         .forEach(v -> metricCollector.reportMetric(CoreMetric.AWS_REQUEST_ID, v));

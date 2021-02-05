@@ -99,6 +99,28 @@ public final class ProfileProperty {
      */
     public static final String RETRY_MODE = "retry_mode";
 
+    /**
+     * Aws region where the SSO directory for the given 'sso_start_url' is hosted. This is independent of the general 'region'.
+     */
+    public static final String SSO_REGION = "sso_region";
+
+    /**
+     * The corresponding IAM role in the AWS account that temporary AWS credentials will be resolved for.
+     */
+    public static final String SSO_ROLE_NAME = "sso_role_name";
+
+    /**
+     * AWS account ID that temporary AWS credentials will be resolved for.
+     */
+    public static final String SSO_ACCOUNT_ID = "sso_account_id";
+
+    /**
+     * Start url provided by the SSO service via the console. It's the main URL used for login to the SSO directory.
+     * This is also referred to as the "User Portal URL" and can also be used to login to the SSO web interface for AWS
+     * console access.
+     */
+    public static final String SSO_START_URL = "sso_start_url";
+
     private ProfileProperty() {
     }
 }

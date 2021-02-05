@@ -365,11 +365,29 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use sslContext.newHandler directly -->
+        <module name="Regexp">
+            <property name="format" value="\sslContext.newHandler\b"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message"
+                      value="Don't use sslContext.newHandler directly, use NettyUtils.newSslHandler instead"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+
         <!-- Checks that we don't use AttributeKey.newInstance directly -->
         <module name="Regexp">
             <property name="format" value="AttributeKey\.newInstance"/>
             <property name="illegalPattern" value="true"/>
             <property name="message" value="Use NettyUtils.getOrCreateAttributeKey to safely declare AttributeKeys"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- Checks that we don't use Thread.currentThread().getContextClassLoader() directly -->
+        <module name="Regexp">
+            <property name="format" value="Thread\s*\.\s*currentThread\s*\(\s*\)\s*(\.|::)\s*getContextClassLoader"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Use software.amazon.awssdk.core.internal.util.ClassLoaderHelper Class to load the class."/>
             <property name="ignoreComments" value="true"/>
         </module>
 

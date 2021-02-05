@@ -16,14 +16,14 @@ final class RecursiveMapTypeCopier {
             return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<String, RecursiveStructType> recursiveMapTypeParamCopy = recursiveMapTypeParam.entrySet().stream()
-            .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
+                                                                                          .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
         return Collections.unmodifiableMap(recursiveMapTypeParamCopy);
     }
 
     static Map<String, RecursiveStructType> copyFromBuilder(
         Map<String, ? extends RecursiveStructType.Builder> recursiveMapTypeParam) {
-        if (recursiveMapTypeParam == null) {
-            return null;
+        if (recursiveMapTypeParam == null || recursiveMapTypeParam instanceof DefaultSdkAutoConstructMap) {
+            return DefaultSdkAutoConstructMap.getInstance();
         }
         return copy(recursiveMapTypeParam.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
     }

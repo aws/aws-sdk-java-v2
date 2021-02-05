@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -33,6 +34,7 @@ public class S3AccessPointBuilder {
     private static final Pattern HOSTNAME_COMPLIANT_PATTERN = Pattern.compile("[A-Za-z0-9\\-]+");
     private static final int HOSTNAME_MAX_LENGTH = 63;
 
+    private URI endpointOverride;
     private Boolean dualstackEnabled;
     private String accessPointName;
     private String region;
@@ -46,6 +48,14 @@ public class S3AccessPointBuilder {
      */
     public static S3AccessPointBuilder create() {
         return new S3AccessPointBuilder();
+    }
+
+    /**
+     * The endpoint override configured on the client (null if no endpoint override was set).
+     */
+    public S3AccessPointBuilder endpointOverride(URI endpointOverride) {
+        this.endpointOverride = endpointOverride;
+        return this;
     }
 
     /**
@@ -116,16 +126,36 @@ public class S3AccessPointBuilder {
 
         validateHostnameCompliant(accessPointName, "accessPointName");
 
-        String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "fips-" : "";
+        String uri;
+        if (endpointOverride == null) {
+            String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "fips-" : "";
+            String dualStackSegment = Boolean.TRUE.equals(dualstackEnabled) ? ".dualstack" : "";
 
-        String dualStackSegment = Boolean.TRUE.equals(dualstackEnabled) ? ".dualstack" : "";
-        String uriString = String.format("%s://%s-%s.s3-accesspoint%s.%s%s.%s", protocol, urlEncode(accessPointName), accountId,
-                                         dualStackSegment, fipsSegment, region, domain);
-        URI uri = URI.create(uriString);
-        if (uri.getHost() == null) {
-            throw SdkClientException.create("ARN region (" + region + ") resulted in an invalid URI:" + uri);
+            uri = String.format("%s://%s-%s.s3-accesspoint%s.%s%s.%s", protocol, urlEncode(accessPointName),
+                                accountId, dualStackSegment, fipsSegment, region, domain);
+        } else {
+            Validate.isTrue(!Boolean.TRUE.equals(fipsEnabled),
+                            "FIPS regions are not supported with an endpoint override specified");
+            Validate.isTrue(!Boolean.TRUE.equals(dualstackEnabled),
+                            "Dual stack is not supported with an endpoint override specified");
+
+            StringBuilder uriSuffix = new StringBuilder(endpointOverride.getHost());
+            if (endpointOverride.getPort() > 0) {
+                uriSuffix.append(":").append(endpointOverride.getPort());
+            }
+            if (endpointOverride.getPath() != null) {
+                uriSuffix.append(endpointOverride.getPath());
+            }
+
+            uri = String.format("%s://%s-%s.%s", protocol, urlEncode(accessPointName), accountId, uriSuffix);
         }
-        return uri;
+
+        URI result = URI.create(uri);
+        if (result.getHost() == null) {
+            throw SdkClientException.create("Request resulted in an invalid URI: " + result);
+        }
+
+        return result;
     }
 
     private URI globalAccessPointUri() {
