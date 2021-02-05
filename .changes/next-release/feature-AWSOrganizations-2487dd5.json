@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Organizations",
+    "contributor": "",
+    "description": "Added support for a few additional exception codes for some AWS Organizations APIs."
+}
