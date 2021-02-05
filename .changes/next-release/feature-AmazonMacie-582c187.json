@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Macie",
-    "contributor": "",
-    "description": "Documentation updates for Amazon Macie Classic. We replaced the term \"master account\" with the term \"administrator account.\" An administrator account is used to centrally manage multiple accounts."
-}

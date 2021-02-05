@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "contributor": "",
-    "description": "Adds a target group attribute for client IP preservation for Network Load Balancers."
-}
