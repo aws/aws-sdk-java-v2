@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.15.76</version>
+        <version>2.15.77</version>
     </parent>
     <artifactId>codeartifact</artifactId>
     <name>AWS Java SDK :: Services :: Codeartifact</name>
