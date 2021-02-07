@@ -297,7 +297,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
-            .putAttribute(PRESIGNER_EXPIRATION, Instant.now().plus(presignRequest.signatureDuration()));
+            .putAttribute(PRESIGNER_EXPIRATION, Instant.now().plus(presignRequest.signatureDuration()))
             .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfiguration.option(SdkClientOption.ENDPOINT))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
                           clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN));

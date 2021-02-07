@@ -531,6 +531,7 @@
                             <excludeModule>bundle</excludeModule>
                             <!-- ignore crt because it's in preview TODO: remove this when CRT is GA -->
                             <excludModeule>aws-crt-client</excludModeule>
+                            <excludModeule>aws-core</excludModeule>
                         </excludeModules>
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
                         <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>

@@ -23,8 +23,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * This class is used to construct an endpoint host for an S3 access point.

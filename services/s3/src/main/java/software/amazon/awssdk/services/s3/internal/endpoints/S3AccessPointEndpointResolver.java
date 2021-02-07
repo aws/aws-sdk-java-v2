@@ -71,9 +71,6 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         validateConfiguration(context, s3EndpointResource);
 
         URI accessPointUri = getUriForAccessPointResource(context, clientPartitionMetadata, s3EndpointResource);
-        String key = context.originalRequest().getValueForField("Key", String.class).orElse(null);
-
-   //     URI accessPointUri = getUriForAccessPointResource(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
         String path = buildPath(accessPointUri, context);
 
         SdkHttpRequest httpRequest = context.request().toBuilder()
@@ -118,7 +115,6 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         Validate.isFalse(isAccelerateEnabled(serviceConfig), S3_CONFIG_ERROR_MESSAGE, "accelerate mode enabled.");
         Validate.isFalse(isPathStyleAccessEnabled(serviceConfig), S3_CONFIG_ERROR_MESSAGE, "path style addressing enabled.");
-        Validate.isFalse(context.endpointOverridden(), S3_CONFIG_ERROR_MESSAGE, "an endpoint override.");
         Validate.isTrue(s3Resource.accountId().isPresent(), "An S3 access point ARN must have an account ID");
 
         Region clientRegion = context.region();

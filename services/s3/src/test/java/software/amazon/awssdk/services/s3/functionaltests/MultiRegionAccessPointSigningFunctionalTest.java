@@ -36,6 +36,7 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.testutils.service.http.MockHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
 /**
  * Functional tests for multi-region access point ARN signing
@@ -49,7 +50,7 @@ public class MultiRegionAccessPointSigningFunctionalTest {
 
     @Before
     public void setup() throws UnsupportedEncodingException {
-        mockHttpClient = new MockHttpClient();
+        mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
     }
 
@@ -99,7 +100,7 @@ public class MultiRegionAccessPointSigningFunctionalTest {
         return S3Client.builder()
                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                        .region(Region.AP_SOUTH_1)
-                       .httpClient(mockHttpClient)
+                       .httpClient((MockSyncHttpClient) mockHttpClient)
                        .serviceConfiguration(S3Configuration.builder()
                                                             .useArnRegionEnabled(true)
                                                             .build());
