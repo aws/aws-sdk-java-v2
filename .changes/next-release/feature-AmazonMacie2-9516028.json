@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Macie 2",
+    "contributor": "",
+    "description": "This release of the Amazon Macie API adds support for specifying a time range in queries for usage data."
+}
