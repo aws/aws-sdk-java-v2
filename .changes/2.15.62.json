@@ -1,0 +1,36 @@
+{
+    "version": "2.15.62",
+    "date": "2021-01-11",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Correctly select the cipher suites based on the HTTP protocol. See [#2159](https://github.com/aws/aws-sdk-java-v2/issues/2159)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Adds support for filtering grants by grant ID and grantee principal in ListGrants requests to AWS KMS."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Use `SystemPropretyTlsKeyManagersProvider` if no `KeyManger` is provided."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This releases adds support for Major Version Upgrades on Aurora MySQL Global Clusters. Customers will be able to upgrade their whole Aurora MySQL Global Cluster to a new major engine version."
+        }
+    ]
+}

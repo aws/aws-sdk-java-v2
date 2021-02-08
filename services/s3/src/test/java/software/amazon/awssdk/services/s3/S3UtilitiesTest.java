@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -157,6 +158,19 @@ public class S3UtilitiesTest {
     @Test (expected = NullPointerException.class)
     public void failIfRegionIsNotSetOnS3UtilitiesObject() throws MalformedURLException {
         S3Utilities.builder().build();
+    }
+
+    @Test
+    public void getUrlWithVersionId() {
+        S3Utilities utilities = S3Utilities.builder().region(Region.US_WEST_2).build();
+
+        assertThat(utilities.getUrl(b -> b.bucket("foo").key("bar").versionId("1"))
+                            .toExternalForm())
+            .isEqualTo("https://foo.s3.us-west-2.amazonaws.com/bar?versionId=1");
+
+        assertThat(utilities.getUrl(b -> b.bucket("foo").key("bar").versionId("@1"))
+                            .toExternalForm())
+            .isEqualTo("https://foo.s3.us-west-2.amazonaws.com/bar?versionId=%401");
     }
 
     private static GetUrlRequest requestWithoutSpaces() {

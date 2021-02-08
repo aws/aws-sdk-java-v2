@@ -37,7 +37,7 @@ public final class EmptyModeledException extends JsonProtocolTestsException impl
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -107,3 +107,4 @@ public final class EmptyModeledException extends JsonProtocolTestsException impl
         }
     }
 }
+

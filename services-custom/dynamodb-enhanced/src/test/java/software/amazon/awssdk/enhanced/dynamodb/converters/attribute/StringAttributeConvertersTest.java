@@ -40,6 +40,7 @@ import java.util.UUID;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharSequenceAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterArrayAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterAttributeConverter;
@@ -128,6 +129,7 @@ public class StringAttributeConvertersTest {
         String chars = "foo";
         String numChars = "42";
 
+        assertThat(transformFrom(converter, null)).isSameAs(AttributeValues.nullAttributeValue());
         assertThat(transformFrom(converter, chars).s()).isSameAs(chars);
         assertThat(transformFrom(converter, emptyChars).s()).isSameAs(emptyChars);
 

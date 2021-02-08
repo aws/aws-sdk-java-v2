@@ -1,0 +1,42 @@
+{
+    "version": "2.15.45",
+    "date": "2020-12-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Added the ListAssetRelationships operation and support for composite asset models, which represent structured sets of properties within asset models."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "CloudTrailInvalidClientTokenIdException is now thrown when a call results in the InvalidClientTokenId error code. The Name parameter of the AdvancedEventSelector data type is now optional."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "You can group DB load according to the dimension groups for database, application, and session type. Amazon RDS also supports the dimensions db.name, db.application.name, and db.session_type.name."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Documentation updates and corrections for Amazon EC2 Auto Scaling API Reference and SDKs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Documentation updates for monitoring"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Documentation updates for GuardDuty"
+        }
+    ]
+}

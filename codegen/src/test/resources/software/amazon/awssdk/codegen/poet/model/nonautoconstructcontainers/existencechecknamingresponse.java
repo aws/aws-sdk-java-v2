@@ -27,65 +27,65 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class ExistenceCheckNamingResponse extends JsonProtocolTestsResponse implements
-                                                                                  ToCopyableBuilder<ExistenceCheckNamingResponse.Builder, ExistenceCheckNamingResponse> {
+        ToCopyableBuilder<ExistenceCheckNamingResponse.Builder, ExistenceCheckNamingResponse> {
     private static final SdkField<List<String>> BUILD_FIELD = SdkField
-        .<List<String>> builder(MarshallingType.LIST)
-        .memberName("Build")
-        .getter(getter(ExistenceCheckNamingResponse::build))
-        .setter(setter(Builder::build))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Build").build(),
-                ListTrait
-                    .builder()
-                    .memberLocationName(null)
-                    .memberFieldInfo(
-                        SdkField.<String> builder(MarshallingType.STRING)
-                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                 .locationName("member").build()).build()).build()).build();
+            .<List<String>> builder(MarshallingType.LIST)
+            .memberName("Build")
+            .getter(getter(ExistenceCheckNamingResponse::build))
+            .setter(setter(Builder::build))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Build").build(),
+                    ListTrait
+                            .builder()
+                            .memberLocationName(null)
+                            .memberFieldInfo(
+                                    SdkField.<String> builder(MarshallingType.STRING)
+                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                    .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<List<String>> SUPER_FIELD = SdkField
-        .<List<String>> builder(MarshallingType.LIST)
-        .memberName("super")
-        .getter(getter(ExistenceCheckNamingResponse::superValue))
-        .setter(setter(Builder::superValue))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("super").build(),
-                ListTrait
-                    .builder()
-                    .memberLocationName(null)
-                    .memberFieldInfo(
-                        SdkField.<String> builder(MarshallingType.STRING)
-                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                 .locationName("member").build()).build()).build()).build();
+            .<List<String>> builder(MarshallingType.LIST)
+            .memberName("super")
+            .getter(getter(ExistenceCheckNamingResponse::superValue))
+            .setter(setter(Builder::superValue))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("super").build(),
+                    ListTrait
+                            .builder()
+                            .memberLocationName(null)
+                            .memberFieldInfo(
+                                    SdkField.<String> builder(MarshallingType.STRING)
+                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                    .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> TO_STRING_FIELD = SdkField
-        .<Map<String, String>> builder(MarshallingType.MAP)
-        .memberName("toString")
-        .getter(getter(ExistenceCheckNamingResponse::toStringValue))
-        .setter(setter(Builder::toStringValue))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("toString").build(),
-                MapTrait.builder()
-                        .keyLocationName("key")
-                        .valueLocationName("value")
-                        .valueFieldInfo(
-                            SdkField.<String> builder(MarshallingType.STRING)
-                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                     .locationName("value").build()).build()).build()).build();
+            .<Map<String, String>> builder(MarshallingType.MAP)
+            .memberName("toString")
+            .getter(getter(ExistenceCheckNamingResponse::toStringValue))
+            .setter(setter(Builder::toStringValue))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("toString").build(),
+                    MapTrait.builder()
+                            .keyLocationName("key")
+                            .valueLocationName("value")
+                            .valueFieldInfo(
+                                    SdkField.<String> builder(MarshallingType.STRING)
+                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                    .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> EQUALS_FIELD = SdkField
-        .<Map<String, String>> builder(MarshallingType.MAP)
-        .memberName("equals")
-        .getter(getter(ExistenceCheckNamingResponse::equalsValue))
-        .setter(setter(Builder::equalsValue))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("equals").build(),
-                MapTrait.builder()
-                        .keyLocationName("key")
-                        .valueLocationName("value")
-                        .valueFieldInfo(
-                            SdkField.<String> builder(MarshallingType.STRING)
-                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                     .locationName("value").build()).build()).build()).build();
+            .<Map<String, String>> builder(MarshallingType.MAP)
+            .memberName("equals")
+            .getter(getter(ExistenceCheckNamingResponse::equalsValue))
+            .setter(setter(Builder::equalsValue))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("equals").build(),
+                    MapTrait.builder()
+                            .keyLocationName("key")
+                            .valueLocationName("value")
+                            .valueFieldInfo(
+                                    SdkField.<String> builder(MarshallingType.STRING)
+                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                    .locationName("value").build()).build()).build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BUILD_FIELD, SUPER_FIELD,
-                                                                                                   TO_STRING_FIELD, EQUALS_FIELD));
+            TO_STRING_FIELD, EQUALS_FIELD));
 
     private final List<String> build;
 
@@ -107,7 +107,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * Returns true if the Build property was specified by the sender (it may be empty), or false if the sender did not
      * specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
      */
-    public boolean hasBuild() {
+    public final boolean hasBuild() {
         return build != null && !(build instanceof SdkAutoConstructList);
     }
 
@@ -119,10 +119,10 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * <p>
      * You can use {@link #hasBuild()} to see if a value was sent in this field.
      * </p>
-     *
+     * 
      * @return The value of the Build property for this object.
      */
-    public List<String> build() {
+    public final List<String> build() {
         return build;
     }
 
@@ -130,7 +130,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * Returns true if the Super property was specified by the sender (it may be empty), or false if the sender did not
      * specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
      */
-    public boolean hasSuperValue() {
+    public final boolean hasSuperValue() {
         return superValue != null && !(superValue instanceof SdkAutoConstructList);
     }
 
@@ -142,10 +142,10 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * <p>
      * You can use {@link #hasSuperValue()} to see if a value was sent in this field.
      * </p>
-     *
+     * 
      * @return The value of the Super property for this object.
      */
-    public List<String> superValue() {
+    public final List<String> superValue() {
         return superValue;
     }
 
@@ -153,7 +153,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * Returns true if the ToString property was specified by the sender (it may be empty), or false if the sender did
      * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
      */
-    public boolean hasToStringValue() {
+    public final boolean hasToStringValue() {
         return toStringValue != null && !(toStringValue instanceof SdkAutoConstructMap);
     }
 
@@ -165,10 +165,10 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * <p>
      * You can use {@link #hasToStringValue()} to see if a value was sent in this field.
      * </p>
-     *
+     * 
      * @return The value of the ToString property for this object.
      */
-    public Map<String, String> toStringValue() {
+    public final Map<String, String> toStringValue() {
         return toStringValue;
     }
 
@@ -176,7 +176,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * Returns true if the Equals property was specified by the sender (it may be empty), or false if the sender did not
      * specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
      */
-    public boolean hasEqualsValue() {
+    public final boolean hasEqualsValue() {
         return equalsValue != null && !(equalsValue instanceof SdkAutoConstructMap);
     }
 
@@ -188,10 +188,10 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * <p>
      * You can use {@link #hasEqualsValue()} to see if a value was sent in this field.
      * </p>
-     *
+     * 
      * @return The value of the Equals property for this object.
      */
-    public Map<String, String> equalsValue() {
+    public final Map<String, String> equalsValue() {
         return equalsValue;
     }
 
@@ -209,7 +209,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + super.hashCode();
         hashCode = 31 * hashCode + Objects.hashCode(build());
@@ -220,12 +220,12 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return super.equals(obj) && equalsBySdkFields(obj);
     }
 
     @Override
-    public boolean equalsBySdkFields(Object obj) {
+    public final boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -237,7 +237,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
         ExistenceCheckNamingResponse other = (ExistenceCheckNamingResponse) obj;
         return Objects.equals(build(), other.build()) && Objects.equals(superValue(), other.superValue())
-               && Objects.equals(toStringValue(), other.toStringValue()) && Objects.equals(equalsValue(), other.equalsValue());
+                && Objects.equals(toStringValue(), other.toStringValue()) && Objects.equals(equalsValue(), other.equalsValue());
     }
 
     /**
@@ -245,28 +245,28 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
      * redacted from this string using a placeholder value.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return ToString.builder("ExistenceCheckNamingResponse").add("Build", build()).add("Super", superValue())
-                       .add("ToString", toStringValue()).add("Equals", equalsValue()).build();
+                .add("ToString", toStringValue()).add("Equals", equalsValue()).build();
     }
 
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+    public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "Build":
-                return Optional.ofNullable(clazz.cast(build()));
-            case "super":
-                return Optional.ofNullable(clazz.cast(superValue()));
-            case "toString":
-                return Optional.ofNullable(clazz.cast(toStringValue()));
-            case "equals":
-                return Optional.ofNullable(clazz.cast(equalsValue()));
-            default:
-                return Optional.empty();
+        case "Build":
+            return Optional.ofNullable(clazz.cast(build()));
+        case "super":
+            return Optional.ofNullable(clazz.cast(superValue()));
+        case "toString":
+            return Optional.ofNullable(clazz.cast(toStringValue()));
+        case "equals":
+            return Optional.ofNullable(clazz.cast(equalsValue()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
+    public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
 
@@ -279,7 +279,7 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
     }
 
     public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
-                                     CopyableBuilder<Builder, ExistenceCheckNamingResponse> {
+            CopyableBuilder<Builder, ExistenceCheckNamingResponse> {
         /**
          * Sets the value of the Build property for this object.
          *
@@ -436,3 +436,4 @@ public final class ExistenceCheckNamingResponse extends JsonProtocolTestsRespons
         }
     }
 }
+

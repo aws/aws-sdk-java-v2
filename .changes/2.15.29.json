@@ -1,0 +1,60 @@
+{
+    "version": "2.15.29",
+    "date": "2020-11-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Adding MoveReplicationTask feature to move replication tasks between instances"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Secure Tunneling",
+            "contributor": "",
+            "description": "Support using multiple data streams per tunnel using the Secure Tunneling multiplexing feature."
+        },
+        {
+            "type": "feature",
+            "category": "Synthetics",
+            "contributor": "",
+            "description": "AWS Synthetics now supports Environment Variables to assign runtime parameters in the canary scripts."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This feature enables customers to encrypt their Amazon SageMaker Studio storage volumes with customer master keys (CMKs) managed by them in AWS Key Management Service (KMS)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "This release supports Unicode characters for string operations in formulae computes in SiteWise. For more information, search for SiteWise in Amazon What's new or refer the SiteWise documentation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodePipeline",
+            "contributor": "",
+            "description": "We show details about inbound executions and id of action executions in GetPipelineState API. We also add ConflictException to StartPipelineExecution, RetryStageExecution, StopPipelineExecution APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "Support import of CloudFormation stacks into Service Catalog provisioned products."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Adding new parameters for dashboard persistence"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Notification Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon SNS."
+        }
+    ]
+}

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
 import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -32,7 +33,6 @@ public class S3EndpointResolverContextTest {
     @Test
     public void toBuilder_minimal() {
         S3EndpointResolverContext context = S3EndpointResolverContext.builder().build();
-        assertFalse(context.endpointOverridden());
         assertNull(context.originalRequest());
         assertNull(context.region());
         assertNull(context.serviceConfiguration());
@@ -43,14 +43,15 @@ public class S3EndpointResolverContextTest {
     public void toBuilder_maximal() {
         S3Configuration serviceConfiguration = S3Configuration.builder().build();
         SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder().protocol("http").host("host").method(SdkHttpMethod.POST).build();
+        URI endpoint = URI.create("https://endpoint.com");
         S3EndpointResolverContext context = S3EndpointResolverContext.builder()
-                                                                     .endpointOverridden(true)
+                                                                     .endpointOverride(endpoint)
                                                                      .originalRequest(PutObjectRequest.builder().build())
                                                                      .region(Region.US_EAST_1)
                                                                      .serviceConfiguration(serviceConfiguration)
                                                                      .request(httpRequest)
                                                                      .build();
-        assertTrue(context.endpointOverridden());
+        assertThat(context.endpointOverride()).isEqualTo(endpoint);
         assertThat(context.originalRequest()).isInstanceOf(PutObjectRequest.class);
         assertThat(context.region()).isEqualTo(Region.US_EAST_1);
         assertThat(context.serviceConfiguration()).isEqualTo(serviceConfiguration);

@@ -20,9 +20,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A class that lazily constructs a value the first time {@link #getValue()} is invoked.
+ *
+ * This should be {@link #close()}d if the initializer returns value that needs to be {@link AutoCloseable#close()}d.
  */
 @SdkPublicApi
-public class Lazy<T> {
+public class Lazy<T> implements SdkAutoCloseable {
     private final Supplier<T> initializer;
 
     private volatile T value;
@@ -52,5 +54,18 @@ public class Lazy<T> {
         return ToString.builder("Lazy")
                        .add("value", value == null ? "Uninitialized" : value)
                        .build();
+    }
+
+    @Override
+    public void close() {
+        try {
+            // Make sure the value has been initialized before we attempt to close it
+            getValue();
+        } catch (RuntimeException e) {
+            // Failed to initialize the value.
+        }
+
+        IoUtils.closeIfCloseable(initializer, null);
+        IoUtils.closeIfCloseable(value, null);
     }
 }

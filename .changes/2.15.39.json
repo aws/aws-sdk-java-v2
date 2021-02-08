@@ -1,0 +1,36 @@
+{
+    "version": "2.15.39",
+    "date": "2020-12-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS License Manager",
+            "contributor": "",
+            "description": "AWS License Manager enables managed entitlements for AWS customers and Software Vendors (ISV). You can track and distribute license entitlements from AWS Marketplace and supported ISVs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "This release adds support for customer to run Batch Jobs on ECS Fargate, the serverless compute engine built for containers on AWS. Customer can also propagate Job and Job Definition Tags to ECS Task."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AmplifyBackend",
+            "contributor": "",
+            "description": "Regular documentation updates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for EBS volumes that are attached to instances."
+        }
+    ]
+}

@@ -1,0 +1,66 @@
+{
+    "version": "2.15.74",
+    "date": "2021-02-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "Doc only update for Amazon Location Maps that fixes a customer related issue regarding MapConfiguration"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Add enum value MqttTopic for Destination ExpressionType, add LoRaWANNetworkServerCertificateId for GetWirelessGatewayCertificate API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "contributor": "",
+            "description": "With the Data API, you can now use UUID and JSON data types as input to your database. Also with the Data API, you can now have a LONG type value returned from your database as a STRING value."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Documentation updates for Route 53"
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Amazon S3 Batch Operations now supports Delete Object Tagging"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Documentation updates for AWS Organizations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Vision",
+            "contributor": "",
+            "description": "This release includes the General Availability (GA) SDK for Amazon Lookout for Vision. New for GA is tagging support for Amazon Lookout for Vision models."
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "contributor": "",
+            "description": "With this release, scheduled actions of Application Auto Scaling can be created in the local time zone and automatically adjusted according to daylight saving changes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "AWS Elemental MediaLive now supports Image Media Playlists on HLS outputs, version 0.4 (trick-mode)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS App Mesh",
+            "contributor": "",
+            "description": "App Mesh now supports mutual TLS with two-way peer authentication. You can specify client certificates, server-side TLS validation, and matching of Subject Alternative Names."
+        }
+    ]
+}

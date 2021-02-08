@@ -29,6 +29,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -68,6 +69,11 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @Override
+    public String contentType() {
+        return Mimetype.getInstance().getMimetype(path);
     }
 
     @Override

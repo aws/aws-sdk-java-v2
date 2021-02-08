@@ -35,13 +35,21 @@ public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
     private final byte[] bytes;
 
-    public ByteArrayAsyncRequestBody(byte[] bytes) {
+    private final String mimetype;
+
+    public ByteArrayAsyncRequestBody(byte[] bytes, String mimetype) {
         this.bytes = bytes.clone();
+        this.mimetype = mimetype;
     }
 
     @Override
     public Optional<Long> contentLength() {
         return Optional.of((long) bytes.length);
+    }
+
+    @Override
+    public String contentType() {
+        return mimetype;
     }
 
     @Override

@@ -90,7 +90,7 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
  *     GetObjectPresignRequest getObjectPresignRequest =
  *         GetObjectPresignRequest.builder()
  *                                .signatureDuration(Duration.ofMinutes(10))
- *                                .getObjectRequest(request)
+ *                                .getObjectRequest(getObjectRequest)
  *                                .build();
  *
  *     // Generate the presigned request

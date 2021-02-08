@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -35,8 +36,11 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
 
-        boolean endpointOverride =
+        boolean endpointOverridden =
             Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN));
+        URI endpointOverride = endpointOverridden ? executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT)
+                                                  : null;
+
         S3Configuration serviceConfiguration =
             (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
         S3EndpointResolverContext resolverContext =
@@ -44,7 +48,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
                                      .request(context.httpRequest())
                                      .originalRequest(context.request())
                                      .region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION))
-                                     .endpointOverridden(endpointOverride)
+                                     .endpointOverride(endpointOverride)
                                      .serviceConfiguration(serviceConfiguration)
                                      .build();
 

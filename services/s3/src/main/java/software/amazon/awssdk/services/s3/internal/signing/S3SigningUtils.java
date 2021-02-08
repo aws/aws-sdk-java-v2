@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
@@ -56,7 +57,7 @@ public final class S3SigningUtils {
 
     private static Signer initializeV4aSigner() {
         try {
-            Class<?> signerClass = Class.forName(SIGV4A_SIGNER_CLASS, true, Thread.currentThread().getContextClassLoader());
+            Class<?> signerClass = ClassLoaderHelper.loadClass(SIGV4A_SIGNER_CLASS, false, (Class) null);
             Method m = signerClass.getDeclaredMethod("create");
             Object o = m.invoke(null);
             return (Signer) o;

@@ -1,0 +1,36 @@
+{
+    "version": "2.15.70",
+    "date": "2021-01-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Cross-Region Copying Pre-Signer for CopyDBClusterSnapshot and CreateDBCluster API of DocDB."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "Documentation updates for AWS Backup"
+        },
+        {
+            "type": "bugfix",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Converts string to NULL attribute if it's null. See [#2243](https://github.com/aws/aws-sdk-java-v2/issues/2243)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune",
+            "contributor": "",
+            "description": "Cross-Region Copying Pre-Signer for CopyDBClusterSnapshot and CreateDBCluster API of Neptune."
+        }
+    ]
+}

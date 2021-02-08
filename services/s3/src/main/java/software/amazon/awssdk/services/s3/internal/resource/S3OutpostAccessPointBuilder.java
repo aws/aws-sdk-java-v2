@@ -16,9 +16,11 @@
 package software.amazon.awssdk.services.s3.internal.resource;
 
 import static software.amazon.awssdk.utils.HostnameValidator.validateHostnameCompliant;
+import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * This class is used to construct an endpoint for an S3 outpost access point.
@@ -26,6 +28,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class S3OutpostAccessPointBuilder {
 
+    private URI endpointOverride;
     private String accessPointName;
     private String outpostId;
     private String region;
@@ -41,6 +44,14 @@ public final class S3OutpostAccessPointBuilder {
      */
     public static S3OutpostAccessPointBuilder create() {
         return new S3OutpostAccessPointBuilder();
+    }
+
+    /**
+     * The endpoint override configured on the client (null if no endpoint override was set).
+     */
+    public S3OutpostAccessPointBuilder endpointOverride(URI endpointOverride) {
+        this.endpointOverride = endpointOverride;
+        return this;
     }
 
     public S3OutpostAccessPointBuilder accessPointName(String accessPointName) {
@@ -81,8 +92,27 @@ public final class S3OutpostAccessPointBuilder {
         validateHostnameCompliant(accountId, "accountId", "outpost ARN");
         validateHostnameCompliant(accessPointName, "accessPointName", "outpost ARN");
 
-        String uriString = String.format("%s://%s-%s.%s.s3-outposts.%s.%s", protocol, accessPointName, accountId, outpostId,
-                                         region, domain);
-        return URI.create(uriString);
+        String uri;
+        if (endpointOverride == null) {
+            uri = String.format("%s://%s-%s.%s.s3-outposts.%s.%s", protocol, accessPointName, accountId, outpostId,
+                                region, domain);
+        } else {
+            StringBuilder uriSuffix = new StringBuilder(endpointOverride.getHost());
+            if (endpointOverride.getPort() > 0) {
+                uriSuffix.append(":").append(endpointOverride.getPort());
+            }
+            if (endpointOverride.getPath() != null) {
+                uriSuffix.append(endpointOverride.getPath());
+            }
+
+            uri = String.format("%s://%s-%s.%s.%s", protocol, urlEncode(accessPointName), accountId, outpostId, uriSuffix);
+        }
+
+        URI result = URI.create(uri);
+        if (result.getHost() == null) {
+            throw SdkClientException.create("Request resulted in an invalid URI: " + result);
+        }
+
+        return result;
     }
 }

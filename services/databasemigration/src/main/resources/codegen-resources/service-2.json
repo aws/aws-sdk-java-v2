@@ -67,7 +67,8 @@
         {"shape":"ResourceQuotaExceededFault"},
         {"shape":"InvalidResourceStateFault"},
         {"shape":"ResourceNotFoundFault"},
-        {"shape":"AccessDeniedFault"}
+        {"shape":"AccessDeniedFault"},
+        {"shape":"S3AccessDeniedFault"}
       ],
       "documentation":"<p>Creates an endpoint using the provided settings.</p>"
     },
@@ -648,6 +649,21 @@
       ],
       "documentation":"<p>Modifies the specified replication task.</p> <p>You can't modify the task endpoints. The task must be stopped before you can modify it. </p> <p>For more information about AWS DMS tasks, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.html\">Working with Migration Tasks</a> in the <i>AWS Database Migration Service User Guide</i>.</p>"
     },
+    "MoveReplicationTask":{
+      "name":"MoveReplicationTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"MoveReplicationTaskMessage"},
+      "output":{"shape":"MoveReplicationTaskResponse"},
+      "errors":[
+        {"shape":"AccessDeniedFault"},
+        {"shape":"InvalidResourceStateFault"},
+        {"shape":"ResourceNotFoundFault"}
+      ],
+      "documentation":"<p>Moves a replication task from its current replication instance to a different target replication instance using the specified parameters. The target replication instance must be created with the same or later AWS DMS version as the current replication instance.</p>"
+    },
     "RebootReplicationInstance":{
       "name":"RebootReplicationInstance",
       "http":{
@@ -1160,7 +1176,8 @@
         "ResourceIdentifier":{
           "shape":"String",
           "documentation":"<p>A friendly name for the resource identifier at the end of the <code>EndpointArn</code> response parameter that is returned in the created <code>Endpoint</code> object. The value for this parameter can have up to 31 characters. It can contain only ASCII letters, digits, and hyphen ('-'). Also, it can't end with a hyphen or contain two consecutive hyphens, and can only begin with a letter, such as <code>Example-App-ARN1</code>. For example, this value might result in the <code>EndpointArn</code> value <code>arn:aws:dms:eu-west-1:012345678901:rep:Example-App-ARN1</code>. If you don't specify a <code>ResourceIdentifier</code> value, AWS DMS generates a default identifier value for the end of <code>EndpointArn</code>.</p>"
-        }
+        },
+        "DocDbSettings":{"shape":"DocDbSettings"}
       },
       "documentation":"<p/>"
     },
@@ -2337,6 +2354,56 @@
       },
       "documentation":"<p> The settings in JSON format for the DMS Transfer type source endpoint. </p>"
     },
+    "DocDbSettings":{
+      "type":"structure",
+      "members":{
+        "Username":{
+          "shape":"String",
+          "documentation":"<p>The user name you use to access the DocumentDB source endpoint. </p>"
+        },
+        "Password":{
+          "shape":"SecretString",
+          "documentation":"<p> The password for the user account you use to access the DocumentDB source endpoint. </p>"
+        },
+        "ServerName":{
+          "shape":"String",
+          "documentation":"<p> The name of the server on the DocumentDB source endpoint. </p>"
+        },
+        "Port":{
+          "shape":"IntegerOptional",
+          "documentation":"<p> The port value for the DocumentDB source endpoint. </p>"
+        },
+        "DatabaseName":{
+          "shape":"String",
+          "documentation":"<p> The database name on the DocumentDB source endpoint. </p>"
+        },
+        "NestingLevel":{
+          "shape":"NestingLevelValue",
+          "documentation":"<p> Specifies either document or table mode. </p> <p>Default value is <code>\"none\"</code>. Specify <code>\"none\"</code> to use document mode. Specify <code>\"one\"</code> to use table mode.</p>"
+        },
+        "ExtractDocId":{
+          "shape":"BooleanOptional",
+          "documentation":"<p> Specifies the document ID. Use this setting when <code>NestingLevel</code> is set to <code>\"none\"</code>. </p> <p>Default value is <code>\"false\"</code>. </p>"
+        },
+        "DocsToInvestigate":{
+          "shape":"IntegerOptional",
+          "documentation":"<p> Indicates the number of documents to preview to determine the document organization. Use this setting when <code>NestingLevel</code> is set to <code>\"one\"</code>. </p> <p>Must be a positive value greater than <code>0</code>. Default value is <code>1000</code>.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The AWS KMS key identifier that is used to encrypt the content on the replication instance. If you don't specify a value for the <code>KmsKeyId</code> parameter, then AWS DMS uses your default encryption key. AWS KMS creates the default encryption key for your AWS account. Your AWS account has a different default encryption key for each AWS Region.</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the DocumentDB endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the DocumentDB endpoint connection details.</p>"
+        }
+      },
+      "documentation":"<p>Provides information that defines a DocumentDB endpoint.</p>"
+    },
     "DynamoDbSettings":{
       "type":"structure",
       "required":["ServiceAccessRoleArn"],
@@ -2519,7 +2586,8 @@
         "IBMDb2Settings":{
           "shape":"IBMDb2Settings",
           "documentation":"<p>The settings for the IBM Db2 LUW source endpoint. For more information, see the <code>IBMDb2Settings</code> structure. </p>"
-        }
+        },
+        "DocDbSettings":{"shape":"DocDbSettings"}
       },
       "documentation":"<p>Describes an endpoint of a database instance in response to operations such as the following:</p> <ul> <li> <p> <code>CreateEndpoint</code> </p> </li> <li> <p> <code>DescribeEndpoint</code> </p> </li> <li> <p> <code>DescribeEndpointTypes</code> </p> </li> <li> <p> <code>ModifyEndpoint</code> </p> </li> </ul>"
     },
@@ -2646,7 +2714,7 @@
           "documentation":"<p>The filter value, which can specify one or more values used to narrow the returned results.</p>"
         }
       },
-      "documentation":"<p>Identifies the name and value of a filter object. This filter is used to limit the number and type of AWS DMS objects that are returned for a particular <code>Describe*</code> call or similar operation. Filters are used as an optional parameter to the following APIs. </p>"
+      "documentation":"<p>Identifies the name and value of a filter object. This filter is used to limit the number and type of AWS DMS objects that are returned for a particular <code>Describe*</code> call or similar operation. Filters are used as an optional parameter for certain API operations. </p>"
     },
     "FilterList":{
       "type":"list",
@@ -2690,6 +2758,14 @@
         "Username":{
           "shape":"String",
           "documentation":"<p>Endpoint connection user name.</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the Db2 LUW endpoint. </p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the Db2 LUW endpoint connection details.</p>"
         }
       },
       "documentation":"<p>Provides information that defines an IBM Db2 LUW endpoint.</p>"
@@ -2973,7 +3049,7 @@
         },
         "ControlTablesFileGroup":{
           "shape":"String",
-          "documentation":"<p>Specify a filegroup for the AWS DMS internal tables. When the replication task starts, all the internal AWS DMS control tables (awsdms_ apply_exception, awsdms_apply, awsdms_changes) are created on the specified filegroup.</p>"
+          "documentation":"<p>Specifies a file group for the AWS DMS internal tables. When the replication task starts, all the internal AWS DMS control tables (awsdms_ apply_exception, awsdms_apply, awsdms_changes) are created for the specified file group.</p>"
         },
         "Password":{
           "shape":"SecretString",
@@ -2998,6 +3074,14 @@
         "UseBcpFullLoad":{
           "shape":"BooleanOptional",
           "documentation":"<p>Use this to attribute to transfer data for full-load operations using BCP. When the target table contains an identity column that does not exist in the source table, you must disable the use BCP for loading table option.</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the SQL Server endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the SQL Server endpoint connection details.</p>"
         }
       },
       "documentation":"<p>Provides information that defines a Microsoft SQL Server endpoint.</p>"
@@ -3126,6 +3210,10 @@
         "IBMDb2Settings":{
           "shape":"IBMDb2Settings",
           "documentation":"<p>Settings in JSON format for the source IBM Db2 LUW endpoint. For information about other available settings, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.DB2.ConnectionAttrib\">Extra connection attributes when using Db2 LUW as a source for AWS DMS</a> in the <i>AWS Database Migration Service User Guide.</i> </p>"
+        },
+        "DocDbSettings":{
+          "shape":"DocDbSettings",
+          "documentation":"<p>Settings in JSON format for the source DocumentDB endpoint. For more information about the available settings, see the configuration properties section in <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.DocumentDB.html\"> Using DocumentDB as a Target for AWS Database Migration Service</a> in the <i>AWS Database Migration Service User Guide.</i> </p>"
         }
       },
       "documentation":"<p/>"
@@ -3219,7 +3307,7 @@
         },
         "AutoMinorVersionUpgrade":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A value that indicates that minor version upgrades are applied automatically to the replication instance during the maintenance window. Changing this parameter doesn't result in an outage, except in the case dsecribed following. The change is asynchronously applied as soon as possible. </p> <p>An outage does result if these factors apply: </p> <ul> <li> <p>This parameter is set to <code>true</code> during the maintenance window.</p> </li> <li> <p>A newer minor version is available. </p> </li> <li> <p>AWS DMS has enabled automatic patching for the given engine version. </p> </li> </ul>"
+          "documentation":"<p>A value that indicates that minor version upgrades are applied automatically to the replication instance during the maintenance window. Changing this parameter doesn't result in an outage, except in the case described following. The change is asynchronously applied as soon as possible. </p> <p>An outage does result if these factors apply: </p> <ul> <li> <p>This parameter is set to <code>true</code> during the maintenance window.</p> </li> <li> <p>A newer minor version is available. </p> </li> <li> <p>AWS DMS has enabled automatic patching for the given engine version. </p> </li> </ul>"
         },
         "ReplicationInstanceIdentifier":{
           "shape":"String",
@@ -3373,9 +3461,45 @@
         "KmsKeyId":{
           "shape":"String",
           "documentation":"<p>The AWS KMS key identifier that is used to encrypt the content on the replication instance. If you don't specify a value for the <code>KmsKeyId</code> parameter, then AWS DMS uses your default encryption key. AWS KMS creates the default encryption key for your AWS account. Your AWS account has a different default encryption key for each AWS Region.</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the MongoDB endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the MongoDB endpoint connection details.</p>"
         }
       },
       "documentation":"<p>Provides information that defines a MongoDB endpoint.</p>"
+    },
+    "MoveReplicationTaskMessage":{
+      "type":"structure",
+      "required":[
+        "ReplicationTaskArn",
+        "TargetReplicationInstanceArn"
+      ],
+      "members":{
+        "ReplicationTaskArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the task that you want to move.</p>"
+        },
+        "TargetReplicationInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the replication instance where you want to move the task to.</p>"
+        }
+      },
+      "documentation":"<p/>"
+    },
+    "MoveReplicationTaskResponse":{
+      "type":"structure",
+      "members":{
+        "ReplicationTask":{
+          "shape":"ReplicationTask",
+          "documentation":"<p>The replication task that was moved.</p>"
+        }
+      },
+      "documentation":"<p/>"
     },
     "MySQLSettings":{
       "type":"structure",
@@ -3402,7 +3526,7 @@
         },
         "ParallelLoadThreads":{
           "shape":"IntegerOptional",
-          "documentation":"<p>Improves performance when loading data into the MySQLcompatible target database. Specifies how many threads to use to load the data into the MySQL-compatible target database. Setting a large number of threads can have an adverse effect on database performance, because a separate connection is required for each thread.</p> <p>Example: <code>parallelLoadThreads=1</code> </p>"
+          "documentation":"<p>Improves performance when loading data into the MySQL-compatible target database. Specifies how many threads to use to load the data into the MySQL-compatible target database. Setting a large number of threads can have an adverse effect on database performance, because a separate connection is required for each thread.</p> <p>Example: <code>parallelLoadThreads=1</code> </p>"
         },
         "Password":{
           "shape":"SecretString",
@@ -3423,6 +3547,14 @@
         "Username":{
           "shape":"String",
           "documentation":"<p>Endpoint connection user name.</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the MySQL endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the MySQL endpoint connection details.</p>"
         }
       },
       "documentation":"<p>Provides information that defines a MySQL endpoint.</p>"
@@ -3594,6 +3726,22 @@
         "Username":{
           "shape":"String",
           "documentation":"<p>Endpoint connection user name.</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the Oracle endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the Oracle endpoint connection details.</p>"
+        },
+        "SecretsManagerOracleAsmAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>Required only if your Oracle endpoint uses Advanced Storage Manager (ASM). The full ARN of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the <code>SecretsManagerOracleAsmSecret</code>. This <code>SecretsManagerOracleAsmSecret</code> has the secret value that allows access to the Oracle ASM of the endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerOracleAsmSecretId</code>. Or you can specify clear-text values for <code>AsmUserName</code>, <code>AsmPassword</code>, and <code>AsmServerName</code>. You can't specify both. For more information on creating this <code>SecretsManagerOracleAsmSecret</code> and the <code>SecretsManagerOracleAsmAccessRoleArn</code> and <code>SecretsManagerOracleAsmSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerOracleAsmSecretId":{
+          "shape":"String",
+          "documentation":"<p>Required only if your Oracle endpoint uses Advanced Storage Manager (ASM). The full ARN, partial ARN, or friendly name of the <code>SecretsManagerOracleAsmSecret</code> that contains the Oracle ASM connection details for the Oracle endpoint.</p>"
         }
       },
       "documentation":"<p>Provides information that defines an Oracle endpoint.</p>"
@@ -3739,6 +3887,14 @@
         "SlotName":{
           "shape":"String",
           "documentation":"<p>Sets the name of a previously created logical replication slot for a CDC load of the PostgreSQL source instance.</p> <p>When used with the AWS DMS API <code>CdcStartPosition</code> request parameter, this attribute also enables using native CDC start points.</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the PostgreSQL endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the PostgreSQL endpoint connection details.</p>"
         }
       },
       "documentation":"<p>Provides information that defines a PostgreSQL endpoint.</p>"
@@ -3779,7 +3935,7 @@
         },
         "BucketFolder":{
           "shape":"String",
-          "documentation":"<p>An S3 folder where the comma-separated-value (.csv) files are stored before being uploaded to the target Redshift cluster. </p> <p>For full load mode, AWS DMS converts source records into .csv files and loads them to the <i>BucketFolder/TableID</i> path. AWS DMS uses the Redshift <code>COPY</code> command to upload the .csv files to the target table. The files are deleted once the <code>COPY</code> operation has finished. For more information, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html\">Amazon Redshift Database Developer Guide</a> </p> <p>For change-data-capture (CDC) mode, AWS DMS creates a <i>NetChanges</i> table, and loads the .csv files to this <i>BucketFolder/NetChangesTableID</i> path.</p>"
+          "documentation":"<p>An S3 folder where the comma-separated-value (.csv) files are stored before being uploaded to the target Redshift cluster. </p> <p>For full load mode, AWS DMS converts source records into .csv files and loads them to the <i>BucketFolder/TableID</i> path. AWS DMS uses the Redshift <code>COPY</code> command to upload the .csv files to the target table. The files are deleted once the <code>COPY</code> operation has finished. For more information, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html\">COPY</a> in the <i>Amazon Redshift Database Developer Guide</i>.</p> <p>For change-data-capture (CDC) mode, AWS DMS creates a <i>NetChanges</i> table, and loads the .csv files to this <i>BucketFolder/NetChangesTableID</i> path.</p>"
         },
         "BucketName":{
           "shape":"String",
@@ -3880,6 +4036,14 @@
         "WriteBufferSize":{
           "shape":"IntegerOptional",
           "documentation":"<p>The size (in KB) of the in-memory file write buffer used when generating .csv files on the local disk at the DMS replication instance. The default value is 1000 (buffer size is 1000KB).</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the Amazon Redshift endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the Amazon Redshift endpoint connection details.</p>"
         }
       },
       "documentation":"<p>Provides information that defines an Amazon Redshift endpoint.</p>"
@@ -4224,15 +4388,15 @@
         },
         "SourceEndpointArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies the endpoint.</p>"
         },
         "TargetEndpointArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.</p>"
+          "documentation":"<p>The ARN that uniquely identifies the endpoint.</p>"
         },
         "ReplicationInstanceArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the replication instance.</p>"
+          "documentation":"<p>The ARN of the replication instance.</p>"
         },
         "MigrationType":{
           "shape":"MigrationTypeValue",
@@ -4248,7 +4412,7 @@
         },
         "Status":{
           "shape":"String",
-          "documentation":"<p>The status of the replication task.</p>"
+          "documentation":"<p>The status of the replication task. This response parameter can return one of the following values:</p> <ul> <li> <p> <code>\"moving\"</code> – The task is being moved in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_MoveReplicationTask.html\"> <code>MoveReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"creating\"</code> – The task is being created in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_CreateReplicationTask.html\"> <code>CreateReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"deleting\"</code> – The task is being deleted in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_DeleteReplicationTask.html\"> <code>DeleteReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"failed\"</code> – The task failed to successfully complete the database migration in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTask.html\"> <code>StartReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"failed-move\"</code> – The task failed to move in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_MoveReplicationTask.html\"> <code>MoveReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"modifying\"</code> – The task definition is being modified in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_ModifyReplicationTask.html\"> <code>ModifyReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"ready\"</code> – The task is in a <code>ready</code> state where it can respond to other task operations, such as <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTask.html\"> <code>StartReplicationTask</code> </a> or <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_DeleteReplicationTask.html\"> <code>DeleteReplicationTask</code> </a>. </p> </li> <li> <p> <code>\"running\"</code> – The task is performing a database migration in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTask.html\"> <code>StartReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"starting\"</code> – The task is preparing to perform a database migration in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTask.html\"> <code>StartReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"stopped\"</code> – The task has stopped in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StopReplicationTask.html\"> <code>StopReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"stopping\"</code> – The task is preparing to stop in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StopReplicationTask.html\"> <code>StopReplicationTask</code> </a> operation.</p> </li> <li> <p> <code>\"testing\"</code> – The database migration specified for this task is being tested in response to running either the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTaskAssessmentRun.html\"> <code>StartReplicationTaskAssessmentRun</code> </a> or the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTaskAssessment.html\"> <code>StartReplicationTaskAssessment</code> </a> operation.</p> <note> <p> <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTaskAssessmentRun.html\"> <code>StartReplicationTaskAssessmentRun</code> </a> is an improved premigration task assessment operation. The <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTaskAssessment.html\"> <code>StartReplicationTaskAssessment</code> </a> operation assesses data type compatibility only between the source and target database of a given migration task. In contrast, <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_StartReplicationTaskAssessmentRun.html\"> <code>StartReplicationTaskAssessmentRun</code> </a> enables you to specify a variety of premigration task assessments in addition to data type compatibility. These assessments include ones for the validity of primary key definitions and likely issues with database migration performance, among others.</p> </note> </li> </ul>"
         },
         "LastFailureMessage":{
           "shape":"String",
@@ -4256,7 +4420,7 @@
         },
         "StopReason":{
           "shape":"String",
-          "documentation":"<p>The reason the replication task was stopped. This response parameter can return one of the following values:</p> <ul> <li> <p> <code>\"STOP_REASON_FULL_LOAD_COMPLETED\"</code> – Full-load migration completed.</p> </li> <li> <p> <code>\"STOP_REASON_CACHED_CHANGES_APPLIED\"</code> – Change data capture (CDC) load completed.</p> </li> <li> <p> <code>\"STOP_REASON_CACHED_CHANGES_NOT_APPLIED\"</code> – In a full-load and CDC migration, the full-load stopped as specified before starting the CDC migration.</p> </li> <li> <p> <code>\"STOP_REASON_SERVER_TIME\"</code> – The migration stopped at the specified server time.</p> </li> </ul>"
+          "documentation":"<p>The reason the replication task was stopped. This response parameter can return one of the following values:</p> <ul> <li> <p> <code>\"STOP_REASON_FULL_LOAD_COMPLETED\"</code> – Full-load migration completed.</p> </li> <li> <p> <code>\"STOP_REASON_CACHED_CHANGES_APPLIED\"</code> – Change data capture (CDC) load completed.</p> </li> <li> <p> <code>\"STOP_REASON_CACHED_CHANGES_NOT_APPLIED\"</code> – In a full-load and CDC migration, the full load stopped as specified before starting the CDC migration.</p> </li> <li> <p> <code>\"STOP_REASON_SERVER_TIME\"</code> – The migration stopped at the specified server time.</p> </li> </ul>"
         },
         "ReplicationTaskCreationDate":{
           "shape":"TStamp",
@@ -4289,6 +4453,10 @@
         "TaskData":{
           "shape":"String",
           "documentation":"<p>Supplemental information that the task requires to migrate the data for certain source and target endpoints. For more information, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.TaskData.html\">Specifying Supplemental Data for Task Settings</a> in the <i>AWS Database Migration Service User Guide.</i> </p>"
+        },
+        "TargetReplicationInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the replication instance to which this task is moved in response to running the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_MoveReplicationTask.html\"> <code>MoveReplicationTask</code> </a> operation. Otherwise, this response parameter isn't a member of the <code>ReplicationTask</code> object.</p>"
         }
       },
       "documentation":"<p>Provides information that describes a replication task created by the <code>CreateReplicationTask</code> operation.</p>"
@@ -4641,7 +4809,7 @@
         },
         "DatePartitionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>When set to <code>true</code>, this parameter partitions S3 bucket folders based on transaction commit dates. The default value is <code>false</code>. For more information about date-based folder partitoning, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.PostgreSQL.html#CHAP_Source.PostgreSQL.ConnectionAttrib\">Using date-based folder partitioning</a> </p>"
+          "documentation":"<p>When set to <code>true</code>, this parameter partitions S3 bucket folders based on transaction commit dates. The default value is <code>false</code>. For more information about date-based folder partitoning, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.S3.html#CHAP_Target.S3.DatePartitioning\">Using date-based folder partitioning</a>.</p>"
         },
         "DatePartitionSequence":{
           "shape":"DatePartitionSequenceValue",
@@ -4650,6 +4818,22 @@
         "DatePartitionDelimiter":{
           "shape":"DatePartitionDelimiterValue",
           "documentation":"<p>Specifies a date separating delimiter to use during folder partitioning. The default value is <code>SLASH</code>. Use this parameter when <code>DatePartitionedEnabled</code> is set to <code>true</code>.</p>"
+        },
+        "UseCsvNoSupValue":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>This setting applies if the S3 output files during a change data capture (CDC) load are written in .csv format. If set to <code>true</code> for columns not included in the supplemental log, AWS DMS uses the value specified by <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_S3Settings.html#DMS-Type-S3Settings-CsvNoSupValue\"> <code>CsvNoSupValue</code> </a>. If not set or set to <code>false</code>, AWS DMS uses the null value for these columns.</p> <note> <p>This setting is supported in AWS DMS versions 3.4.1 and later.</p> </note>"
+        },
+        "CsvNoSupValue":{
+          "shape":"String",
+          "documentation":"<p>This setting only applies if your Amazon S3 output files during a change data capture (CDC) load are written in .csv format. If <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_S3Settings.html#DMS-Type-S3Settings-UseCsvNoSupValue\"> <code>UseCsvNoSupValue</code> </a> is set to true, specify a string value that you want AWS DMS to use for all columns not included in the supplemental log. If you do not specify a string value, AWS DMS uses the null value for these columns regardless of the <code>UseCsvNoSupValue</code> setting.</p> <note> <p>This setting is supported in AWS DMS versions 3.4.1 and later.</p> </note>"
+        },
+        "PreserveTransactions":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>If set to <code>true</code>, AWS DMS saves the transaction order for a change data capture (CDC) load on the Amazon S3 target specified by <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_S3Settings.html#DMS-Type-S3Settings-CdcPath\"> <code>CdcPath</code> </a>. For more information, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.S3.html#CHAP_Target.S3.EndpointSettings.CdcPath\">Capturing data changes (CDC) including transaction order on the S3 target</a>.</p> <note> <p>This setting is supported in AWS DMS versions 3.4.2 and later.</p> </note>"
+        },
+        "CdcPath":{
+          "shape":"String",
+          "documentation":"<p>Specifies the folder path of CDC files. For an S3 source, this setting is required if a task captures change data; otherwise, it's optional. If <code>CdcPath</code> is set, AWS DMS reads CDC files from this path and replicates the data changes to the target endpoint. For an S3 target if you set <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_S3Settings.html#DMS-Type-S3Settings-PreserveTransactions\"> <code>PreserveTransactions</code> </a> to <code>true</code>, AWS DMS verifies that you have set this parameter to a folder path on your S3 target where AWS DMS can save the transaction order for the CDC load. AWS DMS creates this CDC folder path in either your S3 target working directory or the S3 target location specified by <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_S3Settings.html#DMS-Type-S3Settings-BucketFolder\"> <code>BucketFolder</code> </a> and <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_S3Settings.html#DMS-Type-S3Settings-BucketName\"> <code>BucketName</code> </a>.</p> <p>For example, if you specify <code>CdcPath</code> as <code>MyChangedData</code>, and you specify <code>BucketName</code> as <code>MyTargetBucket</code> but do not specify <code>BucketFolder</code>, AWS DMS creates the CDC folder path following: <code>MyTargetBucket/MyChangedData</code>.</p> <p>If you specify the same <code>CdcPath</code>, and you specify <code>BucketName</code> as <code>MyTargetBucket</code> and <code>BucketFolder</code> as <code>MyTargetData</code>, AWS DMS creates the CDC folder path following: <code>MyTargetBucket/MyTargetData/MyChangedData</code>.</p> <p>For more information on CDC including transaction order on an S3 target, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.S3.html#CHAP_Target.S3.EndpointSettings.CdcPath\">Capturing data changes (CDC) including transaction order on the S3 target</a>.</p> <note> <p>This setting is supported in AWS DMS versions 3.4.2 and later.</p> </note>"
         }
       },
       "documentation":"<p>Settings for exporting data to Amazon S3. </p>"
@@ -4949,6 +5133,14 @@
         "Username":{
           "shape":"String",
           "documentation":"<p>Endpoint connection user name.</p>"
+        },
+        "SecretsManagerAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the IAM role that specifies AWS DMS as the trusted entity and grants the required permissions to access the value in <code>SecretsManagerSecret</code>. <code>SecretsManagerSecret</code> has the value of the AWS Secrets Manager secret that allows access to the SAP ASE endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerSecretId</code>. Or you can specify clear-text values for <code>UserName</code>, <code>Password</code>, <code>ServerName</code>, and <code>Port</code>. You can't specify both. For more information on creating this <code>SecretsManagerSecret</code> and the <code>SecretsManagerAccessRoleArn</code> and <code>SecretsManagerSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/https:/docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access AWS Database Migration Service resources</a> in the <i>AWS Database Migration Service User Guide</i>.</p> </note>"
+        },
+        "SecretsManagerSecretId":{
+          "shape":"String",
+          "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the SAP SAE endpoint connection details.</p>"
         }
       },
       "documentation":"<p>Provides information that defines a SAP ASE endpoint.</p>"

@@ -73,17 +73,6 @@ public class S3OutpostBucketArnTest extends S3ControlWireMockTestBase {
     }
 
     @Test
-    public void dualstackEnabled_shouldThrowException() {
-        S3ControlClient s3ControlForTest = buildClientCustom().serviceConfiguration(b -> b.dualstackEnabled(true)).build();
-
-        String bucketArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:bucket:mybucket";
-
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Dualstack");
-        s3ControlForTest.getBucket(b -> b.bucket(bucketArn));
-    }
-
-    @Test
     public void malformedArn_MissingBucketSegment_shouldThrowException() {
         S3ControlClient s3ControlForTest = buildClientCustom().serviceConfiguration(b -> b.dualstackEnabled(true)).build();
 
@@ -145,16 +134,6 @@ public class S3OutpostBucketArnTest extends S3ControlWireMockTestBase {
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("does not match the partition the client has been configured with");
-        s3ControlForTest.getBucket(b -> b.bucket(bucketArn));
-    }
-
-    @Test
-    public void bucketArnWithCustomEndpoint_throwsIllegalArgumentException() {
-        S3ControlClient s3ControlForTest = buildClientWithCustomEndpoint("https://foo.bar", "us-west-2");
-        String bucketArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:bucket:mybucket";
-
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("has been configured with an endpoint override");
         s3ControlForTest.getBucket(b -> b.bucket(bucketArn));
     }
 

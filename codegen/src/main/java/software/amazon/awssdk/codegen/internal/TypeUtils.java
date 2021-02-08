@@ -133,7 +133,7 @@ public class TypeUtils {
         String shapeType = shape.getType();
 
         if (Structure.getName().equals(shapeType)) {
-            return namingStrategy.getJavaClassName(shapeName);
+            return namingStrategy.getShapeClassName(shapeName);
         } else if (List.getName().equals(shapeType)) {
             String listContainerType = DATA_TYPE_MAPPINGS.get(TypeKey.LIST_INTERFACE);
             return listContainerType + "<" +

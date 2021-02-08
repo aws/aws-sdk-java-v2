@@ -29,19 +29,24 @@ class ChangelogWriter(object):
             self.write_items_for_category(s, self.bugfixes, "Bugfixes")
             self.write_items_for_category(s, self.deprecations, "Deprecations")
             self.write_items_for_category(s, self.removals, "Removals")
+            self.write_items_for_category(s, self.documentations, "Documentations")
         self.write_contributors()
 
     def write_contributors(self):
         contributors = set()
         for e in self.current_changes.entries:
             if e.contributor:
-                contributors.add(e.contributor)
+                contributors.add(self.contributor_with_link(e.contributor))
 
         if contributors:
             self.output_file.write("## __Contributors__\n")
             contributors_string = ', '.join(contributors)
             self.output_file.write("Special thanks to the following contributors to this release: \n")
             self.output_file.write("\n" + contributors_string + "\n")
+
+    def contributor_with_link(self, contributor):
+        return "[@" + contributor + "]" + "(" + \
+               "https://github.com/" + contributor + ")"
 
     def process_changes(self, changes):
         self.current_changes = changes
@@ -53,6 +58,7 @@ class ChangelogWriter(object):
         self.bugfixes = {}
         self.deprecations = {}
         self.removals = {}
+        self.documentations = {}
         self.categories = set()
 
     def group_entries(self):
@@ -101,7 +107,7 @@ class ChangelogWriter(object):
         self.write('\n')
         if e.contributor:
             self.write("        - ")
-            self.write("Contributed by: " + e.contributor)
+            self.write("Contributed by: " + self.contributor_with_link(e.contributor))
             self.write('\n')
 
     def get_map_for_type(self, t):
@@ -113,6 +119,8 @@ class ChangelogWriter(object):
             return self.deprecations
         elif t == 'removal':
             return self.removals
+        elif t == 'documentation':
+            return self.documentations
         else:
             raise Exception("Unknown entry type %s!" % t)
 

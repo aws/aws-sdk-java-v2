@@ -209,8 +209,9 @@ class MemberCopierSpec implements ClassSpec {
 
         CodeBlock code =
             CodeBlock.builder()
-                     .beginControlFlow("if ($N == null)", memberParamName())
-                     .addStatement("return null")
+                     .beginControlFlow("if ($1N == null || $1N instanceof $2T)",
+                                       memberParamName(), DefaultSdkAutoConstructMap.class)
+                     .addStatement("return $T.getInstance()", DefaultSdkAutoConstructMap.class)
                      .endControlFlow()
                      .addStatement("return $N($N.entrySet().stream().collect(toMap($T::getKey, e -> e.getValue().build())))",
                                    serviceModelCopiers.copyMethodName(),
@@ -234,8 +235,9 @@ class MemberCopierSpec implements ClassSpec {
             ParameterizedTypeName.get(ClassName.get(Collection.class), WildcardTypeName.subtypeOf(builderForParameter));
 
         CodeBlock code = CodeBlock.builder()
-                                  .beginControlFlow("if ($N == null)", memberParamName())
-                                  .addStatement("return null")
+                                  .beginControlFlow("if ($1N == null || $1N instanceof $2T)",
+                                                    memberParamName(), DefaultSdkAutoConstructList.class)
+                                  .addStatement("return $T.getInstance()", DefaultSdkAutoConstructList.class)
                                   .endControlFlow()
                                   .addStatement("return $N($N.stream().map($T::$N).collect(toList()))",
                                                 serviceModelCopiers.copyMethodName(),
@@ -270,16 +272,9 @@ class MemberCopierSpec implements ClassSpec {
 
         CodeBlock.Builder builder = CodeBlock.builder();
 
-        if (typeProvider.useAutoConstructLists()) {
-            builder.beginControlFlow("if ($1N == null || $1N instanceof $2T)", memberParamName(), SdkAutoConstructList.class)
-                   .addStatement("return $T.getInstance()", DefaultSdkAutoConstructList.class)
-                   .endControlFlow();
-
-        } else {
-            builder.beginControlFlow("if ($N == null)", memberParamName())
-                   .addStatement("return null")
-                   .endControlFlow();
-        }
+        builder.beginControlFlow("if ($1N == null || $1N instanceof $2T)", memberParamName(), SdkAutoConstructList.class)
+               .addStatement("return $T.getInstance()", DefaultSdkAutoConstructList.class)
+               .endControlFlow();
 
         Optional<ClassName> copierClass = serviceModelCopiers.copierClassFor(memberModel.getListModel().getListMemberModel());
         boolean hasCopier = copierClass.isPresent();
@@ -367,15 +362,9 @@ class MemberCopierSpec implements ClassSpec {
         CodeBlock valueCopyExpr = mapKeyValCopyExpr(valueModel, "getValue", valueTransform);
 
         CodeBlock.Builder builder = CodeBlock.builder();
-        if (typeProvider.useAutoConstructMaps()) {
-            builder.beginControlFlow("if ($1N == null || $1N instanceof $2T)", memberParamName(), SdkAutoConstructMap.class)
-                    .addStatement("return $T.getInstance()", DefaultSdkAutoConstructMap.class)
-                    .endControlFlow();
-        } else {
-            builder.beginControlFlow("if ($1N == null)", memberParamName())
-                    .addStatement("return null")
-                    .endControlFlow();
-        }
+        builder.beginControlFlow("if ($1N == null || $1N instanceof $2T)", memberParamName(), SdkAutoConstructMap.class)
+                .addStatement("return $T.getInstance()", DefaultSdkAutoConstructMap.class)
+                .endControlFlow();
 
         TypeName copyType;
         if (enumTransform == EnumTransform.STRING_TO_ENUM) {

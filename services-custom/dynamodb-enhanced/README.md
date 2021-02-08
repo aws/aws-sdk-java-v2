@@ -113,7 +113,7 @@ fully documented in the Javadoc of the interfaces referenced in these examples.
    Customer deletedCustomer = customerTable.deleteItem(Key.builder().partitionValue("a123").sortValue(456).build());
    
    // Query
-   PageIterable<Customer> customers = customerTable.query(equalTo(k -> k.partitionValue("a123")));
+   PageIterable<Customer> customers = customerTable.query(keyEqualTo(k -> k.partitionValue("a123")));
 
    // Scan
    PageIterable<Customer> customers = customerTable.scan();
@@ -153,7 +153,7 @@ index. Here's an example of how to do this:
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
    PageIterable<Customer> customersWithName = 
-       customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
+       customersByName.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("Smith"))));
    ```
 
 ### Working with immutable data classes
@@ -220,6 +220,12 @@ The following requirements must be met for a class annotated with @DynamoDbImmut
    'builder' on the immutable class that takes no parameters and returns an instance of the builder class.
 1. The builder class must have a public method named 'build' that takes no parameters and returns an instance of the
    immutable class.
+
+To create a TableSchema for your immutable class, use the static constructor method for immutable classes on TableSchema :
+
+```java
+static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = TableSchema.fromImmutableClass(Customer.class);
+```
    
 There are third-party library that help generate a lot of the boilerplate code associated with immutable objects.
 The DynamoDb Enhanced client should work with these libraries as long as they follow the conventions detailed
@@ -276,7 +282,7 @@ key differences:
    application can then subscribe a handler to that publisher and deal
    with the results asynchronously without having to block:
    ```java
-   PagePublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
+   PagePublisher<Customer> results = mappedTable.query(r -> r.queryConditional(keyEqualTo(k -> k.partitionValue("Smith"))));
    results.subscribe(myCustomerResultsProcessor);
    // Perform other work and let the processor handle the results asynchronously
    ```

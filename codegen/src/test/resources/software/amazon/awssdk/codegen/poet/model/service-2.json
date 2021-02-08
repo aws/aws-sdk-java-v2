@@ -137,7 +137,8 @@
         "RecursiveStruct":{"shape":"RecursiveStructType"},
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
-        "EnumType":{"shape":"EnumType"}
+        "EnumType":{"shape":"EnumType"},
+        "Underscore_Name_Type":{"shape":"Underscore_Name_Type"}
       }
     },
     "BaseType":{
@@ -408,7 +409,16 @@
         "EventOne": {
           "shape": "EventOne"
         },
+        "SecondEventOne": {
+          "shape": "EventOne"
+        },
         "EventTwo": {
+          "shape": "EventTwo"
+        },
+        "SecondEventTwo": {
+          "shape": "EventTwo"
+        },
+        "eventthree": {
           "shape": "EventTwo"
         }
       },
@@ -468,6 +478,9 @@
       },
       "event": true
     },
-    "ImplicitPayloadMemberOne":{"type":"blob"}
+    "ImplicitPayloadMemberOne":{"type":"blob"},
+    "Underscore_Name_Type": {
+      "type": "structure"
+    }
   }
 }

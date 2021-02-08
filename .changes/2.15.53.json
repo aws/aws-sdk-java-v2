@@ -1,0 +1,30 @@
+{
+    "version": "2.15.53",
+    "date": "2020-12-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups",
+            "contributor": "",
+            "description": "Add operation `PutGroupConfiguration`. Support dedicated hosts and add `Pending` in operations `Un/GroupResources`. Add `Resources` in `ListGroupResources` and deprecate `ResourceIdentifiers`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for lambda functions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "AWS DMS launches support for AWS Secrets Manager to manage Oracle ASM Database credentials"
+        }
+    ]
+}

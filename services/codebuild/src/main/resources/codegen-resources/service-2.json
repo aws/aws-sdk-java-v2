@@ -257,6 +257,20 @@
       ],
       "documentation":"<p> Returns a list of details about test cases for a report. </p>"
     },
+    "GetReportGroupTrend":{
+      "name":"GetReportGroupTrend",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetReportGroupTrendInput"},
+      "output":{"shape":"GetReportGroupTrendOutput"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Analyzes and accumulates test report values for the specified test reports.</p>"
+    },
     "GetResourcePolicy":{
       "name":"GetResourcePolicy",
       "http":{
@@ -352,7 +366,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Gets a list of build IDs for the specified build project, with each build ID representing a single build.</p>"
+      "documentation":"<p>Gets a list of build identifiers for the specified build project, with each build identifier representing a single build.</p>"
     },
     "ListCuratedEnvironmentImages":{
       "name":"ListCuratedEnvironmentImages",
@@ -497,7 +511,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Restarts a batch build.</p>"
+      "documentation":"<p>Restarts a failed batch build. Only batch builds that have failed can be retried.</p>"
     },
     "StartBuild":{
       "name":"StartBuild",
@@ -1941,6 +1955,40 @@
       "type":"list",
       "member":{"shape":"FilterGroup"}
     },
+    "GetReportGroupTrendInput":{
+      "type":"structure",
+      "required":[
+        "reportGroupArn",
+        "trendField"
+      ],
+      "members":{
+        "reportGroupArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ARN of the report group that contains the reports to analyze.</p>"
+        },
+        "numOfReports":{
+          "shape":"PageSize",
+          "documentation":"<p>The number of reports to analyze. This operation always retrieves the most recent reports.</p> <p>If this parameter is omitted, the most recent 100 reports are analyzed.</p>"
+        },
+        "trendField":{
+          "shape":"ReportGroupTrendFieldType",
+          "documentation":"<p>The test report value to accumulate. This must be one of the following values:</p> <dl> <dt>Test reports:</dt> <dd> <dl> <dt>DURATION</dt> <dd> <p>Accumulate the test run times for the specified reports.</p> </dd> <dt>PASS_RATE</dt> <dd> <p>Accumulate the percentage of tests that passed for the specified test reports.</p> </dd> <dt>TOTAL</dt> <dd> <p>Accumulate the total number of tests for the specified test reports.</p> </dd> </dl> </dd> </dl> <dl> <dt>Code coverage reports:</dt> <dd> <dl> <dt>BRANCH_COVERAGE</dt> <dd> <p>Accumulate the branch coverage percentages for the specified test reports.</p> </dd> <dt>BRANCHES_COVERED</dt> <dd> <p>Accumulate the branches covered values for the specified test reports.</p> </dd> <dt>BRANCHES_MISSED</dt> <dd> <p>Accumulate the branches missed values for the specified test reports.</p> </dd> <dt>LINE_COVERAGE</dt> <dd> <p>Accumulate the line coverage percentages for the specified test reports.</p> </dd> <dt>LINES_COVERED</dt> <dd> <p>Accumulate the lines covered values for the specified test reports.</p> </dd> <dt>LINES_MISSED</dt> <dd> <p>Accumulate the lines not covered values for the specified test reports.</p> </dd> </dl> </dd> </dl>"
+        }
+      }
+    },
+    "GetReportGroupTrendOutput":{
+      "type":"structure",
+      "members":{
+        "stats":{
+          "shape":"ReportGroupTrendStats",
+          "documentation":"<p>Contains the accumulated trend data.</p>"
+        },
+        "rawData":{
+          "shape":"ReportGroupTrendRawDataList",
+          "documentation":"<p>An array that contains the raw data for each report.</p>"
+        }
+      }
+    },
     "GetResourcePolicyInput":{
       "type":"structure",
       "required":["resourceArn"],
@@ -2154,7 +2202,7 @@
         },
         "sortOrder":{
           "shape":"SortOrderType",
-          "documentation":"<p>The order to list build IDs. Valid values include:</p> <ul> <li> <p> <code>ASCENDING</code>: List the build IDs in ascending order by build ID.</p> </li> <li> <p> <code>DESCENDING</code>: List the build IDs in descending order by build ID.</p> </li> </ul>"
+          "documentation":"<p>The order to list results in. The results are sorted by build number, not the build identifier.</p> <p>Valid values include:</p> <ul> <li> <p> <code>ASCENDING</code>: List the build IDs in ascending order by build ID.</p> </li> <li> <p> <code>DESCENDING</code>: List the build IDs in descending order by build ID.</p> </li> </ul> <p>If the project has more than 100 builds, setting the sort order will result in an error. </p>"
         },
         "nextToken":{
           "shape":"String",
@@ -2766,7 +2814,7 @@
         },
         "modes":{
           "shape":"ProjectCacheModes",
-          "documentation":"<p> If you use a <code>LOCAL</code> cache, the local cache mode. You can use one or more local cache modes at the same time. </p> <ul> <li> <p> <code>LOCAL_SOURCE_CACHE</code> mode caches Git metadata for primary and secondary sources. After the cache is created, subsequent builds pull only the change between commits. This mode is a good choice for projects with a clean working directory and a source that is a large Git repository. If you choose this option and your project does not use a Git repository (GitHub, GitHub Enterprise, or Bitbucket), the option is ignored. </p> </li> <li> <p> <code>LOCAL_DOCKER_LAYER_CACHE</code> mode caches existing Docker layers. This mode is a good choice for projects that build or pull large Docker images. It can prevent the performance issues caused by pulling large Docker images down from the network. </p> <note> <ul> <li> <p> You can use a Docker layer cache in the Linux environment only. </p> </li> <li> <p> The <code>privileged</code> flag must be set so that your project has the required Docker permissions. </p> </li> <li> <p> You should consider the security implications before you use a Docker layer cache. </p> </li> </ul> </note> </li> </ul> <ul> <li> <p> <code>LOCAL_CUSTOM_CACHE</code> mode caches directories you specify in the buildspec file. This mode is a good choice if your build scenario is not suited to one of the other three local cache modes. If you use a custom cache: </p> <ul> <li> <p> Only directories can be specified for caching. You cannot specify individual files. </p> </li> <li> <p> Symlinks are used to reference cached directories. </p> </li> <li> <p> Cached directories are linked to your build before it downloads its project sources. Cached items are overridden if a source item has the same name. Directories are specified using cache paths in the buildspec file. </p> </li> </ul> </li> </ul>"
+          "documentation":"<p>An array of strings that specify the local cache modes. You can use one or more local cache modes at the same time. This is only used for <code>LOCAL</code> cache types.</p> <p>Possible values are:</p> <dl> <dt>LOCAL_SOURCE_CACHE</dt> <dd> <p>Caches Git metadata for primary and secondary sources. After the cache is created, subsequent builds pull only the change between commits. This mode is a good choice for projects with a clean working directory and a source that is a large Git repository. If you choose this option and your project does not use a Git repository (GitHub, GitHub Enterprise, or Bitbucket), the option is ignored. </p> </dd> <dt>LOCAL_DOCKER_LAYER_CACHE</dt> <dd> <p>Caches existing Docker layers. This mode is a good choice for projects that build or pull large Docker images. It can prevent the performance issues caused by pulling large Docker images down from the network. </p> <note> <ul> <li> <p>You can use a Docker layer cache in the Linux environment only. </p> </li> <li> <p>The <code>privileged</code> flag must be set so that your project has the required Docker permissions. </p> </li> <li> <p>You should consider the security implications before you use a Docker layer cache. </p> </li> </ul> </note> </dd> <dt>LOCAL_CUSTOM_CACHE</dt> <dd> <p>Caches directories you specify in the buildspec file. This mode is a good choice if your build scenario is not suited to one of the other three local cache modes. If you use a custom cache: </p> <ul> <li> <p>Only directories can be specified for caching. You cannot specify individual files. </p> </li> <li> <p>Symlinks are used to reference cached directories. </p> </li> <li> <p>Cached directories are linked to your build before it downloads its project sources. Cached items are overridden if a source item has the same name. Directories are specified using cache paths in the buildspec file. </p> </li> </ul> </dd> </dl>"
         }
       },
       "documentation":"<p>Information about the cache for the build project.</p>"
@@ -2794,7 +2842,7 @@
         },
         "image":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The image tag or image digest that identifies the Docker image to use for this build project. Use the following formats:</p> <ul> <li> <p>For an image tag: <code>&lt;registry&gt;/&lt;repository&gt;:&lt;tag&gt;</code>. For example, in the Docker repository that CodeBuild uses to manage its Docker images, this would be <code>aws/codebuild/standard:4.0</code>. To specify the latest version of this image, this would be <code>aws/codebuild/standard:latest</code>.</p> </li> <li> <p>For an image digest: <code>&lt;registry&gt;/&lt;repository&gt;@&lt;digest&gt;</code>. For example, to specify an image with the digest \"sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf,\" use <code>&lt;registry&gt;/&lt;repository&gt;@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf</code>.</p> </li> </ul>"
+          "documentation":"<p>The image tag or image digest that identifies the Docker image to use for this build project. Use the following formats:</p> <ul> <li> <p>For an image tag: <code>&lt;registry&gt;/&lt;repository&gt;:&lt;tag&gt;</code>. For example, in the Docker repository that CodeBuild uses to manage its Docker images, this would be <code>aws/codebuild/standard:4.0</code>. </p> </li> <li> <p>For an image digest: <code>&lt;registry&gt;/&lt;repository&gt;@&lt;digest&gt;</code>. For example, to specify an image with the digest \"sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf,\" use <code>&lt;registry&gt;/&lt;repository&gt;@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf</code>.</p> </li> </ul>"
         },
         "computeType":{
           "shape":"ComputeType",
@@ -2810,7 +2858,7 @@
         },
         "certificate":{
           "shape":"String",
-          "documentation":"<p>The certificate to use with this build project.</p>"
+          "documentation":"<p>The ARN of the Amazon Simple Storage Service (Amazon S3) bucket, path prefix, and object key that contains the PEM-encoded certificate for the build project. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/create-project-cli.html#cli.environment.certificate\">certificate</a> in the <i>AWS CodeBuild User Guide</i>.</p>"
         },
         "registryCredential":{
           "shape":"RegistryCredential",
@@ -2832,15 +2880,15 @@
         },
         "location":{
           "shape":"String",
-          "documentation":"<p> A string that specifies the location of the file system created by Amazon EFS. Its format is <code>efs-dns-name:/directory-path</code>. You can find the DNS name of file system when you view it in the AWS EFS console. The directory path is a path to a directory in the file system that CodeBuild mounts. For example, if the DNS name of a file system is <code>fs-abcd1234.efs.us-west-2.amazonaws.com</code>, and its mount directory is <code>my-efs-mount-directory</code>, then the <code>location</code> is <code>fs-abcd1234.efs.us-west-2.amazonaws.com:/my-efs-mount-directory</code>. </p> <p> The directory path in the format <code>efs-dns-name:/directory-path</code> is optional. If you do not specify a directory path, the location is only the DNS name and CodeBuild mounts the entire file system. </p>"
+          "documentation":"<p>A string that specifies the location of the file system created by Amazon EFS. Its format is <code>efs-dns-name:/directory-path</code>. You can find the DNS name of file system when you view it in the AWS EFS console. The directory path is a path to a directory in the file system that CodeBuild mounts. For example, if the DNS name of a file system is <code>fs-abcd1234.efs.us-west-2.amazonaws.com</code>, and its mount directory is <code>my-efs-mount-directory</code>, then the <code>location</code> is <code>fs-abcd1234.efs.us-west-2.amazonaws.com:/my-efs-mount-directory</code>. </p> <p>The directory path in the format <code>efs-dns-name:/directory-path</code> is optional. If you do not specify a directory path, the location is only the DNS name and CodeBuild mounts the entire file system. </p>"
         },
         "mountPoint":{
           "shape":"String",
-          "documentation":"<p> The location in the container where you mount the file system. </p>"
+          "documentation":"<p>The location in the container where you mount the file system. </p>"
         },
         "identifier":{
           "shape":"String",
-          "documentation":"<p> The name used to access a file system created by Amazon EFS. CodeBuild creates an environment variable by appending the <code>identifier</code> in all capital letters to <code>CODEBUILD_</code>. For example, if you specify <code>my-efs</code> for <code>identifier</code>, a new environment variable is create named <code>CODEBUILD_MY-EFS</code>. </p> <p> The <code>identifier</code> is used to mount your file system. </p>"
+          "documentation":"<p>The name used to access a file system created by Amazon EFS. CodeBuild creates an environment variable by appending the <code>identifier</code> in all capital letters to <code>CODEBUILD_</code>. For example, if you specify <code>my_efs</code> for <code>identifier</code>, a new environment variable is create named <code>CODEBUILD_MY_EFS</code>. </p> <p> The <code>identifier</code> is used to mount your file system. </p>"
         },
         "mountOptions":{
           "shape":"String",
@@ -2909,7 +2957,7 @@
         },
         "reportBuildStatus":{
           "shape":"WrapperBoolean",
-          "documentation":"<p> Set to true to report the status of a build's start and finish to your source provider. This option is valid only when your source provider is GitHub, GitHub Enterprise, or Bitbucket. If this is set and you use a different source provider, an invalidInputException is thrown. </p> <note> <p> The status of a build triggered by a webhook is always reported to your source provider. </p> </note>"
+          "documentation":"<p> Set to true to report the status of a build's start and finish to your source provider. This option is valid only when your source provider is GitHub, GitHub Enterprise, or Bitbucket. If this is set and you use a different source provider, an <code>invalidInputException</code> is thrown. </p> <p>To be able to report the build status to the source provider, the user associated with the source provider must have write access to the repo. If the user does not have write access, the build status cannot be updated. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/access-tokens.html\">Source provider access</a> in the <i>AWS CodeBuild User Guide</i>.</p> <note> <p> The status of a build triggered by a webhook is always reported to your source provider. </p> </note>"
         },
         "buildStatusConfig":{
           "shape":"BuildStatusConfig",
@@ -3101,34 +3149,38 @@
       "members":{
         "arn":{
           "shape":"NonEmptyString",
-          "documentation":"<p> The ARN of a <code>ReportGroup</code>. </p>"
+          "documentation":"<p>The ARN of the <code>ReportGroup</code>. </p>"
         },
         "name":{
           "shape":"ReportGroupName",
-          "documentation":"<p> The name of a <code>ReportGroup</code>. </p>"
+          "documentation":"<p>The name of the <code>ReportGroup</code>. </p>"
         },
         "type":{
           "shape":"ReportType",
-          "documentation":"<p> The type of the <code>ReportGroup</code>. The one valid value is <code>TEST</code>. </p>"
+          "documentation":"<p>The type of the <code>ReportGroup</code>. This can be one of the following values:</p> <dl> <dt>CODE_COVERAGE</dt> <dd> <p>The report group contains code coverage reports.</p> </dd> <dt>TEST</dt> <dd> <p>The report group contains test reports.</p> </dd> </dl>"
         },
         "exportConfig":{
           "shape":"ReportExportConfig",
-          "documentation":"<p> Information about the destination where the raw data of this <code>ReportGroup</code> is exported. </p>"
+          "documentation":"<p>Information about the destination where the raw data of this <code>ReportGroup</code> is exported. </p>"
         },
         "created":{
           "shape":"Timestamp",
-          "documentation":"<p> The date and time this <code>ReportGroup</code> was created. </p>"
+          "documentation":"<p>The date and time this <code>ReportGroup</code> was created. </p>"
         },
         "lastModified":{
           "shape":"Timestamp",
-          "documentation":"<p> The date and time this <code>ReportGroup</code> was last modified. </p>"
+          "documentation":"<p>The date and time this <code>ReportGroup</code> was last modified. </p>"
         },
         "tags":{
           "shape":"TagList",
-          "documentation":"<p> A list of tag key and value pairs associated with this report group. </p> <p>These tags are available for use by AWS services that support AWS CodeBuild report group tags.</p>"
+          "documentation":"<p>A list of tag key and value pairs associated with this report group. </p> <p>These tags are available for use by AWS services that support AWS CodeBuild report group tags.</p>"
+        },
+        "status":{
+          "shape":"ReportGroupStatusType",
+          "documentation":"<p>The status of the report group. This property is read-only.</p> <p>This can be one of the following values:</p> <dl> <dt>ACTIVE</dt> <dd> <p>The report group is active.</p> </dd> <dt>DELETING</dt> <dd> <p>The report group is in the process of being deleted.</p> </dd> </dl>"
         }
       },
-      "documentation":"<p> A series of reports. Each report contains information about the results from running a series of test cases. You specify the test cases for a report group in the buildspec for a build project using one or more paths to the test case files. </p>"
+      "documentation":"<p>A series of reports. Each report contains information about the results from running a series of test cases. You specify the test cases for a report group in the buildspec for a build project using one or more paths to the test case files. </p>"
     },
     "ReportGroupArns":{
       "type":"list",
@@ -3148,6 +3200,49 @@
         "CREATED_TIME",
         "LAST_MODIFIED_TIME"
       ]
+    },
+    "ReportGroupStatusType":{
+      "type":"string",
+      "enum":[
+        "ACTIVE",
+        "DELETING"
+      ]
+    },
+    "ReportGroupTrendFieldType":{
+      "type":"string",
+      "enum":[
+        "PASS_RATE",
+        "DURATION",
+        "TOTAL",
+        "LINE_COVERAGE",
+        "LINES_COVERED",
+        "LINES_MISSED",
+        "BRANCH_COVERAGE",
+        "BRANCHES_COVERED",
+        "BRANCHES_MISSED"
+      ]
+    },
+    "ReportGroupTrendRawDataList":{
+      "type":"list",
+      "member":{"shape":"ReportWithRawData"}
+    },
+    "ReportGroupTrendStats":{
+      "type":"structure",
+      "members":{
+        "average":{
+          "shape":"String",
+          "documentation":"<p>Contains the average of all values analyzed.</p>"
+        },
+        "max":{
+          "shape":"String",
+          "documentation":"<p>Contains the maximum value analyzed.</p>"
+        },
+        "min":{
+          "shape":"String",
+          "documentation":"<p>Contains the minimum value analyzed.</p>"
+        }
+      },
+      "documentation":"<p>Contains trend statistics for a set of reports. The actual values depend on the type of trend being collected. For more information, see .</p>"
     },
     "ReportGroups":{
       "type":"list",
@@ -3183,6 +3278,20 @@
         "TEST",
         "CODE_COVERAGE"
       ]
+    },
+    "ReportWithRawData":{
+      "type":"structure",
+      "members":{
+        "reportArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ARN of the report.</p>"
+        },
+        "data":{
+          "shape":"String",
+          "documentation":"<p>The value of the requested data field from the report.</p>"
+        }
+      },
+      "documentation":"<p>Contains the unmodified data for the report. For more information, see .</p>"
     },
     "Reports":{
       "type":"list",
@@ -3602,7 +3711,7 @@
         },
         "reportBuildStatusOverride":{
           "shape":"WrapperBoolean",
-          "documentation":"<p> Set to true to report to your source provider the status of a build's start and completion. If you use this option with a source provider other than GitHub, GitHub Enterprise, or Bitbucket, an invalidInputException is thrown. </p> <note> <p> The status of a build triggered by a webhook is always reported to your source provider. </p> </note>"
+          "documentation":"<p> Set to true to report to your source provider the status of a build's start and completion. If you use this option with a source provider other than GitHub, GitHub Enterprise, or Bitbucket, an <code>invalidInputException</code> is thrown. </p> <p>To be able to report the build status to the source provider, the user associated with the source provider must have write access to the repo. If the user does not have write access, the build status cannot be updated. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/access-tokens.html\">Source provider access</a> in the <i>AWS CodeBuild User Guide</i>.</p> <note> <p> The status of a build triggered by a webhook is always reported to your source provider. </p> </note>"
         },
         "buildStatusConfigOverride":{
           "shape":"BuildStatusConfig",
@@ -4092,5 +4201,5 @@
     "WrapperInt":{"type":"integer"},
     "WrapperLong":{"type":"long"}
   },
-  "documentation":"<fullname>AWS CodeBuild</fullname> <p>AWS CodeBuild is a fully managed build service in the cloud. AWS CodeBuild compiles your source code, runs unit tests, and produces artifacts that are ready to deploy. AWS CodeBuild eliminates the need to provision, manage, and scale your own build servers. It provides prepackaged build environments for the most popular programming languages and build tools, such as Apache Maven, Gradle, and more. You can also fully customize build environments in AWS CodeBuild to use your own build tools. AWS CodeBuild scales automatically to meet peak build requests. You pay only for the build time you consume. For more information about AWS CodeBuild, see the <i> <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/welcome.html\">AWS CodeBuild User Guide</a>.</i> </p> <p>AWS CodeBuild supports these operations:</p> <ul> <li> <p> <code>BatchDeleteBuilds</code>: Deletes one or more builds.</p> </li> <li> <p> <code>BatchGetBuilds</code>: Gets information about one or more builds.</p> </li> <li> <p> <code>BatchGetProjects</code>: Gets information about one or more build projects. A <i>build project</i> defines how AWS CodeBuild runs a build. This includes information such as where to get the source code to build, the build environment to use, the build commands to run, and where to store the build output. A <i>build environment</i> is a representation of operating system, programming language runtime, and tools that AWS CodeBuild uses to run a build. You can add tags to build projects to help manage your resources and costs.</p> </li> <li> <p> <code>BatchGetReportGroups</code>: Returns an array of report groups. </p> </li> <li> <p> <code>BatchGetReports</code>: Returns an array of reports. </p> </li> <li> <p> <code>CreateProject</code>: Creates a build project.</p> </li> <li> <p> <code>CreateReportGroup</code>: Creates a report group. A report group contains a collection of reports. </p> </li> <li> <p> <code>CreateWebhook</code>: For an existing AWS CodeBuild build project that has its source code stored in a GitHub or Bitbucket repository, enables AWS CodeBuild to start rebuilding the source code every time a code change is pushed to the repository.</p> </li> <li> <p> <code>DeleteProject</code>: Deletes a build project.</p> </li> <li> <p> <code>DeleteReport</code>: Deletes a report. </p> </li> <li> <p> <code>DeleteReportGroup</code>: Deletes a report group. </p> </li> <li> <p> <code>DeleteResourcePolicy</code>: Deletes a resource policy that is identified by its resource ARN. </p> </li> <li> <p> <code>DeleteSourceCredentials</code>: Deletes a set of GitHub, GitHub Enterprise, or Bitbucket source credentials.</p> </li> <li> <p> <code>DeleteWebhook</code>: For an existing AWS CodeBuild build project that has its source code stored in a GitHub or Bitbucket repository, stops AWS CodeBuild from rebuilding the source code every time a code change is pushed to the repository.</p> </li> <li> <p> <code>DescribeTestCases</code>: Returns a list of details about test cases for a report. </p> </li> <li> <p> <code>GetResourcePolicy</code>: Gets a resource policy that is identified by its resource ARN. </p> </li> <li> <p> <code>ImportSourceCredentials</code>: Imports the source repository credentials for an AWS CodeBuild project that has its source code stored in a GitHub, GitHub Enterprise, or Bitbucket repository.</p> </li> <li> <p> <code>InvalidateProjectCache</code>: Resets the cache for a project.</p> </li> <li> <p> <code>ListBuilds</code>: Gets a list of build IDs, with each build ID representing a single build.</p> </li> <li> <p> <code>ListBuildsForProject</code>: Gets a list of build IDs for the specified build project, with each build ID representing a single build.</p> </li> <li> <p> <code>ListCuratedEnvironmentImages</code>: Gets information about Docker images that are managed by AWS CodeBuild.</p> </li> <li> <p> <code>ListProjects</code>: Gets a list of build project names, with each build project name representing a single build project.</p> </li> <li> <p> <code>ListReportGroups</code>: Gets a list ARNs for the report groups in the current AWS account. </p> </li> <li> <p> <code>ListReports</code>: Gets a list ARNs for the reports in the current AWS account. </p> </li> <li> <p> <code>ListReportsForReportGroup</code>: Returns a list of ARNs for the reports that belong to a <code>ReportGroup</code>. </p> </li> <li> <p> <code>ListSharedProjects</code>: Gets a list of ARNs associated with projects shared with the current AWS account or user.</p> </li> <li> <p> <code>ListSharedReportGroups</code>: Gets a list of ARNs associated with report groups shared with the current AWS account or user</p> </li> <li> <p> <code>ListSourceCredentials</code>: Returns a list of <code>SourceCredentialsInfo</code> objects. Each <code>SourceCredentialsInfo</code> object includes the authentication type, token ARN, and type of source provider for one set of credentials.</p> </li> <li> <p> <code>PutResourcePolicy</code>: Stores a resource policy for the ARN of a <code>Project</code> or <code>ReportGroup</code> object. </p> </li> <li> <p> <code>StartBuild</code>: Starts running a build.</p> </li> <li> <p> <code>StopBuild</code>: Attempts to stop running a build.</p> </li> <li> <p> <code>UpdateProject</code>: Changes the settings of an existing build project.</p> </li> <li> <p> <code>UpdateReportGroup</code>: Changes a report group.</p> </li> <li> <p> <code>UpdateWebhook</code>: Changes the settings of an existing webhook.</p> </li> </ul>"
+  "documentation":"<fullname>AWS CodeBuild</fullname> <p>AWS CodeBuild is a fully managed build service in the cloud. AWS CodeBuild compiles your source code, runs unit tests, and produces artifacts that are ready to deploy. AWS CodeBuild eliminates the need to provision, manage, and scale your own build servers. It provides prepackaged build environments for the most popular programming languages and build tools, such as Apache Maven, Gradle, and more. You can also fully customize build environments in AWS CodeBuild to use your own build tools. AWS CodeBuild scales automatically to meet peak build requests. You pay only for the build time you consume. For more information about AWS CodeBuild, see the <i> <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/welcome.html\">AWS CodeBuild User Guide</a>.</i> </p>"
 }

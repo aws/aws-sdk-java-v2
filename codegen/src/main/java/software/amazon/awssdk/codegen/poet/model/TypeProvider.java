@@ -53,14 +53,6 @@ public class TypeProvider {
         return ClassName.get(ArrayList.class);
     }
 
-    public boolean useAutoConstructLists() {
-        return intermediateModel.getCustomizationConfig().isUseAutoConstructList();
-    }
-
-    public boolean useAutoConstructMaps() {
-        return intermediateModel.getCustomizationConfig().isUseAutoConstructMap();
-    }
-
     public TypeName enumReturnType(MemberModel memberModel) {
         return fieldType(memberModel, true);
     }

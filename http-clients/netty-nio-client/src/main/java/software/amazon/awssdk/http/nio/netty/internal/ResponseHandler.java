@@ -24,6 +24,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatch;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatchFinally;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.CLOSED_CHANNEL_MESSAGE;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -38,6 +39,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
+import io.netty.util.ReferenceCountUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -251,6 +253,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 public void onNext(HttpContent httpContent) {
                     // isDone may be true if the subscriber cancelled
                     if (isDone.get()) {
+                        ReferenceCountUtil.release(httpContent);
                         return;
                     }
 
@@ -395,7 +398,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         handlerCtx.channel().attr(KEEP_ALIVE).set(false);
 
         if (!Boolean.TRUE.equals(responseCompleted) && !Boolean.TRUE.equals(lastHttpContentReceived)) {
-            IOException err = new IOException("Server failed to send complete response");
+            IOException err = new IOException("Server failed to send complete response. " + CLOSED_CHANNEL_MESSAGE);
             runAndLogError("Fail to execute SdkAsyncHttpResponseHandler#onError", () -> requestCtx.handler().onError(err));
             executeFuture(handlerCtx).completeExceptionally(err);
             runAndLogError("Could not release channel", () -> closeAndRelease(handlerCtx));

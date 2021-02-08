@@ -45,6 +45,7 @@ public final class AwsErrorCode {
         throttlingErrorCodes.add("RequestThrottled");
         throttlingErrorCodes.add("RequestThrottledException");
         throttlingErrorCodes.add("EC2ThrottledException");
+        throttlingErrorCodes.add("TransactionInProgressException");
         THROTTLING_ERROR_CODES = unmodifiableSet(throttlingErrorCodes);
 
         Set<String> definiteClockSkewErrorCodes = new HashSet<>(3);

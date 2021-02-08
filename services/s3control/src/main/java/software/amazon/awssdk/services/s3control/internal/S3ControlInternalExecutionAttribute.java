@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.services.s3control.internal;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 
-@SdkProtectedApi
+@SdkInternalApi
 public final class S3ControlInternalExecutionAttribute extends SdkExecutionAttribute {
 
     /**

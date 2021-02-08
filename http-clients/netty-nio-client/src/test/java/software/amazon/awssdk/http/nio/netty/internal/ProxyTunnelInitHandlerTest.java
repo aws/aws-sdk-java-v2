@@ -38,6 +38,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.Promise;
 import java.io.IOException;
@@ -159,6 +160,27 @@ public class ProxyTunnelInitHandlerTest {
         handler.handlerAdded(mockCtx);
 
         assertThat(promise.awaitUninterruptibly().isSuccess()).isFalse();
+    }
+
+    @Test
+    public void channelInactive_shouldFailPromise() throws Exception {
+        Promise<Channel> promise = GROUP.next().newPromise();
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, promise);
+        SslCloseCompletionEvent event = new SslCloseCompletionEvent(new RuntimeException(""));
+        handler.channelInactive(mockCtx);
+
+        assertThat(promise.awaitUninterruptibly().isSuccess()).isFalse();
+        verify(mockCtx).close();
+    }
+
+    @Test
+    public void unexpectedExceptionThrown_shouldFailPromise() throws Exception {
+        Promise<Channel> promise = GROUP.next().newPromise();
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, promise);
+        handler.exceptionCaught(mockCtx, new RuntimeException("exception"));
+
+        assertThat(promise.awaitUninterruptibly().isSuccess()).isFalse();
+        verify(mockCtx).close();
     }
 
     @Test

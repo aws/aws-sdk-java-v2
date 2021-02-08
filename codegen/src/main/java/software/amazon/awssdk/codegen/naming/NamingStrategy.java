@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.naming;
 
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 
@@ -97,13 +98,7 @@ public interface NamingStrategy {
      * @param shapeName Name of structure used to derive Java class name.
      * @return Appropriate name to use for a Java class for an arbitrary (not a request, response, error) structure.
      */
-    String getJavaClassName(String shapeName);
-
-    /**
-     * @param shapeName Name of an authorizer shape used to derive the authorizer name
-     * @return Appropriate name to use for a Java class for an Authorizer
-     */
-    String getAuthorizerClassName(String shapeName);
+    String getShapeClassName(String shapeName);
 
     /**
      * @param memberName Member name to name getter for.
@@ -160,4 +155,9 @@ public interface NamingStrategy {
      * @return Name of an existence check method.
      */
     String getExistenceCheckMethodName(String memberName, Shape parentShape);
+
+    /**
+     * Verify the customer-visible naming in the provided intermediate model will compile and is idiomatic to Java.
+     */
+    void validateCustomerVisibleNaming(IntermediateModel trimmedModel);
 }
