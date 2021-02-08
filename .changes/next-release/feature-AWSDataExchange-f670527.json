@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Data Exchange",
-    "contributor": "",
-    "description": "This release introduces the new ExportRevision job type, which allows for the export of an entire revision."
-}

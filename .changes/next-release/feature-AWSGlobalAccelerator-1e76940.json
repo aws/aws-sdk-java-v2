@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Global Accelerator",
-    "contributor": "",
-    "description": "Global Accelerator now supports bringing your own IP addresses for custom routing accelerators"
-}
