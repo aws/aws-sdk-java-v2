@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudTrail",
+    "contributor": "",
+    "description": "ConflictException is now thrown when certain operations are called on resources before CloudTrail has time to load the resources. Two new exceptions have been added to the PutInsightSelectors API."
+}
