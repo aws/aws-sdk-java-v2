@@ -21,7 +21,7 @@
     <parent>
         <artifactId>http-clients</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.15.79-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>apache-client</artifactId>
