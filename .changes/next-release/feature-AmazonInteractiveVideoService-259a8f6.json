@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Interactive Video Service",
+    "contributor": "",
+    "description": "Fixed an issue where StreamStartTime could not be unmarshalled from response. Changed DeleteChannel and DeleteStreamKey response codes to 204."
+}
