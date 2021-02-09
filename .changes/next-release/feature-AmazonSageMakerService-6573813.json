@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Add a new optional FrameworkVersion field to Sagemaker Neo CreateCompilationJob API"
+}
