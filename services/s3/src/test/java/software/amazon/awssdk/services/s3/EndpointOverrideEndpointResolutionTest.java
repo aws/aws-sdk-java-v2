@@ -315,6 +315,15 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setClientRegion(Region.US_WEST_2)
                                 .setExpectedException(IllegalArgumentException.class));
 
+        cases.add(new TestCase().setCaseName("mrap access point with arn region enabled")
+                                .setGetObjectBucketName("arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap")
+                                .setEndpointUrl("https://accesspoint.vpce-123-abc.s3-global.vpce.amazonaws.com")
+                                .setS3Configuration(c -> c.useArnRegionEnabled(true))
+                                .setClientRegion(Region.EU_WEST_1)
+                                .setExpectedEndpoint("https://mfzwi23gnjvgw.mrap.accesspoint.vpce-123-abc.s3-global.vpce.amazonaws.com/object")
+                                .setExpectedSigningServiceName("s3")
+                                .setExpectedSigningRegion(Region.EU_WEST_1));
+
         return cases;
     }
 
