@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QLDB Session",
-    "contributor": "",
-    "description": "This release adds CapacityExceededException to the AWS QLDBSession API."
-}

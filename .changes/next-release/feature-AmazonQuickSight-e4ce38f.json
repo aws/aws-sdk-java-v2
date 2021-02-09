@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "QuickSight now supports Python's paginators for Exploration APIs."
-}
