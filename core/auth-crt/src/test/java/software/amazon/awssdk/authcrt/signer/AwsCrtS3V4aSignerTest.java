@@ -24,12 +24,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtV4aSigner;
 import software.amazon.awssdk.authcrt.signer.internal.SigningConfigProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.internal.util.RegionScope;
 
 /**
  * Functional tests for the S3 specific Sigv4a signer. These tests call the CRT native signer code.
@@ -75,19 +78,13 @@ public class AwsCrtS3V4aSignerTest {
     @Test
     public void testS3Presigning() {
         SigningTestCase testCase = SignerTestUtils.createBasicQuerySigningTestCase();
-
         ExecutionAttributes executionAttributes = SignerTestUtils.buildBasicExecutionAttributes(testCase);
-
         SdkHttpFullRequest request = testCase.requestBuilder.build();
 
         SdkHttpFullRequest signed = s3V4aSigner.presign(request, executionAttributes);
 
-        List<String> signatureValues = signed.rawQueryParameters().get("X-Amz-Signature");
-        String signatureValue = signatureValues.get(0);
-
-        AwsSigningConfig signingConfig = configProvider.createS3CrtPresigningConfig(executionAttributes);
-
-        assertTrue(SignerTestUtils.verifyEcdsaSignature(request, testCase.expectedS3PresignCanonicalRequest, signingConfig, signatureValue));
+        List<String> regionHeader = signed.rawQueryParameters().get("X-Amz-Region-Set");
+        assertThat(regionHeader.get(0)).isEqualTo(Region.AWS_GLOBAL.id());
     }
 
 }

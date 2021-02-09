@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
  */
 public class MultiRegionAccessPointSigningFunctionalTest {
 
+    private static final String MRAP_SIGNING_SCOPE = "*";
     private static final String MRAP_ARN = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
     private static final String AWS4A_SIGNING_ALGORITHM = "AWS4-ECDSA-P256-SHA256";
 
@@ -60,8 +63,7 @@ public class MultiRegionAccessPointSigningFunctionalTest {
         s3Client.listObjects(ListObjectsRequest.builder()
                                                .bucket(MRAP_ARN)
                                                .build());
-        assertThat(mockHttpClient.getLastRequest().headers().get("Authorization").get(0))
-            .contains(AWS4A_SIGNING_ALGORITHM);
+        verifyRequest(AWS4A_SIGNING_ALGORITHM);
     }
 
     @Test
@@ -70,8 +72,7 @@ public class MultiRegionAccessPointSigningFunctionalTest {
         s3Client.listObjects(ListObjectsRequest.builder()
                                                .bucket(MRAP_ARN)
                                                .build());
-        assertThat(mockHttpClient.getLastRequest().headers().get("Authorization").get(0))
-            .contains(SignerConstant.AWS4_SIGNING_ALGORITHM);
+        verifyRequest(SignerConstant.AWS4_SIGNING_ALGORITHM);
     }
 
     @Test
@@ -81,8 +82,7 @@ public class MultiRegionAccessPointSigningFunctionalTest {
                                                .bucket(MRAP_ARN)
                                                .overrideConfiguration(s -> s.signer(AwsS3V4Signer.create()))
                                                .build());
-        assertThat(mockHttpClient.getLastRequest().headers().get("Authorization").get(0))
-            .contains(SignerConstant.AWS4_SIGNING_ALGORITHM);
+        verifyRequest(SignerConstant.AWS4_SIGNING_ALGORITHM);
     }
 
     @Test
@@ -92,8 +92,17 @@ public class MultiRegionAccessPointSigningFunctionalTest {
                                                .bucket(MRAP_ARN)
                                                .overrideConfiguration(s -> s.signer(AwsS3V4Signer.create()))
                                                .build());
-        assertThat(mockHttpClient.getLastRequest().headers().get("Authorization").get(0))
-            .contains(SignerConstant.AWS4_SIGNING_ALGORITHM);
+        verifyRequest(SignerConstant.AWS4_SIGNING_ALGORITHM);
+    }
+
+    private void verifyRequest(String signingAlgorithm) {
+        Map<String, List<String>> headers = mockHttpClient.getLastRequest().headers();
+        assertThat(headers.get("Authorization").get(0)).contains(signingAlgorithm);
+        if (signingAlgorithm.equals(AWS4A_SIGNING_ALGORITHM)) {
+            assertThat(headers.get("X-Amz-Region-Set").get(0)).isEqualTo(MRAP_SIGNING_SCOPE);
+        } else {
+            assertThat(headers.get("Authorization").get(0)).contains(Region.AP_SOUTH_1.id());
+        }
     }
 
     private S3ClientBuilder clientBuilder() {
