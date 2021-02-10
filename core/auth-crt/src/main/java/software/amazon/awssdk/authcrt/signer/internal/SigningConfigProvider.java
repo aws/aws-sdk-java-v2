@@ -26,6 +26,7 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.regions.internal.util.RegionScope;
 
 @SdkInternalApi
 public class SigningConfigProvider {
@@ -102,12 +103,17 @@ public class SigningConfigProvider {
         AwsSigningConfig signingConfig = new AwsSigningConfig();
         signingConfig.setCredentials(buildCredentials(executionAttributes));
         signingConfig.setService(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME));
-        signingConfig.setRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id());
-        // TODO: Temporary, real solution TBD with Lemmy integration
-
+        signingConfig.setRegion(getRegion(executionAttributes));
         signingConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
         signingConfig.setTime(getSigningClock(executionAttributes).instant().toEpochMilli());
         return signingConfig;
+    }
+
+    private String getRegion(ExecutionAttributes executionAttributes) {
+        RegionScope signingScope = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE);
+        return signingScope == null ?
+            executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id() :
+            signingScope.id();
     }
 
 }

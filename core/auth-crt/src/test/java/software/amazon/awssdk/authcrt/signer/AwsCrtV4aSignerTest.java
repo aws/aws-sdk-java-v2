@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.authcrt.signer;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.authcrt.signer.internal.SigningConfigProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * Functional tests for the Sigv4a signer. These tests call the CRT native signer code.
@@ -56,6 +58,8 @@ public class AwsCrtV4aSignerTest {
 
         AwsSigningConfig signingConfig = configProvider.createCrtSigningConfig(executionAttributes);
 
+        String regionHeader = signed.firstMatchingHeader("X-Amz-Region-Set").get();
+        assertThat(regionHeader).isEqualTo(Region.AWS_GLOBAL.id());
         assertTrue(SignerTestUtils.verifyEcdsaSignature(request, testCase.expectedCanonicalRequest, signingConfig, signatureValue));
     }
 
@@ -69,6 +73,9 @@ public class AwsCrtV4aSignerTest {
 
         List<String> signatureValues = signed.rawQueryParameters().get("X-Amz-Signature");
         String signatureValue = signatureValues.get(0);
+
+        List<String> regionHeader = signed.rawQueryParameters().get("X-Amz-Region-Set");
+        assertThat(regionHeader.get(0)).isEqualTo(Region.AWS_GLOBAL.id());
 
         AwsSigningConfig signingConfig = configProvider.createCrtPresigningConfig(executionAttributes);
 
