@@ -1,0 +1,18 @@
+{
+    "version": "2.15.80",
+    "date": "2021-02-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adding support for RDS Aurora Global Database Failover"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue DataBrew",
+            "contributor": "",
+            "description": "This release adds support for profile job sampling, which determines the number of rows on which the profile job will be executed."
+        }
+    ]
+}

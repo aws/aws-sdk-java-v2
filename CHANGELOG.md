@@ -1,3 +1,12 @@
+# __2.15.80__ __2021-02-11__
+## __AWS Glue DataBrew__
+  - ### Features
+    - This release adds support for profile job sampling, which determines the number of rows on which the profile job will be executed.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS Aurora Global Database Failover
+
 # __2.15.79__ __2021-02-09__
 ## __AWS Elemental MediaConvert__
   - ### Features
