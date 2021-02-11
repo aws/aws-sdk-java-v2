@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue DataBrew",
-    "contributor": "",
-    "description": "This release adds support for profile job sampling, which determines the number of rows on which the profile job will be executed."
-}
