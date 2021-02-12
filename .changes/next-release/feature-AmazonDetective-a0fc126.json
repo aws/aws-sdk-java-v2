@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Detective",
+    "contributor": "",
+    "description": "The API definition now indicates that the format for timestamps is an ISO 8601 date-time string"
+}
