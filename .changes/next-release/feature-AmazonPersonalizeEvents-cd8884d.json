@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize Events",
+    "contributor": "",
+    "description": "Increased maximum char size of PutUsers and PutItems properties."
+}
