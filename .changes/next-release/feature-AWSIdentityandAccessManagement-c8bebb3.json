@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Identity and Access Management",
-    "contributor": "",
-    "description": "AWS Identity and Access Management now supports tagging for the following resources: customer managed policies, identity providers, instance profiles, server certificates, and virtual MFA devices."
-}

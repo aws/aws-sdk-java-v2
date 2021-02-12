@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Macie 2",
-    "contributor": "",
-    "description": "This release of the Amazon Macie API replaces the term master account with the term administrator account, including deprecating APIs that use the previous term and adding APIs that use the new term."
-}

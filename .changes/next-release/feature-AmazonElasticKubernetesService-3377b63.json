@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Amazon EKS now supports OpenId Connect (OIDC) compatible identity providers as a user authentication option"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodePipeline",
-    "contributor": "",
-    "description": "The release provides new GetActionType and UpdateActionType APIs for viewing and editing action types in CodePipeline."
-}
