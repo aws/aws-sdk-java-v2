@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Data API Service",
+    "contributor": "",
+    "description": "This release enables fine grant access control in ListStatements, GetStatementResult, CancelStatement and DescribeStatement."
+}
