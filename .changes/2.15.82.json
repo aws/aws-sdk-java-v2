@@ -1,0 +1,54 @@
+{
+    "version": "2.15.82",
+    "date": "2021-02-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail Message Flow",
+            "contributor": "",
+            "description": "This release allows customers to update email messages as they flow in and out of Amazon WorkMail"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "MediaTailor now supports specifying aliases for dynamic variables. This allows use cases such as binding multiple origin domains to a single MediaTailor playback configuration."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Data API Service",
+            "contributor": "",
+            "description": "This release enables fine grant access control in ListStatements, GetStatementResult, CancelStatement and DescribeStatement."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Added option to provide KMS key to AWS Config DeliveryChannel"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "AWS MediaLive now supports Automatic-Input-Failover for CDI Inputs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "Lets customers use origination number when specifying SMS message configuration for Campaigns and Journeys."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Archived Media",
+            "contributor": "",
+            "description": "The ListFragments and GetMediaForFragmentList APIs now support StreamName or StreamARN as input parameters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "Documentation updates for Lightsail"
+        }
+    ]
+}

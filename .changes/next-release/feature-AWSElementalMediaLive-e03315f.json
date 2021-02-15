@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "AWS MediaLive now supports Automatic-Input-Failover for CDI Inputs."
-}

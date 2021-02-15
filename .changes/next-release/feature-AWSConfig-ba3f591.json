@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "contributor": "",
-    "description": "Added option to provide KMS key to AWS Config DeliveryChannel"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Pinpoint",
-    "contributor": "",
-    "description": "Lets customers use origination number when specifying SMS message configuration for Campaigns and Journeys."
-}

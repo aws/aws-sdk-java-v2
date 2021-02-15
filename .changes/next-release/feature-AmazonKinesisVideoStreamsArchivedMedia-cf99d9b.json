@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Video Streams Archived Media",
-    "contributor": "",
-    "description": "The ListFragments and GetMediaForFragmentList APIs now support StreamName or StreamARN as input parameters."
-}
