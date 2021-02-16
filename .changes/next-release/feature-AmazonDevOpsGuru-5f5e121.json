@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DevOps Guru",
+    "contributor": "",
+    "description": "Amazon DevOps Guru is GA ready. This API update added a describeFeedback Api allows users to view submitted insight feedback. The release date is 02/16/2021"
+}
