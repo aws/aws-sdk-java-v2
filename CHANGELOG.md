@@ -1,3 +1,16 @@
+# __2.16.0__ __2021-02-16__
+## __AWS CodeBuild__
+  - ### Features
+    - This release provides per-project limits for the number of concurrent builds
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Upgrade Jackson dependencies to `2.12.1`.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Amazon DevOps Guru is GA ready. This API update added a describeFeedback Api allows users to view submitted insight feedback. The release date is 02/16/2021
+
 # __2.15.82__ __2021-02-15__
 ## __AWS Config__
   - ### Features
