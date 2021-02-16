@@ -22,6 +22,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPOutputStream;
+
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -60,5 +62,10 @@ public class HeadObjectIntegrationTest extends S3IntegrationTestBase {
     public void syncClientSupportsGzippedObjects() {
         HeadObjectResponse response = s3.headObject(r -> r.bucket(BUCKET).key(GZIPPED_KEY));
         assertThat(response.contentEncoding()).isEqualTo("gzip");
+    }
+
+    @AfterClass
+    public static void cleanup() {
+        deleteBucketAndAllContents(BUCKET);
     }
 }
