@@ -1,0 +1,24 @@
+{
+    "version": "2.16.0",
+    "date": "2021-02-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DevOps Guru",
+            "contributor": "",
+            "description": "Amazon DevOps Guru is GA ready. This API update added a describeFeedback Api allows users to view submitted insight feedback. The release date is 02/16/2021"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "This release provides per-project limits for the number of concurrent builds"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Upgrade Jackson dependencies to `2.12.1`."
+        }
+    ]
+}
