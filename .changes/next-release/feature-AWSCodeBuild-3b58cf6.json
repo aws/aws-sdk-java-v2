@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "This release provides per-project limits for the number of concurrent builds"
+}
