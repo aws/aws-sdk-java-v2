@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.enhanced.dynamodb.internal.ApplyUserAgentInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

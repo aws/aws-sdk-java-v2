@@ -1,0 +1,20 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.ec2.transform.internal.GeneratePreSignUrlInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.ec2.transform.internal.TimestampFormatInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

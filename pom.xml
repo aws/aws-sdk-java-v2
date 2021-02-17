@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.16.0</version>
+    <version>2.16.1</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -78,13 +78,14 @@
         <module>test/module-path-tests</module>
         <module>test/tests-coverage-reporting</module>
         <module>test/stability-tests</module>
+        <module>test/sdk-native-image-test</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.15.82</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.16.0</awsjavasdk.previous.version>
         <jackson.version>2.12.1</jackson.version>
         <jackson.databind.version>2.12.1</jackson.databind.version>
         <jacksonjr.version>2.11.2</jacksonjr.version>
@@ -527,6 +528,8 @@
                             <excludeModule>tests-coverage-reporting</excludeModule>
                             <excludeModule>aws-sdk-java</excludeModule>
                             <excludModeule>archetype-lambda</excludModeule>
+                            <excludeModule>archetype-app-quickstart</excludeModule>
+                            <excludeModule>archetype-tools</excludeModule>
                             <excludeModule>sdk-benchmarks</excludeModule>
                             <excludeModule>bundle</excludeModule>
                             <!-- ignore crt because it's in preview TODO: remove this when CRT is GA -->

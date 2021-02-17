@@ -1,0 +1,20 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.machinelearning.internal.PredictEndpointInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.machinelearning.internal.RandomIdInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

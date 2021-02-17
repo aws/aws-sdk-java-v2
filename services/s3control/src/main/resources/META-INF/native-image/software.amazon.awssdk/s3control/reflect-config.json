@@ -1,0 +1,29 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.s3control.internal.interceptors.DisableDoubleUrlEncodingForSigningInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3control.internal.interceptors.EndpointAddressInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3control.internal.interceptors.PayloadSigningInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

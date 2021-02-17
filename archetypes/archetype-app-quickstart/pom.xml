@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this file except in compliance with the License.
+  ~ A copy of the License is located at
+  ~
+  ~  http://aws.amazon.com/apache2.0
+  ~
+  ~ or in the "license" file accompanying this file. This file is distributed
+  ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  ~ express or implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>archetypes</artifactId>
+        <groupId>software.amazon.awssdk</groupId>
+        <version>2.16.1</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>archetype-app-quickstart</artifactId>
+    <packaging>maven-archetype</packaging>
+    <name>AWS Java SDK :: Archetype App</name>
+    <description>
+        The AWS SDK for Java - Maven archetype for a sample application using AWS Java SDK 2.x
+    </description>
+
+    <properties>
+        <maven.archetype.version>3.2.0</maven.archetype.version>
+        <maven.resource.plugin.version>3.2.0</maven.resource.plugin.version>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>archetype-tools</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <!-- Filtering the resource properties to get ${project.version} from archetype metadata.
+        See https://stackoverflow.com/a/22300149 -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>META-INF/maven/archetype-metadata.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>META-INF/maven/archetype-metadata.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.archetype</groupId>
+                <artifactId>archetype-packaging</artifactId>
+                <version>${maven.archetype.version}</version>
+            </extension>
+        </extensions>
+
+        <plugins>
+            <plugin>
+                <artifactId>maven-archetype-plugin</artifactId>
+                <version>${maven.archetype.version}</version>
+                <configuration>
+                    <noLog>true</noLog>
+                    <ignoreEOLStyle>true</ignoreEOLStyle>
+                    <skip>${skip.unit.tests}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Copy the global.vm and serviceMapping.vm from archetype-tools -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>unpack-archetype-tools</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>software.amazon.awssdk</groupId>
+                                    <artifactId>archetype-tools</artifactId>
+                                    <version>${project.version}</version>
+                                    <outputDirectory>${basedir}/target/classes/archetype-resources</outputDirectory>
+                                    <includes>**/*.vm</includes>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- workaround to copy the global.vm and serviceMapping.vm to the sub folders
+                 because global.vm is not so global any more
+                 see https://github.com/aws/aws-sdk-java-v2/issues/1981 -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven.resource.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources-to-sub-folder</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/archetype-resources/src/main/java</outputDirectory>
+                            <encoding>UTF-8</encoding>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/target/classes/archetype-resources</directory>
+                                    <includes>
+                                        <include>global.vm</include>
+                                        <include>serviceMapping.vm</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-resources-to-sub-folder-2</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes</outputDirectory>
+                            <encoding>UTF-8</encoding>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/target/classes/archetype-resources</directory>
+                                    <includes>
+                                        <include>global.vm</include>
+                                        <include>serviceMapping.vm</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

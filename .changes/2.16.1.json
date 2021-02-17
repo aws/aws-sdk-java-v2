@@ -1,0 +1,36 @@
+{
+    "version": "2.16.1",
+    "date": "2021-02-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add GraalVM Native Image configurations for SDK classes"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Created a new archetype, `archetype-app-quickstart`, which allows you to create a simple application with SDK dependencies"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release includes a new filter for describe-vpc-endpoint-services."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Added INSUFFICIENT_DATA in ConformancePackComplianceType."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Vision",
+            "contributor": "",
+            "description": "This release for Amazon Lookout for Vision includes documentation updates and a correction to the Status field returned in the response from StartModel and StopModel."
+        }
+    ]
+}

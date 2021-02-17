@@ -223,7 +223,7 @@ public class DefaultNamingStrategyTest {
 
 
     @Test
-    public void sharedModel_providingPackageName_shouldUseProvidedPacakgeName() {
+    public void sharedModel_providingPackageName_shouldUseProvidedpackageName() {
         CustomizationConfig config = CustomizationConfig.create();
         ShareModelConfig shareModelConfig = new ShareModelConfig();
         shareModelConfig.setShareModelWith("foo");

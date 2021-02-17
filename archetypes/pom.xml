@@ -20,13 +20,15 @@
     <parent>
         <artifactId>aws-sdk-java-pom</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.16.0</version>
+        <version>2.16.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>archetypes</artifactId>
     <name>AWS Java SDK :: Archetypes</name>
     <modules>
         <module>archetype-lambda</module>
+        <module>archetype-app-quickstart</module>
+        <module>archetype-tools</module>
     </modules>
     <packaging>pom</packaging>
     <description>
