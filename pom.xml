@@ -513,8 +513,7 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
-                            <exclude>software.amazon.awssdk.regions.servicemetadata.IotfleethubServiceMetadata</exclude>
-                            <exclude>software.amazon.awssdk.services.iotsitewise.*</exclude>>
+                            <exclude>software.amazon.awssdk.services.lookoutvision.model.*</exclude>
                         </excludes>
 
                         <excludeModules>
