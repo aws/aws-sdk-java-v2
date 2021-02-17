@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Created a new archetype, `archetype-app-quickstart`, which allows you to create a simple application with SDK dependencies"
-}

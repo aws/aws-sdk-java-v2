@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lookout for Vision",
-    "contributor": "",
-    "description": "This release for Amazon Lookout for Vision includes documentation updates and a correction to the Status field returned in the response from StartModel and StopModel."
-}

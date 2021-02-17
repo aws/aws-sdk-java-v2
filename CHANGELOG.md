@@ -1,3 +1,21 @@
+# __2.16.1__ __2021-02-17__
+## __AWS Config__
+  - ### Features
+    - Added INSUFFICIENT_DATA in ConformancePackComplianceType.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add GraalVM Native Image configurations for SDK classes
+    - Created a new archetype, `archetype-app-quickstart`, which allows you to create a simple application with SDK dependencies
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes a new filter for describe-vpc-endpoint-services.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This release for Amazon Lookout for Vision includes documentation updates and a correction to the Status field returned in the response from StartModel and StopModel.
+
 # __2.16.0__ __2021-02-16__
 ## __AWS CodeBuild__
   - ### Features

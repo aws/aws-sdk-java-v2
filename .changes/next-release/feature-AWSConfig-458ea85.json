@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "contributor": "",
-    "description": "Added INSUFFICIENT_DATA in ConformancePackComplianceType."
-}
