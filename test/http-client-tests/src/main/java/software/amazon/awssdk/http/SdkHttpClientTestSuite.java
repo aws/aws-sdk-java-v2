@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.common.FatalStartupException;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -43,6 +45,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * A set of tests validating that the functionality implemented by a {@link SdkHttpClient}.
@@ -52,8 +55,12 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @RunWith(MockitoJUnitRunner.class)
 public abstract class SdkHttpClientTestSuite {
+    private static final Logger LOG = Logger.loggerFor(SdkHttpClientTestSuite.class);
+
     @Rule
-    public WireMockRule mockServer = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
+    public WireMockRule mockServer = createWireMockRule();
+
+    private final Random rng = new Random();
 
     @Test
     public void supportsResponseCode200() throws Exception {
@@ -266,5 +273,29 @@ public abstract class SdkHttpClientTestSuite {
         public void trustAll(boolean trustAll) {
             this.trustAll = trustAll;
         }
+    }
+
+    private WireMockRule createWireMockRule() {
+        int maxAttempts = 5;
+        for (int i = 0; i < maxAttempts; ++i) {
+            try {
+                return new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
+            } catch (FatalStartupException e) {
+                int attemptNum = i + 1;
+                LOG.debug(() -> "Was not able to start WireMock server. Attempt " + attemptNum, e);
+
+                if (attemptNum != maxAttempts) {
+                    try {
+                        long sleepMillis = 1_000L + rng.nextInt(1_000);
+                        Thread.sleep(sleepMillis);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Backoff interrupted", ie);
+                    }
+                }
+            }
+        }
+
+        throw new RuntimeException("Unable to setup WireMock rule");
     }
 }
