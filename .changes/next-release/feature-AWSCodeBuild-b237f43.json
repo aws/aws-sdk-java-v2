@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "contributor": "",
-    "description": "AWS CodeBuild now allows you to specify a separate bucket owner as part of the S3 destination in a report group."
-}

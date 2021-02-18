@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "This release adds expires-in-seconds parameter to the CreatePresignedDomainUrl API for support of a configurable TTL."
-}
