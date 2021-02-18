@@ -1,0 +1,30 @@
+{
+    "version": "2.16.2",
+    "date": "2021-02-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "contributor": "",
+            "description": "Documentation updates for health"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "AWS CodeBuild now allows you to specify a separate bucket owner as part of the S3 destination in a report group."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Adding the 'callAs' parameter to all CloudFormation StackSets APIs except getTemplateSummary to support creating and managing service-managed StackSets with AWS Organizations Delegated Administrators"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds expires-in-seconds parameter to the CreatePresignedDomainUrl API for support of a configurable TTL."
+        }
+    ]
+}
