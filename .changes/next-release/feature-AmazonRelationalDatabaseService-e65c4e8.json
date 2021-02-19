@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Added awsBackupRecoveryPointArn in ModifyDBInstanceRequest and in the response of ModifyDBInstance."
-}
