@@ -29,6 +29,9 @@ public class UtilitiesMethod {
     /** Fqcn of the return type of the operation */
     private String returnType;
 
+    /** Fqcn of the instance type to be created */
+    private String instanceType;
+
     /**
      * The utilities method will call a protected create() method in the hand-written Utilities class.
      * These the ordered list of parameters that needs to be passed to the create method.
@@ -49,5 +52,13 @@ public class UtilitiesMethod {
 
     public void setCreateMethodParams(List<String> createMethodParams) {
         this.createMethodParams = createMethodParams;
+    }
+
+    public String getInstanceType() {
+        return instanceType;
+    }
+
+    public void setInstanceType(String instanceType) {
+        this.instanceType = instanceType;
     }
 }

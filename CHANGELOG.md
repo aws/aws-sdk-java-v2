@@ -1,3 +1,21 @@
+# __2.16.3__ __2021-02-19__
+## __AWS RDS__
+  - ### Features
+    - Add the ability to generate IAM auth tokens for RDS using `RdsUtilities`
+        - Contributed by: [@abrooksv](https://github.com/abrooksv)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Added awsBackupRecoveryPointArn in ModifyDBInstanceRequest and in the response of ModifyDBInstance.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@abrooksv](https://github.com/abrooksv)
 # __2.16.2__ __2021-02-18__
 ## __AWS CloudFormation__
   - ### Features

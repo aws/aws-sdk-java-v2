@@ -310,13 +310,19 @@ public class SyncClientClass implements ClassSpec {
     private MethodSpec utilitiesMethod() {
         UtilitiesMethod config = model.getCustomizationConfig().getUtilitiesMethod();
         ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
+        String instanceClass = config.getInstanceType();
+        if (instanceClass == null) {
+            instanceClass = config.getReturnType();
+        }
+
+        ClassName instanceType = PoetUtils.classNameFromFqcn(instanceClass);
 
         return MethodSpec.methodBuilder(UtilitiesMethod.METHOD_NAME)
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
                          .addStatement("return $T.create($L)",
-                                       returnType,
+                                       instanceType,
                                        String.join(",", config.getCreateMethodParams()))
                          .build();
     }
