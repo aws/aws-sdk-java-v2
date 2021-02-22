@@ -73,6 +73,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class S3Utilities {
     private final Region region;
+    private final URI endpoint;
     private final S3Configuration s3Configuration;
     private final ProfileFile profileFile;
     private final String profileName;
@@ -83,6 +84,7 @@ public final class S3Utilities {
      */
     private S3Utilities(Builder builder) {
         this.region = Validate.paramNotNull(builder.region, "Region");
+        this.endpoint = builder.endpoint;
         this.s3Configuration = builder.s3Configuration;
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
@@ -100,6 +102,7 @@ public final class S3Utilities {
     static S3Utilities create(SdkClientConfiguration clientConfiguration) {
         return S3Utilities.builder()
                           .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
+                          .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                           .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
                           .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE))
                           .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME))
@@ -188,8 +191,9 @@ public final class S3Utilities {
     /**
      * If endpoint is not present, construct a default endpoint using the region information.
      */
-    private URI resolveEndpoint(URI endpoint, Region region) {
-        return endpoint != null ? endpoint
+    private URI resolveEndpoint(URI requestOverrideEndpoint, Region region) {
+        URI overrideEndpoint = requestOverrideEndpoint != null ? requestOverrideEndpoint : endpoint;
+        return overrideEndpoint != null ? overrideEndpoint
                                 : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
                                                                                   .withProfileFile(profileFile)
                                                                                   .withProfileName(profileName)
@@ -227,6 +231,7 @@ public final class S3Utilities {
      */
     public static final class Builder {
         private Region region;
+        private URI endpoint;
 
         private S3Configuration s3Configuration;
         private ProfileFile profileFile;
@@ -245,6 +250,19 @@ public final class S3Utilities {
          */
         public Builder region(Region region) {
             this.region = region;
+            return this;
+        }
+
+        /**
+         * The default endpoint to use when working with the methods in {@link S3Utilities} class.
+         *
+         * There can be methods in {@link S3Utilities} that don't need the endpoint info.
+         * In that case, this option will be ignored when using those methods.
+         *
+         * @return This object for method chaining
+         */
+        public Builder endpoint(URI endpoint) {
+            this.endpoint = endpoint;
             return this;
         }
 

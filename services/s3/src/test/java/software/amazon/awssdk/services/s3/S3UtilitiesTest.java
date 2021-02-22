@@ -131,6 +131,20 @@ public class S3UtilitiesTest {
     }
 
     @Test
+    public void test_EndpointOverrideOnClientWorks() {
+        S3Utilities customizeUtilities = S3Client.builder()
+                                                 .endpointOverride(URI.create("https://s3.custom.host"))
+                                                 .build()
+                                                 .utilities();
+        assertThat(customizeUtilities.getUrl(GetUrlRequest.builder()
+                                                          .bucket("foo-bucket")
+                                                          .key("key-without-spaces")
+                                                          .build())
+                                     .toExternalForm())
+            .isEqualTo("https://foo-bucket.s3.custom.host/key-without-spaces");
+    }
+
+    @Test
     public void testWithAccelerateAndDualStackEnabled() throws MalformedURLException {
         S3Utilities utilities = S3Client.builder()
                                         .credentialsProvider(dummyCreds())
