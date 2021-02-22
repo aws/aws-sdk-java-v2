@@ -1,6 +1,0 @@
-{
-    "category": "AWS S3", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fix the bug that getUrl in S3Utilities ignores the overriding endpoint in the client."
-}
