@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Runtime",
+    "contributor": "",
+    "description": "SageMaker Runtime now supports a new TargetContainerHostname header to invoke a model in a specific container if the endpoint hosts multiple containers and is configured to use direct invocation."
+}
