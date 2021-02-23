@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Data API Service",
-    "contributor": "",
-    "description": "This release adds an additional parameter 'ConnectedDatabase' into ListSchemasRequest, ListTablesRequest and DescribeTableRequest to support the metadata sharing across databases."
-}
