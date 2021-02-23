@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Events",
+    "contributor": "",
+    "description": "This release adds an Analyze feature to AWS IoT Events that lets customers analyze their detector models for runtime issues."
+}
