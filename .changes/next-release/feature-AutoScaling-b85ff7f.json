@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Auto Scaling",
+    "contributor": "",
+    "description": "Adds a new optional IncludeDeletedGroups parameter to the DescribeScalingActivities API."
+}
