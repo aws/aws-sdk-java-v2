@@ -1,0 +1,36 @@
+{
+    "version": "2.16.6",
+    "date": "2021-02-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Amazon Elasticsearch Service now supports Auto-Tune, which monitors performance metrics and automatically optimizes domains"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry Public",
+            "contributor": "",
+            "description": "This release adds support for AWS tags on Amazon ECR Public repositories."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage VOD",
+            "contributor": "",
+            "description": "AWS Elemental MediaPackage provides access logs that capture detailed information about requests sent to a customer's MediaPackage VOD packaging group."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "# Adding 'Amazon Honeycode' , 'Amazon Lookout for Metrics' and 'Amazon Connect Customer Profiles' as Destinations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "Documentation updates for Compute Optimizer"
+        }
+    ]
+}

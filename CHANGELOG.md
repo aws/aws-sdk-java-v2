@@ -1,3 +1,24 @@
+# __2.16.6__ __2021-02-24__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Documentation updates for Compute Optimizer
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - AWS Elemental MediaPackage provides access logs that capture detailed information about requests sent to a customer's MediaPackage VOD packaging group.
+
+## __Amazon Appflow__
+  - ### Features
+    - # Adding 'Amazon Honeycode' , 'Amazon Lookout for Metrics' and 'Amazon Connect Customer Profiles' as Destinations.
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - This release adds support for AWS tags on Amazon ECR Public repositories.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Amazon Elasticsearch Service now supports Auto-Tune, which monitors performance metrics and automatically optimizes domains
+
 # __2.16.5__ __2021-02-23__
 ## __AWS Glue__
   - ### Features
