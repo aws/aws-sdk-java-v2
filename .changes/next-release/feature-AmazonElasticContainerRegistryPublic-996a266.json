@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Container Registry Public",
+    "contributor": "",
+    "description": "This release adds support for AWS tags on Amazon ECR Public repositories."
+}
