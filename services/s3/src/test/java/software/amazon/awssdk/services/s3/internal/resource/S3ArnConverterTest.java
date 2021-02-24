@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.s3.internal.resource;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Optional;
 
@@ -352,4 +351,56 @@ public class S3ArnConverterTest {
                                     .resource("outpost:1:accesspoin1:1")
                                     .build());
     }
+
+    @Test
+    public void parseArn_objectLambdas_slash() {
+        Arn arn = Arn.fromString("arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint/my-lambda");
+
+        S3Resource resource = S3_ARN_PARSER.convertArn(arn);
+
+        assertThat(resource.type(), is("accesspoint"));
+        S3ObjectLambdasResource objectLambdasResource = (S3ObjectLambdasResource) resource.parentS3Resource().get();
+
+        assertThat(objectLambdasResource.type(), is("object-lambdas"));
+
+        assertThat(objectLambdasResource.region().get(), is("us-west-2"));
+        assertThat(objectLambdasResource.partition().get(), is("aws"));
+        assertThat(objectLambdasResource.accountId().get(), is("123456789012"));
+        assertThat(objectLambdasResource.accessPointName(), is("my-lambda"));
+    }
+
+    @Test
+    public void parseArn_objectLambdas_colon() {
+        Arn arn = Arn.fromString("arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint:my-lambda");
+
+        S3Resource resource = S3_ARN_PARSER.convertArn(arn);
+
+        assertThat(resource.type(), is("accesspoint"));
+        S3ObjectLambdasResource objectLambdasResource = (S3ObjectLambdasResource) resource.parentS3Resource().get();
+        assertThat(objectLambdasResource.type(), is("object-lambdas"));
+
+        assertThat(objectLambdasResource.region().get(), is("us-west-2"));
+        assertThat(objectLambdasResource.partition().get(), is("aws"));
+        assertThat(objectLambdasResource.accountId().get(), is("123456789012"));
+        assertThat(objectLambdasResource.accessPointName(), is("my-lambda"));
+    }
+
+    @Test
+    public void parseArn_objectLambds_noName_slash() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("resource must not be blank or empty");
+
+        S3_ARN_PARSER.convertArn(Arn.fromString("arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint/"));
+    }
+
+    @Test
+    public void parseArn_objectLambds_noName_colon() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("resource must not be blank or empty");
+
+        S3_ARN_PARSER.convertArn(Arn.fromString("arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint:"));
+    }
+
+
+
 }

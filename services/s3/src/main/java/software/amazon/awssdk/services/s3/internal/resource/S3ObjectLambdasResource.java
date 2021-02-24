@@ -22,58 +22,39 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * An {@link S3Resource} that represents an S3 access point.
+ * An {@link S3Resource} that represents an S3 Object Lambdas resource.
  */
 @SdkInternalApi
-public final class S3AccessPointResource
-    implements S3Resource, ToCopyableBuilder<S3AccessPointResource.Builder, S3AccessPointResource> {
-
-    private static final S3ResourceType S3_RESOURCE_TYPE = S3ResourceType.ACCESS_POINT;
+public final class S3ObjectLambdasResource
+    implements S3Resource, ToCopyableBuilder<S3ObjectLambdasResource.Builder, S3ObjectLambdasResource> {
 
     private final String partition;
     private final String region;
     private final String accountId;
     private final String accessPointName;
-    private final S3Resource parentS3Resource;
 
-    private S3AccessPointResource(Builder b) {
+    private S3ObjectLambdasResource(Builder b) {
+        this.partition = Validate.paramNotBlank(b.partition, "partition");
+        this.region = Validate.paramNotBlank(b.region, "region");
+        this.accountId = Validate.paramNotBlank(b.accountId, "accountId");
         this.accessPointName = Validate.paramNotBlank(b.accessPointName, "accessPointName");
-        if (b.parentS3Resource == null) {
-            this.parentS3Resource = null;
-            this.partition = Validate.paramNotBlank(b.partition, "partition");
-            this.region = Validate.paramNotBlank(b.region, "region");
-            this.accountId = Validate.paramNotBlank(b.accountId, "accountId");
-        } else {
-            this.parentS3Resource = validateParentS3Resource(b.parentS3Resource);
-            Validate.isTrue(b.partition == null, "partition cannot be set on builder if it has parent resource");
-            Validate.isTrue(b.region == null, "region cannot be set on builder if it has parent resource");
-            Validate.isTrue(b.accountId == null, "accountId cannot be set on builder if it has parent resource");
-            this.partition = parentS3Resource.partition().orElse(null);
-            this.region = parentS3Resource.region().orElse(null);
-            this.accountId = parentS3Resource.accountId().orElse(null);
-        }
     }
 
     /**
      * Get a new builder for this class.
-     * @return A newly initialized instance of a builder.
+     * @return A newly  initialized instance of a builder.
      */
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * Gets the resource type for this access point.
-     * @return This will always return "access_point".
+     * Gets the resource type for this object lambda.
+     * @return This will always return "object_lambdas".
      */
     @Override
     public String type() {
-        return S3_RESOURCE_TYPE.toString();
-    }
-
-    @Override
-    public Optional<S3Resource> parentS3Resource() {
-        return Optional.ofNullable(parentS3Resource);
+        return S3ResourceType.OBJECT_LAMBDAS.toString();
     }
 
     /**
@@ -82,7 +63,7 @@ public final class S3AccessPointResource
      */
     @Override
     public Optional<String> partition() {
-        return Optional.ofNullable(this.partition);
+        return Optional.ofNullable(partition);
     }
 
     /**
@@ -91,7 +72,7 @@ public final class S3AccessPointResource
      */
     @Override
     public Optional<String> region() {
-        return Optional.ofNullable(this.region);
+        return Optional.ofNullable(region);
     }
 
     /**
@@ -100,7 +81,7 @@ public final class S3AccessPointResource
      */
     @Override
     public Optional<String> accountId() {
-        return Optional.ofNullable(this.accountId);
+        return Optional.ofNullable(accountId);
     }
 
     /**
@@ -120,22 +101,18 @@ public final class S3AccessPointResource
             return false;
         }
 
-        S3AccessPointResource that = (S3AccessPointResource) o;
+        S3ObjectLambdasResource that = (S3ObjectLambdasResource) o;
 
-        if (partition != null ? ! partition.equals(that.partition) : that.partition != null) {
+        if (partition != null ? !partition.equals(that.partition) : that.partition != null) {
             return false;
         }
-        if (region != null ? ! region.equals(that.region) : that.region != null) {
+        if (region != null ? !region.equals(that.region) : that.region != null) {
             return false;
         }
-        if (accountId != null ? ! accountId.equals(that.accountId) : that.accountId != null) {
+        if (accountId != null ? !accountId.equals(that.accountId) : that.accountId != null) {
             return false;
         }
-
-        if (parentS3Resource != null ? ! parentS3Resource.equals(that.parentS3Resource) : that.parentS3Resource != null) {
-            return false;
-        }
-        return accessPointName.equals(that.accessPointName);
+        return accessPointName != null ? accessPointName.equals(that.accessPointName) : that.accessPointName == null;
     }
 
     @Override
@@ -143,13 +120,12 @@ public final class S3AccessPointResource
         int result = partition != null ? partition.hashCode() : 0;
         result = 31 * result + (region != null ? region.hashCode() : 0);
         result = 31 * result + (accountId != null ? accountId.hashCode() : 0);
-        result = 31 * result + accessPointName.hashCode();
-        result = 31 * result + (parentS3Resource != null ? parentS3Resource.hashCode() : 0);
+        result = 31 * result + (accessPointName != null ? accessPointName.hashCode() : 0);
         return result;
     }
 
     @Override
-    public Builder toBuilder() {
+    public S3ObjectLambdasResource.Builder toBuilder() {
         return builder()
             .partition(partition)
             .region(region)
@@ -157,25 +133,14 @@ public final class S3AccessPointResource
             .accessPointName(accessPointName);
     }
 
-    private S3Resource validateParentS3Resource(S3Resource parentS3Resource) {
-        String parentResourceType = parentS3Resource.type();
-        if (!S3ResourceType.OUTPOST.toString().equals(parentResourceType)
-            && !S3ResourceType.OBJECT_LAMBDAS.toString().equals(parentResourceType)) {
-            throw new IllegalArgumentException("Invalid 'parentS3Resource' type. An S3 access point resource must be " +
-                                               "associated with an outpost or object lambdas parent resource.");
-        }
-        return parentS3Resource;
-    }
-
     /**
-     * A builder for {@link S3AccessPointResource} objects.
+     * A builder for {@link S3ObjectLambdasResource} objects.
      */
-    public static final class Builder implements CopyableBuilder<Builder, S3AccessPointResource> {
+    public static final class Builder implements CopyableBuilder<Builder, S3ObjectLambdasResource> {
         private String partition;
         private String region;
         private String accountId;
         private String accessPointName;
-        private S3Resource parentS3Resource;
 
         private Builder() {
         }
@@ -229,20 +194,11 @@ public final class S3AccessPointResource
         }
 
         /**
-         * The S3 resource this access point is associated with (contained within). Only {@link S3OutpostResource}
-         * is a valid parent resource types.
-         */
-        public Builder parentS3Resource(S3Resource parentS3Resource) {
-            this.parentS3Resource = parentS3Resource;
-            return this;
-        }
-
-        /**
-         * Builds an instance of {@link S3AccessPointResource}.
+         * Builds an instance of {@link S3ObjectLambdasResource}.
          */
         @Override
-        public S3AccessPointResource build() {
-            return new S3AccessPointResource(this);
+        public S3ObjectLambdasResource build() {
+            return new S3ObjectLambdasResource(this);
         }
     }
 }
