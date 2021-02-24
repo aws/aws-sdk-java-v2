@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elasticsearch Service",
+    "contributor": "",
+    "description": "Amazon Elasticsearch Service now supports Auto-Tune, which monitors performance metrics and automatically optimizes domains"
+}
