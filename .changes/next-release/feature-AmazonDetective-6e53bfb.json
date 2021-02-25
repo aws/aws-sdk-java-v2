@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Detective",
-    "contributor": "",
-    "description": "Changed \"master account\" to \"administrator account.\" A new AdministratorId field replaces the deprecated MasterId field. Added an option to disable email notifications for member account invitations."
-}

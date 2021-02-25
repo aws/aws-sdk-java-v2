@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "contributor": "",
-    "description": "Corrected the upper limit for TestIdentityProvider input lengths to 1024 characters"
-}
