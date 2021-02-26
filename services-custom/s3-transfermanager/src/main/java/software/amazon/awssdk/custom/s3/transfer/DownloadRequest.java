@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,61 +15,24 @@
 
 package software.amazon.awssdk.custom.s3.transfer;
 
-import java.util.Collection;
-import java.util.Objects;
+import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Request object to download an object from S3 using the Transfer Manager.
  */
 @SdkPublicApi
-public final class DownloadRequest extends TransferObjectRequest {
-    private final DownloadObjectSpecification downloadSpecification;
-    private final Long size;
+public final class DownloadRequest implements TransferRequest, ToCopyableBuilder<DownloadRequest.Builder, DownloadRequest> {
+    private final String bucket;
+    private final String key;
+    private final Path destination;
 
     private DownloadRequest(BuilderImpl builder) {
-        super(builder);
-        this.downloadSpecification = Validate.notNull(builder.downloadSpecification, "downloadSpecification must not be null");
-        this.size = builder.size;
-    }
-
-    /**
-     * @return The download specification.
-     */
-    public DownloadObjectSpecification downloadSpecification() {
-        return downloadSpecification;
-    }
-
-    /**
-     * @return The known size of the object to be downloaded. If multipart
-     * downloads are enabled, this allows the Transfer Manager to omit a call
-     * to S3 to get the object size.
-     */
-    public Long size() {
-        return size;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DownloadRequest that = (DownloadRequest) o;
-        return downloadSpecification.equals(that.downloadSpecification) &&
-                Objects.equals(size, that.size);
-    }
-
-    @Override
-    public int hashCode() {
-        int hashCode = 1;
-        hashCode = 31 * hashCode + Objects.hashCode(downloadSpecification);
-        hashCode = 31 * hashCode + Objects.hashCode(size);
-        return hashCode;
+        this.bucket = builder.bucket;
+        this.key = builder.key;
+        this.destination = builder.destination;
     }
 
     /**
@@ -79,49 +42,42 @@ public final class DownloadRequest extends TransferObjectRequest {
         return new BuilderImpl();
     }
 
-    public static DownloadRequest forBucketAndKey(String bucket, String key) {
-        return DownloadRequest.builder()
-                .downloadSpecification(DownloadObjectSpecification.fromApiRequest(
-                        GetObjectRequest.builder()
-                                .bucket(bucket)
-                                .key(key)
-                                .build()
-                ))
-                .build();
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl();
     }
 
     @Override
-    public Builder toBuilder() {
-        return new BuilderImpl(this);
+    public String bucket() {
+        return bucket;
     }
 
-    public interface Builder extends TransferObjectRequest.Builder {
-        /**
-         * Set the download specification.
-         *
-         * @param downloadSpecification The specification.
-         * @return This object for method chaining.
-         */
-        Builder downloadSpecification(DownloadObjectSpecification downloadSpecification);
+
+    @Override
+    public String key() {
+        return key;
+    }
+
+    /**
+     * The {@link Path} to file that response contents will be written to. The file must not exist or this method
+     * will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+     *
+     * @return the destination path
+     */
+    public Path destination() {
+        return destination;
+    }
+
+    public interface Builder extends TransferRequest.Builder, CopyableBuilder<Builder, DownloadRequest> {
 
         /**
-         * Optionally set the known size of the object to be downloaded. If
-         * multipart downloads are enabled, this allows the Transfer Manager to
-         * omit a call to S3 to get the object size.
+         * The {@link Path} to file that response contents will be written to. The file must not exist or this method
+         * will throw an exception. If the file is not writable by the current user then an exception will be thrown.
          *
-         * @param size The object size.
-         * @return This object for method chaining.
+         * @param destination the destination path
+         * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder size(Long size);
-
-        @Override
-        Builder overrideConfiguration(TransferOverrideConfiguration config);
-
-        @Override
-        Builder progressListeners(Collection<TransferProgressListener> progressListeners);
-
-        @Override
-        Builder addProgressListener(TransferProgressListener progressListener);
+        Builder destination(Path destination);
 
         /**
          * @return The built request.
@@ -129,46 +85,29 @@ public final class DownloadRequest extends TransferObjectRequest {
         DownloadRequest build();
     }
 
-    private static final class BuilderImpl extends TransferObjectRequest.BuilderImpl implements Builder {
-        private DownloadObjectSpecification downloadSpecification;
-        private Long size;
-
-        private BuilderImpl(DownloadRequest other) {
-            super(other);
-            this.downloadSpecification = other.downloadSpecification;
-            this.size = other.size;
-        }
+    private static final class BuilderImpl implements Builder {
+        private String bucket;
+        private String key;
+        private Path destination;
 
         private BuilderImpl() {
         }
 
         @Override
-        public Builder downloadSpecification(DownloadObjectSpecification downloadSpecification) {
-            this.downloadSpecification = downloadSpecification;
+        public Builder destination(Path destination) {
+            this.destination = destination;
             return this;
         }
 
         @Override
-        public Builder size(Long size) {
-            this.size = size;
+        public Builder bucket(String bucket) {
+            this.bucket = bucket;
             return this;
         }
 
         @Override
-        public Builder overrideConfiguration(TransferOverrideConfiguration config) {
-            super.overrideConfiguration(config);
-            return this;
-        }
-
-        @Override
-        public Builder progressListeners(Collection<TransferProgressListener> progressListeners) {
-            super.progressListeners(progressListeners);
-            return this;
-        }
-
-        @Override
-        public Builder addProgressListener(TransferProgressListener progressListener) {
-            super.addProgressListener(progressListener);
+        public Builder key(String key) {
+            this.key = key;
             return this;
         }
 

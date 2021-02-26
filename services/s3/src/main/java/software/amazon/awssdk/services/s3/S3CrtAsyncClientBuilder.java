@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -13,30 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.custom.s3.transfer.util;
+package software.amazon.awssdk.services.s3;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 
 /**
- * Helpful constants for common size units.
+ * A builder for creating an instance of {@link S3CrtAsyncClient}. This can be created with the static
+ * {@link S3AsyncClient#crtBuilder()} method.
  */
+@SdkPreviewApi
 @SdkPublicApi
-public final class SizeConstant {
-    /**
-     * 1 Kibibyte.
-     */
-    public static final long KiB = 1024;
+public interface S3CrtAsyncClientBuilder extends AwsClientBuilder<S3CrtAsyncClientBuilder, S3CrtAsyncClient> {
 
-    /**
-     * 1 Mebibyte.
-     */
-    public static final long MiB = 1024 * KiB;
-
-    /**
-     * 1 Gibibyte.
-     */
-    public static final long GiB = 1024 * MiB;
-
-    private SizeConstant() {
-    }
 }

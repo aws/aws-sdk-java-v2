@@ -112,7 +112,7 @@
         <rxjava.version>2.1.9</rxjava.version>
         <commons-codec.verion>1.10</commons-codec.verion>
         <jmh.version>1.21</jmh.version>
-        <awscrt.version>0.9.3</awscrt.version>
+        <awscrt.version>0.10.9</awscrt.version>
 
         <!-- Test dependencies -->
         <junit.version>4.12</junit.version>
@@ -532,6 +532,7 @@
                             <excludeModule>bundle</excludeModule>
                             <!-- ignore crt because it's in preview TODO: remove this when CRT is GA -->
                             <excludModeule>aws-crt-client</excludModeule>
+                            <excludModeule>s3-transfermanager</excludModeule>
                         </excludeModules>
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
                         <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
