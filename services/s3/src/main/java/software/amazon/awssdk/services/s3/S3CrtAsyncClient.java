@@ -13,13 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.custom.s3.transfer;
+package software.amazon.awssdk.services.s3;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.services.s3.internal.DefaultS3CrtClientBuilder;
 
 /**
- * A completed upload directory transfer.
+ * Service client for accessing Amazon S3 asynchronously using the AWS Common Runtime S3 client. This can be created using the
+ * static {@link #builder()} method.
  */
+@SdkPreviewApi
 @SdkPublicApi
-public interface CompletedUploadDirectory extends CompletedTransfer {
+public interface S3CrtAsyncClient extends S3AsyncClient {
+
+    /**
+     * Create a builder that can be used to configure and create a {@link S3AsyncClient}.
+     */
+    static S3CrtAsyncClientBuilder builder() {
+        return new DefaultS3CrtClientBuilder();
+    }
 }

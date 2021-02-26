@@ -222,16 +222,6 @@ public interface S3TransferManager {
         Builder maxDownloadBytesPerSecond(Long maxDownloadBytesPerSecond);
 
         /**
-         * The multipart download configuration.
-         */
-        Builder multipartDownloadConfiguration(MultipartDownloadConfiguration multipartDownloadConfiguration);
-
-        /**
-         * The multipart upload configuration.
-         */
-        Builder multipartUploadConfiguration(MultipartUploadConfiguration multipartUploadConfiguration);
-
-        /**
          * Add a progress listener to the currently configured list of
          * listeners.
          */
@@ -455,6 +445,11 @@ public interface SinglePartDownloadContext {
      * The original download request given to the Transfer Manager.
      */
     DownloadObjectRequest downloadRequest();
+
+    /**
+     * The request sent to S3 for this object. This is empty if downloading a presigned URL.
+     */
+    GetObjectRequest objectRequest();
 }
 
 /**
