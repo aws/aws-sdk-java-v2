@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Amazon EKS now supports adding KMS envelope encryption to existing clusters to enhance security for secrets"
-}

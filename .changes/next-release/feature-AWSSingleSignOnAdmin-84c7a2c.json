@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Single Sign-On Admin",
-    "contributor": "",
-    "description": "Relax constraint on List* API pagination tokens to include underscore character"
-}

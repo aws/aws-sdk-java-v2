@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Storage Service",
-    "contributor": "",
-    "description": "Add RequestPayer to GetObjectTagging and PutObjectTagging."
-}
