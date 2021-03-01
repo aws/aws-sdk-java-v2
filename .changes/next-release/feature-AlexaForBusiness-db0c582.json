@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Alexa For Business",
+    "contributor": "",
+    "description": "Added support for optional tags in CreateAddressBook, CreateConferenceProvider, CreateContact, CreateGatewayGroup, CreateNetworkProfile and RegisterAVSDevice APIs."
+}
