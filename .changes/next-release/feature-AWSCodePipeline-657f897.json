@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodePipeline",
-    "contributor": "",
-    "description": "Added a new field to the ListPipelines API to allow maximum search results of 1000"
-}

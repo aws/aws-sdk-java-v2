@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Adding new error code AdmissionRequestDenied for Addons in EKS"
-}
