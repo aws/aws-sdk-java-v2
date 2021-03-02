@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "contributor": "",
+    "description": "Additional API Support to update NFS/SMB/ObjectStorage locations"
+}
