@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Wireless",
-    "contributor": "",
-    "description": "Add ARN & Tags for PartnerAccount related APIs and WirelessGatewayTaskDefinition related APIs"
-}
