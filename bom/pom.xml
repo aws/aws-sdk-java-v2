@@ -142,6 +142,11 @@
                 <artifactId>utils</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>cloudwatch-metric-publisher</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
             <!-- Services -->
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
