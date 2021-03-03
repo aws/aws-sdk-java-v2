@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Forecast Service",
-    "contributor": "",
-    "description": "Added new StopResource operation that stops Amazon Forecast resource jobs that are in progress."
-}

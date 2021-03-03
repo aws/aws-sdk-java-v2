@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Certificate Manager",
-    "contributor": "",
-    "description": "Adds 2 new APIs to add and retrieve account configuration in AWS Certificate Manager."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elasticsearch Service",
-    "contributor": "",
-    "description": "AWS ElasticSearch Feature : Support for adding tags in elastic search domain during domain creation"
-}

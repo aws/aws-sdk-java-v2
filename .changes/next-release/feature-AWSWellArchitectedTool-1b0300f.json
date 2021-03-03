@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Well-Architected Tool",
-    "contributor": "",
-    "description": "This release supports tagging on AWS Well-Architected workloads."
-}
