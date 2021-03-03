@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "AWS CodeBuild now supports Session Manager debugging for batch builds."
+}
