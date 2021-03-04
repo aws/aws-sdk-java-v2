@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Map",
+    "contributor": "",
+    "description": "Supports creating API-only services under DNS namespace. Add namespace syntax validation."
+}
