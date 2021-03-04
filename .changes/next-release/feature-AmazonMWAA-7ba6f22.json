@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMWAA",
-    "contributor": "",
-    "description": "This release introduces a new MinWorker parameter to the CreateEnvironment and UpdateEnvironment APIs. MinWorker allows the users to set a minimum worker count for worker auto-scaling operations."
-}
