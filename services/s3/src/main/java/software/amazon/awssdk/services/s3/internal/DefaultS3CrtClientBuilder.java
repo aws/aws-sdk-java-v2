@@ -28,8 +28,8 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 public final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
     private AwsCredentialsProvider credentialsProvider;
     private Region region;
-    private ClientOverrideConfiguration clientOverrideConfiguration;
-    private URI endpointOverride;
+    private long partSizeBytes;
+    private double maxThroughputGbps;
 
     public AwsCredentialsProvider credentialsProvider() {
         return credentialsProvider;
@@ -39,12 +39,12 @@ public final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder 
         return region;
     }
 
-    public ClientOverrideConfiguration clientOverrideConfiguration() {
-        return clientOverrideConfiguration;
+    public long partSizeBytes() {
+        return partSizeBytes;
     }
 
-    public URI endpointOverride() {
-        return endpointOverride;
+    public double maxThroughputGbps() {
+        return maxThroughputGbps;
     }
 
     @Override
@@ -53,27 +53,37 @@ public final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder 
         return this;
     }
 
-    @Override
+
     public S3CrtAsyncClientBuilder region(Region region) {
         this.region = region;
         return this;
     }
 
+    // TODO: Add support for this configuration
     @Override
     public S3CrtAsyncClientBuilder overrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
-        this.clientOverrideConfiguration = overrideConfiguration;
-        return this;
+        throw new UnsupportedOperationException();
     }
 
+    // TODO: Add support for this configuration
     @Override
     public S3CrtAsyncClientBuilder overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> overrideConfiguration) {
-        this.clientOverrideConfiguration = ClientOverrideConfiguration.builder().applyMutation(overrideConfiguration).build();
+        throw new UnsupportedOperationException();
+    }
+
+    // TODO: Add support for this configuration
+    @Override
+    public S3CrtAsyncClientBuilder endpointOverride(URI endpointOverride) {
+        throw new UnsupportedOperationException();
+    }
+
+    public S3CrtAsyncClientBuilder partSizeBytes(long partSizeBytes) {
+        this.partSizeBytes = partSizeBytes;
         return this;
     }
 
-    @Override
-    public S3CrtAsyncClientBuilder endpointOverride(URI endpointOverride) {
-        this.endpointOverride = endpointOverride;
+    public S3CrtAsyncClientBuilder maxThroughputGbps(double maxThroughputGbps) {
+        this.maxThroughputGbps = maxThroughputGbps;
         return this;
     }
 

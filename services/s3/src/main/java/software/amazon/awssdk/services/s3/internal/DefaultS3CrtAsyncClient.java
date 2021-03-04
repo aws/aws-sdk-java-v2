@@ -16,8 +16,11 @@
 package software.amazon.awssdk.services.s3.internal;
 
 
+import static software.amazon.awssdk.services.s3.internal.S3CrtUtils.createCrtCredentialsProvider;
+
 import com.amazonaws.s3.S3NativeClient;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
 
 @SdkInternalApi
@@ -25,11 +28,17 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     private final S3NativeClient s3NativeClient;
     private final S3NativeClientConfiguration configuration;
 
-    public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
+    private final CredentialsProvider credentialsProvider;
 
-        // TODO: adapt SDK Configurations to CRT configurations
+
+    public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
+        this.credentialsProvider = createCrtCredentialsProvider(builder.credentialsProvider());
+
         this.configuration = S3NativeClientConfiguration.builder()
+                                                        .credentialsProvider(credentialsProvider)
                                                         .signingRegion(builder.region().id())
+                                                        .partSizeBytes(builder.partSizeBytes())
+                                                        .maxThroughputGbps(builder.maxThroughputGbps())
                                                         .build();
 
         this.s3NativeClient = new S3NativeClient(configuration.signingRegion(),
@@ -38,6 +47,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                  configuration.partSizeBytes(),
                                                  configuration.maxThroughputGbps());
     }
+
+
 
     @Override
     public String serviceName() {
