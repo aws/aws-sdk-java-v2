@@ -1,3 +1,28 @@
+# __2.16.12__ __2021-03-04__
+## __AWS Cloud Map__
+  - ### Features
+    - Supports creating API-only services under DNS namespace. Add namespace syntax validation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Introducing support for EventBridge Api Destinations - any HTTP APIs as Targets, with managed authorization via EventBridge Connections.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Introducing support for EventBridge Api Destinations - any HTTP APIs as Targets, with managed authorization via EventBridge Connections.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds the ResolvedOutputS3Uri to the DescribeFeatureGroup API to indicate the S3 prefix where offline data is stored in a feature group
+
+## __AmazonMWAA__
+  - ### Features
+    - This release introduces a new MinWorker parameter to the CreateEnvironment and UpdateEnvironment APIs. MinWorker allows the users to set a minimum worker count for worker auto-scaling operations.
+
 # __2.16.11__ __2021-03-03__
 ## __AWS Certificate Manager__
   - ### Features
