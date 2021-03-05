@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodePipeline",
+    "contributor": "",
+    "description": "Updated the parameters to make actionType required for UpdateActionType"
+}
