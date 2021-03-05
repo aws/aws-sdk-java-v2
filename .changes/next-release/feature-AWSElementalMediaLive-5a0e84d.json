@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "Medialive now supports the ability to transfer AWS Elemental Link devices to another region."
-}
