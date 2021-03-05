@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Shield",
+    "contributor": "",
+    "description": "Add support for tagging of Shield protection and protection group resources."
+}
