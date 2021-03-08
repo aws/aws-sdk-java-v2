@@ -1,3 +1,119 @@
+# __2.16.14__ __2021-03-08__
+## __AWS Lambda__
+  - ### Features
+    - Documentation updates for Lambda. Constraint updates to AddLayerVersionPermission's Action and OrganizationId parameters, and AddPermission's Principal and SourceAccount parameters.
+
+## __AWS S3 Control__
+  - ### Features
+    - Documentation updates for Amazon S3
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Amazon EMR customers can now specify how EC2 On-Demand Capacity Reservations are used in their EMR clusters with instance fleets using allocation strategy.
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Increase the maximum HLS and MPEG-DASH manifest size from 1,000 to 5,000 fragments.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 Documentation updates
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for autoscaling for capacity-optimized-prioritized SpotAllocationStrategy
+
+# __2.16.13__ __2021-03-05__
+## __AWS CodePipeline__
+  - ### Features
+    - Updated the parameters to make actionType required for UpdateActionType
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Medialive now supports the ability to transfer AWS Elemental Link devices to another region.
+
+## __AWS License Manager__
+  - ### Features
+    - License Manager Automated Discovery now supports Exclusion Filters.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Added a new UpdateToken output field to the PerObjectStatus as part of firewall sync state. This is added to track which version of the object the firewall is in sync or pending synchronization.
+
+## __AWS Shield__
+  - ### Features
+    - Add support for tagging of Shield protection and protection group resources.
+
+## __Amazon Appflow__
+  - ### Features
+    - Documentation updates for arn:aws:trebuchet:::service:v1:decb008d-e0d8-44a4-b93c-092f0355d523
+
+## __Amazon Athena__
+  - ### Features
+    - Adds APIs to create, list, update, and delete prepared SQL statements that have optional placeholder parameters. A prepared statement can use different values for these parameters each time it is run.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Expands EC2/Spot Fleet capacity-optimized allocation strategy to allow users to prioritize instance pools. Fleet attempts to fulfill priorities on a best-effort basis but optimizes for capacity first.
+
+# __2.16.12__ __2021-03-04__
+## __AWS Cloud Map__
+  - ### Features
+    - Supports creating API-only services under DNS namespace. Add namespace syntax validation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Introducing support for EventBridge Api Destinations - any HTTP APIs as Targets, with managed authorization via EventBridge Connections.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Introducing support for EventBridge Api Destinations - any HTTP APIs as Targets, with managed authorization via EventBridge Connections.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds the ResolvedOutputS3Uri to the DescribeFeatureGroup API to indicate the S3 prefix where offline data is stored in a feature group
+
+## __AmazonMWAA__
+  - ### Features
+    - This release introduces a new MinWorker parameter to the CreateEnvironment and UpdateEnvironment APIs. MinWorker allows the users to set a minimum worker count for worker auto-scaling operations.
+
+# __2.16.11__ __2021-03-03__
+## __AWS Certificate Manager__
+  - ### Features
+    - Adds 2 new APIs to add and retrieve account configuration in AWS Certificate Manager.
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports Session Manager debugging for batch builds.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Added support for multi-Region secrets APIs ReplicateSecretToRegions, RemoveRegionsFromReplication, and StopReplicationToReplica
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This release supports tagging on AWS Well-Architected workloads.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Adds TraceHeader to PutEventsRequestEntry to support AWS X-Ray trace-ids on events generated using the PutEvents operation.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - AWS ElasticSearch Feature : Support for adding tags in elastic search domain during domain creation
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Added new StopResource operation that stops Amazon Forecast resource jobs that are in progress.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API includes miscellaneous updates and improvements to the documentation.
+
 # __2.16.10__ __2021-03-02__
 ## __AWS Compute Optimizer__
   - ### Features
