@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Video Streams Archived Media",
+    "contributor": "",
+    "description": "Increase the maximum HLS and MPEG-DASH manifest size from 1,000 to 5,000 fragments."
+}
