@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Auto Scaling",
+    "contributor": "",
+    "description": "Documentation updates for autoscaling for capacity-optimized-prioritized SpotAllocationStrategy"
+}
