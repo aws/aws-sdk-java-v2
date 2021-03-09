@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Wireless",
-    "contributor": "",
-    "description": "Add max value to Seq in SendDataToWirelessDevice API\""
-}

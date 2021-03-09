@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic File System",
-    "contributor": "",
-    "description": "AWS EFS is introducing one-zone file systems."
-}
