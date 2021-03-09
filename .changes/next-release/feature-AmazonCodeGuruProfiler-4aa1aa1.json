@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CodeGuru Profiler",
+    "contributor": "",
+    "description": "Update documentation to include Python. Add ConflictException for DeleteProfilingGroup. Add FrameMetricValue."
+}
