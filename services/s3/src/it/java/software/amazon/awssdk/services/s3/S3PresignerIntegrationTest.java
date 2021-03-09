@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -30,9 +29,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -45,8 +42,6 @@ import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
 import software.amazon.awssdk.services.s3.model.MultipartUpload;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
@@ -116,7 +111,7 @@ public class S3PresignerIntegrationTest {
 
     @Test
     public void keysWithScaryCharactersWorks() throws IOException {
-        String scaryObjectKey = testGetObjectKey + " !'/()~`";
+        String scaryObjectKey = "a0A!-_.*'()&@:,$=+?; \n\\^`<>{}[]#%\"~|山/" + testGetObjectKey;
         S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testBucket, scaryObjectKey, testObjectContent);
 
         assertThatPresigningWorks(testBucket, scaryObjectKey);
