@@ -1,0 +1,42 @@
+{
+    "version": "2.16.15",
+    "date": "2021-03-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Profiler",
+            "contributor": "",
+            "description": "Update documentation to include Python. Add ConflictException for DeleteProfilingGroup. Add FrameMetricValue."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "contributor": "",
+            "description": "AWS EFS is introducing one-zone file systems."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "EC2 Auto Scaling now supports setting a local time zone for cron expressions in scheduled actions, removing the need to adjust for Daylight Saving Time (DST)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for Amazon RDS Proxy endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Add max value to Seq in SendDataToWirelessDevice API\""
+        }
+    ]
+}
