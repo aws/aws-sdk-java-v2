@@ -1,3 +1,28 @@
+# __2.16.15__ __2021-03-09__
+## __AWS IoT Wireless__
+  - ### Features
+    - Add max value to Seq in SendDataToWirelessDevice API"
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CodeGuru Profiler__
+  - ### Features
+    - Update documentation to include Python. Add ConflictException for DeleteProfilingGroup. Add FrameMetricValue.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - AWS EFS is introducing one-zone file systems.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for Amazon RDS Proxy endpoints.
+
+## __Auto Scaling__
+  - ### Features
+    - EC2 Auto Scaling now supports setting a local time zone for cron expressions in scheduled actions, removing the need to adjust for Daylight Saving Time (DST)
+
 # __2.16.14__ __2021-03-08__
 ## __AWS Lambda__
   - ### Features
