@@ -1,3 +1,24 @@
+# __2.16.16__ __2021-03-10__
+## __AWS Backup__
+  - ### Features
+    - Added support for enabling continuous backups.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Include the retry mode STANDARD or LEGACY in the user agents list.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support to preview IAM Access Analyzer findings for a resource before deploying resource permission changes.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adding ID element to the CORSRule schema
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager support for tagging OpsMetadata.
+
 # __2.16.15__ __2021-03-09__
 ## __AWS IoT Wireless__
   - ### Features
