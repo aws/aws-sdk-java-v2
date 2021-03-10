@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup",
+    "contributor": "",
+    "description": "Added support for enabling continuous backups."
+}
