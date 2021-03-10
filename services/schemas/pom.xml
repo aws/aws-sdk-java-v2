@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.16.16</version>
+        <version>2.16.17-SNAPSHOT</version>
     </parent>
     <artifactId>schemas</artifactId>
     <name>AWS Java SDK :: Services :: Schemas</name>
