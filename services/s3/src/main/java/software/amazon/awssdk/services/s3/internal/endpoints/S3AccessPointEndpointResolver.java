@@ -39,6 +39,7 @@ import software.amazon.awssdk.services.s3.internal.resource.S3OutpostResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ResourceType;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Returns a new configured HTTP request with a resolved access point endpoint and signing overrides.
@@ -107,7 +108,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
             if (pathBuilder.length() > 0) {
                 pathBuilder.append('/');
             }
-            pathBuilder.append(key);
+            pathBuilder.append(SdkHttpUtils.urlEncodeIgnoreSlashes(key));
         }
         return pathBuilder.length() > 0 ? pathBuilder.toString() : null;
     }
@@ -116,7 +117,6 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         Region region = context.region();
         String arnRegion = s3Resource.region().orElseThrow(() -> new IllegalArgumentException(
             "An S3 access point ARN must have a region"));
-
 
         S3Configuration serviceConfiguration = context.serviceConfiguration();
         if (isAccelerateEnabled(serviceConfiguration)) {

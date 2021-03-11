@@ -17,17 +17,28 @@ package software.amazon.awssdk.services.s3control;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.StringJoiner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase {
 
@@ -106,6 +117,51 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase 
                                                                                   .build()).asUtf8String();
 
         assertThat(objectContent).isEqualTo("helloworld");
+    }
+
+    @Test
+    public void uploadAndDownloadWithPresignedUrlWorks() throws IOException {
+        String accessPointArn = new StringJoiner(":").add("arn").add("aws").add("s3").add("us-west-2").add(accountId)
+                                                     .add("accesspoint").add(AP_NAME).toString();
+        String key = "foo/a0A!-_.*'()&@:,$=+?; \n\\^`<>{}[]#%\"~|山";
+
+        testAccessPointPresigning(accessPointArn, key);
+    }
+
+    private void testAccessPointPresigning(String accessPointArn, String key) throws IOException {
+        String data = "Hello";
+
+        S3Presigner presigner = S3Presigner.builder().region(Region.US_WEST_2).build();
+
+        SdkHttpRequest presignedPut = presigner.presignPutObject(r -> r.signatureDuration(Duration.ofDays(7))
+                                                                       .putObjectRequest(por -> por.bucket(accessPointArn)
+                                                                                                   .key(key)))
+                                               .httpRequest();
+
+
+        SdkHttpRequest presignedGet = presigner.presignGetObject(r -> r.signatureDuration(Duration.ofDays(7))
+                                                                       .getObjectRequest(gor -> gor.bucket(accessPointArn)
+                                                                                                   .key(key)))
+                                               .httpRequest();
+
+        try (SdkHttpClient client = ApacheHttpClient.create()) {
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                    .request(presignedPut)
+                                                    .contentStreamProvider(() -> new StringInputStream(data))
+                                                    .build())
+                  .call();
+
+            HttpExecuteResponse getResult = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                    .request(presignedGet)
+                                                                                    .build())
+                                             .call();
+
+            String result = getResult.responseBody()
+                                     .map(stream -> invokeSafely(() -> IoUtils.toUtf8String(stream)))
+                                     .orElseThrow(AssertionError::new);
+
+            assertThat(result).isEqualTo(data);
+        }
     }
 
     @Test
