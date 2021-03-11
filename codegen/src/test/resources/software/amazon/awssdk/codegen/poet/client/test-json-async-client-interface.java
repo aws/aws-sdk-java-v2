@@ -48,6 +48,12 @@ public interface JsonAsyncClient extends SdkClient {
     String SERVICE_NAME = "json-service";
 
     /**
+     * Value for looking up the service's metadata from the
+     * {@link software.amazon.awssdk.regions.ServiceMetadataProvider}.
+     */
+    String SERVICE_METADATA_ID = "json-service-endpoint";
+
+    /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
      * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
      * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
