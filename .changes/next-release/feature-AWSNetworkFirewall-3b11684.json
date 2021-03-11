@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Firewall",
-    "contributor": "",
-    "description": "Correct the documentation about how you can provide rule group rules"
-}

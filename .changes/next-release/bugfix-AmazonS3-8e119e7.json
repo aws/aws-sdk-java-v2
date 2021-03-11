@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fixed an issue where presigned URLs for access point objects could bypass encoding, causing an IllegalArgumentException."
-}
