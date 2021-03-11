@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "Correct the documentation about JSON body parsing behavior and IP set update behavior"
+}
