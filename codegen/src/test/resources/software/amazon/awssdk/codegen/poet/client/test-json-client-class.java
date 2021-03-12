@@ -112,7 +112,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.APostOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
      */
     @Override
@@ -165,7 +165,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.APostOperationWithOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -216,7 +216,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.GetWithoutRequiredMembers
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -263,7 +263,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.OperationWithChecksumRequired
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -314,7 +314,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -416,7 +416,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -439,7 +439,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -541,7 +541,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -576,7 +576,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -646,7 +646,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -711,7 +711,7 @@ final class DefaultJsonClient implements JsonClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override

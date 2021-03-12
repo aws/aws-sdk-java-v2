@@ -157,7 +157,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.APostOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
      */
     @Override
@@ -221,7 +221,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.APostOperationWithOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -278,7 +278,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -374,7 +374,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperationWithOnlyInput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyInput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyInput"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -442,7 +442,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperationWithOnlyOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyOutput"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -536,7 +536,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.GetWithoutRequiredMembers
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -594,7 +594,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.OperationWithChecksumRequired
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -655,7 +655,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -765,7 +765,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     public PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
@@ -790,7 +790,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -900,7 +900,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     public PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
@@ -930,7 +930,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -1003,7 +1003,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -1080,7 +1080,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
