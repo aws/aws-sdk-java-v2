@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cost and Usage Report Service",
+    "contributor": "",
+    "description": "- Added optional billingViewArn field for OSG."
+}
