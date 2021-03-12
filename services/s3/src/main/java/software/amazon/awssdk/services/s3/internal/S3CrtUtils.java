@@ -15,6 +15,13 @@
 
 package software.amazon.awssdk.services.s3.internal;
 
+import com.amazonaws.s3.model.ObjectCannedACL;
+import com.amazonaws.s3.model.ObjectLockLegalHoldStatus;
+import com.amazonaws.s3.model.ObjectLockMode;
+import com.amazonaws.s3.model.PutObjectOutput;
+import com.amazonaws.s3.model.RequestPayer;
+import com.amazonaws.s3.model.ServerSideEncryption;
+import com.amazonaws.s3.model.StorageClass;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -23,6 +30,8 @@ import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @SdkInternalApi
 public final class S3CrtUtils {
@@ -64,21 +73,82 @@ public final class S3CrtUtils {
     // TODO: codegen
     public static GetObjectResponse adaptGetObjectOutput(com.amazonaws.s3.model.GetObjectOutput response) {
         return GetObjectResponse.builder()
-                                .bucketKeyEnabled(response.bucketKeyEnabled())
-                                .acceptRanges(response.acceptRanges())
-                                .contentDisposition(response.contentDisposition())
-                                .cacheControl(response.cacheControl())
-                                .contentEncoding(response.contentEncoding())
-                                .contentLanguage(response.contentLanguage())
-                                .contentRange(response.contentRange())
-                                .contentLength(response.contentLength())
-                                .contentType(response.contentType())
-                                .deleteMarker(response.deleteMarker())
-                                .eTag(response.eTag())
-                                .expiration(response.expiration())
-                                .expires(response.expires())
-                                .lastModified(response.lastModified())
-                                .metadata(response.metadata())
-                                .build();
+                .bucketKeyEnabled(response.bucketKeyEnabled())
+                .acceptRanges(response.acceptRanges())
+                .contentDisposition(response.contentDisposition())
+                .cacheControl(response.cacheControl())
+                .contentEncoding(response.contentEncoding())
+                .contentLanguage(response.contentLanguage())
+                .contentRange(response.contentRange())
+                .contentLength(response.contentLength())
+                .contentType(response.contentType())
+                .deleteMarker(response.deleteMarker())
+                .eTag(response.eTag())
+                .expiration(response.expiration())
+                .expires(response.expires())
+                .lastModified(response.lastModified())
+                .metadata(response.metadata())
+                .build();
+    }
+
+    //TODO: codegen
+    public static com.amazonaws.s3.model.PutObjectRequest toCrtPutObjectRequest(PutObjectRequest sdkPutObject) {
+        return com.amazonaws.s3.model.PutObjectRequest.builder()
+                .contentLength(sdkPutObject.contentLength())
+                .aCL(ObjectCannedACL.fromValue(sdkPutObject.aclAsString()))
+                .bucket(sdkPutObject.bucket())
+                .key(sdkPutObject.key())
+                .bucketKeyEnabled(sdkPutObject.bucketKeyEnabled())
+                .cacheControl(sdkPutObject.cacheControl())
+                .contentDisposition(sdkPutObject.contentDisposition())
+                .contentEncoding(sdkPutObject.contentEncoding())
+                .contentLanguage(sdkPutObject.contentLanguage())
+                .contentMD5(sdkPutObject.contentMD5())
+                .contentType(sdkPutObject.contentType())
+                .expectedBucketOwner(sdkPutObject.expectedBucketOwner())
+                .expires(sdkPutObject.expires())
+                .grantFullControl(sdkPutObject.grantFullControl())
+                .grantRead(sdkPutObject.grantRead())
+                .grantReadACP(sdkPutObject.grantReadACP())
+                .grantWriteACP(sdkPutObject.grantWriteACP())
+                .metadata(sdkPutObject.metadata())
+                .objectLockLegalHoldStatus(ObjectLockLegalHoldStatus.fromValue(sdkPutObject.objectLockLegalHoldStatusAsString()))
+                .objectLockMode(ObjectLockMode.fromValue(sdkPutObject.objectLockModeAsString()))
+                .objectLockRetainUntilDate(sdkPutObject.objectLockRetainUntilDate())
+                .requestPayer(RequestPayer.fromValue(sdkPutObject.requestPayerAsString()))
+                .serverSideEncryption(ServerSideEncryption.fromValue(sdkPutObject.requestPayerAsString()))
+                .sSECustomerAlgorithm(sdkPutObject.sseCustomerAlgorithm())
+                .sSECustomerKey(sdkPutObject.sseCustomerKey())
+                .sSECustomerKeyMD5(sdkPutObject.sseCustomerKeyMD5())
+                .sSEKMSEncryptionContext(sdkPutObject.ssekmsEncryptionContext())
+                .sSEKMSKeyId(sdkPutObject.ssekmsKeyId())
+                .storageClass(StorageClass.fromValue(sdkPutObject.storageClassAsString()))
+                .tagging(sdkPutObject.tagging())
+                .websiteRedirectLocation(sdkPutObject.websiteRedirectLocation())
+                .build();
+    }
+
+    //TODO: codegen
+    public static PutObjectResponse fromCrtPutObjectOutput(PutObjectOutput crtPutObjectOutput) {
+        // TODO: Provide the HTTP request-level data (e.g. response metadata, HTTP response)
+        PutObjectResponse.Builder builder = PutObjectResponse.builder()
+                .bucketKeyEnabled(crtPutObjectOutput.bucketKeyEnabled())
+                .eTag(crtPutObjectOutput.eTag())
+                .expiration(crtPutObjectOutput.expiration())
+                .sseCustomerAlgorithm(crtPutObjectOutput.sSECustomerAlgorithm())
+                .sseCustomerKeyMD5(crtPutObjectOutput.sSECustomerKeyMD5())
+                .ssekmsEncryptionContext(crtPutObjectOutput.sSEKMSEncryptionContext())
+                .ssekmsKeyId(crtPutObjectOutput.sSEKMSKeyId())
+                .versionId(crtPutObjectOutput.versionId());
+
+        if (crtPutObjectOutput.requestCharged() != null) {
+            builder.requestCharged(crtPutObjectOutput.requestCharged().value());
+        }
+
+        if (crtPutObjectOutput.serverSideEncryption() != null) {
+            builder.serverSideEncryption(crtPutObjectOutput.serverSideEncryption().value());
+        }
+
+        return builder.build();
     }
 }
