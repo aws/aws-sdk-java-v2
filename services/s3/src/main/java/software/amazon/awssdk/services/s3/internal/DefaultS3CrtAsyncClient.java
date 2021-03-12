@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal;
 
 import static software.amazon.awssdk.services.s3.internal.S3CrtUtils.createCrtCredentialsProvider;
 
+import com.amazonaws.s3.RequestDataSupplier;
 import com.amazonaws.s3.S3NativeClient;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -26,6 +27,11 @@ import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import com.amazonaws.s3.model.PutObjectOutput;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.internal.s3crt.RequestDataSupplierAdapter;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
@@ -74,6 +80,20 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         return future;
     }
 
+    public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
+        com.amazonaws.s3.model.PutObjectRequest adaptedRequest = S3CrtUtils.toCrtPutObjectRequest(putObjectRequest);
+
+        if (adaptedRequest.contentLength() == null && requestBody.contentLength().isPresent()) {
+            adaptedRequest = adaptedRequest.toBuilder().contentLength(requestBody.contentLength().get())
+                    .build();
+        }
+
+        CompletableFuture<PutObjectOutput> putObjectOutputCompletableFuture = s3NativeClient.putObject(adaptedRequest,
+                adaptToDataSupplier(requestBody));
+
+        return putObjectOutputCompletableFuture.thenApply(S3CrtUtils::fromCrtPutObjectOutput);
+    }
+
     @Override
     public String serviceName() {
         return "s3";
@@ -83,5 +103,9 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     public void close() {
         s3NativeClient.close();
         configuration.close();
+    }
+
+    private static RequestDataSupplier adaptToDataSupplier(AsyncRequestBody requestBody) {
+        return new RequestDataSupplierAdapter(requestBody);
     }
 }
