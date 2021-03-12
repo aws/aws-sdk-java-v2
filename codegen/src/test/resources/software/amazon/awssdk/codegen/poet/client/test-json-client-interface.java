@@ -76,7 +76,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.APostOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
      */
     default APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
@@ -107,7 +107,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.APostOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
      */
     default APostOperationResponse aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest)
@@ -132,7 +132,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.APostOperationWithOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
      */
     default APostOperationWithOutputResponse aPostOperationWithOutput(
@@ -165,7 +165,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.APostOperationWithOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
      */
     default APostOperationWithOutputResponse aPostOperationWithOutput(
@@ -192,7 +192,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.GetWithoutRequiredMembers
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
      */
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
@@ -225,7 +225,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.GetWithoutRequiredMembers
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
      */
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
@@ -248,7 +248,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.OperationWithChecksumRequired
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
      *      target="_top">AWS API Documentation</a>
      */
     default OperationWithChecksumRequiredResponse operationWithChecksumRequired(
@@ -276,7 +276,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.OperationWithChecksumRequired
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
      *      target="_top">AWS API Documentation</a>
      */
     default OperationWithChecksumRequiredResponse operationWithChecksumRequired(
@@ -299,7 +299,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
      * @see #paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey() throws AwsServiceException,
@@ -320,7 +320,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey(
@@ -348,7 +348,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey(
@@ -426,7 +426,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
      * @see #paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator() throws AwsServiceException,
@@ -502,7 +502,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
@@ -585,7 +585,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
@@ -608,7 +608,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyResponse paginatedOperationWithoutResultKey(
@@ -636,7 +636,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyResponse paginatedOperationWithoutResultKey(
@@ -714,7 +714,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
@@ -797,7 +797,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
@@ -831,7 +831,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOperationResponse streamingInputOperation(
@@ -870,7 +870,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOperationResponse streamingInputOperation(
@@ -899,7 +899,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOperation
      * @see #streamingInputOperation(StreamingInputOperationRequest, RequestBody)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOperationResponse streamingInputOperation(
@@ -933,7 +933,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOperation
      * @see #streamingInputOperation(StreamingInputOperationRequest, RequestBody)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOperationResponse streamingInputOperation(
@@ -974,7 +974,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> ReturnT streamingInputOutputOperation(
@@ -1021,7 +1021,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> ReturnT streamingInputOutputOperation(
@@ -1057,7 +1057,7 @@ public interface JsonClient extends SdkClient {
      * @sample JsonClient.StreamingInputOutputOperation
      * @see #streamingInputOutputOperation(StreamingInputOutputOperationRequest, RequestBody)
      * @see #streamingInputOutputOperation(StreamingInputOutputOperationRequest, ResponseTransformer)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOutputOperationResponse streamingInputOutputOperation(
@@ -1097,7 +1097,7 @@ public interface JsonClient extends SdkClient {
      * @sample JsonClient.StreamingInputOutputOperation
      * @see #streamingInputOutputOperation(StreamingInputOutputOperationRequest, RequestBody)
      * @see #streamingInputOutputOperation(StreamingInputOutputOperationRequest, ResponseTransformer)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOutputOperationResponse streamingInputOutputOperation(
@@ -1128,7 +1128,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
@@ -1163,7 +1163,7 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> ReturnT streamingOutputOperation(
@@ -1192,7 +1192,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
      * @see #streamingOutputOperation(StreamingOutputOperationRequest, ResponseTransformer)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingOutputOperationResponse streamingOutputOperation(
@@ -1225,7 +1225,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
      * @see #streamingOutputOperation(StreamingOutputOperationRequest, ResponseTransformer)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingOutputOperationResponse streamingOutputOperation(
@@ -1254,7 +1254,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
      * @see #getObject(streamingOutputOperation, ResponseTransformer)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default ResponseInputStream<StreamingOutputOperationResponse> streamingOutputOperation(
@@ -1288,7 +1288,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
      * @see #getObject(streamingOutputOperation, ResponseTransformer)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default ResponseInputStream<StreamingOutputOperationResponse> streamingOutputOperation(
@@ -1315,7 +1315,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
      * @see #getObject(streamingOutputOperation, ResponseTransformer)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default ResponseBytes<StreamingOutputOperationResponse> streamingOutputOperationAsBytes(
@@ -1347,7 +1347,7 @@ public interface JsonClient extends SdkClient {
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
      * @see #getObject(streamingOutputOperation, ResponseTransformer)
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default ResponseBytes<StreamingOutputOperationResponse> streamingOutputOperationAsBytes(
