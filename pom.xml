@@ -112,7 +112,7 @@
         <rxjava.version>2.1.9</rxjava.version>
         <commons-codec.verion>1.10</commons-codec.verion>
         <jmh.version>1.21</jmh.version>
-        <awscrt.version>0.10.9</awscrt.version>
+        <awscrt.version>1.0.0-SNAPSHOT</awscrt.version>
 
         <!-- Test dependencies -->
         <junit.version>4.12</junit.version>
@@ -163,7 +163,7 @@
         <unitils.version>3.3</unitils.version>
 
         <!-- Reactive Streams version -->
-        <reactive-streams.version>1.0.2</reactive-streams.version>
+        <reactive-streams.version>1.0.3</reactive-streams.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
