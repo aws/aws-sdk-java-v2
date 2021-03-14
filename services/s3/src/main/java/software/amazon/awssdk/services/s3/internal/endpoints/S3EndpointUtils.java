@@ -124,12 +124,14 @@ public final class S3EndpointUtils {
      * @param bucketName     Bucket name for this particular operation.
      */
     public static void changeToDnsEndpoint(SdkHttpRequest.Builder mutableRequest, String bucketName) {
+        String newHost;
         if (mutableRequest.host().startsWith("s3")) {
-            String newHost = mutableRequest.host().replaceFirst("s3", bucketName + "." + "s3");
-            String newPath = mutableRequest.encodedPath().replaceFirst("/" + bucketName, "");
-
-            mutableRequest.host(newHost).encodedPath(newPath);
+            newHost = mutableRequest.host().replaceFirst("s3", bucketName + "." + "s3");
+        } else {
+            newHost = bucketName + "." + mutableRequest.host();
         }
+        String newPath = mutableRequest.encodedPath().replaceFirst("/" + bucketName, "");
+        mutableRequest.host(newHost).encodedPath(newPath);
     }
 
     public static boolean isArn(String s) {

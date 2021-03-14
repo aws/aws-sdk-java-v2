@@ -53,7 +53,7 @@ public final class S3BucketEndpointResolver implements S3EndpointResolver {
 
         String bucketName = context.originalRequest().getValueForField("Bucket", String.class).orElse(null);
         if (canUseVirtualAddressing(context.serviceConfiguration(), bucketName)) {
-            changeToDnsEndpoint(mutableRequest, bucketName);
+            S3EndpointUtils.changeToDnsEndpoint(mutableRequest, bucketName);
         }
 
         return ConfiguredS3SdkHttpRequest.builder()
@@ -86,21 +86,5 @@ public final class S3BucketEndpointResolver implements S3EndpointResolver {
     private static boolean canUseVirtualAddressing(S3Configuration serviceConfiguration, String bucketName) {
         return !isPathStyleAccessEnabled(serviceConfiguration) && bucketName != null &&
                BucketUtils.isVirtualAddressingCompatibleBucketName(bucketName, false);
-    }
-
-    /**
-     * Changes from path style addressing (which the marshallers produce by default), to DNS style/virtual style addressing,
-     * where the bucket name is prepended to the host. DNS style addressing is preferred due to the better load balancing
-     * qualities it provides; path style is an option mainly for proxy based situations and alternative S3 implementations.
-     *
-     * @param mutableRequest Marshalled HTTP request we are modifying.
-     * @param bucketName     Bucket name for this particular operation.
-     */
-    private static void changeToDnsEndpoint(SdkHttpRequest.Builder mutableRequest, String bucketName) {
-        if (mutableRequest.host().startsWith("s3")) {
-            String newHost = mutableRequest.host().replaceFirst("s3", bucketName + "." + "s3");
-            String newPath = mutableRequest.encodedPath().replaceFirst("/" + bucketName, "");
-            mutableRequest.host(newHost).encodedPath(newPath);
-        }
     }
 }
