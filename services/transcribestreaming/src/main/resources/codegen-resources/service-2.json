@@ -76,7 +76,7 @@
           "eventpayload":true
         }
       },
-      "documentation":"<p>Provides a wrapper for the audio chunks that you are sending.</p>",
+      "documentation":"<p>Provides a wrapper for the audio chunks that you are sending.</p> <p>For information on audio encoding in Amazon Transcribe, see <a>input</a>. For information on audio encoding formats in Amazon Transcribe Medical, see <a>input-med</a>.</p>",
       "event":true
     },
     "AudioStream":{
@@ -84,7 +84,7 @@
       "members":{
         "AudioEvent":{
           "shape":"AudioEvent",
-          "documentation":"<p>A blob of audio from your application. You audio stream consists of one or more audio events. For information on audio encoding formats, see <a>input</a>. For more information on stream encoding, see <a>event-stream</a>.</p>"
+          "documentation":"<p>A blob of audio from your application. You audio stream consists of one or more audio events.</p> <p>For information on audio encoding formats in Amazon Transcribe, see <a>input</a>. For information on audio encoding formats in Amazon Transcribe Medical, see <a>input-med</a>.</p> <p>For more information on stream encoding in Amazon Transcribe, see <a>event-stream</a>. For information on stream encoding in Amazon Transcribe Medical, see <a>event-stream-med</a>.</p>"
         }
       },
       "documentation":"<p>Represents the audio stream from your application to Amazon Transcribe.</p>",
@@ -147,9 +147,13 @@
         "Speaker":{
           "shape":"String",
           "documentation":"<p>If speaker identification is enabled, shows the speakers identified in the real-time stream.</p>"
+        },
+        "Confidence":{
+          "shape":"Confidence",
+          "documentation":"<p>A value between 0 and 1 for an item that is a confidence score that Amazon Transcribe assigns to each word or phrase that it transcribes.</p>"
         }
       },
-      "documentation":"<p>A word or phrase transcribed from the input audio.</p>"
+      "documentation":"<p>A word, phrase, or punctuation mark that is transcribed from the input audio.</p>"
     },
     "ItemList":{
       "type":"list",
@@ -175,7 +179,8 @@
         "de-DE",
         "pt-BR",
         "ja-JP",
-        "ko-KR"
+        "ko-KR",
+        "zh-CN"
       ]
     },
     "LimitExceededException":{
@@ -284,7 +289,7 @@
           "documentation":"<p>If speaker identification is enabled, shows the integer values that correspond to the different speakers identified in the stream. For example, if the value of <code>Speaker</code> in the stream is either a <code>0</code> or a <code>1</code>, that indicates that Amazon Transcribe Medical has identified two speakers in the stream. The value of <code>0</code> corresponds to one speaker and the value of <code>1</code> corresponds to the other speaker.</p>"
         }
       },
-      "documentation":"<p>A word or punctuation that is transcribed from the input audio.</p>"
+      "documentation":"<p>A word, phrase, or punctuation mark that is transcribed from the input audio.</p>"
     },
     "MedicalItemList":{
       "type":"list",
