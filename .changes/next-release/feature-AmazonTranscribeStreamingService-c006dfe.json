@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Streaming Service",
-    "contributor": "",
-    "description": "AWS Transcribe now supports real-time transcription for Chinese (zh-CN) and confidence scores in the transcription output."
-}
