@@ -1499,7 +1499,7 @@ public class StaticImmutableTableSchemaTest {
         assertThat(resultMap, is(expectedMap));
 
         FakeMappedItem resultItem = tableSchema.mapToItem(expectedMap);
-        assertThat(resultItem, is(nullValue()));
+        assertThat(resultItem, is(FakeMappedItem.builder().build()));
     }
 
     private <R> void verifyNullableAttribute(EnhancedType<R> attributeType,

@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB Enhanced", 
+    "contributor": "reed53", 
+    "type": "bugfix", 
+    "description": "Empty beans are now preserved through serialization and deserialization"
+}

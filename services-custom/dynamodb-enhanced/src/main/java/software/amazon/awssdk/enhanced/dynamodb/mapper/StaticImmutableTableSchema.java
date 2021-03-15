@@ -439,8 +439,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
 
     @Override
     public T mapToItem(Map<String, AttributeValue> attributeMap) {
-        // Lazily instantiate the builder once we have an attribute to write
-        B builder = null;
+        B builder = constructNewBuilder();
         Map<FlattenedMapper<T, B, ?>, Map<String, AttributeValue>> flattenedAttributeValuesMap = new LinkedHashMap<>();
         
         for (Map.Entry<String, AttributeValue> entry : attributeMap.entrySet()) {
@@ -451,9 +450,6 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                 ResolvedImmutableAttribute<T, B> attributeMapper = indexedMappers.get(key);
 
                 if (attributeMapper != null) {
-                    if (builder == null) {
-                        builder = constructNewBuilder();
-                    }
 
                     attributeMapper.updateItemMethod().accept(builder, value);
                 } else {
@@ -479,7 +475,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             builder = entry.getKey().mapToItem(builder, this::constructNewBuilder, entry.getValue());
         }
         
-        return builder == null ? null : buildItemFunction.apply(builder);
+        return buildItemFunction.apply(builder);
     }
 
     @Override
