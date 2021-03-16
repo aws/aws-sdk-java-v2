@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMWAA",
-    "contributor": "",
-    "description": "This release adds UPDATE_FAILED and UNAVAILABLE MWAA environment states."
-}

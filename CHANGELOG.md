@@ -1,3 +1,36 @@
+# __2.16.20__ __2021-03-16__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS Lambda__
+  - ### Features
+    - Allow empty list for function response types
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for the SRT-listener protocol on sources and outputs.
+
+## __AWS MediaTailor__
+  - ### Features
+    - MediaTailor channel assembly is a new manifest-only service that allows you to assemble linear streams using your existing VOD content.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for the ValidatePolicy API. IAM Access Analyzer is adding over 100 policy checks and actionable recommendations that help you validate your policies during authoring.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Change STANDARD mode retry count which was 2 for DynamoDB to match LEGACY retry count which is 8.
+
+## __Amazon GameLift__
+  - ### Features
+    - GameLift expands to six new AWS Regions, adds support for multi-location fleets to streamline management of hosting resources, and lets you customize more of the game session placement process.
+
+## __AmazonMWAA__
+  - ### Features
+    - This release adds UPDATE_FAILED and UNAVAILABLE MWAA environment states.
+
 # __2.16.19__ __2021-03-15__
 ## __AWS CodeDeploy__
   - ### Features
