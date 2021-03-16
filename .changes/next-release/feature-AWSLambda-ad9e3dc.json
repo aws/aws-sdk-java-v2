@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Allow empty list for function response types"
+}
