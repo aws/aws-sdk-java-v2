@@ -513,6 +513,7 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
+                            <exclude>software.amazon.awssdk.services.mediatailor.*</exclude>>
                         </excludes>
 
                         <excludeModules>
