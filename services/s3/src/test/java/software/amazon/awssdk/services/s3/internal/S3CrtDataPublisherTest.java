@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.services.s3.internal.s3crt.S3CrtDataPublisher;
 
 public class S3CrtDataPublisherTest {
 

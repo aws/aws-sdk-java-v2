@@ -26,6 +26,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
+import software.amazon.awssdk.services.s3.internal.s3crt.S3CrtUtils;
 
 public class S3CrtUtilsTest {
 
