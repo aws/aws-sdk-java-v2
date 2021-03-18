@@ -1,0 +1,6 @@
+{
+    "type": "documentation",
+    "category": "AWS SDK for Java v2",
+    "contributor": "Carey-AWS",
+    "description": "Implements web metrics tracking and standard AWS footer for javadocs, and adds a link to submit feedback about the javadocs"
+}

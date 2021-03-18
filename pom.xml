@@ -779,6 +779,9 @@
                             <use>false</use>
                             <notree>true</notree>
                             <nodeprecatedlist>true</nodeprecatedlist>
+                            <additionalJOptions>
+                                <additionalJOption>--allow-script-in-comments</additionalJOption>
+                            </additionalJOptions>
                             <windowtitle>AWS SDK for Java - ${awsjavasdk.version}</windowtitle>
                             <encoding>UTF-8</encoding>
                             <docencoding>UTF-8</docencoding>
@@ -1162,9 +1165,25 @@
                                     <packages>software.amazon.awssdk*</packages>
                                 </group>
                             </groups>
-                            <header><![CDATA[<h1>AWS SDK for Java API Reference - ${project.version}</h1>]]></header>
-                            <footer><![CDATA[&nbsp;]]></footer>
-                            <bottom><![CDATA[<h2 style="float:left;padding-left:8px;clear:both;">Copyright &#169; ${maven.build.timestamp} Amazon Web Services, Inc. All Rights Reserved.</h2>]]></bottom>
+                            <header><![CDATA[<h2>AWS SDK for Java API Reference - ${project.version}</h2>]]></header>
+                            <footer><![CDATA[
+                            <div style="margin:1.2em;"><a id="fdbk" target="_blank">Provide feedback</a></div>
+                            ]]>
+                            </footer>
+                            <bottom><![CDATA[
+                              <span id="awsdocs-legal-zone-copyright"></span>
+                              <script type="text/javascript">document.addEventListener("DOMContentLoaded",()=>{
+                                var a=document.createElement("meta"),b=document.createElement("meta"),c=document.createElement("script"),
+                                h=document.getElementsByTagName("head")[0],l=location.href,f=document.getElementById("fdbk");
+                                a.name="guide-name",a.content="API Reference";b.name="service-name",b.content="AWS SDK for Java";
+                                c.setAttribute("type","text/javascript"),c.setAttribute("src",
+                                "https://docs.aws.amazon.com/assets/js/awsdocs-boot.js");h.appendChild(a);h.appendChild(b);
+                                h.appendChild(c);f.setAttribute("href",
+                                "https://docs-feedback.aws.amazon.com/feedback.jsp?hidden_service_name="+
+                                encodeURI("AWS SDK for Java")+"&topic_url="+encodeURI(l))});
+                              </script>
+                              ]]>
+                            </bottom>
                         </configuration>
                     </plugin>
                 </plugins>
