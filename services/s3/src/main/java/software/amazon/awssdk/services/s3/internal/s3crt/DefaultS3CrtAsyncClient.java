@@ -13,23 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal;
+package software.amazon.awssdk.services.s3.internal.s3crt;
 
 
-import static software.amazon.awssdk.services.s3.internal.S3CrtUtils.createCrtCredentialsProvider;
+import static software.amazon.awssdk.services.s3.internal.s3crt.S3CrtUtils.createCrtCredentialsProvider;
 
 import com.amazonaws.s3.RequestDataSupplier;
 import com.amazonaws.s3.S3NativeClient;
+import com.amazonaws.s3.model.PutObjectOutput;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import com.amazonaws.s3.model.PutObjectOutput;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.services.s3.internal.s3crt.RequestDataSupplierAdapter;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 

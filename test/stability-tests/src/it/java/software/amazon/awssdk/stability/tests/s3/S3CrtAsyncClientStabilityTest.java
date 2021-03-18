@@ -63,7 +63,13 @@ public class S3CrtAsyncClientStabilityTest extends S3BaseStabilityTest {
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void largeObject_put_get_usingFile() {
-        //TODO: add upload once upload and download code is merged
+        uploadLargeObjectFromFile();
         downloadLargeObjectToFile();
+    }
+
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void putObject_getObject_highConcurrency() {
+        putObject();
+        getObject();
     }
 }

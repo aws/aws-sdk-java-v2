@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal;
+package software.amazon.awssdk.services.s3.internal.s3crt;
 
 
 import software.amazon.awssdk.annotations.SdkInternalApi;

@@ -16,9 +16,9 @@ import java.time.Duration;
 /**
  * Stability tests for {@link S3AsyncClient} using {@link AwsCrtAsyncHttpClient}
  */
-public class S3CrtAsyncStabilityTest extends S3BaseStabilityTest {
+public class S3WithCrtAsyncHttpClientStabilityTest extends S3BaseStabilityTest {
 
-    private static String bucketName = "s3crtasyncstabilitytests" + System.currentTimeMillis();
+    private static String bucketName = "s3withcrtasyncclientstabilitytests" + System.currentTimeMillis();
 
     private static S3AsyncClient s3CrtClient;
 

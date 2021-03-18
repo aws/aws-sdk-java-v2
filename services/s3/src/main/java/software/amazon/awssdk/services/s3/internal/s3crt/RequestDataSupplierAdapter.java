@@ -36,11 +36,11 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class RequestDataSupplierAdapter implements RequestDataSupplier {
+    static final long DEFAULT_REQUEST_SIZE = 8;
     private static final Logger LOG = Logger.loggerFor(RequestDataSupplierAdapter.class);
 
-    static final long DEFAULT_REQUEST_SIZE = 8;
-
-    private final AtomicReference<SubscriptionStatus> subscriptionStatus = new AtomicReference<>(SubscriptionStatus.NOT_SUBSCRIBED);
+    private final AtomicReference<SubscriptionStatus> subscriptionStatus =
+        new AtomicReference<>(SubscriptionStatus.NOT_SUBSCRIBED);
     private final BlockingQueue<Subscription> subscriptionQueue = new LinkedBlockingQueue<>(1);
     private final BlockingDeque<Event> eventBuffer = new LinkedBlockingDeque<>();
 
@@ -189,7 +189,7 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
         private final Deque<Event> eventBuffer;
         private boolean subscribed = false;
 
-        public SubscriberImpl(Consumer<Subscription> subscriptionSetter, Deque<Event> eventBuffer) {
+        SubscriberImpl(Consumer<Subscription> subscriptionSetter, Deque<Event> eventBuffer) {
             this.subscriptionSetter = subscriptionSetter;
             this.eventBuffer = eventBuffer;
         }
@@ -258,22 +258,23 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
         ERROR
     }
 
-    private interface Event {
-        Subscriber subscriber();
+    interface Event {
+        Subscriber<? super ByteBuffer> subscriber();
+
         EventType type();
     }
 
-    private static class DataEvent implements Event {
-        private final Subscriber subscriber;
+    private static final class DataEvent implements Event {
+        private final Subscriber<? super ByteBuffer> subscriber;
         private final ByteBuffer data;
 
-        public DataEvent(Subscriber subscriber, ByteBuffer data) {
+        DataEvent(Subscriber<? super ByteBuffer> subscriber, ByteBuffer data) {
             this.subscriber = subscriber;
             this.data = data;
         }
 
         @Override
-        public Subscriber subscriber() {
+        public Subscriber<? super ByteBuffer> subscriber() {
             return subscriber;
         }
 
@@ -282,20 +283,20 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
             return EventType.DATA;
         }
 
-        public final ByteBuffer data() {
+        public ByteBuffer data() {
             return data;
         }
     }
 
-    private static class CompleteEvent implements Event {
-        private final Subscriber subscriber;
+    private static final class CompleteEvent implements Event {
+        private final Subscriber<? super ByteBuffer> subscriber;
 
-        public CompleteEvent(Subscriber subscriber) {
+        CompleteEvent(Subscriber<? super ByteBuffer> subscriber) {
             this.subscriber = subscriber;
         }
 
         @Override
-        public Subscriber subscriber() {
+        public Subscriber<? super ByteBuffer> subscriber() {
             return subscriber;
         }
 
@@ -305,17 +306,17 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
         }
     }
 
-    private static class ErrorEvent implements Event {
-        private final Subscriber subscriber;
+    private static final class ErrorEvent implements Event {
+        private final Subscriber<? super ByteBuffer> subscriber;
         private final Throwable error;
 
-        public ErrorEvent(Subscriber subscriber, Throwable error) {
+        ErrorEvent(Subscriber<? super ByteBuffer> subscriber, Throwable error) {
             this.subscriber = subscriber;
             this.error = error;
         }
 
         @Override
-        public Subscriber subscriber() {
+        public Subscriber<? super ByteBuffer> subscriber() {
             return subscriber;
         }
 
@@ -324,7 +325,7 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
             return EventType.ERROR;
         }
 
-        public final Throwable error() {
+        public Throwable error() {
             return error;
         }
     }

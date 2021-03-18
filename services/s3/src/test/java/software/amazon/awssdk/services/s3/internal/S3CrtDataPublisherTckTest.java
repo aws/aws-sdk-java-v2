@@ -20,6 +20,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.TestEnvironment;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
+import software.amazon.awssdk.services.s3.internal.s3crt.S3CrtDataPublisher;
 
 /**
  * TCK verification test for {@link FileAsyncRequestBody}.

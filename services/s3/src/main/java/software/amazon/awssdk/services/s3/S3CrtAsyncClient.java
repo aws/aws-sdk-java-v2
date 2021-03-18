@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.s3.internal.DefaultS3CrtClientBuilder;
+import software.amazon.awssdk.services.s3.internal.s3crt.DefaultS3CrtClientBuilder;
 
 /**
  * Service client for accessing Amazon S3 asynchronously using the AWS Common Runtime S3 client. This can be created using the
