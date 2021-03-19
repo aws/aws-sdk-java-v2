@@ -1,0 +1,18 @@
+{
+    "version": "2.16.23",
+    "date": "2021-03-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Adding authentication support for pulling images stored in private Docker registries to build containers for real-time inference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "X2gd instances are the next generation of memory-optimized instances powered by AWS-designed, Arm-based AWS Graviton2 processors."
+        }
+    ]
+}
