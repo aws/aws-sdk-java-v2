@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Adding authentication support for pulling images stored in private Docker registries to build containers for real-time inference."
+}
