@@ -24,6 +24,7 @@ import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUt
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.removeFipsIfNeeded;
 
 import java.net.URI;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -34,6 +35,8 @@ import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointBuilder;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
+import software.amazon.awssdk.services.s3.internal.resource.S3ObjectLambdaEndpointBuilder;
+import software.amazon.awssdk.services.s3.internal.resource.S3ObjectLambdaResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostAccessPointBuilder;
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
@@ -48,6 +51,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
     private static final String S3_OUTPOSTS_NAME = "s3-outposts";
+    private static final String S3_OBJECT_LAMBDA_NAME = "s3-object-lambda";
 
     private S3AccessPointEndpointResolver() {
     }
@@ -85,8 +89,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                             .build();
 
         String signingServiceModification = s3EndpointResource.parentS3Resource()
-                                                              .filter(r -> r instanceof S3OutpostResource)
-                                                              .map(ignore -> S3_OUTPOSTS_NAME)
+                                                              .flatMap(S3AccessPointEndpointResolver::resolveSigningService)
                                                               .orElse(null);
 
         return ConfiguredS3SdkHttpRequest.builder()
@@ -175,6 +178,8 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         if (isOutpostAccessPoint(s3EndpointResource)) {
             return getOutpostAccessPointUri(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
+        } else if (isObjectLambdaAccessPoint(s3EndpointResource)) {
+            return getObjectLambdaAccessPointUri(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
         }
 
         boolean dualstackEnabled = isDualstackEnabled(context.serviceConfiguration());
@@ -194,6 +199,10 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
     private boolean isOutpostAccessPoint(S3AccessPointResource s3EndpointResource) {
         return s3EndpointResource.parentS3Resource().filter(r -> r instanceof S3OutpostResource).isPresent();
+    }
+
+    private boolean isObjectLambdaAccessPoint(S3AccessPointResource s3EndpointResource) {
+        return s3EndpointResource.parentS3Resource().filter(r -> r instanceof S3ObjectLambdaResource).isPresent();
     }
 
     private URI getOutpostAccessPointUri(S3EndpointResolverContext context, String arnRegion,
@@ -221,4 +230,35 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                           .toUri();
     }
 
+    private URI getObjectLambdaAccessPointUri(S3EndpointResolverContext context, String arnRegion,
+                                              PartitionMetadata clientPartitionMetadata,
+                                              S3AccessPointResource s3EndpointResource) {
+        if (isDualstackEnabled(context.serviceConfiguration())) {
+            throw new IllegalArgumentException("An Object Lambda Access Point ARN cannot be passed as a bucket parameter to "
+                                               + "an S3 operation if the S3 client has been configured with dualstack.");
+        }
+
+        return S3ObjectLambdaEndpointBuilder.create()
+                                            .endpointOverride(context.endpointOverride())
+                                            .accountId(s3EndpointResource.accountId().get())
+                                            .region(arnRegion)
+                                            .accessPointName(s3EndpointResource.accessPointName())
+                                            .protocol(context.request().protocol())
+                                            .fipsEnabled(isFipsRegion(context.region().toString()))
+                                            .dualstackEnabled(isDualstackEnabled(context.serviceConfiguration()))
+                                            .domain(clientPartitionMetadata.dnsSuffix())
+                                            .toUri();
+    }
+
+    private static Optional<String> resolveSigningService(S3Resource resource) {
+        if (resource instanceof S3OutpostResource) {
+            return Optional.of(S3_OUTPOSTS_NAME);
+        }
+
+        if (resource instanceof S3ObjectLambdaResource) {
+            return Optional.of(S3_OBJECT_LAMBDA_NAME);
+        }
+
+        return Optional.empty();
+    }
 }

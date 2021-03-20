@@ -33,6 +33,7 @@ public final class S3EndpointResolverContext {
     private final Region region;
     private final S3Configuration serviceConfiguration;
     private final URI endpointOverride;
+    private final boolean disableHostPrefixInjection;
 
     private S3EndpointResolverContext(Builder builder) {
         this.request = builder.request;
@@ -40,6 +41,7 @@ public final class S3EndpointResolverContext {
         this.region = builder.region;
         this.serviceConfiguration = builder.serviceConfiguration;
         this.endpointOverride = builder.endpointOverride;
+        this.disableHostPrefixInjection = builder.disableHostPrefixInjection;
     }
 
     public static Builder builder() {
@@ -66,6 +68,9 @@ public final class S3EndpointResolverContext {
         return endpointOverride;
     }
 
+    public boolean isDisableHostPrefixInjection() {
+        return disableHostPrefixInjection;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -80,7 +85,8 @@ public final class S3EndpointResolverContext {
                Objects.equals(request, that.request) &&
                Objects.equals(originalRequest, that.originalRequest) &&
                Objects.equals(region, that.region) &&
-               Objects.equals(serviceConfiguration, that.serviceConfiguration);
+               Objects.equals(serviceConfiguration, that.serviceConfiguration) &&
+               Objects.equals(disableHostPrefixInjection, that.disableHostPrefixInjection);
     }
 
     @Override
@@ -91,6 +97,7 @@ public final class S3EndpointResolverContext {
         hashCode = 31 * hashCode + Objects.hashCode(region());
         hashCode = 31 * hashCode + Objects.hashCode(serviceConfiguration());
         hashCode = 31 * hashCode + Objects.hashCode(endpointOverride());
+        hashCode = 31 * hashCode + Objects.hashCode(isDisableHostPrefixInjection());
         return hashCode;
     }
 
@@ -108,6 +115,7 @@ public final class S3EndpointResolverContext {
         private Region region;
         private S3Configuration serviceConfiguration;
         private URI endpointOverride;
+        private boolean disableHostPrefixInjection;
 
         private Builder() {
         }
@@ -134,6 +142,11 @@ public final class S3EndpointResolverContext {
 
         public Builder endpointOverride(URI endpointOverride) {
             this.endpointOverride = endpointOverride;
+            return this;
+        }
+
+        public Builder disableHostPrefixInjection(boolean disableHostPrefixInjection) {
+            this.disableHostPrefixInjection = disableHostPrefixInjection;
             return this;
         }
 
