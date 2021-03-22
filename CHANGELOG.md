@@ -1,3 +1,33 @@
+# __2.16.24__ __2021-03-22__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Use HTTPs for AWS API Documentation links in javadocs
+        - Contributed by: [@Carey-AWS](https://github.com/Carey-AWS)
+
+  - ### Documentations
+    - Implements web metrics tracking and standard AWS footer for javadocs, and adds a link to submit feedback about the javadocs
+        - Contributed by: [@Carey-AWS](https://github.com/Carey-AWS)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for UEFI boot on selected AMD- and Intel-based EC2 instances.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API adds support for publishing sensitive data findings to AWS Security Hub and specifying which categories of findings to publish to Security Hub.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support to enable AQUA in Amazon Redshift clusters.
+
+## __CodeArtifact__
+  - ### Features
+    - Documentation updates for CodeArtifact
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Carey-AWS](https://github.com/Carey-AWS)
 # __2.16.23__ __2021-03-19__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
