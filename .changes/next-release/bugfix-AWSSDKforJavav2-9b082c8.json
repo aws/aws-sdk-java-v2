@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "Carey-AWS",
-    "description": "Use HTTPs for AWS API Documentation links in javadocs"
-}

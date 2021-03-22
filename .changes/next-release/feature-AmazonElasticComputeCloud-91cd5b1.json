@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "This release adds support for UEFI boot on selected AMD- and Intel-based EC2 instances."
-}
