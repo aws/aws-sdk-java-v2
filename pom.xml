@@ -513,7 +513,7 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
-                            <exclude>software.amazon.awssdk.services.mediatailor.*</exclude>>
+                            <exclude>software.amazon.awssdk.services.redshift.model.*</exclude>
                         </excludes>
 
                         <excludeModules>
