@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Fault Injection Simulator",
-    "contributor": "",
-    "description": "Updated maximum allowed size of action parameter from 64 to 1024"
-}
