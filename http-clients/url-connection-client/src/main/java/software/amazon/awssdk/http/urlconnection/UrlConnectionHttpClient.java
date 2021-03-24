@@ -372,7 +372,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
         @Override
         public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-            log.debug(() -> "Accepting a client certificate: " + x509Certificates[0].getSubjectDN());
+            log.debug(() -> "Accepting a server certificate: " + x509Certificates[0].getSubjectDN());
         }
 
         @Override

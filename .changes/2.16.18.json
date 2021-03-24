@@ -1,0 +1,24 @@
+{
+    "version": "2.16.18",
+    "date": "2021-03-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Adds API support for WorkSpaces bundle management operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost and Usage Report Service",
+            "contributor": "",
+            "description": "- Added optional billingViewArn field for OSG."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "MediaTailor channel assembly is a new manifest-only service that allows you to assemble linear streams using your existing VOD content."
+        }
+    ]
+}

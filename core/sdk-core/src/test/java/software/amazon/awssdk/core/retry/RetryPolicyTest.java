@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.retry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
 import org.junit.Assert;
@@ -80,6 +81,19 @@ public class RetryPolicyTest {
         assertThat(noneRetry.numRetries()).isZero();
         assertThat(noneRetry.backoffStrategy()).isEqualTo(BackoffStrategy.none());
         assertThat(noneRetry.throttlingBackoffStrategy()).isEqualTo(BackoffStrategy.none());
+    }
+
+    @Test
+    public void nonRetryMode_shouldUseDefaultRetryMode() {
+        RetryPolicy policy = RetryPolicy.builder().build();
+        assertThat(policy.retryMode().toString()).isEqualTo("LEGACY");
+    }
+
+    @Test
+    public void nullRetryMode_shouldThrowNullPointerException() {
+        assertThatThrownBy(() -> RetryPolicy.builder(null).build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("retry mode cannot be set as null");
     }
 
     @Test

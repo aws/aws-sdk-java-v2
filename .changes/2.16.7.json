@@ -1,0 +1,42 @@
+{
+    "version": "2.16.7",
+    "date": "2021-02-25",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix for module-path tests failure reported in [#2240](https://github.com/aws/aws-sdk-java-v2/issues/2240)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Detective",
+            "contributor": "",
+            "description": "Changed \"master account\" to \"administrator account.\" A new AdministratorId field replaces the deprecated MasterId field. Added an option to disable email notifications for member account invitations."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "This release introduces a new API (ListImagePackages) for listing packages installed on an image, and adds support for GP3 volume types, and for specifying a time zone in an image pipeline schedule."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Corrected the upper limit for TestIdentityProvider input lengths to 1024 characters"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "Documentation updates for Lightsail"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue DataBrew",
+            "contributor": "",
+            "description": "This SDK release adds two new dataset features: 1) support for specifying the file format for a dataset, and 2) support for specifying whether the first row of a CSV or Excel file contains a header."
+        }
+    ]
+}

@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.retry.conditions.MaxNumberOfRetriesCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 import software.amazon.awssdk.core.retry.conditions.TokenBucketRetryCondition;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -103,6 +104,9 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
      * Create a {@link RetryPolicy.Builder} populated with the defaults from the provided {@link RetryMode}.
      */
     public static Builder builder(RetryMode retryMode) {
+        Validate.paramNotNull(retryMode, "The retry mode cannot be set as null. If you don't want to set the retry mode,"
+                                    + " please use the other builder method without setting retry mode, and the default retry"
+                                    + " mode will be used.");
         return new BuilderImpl(retryMode);
     }
 
