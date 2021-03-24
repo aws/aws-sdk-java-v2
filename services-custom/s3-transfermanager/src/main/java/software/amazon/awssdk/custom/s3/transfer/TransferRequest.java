@@ -37,21 +37,22 @@ public interface TransferRequest {
      */
     String key();
 
-
-    interface Builder {
+    interface Builder<TypeToBuildT, BuilderT extends Builder> {
 
         /**
          * The bucket name containing the object.
          *
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder bucket(String bucket);
+        BuilderT bucket(String bucket);
 
         /**
          * The Key of the object to transfer.
          *
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder key(String key);
+        BuilderT key(String key);
+
+        TypeToBuildT build();
     }
 }

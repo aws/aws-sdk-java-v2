@@ -27,4 +27,7 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 @SdkPublicApi
 public interface S3CrtAsyncClientBuilder extends AwsClientBuilder<S3CrtAsyncClientBuilder, S3CrtAsyncClient> {
 
+    S3CrtAsyncClientBuilder partSizeBytes(long partSizeBytes);
+
+    S3CrtAsyncClientBuilder maxThroughputGbps(double maxThroughputGbps);
 }

@@ -15,22 +15,31 @@
 
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
+import java.util.ArrayList;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.custom.s3.transfer.S3TransferManager;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
 public final class DefaultS3TransferManager implements S3TransferManager {
     private final S3CrtAsyncClient s3CrtAsyncClient;
+    private final List<SdkAutoCloseable> closables = new ArrayList<>();
 
     public DefaultS3TransferManager(DefaultBuilder builder) {
-        //TODO: create a managed S3CrtAsyncClient if it's not provided
-        this.s3CrtAsyncClient = builder.s3CrtAsyncClient;
+        if (builder.s3CrtAsyncClient == null) {
+            s3CrtAsyncClient = S3CrtAsyncClient.builder()
+                                               .build();
+            closables.add(s3CrtAsyncClient);
+        } else {
+            s3CrtAsyncClient = builder.s3CrtAsyncClient;
+        }
     }
 
     @Override
     public void close() {
-        s3CrtAsyncClient.close();
+        closables.forEach(SdkAutoCloseable::close);
     }
 
     public static Builder builder() {

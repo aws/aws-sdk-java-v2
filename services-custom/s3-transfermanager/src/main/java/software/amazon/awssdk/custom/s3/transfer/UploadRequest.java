@@ -64,7 +64,7 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
     }
 
 
-    public interface Builder extends TransferRequest.Builder, CopyableBuilder<Builder, UploadRequest> {
+    public interface Builder extends TransferRequest.Builder<UploadRequest, Builder>, CopyableBuilder<Builder, UploadRequest> {
 
         /**
          * The {@link Path} to file containing data to send to the service. File will be read entirely and may be read

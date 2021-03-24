@@ -77,11 +77,13 @@ public final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder 
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public S3CrtAsyncClientBuilder partSizeBytes(long partSizeBytes) {
         this.partSizeBytes = partSizeBytes;
         return this;
     }
 
+    @Override
     public S3CrtAsyncClientBuilder maxThroughputGbps(double maxThroughputGbps) {
         this.maxThroughputGbps = maxThroughputGbps;
         return this;
