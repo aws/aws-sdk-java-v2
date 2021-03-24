@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "maximumEfaInterfaces added to DescribeInstanceTypes API"
+}
