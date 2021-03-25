@@ -1,3 +1,35 @@
+# __2.16.27__ __2021-03-25__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - EML now supports handling HDR10 and HLG 2020 color space from a Link input.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Removing Freemarker version 2.3.24 since this package is not used in the code.
+
+## __Alexa For Business__
+  - ### Features
+    - Added support for enabling and disabling data retention in the CreateProfile and UpdateProfile APIs and retrieving the state of data retention for a profile in the GetProfile API.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Amazon Lookout for Metrics is now generally available. You can use Lookout for Metrics to monitor your data for anomalies. For more information, see the Amazon Lookout for Metrics Developer Guide.
+
+## __Amazon Rekognition__
+  - ### Features
+    - "This release introduces AWS tagging support for Amazon Rekognition collections, stream processors, and Custom Label models."
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This feature allows customer to specify the environment variables in their CreateTrainingJob requests.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation updates for Amazon SQS
+
 # __2.16.26__ __2021-03-24__
 ## __AWS Greengrass__
   - ### Features
