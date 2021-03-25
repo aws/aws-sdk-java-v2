@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Rekognition",
+    "contributor": "",
+    "description": "\"This release introduces AWS tagging support for Amazon Rekognition collections, stream processors, and Custom Label models.\""
+}
