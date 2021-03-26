@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Customer Profiles",
+    "contributor": "",
+    "description": "This release adds an optional parameter named FlowDefinition in PutIntegrationRequest."
+}
