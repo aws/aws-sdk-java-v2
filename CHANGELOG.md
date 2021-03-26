@@ -1,3 +1,28 @@
+# __2.16.29__ __2021-03-26__
+## __AWS IoT Wireless__
+  - ### Features
+    - Support tag-on-create for WirelessDevice.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Add support for SageMaker Model Builder Pipelines Targets to EventBridge
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release adds an optional parameter named FlowDefinition in PutIntegrationRequest.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Add support for SageMaker Model Builder Pipelines Targets to EventBridge
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports tagging words that match your vocabulary filter for batch transcription.
+
 # __2.16.28__ __2021-03-25__
 ## __Amazon Lookout for Metrics__
   - ### Features
