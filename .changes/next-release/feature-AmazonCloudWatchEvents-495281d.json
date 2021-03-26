@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Events",
+    "contributor": "",
+    "description": "Add support for SageMaker Model Builder Pipelines Targets to EventBridge"
+}
