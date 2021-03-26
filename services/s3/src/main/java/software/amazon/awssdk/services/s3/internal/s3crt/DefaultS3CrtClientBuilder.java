@@ -28,8 +28,8 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 public final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
     private AwsCredentialsProvider credentialsProvider;
     private Region region;
-    private long partSizeBytes;
-    private double maxThroughputGbps;
+    private Long partSizeBytes;
+    private Double maxThroughputGbps;
 
     public AwsCredentialsProvider credentialsProvider() {
         return credentialsProvider;
@@ -39,11 +39,11 @@ public final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder 
         return region;
     }
 
-    public long partSizeBytes() {
+    public Long partSizeBytes() {
         return partSizeBytes;
     }
 
-    public double maxThroughputGbps() {
+    public Double maxThroughputGbps() {
         return maxThroughputGbps;
     }
 
@@ -78,13 +78,13 @@ public final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder 
     }
 
     @Override
-    public S3CrtAsyncClientBuilder partSizeBytes(long partSizeBytes) {
+    public S3CrtAsyncClientBuilder partSizeBytes(Long partSizeBytes) {
         this.partSizeBytes = partSizeBytes;
         return this;
     }
 
     @Override
-    public S3CrtAsyncClientBuilder maxThroughputGbps(double maxThroughputGbps) {
+    public S3CrtAsyncClientBuilder maxThroughputGbps(Double maxThroughputGbps) {
         this.maxThroughputGbps = maxThroughputGbps;
         return this;
     }
