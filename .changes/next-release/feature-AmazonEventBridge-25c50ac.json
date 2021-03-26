@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EventBridge",
+    "contributor": "",
+    "description": "Add support for SageMaker Model Builder Pipelines Targets to EventBridge"
+}
