@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lookout for Metrics",
-    "contributor": "",
-    "description": "Allowing uppercase alphabets for RDS and Redshift database names."
-}

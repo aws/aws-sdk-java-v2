@@ -1,3 +1,8 @@
+# __2.16.28__ __2021-03-25__
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Allowing uppercase alphabets for RDS and Redshift database names.
+
 # __2.16.27__ __2021-03-25__
 ## __AWS Elemental MediaLive__
   - ### Features
