@@ -1,6 +1,0 @@
-{
-    "category": "Amazon DynamoDB",
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Change STANDARD mode retry count which was 2 for DynamoDB to match LEGACY retry count which is 8."
-}
