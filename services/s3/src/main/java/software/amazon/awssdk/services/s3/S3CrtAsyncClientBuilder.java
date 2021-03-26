@@ -15,9 +15,14 @@
 
 package software.amazon.awssdk.services.s3;
 
+import java.net.URI;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * A builder for creating an instance of {@link S3CrtAsyncClient}. This can be created with the static
@@ -26,8 +31,25 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 @SdkPreviewApi
 @SdkPublicApi
 public interface S3CrtAsyncClientBuilder extends AwsClientBuilder<S3CrtAsyncClientBuilder, S3CrtAsyncClient> {
+    @Override
+    S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider);
 
-    S3CrtAsyncClientBuilder partSizeBytes(long partSizeBytes);
+    @Override
+    S3CrtAsyncClientBuilder region(Region region);
 
-    S3CrtAsyncClientBuilder maxThroughputGbps(double maxThroughputGbps);
+    @Override
+    S3CrtAsyncClientBuilder overrideConfiguration(ClientOverrideConfiguration overrideConfiguration);
+
+    @Override
+    S3CrtAsyncClientBuilder overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> overrideConfiguration);
+
+    @Override
+    S3CrtAsyncClientBuilder endpointOverride(URI endpointOverride);
+
+    S3CrtAsyncClientBuilder partSizeBytes(Long partSizeBytes);
+
+    S3CrtAsyncClientBuilder maxThroughputGbps(Double maxThroughputGbps);
+
+    @Override
+    S3CrtAsyncClient build();
 }

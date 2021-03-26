@@ -25,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -38,15 +37,25 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     private final S3NativeClientConfiguration configuration;
 
     public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
-        CredentialsProvider credentialsProvider =  builder.credentialsProvider() == null ? null :
-                                                   createCrtCredentialsProvider(builder.credentialsProvider());
+        S3NativeClientConfiguration.Builder configBuilder = S3NativeClientConfiguration.builder();
 
-        this.configuration = S3NativeClientConfiguration.builder()
-                                                        .credentialsProvider(credentialsProvider)
-                                                        .signingRegion(builder.region() == null ? null : builder.region().id())
-                                                        .partSizeBytes(builder.partSizeBytes())
-                                                        .maxThroughputGbps(builder.maxThroughputGbps())
-                                                        .build();
+        if (builder.region() != null) {
+            configBuilder.signingRegion(builder.region().id());
+        }
+
+        if (builder.credentialsProvider() != null) {
+            configBuilder.credentialsProvider(createCrtCredentialsProvider(builder.credentialsProvider()));
+        }
+
+        if (builder.maxThroughputGbps() != null) {
+            configBuilder.maxThroughputGbps(builder.maxThroughputGbps());
+        }
+
+        if (builder.partSizeBytes() != null) {
+            configBuilder.partSizeBytes(builder.partSizeBytes());
+        }
+
+        configuration = configBuilder.build();
 
         this.s3NativeClient = new S3NativeClient(configuration.signingRegion(),
                                                  configuration.clientBootstrap(),
