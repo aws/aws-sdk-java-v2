@@ -17,9 +17,16 @@ package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.custom.s3.transfer.CompletedUpload;
 import software.amazon.awssdk.custom.s3.transfer.S3TransferManager;
+import software.amazon.awssdk.custom.s3.transfer.Upload;
+import software.amazon.awssdk.custom.s3.transfer.UploadRequest;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
@@ -38,12 +45,28 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     }
 
     @Override
+    public Upload upload(UploadRequest uploadRequest) {
+        PutObjectRequest putObjectRequest = uploadRequest.toApiRequest();
+        AsyncRequestBody requestBody = requestBodyFor(uploadRequest);
+
+        CompletableFuture<PutObjectResponse> putObjFuture = s3CrtAsyncClient.putObject(putObjectRequest, requestBody);
+
+        return new DefaultUpload(putObjFuture.thenApply(r -> CompletedUpload.builder()
+                .response(r)
+                .build()));
+    }
+
+    @Override
     public void close() {
         closables.forEach(SdkAutoCloseable::close);
     }
 
     public static Builder builder() {
         return new DefaultBuilder();
+    }
+
+    private AsyncRequestBody requestBodyFor(UploadRequest uploadRequest) {
+        return AsyncRequestBody.fromFile(uploadRequest.source());
     }
 
     private static class DefaultBuilder implements S3TransferManager.Builder {

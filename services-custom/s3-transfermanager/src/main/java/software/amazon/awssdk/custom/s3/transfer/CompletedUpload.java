@@ -16,10 +16,23 @@
 package software.amazon.awssdk.custom.s3.transfer;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.custom.s3.transfer.internal.DefaultCompletedUpload;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 /**
  * A completed upload transfer.
  */
 @SdkPublicApi
 public interface CompletedUpload extends CompletedTransfer {
+    PutObjectResponse response();
+
+    static Builder builder() {
+        return new DefaultCompletedUpload.BuilderImpl();
+    }
+
+    interface Builder {
+        Builder response(PutObjectResponse response);
+
+        CompletedUpload build();
+    }
 }
