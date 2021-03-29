@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixes a bug in issue [#2310](https://github.com/aws/aws-sdk-java-v2/issues/2310) where nested attributes aren't sanitized properly for projection expressions."
+}

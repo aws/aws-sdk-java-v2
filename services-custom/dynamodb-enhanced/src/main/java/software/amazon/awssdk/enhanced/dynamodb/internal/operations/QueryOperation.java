@@ -26,7 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
-import software.amazon.awssdk.enhanced.dynamodb.internal.ProjectionExpressionConvertor;
+import software.amazon.awssdk.enhanced.dynamodb.internal.ProjectionExpression;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -62,13 +62,12 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
             expressionNames = Expression.joinNames(expressionNames, this.request.filterExpression().expressionNames());
         }
 
-        ProjectionExpressionConvertor attributeToProject =
-                ProjectionExpressionConvertor.create(this.request.nestedAttributesToProject());
-        Map<String, String> projectionNameMap = attributeToProject.convertToExpressionMap();
-        if (!projectionNameMap.isEmpty()) {
-            expressionNames = Expression.joinNames(expressionNames, projectionNameMap);
+        String projectionExpressionAsString = null;
+        if (this.request.attributesToProject() != null) {
+            ProjectionExpression attributesToProject = ProjectionExpression.create(this.request.nestedAttributesToProject());
+            projectionExpressionAsString = attributesToProject.projectionExpressionAsString().orElse(null);
+            expressionNames = Expression.joinNames(expressionNames, attributesToProject.expressionAttributeNames());
         }
-        String projectionExpression = attributeToProject.convertToProjectionExpression().orElse(null);
 
         QueryRequest.Builder queryRequest = QueryRequest.builder()
                                                         .tableName(operationContext.tableName())
@@ -79,7 +78,7 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
                                                         .limit(this.request.limit())
                                                         .exclusiveStartKey(this.request.exclusiveStartKey())
                                                         .consistentRead(this.request.consistentRead())
-                                                        .projectionExpression(projectionExpression);
+                                                        .projectionExpression(projectionExpressionAsString);
 
         if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
             queryRequest = queryRequest.indexName(operationContext.indexName());

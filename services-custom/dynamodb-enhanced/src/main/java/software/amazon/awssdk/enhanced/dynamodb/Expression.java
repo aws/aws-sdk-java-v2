@@ -152,11 +152,11 @@ public final class Expression {
      */
     public static Map<String, String> joinNames(Map<String, String> expressionNames1,
                                                 Map<String, String> expressionNames2) {
-        if (expressionNames1 == null) {
+        if (expressionNames1 == null || expressionNames1.isEmpty()) {
             return expressionNames2;
         }
 
-        if (expressionNames2 == null) {
+        if (expressionNames2 == null || expressionNames2.isEmpty()) {
             return expressionNames1;
         }
 

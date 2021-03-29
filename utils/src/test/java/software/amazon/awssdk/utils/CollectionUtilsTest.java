@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,7 +29,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import org.junit.Test;
 
@@ -76,6 +74,29 @@ public class CollectionUtilsTest {
     @Test
     public void firstIfPresent_FirstElementNull_ReturnsNull() {
         assertThat(CollectionUtils.firstIfPresent(Arrays.asList(null, "bar", "baz"))).isNull();
+    }
+
+    @Test
+    public void inverseMap_EmptyList_ReturnsNull() {
+        Map<String, String> map = Collections.emptyMap();
+        assertThat(CollectionUtils.inverseMap(map)).isEmpty();
+    }
+
+    @Test
+    public void inverseMap_SingleElementList_InversesKeyAndValue() {
+        assertThat(CollectionUtils.inverseMap(Collections.singletonMap("foo", "bar")).get("bar")).isEqualTo("foo");
+    }
+
+    @Test
+    public void inverseMap_MultipleElementList_InversesKeyAndValue() {
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        map.put("key3", "value3");
+        Map<String, String> inverseMap = CollectionUtils.inverseMap(map);
+        assertThat(inverseMap.get("value1")).isEqualTo("key1");
+        assertThat(inverseMap.get("value2")).isEqualTo("key2");
+        assertThat(inverseMap.get("value3")).isEqualTo("key3");
     }
 
     @Test
