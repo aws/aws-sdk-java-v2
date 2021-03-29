@@ -13,21 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.custom.s3.transfer;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+package software.amazon.awssdk.s3benchmarks;
 
 /**
- * A completed download transfer.
+ * Factory to create the benchmark
  */
-@SdkPublicApi
-public interface CompletedDownload extends CompletedTransfer {
+@FunctionalInterface
+public interface TransferManagerBenchmark {
 
     /**
-     * Returns the API response from the {@link S3CrtAsyncClient#getObject}
-     * @return the response
+     * The benchmark method to run
      */
-    GetObjectResponse response();
+    void run();
+
+    static TransferManagerBenchmark download(TransferManagerBenchmarkConfig config) {
+        return new TransferManagerDownloadBenchmark(config);
+    }
+
+    static TransferManagerBenchmark upload(TransferManagerBenchmarkConfig config) {
+        return new TransferManagerUploadBenchmark(config);
+    }
+
 }
