@@ -38,17 +38,17 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Examples:
  * <ul>
  *     <li>{@code Instant.EPOCH.plusSeconds(1)} is stored as
- *     an AttributeValue with the String "1970-01-01T00:00:01Z"}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:01Z"</li>
  *     <li>{@code Instant.EPOCH.minusSeconds(1)} is stored as
- *     an AttributeValue with the String "1969-12-31T23:59:59Z"}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59Z"</li>
  *     <li>{@code Instant.EPOCH.plusMillis(1)} is stored as
- *     an AttributeValue with the String "1970-01-01T00:00:00.001Z"}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:00.001Z"</li>
  *     <li>{@code Instant.EPOCH.minusMillis(1)} is stored as
- *     an AttributeValue with the String "1969-12-31T23:59:59.999Z"}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59.999Z"</li>
  *     <li>{@code Instant.EPOCH.plusNanos(1)} is stored as
- *     an AttributeValue with the String "1970-01-01T00:00:00.000000001Z"}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:00.000000001Z"</li>
  *     <li>{@code Instant.EPOCH.minusNanos(1)} is stored as
- *     an AttributeValue with the String "1969-12-31T23:59:59.999999999Z"}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59.999999999Z"</li>
  * </ul>
  * See {@link Instant} for more details on the serialization format.
  * <p>
