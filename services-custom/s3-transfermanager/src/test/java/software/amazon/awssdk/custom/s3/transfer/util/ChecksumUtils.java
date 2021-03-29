@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.utils;
+package software.amazon.awssdk.custom.s3.transfer.util;
 
 import java.io.IOException;
 import java.io.InputStream;
