@@ -216,6 +216,11 @@
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <artifactId>s3-transfermanager</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}-PREVIEW</version>
+        </dependency>
     </dependencies>
 
     <build>

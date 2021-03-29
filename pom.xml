@@ -79,6 +79,7 @@
         <module>test/tests-coverage-reporting</module>
         <module>test/stability-tests</module>
         <module>test/sdk-native-image-test</module>
+        <module>test/s3-benchmarks</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
@@ -530,6 +531,7 @@
                             <excludeModule>archetype-tools</excludeModule>
                             <excludeModule>sdk-benchmarks</excludeModule>
                             <excludeModule>bundle</excludeModule>
+                            <excludeModule>s3-benchmarks</excludeModule>
                             <!-- ignore crt because it's in preview TODO: remove this when CRT is GA -->
                             <excludModeule>aws-crt-client</excludModeule>
                             <excludModeule>s3-transfermanager</excludModeule>

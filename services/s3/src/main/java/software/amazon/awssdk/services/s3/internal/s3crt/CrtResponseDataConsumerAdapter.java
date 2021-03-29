@@ -26,6 +26,7 @@ import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -67,7 +68,10 @@ public final class CrtResponseDataConsumerAdapter<ReturnT> implements ResponseDa
     @Override
     public void onResponseData(ByteBuffer byteBuffer) {
         log.debug(() -> "Received data of size " + byteBuffer.remaining());
-        publisher.deliverData(byteBuffer);
+
+        // Need to make a copy because the incoming byteBuffer might get released soon
+        ByteBuffer newByteBuffer = ByteBuffer.wrap(BinaryUtils.copyAllBytesFrom(byteBuffer));
+        publisher.deliverData(newByteBuffer);
     }
 
     @Override

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.custom.s3.transfer.util;
+package software.amazon.awssdk.custom.s3.transfer;
 
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;

@@ -20,11 +20,15 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.custom.s3.transfer.CompletedUpload;
+import software.amazon.awssdk.custom.s3.transfer.Download;
+import software.amazon.awssdk.custom.s3.transfer.DownloadRequest;
 import software.amazon.awssdk.custom.s3.transfer.S3TransferManager;
 import software.amazon.awssdk.custom.s3.transfer.Upload;
 import software.amazon.awssdk.custom.s3.transfer.UploadRequest;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -54,6 +58,14 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         return new DefaultUpload(putObjFuture.thenApply(r -> CompletedUpload.builder()
                 .response(r)
                 .build()));
+    }
+
+    @Override
+    public Download download(DownloadRequest downloadRequest) {
+        CompletableFuture<GetObjectResponse> future =
+            s3CrtAsyncClient.getObject(downloadRequest.toApiRequest(),
+                                       AsyncResponseTransformer.toFile(downloadRequest.destination()));
+        return new DefaultDownload(future.thenApply(r -> DefaultCompletedDownload.builder().response(r).build()));
     }
 
     @Override

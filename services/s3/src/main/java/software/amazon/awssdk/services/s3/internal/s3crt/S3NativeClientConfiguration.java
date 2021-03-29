@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public final class S3NativeClientConfiguration implements SdkAutoCloseable {
     // TODO: update those defaults.
     private static final long DEFAULT_PART_SIZE_BYTES = 5 * 1024 * 1024L;
-    private static final long DEFAULT_MAX_THROUGPUT_GBPS = 100;
+    private static final long DEFAULT_MAX_THROUGHPUT_GBPS = 100;
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
     private final CredentialsProvider credentialsProvider;
@@ -44,7 +44,7 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
                                        .build() :
                                    builder.credentialsProvider;
         this.partSizeBytes = builder.partSizeBytes == null ? DEFAULT_PART_SIZE_BYTES : builder.partSizeBytes;
-        this.maxThroughputGbps = builder.maxThroughputGbps == null ? DEFAULT_MAX_THROUGPUT_GBPS : builder.maxThroughputGbps;
+        this.maxThroughputGbps = builder.maxThroughputGbps == null ? DEFAULT_MAX_THROUGHPUT_GBPS : builder.maxThroughputGbps;
     }
 
     public static Builder builder() {

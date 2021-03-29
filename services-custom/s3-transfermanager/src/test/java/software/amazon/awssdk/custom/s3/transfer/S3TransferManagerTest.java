@@ -27,11 +27,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
-public class S3TransferManagerUploadTest {
+public class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
     private S3TransferManager tm;
 
@@ -66,6 +69,22 @@ public class S3TransferManagerUploadTest {
                 .join();
 
         assertThat(completedUpload.response()).isEqualTo(response);
+    }
+
+    @Test
+    public void download_returnsResponse() {
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletedDownload completedDownload = tm.download(DownloadRequest.builder()
+                                                                       .bucket("bucket")
+                                                                       .key("key")
+                                                                       .destination(Paths.get("."))
+                                                                       .build())
+                                              .completionFuture()
+                                              .join();
+        assertThat(completedDownload.response()).isEqualTo(response);
     }
 
 }

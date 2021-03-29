@@ -15,22 +15,37 @@
 
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.custom.s3.transfer.CompletedDownload;
-import software.amazon.awssdk.custom.s3.transfer.Download;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-//TODO: should we flatten it?
 @SdkInternalApi
-public final class DefaultDownload implements Download {
-    private final CompletableFuture<CompletedDownload> completionFuture;
+public final class DefaultCompletedDownload implements CompletedDownload {
+    private final GetObjectResponse response;
 
-    public DefaultDownload(CompletableFuture<CompletedDownload> completionFuture) {
-        this.completionFuture = completionFuture;
+    private DefaultCompletedDownload(Builder builder) {
+        this.response = builder.response;
     }
 
     @Override
-    public CompletableFuture<CompletedDownload> completionFuture() {
-        return completionFuture;
+    public GetObjectResponse response() {
+        return response;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private GetObjectResponse response;
+
+        public Builder response(GetObjectResponse response) {
+            this.response = response;
+            return this;
+        }
+
+        public CompletedDownload build() {
+            return new DefaultCompletedDownload(this);
+        }
     }
 }

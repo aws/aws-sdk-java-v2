@@ -32,8 +32,8 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
 
     private DownloadRequest(BuilderImpl builder) {
         Validate.isTrue((builder.bucket != null && builder.key != null) ^ builder.getObjectRequest != null,
-                        "Bucket key pair and the getObjectRequest can't both be configured");
-        this.destination = builder.destination;
+                        "Exactly one of a bucket, key pair or API request must be provided.");
+        this.destination = Validate.paramNotNull(builder.destination, "destination");
         this.getObjectRequest = builder.getObjectRequest == null ? GetObjectRequest.builder()
                                                                                    .bucket(builder.bucket)
                                                                                    .key(builder.key)

@@ -26,7 +26,6 @@ import org.junit.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.custom.s3.transfer.util.ChecksumUtils;
-import software.amazon.awssdk.custom.s3.transfer.util.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
