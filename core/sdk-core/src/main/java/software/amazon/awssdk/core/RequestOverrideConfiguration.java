@@ -166,7 +166,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(apiCallTimeout, that.apiCallTimeout) &&
                Objects.equals(apiCallAttemptTimeout, that.apiCallAttemptTimeout) &&
                Objects.equals(signer, that.signer) &&
-               Objects.equals(metricPublishers, that.metricPublishers);
+               Objects.equals(metricPublishers, that.metricPublishers) &&
+               Objects.equals(executionAttributes, that.executionAttributes);
     }
 
     @Override
@@ -179,6 +180,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(apiCallAttemptTimeout);
         hashCode = 31 * hashCode + Objects.hashCode(signer);
         hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
+        hashCode = 31 * hashCode + Objects.hashCode(executionAttributes);
         return hashCode;
     }
 
