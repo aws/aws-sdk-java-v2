@@ -375,7 +375,7 @@ public abstract class RequestOverrideConfiguration {
         B metricPublishers(List<MetricPublisher> metricPublisher);
 
         /**
-         * Add a metric publisher to the existing list of prereported by Checkstyle 8.38 with software/amazon/awssdk/checkstyle.xml ruleset. -> [Help 1]viously set publishers to be used for publishing metrics
+         * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics
          * for this request.
          *
          * @param metricPublisher The metric publisher to add.
