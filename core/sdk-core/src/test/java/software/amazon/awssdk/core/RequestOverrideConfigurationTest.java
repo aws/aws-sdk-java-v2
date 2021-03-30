@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
@@ -164,5 +165,72 @@ public class RequestOverrideConfigurationTest {
         SdkRequestOverrideConfiguration overrideConfig = builder.build();
 
         assertThat(overrideConfig.metricPublishers()).containsExactly(publishers.get(0), publishers.get(1), thirdAdded);
+    }
+
+    @Test
+    public void executionAttributes_createsCopy() {
+        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+
+        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        String expectedValue = "Value1";
+        executionAttributes.put(testAttribute, expectedValue);
+
+        SdkRequestOverrideConfiguration overrideConfig = SdkRequestOverrideConfiguration.builder()
+                .executionAttributes(executionAttributes)
+                .build();
+
+        executionAttributes.remove(testAttribute);
+        assertThat(overrideConfig.executionAttributes().get(testAttribute)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    public void executionAttributes_maintainsAllAdded() {
+        Map<ExecutionAttribute, Object> executionAttributeObjectMap = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
+            executionAttributeObjectMap.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+
+        for (Map.Entry<ExecutionAttribute, Object> attributeObjectEntry : executionAttributeObjectMap.entrySet()) {
+            builder.addExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
+        }
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes()).isEqualTo(executionAttributeObjectMap);
+    }
+
+    @Test
+    public void executionAttributes_overwritesPreviouslyAdded() {
+        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+
+        builder.addExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
+        builder.executionAttributes(executionAttributes);
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes()).isEqualTo(executionAttributes);
+    }
+
+    @Test
+    public void executionAttributes_listPreviouslyAdded_appendedToList() {
+        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+
+        builder.executionAttributes(executionAttributes);
+        ExecutionAttribute addedAttribute = new ExecutionAttribute("AddedAttribute");
+        Object addedValue = mock(Object.class);
+
+        builder.addExecutionAttribute(addedAttribute, addedValue);
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes().get(addedAttribute)).isEqualTo(addedValue);
     }
 }

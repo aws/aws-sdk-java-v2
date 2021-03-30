@@ -49,6 +49,14 @@ public final class ExecutionAttributes {
     }
 
     /**
+     * Add all execution attributes from the provided collection to the internal collection of attributes.
+     */
+    public <U> ExecutionAttributes putAllAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes) {
+        this.attributes.putAll(executionAttributes);
+        return this;
+    }
+
+    /**
      * Set the provided attribute in this collection of attributes if it does not already exist in the collection.
      */
     public <U> ExecutionAttributes putAttributeIfAbsent(ExecutionAttribute<U> attribute, U value) {

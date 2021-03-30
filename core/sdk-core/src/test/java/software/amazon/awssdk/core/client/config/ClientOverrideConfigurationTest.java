@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -179,5 +180,72 @@ public class ClientOverrideConfigurationTest {
         ClientOverrideConfiguration overrideConfig = builder.build();
 
         assertThat(overrideConfig.metricPublishers()).containsExactly(publishers.get(0), publishers.get(1), thirdAdded);
+    }
+
+    @Test
+    public void executionAttributes_createsCopy() {
+        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+
+        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        String expectedValue = "Value1";
+        executionAttributes.put(testAttribute, expectedValue);
+
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+                .executionAttributes(executionAttributes)
+                .build();
+
+        executionAttributes.remove(testAttribute);
+        assertThat(overrideConfig.executionAttributes().get(testAttribute)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    public void executionAttributes_maintainsAllAdded() {
+        Map<ExecutionAttribute, Object> executionAttributeObjectMap = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
+            executionAttributeObjectMap.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        for (Map.Entry<ExecutionAttribute, Object> attributeObjectEntry : executionAttributeObjectMap.entrySet()) {
+            builder.addExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
+        }
+
+        ClientOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes()).isEqualTo(executionAttributeObjectMap);
+    }
+
+    @Test
+    public void executionAttributes_overwritesPreviouslyAdded() {
+        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        builder.addExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
+        builder.executionAttributes(executionAttributes);
+        ClientOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes()).isEqualTo(executionAttributes);
+    }
+
+    @Test
+    public void executionAttributes_listPreviouslyAdded_appendedToList() {
+        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        builder.executionAttributes(executionAttributes);
+        ExecutionAttribute addedAttribute = new ExecutionAttribute("AddedAttribute");
+        Object addedValue = mock(Object.class);
+
+        builder.addExecutionAttribute(addedAttribute, addedValue);
+
+        ClientOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes().get(addedAttribute)).isEqualTo(addedValue);
     }
 }
