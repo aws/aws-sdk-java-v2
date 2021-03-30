@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +115,15 @@ public class ProjectionExpression {
         return this.projectionExpression;
     }
 
+    /**
+     * Creates a map of modified attribute/placeholder name -> real attribute name based on what is essentially a list of list of
+     * attribute names. Duplicates are removed from the list of attribute names and then the names are transformed
+     * into DDB-compatible 'placeholders' using the supplied function, resulting in a
+     * map of placeholder name -> list of original attribute names that resolved to that placeholder.
+     * If different original attribute names end up having the same placeholder name, a disambiguator is added to those
+     * placeholders to make them unique and the number of map entries expand with the length of that list; however this is
+     * a rare use-case and normally it's a 1:1 relation.
+     */
     private static Map<String, String> createAttributePlaceholders(List<NestedAttributeName> nestedAttributeNames) {
         if (CollectionUtils.isNullOrEmpty(nestedAttributeNames)) {
             return new HashMap<>();
@@ -124,12 +134,12 @@ public class ProjectionExpression {
                                 .flatMap(n -> n.elements().stream())
                                 .distinct()
                                 .collect(Collectors.groupingBy(PROJECTION_EXPRESSION_KEY_MAPPER, Collectors.toList()));
-
-        return placeholderToAttributeNames.entrySet()
-                                          .stream()
-                                          .flatMap(entry -> disambiguateNonUniquePlaceholderNames(entry.getKey(),
-                                                                                                  entry.getValue()))
-                                          .collect(Collectors.toMap(Pair::left, Pair::right));
+        return Collections.unmodifiableMap(
+            placeholderToAttributeNames.entrySet()
+                                       .stream()
+                                       .flatMap(entry -> disambiguateNonUniquePlaceholderNames(entry.getKey(),
+                                                                                               entry.getValue()))
+                                       .collect(Collectors.toMap(Pair::left, Pair::right)));
     }
 
     private static Stream<Pair<String, String>> disambiguateNonUniquePlaceholderNames(String placeholder, List<String> values) {
@@ -144,6 +154,12 @@ public class ProjectionExpression {
         return AMZN_MAPPED + index + "_" + placeholder.substring(AMZN_MAPPED.length());
     }
 
+    /**
+     * The projection expression contains only placeholder names, and is based on the list if nested attribute names, which
+     * are converted into string representations with each attribute name replaced by its placeholder name as specified
+     * in the expressionAttributeNames map. Because we need to find the placeholder value of an attribute, the
+     * expressionAttributeNames map must be reversed before doing a lookup. 
+     */
     private static Optional<String> buildProjectionExpression(List<NestedAttributeName> nestedAttributeNames,
                                                               Map<String, String> expressionAttributeNames) {
         if (CollectionUtils.isNullOrEmpty(nestedAttributeNames)) {

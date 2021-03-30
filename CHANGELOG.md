@@ -1,3 +1,90 @@
+# __2.16.30__ __2021-03-29__
+## __AWS Glue__
+  - ### Features
+    - Allow Dots in Registry and Schema Names for CreateRegistry, CreateSchema; Fixed issue when duplicate keys are present and not returned as part of QuerySchemaVersionMetadata.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - AWS Identity and Access Management GetAccessKeyLastUsed API will throw a custom error if customer public key is not found for access keys.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Added custom request handling and custom response support in rule actions and default action; Added the option to inspect the web request body as parsed and filtered JSON.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This release adds support for Event Subscriptions to DocumentDB.
+
+## __Amazon Location Service__
+  - ### Features
+    - Amazon Location added support for specifying pricing plan information on resources in alignment with our cost model.
+
+# __2.16.29__ __2021-03-26__
+## __AWS IoT Wireless__
+  - ### Features
+    - Support tag-on-create for WirelessDevice.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Add support for SageMaker Model Builder Pipelines Targets to EventBridge
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release adds an optional parameter named FlowDefinition in PutIntegrationRequest.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Add support for SageMaker Model Builder Pipelines Targets to EventBridge
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports tagging words that match your vocabulary filter for batch transcription.
+
+# __2.16.28__ __2021-03-25__
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Allowing uppercase alphabets for RDS and Redshift database names.
+
+# __2.16.27__ __2021-03-25__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - EML now supports handling HDR10 and HLG 2020 color space from a Link input.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Removing Freemarker version 2.3.24 since this package is not used in the code.
+
+## __Alexa For Business__
+  - ### Features
+    - Added support for enabling and disabling data retention in the CreateProfile and UpdateProfile APIs and retrieving the state of data retention for a profile in the GetProfile API.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Amazon Lookout for Metrics is now generally available. You can use Lookout for Metrics to monitor your data for anomalies. For more information, see the Amazon Lookout for Metrics Developer Guide.
+
+## __Amazon Rekognition__
+  - ### Features
+    - "This release introduces AWS tagging support for Amazon Rekognition collections, stream processors, and Custom Label models."
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This feature allows customer to specify the environment variables in their CreateTrainingJob requests.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation updates for Amazon SQS
+
 # __2.16.26__ __2021-03-24__
 ## __AWS Greengrass__
   - ### Features

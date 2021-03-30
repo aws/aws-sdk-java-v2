@@ -14,13 +14,17 @@ public class NestedAttributeNameTest {
     @Test
     public void testNullAttributeNames_fails() {
         assertThatThrownBy(() -> NestedAttributeName.builder().build())
-            .isInstanceOf(IllegalStateException.class);
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("nestedAttributeNames must not be null");
         assertThatThrownBy(() -> NestedAttributeName.builder().addElement(null).build())
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("nestedAttributeNames must not contain null values");
         assertThatThrownBy(() -> NestedAttributeName.builder().elements(ATTRIBUTE_NAME).addElement(null).build())
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("nestedAttributeNames must not contain null values");
         assertThatThrownBy(() -> NestedAttributeName.create())
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("nestedAttributeNames must not be empty");
     }
 
     @Test
