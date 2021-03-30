@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Fraud Detector",
-    "contributor": "",
-    "description": "This release adds support for Batch Predictions in Amazon Fraud Detector."
-}

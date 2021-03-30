@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS EC2 Instance Connect",
-    "contributor": "",
-    "description": "Adding support to push SSH keys to the EC2 serial console in order to allow an SSH connection to your Amazon EC2 instance's serial port."
-}
