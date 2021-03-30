@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "contributor": "",
+    "description": "Adding new APIs to support ConformancePack Compliance CI in Aggregators"
+}
