@@ -195,7 +195,7 @@ public class ClientOverrideConfigurationTest {
                 .build();
 
         executionAttributes.remove(testAttribute);
-        assertThat(overrideConfig.executionAttributes().get(testAttribute)).isEqualTo(expectedValue);
+        assertThat(overrideConfig.executionAttributes().getAttribute(testAttribute)).isEqualTo(expectedValue);
     }
 
     @Test
@@ -208,11 +208,11 @@ public class ClientOverrideConfigurationTest {
         ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
 
         for (Map.Entry<ExecutionAttribute, Object> attributeObjectEntry : executionAttributeObjectMap.entrySet()) {
-            builder.addExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
+            builder.putExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
         }
 
         ClientOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes()).isEqualTo(executionAttributeObjectMap);
+        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributeObjectMap);
     }
 
     @Test
@@ -224,10 +224,10 @@ public class ClientOverrideConfigurationTest {
 
         ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
 
-        builder.addExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
+        builder.putExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
         builder.executionAttributes(executionAttributes);
         ClientOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes()).isEqualTo(executionAttributes);
+        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes);
     }
 
     @Test
@@ -243,9 +243,9 @@ public class ClientOverrideConfigurationTest {
         ExecutionAttribute addedAttribute = new ExecutionAttribute("AddedAttribute");
         Object addedValue = mock(Object.class);
 
-        builder.addExecutionAttribute(addedAttribute, addedValue);
+        builder.putExecutionAttribute(addedAttribute, addedValue);
 
         ClientOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes().get(addedAttribute)).isEqualTo(addedValue);
+        assertThat(overrideConfig.executionAttributes().getAttribute(addedAttribute)).isEqualTo(addedValue);
     }
 }

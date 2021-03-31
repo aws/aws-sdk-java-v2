@@ -101,10 +101,16 @@ public final class AwsClientHandlerUtils {
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
                           clientConfig.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION));
 
-        Optional.ofNullable(clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES)).ifPresent(clientOverrideConfiguration ->
-                executionAttributes.putAllAttributes(clientOverrideConfiguration));
-        originalRequest.overrideConfiguration().ifPresent(requestOverrideConfiguration ->
-                executionAttributes.putAllAttributes(requestOverrideConfiguration.executionAttributes()));
+        ExecutionAttributes clientOverrideExecutionAttributes = clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES);
+        if (clientOverrideExecutionAttributes != null) {
+            executionAttributes = clientOverrideExecutionAttributes.merge(executionAttributes);
+        }
+
+        Optional<RequestOverrideConfiguration> requestOverrideConfiguration =
+                (Optional<RequestOverrideConfiguration>) originalRequest.overrideConfiguration();
+        if (requestOverrideConfiguration.isPresent()) {
+            executionAttributes = requestOverrideConfiguration.get().executionAttributes().merge(executionAttributes);
+        }
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
