@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Comprehend",
-    "contributor": "",
-    "description": "Support for customer managed KMS encryption of Comprehend custom models"
-}
