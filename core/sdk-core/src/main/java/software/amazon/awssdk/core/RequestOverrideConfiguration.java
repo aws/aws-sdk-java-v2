@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -47,7 +48,7 @@ public abstract class RequestOverrideConfiguration {
     private final Duration apiCallAttemptTimeout;
     private final Signer signer;
     private final List<MetricPublisher> metricPublishers;
-    private final Map<ExecutionAttribute<?>, Object> executionAttributes;
+    private final ExecutionAttributes executionAttributes;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -57,7 +58,7 @@ public abstract class RequestOverrideConfiguration {
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.signer = builder.signer();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
-        this.executionAttributes = Collections.unmodifiableMap(new HashMap<>(builder.executionAttributes()));
+        this.executionAttributes = builder.executionAttributes().build();
     }
 
     /**
@@ -147,7 +148,7 @@ public abstract class RequestOverrideConfiguration {
      * An attribute value added on the client within the collection of attributes is superseded by an
      * attribute value added on the request.
      */
-    public Map<ExecutionAttribute<?>, Object> executionAttributes() {
+    public ExecutionAttributes executionAttributes() {
         return executionAttributes;
     }
 
@@ -391,16 +392,16 @@ public abstract class RequestOverrideConfiguration {
          * @param executionAttributes Execution attributes map for this request
          * @return This object for method chaining.
          */
-        B executionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes);
+        B executionAttributes(Map<ExecutionAttribute<?>, ?> executionAttributes);
 
         /**
          * Add an execution attribute to the existing collection of execution attributes.
          * @param attribute The execution attribute object
          * @param value The value of the execution attribute.
          */
-        B addExecutionAttribute(ExecutionAttribute attribute, Object value);
+        <T> B putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
-        Map<ExecutionAttribute<?>, Object> executionAttributes();
+        ExecutionAttributes.Builder executionAttributes();
 
         /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
@@ -418,7 +419,7 @@ public abstract class RequestOverrideConfiguration {
         private Duration apiCallAttemptTimeout;
         private Signer signer;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
-        private Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+        private ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder();
 
         protected BuilderImpl() {
         }
@@ -560,20 +561,20 @@ public abstract class RequestOverrideConfiguration {
         }
 
         @Override
-        public B executionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes) {
+        public B executionAttributes(Map<ExecutionAttribute<?>, ?> executionAttributes) {
             Validate.paramNotNull(executionAttributes, "executionAttributes");
-            this.executionAttributes = executionAttributes;
+            this.executionAttributes = ExecutionAttributes.builder().putAll(executionAttributes);
             return (B) this;
         }
 
         @Override
-        public B addExecutionAttribute(ExecutionAttribute executionAttribute, Object value) {
+        public <T> B putExecutionAttribute(ExecutionAttribute<T> executionAttribute, T value) {
             this.executionAttributes.put(executionAttribute, value);
             return (B) this;
         }
 
         @Override
-        public Map<ExecutionAttribute<?>, Object> executionAttributes() {
+        public ExecutionAttributes.Builder executionAttributes() {
             return executionAttributes;
         }
 

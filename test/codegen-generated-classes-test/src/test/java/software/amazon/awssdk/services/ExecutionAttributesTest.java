@@ -12,13 +12,11 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.*;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 
 public class ExecutionAttributesTest {
     @Rule
@@ -66,6 +64,88 @@ public class ExecutionAttributesTest {
         } finally {
             ExecutionAttributes attributes = attributesCaptor.getValue();
             assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION)).isTrue();
+            async.close();
+        }
+    }
+
+    @Test
+    public void asyncClient_clientOverrideExecutionAttribute() {
+        ExecutionInterceptor interceptor = mock(ExecutionInterceptor.class);
+        ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
+        doThrow(new RuntimeException("BOOM")).when(interceptor).beforeExecution(any(Context.BeforeExecution.class), attributesCaptor.capture());
+        ExecutionAttribute testAttribute = new ExecutionAttribute<>("TestAttribute");
+        String testValue = "TestValue";
+
+        ProtocolRestJsonAsyncClient async = ProtocolRestJsonAsyncClient.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("foo", "bar")))
+                .region(Region.US_WEST_2)
+                .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor)
+                        .putExecutionAttribute(testAttribute, testValue))
+                .build();
+
+        thrown.expect(CompletionException.class);
+        try {
+            async.allTypes().join();
+        } finally {
+            ExecutionAttributes attributes = attributesCaptor.getValue();
+            assertThat(attributes.getAttribute(testAttribute)).isEqualTo(testValue);
+            async.close();
+        }
+    }
+
+    @Test
+    public void asyncClient_requestOverrideExecutionAttribute() {
+        ExecutionInterceptor interceptor = mock(ExecutionInterceptor.class);
+        ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
+        doThrow(new RuntimeException("BOOM")).when(interceptor).beforeExecution(any(Context.BeforeExecution.class), attributesCaptor.capture());
+        ExecutionAttribute testAttribute = new ExecutionAttribute<>("TestAttribute");
+        String testValue = "TestValue";
+
+        ProtocolRestJsonAsyncClient async = ProtocolRestJsonAsyncClient.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("foo", "bar")))
+                .region(Region.US_WEST_2)
+                .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
+                .build();
+
+        AllTypesRequest request = AllTypesRequest.builder().overrideConfiguration(
+                    c -> c.putExecutionAttribute(testAttribute, testValue))
+                .build();
+
+        thrown.expect(CompletionException.class);
+        try {
+            async.allTypes(request).join();
+        } finally {
+            ExecutionAttributes attributes = attributesCaptor.getValue();
+            assertThat(attributes.getAttribute(testAttribute)).isEqualTo(testValue);
+            async.close();
+        }
+    }
+
+    @Test
+    public void asyncClient_requestOverrideExecutionAttributesHavePrecedence() {
+        ExecutionInterceptor interceptor = mock(ExecutionInterceptor.class);
+        ArgumentCaptor<ExecutionAttributes> attributesCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
+        doThrow(new RuntimeException("BOOM")).when(interceptor).beforeExecution(any(Context.BeforeExecution.class), attributesCaptor.capture());
+        ExecutionAttribute testAttribute = new ExecutionAttribute<>("TestAttribute");
+        String testValue = "TestValue";
+
+        ProtocolRestJsonAsyncClient async = ProtocolRestJsonAsyncClient.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("foo", "bar")))
+                .region(Region.US_WEST_2)
+                .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor).putExecutionAttribute(testAttribute, testValue))
+                .build();
+
+        String overwrittenValue = "TestValue2";
+        AllTypesRequest request = AllTypesRequest.builder().overrideConfiguration(
+                c -> c.putExecutionAttribute(testAttribute, overwrittenValue))
+                .build();
+
+        thrown.expect(CompletionException.class);
+        try {
+            async.allTypes(request).join();
+        } finally {
+            ExecutionAttributes attributes = attributesCaptor.getValue();
+            assertThat(attributes.getAttribute(testAttribute)).isEqualTo(overwrittenValue);
             async.close();
         }
     }

@@ -180,7 +180,7 @@ public class RequestOverrideConfigurationTest {
                 .build();
 
         executionAttributes.remove(testAttribute);
-        assertThat(overrideConfig.executionAttributes().get(testAttribute)).isEqualTo(expectedValue);
+        assertThat(overrideConfig.executionAttributes().getAttribute(testAttribute)).isEqualTo(expectedValue);
     }
 
     @Test
@@ -193,11 +193,11 @@ public class RequestOverrideConfigurationTest {
         SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
 
         for (Map.Entry<ExecutionAttribute, Object> attributeObjectEntry : executionAttributeObjectMap.entrySet()) {
-            builder.addExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
+            builder.putExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
         }
 
         SdkRequestOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes()).isEqualTo(executionAttributeObjectMap);
+        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributeObjectMap);
     }
 
     @Test
@@ -209,10 +209,10 @@ public class RequestOverrideConfigurationTest {
 
         SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
 
-        builder.addExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
+        builder.putExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
         builder.executionAttributes(executionAttributes);
         SdkRequestOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes()).isEqualTo(executionAttributes);
+        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes);
     }
 
     @Test
@@ -228,9 +228,9 @@ public class RequestOverrideConfigurationTest {
         ExecutionAttribute addedAttribute = new ExecutionAttribute("AddedAttribute");
         Object addedValue = mock(Object.class);
 
-        builder.addExecutionAttribute(addedAttribute, addedValue);
+        builder.putExecutionAttribute(addedAttribute, addedValue);
 
         SdkRequestOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes().get(addedAttribute)).isEqualTo(addedValue);
+        assertThat(overrideConfig.executionAttributes().getAttribute(addedAttribute)).isEqualTo(addedValue);
     }
 }
