@@ -53,6 +53,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
 
 /**
  * Implementation of {@link TableSchema} that builds a table schema based on properties and annotations of an immutable
@@ -183,11 +184,14 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
                                       getterForProperty(propertyDescriptor, immutableClass),
                                       setterForProperty(propertyDescriptor, builderClass));
                   } else {
+                      boolean shouldPreserveEmptyObject = getPropertyAnnotation(propertyDescriptor,
+                                                                              DynamoDbPreserveEmptyObject.class) != null;
                       ImmutableAttribute.Builder<T, B, ?> attributeBuilder =
                           immutableAttributeBuilder(propertyDescriptor,
                                                     immutableClass,
                                                     builderClass,
-                                                    metaTableSchemaCache);
+                                                    metaTableSchemaCache,
+                                                    shouldPreserveEmptyObject);
 
                       Optional<AttributeConverter> attributeConverter =
                               createAttributeConverterFromAnnotation(propertyDescriptor);
@@ -216,10 +220,13 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
     private static <T, B> ImmutableAttribute.Builder<T, B, ?> immutableAttributeBuilder(
         ImmutablePropertyDescriptor propertyDescriptor,
         Class<T> immutableClass, Class<B> builderClass,
-        MetaTableSchemaCache metaTableSchemaCache) {
+        MetaTableSchemaCache metaTableSchemaCache,
+        boolean shouldPreserveEmptyObject) {
 
         Type propertyType = propertyDescriptor.getter().getGenericReturnType();
-        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType, metaTableSchemaCache);
+        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType,
+                                                                      metaTableSchemaCache,
+                                                                      shouldPreserveEmptyObject);
         return ImmutableAttribute.builder(immutableClass, builderClass, propertyTypeToken)
                                  .name(attributeNameForProperty(propertyDescriptor))
                                  .getter(getterForProperty(propertyDescriptor, immutableClass))
@@ -234,7 +241,8 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
      * EnhancedClient otherwise does all by itself.
      */
     @SuppressWarnings("unchecked")
-    private static EnhancedType<?> convertTypeToEnhancedType(Type type, MetaTableSchemaCache metaTableSchemaCache) {
+    private static EnhancedType<?> convertTypeToEnhancedType(Type type, MetaTableSchemaCache metaTableSchemaCache,
+                                                             boolean preserveEmptyObject) {
         Class<?> clazz = null;
 
         if (type instanceof ParameterizedType) {
@@ -242,14 +250,16 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
             Type rawType = parameterizedType.getRawType();
 
             if (List.class.equals(rawType)) {
-                return EnhancedType.listOf(convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0],
-                                                                     metaTableSchemaCache));
+                EnhancedType<?> enhancedType = convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0],
+                                                                         metaTableSchemaCache, preserveEmptyObject);
+                return EnhancedType.listOf(enhancedType);
             }
 
             if (Map.class.equals(rawType)) {
+                EnhancedType<?> enhancedType = convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[1],
+                                                                         metaTableSchemaCache, preserveEmptyObject);
                 return EnhancedType.mapOf(EnhancedType.of(parameterizedType.getActualTypeArguments()[0]),
-                                          convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[1],
-                                                                    metaTableSchemaCache));
+                                          enhancedType);
             }
 
             if (rawType instanceof Class) {
@@ -263,11 +273,13 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
             if (clazz.getAnnotation(DynamoDbImmutable.class) != null) {
                 return EnhancedType.documentOf(
                     (Class<Object>) clazz,
-                    (TableSchema<Object>) ImmutableTableSchema.recursiveCreate(clazz, metaTableSchemaCache));
+                    (TableSchema<Object>) ImmutableTableSchema.recursiveCreate(clazz, metaTableSchemaCache),
+                    b -> b.preserveEmptyObject(preserveEmptyObject));
             } else if (clazz.getAnnotation(DynamoDbBean.class) != null) {
                 return EnhancedType.documentOf(
                     (Class<Object>) clazz,
-                    (TableSchema<Object>) BeanTableSchema.recursiveCreate(clazz, metaTableSchemaCache));
+                    (TableSchema<Object>) BeanTableSchema.recursiveCreate(clazz, metaTableSchemaCache),
+                    b -> b.preserveEmptyObject(preserveEmptyObject));
             }
         }
 

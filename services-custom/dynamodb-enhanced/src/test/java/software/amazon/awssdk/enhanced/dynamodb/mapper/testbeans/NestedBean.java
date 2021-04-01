@@ -16,34 +16,27 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
 
 @DynamoDbBean
-public class AbstractBean {
-    private String attribute2;
+public class NestedBean {
+    private String id;
+    private AbstractBean innerBean;
 
-    public String getAttribute2() {
-        return attribute2;
+    @DynamoDbPartitionKey
+    public String getId() {
+        return this.id;
     }
-    public void setAttribute2(String attribute2) {
-        this.attribute2 = attribute2;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        AbstractBean that = (AbstractBean) o;
-
-        return attribute2 != null ? attribute2.equals(that.attribute2) : that.attribute2 == null;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    @Override
-    public int hashCode() {
-        return attribute2 != null ? attribute2.hashCode() : 0;
+    @DynamoDbPreserveEmptyObject
+    public AbstractBean getInnerBean() {
+        return innerBean;
+    }
+    public void setInnerBean(AbstractBean innerBean) {
+        this.innerBean = innerBean;
     }
 }
