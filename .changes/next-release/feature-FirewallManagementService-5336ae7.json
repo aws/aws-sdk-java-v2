@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Firewall Management Service",
+    "contributor": "",
+    "description": "Added Firewall Manager policy support for AWS Route 53 Resolver DNS Firewall."
+}
