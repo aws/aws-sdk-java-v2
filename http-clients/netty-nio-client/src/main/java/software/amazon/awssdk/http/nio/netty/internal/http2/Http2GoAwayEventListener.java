@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http2.Http2ConnectionAdapter;
 import io.netty.handler.codec.http2.Http2GoAwayFrame;
+import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.utils.Logger;
@@ -41,7 +42,7 @@ public final class Http2GoAwayEventListener extends Http2ConnectionAdapter {
     @Override
     public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
         Http2MultiplexedChannelPool channelPool = parentChannel.attr(ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL).get();
-        GoAwayException exception = new GoAwayException(errorCode, debugData.retain());
+        GoAwayException exception = new GoAwayException(errorCode, debugData.toString(StandardCharsets.UTF_8));
         if (channelPool != null) {
             channelPool.handleGoAway(parentChannel, lastStreamId, exception);
         } else {
