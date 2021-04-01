@@ -16,8 +16,7 @@
 package software.amazon.awssdk.core.client.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -196,6 +195,26 @@ public class ClientOverrideConfigurationTest {
 
         executionAttributes.remove(testAttribute);
         assertThat(overrideConfig.executionAttributes().getAttribute(testAttribute)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    public void executionAttributes_isImmutable() {
+        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+
+        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        String expectedValue = "Value1";
+        executionAttributes.put(testAttribute, expectedValue);
+
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+                .executionAttributes(executionAttributes)
+                .build();
+
+        try {
+            overrideConfig.executionAttributes().putAttribute(testAttribute, 2);
+            fail("Expected unsupported operation exception");
+        } catch(Exception ex) {
+            assertThat(ex instanceof UnsupportedOperationException).isTrue();
+        }
     }
 
     @Test

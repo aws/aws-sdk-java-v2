@@ -17,6 +17,7 @@ package software.amazon.awssdk.core;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
@@ -181,6 +183,25 @@ public class RequestOverrideConfigurationTest {
 
         executionAttributes.remove(testAttribute);
         assertThat(overrideConfig.executionAttributes().getAttribute(testAttribute)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    public void executionAttributes_isImmutable() {
+        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+
+        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        String expectedValue = "Value1";
+        executionAttributes.put(testAttribute, expectedValue);
+
+        SdkRequestOverrideConfiguration overrideConfig = SdkRequestOverrideConfiguration.builder()
+                .executionAttributes(executionAttributes)
+                .build();
+        try {
+            overrideConfig.executionAttributes().putAttribute(testAttribute, 2);
+            fail("Expected unsupported operation exception");
+        } catch(Exception ex) {
+            assertThat(ex instanceof UnsupportedOperationException).isTrue();
+        }
     }
 
     @Test
