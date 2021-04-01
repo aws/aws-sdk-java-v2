@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "contributor": "",
-    "description": "- This release adds support for state detail for Amazon Lightsail container services."
-}

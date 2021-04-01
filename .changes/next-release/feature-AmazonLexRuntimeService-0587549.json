@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Runtime Service",
-    "contributor": "",
-    "description": "Amazon Lex now supports base64-encoded message and input transcript fields."
-}
