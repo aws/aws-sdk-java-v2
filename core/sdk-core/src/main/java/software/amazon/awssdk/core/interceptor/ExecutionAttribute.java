@@ -15,10 +15,8 @@
 
 package software.amazon.awssdk.core.interceptor;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
-
 import java.util.Objects;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * An attribute attached to a particular execution, stored in {@link ExecutionAttributes}.

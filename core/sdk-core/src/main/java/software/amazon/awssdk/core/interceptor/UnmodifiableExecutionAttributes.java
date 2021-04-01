@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
+@SdkPublicApi
 public  class UnmodifiableExecutionAttributes extends ExecutionAttributes {
     public UnmodifiableExecutionAttributes(ExecutionAttributes executionAttributes) {
         super(executionAttributes.getAttributes());
