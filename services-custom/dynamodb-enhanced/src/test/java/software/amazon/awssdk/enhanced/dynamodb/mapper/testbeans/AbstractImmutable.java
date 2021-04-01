@@ -29,6 +29,25 @@ public class AbstractImmutable {
         return attribute2;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractImmutable that = (AbstractImmutable) o;
+
+        return attribute2 != null ? attribute2.equals(that.attribute2) : that.attribute2 == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return attribute2 != null ? attribute2.hashCode() : 0;
+    }
+
     public static Builder builder() {
         return new Builder();
     }

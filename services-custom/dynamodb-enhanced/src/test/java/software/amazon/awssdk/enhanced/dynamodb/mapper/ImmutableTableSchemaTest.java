@@ -30,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutab
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DocumentImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedImmutable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class ImmutableTableSchemaTest {
@@ -240,5 +241,23 @@ public class ImmutableTableSchemaTest {
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+    }
+
+    @Test
+    public void dynamodbPreserveEmptyObject_shouldInitializeAsEmptyClass() {
+        ImmutableTableSchema<NestedImmutable> tableSchema =
+            ImmutableTableSchema.create(NestedImmutable.class);
+        AbstractImmutable abstractImmutable = AbstractImmutable.builder().build();
+
+        NestedImmutable nestedImmutable =
+            NestedImmutable.builder().integerAttribute(1)
+                           .innerBean(abstractImmutable)
+                           .build();
+
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(nestedImmutable, false);
+        assertThat(itemMap.size(), is(3));
+
+        NestedImmutable result = tableSchema.mapToItem(itemMap);
+        assertThat(result.innerBean(), is(abstractImmutable));
     }
 }
