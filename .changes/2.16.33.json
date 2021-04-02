@@ -1,0 +1,66 @@
+{
+    "version": "2.16.33",
+    "date": "2021-04-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "AWS Kendra's ServiceNow data source now supports OAuth 2.0 authentication and knowledge article filtering via a ServiceNow query."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "VPC Flow Logs Service adds a new API, GetFlowLogsIntegrationTemplate, which generates CloudFormation templates for Athena. For more info, see https://docs.aws.amazon.com/console/vpc/flow-logs/athena"
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "contributor": "",
+            "description": "Added Firewall Manager policy support for AWS Route 53 Resolver DNS Firewall."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "Added support for ScopeDownStatement for ManagedRuleGroups, Labels, LabelMatchStatement, and LoggingFilter. For more information on these features, see the AWS WAF Developer Guide."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime Service",
+            "contributor": "",
+            "description": "Amazon Lex now supports base64-encoded message and input transcript fields."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "MediaConvert now supports HLS ingest, sidecar WebVTT ingest, Teletext color & style passthrough to TTML subtitles, TTML to WebVTT subtitle conversion with style, & DRC profiles in AC3 audio."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "Route 53 Resolver DNS Firewall is a firewall service that allows you to filter and regulate outbound DNS traffic for your VPCs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "contributor": "",
+            "description": "Lex now supports the ja-JP locale"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "- This release adds support for state detail for Amazon Lightsail container services."
+        }
+    ]
+}
