@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.sync;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.Validate.isNotNegative;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import static software.amazon.awssdk.utils.Validate.validState;
 
@@ -28,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;
@@ -46,14 +48,13 @@ public final class RequestBody {
 
     // TODO Handle stream management (progress listener, orig input stream tracking, etc
     private final ContentStreamProvider contentStreamProvider;
-    private final long contentLength;
+    private final Long contentLength;
     private final String contentType;
 
-    private RequestBody(ContentStreamProvider contentStreamProvider, long contentLength, String contentType) {
+    private RequestBody(ContentStreamProvider contentStreamProvider, Long contentLength, String contentType) {
         this.contentStreamProvider = paramNotNull(contentStreamProvider, "contentStreamProvider");
-        this.contentLength = contentLength;
+        this.contentLength = contentLength != null ? isNotNegative(contentLength, "Content-length") : null;
         this.contentType = paramNotNull(contentType, "contentType");
-        validState(contentLength >= 0, "Content length must be greater than or equal to zero");
     }
 
     /**
@@ -64,10 +65,21 @@ public final class RequestBody {
     }
 
     /**
+     * @deprecated by {@link #optionalContentLength()}
      * @return Content length of {@link RequestBody}.
      */
+    @Deprecated
     public long contentLength() {
+        validState(this.contentLength != null,
+                   "Content length is invalid, please use optionalContentLength() for your case.");
         return contentLength;
+    }
+
+    /**
+     * @return Optional object of content length of {@link RequestBody}.
+     */
+    public Optional<Long> optionalContentLength() {
+        return Optional.ofNullable(contentLength);
     }
 
     /**
@@ -108,7 +120,8 @@ public final class RequestBody {
      * could tamper with the sending of the request.
      * <p>
      * To support resetting via {@link ContentStreamProvider}, this uses {@link InputStream#reset()} and uses a read limit of
-     * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)}.
+     * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)} or
+     * {@link #fromContentProvider(ContentStreamProvider, String)}.
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
      * @param contentLength Content length of data in input stream.
@@ -203,6 +216,18 @@ public final class RequestBody {
      */
     public static RequestBody fromContentProvider(ContentStreamProvider provider, long contentLength, String mimeType) {
         return new RequestBody(provider, contentLength, mimeType);
+    }
+
+    /**
+     * Creates a {@link RequestBody} from the given {@link ContentStreamProvider}.
+     *
+     * @param provider The content provider.
+     * @param mimeType The MIME type of the content.
+     *
+     * @return The created {@code RequestBody}.
+     */
+    public static RequestBody fromContentProvider(ContentStreamProvider provider, String mimeType) {
+        return new RequestBody(provider, null, mimeType);
     }
 
     /**
