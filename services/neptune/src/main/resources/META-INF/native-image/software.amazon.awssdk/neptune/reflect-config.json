@@ -1,0 +1,20 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.neptune.internal.CopyDbClusterSnapshotPresignInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.neptune.internal.CreateDbClusterPresignInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

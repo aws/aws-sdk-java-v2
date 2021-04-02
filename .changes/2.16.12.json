@@ -1,0 +1,42 @@
+{
+    "version": "2.16.12",
+    "date": "2021-03-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Introducing support for EventBridge Api Destinations - any HTTP APIs as Targets, with managed authorization via EventBridge Connections."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "This release introduces a new MinWorker parameter to the CreateEnvironment and UpdateEnvironment APIs. MinWorker allows the users to set a minimum worker count for worker auto-scaling operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds the ResolvedOutputS3Uri to the DescribeFeatureGroup API to indicate the S3 prefix where offline data is stored in a feature group"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud Map",
+            "contributor": "",
+            "description": "Supports creating API-only services under DNS namespace. Add namespace syntax validation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "contributor": "",
+            "description": "Introducing support for EventBridge Api Destinations - any HTTP APIs as Targets, with managed authorization via EventBridge Connections."
+        }
+    ]
+}

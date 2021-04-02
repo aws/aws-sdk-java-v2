@@ -34,7 +34,8 @@ public final class S3AccessPointResource
     implements S3Resource, ToCopyableBuilder<S3AccessPointResource.Builder, S3AccessPointResource> {
 
     private static final S3ResourceType S3_RESOURCE_TYPE = S3ResourceType.ACCESS_POINT;
-    private static final Set<S3ResourceType> VALID_PARENT_RESOURCE_TYPES = EnumSet.of(S3ResourceType.OUTPOST);
+    private static final Set<S3ResourceType> VALID_PARENT_RESOURCE_TYPES = EnumSet.of(S3ResourceType.OUTPOST,
+                                                                                      S3ResourceType.OBJECT_LAMBDA);
 
     private final String partition;
     private final String region;
@@ -171,7 +172,7 @@ public final class S3AccessPointResource
     private S3Resource validateParentS3Resource(S3Resource parentS3Resource) {
         String invalidParentResourceTypeMessage =
             "Invalid 'parentS3Resource' type. An S3 access point resource must be "
-            + "associated with an outpost or a multi-region parent resource.";
+            + "associated with an outpost or object lambda parent resource.";
         VALID_PARENT_RESOURCE_TYPES.stream()
                                    .filter(r -> r.toString().equals(parentS3Resource.type()))
                                    .findAny()

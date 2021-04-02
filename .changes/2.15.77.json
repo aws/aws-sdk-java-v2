@@ -1,0 +1,30 @@
+{
+    "version": "2.15.77",
+    "date": "2021-02-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Adds a target group attribute for client IP preservation for Network Load Balancers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Macie Classic. We replaced the term \"master account\" with the term \"administrator account.\" An administrator account is used to centrally manage multiple accounts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Added support for a few additional exception codes for some AWS Organizations APIs."
+        }
+    ]
+}

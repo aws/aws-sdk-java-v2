@@ -1,0 +1,42 @@
+{
+    "version": "2.16.24",
+    "date": "2021-03-22",
+    "entries": [
+        {
+            "type": "documentation",
+            "category": "AWS SDK for Java v2",
+            "contributor": "Carey-AWS",
+            "description": "Implements web metrics tracking and standard AWS footer for javadocs, and adds a link to submit feedback about the javadocs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for UEFI boot on selected AMD- and Intel-based EC2 instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release of the Amazon Macie API adds support for publishing sensitive data findings to AWS Security Hub and specifying which categories of findings to publish to Security Hub."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "Carey-AWS",
+            "description": "Use HTTPs for AWS API Documentation links in javadocs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Added support to enable AQUA in Amazon Redshift clusters."
+        },
+        {
+            "type": "feature",
+            "category": "CodeArtifact",
+            "contributor": "",
+            "description": "Documentation updates for CodeArtifact"
+        }
+    ]
+}

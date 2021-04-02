@@ -43,6 +43,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -181,6 +183,33 @@ public class AmazonHttpClientTest {
 
         Assert.assertTrue(userAgent.contains("io/sync"));
         Assert.assertTrue(userAgent.contains("http/UNKNOWN"));
+    }
+
+    @Test
+    public void testUserAgentContainsRetryModeInfo() {
+        HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
+
+        SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
+                                                     .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
+                                                     .option(SdkClientOption.CLIENT_TYPE, ClientType.SYNC)
+                                                     .option(SdkClientOption.ENDPOINT, URI.create("http://example.com"))
+                                                     .option(SdkClientOption.RETRY_POLICY, RetryPolicy.forRetryMode(RetryMode.STANDARD))
+                                                     .build();
+        AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
+
+        client.requestExecutionBuilder()
+              .request(ValidSdkObjects.sdkHttpFullRequest().build())
+              .originalRequest(NoopTestRequest.builder().build())
+              .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
+              .execute(combinedSyncResponseHandler(handler, null));
+
+        ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
+        verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
+
+        final String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
+                                                  .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
+
+        Assert.assertTrue(userAgent.contains("cfg/retry-mode/standard"));
     }
 
     @Test

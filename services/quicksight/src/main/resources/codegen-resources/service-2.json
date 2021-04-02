@@ -2042,8 +2042,7 @@
     "AnalysisName":{
       "type":"string",
       "max":2048,
-      "min":1,
-      "pattern":"[\\u0020-\\u00FF]+"
+      "min":1
     },
     "AnalysisSearchFilter":{
       "type":"structure",
@@ -2066,7 +2065,8 @@
     "AnalysisSearchFilterList":{
       "type":"list",
       "member":{"shape":"AnalysisSearchFilter"},
-      "max":1
+      "max":1,
+      "min":1
     },
     "AnalysisSourceEntity":{
       "type":"structure",
@@ -3612,8 +3612,7 @@
     "DashboardName":{
       "type":"string",
       "max":2048,
-      "min":1,
-      "pattern":"[\\u0020-\\u00FF]+"
+      "min":1
     },
     "DashboardPublishOptions":{
       "type":"structure",
@@ -3655,7 +3654,8 @@
     "DashboardSearchFilterList":{
       "type":"list",
       "member":{"shape":"DashboardSearchFilter"},
-      "max":1
+      "max":1,
+      "min":1
     },
     "DashboardSourceEntity":{
       "type":"structure",
@@ -8626,18 +8626,18 @@
       "members":{
         "Namespace":{
           "shape":"Namespace",
-          "documentation":"<p>The namespace associated with the row-level permissions dataset.</p>"
+          "documentation":"<p>The namespace associated with the dataset that contains permissions for RLS.</p>"
         },
         "Arn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the permission dataset.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the dataset that contains permissions for RLS.</p>"
         },
         "PermissionPolicy":{
           "shape":"RowLevelPermissionPolicy",
-          "documentation":"<p>Permission policy.</p>"
+          "documentation":"<p>The type of permissions to use when interpretting the permissions for RLS. <code>DENY_ACCESS</code> is included for backward compatibility only.</p>"
         }
       },
-      "documentation":"<p>The row-level security configuration for the dataset.</p>"
+      "documentation":"<p>Information about a dataset that contains permissions for row-level security (RLS). The permissions dataset maps fields to users or groups. For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/restrict-access-to-a-data-set-using-row-level-security.html\">Using Row-Level Security (RLS) to Restrict Access to a Dataset</a> in the <i>Amazon QuickSight User Guide</i>.</p> <p>The option to deny permissions by setting <code>PermissionPolicy</code> to <code>DENY_ACCESS</code> is not supported for new RLS datasets.</p>"
     },
     "RowLevelPermissionPolicy":{
       "type":"string",
@@ -8676,7 +8676,7 @@
       "members":{
         "DataSourceArn":{
           "shape":"Arn",
-          "documentation":"<p>The amazon Resource Name (ARN) for the data source.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) for the data source.</p>"
         },
         "UploadSettings":{
           "shape":"UploadSettings",
@@ -9149,8 +9149,7 @@
     "TemplateName":{
       "type":"string",
       "max":2048,
-      "min":1,
-      "pattern":"[\\u0020-\\u00FF]+"
+      "min":1
     },
     "TemplateSourceAnalysis":{
       "type":"structure",

@@ -208,7 +208,7 @@
         {"shape":"MissingAuthenticationToken"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns the optimization findings for an account.</p> <p>For example, it returns the number of Amazon EC2 instances in an account that are under-provisioned, over-provisioned, or optimized. It also returns the number of Auto Scaling groups in an account that are not optimized, or optimized.</p>"
+      "documentation":"<p>Returns the optimization findings for an account.</p> <p>It returns the number of:</p> <ul> <li> <p>Amazon EC2 instances in an account that are <code>Underprovisioned</code>, <code>Overprovisioned</code>, or <code>Optimized</code>.</p> </li> <li> <p>Auto Scaling groups in an account that are <code>NotOptimized</code>, or <code>Optimized</code>.</p> </li> <li> <p>Amazon EBS volumes in an account that are <code>NotOptimized</code>, or <code>Optimized</code>.</p> </li> <li> <p>Lambda functions in an account that are <code>NotOptimized</code>, or <code>Optimized</code>.</p> </li> </ul>"
     },
     "UpdateEnrollmentStatus":{
       "name":"UpdateEnrollmentStatus",
@@ -226,7 +226,7 @@
         {"shape":"MissingAuthenticationToken"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Updates the enrollment (opt in) status of an account to the AWS Compute Optimizer service.</p> <p>If the account is a management account of an organization, this action can also be used to enroll member accounts within the organization.</p>"
+      "documentation":"<p>Updates the enrollment (opt in and opt out) status of an account to the AWS Compute Optimizer service.</p> <p>If the account is a management account of an organization, this action can also be used to enroll member accounts within the organization.</p> <p>You must have the appropriate permissions to opt in to Compute Optimizer, to view its recommendations, and to opt out. For more information, see <a href=\"https://docs.aws.amazon.com/compute-optimizer/ug/security-iam.html\">Controlling access with AWS Identity and Access Management</a> in the <i>Compute Optimizer User Guide</i>.</p> <p>When you opt in, Compute Optimizer automatically creates a Service-Linked Role in your account to access its data. For more information, see <a href=\"https://docs.aws.amazon.com/compute-optimizer/ug/using-service-linked-roles.html\">Using Service-Linked Roles for AWS Compute Optimizer</a> in the <i>Compute Optimizer User Guide</i>.</p>"
     }
   },
   "shapes":{
@@ -432,7 +432,7 @@
         },
         "statistic":{
           "shape":"MetricStatistic",
-          "documentation":"<p>The statistic of the utilization metric.</p> <p>The following statistics are available:</p> <ul> <li> <p> <code>Average</code> - This is the value of Sum / SampleCount during the specified period, or the average value observed during the specified period.</p> </li> <li> <p> <code>Maximum</code> - The highest value observed during the specified period. Use this value to determine high volumes of activity for your application.</p> </li> </ul>"
+          "documentation":"<p>The statistic of the utilization metric.</p> <p>The Compute Optimizer API, AWS Command Line Interface (AWS CLI), and SDKs return utilization metrics using only the <code>Maximum</code> statistic, which is the highest value observed during the specified period.</p> <p>The Compute Optimizer console displays graphs for some utilization metrics using the <code>Average</code> statistic, which is the value of <code>Sum</code> / <code>SampleCount</code> during the specified period. For more information, see <a href=\"https://docs.aws.amazon.com/compute-optimizer/latest/ug/viewing-recommendations.html\">Viewing resource recommendations</a> in the <i>AWS Compute Optimizer User Guide</i>. You can also get averaged utilization metric data for your resources using Amazon CloudWatch. For more information, see the <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html\">Amazon CloudWatch User Guide</a>.</p>"
         },
         "value":{
           "shape":"MetricValue",
@@ -1279,11 +1279,11 @@
       "members":{
         "name":{
           "shape":"LambdaFunctionMetricName",
-          "documentation":"<p>The name of the utilization metric.</p>"
+          "documentation":"<p>The name of the utilization metric.</p> <p>The following utilization metrics are available:</p> <ul> <li> <p> <code>Duration</code> - The amount of time that your function code spends processing an event.</p> </li> <li> <p> <code>Memory</code> - The amount of memory used per invocation.</p> </li> </ul>"
         },
         "statistic":{
           "shape":"LambdaFunctionMetricStatistic",
-          "documentation":"<p>The statistic of the utilization metric.</p>"
+          "documentation":"<p>The statistic of the utilization metric.</p> <p>The Compute Optimizer API, AWS Command Line Interface (AWS CLI), and SDKs return utilization metrics using only the <code>Maximum</code> statistic, which is the highest value observed during the specified period.</p> <p>The Compute Optimizer console displays graphs for some utilization metrics using the <code>Average</code> statistic, which is the value of <code>Sum</code> / <code>SampleCount</code> during the specified period. For more information, see <a href=\"https://docs.aws.amazon.com/compute-optimizer/latest/ug/viewing-recommendations.html\">Viewing resource recommendations</a> in the <i>AWS Compute Optimizer User Guide</i>. You can also get averaged utilization metric data for your resources using Amazon CloudWatch. For more information, see the <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html\">Amazon CloudWatch User Guide</a>.</p>"
         },
         "value":{
           "shape":"MetricValue",
@@ -1638,11 +1638,11 @@
       "members":{
         "status":{
           "shape":"Status",
-          "documentation":"<p>The new enrollment status of the account.</p> <p>Accepted options are <code>Active</code> or <code>Inactive</code>. You will get an error if <code>Pending</code> or <code>Failed</code> are specified.</p>"
+          "documentation":"<p>The new enrollment status of the account.</p> <p>The following status options are available:</p> <ul> <li> <p> <code>Active</code> - Opts in your account to the Compute Optimizer service. Compute Optimizer begins analyzing the configuration and utilization metrics of your AWS resources after you opt in. For more information, see <a href=\"https://docs.aws.amazon.com/compute-optimizer/ug/metrics.html\">Metrics analyzed by AWS Compute Optimizer</a> in the <i>Compute Optimizer User Guide</i>.</p> </li> <li> <p> <code>Inactive</code> - Opts out your account from the Compute Optimizer service. Your account's recommendations and related metrics data will be deleted from Compute Optimizer after you opt out.</p> </li> </ul> <note> <p>The <code>Pending</code> and <code>Failed</code> options cannot be used to update the enrollment status of an account. They are returned in the response of a request to update the enrollment status of an account.</p> </note>"
         },
         "includeMemberAccounts":{
           "shape":"IncludeMemberAccounts",
-          "documentation":"<p>Indicates whether to enroll member accounts of the organization if the your account is the management account of an organization.</p>"
+          "documentation":"<p>Indicates whether to enroll member accounts of the organization if the account is the management account of an organization.</p>"
         }
       }
     },
@@ -1668,7 +1668,7 @@
         },
         "statistic":{
           "shape":"MetricStatistic",
-          "documentation":"<p>The statistic of the utilization metric.</p> <p>The following statistics are available:</p> <ul> <li> <p> <code>Average</code> - This is the value of Sum / SampleCount during the specified period, or the average value observed during the specified period.</p> </li> <li> <p> <code>Maximum</code> - The highest value observed during the specified period. Use this value to determine high volumes of activity for your application.</p> </li> </ul>"
+          "documentation":"<p>The statistic of the utilization metric.</p> <p>The Compute Optimizer API, AWS Command Line Interface (AWS CLI), and SDKs return utilization metrics using only the <code>Maximum</code> statistic, which is the highest value observed during the specified period.</p> <p>The Compute Optimizer console displays graphs for some utilization metrics using the <code>Average</code> statistic, which is the value of <code>Sum</code> / <code>SampleCount</code> during the specified period. For more information, see <a href=\"https://docs.aws.amazon.com/compute-optimizer/latest/ug/viewing-recommendations.html\">Viewing resource recommendations</a> in the <i>AWS Compute Optimizer User Guide</i>. You can also get averaged utilization metric data for your resources using Amazon CloudWatch. For more information, see the <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html\">Amazon CloudWatch User Guide</a>.</p>"
         },
         "value":{
           "shape":"MetricValue",

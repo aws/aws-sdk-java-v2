@@ -1,0 +1,36 @@
+{
+    "version": "2.16.9",
+    "date": "2021-03-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Alexa For Business",
+            "contributor": "",
+            "description": "Added support for optional tags in CreateAddressBook, CreateConferenceProvider, CreateContact, CreateGatewayGroup, CreateNetworkProfile and RegisterAVSDevice APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adding new error code AdmissionRequestDenied for Addons in EKS"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Add Support for Patch Manger Baseline Override parameter."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodePipeline",
+            "contributor": "",
+            "description": "Added a new field to the ListPipelines API to allow maximum search results of 1000"
+        }
+    ]
+}

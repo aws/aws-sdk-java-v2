@@ -44,6 +44,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 
 @RunWith(Parameterized.class)
 public class EndpointOverrideEndpointResolutionTest {
@@ -63,6 +65,8 @@ public class EndpointOverrideEndpointResolutionTest {
         this.mockHttpClient = new MockSyncHttpClient();
         this.s3Client = S3Client.builder()
                                 .region(testCase.clientRegion)
+                                .credentialsProvider(StaticCredentialsProvider.create(
+                                    AwsBasicCredentials.create("dummy-key", "dummy-secret")))
                                 .endpointOverride(testCase.endpointUrl)
                                 .serviceConfiguration(testCase.s3Configuration)
                                 .httpClient(mockHttpClient)
@@ -70,6 +74,8 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .build();
         this.s3Presigner = S3Presigner.builder()
                                       .region(testCase.clientRegion)
+                                      .credentialsProvider(StaticCredentialsProvider.create(
+                                          AwsBasicCredentials.create("dummy-key", "dummy-secret")))
                                       .endpointOverride(testCase.endpointUrl)
                                       .serviceConfiguration(testCase.s3Configuration)
                                       .build();

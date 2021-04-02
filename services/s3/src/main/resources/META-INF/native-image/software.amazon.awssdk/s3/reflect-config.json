@@ -1,0 +1,119 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.AsyncChecksumValidationInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.CreateBucketInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.CreateMultipartUploadRequestInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.DecodeUrlEncodedResponseInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.DisableDoubleUrlEncodingInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.EnableChunkedEncodingInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.EnableTrailingChecksumInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.ExceptionTranslationInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.GetBucketPolicyInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.GetObjectInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.PutObjectInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

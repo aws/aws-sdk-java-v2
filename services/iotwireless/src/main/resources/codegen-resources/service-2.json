@@ -990,6 +990,10 @@
           "shape":"ClientRequestToken",
           "documentation":"<p>Each resource must have a unique client request token. If you try to create a new resource with the same token as a resource that already exists, an exception occurs. If you omit this value, AWS SDKs will automatically generate a unique client request. </p>",
           "idempotencyToken":true
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to attach to the specified resource. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -999,6 +1003,10 @@
         "Sidewalk":{
           "shape":"SidewalkAccountInfo",
           "documentation":"<p>The Sidewalk account credentials.</p>"
+        },
+        "Arn":{
+          "shape":"PartnerAccountArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       }
     },
@@ -1079,11 +1087,44 @@
       }
     },
     "AutoCreateTasks":{"type":"boolean"},
+    "BatteryLevel":{
+      "type":"string",
+      "documentation":"<p>Sidewalk device battery level.</p>",
+      "enum":[
+        "normal",
+        "low",
+        "critical"
+      ]
+    },
+    "CertificateList":{
+      "type":"structure",
+      "required":[
+        "SigningAlg",
+        "Value"
+      ],
+      "members":{
+        "SigningAlg":{
+          "shape":"SigningAlg",
+          "documentation":"<p>The certificate chain algorithm provided by sidewalk.</p>"
+        },
+        "Value":{
+          "shape":"CertificateValue",
+          "documentation":"<p>The value of the chosen sidewalk certificate.</p>"
+        }
+      },
+      "documentation":"<p>List of sidewalk certificates.</p>"
+    },
     "CertificatePEM":{
       "type":"string",
       "max":4096,
       "min":1,
       "pattern":"[^-A-Za-z0-9+/=]|=[^=]|={3,}${1,4096}"
+    },
+    "CertificateValue":{
+      "type":"string",
+      "documentation":"<p>Certificate value.</p>",
+      "max":2048,
+      "min":0
     },
     "ChannelMask":{
       "type":"string",
@@ -1115,6 +1156,13 @@
       "documentation":"<p>Adding, updating, or deleting the resource can cause an inconsistent state.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
+    },
+    "ConnectionStatus":{
+      "type":"string",
+      "enum":[
+        "Connected",
+        "Disconnected"
+      ]
     },
     "Crc":{
       "type":"long",
@@ -1152,7 +1200,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to attach to the new destination. Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>The tags to attach to the new destination. Tags are metadata that you can use to manage a resource.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1187,7 +1235,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to attach to the new device profile Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>The tags to attach to the new device profile. Tags are metadata that you can use to manage a resource.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1222,7 +1270,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to attach to the new service profile. Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>The tags to attach to the new service profile. Tags are metadata that you can use to manage a resource.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1275,6 +1323,10 @@
         "LoRaWAN":{
           "shape":"LoRaWANDevice",
           "documentation":"<p>The device configuration information to use to create the wireless device.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to attach to the new wireless device. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -1309,7 +1361,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to attach to the new wireless gateway. Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>The tags to attach to the new wireless gateway. Tags are metadata that you can use to manage a resource.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1351,6 +1403,10 @@
           "shape":"ClientRequestToken",
           "documentation":"<p>Each resource must have a unique client request token. If you try to create a new resource with the same token as a resource that already exists, an exception occurs. If you omit this value, AWS SDKs will automatically generate a unique client request. </p>",
           "idempotencyToken":true
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to attach to the specified resource. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -1360,6 +1416,10 @@
         "Id":{
           "shape":"WirelessGatewayTaskDefinitionId",
           "documentation":"<p>The ID of the new wireless gateway task definition.</p>"
+        },
+        "Arn":{
+          "shape":"WirelessGatewayTaskDefinitionArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       }
     },
@@ -1571,6 +1631,11 @@
       "max":2147483647,
       "min":0
     },
+    "DeviceCertificateList":{
+      "type":"list",
+      "member":{"shape":"CertificateList"},
+      "documentation":"<p>List of device certificate chain.</p>"
+    },
     "DeviceProfile":{
       "type":"structure",
       "members":{
@@ -1601,6 +1666,16 @@
     "DeviceProfileName":{
       "type":"string",
       "max":256
+    },
+    "DeviceState":{
+      "type":"string",
+      "documentation":"<p>Device state defines the device status of sidewalk device.</p>",
+      "enum":[
+        "Provisioned",
+        "RegisteredNotSeen",
+        "RegisteredReachable",
+        "RegisteredUnreachable"
+      ]
     },
     "DisassociateAwsAccountFromPartnerAccountRequest":{
       "type":"structure",
@@ -1708,6 +1783,17 @@
       "type":"string",
       "max":256,
       "min":1
+    },
+    "Event":{
+      "type":"string",
+      "documentation":"<p>Sidewalk device status notification.</p>",
+      "enum":[
+        "discovered",
+        "lost",
+        "ack",
+        "nack",
+        "passthrough"
+      ]
     },
     "Expression":{
       "type":"string",
@@ -1974,6 +2060,10 @@
         "LoRaWAN":{
           "shape":"LoRaWANDevice",
           "documentation":"<p>Information about the wireless device.</p>"
+        },
+        "Sidewalk":{
+          "shape":"SidewalkDevice",
+          "documentation":"<p>Sidewalk device object.</p>"
         }
       }
     },
@@ -2003,6 +2093,10 @@
         "LoRaWAN":{
           "shape":"LoRaWANDeviceMetadata",
           "documentation":"<p>Information about the wireless device's operations.</p>"
+        },
+        "Sidewalk":{
+          "shape":"SidewalkDeviceMetadata",
+          "documentation":"<p>MetaData for Sidewalk device.</p>"
         }
       }
     },
@@ -2027,7 +2121,7 @@
         },
         "LoRaWANNetworkServerCertificateId":{
           "shape":"IotCertificateId",
-          "documentation":"<p>The ID of the certificate associated with the wireless gateway and used for LoRaWANNetworkServer endpoint.</p>"
+          "documentation":"<p>The ID of the certificate that is associated with the wireless gateway and used for the LoRaWANNetworkServer endpoint.</p>"
         }
       }
     },
@@ -2128,6 +2222,10 @@
         "LastUplinkReceivedAt":{
           "shape":"ISODateTimeString",
           "documentation":"<p>The date and time when the most recent uplink was received.</p>"
+        },
+        "ConnectionStatus":{
+          "shape":"ConnectionStatus",
+          "documentation":"<p>The connection status of the wireless gateway.</p>"
         }
       }
     },
@@ -2157,6 +2255,10 @@
         "Update":{
           "shape":"UpdateWirelessGatewayTaskCreate",
           "documentation":"<p>Information about the gateways to update.</p>"
+        },
+        "Arn":{
+          "shape":"WirelessGatewayTaskDefinitionArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       }
     },
@@ -2351,7 +2453,7 @@
       "members":{
         "ResourceArn":{
           "shape":"AmazonResourceName",
-          "documentation":"<p>The ARN of the resource for which to list tags.</p>",
+          "documentation":"<p>The ARN of the resource for which you want to list tags.</p>",
           "location":"querystring",
           "locationName":"resourceArn"
         }
@@ -2362,7 +2464,7 @@
       "members":{
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags attached to the specified resource. Tags are metadata that can be used to manage a resource</p>"
+          "documentation":"<p>The tags to attach to the specified resource. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -2946,6 +3048,7 @@
       "max":32,
       "min":1
     },
+    "PartnerAccountArn":{"type":"string"},
     "PartnerAccountId":{
       "type":"string",
       "max":256
@@ -3076,6 +3179,7 @@
     },
     "Seq":{
       "type":"integer",
+      "max":16383,
       "min":0
     },
     "ServiceProfile":{
@@ -3169,6 +3273,10 @@
         "Fingerprint":{
           "shape":"Fingerprint",
           "documentation":"<p>The fingerprint of the Sidewalk application server private key.</p>"
+        },
+        "Arn":{
+          "shape":"PartnerAccountArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       },
       "documentation":"<p>Information about a Sidewalk account.</p>"
@@ -3177,15 +3285,76 @@
       "type":"list",
       "member":{"shape":"SidewalkAccountInfoWithFingerprint"}
     },
+    "SidewalkDevice":{
+      "type":"structure",
+      "members":{
+        "SidewalkId":{
+          "shape":"SidewalkId",
+          "documentation":"<p>The sidewalk device identification.</p>"
+        },
+        "SidewalkManufacturingSn":{
+          "shape":"SidewalkManufacturingSn",
+          "documentation":"<p>The Sidewalk manufacturing series number.</p>"
+        },
+        "DeviceCertificates":{
+          "shape":"DeviceCertificateList",
+          "documentation":"<p>The sidewalk device certificates for Ed25519 and P256r1.</p>"
+        }
+      },
+      "documentation":"<p>Sidewalk device object.</p>"
+    },
+    "SidewalkDeviceMetadata":{
+      "type":"structure",
+      "members":{
+        "Rssi":{
+          "shape":"Integer",
+          "documentation":"<p>The RSSI value.</p>"
+        },
+        "BatteryLevel":{
+          "shape":"BatteryLevel",
+          "documentation":"<p>Sidewalk device battery level.</p>"
+        },
+        "Event":{
+          "shape":"Event",
+          "documentation":"<p>Sidewalk device status notification.</p>"
+        },
+        "DeviceState":{
+          "shape":"DeviceState",
+          "documentation":"<p>Device state defines the device status of sidewalk device.</p>"
+        }
+      },
+      "documentation":"<p>MetaData for Sidewalk device.</p>"
+    },
+    "SidewalkId":{
+      "type":"string",
+      "documentation":"<p>The sidewalk device identification.</p>",
+      "max":256
+    },
     "SidewalkListDevice":{
       "type":"structure",
       "members":{
         "AmazonId":{
           "shape":"AmazonId",
           "documentation":"<p>The Sidewalk Amazon ID.</p>"
+        },
+        "SidewalkId":{
+          "shape":"SidewalkId",
+          "documentation":"<p>The sidewalk device identification.</p>"
+        },
+        "SidewalkManufacturingSn":{
+          "shape":"SidewalkManufacturingSn",
+          "documentation":"<p>The Sidewalk manufacturing series number.</p>"
+        },
+        "DeviceCertificates":{
+          "shape":"DeviceCertificateList",
+          "documentation":"<p>The sidewalk device certificates for Ed25519 and P256r1.</p>"
         }
       },
       "documentation":"<p>Sidewalk object used by list functions.</p>"
+    },
+    "SidewalkManufacturingSn":{
+      "type":"string",
+      "max":64
     },
     "SidewalkSendDataToDevice":{
       "type":"structure",
@@ -3206,6 +3375,14 @@
         }
       },
       "documentation":"<p>Sidewalk update.</p>"
+    },
+    "SigningAlg":{
+      "type":"string",
+      "documentation":"<p>The certificate chain algorithm provided by sidewalk.</p>",
+      "enum":[
+        "Ed25519",
+        "P256r1"
+      ]
     },
     "Station":{
       "type":"string",
@@ -3266,7 +3443,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>Adds to or modifies the tags of the given resource. Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>Adds to or modifies the tags of the given resource. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -3532,6 +3709,10 @@
         "LoRaWAN":{
           "shape":"LoRaWANUpdateGatewayTaskEntry",
           "documentation":"<p>The properties that relate to the LoRaWAN wireless gateway.</p>"
+        },
+        "Arn":{
+          "shape":"WirelessGatewayTaskDefinitionArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       },
       "documentation":"<p>UpdateWirelessGatewayTaskEntry object.</p>"
@@ -3669,6 +3850,7 @@
       "type":"list",
       "member":{"shape":"WirelessGatewayStatistics"}
     },
+    "WirelessGatewayTaskDefinitionArn":{"type":"string"},
     "WirelessGatewayTaskDefinitionId":{
       "type":"string",
       "max":36,

@@ -32,6 +32,7 @@ import software.amazon.awssdk.arns.ArnResource;
 public final class S3ArnConverter implements ArnConverter<S3Resource> {
     private static final S3ArnConverter INSTANCE = new S3ArnConverter();
     private static final Pattern OBJECT_AP_PATTERN = Pattern.compile("^([0-9a-zA-Z-]+)/object/(.*)$");
+    private static final String OBJECT_LAMBDA_SERVICE = "s3-object-lambda";
 
     private S3ArnConverter() {
     }
@@ -135,6 +136,10 @@ public final class S3ArnConverter implements ArnConverter<S3Resource> {
                                    .build();
         }
 
+        if (OBJECT_LAMBDA_SERVICE.equals(arn.service())) {
+            return parseS3ObjectLambdaAccessPointArn(arn);
+        }
+
         return S3AccessPointResource.builder()
                                     .partition(arn.partition())
                                     .region(arn.region().orElse(null))
@@ -162,6 +167,23 @@ public final class S3ArnConverter implements ArnConverter<S3Resource> {
                                                                 .accountId(arn.accountId().orElse(null))
                                                                 .outpostId(intermediateOutpostResource.outpostId())
                                                                 .build())
+                                    .build();
+    }
+
+    private S3Resource parseS3ObjectLambdaAccessPointArn(Arn arn) {
+        if (arn.resource().qualifier().isPresent()) {
+            throw new IllegalArgumentException("S3 object lambda access point arn shouldn't contain any sub resources.");
+        }
+
+        S3ObjectLambdaResource objectLambdaResource = S3ObjectLambdaResource.builder()
+                                                                               .accountId(arn.accountId().orElse(null))
+                                                                               .region(arn.region().orElse(null))
+                                                                               .partition(arn.partition())
+                                                                               .accessPointName(arn.resource().resource())
+                                                                               .build();
+        return S3AccessPointResource.builder()
+                                    .accessPointName(objectLambdaResource.accessPointName())
+                                    .parentS3Resource(objectLambdaResource)
                                     .build();
     }
 

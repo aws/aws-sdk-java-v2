@@ -43,6 +43,8 @@ import software.amazon.awssdk.services.s3control.model.GetAccessPointRequest;
 import software.amazon.awssdk.services.s3control.model.GetBucketRequest;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 
 @RunWith(Parameterized.class)
 public class EndpointOverrideEndpointResolutionTest {
@@ -60,6 +62,8 @@ public class EndpointOverrideEndpointResolutionTest {
         this.s3ControlClient =
             S3ControlClient.builder()
                            .region(testCase.clientRegion)
+                           .credentialsProvider(StaticCredentialsProvider.create(
+                               AwsBasicCredentials.create("dummy-key", "dummy-secret")))
                            .endpointOverride(testCase.endpointUrl)
                            .serviceConfiguration(testCase.s3ControlConfiguration)
                            .httpClient(mockHttpClient)

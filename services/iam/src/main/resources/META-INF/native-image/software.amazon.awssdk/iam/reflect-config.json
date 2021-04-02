@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.awscore.interceptor.GlobalServiceExecutionInterceptor",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

@@ -1,0 +1,24 @@
+{
+    "version": "2.16.4",
+    "date": "2021-02-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker now supports core dump for SageMaker Endpoints and direct invocation of a single container in a SageMaker Endpoint that hosts multiple containers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Runtime",
+            "contributor": "",
+            "description": "SageMaker Runtime now supports a new TargetContainerHostname header to invoke a model in a specific container if the endpoint hosts multiple containers and is configured to use direct invocation."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS S3",
+            "contributor": "",
+            "description": "Fix the bug that getUrl in S3Utilities ignores the overriding endpoint in the client."
+        }
+    ]
+}
