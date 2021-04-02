@@ -1,3 +1,24 @@
+# __2.16.34__ __2021-04-02__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - SPEKE v2 is an upgrade to the existing SPEKE API to support multiple encryption keys, based on an encryption contract selected by the customer.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Removal of `--report-unsupported-elements-at-runtime` option from SDK core's `native-image.properties` as the option is not meant to be used in production.
+        - Contributed by: [@zakkak](https://github.com/zakkak)
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for Block Device Mappings for container image builds, and adds distribution configuration support for EC2 launch templates in AMI builds.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@zakkak](https://github.com/zakkak)
 # __2.16.33__ __2021-04-01__
 ## __AWS Elemental MediaConvert__
   - ### Features
