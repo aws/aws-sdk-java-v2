@@ -38,6 +38,7 @@ import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverContext;
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverFactory;
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverFactoryContext;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -168,7 +169,12 @@ public final class S3Utilities {
                                                                              .serviceConfiguration(s3Configuration)
                                                                              .build();
 
-        SdkHttpRequest httpRequest = S3EndpointResolverFactory.getEndpointResolver(getObjectRequest.bucket())
+        S3EndpointResolverFactoryContext resolverFactoryContext = S3EndpointResolverFactoryContext.builder()
+                .bucketName(getObjectRequest.bucket())
+                .originalRequest(getObjectRequest)
+                .build();
+
+        SdkHttpRequest httpRequest = S3EndpointResolverFactory.getEndpointResolver(resolverFactoryContext)
                                                               .applyEndpointConfiguration(resolverContext)
                                                               .sdkHttpRequest();
 

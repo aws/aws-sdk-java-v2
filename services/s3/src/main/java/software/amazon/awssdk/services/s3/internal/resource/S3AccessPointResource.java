@@ -158,9 +158,11 @@ public final class S3AccessPointResource
     }
 
     private S3Resource validateParentS3Resource(S3Resource parentS3Resource) {
-        if (!S3ResourceType.OUTPOST.toString().equals(parentS3Resource.type())) {
+        String parentResourceType = parentS3Resource.type();
+        if (!S3ResourceType.OUTPOST.toString().equals(parentResourceType)
+            && !S3ResourceType.OBJECT_LAMBDA.toString().equals(parentResourceType)) {
             throw new IllegalArgumentException("Invalid 'parentS3Resource' type. An S3 access point resource must be " +
-                                               "associated with an outpost parent resource.");
+                                               "associated with an outpost or object lambda parent resource.");
         }
         return parentS3Resource;
     }

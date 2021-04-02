@@ -39,7 +39,12 @@ public enum S3ResourceType {
     /**
      * An outpost access point. Implemented by {@link S3OutpostResource}.
      */
-    OUTPOST("outpost");
+    OUTPOST("outpost"),
+
+    /**
+     * An object lambda access point. Implemented by {@link S3ObjectLambdaResource}
+     */
+    OBJECT_LAMBDA("object-lambda");
 
     private final String value;
 

@@ -35,6 +35,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Big
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.BooleanAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteArrayAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteBufferAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharSequenceAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterArrayAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterAttributeConverter;
@@ -204,6 +205,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
                                                 .addConverter(BigIntegerAttributeConverter.create())
                                                 .addConverter(BooleanAttributeConverter.create())
                                                 .addConverter(ByteArrayAttributeConverter.create())
+                                                .addConverter(ByteBufferAttributeConverter.create())
                                                 .addConverter(ByteAttributeConverter.create())
                                                 .addConverter(CharacterArrayAttributeConverter.create())
                                                 .addConverter(CharacterAttributeConverter.create())

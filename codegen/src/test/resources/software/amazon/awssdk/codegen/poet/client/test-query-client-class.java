@@ -88,7 +88,7 @@ final class DefaultQueryClient implements QueryClient {
      * @throws QueryException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.APostOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/APostOperation" target="_top">AWS
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
      */
     @Override
@@ -136,7 +136,7 @@ final class DefaultQueryClient implements QueryClient {
      * @throws QueryException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.APostOperationWithOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/APostOperationWithOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -180,7 +180,7 @@ final class DefaultQueryClient implements QueryClient {
      * @throws QueryException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.OperationWithChecksumRequired
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithChecksumRequired"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithChecksumRequired"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -239,7 +239,7 @@ final class DefaultQueryClient implements QueryClient {
      * @throws QueryException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
@@ -295,7 +295,7 @@ final class DefaultQueryClient implements QueryClient {
      * @throws QueryException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override

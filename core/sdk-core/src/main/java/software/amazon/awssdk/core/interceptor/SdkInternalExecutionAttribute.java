@@ -33,6 +33,13 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<HttpChecksumRequired> HTTP_CHECKSUM_REQUIRED =
         new ExecutionAttribute<>("HttpChecksumRequired");
 
+    /**
+     * Whether host prefix injection has been disbabled on the client.
+     * See {@link software.amazon.awssdk.core.client.config.SdkAdvancedClientOption#DISABLE_HOST_PREFIX_INJECTION}
+     */
+    public static final ExecutionAttribute<Boolean> DISABLE_HOST_PREFIX_INJECTION =
+            new ExecutionAttribute<>("DisableHostPrefixInjection");
+
     private SdkInternalExecutionAttribute() {
     }
 }
