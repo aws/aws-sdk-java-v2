@@ -59,7 +59,7 @@ public abstract class RequestOverrideConfiguration {
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
         this.signer = builder.signer();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
-        this.executionAttributes = new UnmodifiableExecutionAttributes(builder.executionAttributes().build());
+        this.executionAttributes = new UnmodifiableExecutionAttributes(builder.executionAttributes());
     }
 
     /**
@@ -402,7 +402,7 @@ public abstract class RequestOverrideConfiguration {
          */
         <T> B putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
-        ExecutionAttributes.Builder executionAttributes();
+        ExecutionAttributes executionAttributes();
 
         /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
@@ -575,8 +575,8 @@ public abstract class RequestOverrideConfiguration {
         }
 
         @Override
-        public ExecutionAttributes.Builder executionAttributes() {
-            return executionAttributes;
+        public ExecutionAttributes executionAttributes() {
+            return executionAttributes.build();
         }
 
         public void setExecutionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes) {

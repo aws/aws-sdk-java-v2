@@ -113,6 +113,8 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
                 new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
 
+            ExecutionContext context = createExecutionContext(executionParams, executionAttributes);
+
             // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
             // See https://github.com/aws/aws-sdk-java-v2/issues/1268. We do this with a wrapper that caches the prepare
             // result until the execution attempt number changes. This guarantees that prepare is only called once per
@@ -120,11 +122,9 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             TransformingAsyncResponseHandler<ReturnT> wrappedAsyncStreamingResponseHandler =
                 IdempotentAsyncResponseHandler.create(
                     asyncStreamingResponseHandler,
-                    () -> executionAttributes.getAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT),
+                    () -> context.executionAttributes().getAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT),
                     Integer::equals);
             wrappedAsyncStreamingResponseHandler.prepare();
-
-            ExecutionContext context = createExecutionContext(executionParams, executionAttributes);
 
             HttpResponseHandler<OutputT> decoratedResponseHandlers =
                 decorateResponseHandlers(executionParams.getResponseHandler(), context);
