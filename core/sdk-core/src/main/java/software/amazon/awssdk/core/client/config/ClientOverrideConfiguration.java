@@ -25,7 +25,10 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.UnmodifiableExecutionAttributes;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -57,6 +60,7 @@ public final class ClientOverrideConfiguration
     private final ProfileFile defaultProfileFile;
     private final String defaultProfileName;
     private final List<MetricPublisher> metricPublishers;
+    private final ExecutionAttributes executionAttributes;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -71,6 +75,7 @@ public final class ClientOverrideConfiguration
         this.defaultProfileFile = builder.defaultProfileFile();
         this.defaultProfileName = builder.defaultProfileName();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
+        this.executionAttributes = new UnmodifiableExecutionAttributes(builder.executionAttributes());
     }
 
     @Override
@@ -82,7 +87,8 @@ public final class ClientOverrideConfiguration
                                                               .apiCallAttemptTimeout(apiCallAttemptTimeout)
                                                               .executionInterceptors(executionInterceptors)
                                                               .defaultProfileFile(defaultProfileFile)
-                                                              .defaultProfileName(defaultProfileName);
+                                                              .defaultProfileName(defaultProfileName)
+                                                              .executionAttributes(executionAttributes.getAttributes());
     }
 
     /**
@@ -194,6 +200,15 @@ public final class ClientOverrideConfiguration
      */
     public List<MetricPublisher> metricPublishers() {
         return metricPublishers;
+    }
+
+    /**
+     *  Returns the additional execution attributes to be added for this client.
+     *
+     * @Return Map of execution attributes.
+     */
+    public ExecutionAttributes executionAttributes() {
+        return executionAttributes;
     }
 
     @Override
@@ -439,6 +454,22 @@ public final class ClientOverrideConfiguration
         Builder addMetricPublisher(MetricPublisher metricPublisher);
 
         List<MetricPublisher> metricPublishers();
+
+        /**
+         * Sets the additional execution attributes collection for this client.
+         * @param executionAttributes Execution attributes map for this client.
+         * @return This object for method chaining.
+         */
+        Builder executionAttributes(Map<ExecutionAttribute<?>, ?> executionAttributes);
+
+        /**
+         * Put an execution attribute into to the existing collection of execution attributes.
+         * @param attribute The execution attribute object
+         * @param value The value of the execution attribute.
+         */
+        <T> Builder putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
+
+        ExecutionAttributes executionAttributes();
     }
 
     /**
@@ -454,6 +485,7 @@ public final class ClientOverrideConfiguration
         private ProfileFile defaultProfileFile;
         private String defaultProfileName;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
+        private ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder();
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -616,6 +648,24 @@ public final class ClientOverrideConfiguration
         @Override
         public List<MetricPublisher> metricPublishers() {
             return Collections.unmodifiableList(metricPublishers);
+        }
+
+        @Override
+        public Builder executionAttributes(Map<ExecutionAttribute<?>, ?> executionAttributes) {
+            Validate.paramNotNull(executionAttributes, "executionAttributes");
+            this.executionAttributes = ExecutionAttributes.builder().putAll(executionAttributes);
+            return this;
+        }
+
+        @Override
+        public <T> Builder putExecutionAttribute(ExecutionAttribute<T> executionAttribute, T value) {
+            this.executionAttributes.put(executionAttribute, value);
+            return this;
+        }
+
+        @Override
+        public ExecutionAttributes executionAttributes() {
+            return executionAttributes.build();
         }
 
         @Override
