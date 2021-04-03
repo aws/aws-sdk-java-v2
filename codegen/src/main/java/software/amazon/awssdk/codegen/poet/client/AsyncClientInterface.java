@@ -48,6 +48,7 @@ import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.regions.ServiceMetadataProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 public class AsyncClientInterface implements ClassSpec {
@@ -78,6 +79,12 @@ public class AsyncClientInterface implements ClassSpec {
               .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                  .initializer("$S", model.getMetadata().getSigningName())
+                                 .build())
+              .addField(FieldSpec.builder(String.class, "SERVICE_METADATA_ID")
+                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                 .initializer("$S", model.getMetadata().getEndpointPrefix())
+                                 .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
+                                             ServiceMetadataProvider.class)
                                  .build());
 
         PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
