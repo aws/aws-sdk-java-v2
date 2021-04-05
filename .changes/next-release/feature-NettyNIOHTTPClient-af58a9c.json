@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Update Netty dependency to `4.1.61.Final`."
+}
