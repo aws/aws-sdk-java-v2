@@ -17,7 +17,6 @@ package software.amazon.awssdk.core;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -27,8 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
@@ -167,91 +164,5 @@ public class RequestOverrideConfigurationTest {
         SdkRequestOverrideConfiguration overrideConfig = builder.build();
 
         assertThat(overrideConfig.metricPublishers()).containsExactly(publishers.get(0), publishers.get(1), thirdAdded);
-    }
-
-    @Test
-    public void executionAttributes_createsCopy() {
-        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
-
-        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
-        String expectedValue = "Value1";
-        executionAttributes.put(testAttribute, expectedValue);
-
-        SdkRequestOverrideConfiguration overrideConfig = SdkRequestOverrideConfiguration.builder()
-                .executionAttributes(executionAttributes)
-                .build();
-
-        executionAttributes.remove(testAttribute);
-        assertThat(overrideConfig.executionAttributes().getAttribute(testAttribute)).isEqualTo(expectedValue);
-    }
-
-    @Test
-    public void executionAttributes_isImmutable() {
-        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
-
-        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
-        String expectedValue = "Value1";
-        executionAttributes.put(testAttribute, expectedValue);
-
-        SdkRequestOverrideConfiguration overrideConfig = SdkRequestOverrideConfiguration.builder()
-                .executionAttributes(executionAttributes)
-                .build();
-        try {
-            overrideConfig.executionAttributes().putAttribute(testAttribute, 2);
-            fail("Expected unsupported operation exception");
-        } catch(Exception ex) {
-            assertThat(ex instanceof UnsupportedOperationException).isTrue();
-        }
-    }
-
-    @Test
-    public void executionAttributes_maintainsAllAdded() {
-        Map<ExecutionAttribute, Object> executionAttributeObjectMap = new HashMap<>();
-        for (int i = 0; i < 5; i++) {
-            executionAttributeObjectMap.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
-        }
-
-        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
-
-        for (Map.Entry<ExecutionAttribute, Object> attributeObjectEntry : executionAttributeObjectMap.entrySet()) {
-            builder.putExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
-        }
-
-        SdkRequestOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributeObjectMap);
-    }
-
-    @Test
-    public void executionAttributes_overwritesPreviouslyAdded() {
-        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
-        for (int i = 0; i < 5; i++) {
-            executionAttributes.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
-        }
-
-        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
-
-        builder.putExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
-        builder.executionAttributes(executionAttributes);
-        SdkRequestOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes);
-    }
-
-    @Test
-    public void executionAttributes_listPreviouslyAdded_appendedToList() {
-        Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
-        for (int i = 0; i < 5; i++) {
-            executionAttributes.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
-        }
-
-        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
-
-        builder.executionAttributes(executionAttributes);
-        ExecutionAttribute addedAttribute = new ExecutionAttribute("AddedAttribute");
-        Object addedValue = mock(Object.class);
-
-        builder.putExecutionAttribute(addedAttribute, addedValue);
-
-        SdkRequestOverrideConfiguration overrideConfig = builder.build();
-        assertThat(overrideConfig.executionAttributes().getAttribute(addedAttribute)).isEqualTo(addedValue);
     }
 }
