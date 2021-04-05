@@ -204,9 +204,7 @@ public final class ClientOverrideConfiguration
      *
      * @Return Map of execution attributes.
      */
-    public Map<ExecutionAttribute<?>, Object> executionAttributes() {
-        return executionAttributes;
-    }
+    public Map<ExecutionAttribute<?>, Object> executionAttributes() { return executionAttributes; }
 
     @Override
     public String toString() {
@@ -661,9 +659,7 @@ public final class ClientOverrideConfiguration
         }
 
         @Override
-        public Map<ExecutionAttribute<?>, Object> executionAttributes() {
-            return executionAttributes;
-        }
+        public Map<ExecutionAttribute<?>, Object> executionAttributes() { return executionAttributes; }
 
         @Override
         public ClientOverrideConfiguration build() {
