@@ -69,7 +69,8 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
                                                    + "ClientExecutionParams object.");
             }
 
-            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
+            ExecutionAttributes overrideAttributes = addExecutionAttributeOverrides(executionParams);
+            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(overrideAttributes);
 
             ExecutionContext executionContext = createExecutionContext(executionParams,
                                                                        executionAttributes);
@@ -93,7 +94,8 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
 
         return measureApiCallSuccess(executionParams, () -> {
             validateExecutionParams(executionParams);
-            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
+            ExecutionAttributes overrideAttributes = addExecutionAttributeOverrides(executionParams);
+            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(overrideAttributes);
             ExecutionContext executionContext = createExecutionContext(executionParams,
                                                                        executionAttributes);
             HttpResponseHandler<Response<OutputT>> combinedResponseHandler;
