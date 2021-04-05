@@ -147,9 +147,7 @@ public abstract class RequestOverrideConfiguration {
      * An attribute value added on the client within the collection of attributes is superseded by an
      * attribute value added on the request.
      */
-    public Map<ExecutionAttribute<?>, Object> executionAttributes() {
-        return executionAttributes;
-    }
+    public Map<ExecutionAttribute<?>, Object> executionAttributes() { return executionAttributes; }
 
     @Override
     public boolean equals(Object o) {
@@ -375,7 +373,7 @@ public abstract class RequestOverrideConfiguration {
         B metricPublishers(List<MetricPublisher> metricPublisher);
 
         /**
-         * Add a metric publisher to the existing list of prereported by Checkstyle 8.38 with software/amazon/awssdk/checkstyle.xml ruleset. -> [Help 1]viously set publishers to be used for publishing metrics
+         * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics
          * for this request.
          *
          * @param metricPublisher The metric publisher to add.
@@ -571,12 +569,8 @@ public abstract class RequestOverrideConfiguration {
         }
 
         @Override
-        public Map<ExecutionAttribute<?>, Object> executionAttributes() {
-            return executionAttributes;
-        }
+        public Map<ExecutionAttribute<?>, Object> executionAttributes() { return executionAttributes; }
 
-        public void setExecutionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes) {
-            executionAttributes(executionAttributes);
-        }
+        public void setExecutionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes) { executionAttributes(executionAttributes); }
     }
 }
