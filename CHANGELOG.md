@@ -1,3 +1,28 @@
+# __2.16.35__ __2021-04-05__
+## __AWS Audit Manager__
+  - ### Features
+    - AWS Audit Manager has updated the GetAssessment API operation to include a new response field called userRole. The userRole field indicates the role information and IAM ARN of the API caller.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now support HTML5 Motion Graphics overlay
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This feature adds client and request overrides of execution attributes prior to request invocation.
+        - Contributed by: [@ndejaco2](https://github.com/ndejaco2)
+
+  - ### Bugfixes
+    - Expose the metadata key on SDK client interfaces for use with `ServiceMetadataProvider`
+
+## __Amazon Appflow__
+  - ### Features
+    - Added destination properties for Zendesk.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@ndejaco2](https://github.com/ndejaco2)
 # __2.16.34__ __2021-04-02__
 ## __AWS Elemental MediaPackage__
   - ### Features

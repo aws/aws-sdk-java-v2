@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -99,6 +100,16 @@ public final class AwsClientHandlerUtils {
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
                           clientConfig.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION));
+
+        ExecutionAttributes clientOverrideExecutionAttributes = clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES);
+        if (clientOverrideExecutionAttributes != null) {
+            executionAttributes = clientOverrideExecutionAttributes.merge(executionAttributes);
+        }
+
+        Optional<? extends RequestOverrideConfiguration> requestOverrideConfiguration = originalRequest.overrideConfiguration();
+        if (requestOverrideConfiguration.isPresent()) {
+            executionAttributes = requestOverrideConfiguration.get().executionAttributes().merge(executionAttributes);
+        }
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));

@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
     @Override
     protected final String serviceEndpointPrefix() {
-        return "json-service";
+        return "json-service-endpoint";
     }
 
     @Override
