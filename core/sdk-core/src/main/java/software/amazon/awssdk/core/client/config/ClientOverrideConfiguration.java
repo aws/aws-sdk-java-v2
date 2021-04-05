@@ -26,7 +26,6 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -59,7 +58,7 @@ public final class ClientOverrideConfiguration
     private final ProfileFile defaultProfileFile;
     private final String defaultProfileName;
     private final List<MetricPublisher> metricPublishers;
-    private final ExecutionAttributes executionAttributes;
+    private final Map<ExecutionAttribute<?>, Object> executionAttributes;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -74,7 +73,7 @@ public final class ClientOverrideConfiguration
         this.defaultProfileFile = builder.defaultProfileFile();
         this.defaultProfileName = builder.defaultProfileName();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
-        this.executionAttributes = builder.executionAttributes().build();
+        this.executionAttributes = Collections.unmodifiableMap(new HashMap<>(builder.executionAttributes()));
     }
 
     @Override
@@ -205,7 +204,7 @@ public final class ClientOverrideConfiguration
      *
      * @Return Map of execution attributes.
      */
-    public ExecutionAttributes executionAttributes() {
+    public Map<ExecutionAttribute<?>, Object> executionAttributes() {
         return executionAttributes;
     }
 
@@ -458,16 +457,16 @@ public final class ClientOverrideConfiguration
          * @param executionAttributes Execution attributes map for this client.
          * @return This object for method chaining.
          */
-        Builder executionAttributes(Map<ExecutionAttribute<?>, ?> executionAttributes);
+        Builder executionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes);
 
         /**
-         * Put an execution attribute into to the existing collection of execution attributes.
+         * Add an execution attribute to the existing collection of execution attributes.
          * @param attribute The execution attribute object
          * @param value The value of the execution attribute.
          */
-        <T> Builder putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
+        Builder addExecutionAttribute(ExecutionAttribute attribute, Object value);
 
-        ExecutionAttributes.Builder executionAttributes();
+        Map<ExecutionAttribute<?>, Object> executionAttributes();
     }
 
     /**
@@ -483,7 +482,7 @@ public final class ClientOverrideConfiguration
         private ProfileFile defaultProfileFile;
         private String defaultProfileName;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
-        private ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder();
+        private Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -649,20 +648,20 @@ public final class ClientOverrideConfiguration
         }
 
         @Override
-        public Builder executionAttributes(Map<ExecutionAttribute<?>, ?> executionAttributes) {
+        public Builder executionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes) {
             Validate.paramNotNull(executionAttributes, "executionAttributes");
-            this.executionAttributes = ExecutionAttributes.builder().putAll(executionAttributes);
+            this.executionAttributes = executionAttributes;
             return this;
         }
 
         @Override
-        public <T> Builder putExecutionAttribute(ExecutionAttribute<T> executionAttribute, T value) {
+        public Builder addExecutionAttribute(ExecutionAttribute executionAttribute, Object value) {
             this.executionAttributes.put(executionAttribute, value);
             return this;
         }
 
         @Override
-        public ExecutionAttributes.Builder executionAttributes() {
+        public Map<ExecutionAttribute<?>, Object> executionAttributes() {
             return executionAttributes;
         }
 

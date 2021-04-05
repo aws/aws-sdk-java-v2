@@ -23,7 +23,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -142,8 +142,8 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     /**
      * Option to specify additional execution attributes to each client call.
      */
-    public static final SdkClientOption<ExecutionAttributes> EXECUTION_ATTRIBUTES =
-            new SdkClientOption<>(new UnsafeValueType(ExecutionAttributes.class));
+    public static final SdkClientOption<Map<ExecutionAttribute<?>, Object>> EXECUTION_ATTRIBUTES =
+            new SdkClientOption<>(new UnsafeValueType(Map.class));
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);
