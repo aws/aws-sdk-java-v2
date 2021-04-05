@@ -22,7 +22,6 @@ import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -101,8 +100,7 @@ public final class AwsClientHandlerUtils {
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
                           clientConfig.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION));
 
-        Optional.ofNullable(clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES)).ifPresent(clientOverrideConfiguration ->
-                executionAttributes.putAllAttributes(clientOverrideConfiguration));
+        executionAttributes.putAllAttributes(clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES));
         originalRequest.overrideConfiguration().ifPresent(requestOverrideConfiguration ->
                 executionAttributes.putAllAttributes(requestOverrideConfiguration.executionAttributes()));
 
