@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "ndejaco2", 
-    "type": "feature", 
-    "description": "This feature adds client and request overrides of execution attributes prior to request invocation."
-}
