@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -58,7 +57,6 @@ public final class ClientOverrideConfiguration
     private final ProfileFile defaultProfileFile;
     private final String defaultProfileName;
     private final List<MetricPublisher> metricPublishers;
-    private final Map<ExecutionAttribute<?>, Object> executionAttributes;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -73,7 +71,6 @@ public final class ClientOverrideConfiguration
         this.defaultProfileFile = builder.defaultProfileFile();
         this.defaultProfileName = builder.defaultProfileName();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
-        this.executionAttributes = Collections.unmodifiableMap(new HashMap<>(builder.executionAttributes()));
     }
 
     @Override
@@ -198,13 +195,6 @@ public final class ClientOverrideConfiguration
     public List<MetricPublisher> metricPublishers() {
         return metricPublishers;
     }
-
-    /**
-     *  Returns the additional execution attributes to be added for this client.
-     *
-     * @Return Map of execution attributes.
-     */
-    public Map<ExecutionAttribute<?>, Object> executionAttributes() { return executionAttributes; }
 
     @Override
     public String toString() {
@@ -449,22 +439,6 @@ public final class ClientOverrideConfiguration
         Builder addMetricPublisher(MetricPublisher metricPublisher);
 
         List<MetricPublisher> metricPublishers();
-
-        /**
-         * Sets the additional execution attributes collection for this client.
-         * @param executionAttributes Execution attributes map for this client.
-         * @return This object for method chaining.
-         */
-        Builder executionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes);
-
-        /**
-         * Add an execution attribute to the existing collection of execution attributes.
-         * @param attribute The execution attribute object
-         * @param value The value of the execution attribute.
-         */
-        Builder addExecutionAttribute(ExecutionAttribute attribute, Object value);
-
-        Map<ExecutionAttribute<?>, Object> executionAttributes();
     }
 
     /**
@@ -480,7 +454,6 @@ public final class ClientOverrideConfiguration
         private ProfileFile defaultProfileFile;
         private String defaultProfileName;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
-        private Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -644,22 +617,6 @@ public final class ClientOverrideConfiguration
         public List<MetricPublisher> metricPublishers() {
             return Collections.unmodifiableList(metricPublishers);
         }
-
-        @Override
-        public Builder executionAttributes(Map<ExecutionAttribute<?>, Object> executionAttributes) {
-            Validate.paramNotNull(executionAttributes, "executionAttributes");
-            this.executionAttributes = executionAttributes;
-            return this;
-        }
-
-        @Override
-        public Builder addExecutionAttribute(ExecutionAttribute executionAttribute, Object value) {
-            this.executionAttributes.put(executionAttribute, value);
-            return this;
-        }
-
-        @Override
-        public Map<ExecutionAttribute<?>, Object> executionAttributes() { return executionAttributes; }
 
         @Override
         public ClientOverrideConfiguration build() {
