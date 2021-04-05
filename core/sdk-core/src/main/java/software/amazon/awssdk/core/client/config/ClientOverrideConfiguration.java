@@ -75,7 +75,7 @@ public final class ClientOverrideConfiguration
         this.defaultProfileFile = builder.defaultProfileFile();
         this.defaultProfileName = builder.defaultProfileName();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
-        this.executionAttributes = new UnmodifiableExecutionAttributes(builder.executionAttributes());
+        this.executionAttributes = new UnmodifiableExecutionAttributes(builder.executionAttributes().build());
     }
 
     @Override
@@ -87,8 +87,7 @@ public final class ClientOverrideConfiguration
                                                               .apiCallAttemptTimeout(apiCallAttemptTimeout)
                                                               .executionInterceptors(executionInterceptors)
                                                               .defaultProfileFile(defaultProfileFile)
-                                                              .defaultProfileName(defaultProfileName)
-                                                              .executionAttributes(executionAttributes.getAttributes());
+                                                              .defaultProfileName(defaultProfileName);
     }
 
     /**
@@ -469,7 +468,7 @@ public final class ClientOverrideConfiguration
          */
         <T> Builder putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
-        ExecutionAttributes executionAttributes();
+        ExecutionAttributes.Builder executionAttributes();
     }
 
     /**
@@ -664,8 +663,8 @@ public final class ClientOverrideConfiguration
         }
 
         @Override
-        public ExecutionAttributes executionAttributes() {
-            return executionAttributes.build();
+        public ExecutionAttributes.Builder executionAttributes() {
+            return executionAttributes;
         }
 
         @Override
