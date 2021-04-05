@@ -40,7 +40,11 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.interceptor.*;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -102,7 +106,8 @@ public final class AwsClientHandlerUtils {
             executionAttributes = clientOverrideExecutionAttributes.merge(executionAttributes);
         }
 
-        Optional<? extends RequestOverrideConfiguration> requestOverrideConfiguration = originalRequest.overrideConfiguration();
+        Optional<RequestOverrideConfiguration> requestOverrideConfiguration =
+                (Optional<RequestOverrideConfiguration>) originalRequest.overrideConfiguration();
         if (requestOverrideConfiguration.isPresent()) {
             executionAttributes = requestOverrideConfiguration.get().executionAttributes().merge(executionAttributes);
         }

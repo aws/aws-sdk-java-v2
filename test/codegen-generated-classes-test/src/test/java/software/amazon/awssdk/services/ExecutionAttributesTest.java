@@ -149,29 +149,4 @@ public class ExecutionAttributesTest {
             async.close();
         }
     }
-
-    @Test
-    public void testExecutionAttributesMerge() {
-        ExecutionAttributes lowerPrecedence = new ExecutionAttributes();
-        for (int i = 0; i < 3; i++) {
-            lowerPrecedence.putAttribute(getAttribute(i), 1);
-        }
-
-        ExecutionAttributes higherPrecendence = new ExecutionAttributes();
-        for (int i = 2; i < 4; i++) {
-            higherPrecendence.putAttribute(getAttribute(i), 2);
-        }
-
-        ExecutionAttributes expectedAttributes = new ExecutionAttributes();
-        for (int i = 0; i < 4; i++) {
-            expectedAttributes.putAttribute(getAttribute(i),  i >= 2 ? 2 : 1);
-        }
-
-        ExecutionAttributes mergedAttributes = higherPrecendence.merge(lowerPrecedence);
-        assertThat(mergedAttributes.getAttributes()).isEqualTo(expectedAttributes.getAttributes());
-    }
-
-    private ExecutionAttribute getAttribute(int i) {
-        return new ExecutionAttribute<>("TestAttribute" + i);
-    }
 }

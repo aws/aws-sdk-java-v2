@@ -31,14 +31,14 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 @NotThreadSafe
-public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttributes.Builder, ExecutionAttributes> {
+public final class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttributes.Builder, ExecutionAttributes> {
     private final Map<ExecutionAttribute<?>, Object> attributes;
 
     public ExecutionAttributes() {
         this.attributes = new HashMap<>();
     }
 
-    protected ExecutionAttributes(Map<? extends ExecutionAttribute<?>, ?> attributes) {
+    private ExecutionAttributes(Map<? extends ExecutionAttribute<?>, ?> attributes) {
         this.attributes = new HashMap<>(attributes);
     }
 
@@ -67,12 +67,19 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     }
 
     /**
+     * Add all execution attributes from the provided collection to the internal collection of attributes.
+     */
+    public <U> ExecutionAttributes putAllAttributes(Map<ExecutionAttribute<?>, ?> executionAttributes) {
+        this.attributes.putAll(executionAttributes);
+        return this;
+    }
+
+    /**
     * Merge attributes of a lower precedence into the current higher precedence current collection.
     */
-    public ExecutionAttributes merge(ExecutionAttributes lowerPrecedenceExecutionAttributes) {
-        Map<ExecutionAttribute<?>, Object> copiedAttributes = new HashMap<>(this.attributes);
-        lowerPrecedenceExecutionAttributes.getAttributes().forEach(copiedAttributes::putIfAbsent);
-        return new ExecutionAttributes(copiedAttributes);
+    public <U> ExecutionAttributes merge(ExecutionAttributes lowerPrecedenceExecutionAttributes) {
+        lowerPrecedenceExecutionAttributes.getAttributes().forEach(this.attributes::putIfAbsent);
+        return this;
     }
 
     /**
@@ -103,7 +110,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
         private Builder() {
         }
 
-
+        @SuppressWarnings("unchecked") // Cast is safe due to implementation of {@link #put}
         public <T> T get(ExecutionAttribute<T> key) {
             Validate.notNull(key, "Key to retrieve must not be null.");
             return (T) executionAttributes.get(key);
