@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Expose the metadata key on SDK client interfaces for use with `ServiceMetadataProvider`"
-}
