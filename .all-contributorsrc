@@ -1,0 +1,24 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "abrooksv",
+      "name": "Austin Brooks",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8992246?v=4",
+      "profile": "https://github.com/abrooksv",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "aws-sdk-java-v2",
+  "projectOwner": "aws",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
