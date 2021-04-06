@@ -512,8 +512,6 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
-                            <exclude>software.amazon.awssdk.services.redshift.*</exclude>
-                            <exclude>software.amazon.awssdk.services.medialive.*</exclude>
                         </excludes>
 
                         <excludeModules>
