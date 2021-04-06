@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -53,16 +55,20 @@ public class Http2GoAwayEventListenerTest {
     @Test
     public void goAwayWithNoChannelPoolRecordRaisesNoExceptions() throws Exception {
         when(attribute.get()).thenReturn(null);
-        new Http2GoAwayEventListener(channel).onGoAwayReceived(0, 0, Unpooled.EMPTY_BUFFER);
+        ByteBuf emptyBuffer = Unpooled.EMPTY_BUFFER;
+        new Http2GoAwayEventListener(channel).onGoAwayReceived(0, 0, emptyBuffer);
         verify(channelPipeline).fireExceptionCaught(isA(GoAwayException.class));
+        assertEquals(1, emptyBuffer.refCnt());
     }
 
     @Test
     public void goAwayWithChannelPoolRecordPassesAlongTheFrame() throws Exception {
         Http2MultiplexedChannelPool record = mock(Http2MultiplexedChannelPool.class);
         when(attribute.get()).thenReturn(record);
-        new Http2GoAwayEventListener(channel).onGoAwayReceived(0, 0, Unpooled.EMPTY_BUFFER);
+        ByteBuf emptyBuffer = Unpooled.EMPTY_BUFFER;
+        new Http2GoAwayEventListener(channel).onGoAwayReceived(0, 0, emptyBuffer);
         verify(record).handleGoAway(eq(channel), eq(0), isA(GoAwayException.class));
         verifyNoMoreInteractions(record);
+        assertEquals(1, emptyBuffer.refCnt());
     }
 }

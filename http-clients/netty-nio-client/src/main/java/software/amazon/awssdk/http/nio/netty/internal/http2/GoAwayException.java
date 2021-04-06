@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
-import io.netty.buffer.ByteBuf;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -27,10 +25,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public class GoAwayException extends IOException {
     private final String message;
 
-    GoAwayException(long errorCode, ByteBuf debugData) {
+    GoAwayException(long errorCode, String debugData) {
         this.message = String.format("GOAWAY received from service, requesting this stream be closed. "
                                      + "Error Code = %d, Debug Data = %s",
-                                     errorCode, debugData.toString(StandardCharsets.UTF_8));
+                                     errorCode, debugData);
     }
 
     @Override
