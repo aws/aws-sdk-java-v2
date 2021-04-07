@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.interceptor;
 
-import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -57,33 +56,5 @@ public final class ExecutionAttribute<T> {
     @Override
     public String toString() {
         return name;
-    }
-
-    /**
-     * This override considers execution attributes with the same name
-     * to be the same object for the purpose of attribute merge.
-     * @return boolean indicating whether the objects are equal or not.
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ExecutionAttribute that = (ExecutionAttribute) o;
-        return that.name.equals(this.name);
-    }
-
-    /**
-     * This override considers execution attributes with the same name
-     * to be the same object for the purpose of attribute merge.
-     * @return hash code
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(name);
     }
 }

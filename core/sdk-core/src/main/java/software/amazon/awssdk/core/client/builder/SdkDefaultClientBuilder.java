@@ -28,7 +28,6 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
@@ -371,7 +370,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientConfiguration.option(PROFILE_FILE, overrideConfig.defaultProfileFile().orElse(null));
         clientConfiguration.option(PROFILE_NAME, overrideConfig.defaultProfileName().orElse(null));
         clientConfiguration.option(METRIC_PUBLISHERS, overrideConfig.metricPublishers());
-        clientConfiguration.option(EXECUTION_ATTRIBUTES, overrideConfig.executionAttributes());
         overrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
             clientConfiguration.option(ENDPOINT_OVERRIDDEN, value);
         });
