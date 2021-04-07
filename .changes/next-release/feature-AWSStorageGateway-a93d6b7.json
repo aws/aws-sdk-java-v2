@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "contributor": "",
+    "description": "File Gateway APIs now support FSx for Windows as a cloud storage."
+}
