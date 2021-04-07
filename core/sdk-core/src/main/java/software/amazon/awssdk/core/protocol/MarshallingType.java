@@ -60,6 +60,8 @@ public interface MarshallingType<T> {
 
     MarshallingType<Map<String, ?>> MAP = newType(Map.class);
 
+    MarshallingType<Short> SHORT = newType(Short.class);
+
     Class<? super T> getTargetClass();
 
     static <T> MarshallingType<T> newType(Class<? super T> clzz) {

@@ -114,6 +114,7 @@
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfEnums":{"shape":"ListOfEnums"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
@@ -241,6 +242,7 @@
       "member":{"shape":"MapOfEnumToString"}
     },
     "Long":{"type":"long"},
+    "Short":{"type":"short"},
     "MapOfStringToIntegerList":{
       "type":"map",
       "key":{"shape":"String"},

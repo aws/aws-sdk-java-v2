@@ -52,7 +52,8 @@
         "integerMember": 50,
         "floatMember": 1.234,
         "doubleMember": 5.678,
-        "longMember": 100
+        "longMember": 100,
+        "shortMember": 4
       }
     },
     "when": {
@@ -67,7 +68,8 @@
             "integerMember": 50,
             "floatMember": 1.234,
             "doubleMember": 5.678,
-            "longMember": 100
+            "longMember": 100,
+            "shortMember": 4
           }
         }
       }
