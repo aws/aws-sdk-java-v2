@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Interactive Video Service",
+    "contributor": "",
+    "description": "This release adds support for the Auto-Record to S3 feature. Amazon IVS now enables you to save your live video to Amazon S3."
+}
