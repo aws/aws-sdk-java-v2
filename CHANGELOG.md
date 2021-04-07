@@ -1,3 +1,31 @@
+# __2.16.37__ __2021-04-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix leak of bytebuf on HTTP GoAway
+
+## __AWS Storage Gateway__
+  - ### Features
+    - File Gateway APIs now support FSx for Windows as a cloud storage.
+
+## __Access Analyzer__
+  - ### Features
+    - IAM Access Analyzer now analyzes your CloudTrail events to identify actions and services that have been used by an IAM entity (user or role) and generates an IAM policy that is based on that activity.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - This release adds tagging support for all AWS ElastiCache resources except Global Replication Groups.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - This release adds support for the Auto-Record to S3 feature. Amazon IVS now enables you to save your live video to Amazon S3.
+
+## __Application Migration Service__
+  - ### Features
+    - Add new service - Application Migration Service.
+
 # __2.16.36__ __2021-04-06__
 ## __AWS Cloud9__
   - ### Features
