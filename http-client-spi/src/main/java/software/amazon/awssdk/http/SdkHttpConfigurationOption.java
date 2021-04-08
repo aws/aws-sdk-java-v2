@@ -91,6 +91,12 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("ReapIdleConnections", Boolean.class);
 
     /**
+     * Whether or not to use keepalive on the connection.
+     */
+    public static final SdkHttpConfigurationOption<Boolean> TCP_KEEPALIVE =
+        new SdkHttpConfigurationOption<>("TcpKeepalive", Boolean.class);
+
+    /**
      * The {@link TlsKeyManagersProvider} that will be used by the HTTP client when authenticating with a
      * TLS host.
      */
@@ -120,6 +126,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final Boolean DEFAULT_REAP_IDLE_CONNECTIONS = Boolean.TRUE;
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
+    private static final Boolean DEFAULT_TCP_KEEPALIVE = Boolean.FALSE;
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
@@ -140,6 +147,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .put(REAP_IDLE_CONNECTIONS, DEFAULT_REAP_IDLE_CONNECTIONS)
+            .put(TCP_KEEPALIVE, DEFAULT_TCP_KEEPALIVE)
             .put(TLS_KEY_MANAGERS_PROVIDER, DEFAULT_TLS_KEY_MANAGERS_PROVIDER)
             .put(TLS_TRUST_MANAGERS_PROVIDER, DEFAULT_TLS_TRUST_MANAGERS_PROVIDER)
             .build();
