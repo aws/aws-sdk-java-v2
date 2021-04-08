@@ -1,3 +1,42 @@
+# __2.16.38__ __2021-04-08__
+## __AWS Resource Access Manager__
+  - ### Features
+    - Documentation updates for AWS RAM resource sharing
+
+## __AWS RoboMaker__
+  - ### Features
+    - This release allows RoboMaker customers to specify custom tools to run with their simulation job
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add a configuration option to enable `TCP_KEEPALIVE` on the ApacheHttpClient.
+        - Contributed by: [@ajs139](https://github.com/ajs139)
+    - Updated service endpoint metadata.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release provides support for image updates
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Documentation updates for Put-Integration API
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Documentation updates for archived.kinesisvideo
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release introduces support for Amazon Lookout for Equipment.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling announces Warm Pools that help applications to scale out faster by pre-initializing EC2 instances and save money by requiring fewer continuously running instances
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@ajs139](https://github.com/ajs139)
 # __2.16.37__ __2021-04-07__
 ## __AWS SDK for Java v2__
   - ### Features

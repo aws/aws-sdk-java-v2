@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS RoboMaker",
-    "contributor": "",
-    "description": "This release allows RoboMaker customers to specify custom tools to run with their simulation job"
-}
