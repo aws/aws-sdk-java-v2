@@ -406,6 +406,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder credentialsProvider(CredentialsProvider credentialsProvider);
 
         /**
+         * Configure the socket to use java.net.SocketOptions.SO_KEEPALIVE.
+         */
+        Builder tcpKeepAlive(Boolean keepConnectionAlive);
+
+        /**
          * Configure the {@link TlsKeyManagersProvider} that will provide the {@link javax.net.ssl.KeyManager}s to use
          * when constructing the SSL context.
          * <p>
@@ -560,6 +565,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
         }
 
         @Override
+        public Builder tcpKeepAlive(Boolean keepConnectionAlive) {
+            standardOptions.put(SdkHttpConfigurationOption.TCP_KEEPALIVE, keepConnectionAlive);
+            return this;
+        }
+
+        public void setTcpKeepAlive(Boolean keepConnectionAlive) {
+            tcpKeepAlive(keepConnectionAlive);
+        }
+
+        @Override
         public Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
             standardOptions.put(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
             return this;
@@ -677,8 +692,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         private SocketConfig buildSocketConfig(AttributeMap standardOptions) {
             return SocketConfig.custom()
-                               // TODO do we want to keep SO keep alive
-                               .setSoKeepAlive(false)
+                               .setSoKeepAlive(standardOptions.get(SdkHttpConfigurationOption.TCP_KEEPALIVE))
                                .setSoTimeout(
                                        saturatedCast(standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT)
                                                                     .toMillis()))
