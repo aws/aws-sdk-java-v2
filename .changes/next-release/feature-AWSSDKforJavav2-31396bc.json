@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "ajs139", 
+    "type": "feature", 
+    "description": "Add a configuration option to enable `TCP_KEEPALIVE` on the ApacheHttpClient."
+}

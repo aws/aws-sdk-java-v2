@@ -4343,7 +4343,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -4474,7 +4474,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -5198,7 +5198,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -5621,7 +5621,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -6890,6 +6890,11 @@
           "shape": "GlobalConfiguration",
           "locationName": "globalConfiguration",
           "documentation": "Configuration settings that apply to the event as a whole."
+        },
+        "MotionGraphicsConfiguration": {
+          "shape": "MotionGraphicsConfiguration",
+          "locationName": "motionGraphicsConfiguration",
+          "documentation": "Settings for motion graphics."
         },
         "NielsenConfiguration": {
           "shape": "NielsenConfiguration",
@@ -8737,6 +8742,12 @@
         }
       },
       "documentation": "Hls Webdav Settings"
+    },
+    "HtmlMotionGraphicsSettings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Html Motion Graphics Settings"
     },
     "IFrameOnlyPlaylistType": {
       "type": "string",
@@ -11050,6 +11061,74 @@
       },
       "documentation": "Media Package Output Settings"
     },
+    "MotionGraphicsActivateScheduleActionSettings": {
+      "type": "structure",
+      "members": {
+        "Duration": {
+          "shape": "__longMin0Max86400000",
+          "locationName": "duration",
+          "documentation": "Duration (in milliseconds) that motion graphics should render on to the video stream. Leaving out this property or setting to 0 will result in rendering continuing until a deactivate action is processed."
+        },
+        "PasswordParam": {
+          "shape": "__string",
+          "locationName": "passwordParam",
+          "documentation": "Key used to extract the password from EC2 Parameter store"
+        },
+        "Url": {
+          "shape": "__string",
+          "locationName": "url",
+          "documentation": "URI of the HTML5 content to be rendered into the live stream."
+        },
+        "Username": {
+          "shape": "__string",
+          "locationName": "username",
+          "documentation": "Documentation update needed"
+        }
+      },
+      "documentation": "Settings to specify the rendering of motion graphics into the video stream."
+    },
+    "MotionGraphicsConfiguration": {
+      "type": "structure",
+      "members": {
+        "MotionGraphicsInsertion": {
+          "shape": "MotionGraphicsInsertion",
+          "locationName": "motionGraphicsInsertion"
+        },
+        "MotionGraphicsSettings": {
+          "shape": "MotionGraphicsSettings",
+          "locationName": "motionGraphicsSettings",
+          "documentation": "Motion Graphics Settings"
+        }
+      },
+      "documentation": "Motion Graphics Configuration",
+      "required": [
+        "MotionGraphicsSettings"
+      ]
+    },
+    "MotionGraphicsDeactivateScheduleActionSettings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Settings to specify the ending of rendering motion graphics into the video stream."
+    },
+    "MotionGraphicsInsertion": {
+      "type": "string",
+      "documentation": "Motion Graphics Insertion",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "MotionGraphicsSettings": {
+      "type": "structure",
+      "members": {
+        "HtmlMotionGraphicsSettings": {
+          "shape": "HtmlMotionGraphicsSettings",
+          "locationName": "htmlMotionGraphicsSettings"
+        }
+      },
+      "documentation": "Motion Graphics Settings"
+    },
     "Mp2CodingMode": {
       "type": "string",
       "documentation": "Mp2 Coding Mode",
@@ -12180,6 +12259,16 @@
           "locationName": "activeInputSwitchActionName",
           "documentation": "The name of the input switch schedule action that occurred most recently and that resulted in the switch to the current input attachment for this pipeline."
         },
+        "ActiveMotionGraphicsActionName": {
+          "shape": "__string",
+          "locationName": "activeMotionGraphicsActionName",
+          "documentation": "The name of the motion graphics activate action that occurred most recently and that resulted in the current graphics URI for this pipeline."
+        },
+        "ActiveMotionGraphicsUri": {
+          "shape": "__string",
+          "locationName": "activeMotionGraphicsUri",
+          "documentation": "The current URI being used for HTML5 motion graphics for this pipeline."
+        },
         "PipelineId": {
           "shape": "__string",
           "locationName": "pipelineId",
@@ -12782,6 +12871,16 @@
           "shape": "InputSwitchScheduleActionSettings",
           "locationName": "inputSwitchSettings",
           "documentation": "Action to switch the input"
+        },
+        "MotionGraphicsImageActivateSettings": {
+          "shape": "MotionGraphicsActivateScheduleActionSettings",
+          "locationName": "motionGraphicsImageActivateSettings",
+          "documentation": "Action to activate a motion graphics image overlay"
+        },
+        "MotionGraphicsImageDeactivateSettings": {
+          "shape": "MotionGraphicsDeactivateScheduleActionSettings",
+          "locationName": "motionGraphicsImageDeactivateSettings",
+          "documentation": "Action to deactivate a motion graphics image overlay"
         },
         "PauseStateSettings": {
           "shape": "PauseStateScheduleActionSettings",
@@ -13392,7 +13491,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -13672,7 +13771,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -14951,6 +15050,32 @@
         "SubnetIds"
       ]
     },
+    "VpcOutputSettingsDescription": {
+      "type": "structure",
+      "members": {
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "The Availability Zones where the vpc subnets are located.\nThe first Availability Zone applies to the first subnet in the list of subnets.\nThe second Availability Zone applies to the second subnet.\n"
+        },
+        "NetworkInterfaceIds": {
+          "shape": "__listOf__string",
+          "locationName": "networkInterfaceIds",
+          "documentation": "A list of Elastic Network Interfaces created by MediaLive in the customer's VPC\n"
+        },
+        "SecurityGroupIds": {
+          "shape": "__listOf__string",
+          "locationName": "securityGroupIds",
+          "documentation": "A list of up EC2 VPC security group IDs attached to the Output VPC network interfaces.\n"
+        },
+        "SubnetIds": {
+          "shape": "__listOf__string",
+          "locationName": "subnetIds",
+          "documentation": "A list of VPC subnet IDs from the same VPC.\nIf STANDARD channel, subnet IDs must be mapped to two unique availability zones (AZ).\n"
+        }
+      },
+      "documentation": "The properties for a private VPC Output\n"
+    },
     "WavCodingMode": {
       "type": "string",
       "documentation": "Wav Coding Mode",
@@ -15678,6 +15803,12 @@
       "min": 0,
       "max": 8589934591,
       "documentation": "Placeholder documentation for __longMin0Max8589934591"
+    },
+    "__longMin0Max86400000": {
+      "type": "long",
+      "min": 0,
+      "max": 86400000,
+      "documentation": "Placeholder documentation for __longMin0Max86400000"
     },
     "__string": {
       "type": "string",

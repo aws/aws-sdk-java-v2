@@ -1,3 +1,245 @@
+# __2.16.37__ __2021-04-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix leak of bytebuf on HTTP GoAway
+
+## __AWS Storage Gateway__
+  - ### Features
+    - File Gateway APIs now support FSx for Windows as a cloud storage.
+
+## __Access Analyzer__
+  - ### Features
+    - IAM Access Analyzer now analyzes your CloudTrail events to identify actions and services that have been used by an IAM entity (user or role) and generates an IAM policy that is based on that activity.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - This release adds tagging support for all AWS ElastiCache resources except Global Replication Groups.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - This release adds support for the Auto-Record to S3 feature. Amazon IVS now enables you to save your live video to Amazon S3.
+
+## __Application Migration Service__
+  - ### Features
+    - Add new service - Application Migration Service.
+
+# __2.16.36__ __2021-04-06__
+## __AWS Cloud9__
+  - ### Features
+    - Documentation updates for Cloud9
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive VPC outputs update to include Availability Zones, Security groups, Elastic Network Interfaces, and Subnet Ids in channel response
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for storing EBS-backed AMIs in S3 and restoring them from S3 to enable cross-partition copying of AMIs
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Supports removing a label or labels from a parameter, enables ScheduledEndTime and ChangeDetails for StartChangeRequestExecution API, supports critical/security/other noncompliant count for patch API.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Update Netty dependency to `4.1.61.Final`.
+
+# __2.16.35__ __2021-04-05__
+## __AWS Audit Manager__
+  - ### Features
+    - AWS Audit Manager has updated the GetAssessment API operation to include a new response field called userRole. The userRole field indicates the role information and IAM ARN of the API caller.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now support HTML5 Motion Graphics overlay
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This feature adds client and request overrides of execution attributes prior to request invocation.
+        - Contributed by: [@ndejaco2](https://github.com/ndejaco2)
+
+  - ### Bugfixes
+    - Expose the metadata key on SDK client interfaces for use with `ServiceMetadataProvider`
+
+## __Amazon Appflow__
+  - ### Features
+    - Added destination properties for Zendesk.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@ndejaco2](https://github.com/ndejaco2)
+# __2.16.34__ __2021-04-02__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - SPEKE v2 is an upgrade to the existing SPEKE API to support multiple encryption keys, based on an encryption contract selected by the customer.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Removal of `--report-unsupported-elements-at-runtime` option from SDK core's `native-image.properties` as the option is not meant to be used in production.
+        - Contributed by: [@zakkak](https://github.com/zakkak)
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for Block Device Mappings for container image builds, and adds distribution configuration support for EC2 launch templates in AMI builds.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@zakkak](https://github.com/zakkak)
+# __2.16.33__ __2021-04-01__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - MediaConvert now supports HLS ingest, sidecar WebVTT ingest, Teletext color & style passthrough to TTML subtitles, TTML to WebVTT subtitle conversion with style, & DRC profiles in AC3 audio.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Added support for ScopeDownStatement for ManagedRuleGroups, Labels, LabelMatchStatement, and LoggingFilter. For more information on these features, see the AWS WAF Developer Guide.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - AWS Kendra's ServiceNow data source now supports OAuth 2.0 authentication and knowledge article filtering via a ServiceNow query.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - VPC Flow Logs Service adds a new API, GetFlowLogsIntegrationTemplate, which generates CloudFormation templates for Athena. For more info, see https://docs.aws.amazon.com/console/vpc/flow-logs/athena
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Lex now supports the ja-JP locale
+
+## __Amazon Lex Runtime Service__
+  - ### Features
+    - Amazon Lex now supports base64-encoded message and input transcript fields.
+
+## __Amazon Lightsail__
+  - ### Features
+    - - This release adds support for state detail for Amazon Lightsail container services.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Route 53 Resolver DNS Firewall is a firewall service that allows you to filter and regulate outbound DNS traffic for your VPCs.
+
+## __Firewall Management Service__
+  - ### Features
+    - Added Firewall Manager policy support for AWS Route 53 Resolver DNS Firewall.
+
+# __2.16.32__ __2021-03-31__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch adds support for Amazon EFS File System
+
+## __AWS Cloud9__
+  - ### Features
+    - Add ImageId input parameter to CreateEnvironmentEC2 endpoint. New parameter enables creation of environments with different AMIs.
+
+## __AWS CloudFormation__
+  - ### Features
+    - 1. Added a new parameter "RegionConcurrencyType" in OperationPreferences. 2. Changed the name of "AccountUrl" to "AccountsUrl" in "DeploymentTargets" parameter.
+
+## __AWS Data Pipeline__
+  - ### Features
+    - Minor documentation updates and link updates.
+
+## __AWS Direct Connect__
+  - ### Features
+    - This release adds MACsec support to AWS Direct Connect
+
+## __AWS IoT__
+  - ### Features
+    - Added ability to prefix search on attribute value for ListThings API.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add Sidewalk support to APIs: GetWirelessDevice, ListWirelessDevices, GetWirelessDeviceStatistics. Add Gateway connection status in GetWirelessGatewayStatistics API.
+
+## __AWS Price List Service__
+  - ### Features
+    - Minor documentation and link updates.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudHSM__
+  - ### Features
+    - Minor documentation and link updates.
+
+## __Amazon Cognito Sync__
+  - ### Features
+    - Minor documentation updates and link updates.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Support for customer managed KMS encryption of Comprehend custom models
+
+## __Amazon Detective__
+  - ### Features
+    - Added the ability to assign tag values to Detective behavior graphs. Tag values can be used for attribute-based access control, and for cost allocation for billing.
+
+## __Amazon Machine Learning__
+  - ### Features
+    - Minor documentation updates and link updates.
+
+## __Amazon Redshift__
+  - ### Features
+    - Enable customers to share access to their Redshift clusters from other VPCs (including VPCs from other accounts).
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports creating custom language models in the following languages: British English (en-GB), Australian English (en-AU), Indian Hindi (hi-IN), and US Spanish (es-US).
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for mobile device access rules management in Amazon WorkMail.
+
+# __2.16.31__ __2021-03-30__
+## __AWS Config__
+  - ### Features
+    - Adding new APIs to support ConformancePack Compliance CI in Aggregators
+
+## __AWS EC2 Instance Connect__
+  - ### Features
+    - Adding support to push SSH keys to the EC2 serial console in order to allow an SSH connection to your Amazon EC2 instance's serial port.
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - This SDK release adds two new dataset features: 1) support for specifying a database connection as a dataset input 2) support for dynamic datasets that accept configurable parameters in S3 path.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - SDK update for new Metric Streams feature
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - ReplaceRootVolume feature enables customers to replace the EBS root volume of a running instance to a previously known state. Add support to grant account-level access to the EC2 serial console
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - This release adds support for Batch Predictions in Amazon Fraud Detector.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Added support for journey pause/resume, journey updatable import segment and journey quiet time wait.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot now supports 1) feature importance reports for AutoML jobs and 2) PartialFailures for AutoML jobs
+
 # __2.16.30__ __2021-03-29__
 ## __AWS Glue__
   - ### Features

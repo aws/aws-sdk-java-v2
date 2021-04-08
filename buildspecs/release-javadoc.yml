@@ -6,7 +6,7 @@ phases:
       java: "$JAVA_RUNTIME"
 
     commands:
-    - pip install awscli --upgrade --user
+    - pip install awscli==1.19.34 --upgrade --user
 
   pre_build:
     commands:
