@@ -139,6 +139,7 @@
         "floatMember":{"shape":"Float"},
         "doubleMember":{"shape":"Double"},
         "longMember":{"shape":"Long"},
+        "shortMember":{"shape":"Short"},
         "simpleStructMember":{"shape":"SimpleStruct"},
         "simpleList":{"shape":"ListOfStrings"},
         "listOfStructs":{"shape":"ListOfSimpleStructs"},
@@ -239,6 +240,7 @@
       "member":{"shape":"String"}
     },
     "Long":{"type":"long"},
+    "Short":{"type":"short"},
     "MapOfStringToListOfStringInQueryParamsInput":{
       "type":"structure",
       "members":{
@@ -280,6 +282,11 @@
           "shape":"Long",
           "location":"header",
           "locationName":"x-amz-long"
+        },
+        "ShortMember":{
+          "shape":"Short",
+          "location":"header",
+          "locationName":"x-amz-short"
         },
         "FloatMember":{
           "shape":"Float",
@@ -325,6 +332,11 @@
           "shape":"Long",
           "location":"querystring",
           "locationName":"Long"
+        },
+        "ShortQueryParam":{
+          "shape":"Short",
+          "location":"querystring",
+          "locationName":"Short"
         },
         "FloatQueryParam":{
           "shape":"Float",
@@ -529,6 +541,7 @@
         "StringMember":{"shape":"String"},
         "IntegerMember":{"shape":"Integer"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "DoubleMember":{"shape":"Double"},
         "FloatMember":{"shape":"Float"},
         "TimestampMember":{"shape":"Timestamp"},
@@ -557,6 +570,11 @@
           "shape":"Long",
           "location":"header",
           "locationName":"x-amz-long"
+        },
+        "ShortHeader":{
+          "shape":"Short",
+          "location":"header",
+          "locationName":"x-amz-short"
         },
         "DoubleHeader":{
           "shape":"Double",

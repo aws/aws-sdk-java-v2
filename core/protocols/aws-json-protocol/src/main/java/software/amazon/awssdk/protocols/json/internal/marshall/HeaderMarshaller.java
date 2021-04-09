@@ -34,6 +34,8 @@ public final class HeaderMarshaller {
 
     public static final JsonMarshaller<Long> LONG = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_LONG);
 
+    public static final JsonMarshaller<Short> SHORT = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_SHORT);
+
     public static final JsonMarshaller<Double> DOUBLE = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_DOUBLE);
 
     public static final JsonMarshaller<Float> FLOAT = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_FLOAT);
