@@ -1,3 +1,70 @@
+# __2.16.38__ __2021-04-08__
+## __AWS Resource Access Manager__
+  - ### Features
+    - Documentation updates for AWS RAM resource sharing
+
+## __AWS RoboMaker__
+  - ### Features
+    - This release allows RoboMaker customers to specify custom tools to run with their simulation job
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add a configuration option to enable `TCP_KEEPALIVE` on the ApacheHttpClient.
+        - Contributed by: [@ajs139](https://github.com/ajs139)
+    - Updated service endpoint metadata.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release provides support for image updates
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Documentation updates for Put-Integration API
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Documentation updates for archived.kinesisvideo
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release introduces support for Amazon Lookout for Equipment.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling announces Warm Pools that help applications to scale out faster by pre-initializing EC2 instances and save money by requiring fewer continuously running instances
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@ajs139](https://github.com/ajs139)
+# __2.16.37__ __2021-04-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fix leak of bytebuf on HTTP GoAway
+
+## __AWS Storage Gateway__
+  - ### Features
+    - File Gateway APIs now support FSx for Windows as a cloud storage.
+
+## __Access Analyzer__
+  - ### Features
+    - IAM Access Analyzer now analyzes your CloudTrail events to identify actions and services that have been used by an IAM entity (user or role) and generates an IAM policy that is based on that activity.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - This release adds tagging support for all AWS ElastiCache resources except Global Replication Groups.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - This release adds support for the Auto-Record to S3 feature. Amazon IVS now enables you to save your live video to Amazon S3.
+
+## __Application Migration Service__
+  - ### Features
+    - Add new service - Application Migration Service.
+
 # __2.16.36__ __2021-04-06__
 ## __AWS Cloud9__
   - ### Features

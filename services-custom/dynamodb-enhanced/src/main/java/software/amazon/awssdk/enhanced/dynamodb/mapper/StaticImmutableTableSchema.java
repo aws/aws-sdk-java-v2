@@ -84,7 +84,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     private final AttributeConverterProvider attributeConverterProvider;
     private final Map<String, FlattenedMapper<T, B, ?>> indexedFlattenedMappers;
     private final List<String> attributeNames;
-    
+
     private static class FlattenedMapper<T, B, T1> {
         private final Function<T, T1> otherItemGetter;
         private final BiConsumer<B, T1> otherItemSetter;
@@ -438,9 +438,15 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     }
 
     @Override
-    public T mapToItem(Map<String, AttributeValue> attributeMap) {
-        // Lazily instantiate the builder once we have an attribute to write
+    public T mapToItem(Map<String, AttributeValue> attributeMap, boolean preserveEmptyObject) {
         B builder = null;
+
+        // Instantiate the builder right now if preserveEmtpyBean is true, otherwise lazily instantiate the builder once
+        // we have an attribute to write
+        if (preserveEmptyObject) {
+            builder = constructNewBuilder();
+        }
+
         Map<FlattenedMapper<T, B, ?>, Map<String, AttributeValue>> flattenedAttributeValuesMap = new LinkedHashMap<>();
         
         for (Map.Entry<String, AttributeValue> entry : attributeMap.entrySet()) {
@@ -480,6 +486,11 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         }
         
         return builder == null ? null : buildItemFunction.apply(builder);
+    }
+
+    @Override
+    public T mapToItem(Map<String, AttributeValue> attributeMap) {
+        return mapToItem(attributeMap, false);
     }
 
     @Override

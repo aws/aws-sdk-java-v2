@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Added a new method annotation `DynamoDbPreserveEmptyObject` that specifies a class as empty class if all fields are null when mapping a DynamoDb record to a Java bean. See [#2280](https://github.com/aws/aws-sdk-java-v2/issues/2280)."
+}

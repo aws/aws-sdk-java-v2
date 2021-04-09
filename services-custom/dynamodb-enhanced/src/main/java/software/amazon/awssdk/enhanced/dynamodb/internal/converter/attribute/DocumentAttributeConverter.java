@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -30,16 +31,21 @@ public class DocumentAttributeConverter<T> implements AttributeConverter<T> {
 
     private final TableSchema<T> tableSchema;
     private final EnhancedType<T> enhancedType;
+    private final boolean preserveEmptyObject;
 
     private DocumentAttributeConverter(TableSchema<T> tableSchema,
                                        EnhancedType<T> enhancedType) {
         this.tableSchema = tableSchema;
         this.enhancedType = enhancedType;
+        this.preserveEmptyObject = enhancedType.documentConfiguration()
+                                               .map(EnhancedTypeDocumentConfiguration::preserveEmptyObject)
+                                               .orElse(false);
+
     }
 
-    public static <T> DocumentAttributeConverter create(TableSchema<T> tableSchema,
-                                                        EnhancedType<T> enhancedType) {
-        return new DocumentAttributeConverter(tableSchema, enhancedType);
+    public static <T> DocumentAttributeConverter<T> create(TableSchema<T> tableSchema,
+                                                           EnhancedType<T> enhancedType) {
+        return new DocumentAttributeConverter<>(tableSchema, enhancedType);
     }
 
     @Override
@@ -49,7 +55,7 @@ public class DocumentAttributeConverter<T> implements AttributeConverter<T> {
 
     @Override
     public T transformTo(AttributeValue input) {
-        return tableSchema.mapToItem(input.m());
+        return tableSchema.mapToItem(input.m(), preserveEmptyObject);
     }
 
     @Override

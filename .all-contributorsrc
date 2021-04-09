@@ -102,7 +102,7 @@
       "contributions": [
         "code"
       ],
-      "name": "Guillaume Corr\u00e9"
+      "name": "Guillaume Corré"
     },
     {
       "profile": "https://github.com/hyandell",
@@ -598,6 +598,24 @@
         "code"
       ],
       "name": "Sam Fink"
+    },
+    {
+      "login": "bondj",
+      "name": "Jonathan Bond",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4749778?v=4",
+      "profile": "https://github.com/bondj",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ajs139",
+      "name": "ajs139",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9387176?v=4",
+      "profile": "https://github.com/ajs139",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
