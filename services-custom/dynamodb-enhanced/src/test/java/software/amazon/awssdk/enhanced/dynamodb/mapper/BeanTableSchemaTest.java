@@ -57,6 +57,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MapBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MultipleConverterProvidersBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NoConstructorConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedAbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedDocumentBean;
@@ -171,6 +172,19 @@ public class BeanTableSchemaTest {
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+    }
+
+    @Test
+    public void dynamoDbPreserveEmptyObject_shouldInitializeAsEmptyClass() {
+        BeanTableSchema<NestedBean> beanTableSchema = BeanTableSchema.create(NestedBean.class);
+        AbstractBean innerPreserveEmptyBean = new AbstractBean();
+        NestedBean bean = new NestedBean();
+
+        bean.setInnerBean(innerPreserveEmptyBean);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
+        NestedBean nestedBean = beanTableSchema.mapToItem(itemMap);
+        assertThat(nestedBean.getInnerBean(), is(innerPreserveEmptyBean));
     }
 
     @Test
