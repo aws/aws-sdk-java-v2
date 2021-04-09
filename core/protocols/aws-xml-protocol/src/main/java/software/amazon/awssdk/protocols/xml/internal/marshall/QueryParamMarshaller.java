@@ -34,6 +34,8 @@ public final class QueryParamMarshaller {
 
     public static final XmlMarshaller<Long> LONG = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_LONG);
 
+    public static final XmlMarshaller<Short> SHORT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_SHORT);
+
     public static final XmlMarshaller<Double> DOUBLE = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_DOUBLE);
 
     public static final XmlMarshaller<Float> FLOAT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_FLOAT);
