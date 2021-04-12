@@ -25,10 +25,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import java.util.*;
 
 import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.assertFails;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
@@ -157,25 +157,22 @@ public class QueryEnhancedRequestTest {
         List<NestedAttributeName> attributeNames = new ArrayList<>();
         attributeNames.add(NestedAttributeName.create("foo"));
         attributeNames.add(null);
-        assertFails(() -> QueryEnhancedRequest.builder()
-                .addNestedAttributesToProject(attributeNames)
-                .build());
+        assertThatThrownBy(() -> QueryEnhancedRequest.builder()
+                                                     .addNestedAttributesToProject(attributeNames)
+                                                     .build()).isInstanceOf(IllegalArgumentException.class);
 
-        assertFails(() -> QueryEnhancedRequest.builder()
-                .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"), null)
-                .build());
+        assertThatThrownBy(() -> QueryEnhancedRequest.builder()
+                                                     .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"), null)
+                                                     .build()).isInstanceOf(IllegalArgumentException.class);
 
         NestedAttributeName nestedAttributeName = null;
         QueryEnhancedRequest.builder()
-                .addNestedAttributeToProject(nestedAttributeName)
-                .build();
-        assertFails(() -> QueryEnhancedRequest.builder()
-                .addNestedAttributesToProject(nestedAttributeName)
-                .build());
+                            .addNestedAttributeToProject(nestedAttributeName)
+                            .build();
+        assertThatThrownBy(() -> QueryEnhancedRequest.builder()
+                                                     .addNestedAttributesToProject(nestedAttributeName)
+                                                     .build()).isInstanceOf(IllegalArgumentException.class);
     }
-
-
-
 
     @Test
     public void toBuilder() {

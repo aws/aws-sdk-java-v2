@@ -40,21 +40,21 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Examples:
  * <ul>
  *     <li>{@code OffsetDateTime.MIN} is stored as
- *     an AttributeValue with the String "-999999999-01-01T00:00+18:00"}</li>
+ *     an AttributeValue with the String "-999999999-01-01T00:00+18:00"</li>
  *     <li>{@code OffsetDateTime.MAX} is stored as
- *     an AttributeValue with the String "+999999999-12-31T23:59:59.999999999-18:00"}</li>
+ *     an AttributeValue with the String "+999999999-12-31T23:59:59.999999999-18:00"</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).plusSeconds(1)} is stored as
- *     an AttributeValue with the String "1970-01-01T00:00:01Z"}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:01Z"</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).minusSeconds(1)} is stored as
- *     an AttributeValue with the String "1969-12-31T23:59:59Z"}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59Z"</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).plusMillis(1)} is stored as
- *     an AttributeValue with the String "1970-01-01T00:00:00.001Z"}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:00.001Z"</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).minusMillis(1)} is stored as
- *     an AttributeValue with the String "1969-12-31T23:59:59.999Z"}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59.999Z"</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).plusNanos(1)} is stored as
- *     an AttributeValue with the String "1970-01-01T00:00:00.000000001Z"}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00:00.000000001Z"</li>
  *     <li>{@code Instant.EPOCH.atOffset(ZoneOffset.UTC).minusNanos(1)} is stored as
- *     an AttributeValue with the String "1969-12-31T23:59:59.999999999Z"}</li>
+ *     an AttributeValue with the String "1969-12-31T23:59:59.999999999Z"</li>
  * </ul>
  * See {@link OffsetDateTime} for more details on the serialization format.
  * <p>

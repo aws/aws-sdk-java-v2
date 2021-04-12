@@ -44,6 +44,9 @@ final class HeaderUnmarshaller {
 
     /**
      * Unmarshalls a string header, taking into account whether it's a Base 64 encoded JSON value.
+     * <p>
+     * <em>Note:</em> This code does no attempt to validate whether the unmarshalled string does, in fact, represent valid
+     * JSON values. The string value is returned as-is, and it's up to the user to validate the results.
      *
      * @param value Value to unmarshall
      * @param field {@link SdkField} containing metadata about member being unmarshalled.
