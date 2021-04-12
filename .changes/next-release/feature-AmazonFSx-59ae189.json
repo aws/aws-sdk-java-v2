@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon FSx",
-    "contributor": "",
-    "description": "Support for cross-region and cross-account backup copies"
-}
