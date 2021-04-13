@@ -128,10 +128,8 @@ public final class QueryEnhancedRequest {
 
     /**
      * Returns the list of projected attributes on this request object, or an null if no projection is specified.
-     * This is the single list which has Nested and Non Nested attributes to project.
-     * The Nested Attributes are represented using DOT separator in this List.
-     * Example : foo.bar is represented as "foo.bar" which is indistinguishable from a non-nested attribute
-     * with the name "foo.bar".
+     * Nested attributes are represented using the '.' separator. Example : foo.bar is represented as "foo.bar" which is
+     * indistinguishable from a non-nested attribute with the name "foo.bar".
      * Use {@link #nestedAttributesToProject} if you have a use-case that requires discrimination between these two cases.
      */
     public List<String> attributesToProject() {
@@ -300,12 +298,11 @@ public final class QueryEnhancedRequest {
          * <p>
          * Sets a collection of the attribute names to be retrieved from the database. These attributes can include
          * scalars, sets, or elements of a JSON document.
-         * </p>
          * <p>
          * If no attribute names are specified, then all attributes will be returned. If any of the requested attributes
          * are not found, they will not appear in the result.
-         * If there are nested attributes then addNestedAttributesToProject API should be used.
-         * </p>
+         * <p> If there are nested attributes, use any of the addNestedAttributesToProject methods, such as
+         * {@link #addNestedAttributesToProject(NestedAttributeName...)}.
          * <p>
          * For more information, see <a href=
          * "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html"
@@ -330,17 +327,15 @@ public final class QueryEnhancedRequest {
          * <p>
          * Sets one or more attribute names to be retrieved from the database. These attributes can include
          * scalars, sets, or elements of a JSON document.
-         * </p>
          * <p>
          * If no attribute names are specified, then all attributes will be returned. If any of the requested attributes
          * are not found, they will not appear in the result.
-         * If there are nested attributes then addNestedAttributesToProject API should be used.
-         * </p>
+         * <p> If there are nested attributes, use any of the addNestedAttributesToProject methods, such as
+         * {@link #addNestedAttributesToProject(NestedAttributeName...)}.
          * <p>
          * For more information, see <a href=
          * "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.AccessingItemAttributes.html"
          * >Accessing Item Attributes</a> in the <i>Amazon DynamoDB Developer Guide</i>.
-         * </p>
          *
          * @param attributesToProject One or more  attributes names to be retrieved from the database.
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -350,11 +345,10 @@ public final class QueryEnhancedRequest {
         }
 
         /**
-         * <p>
-         * Adds a single attribute name to be retrieved from the database. This attribute can include
+         * <p> Adds a single attribute name to be retrieved from the database. This attribute can include
          * scalars, sets, or elements of a JSON document.
-         * If there are nested attributes then addNestedAttributesToProject API should be used.
-         * </p>
+         * <p> If there are nested attributes, use any of the addNestedAttributesToProject methods, such as
+         * {@link #addNestedAttributesToProject(NestedAttributeName...)}.
          *
          * @param attributeToProject An additional single attribute name to be retrieved from the database.
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -367,18 +361,13 @@ public final class QueryEnhancedRequest {
         }
 
         /**
-         * <p>
-         * Adds a collection of the NestedAttributeNames to be retrieved from the database. These attributes can include
+         * Adds a collection of nested attributes to be retrieved from the database. These attributes can include
          * scalars, sets, or elements of a JSON document.
-         * This method takes arguments in form of NestedAttributeName which supports representing nested attributes.
-         * The NestedAttributeNames is specially created for projecting Nested Attribute names.
-         * The DOT characters are not recognized as nesting separator by DDB thus for Enhanced request NestedAttributeNames
-         * should be created to project Nested Attribute name at various levels.
-         * This method will add new attributes to project to the existing list of attributes to project stored by this builder.
+         * <p>
+         * This method is additive, so calling it multiple times will add to the list of nested attribute names.
+         * @see NestedAttributeName
          *
-         * @param nestedAttributeNames A collection of the attributes names to be retrieved from the database.
-         *                             Nested levels of Attributes can be added using NestedAttributeName class.
-         *                             Refer {@link NestedAttributeName}.
+         * @param nestedAttributeNames A collection of attributes to be retrieved from the database.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         public Builder addNestedAttributesToProject(Collection<NestedAttributeName> nestedAttributeNames) {
@@ -395,21 +384,13 @@ public final class QueryEnhancedRequest {
         }
 
         /**
-         * <p>
-         * Adds one or more attribute names to be retrieved from the database. These attributes can include
+         * Adds a collection of nested attributes to be retrieved from the database. These attributes can include
          * scalars, sets, or elements of a JSON document.
-         * This method takes arguments in form of NestedAttributeName which supports representing nested attributes.
-         * This method takes arguments in form of NestedAttributeName which supports representing nested attributes.
-         * The NestedAttributeNames is specially created for projecting Nested Attribute names.
-         * The DOT characters are not recognized as nesting separator by DDB thus for Enhanced request NestedAttributeNames
-         * should be created to project Nested Attribute name at various levels.
-         * This method will add new attributes to project to the existing list of attributes to project stored
-         * by this builder.
-         * </p>
+         * <p>
+         * This method is additive, so calling it multiple times will add to the list of nested attribute names.
+         * @see NestedAttributeName
          *
-         * @param nestedAttributeNames One or more  attributesNames to be retrieved from the database.
-         *                             Nested levels of Attributes can be added using NestedAttributeName class.
-         *                             Refer {@link NestedAttributeName}.
+         * @param nestedAttributeNames A collection of attributes to be retrieved from the database.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         public Builder addNestedAttributesToProject(NestedAttributeName... nestedAttributeNames) {
@@ -417,15 +398,14 @@ public final class QueryEnhancedRequest {
         }
 
         /**
-         * <p>
-         * Adds a single NestedAttributeName to be retrieved from the database. This attribute can include
+         * Adds a single nested attribute to be retrieved from the database. The attribute can include
          * scalars, sets, or elements of a JSON document.
-         * This method takes arguments in form of NestedAttributeName which supports representing nested attributes.
-         * This method will add new attributes to project to the existing list of attributes to project stored by this builder.
-         * </p>
+         * <p>
+         * This method is additive, so calling it multiple times will add to the list of nested attribute names.
+         * @see NestedAttributeName
          *
-         * @param nestedAttributeName An additional single attribute name to be retrieved from the database.
-         *                            Refer {@link NestedAttributeName}.
+         *
+         * @param nestedAttributeName A single attribute name to be retrieved from the database.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         public Builder addNestedAttributeToProject(NestedAttributeName nestedAttributeName) {

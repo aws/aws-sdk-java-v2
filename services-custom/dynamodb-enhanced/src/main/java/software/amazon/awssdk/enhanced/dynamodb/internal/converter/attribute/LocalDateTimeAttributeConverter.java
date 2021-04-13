@@ -62,17 +62,17 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Examples:
  * <ul>
  *     <li>{@code LocalDateTime.of(1988, 5, 21, 0, 0, 0)} is stored as
- *     an AttributeValue with the String "1988-05-21T00:00"}</li>
+ *     an AttributeValue with the String "1988-05-21T00:00"</li>
  *     <li>{@code LocalDateTime.of(-1988, 5, 21, 0, 0, 0)} is stored as
- *     an AttributeValue with the String "-1988-05-21T00:00"}</li>
+ *     an AttributeValue with the String "-1988-05-21T00:00"</li>
  *     <li>{@code LocalDateTime.of(1988, 5, 21, 0, 0, 0).plusSeconds(1)} is stored as
- *     an AttributeValue with the String "1988-05-21T00:00:01"}</li>
+ *     an AttributeValue with the String "1988-05-21T00:00:01"</li>
  *     <li>{@code LocalDateTime.of(1988, 5, 21, 0, 0, 0).minusSeconds(1)} is stored as
- *     an AttributeValue with the String "1988-05-20T23:59:59"}</li>
+ *     an AttributeValue with the String "1988-05-20T23:59:59"</li>
  *     <li>{@code LocalDateTime.of(1988, 5, 21, 0, 0, 0).plusNanos(1)} is stored as
- *     an AttributeValue with the String "1988-05-21T00:00:00.0000000001"}</li>
+ *     an AttributeValue with the String "1988-05-21T00:00:00.0000000001"</li>
  *     <li>{@code LocalDateTime.of(1988, 5, 21, 0, 0, 0).minusNanos(1)} is stored as
- *     an AttributeValue with the String "1988-05-20T23:59:59.999999999"}</li>
+ *     an AttributeValue with the String "1988-05-20T23:59:59.999999999"</li>
  * </ul>
  *
  * <p>

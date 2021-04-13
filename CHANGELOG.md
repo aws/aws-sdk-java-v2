@@ -1,3 +1,36 @@
+# __2.16.40__ __2021-04-12__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now allows you to set the access permissions for build artifacts, project artifacts, and log files that are uploaded to an Amazon S3 bucket that is owned by another account.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon FSx__
+  - ### Features
+    - Support for cross-region and cross-account backup copies
+
+# __2.16.39__ __2021-04-09__
+## __AWS Shield__
+  - ### Features
+    - CreateProtection now throws InvalidParameterException instead of InternalErrorException when system tags (tag with keys prefixed with "aws:") are passed in.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add paginator support to DescribeStoreImageTasks and update documentation.
+
+## __Amazon Redshift__
+  - ### Features
+    - Add support for case sensitive table level restore
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Added a new method annotation `DynamoDbPreserveEmptyObject` that specifies a class as empty class if all fields are null when mapping a DynamoDb record to a Java bean. See [#2280](https://github.com/aws/aws-sdk-java-v2/issues/2280).
+
+  - ### Bugfixes
+    - Fixes a bug in issue [#2310](https://github.com/aws/aws-sdk-java-v2/issues/2310) where nested attributes aren't sanitized properly for projection expressions.
+
 # __2.16.38__ __2021-04-08__
 ## __AWS Resource Access Manager__
   - ### Features
