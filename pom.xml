@@ -512,6 +512,11 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
+                            <exclude>*.SubscribeToShardEvent$BuilderImpl</exclude>
+                            <exclude>*.ConfigurationEvent$BuilderImpl</exclude>
+                            <exclude>*.IntentResultEvent$BuilderImpl</exclude>
+                            <exclude>*.TextResponseEvent$BuilderImpl</exclude>
+                            <exclude>*.IntentResultEvent$BuilderImpl</exclude>
                         </excludes>
 
                         <excludeModules>
