@@ -228,6 +228,7 @@
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfEnums":{"shape":"ListOfEnums"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
+        "ListOfMapsOfStringToStruct":{"shape":"ListOfMapOfStringToSimpleStruct"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
         "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
         "MapOfStringToString":{"shape":"MapOfStringToString"},
@@ -324,6 +325,10 @@
     "ListOfMapStringToString":{
       "type":"list",
       "member":{"shape":"MapOfStringToString"}
+    },
+    "ListOfMapOfStringToSimpleStruct":{
+      "type":"list",
+      "member":{"shape":"MapOfStringToSimpleStruct"}
     },
     "ListOfSimpleStructs":{
       "type":"list",

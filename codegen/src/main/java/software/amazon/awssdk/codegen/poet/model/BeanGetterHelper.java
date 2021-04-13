@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -47,6 +48,9 @@ public final class BeanGetterHelper {
         }
         if (memberModel.isCollectionWithBuilderMember()) {
             return memberModel.isList() ? listOfBuildersGetter(memberModel) : mapOfBuildersGetter(memberModel);
+        }
+        if (memberModel.isCollectionWithNestedBuilderMember()) {
+            return listOfMapOfBuilderGetter(memberModel);
         }
         if (memberModel.isSdkBytesType()) {
             return byteBufferGetter(memberModel);
@@ -94,6 +98,28 @@ public final class BeanGetterHelper {
                            poetExtensions.getModelClass(memberModel.getC2jShape()).nestedClass("Builder"),
                            CodeBlock.of("return $1N != null ? $1N.toBuilder() : null;",
                                         memberModel.getVariable().getVariableName()));
+    }
+
+    private MethodSpec listOfMapOfBuilderGetter(MemberModel memberModel) {
+        MapModel nestedMapModel = memberModel.getListModel().getListMemberModel().getMapModel();
+        TypeName nestedMapKeyType = typeProvider.getTypeNameForSimpleType(nestedMapModel.getKeyModel()
+                                                                                        .getVariable().getVariableType());
+        ClassName nestedMapValueType = poetExtensions.getModelClass(nestedMapModel.getValueModel().getC2jShape());
+        TypeName nestedMapReturnType = ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                                 nestedMapKeyType,
+                                                                 nestedMapValueType.nestedClass("Builder"));
+
+        TypeName returnType = ParameterizedTypeName.get(ClassName.get(Collection.class), nestedMapReturnType);
+
+        CodeBlock mapReturnStatement =
+            CodeBlock.of("Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().toBuilder())");
+
+        CodeBlock returnStatement = CodeBlock.of("return $1N != null ? $1N.stream().map(m -> m.entrySet().stream().collect("
+            + mapReturnStatement + ")).collect($2T.toList()) : null;",
+            memberModel.getVariable().getVariableName(),
+            Collectors.class);
+
+        return basicGetter(memberModel, returnType, returnStatement);
     }
 
     private MethodSpec mapOfBuildersGetter(MemberModel memberModel) {

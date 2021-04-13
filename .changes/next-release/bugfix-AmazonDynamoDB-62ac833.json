@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed an issue where structure builders containing List<Map<String, Shape>> could not be marshalled using bean-based serializers."
+}

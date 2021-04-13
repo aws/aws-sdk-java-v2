@@ -50,11 +50,13 @@ public class ServiceModelCopiers {
     }
 
     public boolean requiresBuilderCopier(MemberModel memberModel) {
+        if (memberModel.isCollectionWithNestedBuilderMember()) {
+            return true;
+        }
         if (memberModel.isList()) {
             MemberModel type = memberModel.getListModel().getListMemberModel();
             return type != null && type.hasBuilder();
         }
-
         if (memberModel.isMap()) {
             MemberModel valueType = memberModel.getMapModel().getValueModel();
             return valueType != null && valueType.hasBuilder();
