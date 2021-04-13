@@ -15,18 +15,19 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static software.amazon.awssdk.codegen.poet.model.TypeProvider.ShapeTransformation.NONE;
+import static software.amazon.awssdk.codegen.poet.model.TypeProvider.ShapeTransformation.USE_BUILDER;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.WildcardTypeName;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
+import software.amazon.awssdk.codegen.poet.model.TypeProvider.TypeNameOptions;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
@@ -56,6 +58,12 @@ class MemberCopierSpec implements ClassSpec {
         NONE
     }
 
+    private enum BuilderTransform {
+        BUILDER_TO_BUILDABLE,
+        BUILDABLE_TO_BUILDER,
+        NONE
+    }
+
     MemberCopierSpec(MemberModel memberModel,
                      ServiceModelCopiers serviceModelCopiers,
                      TypeProvider typeProvider,
@@ -73,8 +81,9 @@ class MemberCopierSpec implements ClassSpec {
                 .addAnnotation(PoetUtils.generatedAnnotation())
                 .addMethod(copyMethod());
 
-        if (serviceModelCopiers.requiresBuilderCopier(memberModel)) {
-            builder.addMethod(builderCopyMethod());
+        if (memberModel.containsBuildable()) {
+            builder.addMethod(copyFromBuilderMethod());
+            builder.addMethod(copyToBuilderMethod());
         }
 
         // If this is a collection, and it contains enums, or recursively
@@ -123,7 +132,6 @@ class MemberCopierSpec implements ClassSpec {
                 return isEnumCopyAvailable(valueModel);
             }
             // Keys are always simple, don't need to check
-            return false;
         } else {
             MemberModel element = memberModel.getListModel().getListMemberModel();
             if (element.getEnumType() != null) {
@@ -132,348 +140,208 @@ class MemberCopierSpec implements ClassSpec {
             if (element.isList() || element.isMap()) {
                 return isEnumCopyAvailable(element);
             }
-            return false;
         }
+
+        return false;
     }
 
     private MethodSpec copyMethod() {
-        return copyMethodProto().addCode(copyMethodBody()).build();
-    }
-
-    private MethodSpec.Builder copyMethodProto() {
-        return copyMethodProto(typeProvider.parameterType(memberModel),
-                               typeProvider.fieldType(memberModel),
-                               serviceModelCopiers.copyMethodName());
-    }
-
-    private MethodSpec.Builder copyMethodProto(TypeName parameterType, TypeName returnType, String methodName) {
-        return MethodSpec.methodBuilder(methodName)
+        return MethodSpec.methodBuilder(serviceModelCopiers.copyMethodName())
                          .addModifiers(Modifier.STATIC)
-                         .addParameter(parameterType, memberParamName())
-                         .returns(returnType);
+                         .addParameter(typeName(memberModel, true, true, BuilderTransform.NONE, EnumTransform.NONE),
+                                       memberParamName())
+                         .returns(typeName(memberModel, false, false, BuilderTransform.NONE, EnumTransform.NONE))
+                         .addCode(copyMethodBody(BuilderTransform.NONE, EnumTransform.NONE))
+                         .build();
     }
 
     private MethodSpec enumToStringCopyMethod() {
-        return copyMethodProto(parameterTypeForEnumToStringCopyMethod(),
-                               typeProvider.fieldType(memberModel),
-                               serviceModelCopiers.enumToStringCopyMethodName())
-            .addCode(enumToStringCopyMethodBody()).build();
+        return MethodSpec.methodBuilder(serviceModelCopiers.enumToStringCopyMethodName())
+                         .addModifiers(Modifier.STATIC)
+                         .addParameter(typeName(memberModel, true, true, BuilderTransform.NONE, EnumTransform.ENUM_TO_STRING),
+                                       memberParamName())
+                         .returns(typeName(memberModel, false, false, BuilderTransform.NONE, EnumTransform.ENUM_TO_STRING))
+                         .addCode(copyMethodBody(BuilderTransform.NONE, EnumTransform.ENUM_TO_STRING))
+                         .build();
     }
 
     private MethodSpec stringToEnumCopyMethod() {
-        return copyMethodProto(typeProvider.parameterType(memberModel),
-                               typeProvider.enumReturnType(memberModel),
-                               serviceModelCopiers.stringToEnumCopyMethodName())
-                .addCode(stringToEnumCopyMethodBody()).build();
-    }
-
-    private TypeName parameterTypeForEnumToStringCopyMethod() {
-        return typeProvider.parameterType(memberModel, true);
-    }
-
-    private CodeBlock enumToStringCopyMethodBody() {
-        if (memberModel.isList()) {
-            return listCopyBody(EnumTransform.ENUM_TO_STRING);
-        } else if (memberModel.isMap()) {
-            return mapCopyBody(EnumTransform.ENUM_TO_STRING);
-        }
-
-        return null;
-    }
-
-    private CodeBlock stringToEnumCopyMethodBody() {
-        if (memberModel.isList()) {
-            return listCopyBody(EnumTransform.STRING_TO_ENUM);
-        } else {
-            return mapCopyBody(EnumTransform.STRING_TO_ENUM);
-        }
-    }
-
-    private MethodSpec builderCopyMethod() {
-        return builderCopyMethodProto()
-            .addParameter(builderCopyMethodParameters(), memberParamName())
-            .addCode(builderCopyMethodBody())
-            .build();
-    }
-
-    private MethodSpec.Builder builderCopyMethodProto() {
-        return MethodSpec.methodBuilder(serviceModelCopiers.builderCopyMethodName())
+        return MethodSpec.methodBuilder(serviceModelCopiers.stringToEnumCopyMethodName())
                          .addModifiers(Modifier.STATIC)
-                         .returns(typeProvider.fieldType(memberModel));
+                         .addParameter(typeName(memberModel, true, true, BuilderTransform.NONE, EnumTransform.STRING_TO_ENUM),
+                                       memberParamName())
+                         .returns(typeName(memberModel, false, false, BuilderTransform.NONE, EnumTransform.STRING_TO_ENUM))
+                         .addCode(copyMethodBody(BuilderTransform.NONE, EnumTransform.STRING_TO_ENUM))
+                         .build();
     }
 
-    private TypeName builderCopyMethodParameters() {
-        if (memberModel.isCollectionWithNestedBuilderMember()) {
-            ParameterizedTypeName nestedParameters = builderCopyMethodParametersForMap(memberModel.getListModel()
-                                                                                                  .getListMemberModel()
-                                                                                                  .getMapModel());
-            return ParameterizedTypeName.get(ClassName.get(Collection.class), WildcardTypeName.subtypeOf(nestedParameters));
-        }
-        if (memberModel.isList()) {
-            return builderCopyMethodParametersForList();
-        }
-        if (memberModel.isMap()) {
-            return builderCopyMethodParametersForMap(memberModel.getMapModel());
-        }
-        throw new UnsupportedOperationException();
+    private MethodSpec copyFromBuilderMethod() {
+        return MethodSpec.methodBuilder(serviceModelCopiers.copyFromBuilderMethodName())
+                         .addModifiers(Modifier.STATIC)
+                         .returns(typeName(memberModel, false, false, BuilderTransform.BUILDER_TO_BUILDABLE,
+                                           EnumTransform.NONE))
+                         .addParameter(typeName(memberModel, true, true, BuilderTransform.BUILDER_TO_BUILDABLE,
+                                                EnumTransform.NONE),
+                                       memberParamName())
+                         .addCode(copyMethodBody(BuilderTransform.BUILDER_TO_BUILDABLE, EnumTransform.NONE))
+                         .build();
     }
 
-    private ParameterizedTypeName builderCopyMethodParametersForList() {
-        ClassName listParameter = poetExtensions.getModelClass(memberModel.getListModel().getListMemberModel().getC2jShape());
-        ClassName builderForParameter = listParameter.nestedClass("Builder");
-        return ParameterizedTypeName.get(ClassName.get(Collection.class), WildcardTypeName.subtypeOf(builderForParameter));
+    private MethodSpec copyToBuilderMethod() {
+        return MethodSpec.methodBuilder(serviceModelCopiers.copyToBuilderMethodName())
+                         .addModifiers(Modifier.STATIC)
+                         .returns(typeName(memberModel, false, false, BuilderTransform.BUILDABLE_TO_BUILDER, EnumTransform.NONE))
+                         .addParameter(typeName(memberModel, true, true, BuilderTransform.BUILDABLE_TO_BUILDER,
+                                                EnumTransform.NONE),
+                                       memberParamName())
+                         .addCode(copyMethodBody(BuilderTransform.BUILDABLE_TO_BUILDER, EnumTransform.NONE))
+                         .build();
     }
 
-    private ParameterizedTypeName builderCopyMethodParametersForMap(MapModel mapModel) {
-        TypeName keyType = typeProvider.getTypeNameForSimpleType(mapModel.getKeyModel().getVariable().getVariableType());
-        ClassName valueParameter = poetExtensions.getModelClass(mapModel.getValueModel().getC2jShape());
-        ClassName builderForParameter = valueParameter.nestedClass("Builder");
-        return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, WildcardTypeName.subtypeOf(builderForParameter));
+    private CodeBlock copyMethodBody(BuilderTransform builderTransform, EnumTransform enumTransform) {
+        CodeBlock.Builder code = CodeBlock.builder();
+
+        if (!memberModel.getAutoConstructClassIfExists().isPresent()) {
+            code.add("if ($N == null) {", memberParamName())
+                .add("return null;")
+                .add("}");
+        }
+
+        String outputVariable = copyMethodBody(code, builderTransform, new UniqueVariableSource(),
+                                               enumTransform, memberParamName(), memberModel);
+
+        code.add("return $N;", outputVariable);
+
+        return code.build();
     }
 
-    private CodeBlock builderCopyMethodBody() {
-        if (memberModel.isCollectionWithNestedBuilderMember()) {
-            return builderCopyMethodForListWithMap();
+    private String copyMethodBody(CodeBlock.Builder code, BuilderTransform builderTransform, UniqueVariableSource variableSource,
+                                  EnumTransform enumTransform, String inputVariableName, MemberModel inputMember) {
+        if (inputMember.getEnumType() != null) {
+            String outputVariableName = variableSource.getNew("result");
+            ClassName enumType = poetExtensions.getModelClass(inputMember.getEnumType());
+            switch (enumTransform) {
+                case NONE:
+                    return inputVariableName;
+                case ENUM_TO_STRING:
+                    code.add("$T $N = $N.toString();", String.class, outputVariableName, inputVariableName);
+                    return outputVariableName;
+                case STRING_TO_ENUM:
+                    code.add("$1T $2N = $1T.fromValue($3N);", enumType, outputVariableName, inputVariableName);
+                    return outputVariableName;
+                default:
+                    throw new IllegalStateException();
+            }
         }
-        if (memberModel.isList()) {
-            return builderCopyMethodForList();
+
+        if (inputMember.isSimple()) {
+            return inputVariableName;
         }
-        if (memberModel.isMap()) {
-            return builderCopyMethodForMap();
+
+        if (inputMember.hasBuilder()) {
+            switch (builderTransform) {
+                case NONE:
+                    return inputVariableName;
+                case BUILDER_TO_BUILDABLE:
+                    String buildableOutput = variableSource.getNew("member");
+                    TypeName buildableOutputType = typeName(inputMember, false, false, builderTransform, enumTransform);
+                    code.add("$T $N = $N.build();", buildableOutputType, buildableOutput, inputVariableName);
+                    return buildableOutput;
+                case BUILDABLE_TO_BUILDER:
+                    String builderOutput = variableSource.getNew("member");
+                    TypeName builderOutputType = typeName(inputMember, false, false, builderTransform, enumTransform);
+                    code.add("$T $N = $N.toBuilder();", builderOutputType, builderOutput, inputVariableName);
+                    return builderOutput;
+                default:
+                    throw new IllegalStateException();
+            }
         }
-        throw new UnsupportedOperationException();
+
+        if (inputMember.isList()) {
+            String outputVariableName = variableSource.getNew("list");
+            String modifiableVariableName = variableSource.getNew("modifiableList");
+
+            MemberModel listEntryModel = inputMember.getListModel().getListMemberModel();
+            TypeName listType = typeName(inputMember, false, false, builderTransform, enumTransform);
+
+            code.add("$T $N;", listType, outputVariableName)
+                .add("if ($1N == null || $1N instanceof $2T) {", inputVariableName, SdkAutoConstructList.class)
+                .add("$N = $T.getInstance();", outputVariableName, DefaultSdkAutoConstructList.class)
+                .add("} else {")
+                .add("$T $N = new $T<>();", listType, modifiableVariableName, ArrayList.class);
+
+            String entryInputVariable = variableSource.getNew("entry");
+            code.add("$N.forEach($N -> {", inputVariableName, entryInputVariable);
+
+            String entryOutputVariable =
+                copyMethodBody(code, builderTransform, variableSource, enumTransform, entryInputVariable, listEntryModel);
+
+            code.add("$N.add($N);", modifiableVariableName, entryOutputVariable)
+                .add("});")
+                .add("$N = $T.unmodifiableList($N);", outputVariableName, Collections.class, modifiableVariableName)
+                .add("}");
+
+            return outputVariableName;
+        }
+
+        if (inputMember.isMap()) {
+            String outputVariableName = variableSource.getNew("map");
+            String modifiableVariableName = variableSource.getNew("modifiableMap");
+
+            MemberModel keyModel = inputMember.getMapModel().getKeyModel();
+            MemberModel valueModel = inputMember.getMapModel().getValueModel();
+            TypeName keyType = typeName(keyModel, false, false, builderTransform, enumTransform);
+            TypeName outputMapType = typeName(inputMember, false, false, builderTransform, enumTransform);
+
+            code.add("$T $N;", outputMapType, outputVariableName)
+                .add("if ($1N == null || $1N instanceof $2T) {", inputVariableName, SdkAutoConstructMap.class)
+                .add("$N = $T.getInstance();", outputVariableName, DefaultSdkAutoConstructMap.class)
+                .add("} else {")
+                .add("$T $N = new $T<>();", outputMapType, modifiableVariableName, LinkedHashMap.class);
+
+            String keyInputVariable = variableSource.getNew("key");
+            String valueInputVariable = variableSource.getNew("value");
+            code.add("$N.forEach(($N, $N) -> {", inputVariableName, keyInputVariable, valueInputVariable);
+
+            String keyOutputVariable =
+                copyMethodBody(code, builderTransform, variableSource, enumTransform, keyInputVariable, keyModel);
+
+            String valueOutputVariable =
+                copyMethodBody(code, builderTransform, variableSource, enumTransform, valueInputVariable, valueModel);
+
+            if (keyModel.getEnumType() != null && !keyType.toString().equals("java.lang.String")) {
+                // When enums are used as keys, drop any entries with unknown keys
+                code.add("if ($N != $T.UNKNOWN_TO_SDK_VERSION) {", keyOutputVariable, keyType)
+                    .add("$N.put($N, $N);", modifiableVariableName, keyOutputVariable, valueOutputVariable)
+                    .add("}");
+            } else {
+                code.add("$N.put($N, $N);", modifiableVariableName, keyOutputVariable, valueOutputVariable);
+            }
+
+            code.add("});")
+                .add("$N = $T.unmodifiableMap($N);", outputVariableName, Collections.class, modifiableVariableName)
+                .add("}");
+
+            return outputVariableName;
+        }
+
+        throw new UnsupportedOperationException("Unable to generate copier for member '" + inputMember + "'");
     }
 
-    private CodeBlock builderCopyMethodForListWithMap() {
-        MemberModel listMemberModel = memberModel.getListModel().getListMemberModel();
-        Optional<ClassName> mapCopierClass = serviceModelCopiers.copierClassFor(listMemberModel);
+    private TypeName typeName(MemberModel model, boolean isInputType, boolean useCollectionForList,
+                              BuilderTransform builderTransform, EnumTransform enumTransform) {
 
-        CodeBlock.Builder builderMethodBody = builderWithDefaultStatement(DefaultSdkAutoConstructList.class);
-        builderMethodBody.add("return $N($N.stream().", serviceModelCopiers.copyMethodName(), memberParamName());
+        boolean useEnumTypes = (isInputType && enumTransform == EnumTransform.ENUM_TO_STRING) ||
+                               (!isInputType && enumTransform == EnumTransform.STRING_TO_ENUM);
 
-        if (mapCopierClass.isPresent()) {
-            builderMethodBody.add("map($T::$N)", mapCopierClass.get(), serviceModelCopiers.builderCopyMethodName());
-        } else {
-            builderMethodBody.add("map(m -> m.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().build())))");
-        }
+        boolean useBuilderTypes = (isInputType && builderTransform == BuilderTransform.BUILDER_TO_BUILDABLE) ||
+                                  (!isInputType && builderTransform == BuilderTransform.BUILDABLE_TO_BUILDER);
 
-        builderMethodBody.addStatement(".collect(toList()))");
-        return builderMethodBody.build();
-    }
-
-    private CodeBlock builderCopyMethodForMap() {
-        return builderWithDefaultStatement(DefaultSdkAutoConstructMap.class)
-            .addStatement("return $N($N.entrySet().stream().collect(toMap($T::getKey, e -> e.getValue().build())))",
-                          serviceModelCopiers.copyMethodName(),
-                          memberParamName(),
-                          Map.Entry.class)
-            .build();
-    }
-
-    private CodeBlock builderCopyMethodForList() {
-        String listMemberClass = memberModel.getListModel().getListMemberModel().getC2jShape();
-
-        return builderWithDefaultStatement(DefaultSdkAutoConstructList.class)
-            .addStatement("return $N($N.stream().map($T::$N).collect(toList()))",
-                          serviceModelCopiers.copyMethodName(),
-                          memberParamName(),
-                          poetExtensions.getModelClass(listMemberClass).nestedClass("Builder"),
-                          "build")
-            .build();
-    }
-
-    private CodeBlock.Builder builderWithDefaultStatement(Class<?> autoConstructClass) {
-        return CodeBlock.builder()
-                        .beginControlFlow("if ($1N == null || $1N instanceof $2T)",
-                                          memberParamName(), autoConstructClass)
-                        .addStatement("return $T.getInstance()", autoConstructClass)
-                        .endControlFlow();
-    }
-
-    private CodeBlock copyMethodBody() {
-        if (memberModel.isMap()) {
-            return mapCopyBody(EnumTransform.NONE);
-        }
-
-        if (memberModel.isList()) {
-            return listCopyBody(EnumTransform.NONE);
-        }
-
-        return modelCopyBody();
-    }
-
-    private CodeBlock listCopyBody(EnumTransform enumTransform) {
-        String paramName = memberParamName();
-        String copyName = paramName + "Copy";
-
-        CodeBlock.Builder builder = CodeBlock.builder();
-
-        builder.beginControlFlow("if ($1N == null || $1N instanceof $2T)", memberParamName(), SdkAutoConstructList.class)
-               .addStatement("return $T.getInstance()", DefaultSdkAutoConstructList.class)
-               .endControlFlow();
-
-        Optional<ClassName> copierClass = serviceModelCopiers.copierClassFor(memberModel.getListModel().getListMemberModel());
-        boolean hasCopier = copierClass.isPresent();
-
-        TypeName copyType;
-        if (enumTransform == EnumTransform.STRING_TO_ENUM) {
-            copyType = typeProvider.enumReturnType(memberModel);
-        } else {
-            copyType = typeProvider.fieldType(memberModel);
-        }
-
-        MemberModel elementModel = memberModel.getListModel().getListMemberModel();
-
-        switch (enumTransform) {
-            case STRING_TO_ENUM:
-                if (hasCopier) {
-                    builder.addStatement("$T $N = $N.stream().map($T::$N).collect(toList())",
-                                         copyType,
-                                         copyName,
-                                         paramName, copierClass.get(),
-                                         serviceModelCopiers.stringToEnumCopyMethodName());
-                } else {
-                    builder.addStatement("$T $N = $N.stream().map($T::fromValue).collect(toList())",
-                                         copyType,
-                                         copyName,
-                                         paramName,
-                                         poetExtensions.getModelClass(elementModel.getEnumType()));
-                }
-                break;
-            case ENUM_TO_STRING:
-                if (hasCopier) {
-                    builder.addStatement("$T $N = $N.stream().map($T::$N).collect(toList())",
-                                         copyType,
-                                         copyName,
-                                         paramName,
-                                         copierClass.get(),
-                                         serviceModelCopiers.enumToStringCopyMethodName());
-                } else {
-                    builder.addStatement("$T $N = $N.stream().map(Object::toString).collect(toList())",
-                                         copyType,
-                                         copyName,
-                                         paramName);
-                }
-                break;
-            case NONE:
-                if (hasCopier) {
-                    builder.addStatement("$T $N = $N.stream().map($T::$N).collect(toList())",
-                                         copyType,
-                                         copyName,
-                                         paramName,
-                                         copierClass.get(),
-                                         serviceModelCopiers.copyMethodName());
-                } else {
-                    builder.addStatement("$T $N = new $T<>($N)",
-                                         copyType,
-                                         copyName,
-                                         typeProvider.listImplClassName(),
-                                         paramName);
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown enum transform: " + enumTransform);
-        }
-
-        builder.addStatement("return $T.unmodifiableList($N)", Collections.class, copyName);
-
-        return builder.build();
-    }
-
-    private CodeBlock mapCopyBody(EnumTransform enumTransform) {
-        MapModel mapModel = memberModel.getMapModel();
-        String paramName = memberParamName();
-        String copyName = paramName + "Copy";
-
-        MemberModel keyModel = mapModel.getKeyModel();
-        MemberModel valueModel = mapModel.getValueModel();
-
-        // We need to know if we're applying the transform to the key, value, or both
-        boolean keyHasEnum = keyModel.getEnumType() != null || isEnumCopyAvailable(keyModel);
-        boolean valueHasEnum = valueModel.getEnumType() != null || isEnumCopyAvailable(valueModel);
-        EnumTransform keyTransform = keyHasEnum ? enumTransform : EnumTransform.NONE;
-        EnumTransform valueTransform = valueHasEnum ? enumTransform : EnumTransform.NONE;
-
-        CodeBlock keyCopyExpr = mapKeyValCopyExpr(keyModel, "getKey", keyTransform);
-        CodeBlock valueCopyExpr = mapKeyValCopyExpr(valueModel, "getValue", valueTransform);
-
-        CodeBlock.Builder builder = CodeBlock.builder();
-        builder.beginControlFlow("if ($1N == null || $1N instanceof $2T)", memberParamName(), SdkAutoConstructMap.class)
-                .addStatement("return $T.getInstance()", DefaultSdkAutoConstructMap.class)
-                .endControlFlow();
-
-        TypeName copyType;
-        if (enumTransform == EnumTransform.STRING_TO_ENUM) {
-            copyType = typeProvider.enumReturnType(memberModel);
-        } else {
-            copyType = typeProvider.fieldType(memberModel);
-        }
-
-        // If we're transforming from string to enum, Don't include UNKNOWN_TO_SDK_VERSION values as keys in the map
-        if (keyTransform == EnumTransform.STRING_TO_ENUM) {
-            ClassName enumClassName = poetExtensions.getModelClass(keyModel.getEnumType());
-            CodeBlock putLambda = CodeBlock.builder()
-                    .beginControlFlow("(m, e) ->")
-                    .add("$T keyAsEnum = $L;", enumClassName, keyCopyExpr)
-                    .beginControlFlow("if (keyAsEnum != $T.UNKNOWN_TO_SDK_VERSION)", enumClassName)
-                    .add("m.put(keyAsEnum, $L);", valueCopyExpr)
-                    .endControlFlow()
-                    .endControlFlow()
-                    .build();
-            builder.addStatement("$T $N = $N.entrySet().stream().collect($T::new, $L, $T::putAll)",
-                    copyType, copyName, memberParamName(), HashMap.class, putLambda, HashMap.class);
-        } else {
-            builder.addStatement("$T $N = $N.entrySet().stream().collect($T::new, (m, e) -> m.put($L, $L), $T::putAll)",
-                    copyType, copyName, memberParamName(), HashMap.class, keyCopyExpr, valueCopyExpr,
-                    HashMap.class);
-        }
-
-        return builder.addStatement("return $T.unmodifiableMap($N)", Collections.class, copyName).build();
-    }
-
-    private CodeBlock mapKeyValCopyExpr(MemberModel keyValModel, String getterName, EnumTransform enumTransform) {
-        Optional<ClassName> keyCopier = serviceModelCopiers.copierClassFor(keyValModel);
-        boolean hasCopier = keyCopier.isPresent();
-        switch (enumTransform) {
-            case STRING_TO_ENUM:
-                if (hasCopier) {
-                    return CodeBlock.of("$T.$N(e.$N())",
-                                        keyCopier.get(),
-                                        serviceModelCopiers.stringToEnumCopyMethodName(),
-                                        getterName);
-                } else {
-                    return CodeBlock.of("$T.fromValue(e.$N())",
-                                        poetExtensions.getModelClass(keyValModel.getEnumType()),
-                                        getterName);
-                }
-            case ENUM_TO_STRING:
-                if (hasCopier) {
-                    return CodeBlock.of("$T.$N(e.$N())",
-                                        keyCopier.get(),
-                                        serviceModelCopiers.enumToStringCopyMethodName(),
-                                        getterName);
-                } else {
-                    return CodeBlock.of("e.$N().toString()", getterName);
-                }
-            case NONE:
-                if (hasCopier) {
-                    return CodeBlock.of("$T.$N(e.$N())",
-                                        keyCopier.get(),
-                                        serviceModelCopiers.copyMethodName(),
-                                        getterName);
-                } else {
-                    return CodeBlock.of("e.$N()", getterName);
-                }
-            default:
-                throw new IllegalArgumentException("Unknown enum transform: " + enumTransform);
-        }
-    }
-
-    private CodeBlock modelCopyBody() {
-        // These are immutable so just return the instance
-        return CodeBlock.builder()
-                .addStatement("return $N", memberParamName())
-                .build();
+        return typeProvider.typeName(model, new TypeNameOptions().useEnumTypes(useEnumTypes)
+                                                                 .shapeTransformation(useBuilderTypes ? USE_BUILDER : NONE)
+                                                                 .useSubtypeWildcardsForCollections(isInputType)
+                                                                 .useSubtypeWildcardsForBuilders(isInputType)
+                                                                 .useCollectionForList(useCollectionForList));
     }
 
     private String memberParamName() {
@@ -481,5 +349,18 @@ class MemberCopierSpec implements ClassSpec {
             return Utils.unCapitalize(memberModel.getVariable().getSimpleType()) + "Param";
         }
         return Utils.unCapitalize(memberModel.getC2jShape()) + "Param";
+    }
+
+    private static final class UniqueVariableSource {
+        private final Map<String, Integer> suffixes = new HashMap<>();
+
+        private String getNew(String prefix) {
+            return prefix + suffix(prefix);
+        }
+
+        private String suffix(String prefix) {
+            Integer suffixNumber = suffixes.compute(prefix, (k, v) -> v == null ? 0 : v + 1);
+            return suffixNumber == 0 ? "" : suffixNumber.toString();
+        }
     }
 }

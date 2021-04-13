@@ -39,7 +39,7 @@ class AccessorsFactory {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
         this.intermediateModel = intermediateModel;
-        this.getterHelper = new BeanGetterHelper(poetExtensions, typeProvider);
+        this.getterHelper = new BeanGetterHelper(poetExtensions, new ServiceModelCopiers(intermediateModel), typeProvider);
     }
 
     public MethodSpec beanStyleGetter(MemberModel memberModel) {

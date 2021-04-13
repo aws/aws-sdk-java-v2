@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed bean-based marshalling for model builder types containing complex collections."
+}

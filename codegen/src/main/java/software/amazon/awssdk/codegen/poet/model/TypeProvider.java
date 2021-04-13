@@ -23,6 +23,7 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +32,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.ListModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -54,34 +54,15 @@ public class TypeProvider {
     }
 
     public TypeName enumReturnType(MemberModel memberModel) {
-        return fieldType(memberModel, true);
+        return typeName(memberModel, new TypeNameOptions().useEnumTypes(true));
     }
 
     public TypeName returnType(MemberModel memberModel) {
-        if (memberModel.getVariable().getVariableType().endsWith("SdkBytes")) {
-            return TypeName.get(SdkBytes.class);
-        }
-        return fieldType(memberModel, false);
+        return typeName(memberModel, new TypeNameOptions().useEnumTypes(false));
     }
 
     public TypeName fieldType(MemberModel memberModel) {
-        return fieldType(memberModel, false);
-    }
-
-    private TypeName fieldType(MemberModel memberModel, boolean preserveEnumType) {
-        if (memberModel.isSimple()) {
-            boolean isEnumMember = memberModel.getEnumType() != null;
-            return preserveEnumType && isEnumMember ? poetExtensions.getModelClass(memberModel.getEnumType())
-                                                    : getTypeNameForSimpleType(memberModel.getVariable().getVariableType());
-        } else if (memberModel.isList()) {
-            TypeName elementType = fieldType(memberModel.getListModel().getListMemberModel(), preserveEnumType);
-            return ParameterizedTypeName.get(ClassName.get(List.class), elementType);
-        } else if (memberModel.isMap()) {
-            TypeName keyType = fieldType(memberModel.getMapModel().getKeyModel(), preserveEnumType);
-            TypeName valueType = fieldType(memberModel.getMapModel().getValueModel(), preserveEnumType);
-            return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);
-        }
-        return poetExtensions.getModelClass(memberModel.getC2jShape());
+        return typeName(memberModel, new TypeNameOptions().useEnumTypes(false));
     }
 
     public TypeName parameterType(MemberModel memberModel) {
@@ -89,25 +70,14 @@ public class TypeProvider {
     }
 
     public TypeName parameterType(MemberModel memberModel, boolean preserveEnum) {
-        if (memberModel.isList()) {
-            return listParameterType(memberModel.getListModel(), preserveEnum);
-        }
-
-        if (memberModel.isMap()) {
-            MapModel mapModel = memberModel.getMapModel();
-            TypeName keyType = mapKeyParameterType(mapModel, preserveEnum);
-            TypeName valueType = mapValueParameterType(mapModel, preserveEnum);
-
-            return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);
-        }
-
-        return fieldType(memberModel, preserveEnum);
+        return typeName(memberModel, new TypeNameOptions().useCollectionForList(true)
+                                                          .useSubtypeWildcardsForCollections(true)
+                                                          .useEnumTypes(preserveEnum));
     }
 
     public TypeName mapEntryWithConcreteTypes(MapModel mapModel) {
         TypeName keyType = fieldType(mapModel.getKeyModel());
         TypeName valueType = fieldType(mapModel.getValueModel());
-
         return ParameterizedTypeName.get(ClassName.get(Map.Entry.class), keyType, valueType);
     }
 
@@ -142,42 +112,115 @@ public class TypeProvider {
         return builder.build();
     }
 
-    private TypeName listParameterType(ListModel listModel, boolean preserveEnum) {
-        MemberModel elementModel = listModel.getListMemberModel();
-        TypeName listElementType = parameterType(elementModel, preserveEnum);
-        if (isContainerType(elementModel)) {
-            listElementType = WildcardTypeName.subtypeOf(listElementType);
-        }
-        return ParameterizedTypeName.get(ClassName.get(Collection.class), listElementType);
-    }
-
-    private TypeName mapKeyParameterType(MapModel mapModel, boolean preserveEnum) {
-        TypeName keyType;
-        MemberModel keyModel = mapModel.getKeyModel();
-        if (mapModel.getKeyModel().isSimple()) {
-            if (preserveEnum && keyModel.getEnumType() != null) {
-                keyType = poetExtensions.getModelClass(keyModel.getEnumType());
-            } else {
-                keyType = getTypeNameForSimpleType(keyModel.getVariable().getVariableType());
-            }
-        } else {
-            keyType = parameterType(keyModel, preserveEnum);
-
-        }
-
-        return keyType;
-    }
-
-    private TypeName mapValueParameterType(MapModel mapModel, boolean preserveEnum) {
-        TypeName valueType = parameterType(mapModel.getValueModel(), preserveEnum);
-        if (mapModel.getValueModel().isList()) {
-            valueType = WildcardTypeName.subtypeOf(valueType);
-        }
-
-        return valueType;
-    }
-
     private static boolean isContainerType(MemberModel m) {
         return m.isList() || m.isMap();
+    }
+
+    public TypeName typeName(MemberModel model) {
+        return typeName(model, new TypeNameOptions());
+    }
+
+    public TypeName typeName(MemberModel model, TypeNameOptions options) {
+        if (model.isSdkBytesType() && options.useByteBufferTypes) {
+            return ClassName.get(ByteBuffer.class);
+        }
+
+        if (model.getEnumType() != null && options.useEnumTypes) {
+            return poetExtensions.getModelClass(model.getEnumType());
+        }
+
+        if (model.isSimple()) {
+            return getTypeNameForSimpleType(model.getVariable().getVariableType());
+        }
+
+        if (model.isList()) {
+            MemberModel entryModel = model.getListModel().getListMemberModel();
+            TypeName entryType = typeName(entryModel, options);
+
+            if (options.useSubtypeWildcardsForCollections && isContainerType(entryModel) ||
+                options.useSubtypeWildcardsForBuilders && entryModel.hasBuilder()) {
+                entryType = WildcardTypeName.subtypeOf(entryType);
+            }
+
+            Class<?> collectionType = options.useCollectionForList ? Collection.class : List.class;
+
+            return ParameterizedTypeName.get(ClassName.get(collectionType), entryType);
+        }
+
+        if (model.isMap()) {
+            MemberModel keyModel = model.getMapModel().getKeyModel();
+            MemberModel valueModel = model.getMapModel().getValueModel();
+            TypeName keyType = typeName(keyModel, options);
+            TypeName valueType = typeName(valueModel, options);
+
+            if (options.useSubtypeWildcardsForCollections && isContainerType(keyModel) ||
+                options.useSubtypeWildcardsForBuilders && keyModel.hasBuilder()) {
+                keyType = WildcardTypeName.subtypeOf(keyType);
+            }
+
+            if (options.useSubtypeWildcardsForCollections && isContainerType(valueModel) ||
+                options.useSubtypeWildcardsForBuilders && valueModel.hasBuilder()) {
+                valueType = WildcardTypeName.subtypeOf(valueType);
+            }
+
+            return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);
+        }
+
+        if (model.hasBuilder()) {
+            ClassName shapeClass = poetExtensions.getModelClass(model.getC2jShape());
+            switch (options.shapeTransformation) {
+                case NONE: return shapeClass;
+                case USE_BUILDER: return shapeClass.nestedClass("Builder");
+                case USE_BUILDER_IMPL: return shapeClass.nestedClass("BuilderImpl");
+                default: throw new IllegalStateException();
+            }
+        }
+
+        throw new IllegalArgumentException("Unsupported member model: " + model);
+    }
+
+    public enum ShapeTransformation {
+        USE_BUILDER,
+        USE_BUILDER_IMPL,
+        NONE
+    }
+
+    public static final class TypeNameOptions {
+        private ShapeTransformation shapeTransformation = ShapeTransformation.NONE;
+        private boolean useCollectionForList = false;
+        private boolean useSubtypeWildcardsForCollections = false;
+        private boolean useByteBufferTypes = false;
+        private boolean useEnumTypes = false;
+        private boolean useSubtypeWildcardsForBuilders = false;
+
+        public TypeNameOptions shapeTransformation(ShapeTransformation shapeTransformation) {
+            this.shapeTransformation = shapeTransformation;
+            return this;
+        }
+
+        public TypeNameOptions useCollectionForList(boolean useCollectionForList) {
+            this.useCollectionForList = useCollectionForList;
+            return this;
+        }
+
+        public TypeNameOptions useSubtypeWildcardsForCollections(boolean useSubtypeWildcardsForCollections) {
+            this.useSubtypeWildcardsForCollections = useSubtypeWildcardsForCollections;
+            return this;
+        }
+
+        public TypeNameOptions useSubtypeWildcardsForBuilders(boolean useSubtypeWildcardsForBuilders) {
+            this.useSubtypeWildcardsForBuilders = useSubtypeWildcardsForBuilders;
+            return this;
+        }
+
+        public TypeNameOptions useEnumTypes(boolean useEnumTypes) {
+            this.useEnumTypes = useEnumTypes;
+            return this;
+        }
+
+        public TypeNameOptions useByteBufferTypes(boolean useByteBufferTypes) {
+            this.useByteBufferTypes = useByteBufferTypes;
+            return this;
+        }
     }
 }
