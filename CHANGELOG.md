@@ -1,3 +1,28 @@
+# __2.16.41__ __2021-04-13__
+## __AWS Comprehend Medical__
+  - ### Features
+    - The InferICD10CM API now returns TIME_EXPRESSION entities that refer to medical conditions.
+
+## __AWS Security Token Service__
+  - ### Features
+    - This release adds the SourceIdentity parameter that can be set when assuming a role.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Amazon Lightsail.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support to enable AQUA in Amazon Redshift clusters.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Clarify that enabling or disabling automated backups causes a brief downtime, not an outage.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Added `DynamoDbIgnoreNulls` attribute level annotation that specifies attributes with null values should be ignored. See [#2303](https://github.com/aws/aws-sdk-java-v2/issues/2303)
+
 # __2.16.40__ __2021-04-12__
 ## __AWS CodeBuild__
   - ### Features
