@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Security Token Service",
-    "contributor": "",
-    "description": "This release adds the SourceIdentity parameter that can be set when assuming a role."
-}
