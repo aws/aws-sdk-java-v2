@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "contributor": "",
-    "description": "Add exception for DeleteRemediationConfiguration and DescribeRemediationExecutionStatus"
-}

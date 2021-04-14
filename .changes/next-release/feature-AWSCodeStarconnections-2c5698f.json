@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeStar connections",
-    "contributor": "",
-    "description": "This release adds tagging support for CodeStar Connections Host resources"
-}
