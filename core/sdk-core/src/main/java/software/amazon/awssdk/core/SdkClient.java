@@ -16,12 +16,14 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * All SDK service client interfaces should extend this interface.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface SdkClient extends SdkAutoCloseable {
 
     /**
