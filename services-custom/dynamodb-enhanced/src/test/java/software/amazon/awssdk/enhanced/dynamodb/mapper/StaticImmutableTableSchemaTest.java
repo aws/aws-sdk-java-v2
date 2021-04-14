@@ -1319,6 +1319,32 @@ public class StaticImmutableTableSchemaTest {
     }
 
     @Test
+    public void itemToMap_nestedBeanIgnoreNulls_shouldOmitNullFields() {
+        StaticTableSchema<FakeItem> staticTableSchema =
+            StaticTableSchema.builder(FakeItem.class)
+                             .newItemSupplier(FakeItem::new)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeItem::getId)
+                                                               .setter(FakeItem::setId)
+                                                               .addTag(primaryPartitionKey()))
+                             .addAttribute(EnhancedType.documentOf(FakeItemComposedClass.class,
+                                                                   FakeItemComposedClass.getTableSchema(),
+                                                                   b -> b.ignoreNulls(true)),
+                                           a -> a.name("composedObject").getter(FakeItem::getComposedObject)
+                                                 .setter(FakeItem::setComposedObject))
+                             .build();
+
+        FakeItemComposedClass nestedBean = new FakeItemComposedClass();
+        FakeItem fakeItem = new FakeItem("1", 1, nestedBean);
+
+        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, true);
+        AttributeValue expectedAttributeValue = AttributeValue.builder().m(new HashMap<>()).build();
+        assertThat(itemMap.size(), is(2));
+        System.out.println(itemMap);
+        assertThat(itemMap, hasEntry("composedObject", expectedAttributeValue));
+    }
+
+    @Test
     public void buildAbstractTableSchema() {
         StaticTableSchema<FakeMappedItem> tableSchema =
             StaticTableSchema.builder(FakeMappedItem.class)
