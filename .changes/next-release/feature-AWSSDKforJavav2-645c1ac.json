@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Add a new Optional getter for the content length of RequestBody, also add a new fromContentProvider method allowing contentLength to be null."
-}
