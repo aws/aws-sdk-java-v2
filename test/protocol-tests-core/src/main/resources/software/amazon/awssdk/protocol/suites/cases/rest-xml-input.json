@@ -39,6 +39,26 @@
     }
   },
   {
+    "description": "Escape Characters are marshalled correctly as XML in the payload",
+    "given": {
+
+      "input": {
+        "stringMember": "\"'<\r\nNormalCharacters\"'>\r\n"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><stringMember>&quot;&apos;&lt;&#x0D;&#x0A;NormalCharacters&quot;&apos;&gt;&#x0D;&#x0A;</stringMember></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
     "description": "Boolean member with value true is marshalled correctly as XML",
     "given": {
       "input": {
