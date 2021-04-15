@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -124,7 +125,7 @@ abstract class AbstractMemberSetters implements MemberSetters {
                                   "this.$1N = $1N != null ? $1N.build() : null",
                                   serviceModelCopiers.copyMethodName());
         }
-        if (memberModel.isCollectionWithBuilderMember()) {
+        if (memberModel.isCollectionWithBuilderMember() || memberModel.isCollectionWithNestedBuilderMember()) {
             return copySetterBody("this.$1N = $2T.$3N($1N)", null, serviceModelCopiers.builderCopyMethodName());
         }
         return copySetterBody();
@@ -175,6 +176,19 @@ abstract class AbstractMemberSetters implements MemberSetters {
         }
 
         if (memberModel.isList()) {
+            if (memberModel.isCollectionWithNestedBuilderMember()) {
+                MapModel nestedMapModel = memberModel.getListModel().getListMemberModel().getMapModel();
+                TypeName nestedMapKeyType = typeProvider.getTypeNameForSimpleType(nestedMapModel.getKeyModel()
+                                                                                                .getVariable()
+                                                                                                .getVariableType());
+                ClassName nestedMapValueType = poetExtensions.getModelClass(nestedMapModel.getValueModel().getC2jShape());
+                TypeName nestedMapReturnType = ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                                         nestedMapKeyType,
+                                                                         nestedMapValueType.nestedClass("BuilderImpl"));
+                TypeName listType = ParameterizedTypeName.get(ClassName.get(Collection.class), nestedMapReturnType);
+                return ParameterSpec.builder(listType, fieldName()).build();
+            }
+
             MemberModel listMember = memberModel.getListModel().getListMemberModel();
 
             if (hasBuilder(listMember)) {
@@ -249,4 +263,5 @@ abstract class AbstractMemberSetters implements MemberSetters {
     private boolean hasBuilder(MemberModel model) {
         return model != null && model.hasBuilder();
     }
+
 }
