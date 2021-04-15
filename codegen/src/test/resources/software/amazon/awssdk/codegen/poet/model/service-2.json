@@ -120,6 +120,7 @@
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
         "ListOfMapOfEnumToString":{"shape":"ListOfMapOfEnumToString"},
+        "ListOfMapOfStringToStruct":{"shape":"ListOfMapOfStringToStruct"},
         "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
         "MapOfStringToString":{"shape":"MapOfStringToString"},
         "MapOfStringToSimpleStruct":{"shape":"MapOfStringToSimpleStruct"},
@@ -240,6 +241,10 @@
     "ListOfMapOfEnumToString":{
       "type":"list",
       "member":{"shape":"MapOfEnumToString"}
+    },
+    "ListOfMapOfStringToStruct":{
+      "type":"list",
+      "member":{"shape":"MapOfStringToSimpleStruct"}
     },
     "Long":{"type":"long"},
     "Short":{"type":"short"},

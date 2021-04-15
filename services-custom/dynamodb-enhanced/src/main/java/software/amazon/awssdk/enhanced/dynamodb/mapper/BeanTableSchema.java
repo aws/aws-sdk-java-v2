@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -40,7 +41,9 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchema;
@@ -52,6 +55,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
 
@@ -184,10 +188,11 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                       getterForProperty(propertyDescriptor, beanClass),
                                       setterForProperty(propertyDescriptor, beanClass));
                   } else {
-                      boolean shouldPreserveEmptyObject = getPropertyAnnotation(propertyDescriptor,
-                                                                              DynamoDbPreserveEmptyObject.class) != null;
+                      AttributeConfiguration attributeConfiguration =
+                          resolveAttributeConfiguration(propertyDescriptor);
+
                       StaticAttribute.Builder<T, ?> attributeBuilder =
-                          staticAttributeBuilder(propertyDescriptor, beanClass, metaTableSchemaCache, shouldPreserveEmptyObject);
+                          staticAttributeBuilder(propertyDescriptor, beanClass, metaTableSchemaCache, attributeConfiguration);
 
                       Optional<AttributeConverter> attributeConverter =
                               createAttributeConverterFromAnnotation(propertyDescriptor);
@@ -203,6 +208,19 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         return builder.build();
     }
 
+    private static AttributeConfiguration resolveAttributeConfiguration(PropertyDescriptor propertyDescriptor) {
+        boolean shouldPreserveEmptyObject = getPropertyAnnotation(propertyDescriptor,
+                                                                  DynamoDbPreserveEmptyObject.class) != null;
+
+        boolean shouldIgnoreNulls = getPropertyAnnotation(propertyDescriptor,
+                                                          DynamoDbIgnoreNulls.class) != null;
+
+        return AttributeConfiguration.builder()
+                                     .preserveEmptyObject(shouldPreserveEmptyObject)
+                                     .ignoreNulls(shouldIgnoreNulls)
+                                     .build();
+    }
+
     private static List<AttributeConverterProvider> createConverterProvidersFromAnnotation(DynamoDbBean dynamoDbBean) {
         Class<? extends AttributeConverterProvider>[] providerClasses = dynamoDbBean.converterProviders();
 
@@ -214,10 +232,10 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
     private static <T> StaticAttribute.Builder<T, ?> staticAttributeBuilder(PropertyDescriptor propertyDescriptor,
                                                                             Class<T> beanClass,
                                                                             MetaTableSchemaCache metaTableSchemaCache,
-                                                                            boolean preserveEmptyObject) {
+                                                                            AttributeConfiguration attributeConfiguration) {
 
         Type propertyType = propertyDescriptor.getReadMethod().getGenericReturnType();
-        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType, metaTableSchemaCache, preserveEmptyObject);
+        EnhancedType<?> propertyTypeToken = convertTypeToEnhancedType(propertyType, metaTableSchemaCache, attributeConfiguration);
         return StaticAttribute.builder(beanClass, propertyTypeToken)
                               .name(attributeNameForProperty(propertyDescriptor))
                               .getter(getterForProperty(propertyDescriptor, beanClass))
@@ -233,7 +251,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      */
     @SuppressWarnings("unchecked")
     private static EnhancedType<?> convertTypeToEnhancedType(Type type, MetaTableSchemaCache metaTableSchemaCache,
-                                                             boolean preserveEmptyObject) {
+                                                             AttributeConfiguration attributeConfiguration) {
         Class<?> clazz = null;
 
         if (type instanceof ParameterizedType) {
@@ -242,13 +260,13 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
             if (List.class.equals(rawType)) {
                 EnhancedType<?> enhancedType = convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[0],
-                                                                         metaTableSchemaCache, preserveEmptyObject);
+                                                                         metaTableSchemaCache, attributeConfiguration);
                 return EnhancedType.listOf(enhancedType);
             }
 
             if (Map.class.equals(rawType)) {
                 EnhancedType<?> enhancedType = convertTypeToEnhancedType(parameterizedType.getActualTypeArguments()[1],
-                                                                         metaTableSchemaCache, preserveEmptyObject);
+                                                                         metaTableSchemaCache, attributeConfiguration);
                 return EnhancedType.mapOf(EnhancedType.of(parameterizedType.getActualTypeArguments()[0]),
                                           enhancedType);
             }
@@ -261,16 +279,20 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         }
 
         if (clazz != null) {
+            Consumer<EnhancedTypeDocumentConfiguration.Builder> attrConfiguration =
+                b -> b.preserveEmptyObject(attributeConfiguration.preserveEmptyObject())
+                      .ignoreNulls(attributeConfiguration.ignoreNulls());
+
             if (clazz.getAnnotation(DynamoDbImmutable.class) != null) {
                 return EnhancedType.documentOf(
                     (Class<Object>) clazz,
                     (TableSchema<Object>) ImmutableTableSchema.recursiveCreate(clazz, metaTableSchemaCache),
-                    b -> b.preserveEmptyObject(preserveEmptyObject));
+                    attrConfiguration);
             } else if (clazz.getAnnotation(DynamoDbBean.class) != null) {
                 return EnhancedType.documentOf(
                     (Class<Object>) clazz,
                     (TableSchema<Object>) BeanTableSchema.recursiveCreate(clazz, metaTableSchemaCache),
-                    b -> b.preserveEmptyObject(preserveEmptyObject));
+                    attrConfiguration);
             }
         }
 

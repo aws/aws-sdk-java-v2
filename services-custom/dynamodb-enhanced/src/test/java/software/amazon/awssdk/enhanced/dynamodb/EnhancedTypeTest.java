@@ -16,8 +16,8 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Collection;
 import java.util.Deque;
@@ -28,9 +28,7 @@ import java.util.NavigableSet;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentMap;
-
 import org.junit.Test;
-
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class EnhancedTypeTest {
@@ -88,11 +86,26 @@ public class EnhancedTypeTest {
 
     @Test
     public void equalityIsBasedOnInnerEquality() {
-        assertThat(EnhancedType.of(String.class)).isEqualTo(EnhancedType.of(String.class));
-        assertThat(EnhancedType.of(String.class)).isNotEqualTo(EnhancedType.of(Integer.class));
+        verifyEquals(EnhancedType.of(String.class), EnhancedType.of(String.class));
+        verifyNotEquals(EnhancedType.of(String.class), EnhancedType.of(Integer.class));
 
-        assertThat(new EnhancedType<Map<String, List<String>>>(){}).isEqualTo(new EnhancedType<Map<String, List<String>>>(){});
-        assertThat(new EnhancedType<Map<String, List<String>>>(){}).isNotEqualTo(new EnhancedType<Map<String, List<Integer>>>(){});
+        verifyEquals(new EnhancedType<Map<String, List<String>>>(){}, new EnhancedType<Map<String, List<String>>>(){});
+        verifyNotEquals(new EnhancedType<Map<String, List<String>>>(){}, new EnhancedType<Map<String,
+            List<Integer>>>(){});
+
+        TableSchema<String> tableSchema = StaticTableSchema.builder(String.class).build();
+
+        verifyNotEquals(EnhancedType.documentOf(String.class,
+                                             tableSchema,
+                                             b -> b.ignoreNulls(false)), EnhancedType.documentOf(String.class,
+                                                                                                 tableSchema,
+                                                                                                 b -> b.ignoreNulls(true)));
+        verifyEquals(EnhancedType.documentOf(String.class,
+                                                tableSchema,
+                                                b -> b.ignoreNulls(false).preserveEmptyObject(true)),
+                        EnhancedType.documentOf(String.class,
+                                                tableSchema,
+                                                b -> b.ignoreNulls(false).preserveEmptyObject(true)));
     }
 
     @Test
@@ -230,5 +243,15 @@ public class EnhancedTypeTest {
     }
 
     public static class InnerStaticType {
+    }
+
+    private void verifyEquals(Object obj1, Object obj2) {
+        assertThat(obj1).isEqualTo(obj2);
+        assertThat(obj1.hashCode()).isEqualTo(obj2.hashCode());
+    }
+
+    private void verifyNotEquals(Object obj1, Object obj2) {
+        assertThat(obj1).isNotEqualTo(obj2);
+        assertThat(obj1.hashCode()).isNotEqualTo(obj2.hashCode());
     }
 }

@@ -621,6 +621,12 @@ public class MemberModel extends DocumentationModel {
     }
 
     @JsonIgnore
+    public boolean isCollectionWithNestedBuilderMember() {
+        return isList() && getListModel().getListMemberModel() != null && getListModel().isMap() &&
+               getListModel().getListMemberModel().getMapModel().getValueModel().hasBuilder();
+    }
+
+    @JsonIgnore
     public boolean isSdkBytesType() {
         return SdkBytes.class.getName().equals(variable.getVariableType());
     }

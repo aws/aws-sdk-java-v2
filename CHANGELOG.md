@@ -1,3 +1,79 @@
+# __2.16.43__ __2021-04-15__
+## __AWS Database Migration Service__
+  - ### Features
+    - AWS DMS added support of TLS for Kafka endpoint. Added Describe endpoint setting API for DMS endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - STS now supports assume role with Web Identity using JWT token length upto 20000 characters
+
+## __Amazon DynamoDB__
+  - ### Bugfixes
+    - Fixed an issue where structure builders containing List<Map<String, Shape>> could not be marshalled using bean-based serializers.
+
+# __2.16.42__ __2021-04-14__
+## __AWS CodeStar connections__
+  - ### Features
+    - This release adds tagging support for CodeStar Connections Host resources
+
+## __AWS Config__
+  - ### Features
+    - Add exception for DeleteRemediationConfiguration and DescribeRemediationExecutionStatus
+
+## __AWS MediaConnect__
+  - ### Features
+    - For flows that use Listener protocols, you can now easily locate an output's outbound IP address for a private internet. Additionally, MediaConnect now supports the Waiters feature that makes it easier to poll for the status of a flow until it reaches its desired state.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add a new Optional getter for the content length of RequestBody, also add a new fromContentProvider method allowing contentLength to be null.
+
+## __Amazon Route 53__
+  - ### Features
+    - Documentation updates for route53
+
+# __2.16.41__ __2021-04-13__
+## __AWS Comprehend Medical__
+  - ### Features
+    - The InferICD10CM API now returns TIME_EXPRESSION entities that refer to medical conditions.
+
+## __AWS Security Token Service__
+  - ### Features
+    - This release adds the SourceIdentity parameter that can be set when assuming a role.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Amazon Lightsail.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support to enable AQUA in Amazon Redshift clusters.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Clarify that enabling or disabling automated backups causes a brief downtime, not an outage.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Added `DynamoDbIgnoreNulls` attribute level annotation that specifies attributes with null values should be ignored. See [#2303](https://github.com/aws/aws-sdk-java-v2/issues/2303)
+
+# __2.16.40__ __2021-04-12__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now allows you to set the access permissions for build artifacts, project artifacts, and log files that are uploaded to an Amazon S3 bucket that is owned by another account.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon FSx__
+  - ### Features
+    - Support for cross-region and cross-account backup copies
+
 # __2.16.39__ __2021-04-09__
 ## __AWS Shield__
   - ### Features

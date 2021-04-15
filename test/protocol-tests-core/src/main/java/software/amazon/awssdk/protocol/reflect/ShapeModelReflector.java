@@ -222,7 +222,7 @@ public class ShapeModelReflector {
             case "Long":
                 return currentNode.asLong();
             case "Short":
-                return (short) currentNode.asDouble();   
+                return (short) currentNode.asInt();   
             case "Integer":
                 return currentNode.asInt();
             case "String":

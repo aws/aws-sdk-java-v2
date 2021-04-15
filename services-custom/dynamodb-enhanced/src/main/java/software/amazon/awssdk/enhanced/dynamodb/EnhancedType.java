@@ -574,6 +574,10 @@ public class EnhancedType<T> {
             return false;
         }
 
+        if (documentConfiguration != null ? !documentConfiguration.equals(enhancedType.documentConfiguration) :
+            enhancedType.documentConfiguration != null) {
+            return false;
+        }
         return tableSchema != null ? tableSchema.equals(enhancedType.tableSchema) : enhancedType.tableSchema == null;
     }
 
@@ -583,6 +587,7 @@ public class EnhancedType<T> {
         result = 31 * result + rawClass.hashCode();
         result = 31 * result + (rawClassParameters != null ? rawClassParameters.hashCode() : 0);
         result = 31 * result + (tableSchema != null ? tableSchema.hashCode() : 0);
+        result = 31 * result + (documentConfiguration != null ? documentConfiguration.hashCode() : 0);
         return result;
     }
 

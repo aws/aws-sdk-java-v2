@@ -190,6 +190,51 @@ class MemberCopierSpec implements ClassSpec {
     }
 
     private MethodSpec builderCopyMethod() {
+        return builderCopyMethodProto()
+            .addParameter(builderCopyMethodParameters(), memberParamName())
+            .addCode(builderCopyMethodBody())
+            .build();
+    }
+
+    private MethodSpec.Builder builderCopyMethodProto() {
+        return MethodSpec.methodBuilder(serviceModelCopiers.builderCopyMethodName())
+                         .addModifiers(Modifier.STATIC)
+                         .returns(typeProvider.fieldType(memberModel));
+    }
+
+    private TypeName builderCopyMethodParameters() {
+        if (memberModel.isCollectionWithNestedBuilderMember()) {
+            ParameterizedTypeName nestedParameters = builderCopyMethodParametersForMap(memberModel.getListModel()
+                                                                                                  .getListMemberModel()
+                                                                                                  .getMapModel());
+            return ParameterizedTypeName.get(ClassName.get(Collection.class), WildcardTypeName.subtypeOf(nestedParameters));
+        }
+        if (memberModel.isList()) {
+            return builderCopyMethodParametersForList();
+        }
+        if (memberModel.isMap()) {
+            return builderCopyMethodParametersForMap(memberModel.getMapModel());
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    private ParameterizedTypeName builderCopyMethodParametersForList() {
+        ClassName listParameter = poetExtensions.getModelClass(memberModel.getListModel().getListMemberModel().getC2jShape());
+        ClassName builderForParameter = listParameter.nestedClass("Builder");
+        return ParameterizedTypeName.get(ClassName.get(Collection.class), WildcardTypeName.subtypeOf(builderForParameter));
+    }
+
+    private ParameterizedTypeName builderCopyMethodParametersForMap(MapModel mapModel) {
+        TypeName keyType = typeProvider.getTypeNameForSimpleType(mapModel.getKeyModel().getVariable().getVariableType());
+        ClassName valueParameter = poetExtensions.getModelClass(mapModel.getValueModel().getC2jShape());
+        ClassName builderForParameter = valueParameter.nestedClass("Builder");
+        return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, WildcardTypeName.subtypeOf(builderForParameter));
+    }
+
+    private CodeBlock builderCopyMethodBody() {
+        if (memberModel.isCollectionWithNestedBuilderMember()) {
+            return builderCopyMethodForListWithMap();
+        }
         if (memberModel.isList()) {
             return builderCopyMethodForList();
         }
@@ -199,59 +244,50 @@ class MemberCopierSpec implements ClassSpec {
         throw new UnsupportedOperationException();
     }
 
-    private MethodSpec builderCopyMethodForMap() {
-        TypeName keyType = typeProvider.getTypeNameForSimpleType(memberModel.getMapModel().getKeyModel()
-                                                                            .getVariable().getVariableType());
-        ClassName valueParameter = poetExtensions.getModelClass(memberModel.getMapModel().getValueModel().getC2jShape());
-        ClassName builderForParameter = valueParameter.nestedClass("Builder");
-        TypeName parameterType =
-            ParameterizedTypeName.get(ClassName.get(Map.class), keyType, WildcardTypeName.subtypeOf(builderForParameter));
+    private CodeBlock builderCopyMethodForListWithMap() {
+        MemberModel listMemberModel = memberModel.getListModel().getListMemberModel();
+        Optional<ClassName> mapCopierClass = serviceModelCopiers.copierClassFor(listMemberModel);
 
-        CodeBlock code =
-            CodeBlock.builder()
-                     .beginControlFlow("if ($1N == null || $1N instanceof $2T)",
-                                       memberParamName(), DefaultSdkAutoConstructMap.class)
-                     .addStatement("return $T.getInstance()", DefaultSdkAutoConstructMap.class)
-                     .endControlFlow()
-                     .addStatement("return $N($N.entrySet().stream().collect(toMap($T::getKey, e -> e.getValue().build())))",
-                                   serviceModelCopiers.copyMethodName(),
-                                   memberParamName(),
-                                   Map.Entry.class)
-                     .build();
+        CodeBlock.Builder builderMethodBody = builderWithDefaultStatement(DefaultSdkAutoConstructList.class);
+        builderMethodBody.add("return $N($N.stream().", serviceModelCopiers.copyMethodName(), memberParamName());
 
-        return MethodSpec.methodBuilder(serviceModelCopiers.builderCopyMethodName())
-                         .addModifiers(Modifier.STATIC)
-                         .addParameter(parameterType, memberParamName())
-                         .returns(typeProvider.fieldType(memberModel))
-                         .addCode(code)
-                         .build();
+        if (mapCopierClass.isPresent()) {
+            builderMethodBody.add("map($T::$N)", mapCopierClass.get(), serviceModelCopiers.builderCopyMethodName());
+        } else {
+            builderMethodBody.add("map(m -> m.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().build())))");
+        }
+
+        builderMethodBody.addStatement(".collect(toList()))");
+        return builderMethodBody.build();
     }
 
-    private MethodSpec builderCopyMethodForList() {
-        ClassName listParameter = poetExtensions.getModelClass(memberModel.getListModel().getListMemberModel().getC2jShape());
-        ClassName builderForParameter = listParameter.nestedClass("Builder");
+    private CodeBlock builderCopyMethodForMap() {
+        return builderWithDefaultStatement(DefaultSdkAutoConstructMap.class)
+            .addStatement("return $N($N.entrySet().stream().collect(toMap($T::getKey, e -> e.getValue().build())))",
+                          serviceModelCopiers.copyMethodName(),
+                          memberParamName(),
+                          Map.Entry.class)
+            .build();
+    }
 
-        TypeName parameterType =
-            ParameterizedTypeName.get(ClassName.get(Collection.class), WildcardTypeName.subtypeOf(builderForParameter));
+    private CodeBlock builderCopyMethodForList() {
+        String listMemberClass = memberModel.getListModel().getListMemberModel().getC2jShape();
 
-        CodeBlock code = CodeBlock.builder()
-                                  .beginControlFlow("if ($1N == null || $1N instanceof $2T)",
-                                                    memberParamName(), DefaultSdkAutoConstructList.class)
-                                  .addStatement("return $T.getInstance()", DefaultSdkAutoConstructList.class)
-                                  .endControlFlow()
-                                  .addStatement("return $N($N.stream().map($T::$N).collect(toList()))",
-                                                serviceModelCopiers.copyMethodName(),
-                                                memberParamName(),
-                                                builderForParameter,
-                                                "build")
-                                  .build();
+        return builderWithDefaultStatement(DefaultSdkAutoConstructList.class)
+            .addStatement("return $N($N.stream().map($T::$N).collect(toList()))",
+                          serviceModelCopiers.copyMethodName(),
+                          memberParamName(),
+                          poetExtensions.getModelClass(listMemberClass).nestedClass("Builder"),
+                          "build")
+            .build();
+    }
 
-        return MethodSpec.methodBuilder(serviceModelCopiers.builderCopyMethodName())
-                         .addModifiers(Modifier.STATIC)
-                         .addParameter(parameterType, memberParamName())
-                         .returns(typeProvider.fieldType(memberModel))
-                         .addCode(code)
-                         .build();
+    private CodeBlock.Builder builderWithDefaultStatement(Class<?> autoConstructClass) {
+        return CodeBlock.builder()
+                        .beginControlFlow("if ($1N == null || $1N instanceof $2T)",
+                                          memberParamName(), autoConstructClass)
+                        .addStatement("return $T.getInstance()", autoConstructClass)
+                        .endControlFlow();
     }
 
     private CodeBlock copyMethodBody() {

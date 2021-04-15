@@ -53,7 +53,8 @@ public class AwsModelSpecTest {
 
     @Test
     public void basicGeneration() {
-        assertThat(new AwsServiceModel(intermediateModel, shapeModel), generatesTo(referenceFileForShape()));
+        AwsServiceModel actual = new AwsServiceModel(intermediateModel, shapeModel);
+        assertThat(actual, generatesTo(referenceFileForShape()));
     }
 
     private String referenceFileForShape() {
