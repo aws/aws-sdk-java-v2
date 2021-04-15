@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "AWS DMS added support of TLS for Kafka endpoint. Added Describe endpoint setting API for DMS endpoints."
+}
