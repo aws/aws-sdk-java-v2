@@ -43,6 +43,8 @@ public class XmlPayloadMarshaller {
 
     public static final XmlMarshaller<Long> LONG = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_LONG);
 
+    public static final XmlMarshaller<Short> SHORT = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_SHORT);
+
     public static final XmlMarshaller<Float> FLOAT = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_FLOAT);
 
     public static final XmlMarshaller<Double> DOUBLE = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_DOUBLE);

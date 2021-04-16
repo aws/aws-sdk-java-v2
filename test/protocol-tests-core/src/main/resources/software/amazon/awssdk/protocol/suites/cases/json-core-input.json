@@ -9,7 +9,8 @@
         "FloatMember": 1.234,
         "DoubleMember": 5.678,
         "BigDecimalMember": 1177.61699999,
-        "LongMember": 2147483647
+        "LongMember": 2147483647,
+        "ShortMember": 5
       }
     },
     "when": {
@@ -19,7 +20,7 @@
     "then": {
       "serializedAs": {
         "body": {
-          "jsonEquals": "{\"StringMember\":\"someVal\",\"IntegerMember\":42,\"FloatMember\":1.234,\"DoubleMember\":5.678,\"BigDecimalMember\":\"1177.61699999\",\"LongMember\":2147483647}"
+          "jsonEquals": "{\"StringMember\":\"someVal\",\"IntegerMember\":42,\"FloatMember\":1.234,\"DoubleMember\":5.678,\"BigDecimalMember\":\"1177.61699999\",\"LongMember\":2147483647,\"ShortMember\":5}"
         }
       }
     }
