@@ -83,6 +83,7 @@ public class TypeUtils {
         MARSHALLING_TYPE_MAPPINGS.put("Boolean", "BOOLEAN");
         MARSHALLING_TYPE_MAPPINGS.put("BigDecimal", "BIG_DECIMAL");
         MARSHALLING_TYPE_MAPPINGS.put("InputStream", "STREAM");
+        MARSHALLING_TYPE_MAPPINGS.put("Short", "SHORT");
         MARSHALLING_TYPE_MAPPINGS.put(null, "NULL");
     }
 

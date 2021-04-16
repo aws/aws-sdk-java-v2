@@ -221,6 +221,8 @@ public class ShapeModelReflector {
         switch (memberModel.getVariable().getSimpleType()) {
             case "Long":
                 return currentNode.asLong();
+            case "Short":
+                return (short) currentNode.asInt();   
             case "Integer":
                 return currentNode.asInt();
             case "String":

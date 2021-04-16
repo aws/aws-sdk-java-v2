@@ -63,6 +63,10 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                                                                     .memberName("LongMember").getter(getter(AllTypesRequest::longMember)).setter(setter(Builder::longMember))
                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
 
+    private static final SdkField<Short> SHORT_MEMBER_FIELD = SdkField.<Short> builder(MarshallingType.SHORT)
+            .memberName("ShortMember").getter(getter(AllTypesRequest::shortMember)).setter(setter(Builder::shortMember))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ShortMember").build()).build();
+    
     private static final SdkField<List<String>> SIMPLE_LIST_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
         .memberName("SimpleList")
@@ -422,7 +426,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
                                                                                                    INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
-                                                                                                   SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
+                                                                                                   SHORT_MEMBER_FIELD, SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
                                                                                                    LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD, LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD, MAP_OF_STRING_TO_INTEGER_LIST_FIELD,
                                                                                                    MAP_OF_STRING_TO_STRING_FIELD, MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_ENUM_FIELD,
                                                                                                    MAP_OF_ENUM_TO_STRING_FIELD, MAP_OF_STRING_TO_ENUM_FIELD, MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD,
@@ -442,6 +446,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     private final Double doubleMember;
 
     private final Long longMember;
+
+    private final Short shortMember;
 
     private final List<String> simpleList;
 
@@ -503,6 +509,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         this.floatMember = builder.floatMember;
         this.doubleMember = builder.doubleMember;
         this.longMember = builder.longMember;
+        this.shortMember = builder.shortMember;
         this.simpleList = builder.simpleList;
         this.listOfEnums = builder.listOfEnums;
         this.listOfMaps = builder.listOfMaps;
@@ -583,6 +590,15 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      */
     public final Long longMember() {
         return longMember;
+    }
+
+    /**
+     * Returns the value of the ShortMember property for this object.
+     * 
+     * @return The value of the ShortMember property for this object.
+     */
+    public final Short shortMember() {
+        return shortMember;
     }
 
     /**
@@ -1232,6 +1248,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         hashCode = 31 * hashCode + Objects.hashCode(floatMember());
         hashCode = 31 * hashCode + Objects.hashCode(doubleMember());
         hashCode = 31 * hashCode + Objects.hashCode(longMember());
+        hashCode = 31 * hashCode + Objects.hashCode(shortMember());
         hashCode = 31 * hashCode + Objects.hashCode(hasSimpleList() ? simpleList() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasListOfEnums() ? listOfEnumsAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasListOfMaps() ? listOfMaps() : null);
@@ -1282,6 +1299,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         return Objects.equals(stringMember(), other.stringMember()) && Objects.equals(integerMember(), other.integerMember())
                && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
                && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
+               && Objects.equals(shortMember(), other.shortMember()) 
                && hasSimpleList() == other.hasSimpleList() && Objects.equals(simpleList(), other.simpleList())
                && hasListOfEnums() == other.hasListOfEnums()
                && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
@@ -1336,6 +1354,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             .add("FloatMember", floatMember())
             .add("DoubleMember", doubleMember())
             .add("LongMember", longMember())
+            .add("ShortMember", shortMember())
             .add("SimpleList", hasSimpleList() ? simpleList() : null)
             .add("ListOfEnums", hasListOfEnums() ? listOfEnumsAsStrings() : null)
             .add("ListOfMaps", hasListOfMaps() ? listOfMaps() : null)
@@ -1375,6 +1394,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                 return Optional.ofNullable(clazz.cast(doubleMember()));
             case "LongMember":
                 return Optional.ofNullable(clazz.cast(longMember()));
+            case "ShortMember":
+                return Optional.ofNullable(clazz.cast(shortMember()));
             case "SimpleList":
                 return Optional.ofNullable(clazz.cast(simpleList()));
             case "ListOfEnums":
@@ -1499,6 +1520,15 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder longMember(Long longMember);
+
+        /**
+         * Sets the value of the ShortMember property for this object.
+         *
+         * @param shortMember
+         *        The new value for the ShortMember property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder shortMember(Short shortMember);
 
         /**
          * Sets the value of the SimpleList property for this object.
@@ -2027,6 +2057,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         private Long longMember;
 
+        private Short shortMember;
+
         private List<String> simpleList = DefaultSdkAutoConstructList.getInstance();
 
         private List<String> listOfEnums = DefaultSdkAutoConstructList.getInstance();
@@ -2090,6 +2122,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             floatMember(model.floatMember);
             doubleMember(model.doubleMember);
             longMember(model.longMember);
+            shortMember(model.shortMember);
             simpleList(model.simpleList);
             listOfEnumsWithStrings(model.listOfEnums);
             listOfMaps(model.listOfMaps);
@@ -2200,6 +2233,20 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setLongMember(Long longMember) {
             this.longMember = longMember;
+        }
+
+        public final Short getShortMember() {
+            return shortMember;
+        }
+
+        @Override
+        public final Builder shortMember(Short shortMember) {
+            this.shortMember = shortMember;
+            return this;
+        }
+
+        public final void setShortMember(Short shortMember) {
+            this.shortMember = shortMember;
         }
 
         public final Collection<String> getSimpleList() {
