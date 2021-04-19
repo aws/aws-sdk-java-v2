@@ -99,7 +99,7 @@
         <equalsverifier.version>3.5</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml#L384 -->
-        <netty.version>4.1.61.Final</netty.version>
+        <netty.version>4.1.63.Final</netty.version>
         <unitils.version>3.3</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
