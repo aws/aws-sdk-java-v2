@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Savings Plans",
+    "contributor": "",
+    "description": "Added support for Amazon SageMaker in Machine Learning Savings Plans"
+}
