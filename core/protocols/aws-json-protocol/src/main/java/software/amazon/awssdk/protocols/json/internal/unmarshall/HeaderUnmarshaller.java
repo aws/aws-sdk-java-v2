@@ -34,6 +34,7 @@ final class HeaderUnmarshaller {
         new SimpleHeaderUnmarshaller<>(HeaderUnmarshaller::unmarshallStringHeader);
     public static final JsonUnmarshaller<Integer> INTEGER = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_INTEGER);
     public static final JsonUnmarshaller<Long> LONG = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_LONG);
+    public static final JsonUnmarshaller<Short> SHORT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_SHORT);
     public static final JsonUnmarshaller<Double> DOUBLE = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_DOUBLE);
     public static final JsonUnmarshaller<Boolean> BOOLEAN = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_BOOLEAN);
     public static final JsonUnmarshaller<Float> FLOAT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_FLOAT);

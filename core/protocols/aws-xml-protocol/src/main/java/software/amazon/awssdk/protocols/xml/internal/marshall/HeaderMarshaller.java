@@ -31,6 +31,8 @@ public final class HeaderMarshaller {
 
     public static final XmlMarshaller<Long> LONG = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_LONG);
 
+    public static final XmlMarshaller<Short> SHORT = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_SHORT);
+
     public static final XmlMarshaller<Double> DOUBLE = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_DOUBLE);
 
     public static final XmlMarshaller<Float> FLOAT = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_FLOAT);

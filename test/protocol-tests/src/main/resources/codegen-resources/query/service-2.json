@@ -78,6 +78,7 @@
         "floatMember":{"shape":"Float"},
         "doubleMember":{"shape":"Double"},
         "longMember":{"shape":"Long"},
+        "shortMember":{"shape":"Short"},
         "simpleStructMember":{"shape":"SimpleStruct"},
         "simpleList":{"shape":"ListOfStrings"},
         "listOfStructs":{"shape":"ListOfSimpleStructs"},
@@ -157,6 +158,7 @@
       "member":{"shape":"String"}
     },
     "Long":{"type":"long"},
+    "Short":{"type":"short"},
     "MapOfStringToString":{
       "type":"map",
       "key":{"shape":"String"},
@@ -217,6 +219,7 @@
         "StringMember":{"shape":"String"},
         "IntegerMember":{"shape":"Integer"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "DoubleMember":{"shape":"Double"},
         "FloatMember":{"shape":"Float"},
         "TimestampMember":{"shape":"Timestamp"},

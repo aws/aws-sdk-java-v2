@@ -89,6 +89,7 @@ public final class QueryProtocolMarshaller
             .marshaller(MarshallingType.BOOLEAN, SimpleTypeQueryMarshaller.BOOLEAN)
             .marshaller(MarshallingType.DOUBLE, SimpleTypeQueryMarshaller.DOUBLE)
             .marshaller(MarshallingType.LONG, SimpleTypeQueryMarshaller.LONG)
+            .marshaller(MarshallingType.SHORT, SimpleTypeQueryMarshaller.SHORT)
             .marshaller(MarshallingType.INSTANT, SimpleTypeQueryMarshaller.INSTANT)
             .marshaller(MarshallingType.SDK_BYTES, SimpleTypeQueryMarshaller.SDK_BYTES)
             .marshaller(MarshallingType.NULL, SimpleTypeQueryMarshaller.NULL)
