@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "duy310",
-    "description": "Added support for short type in Code generator."
-}

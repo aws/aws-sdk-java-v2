@@ -1,3 +1,22 @@
+# __2.16.44__ __2021-04-19__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Adding support for Sagemaker savings plans in GetSavingsPlansPurchaseRecommendation API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for short type in Code generator.
+        - Contributed by: [@duy310](https://github.com/duy310)
+    - Updated service endpoint metadata.
+
+## __AWS Savings Plans__
+  - ### Features
+    - Added support for Amazon SageMaker in Machine Learning Savings Plans
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@duy310](https://github.com/duy310)
 # __2.16.43__ __2021-04-15__
 ## __AWS Database Migration Service__
   - ### Features
