@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Added method to BatchGetItem results to retrieve unprocessed keys for a given table."
+}

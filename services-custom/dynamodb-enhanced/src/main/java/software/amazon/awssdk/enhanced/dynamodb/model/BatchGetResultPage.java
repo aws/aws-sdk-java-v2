@@ -18,16 +18,20 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import static java.util.Collections.emptyList;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 
 /**
  * Defines one result page with retrieved items in the result of a batchGetItem() operation, such as
@@ -72,6 +76,36 @@ public final class BatchGetResultPage {
                                                                  DefaultOperationContext.create(mappedTable.tableName()),
                                                                  dynamoDbEnhancedClientExtension))
                       .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a list of keys associated with a given table that were not processed during the operation, typically
+     * because the total size of the request is too large or exceeds the provisioned throughput of the table. If an item
+     * was attempted to be retrieved but not found in the table, it will not appear in this list or the results list.
+     *
+     * @param mappedTable the table to retrieve the unprocessed keys for
+     * @return a list of unprocessed keys
+     */
+    public List<Key> unprocessedKeysForTable(MappedTableResource<?> mappedTable) {
+        KeysAndAttributes keysAndAttributes = this.batchGetItemResponse.unprocessedKeys().get(mappedTable.tableName());
+
+        if (keysAndAttributes == null) {
+            return Collections.emptyList();
+        }
+
+        String partitionKey = mappedTable.tableSchema().tableMetadata().primaryPartitionKey();
+        Optional<String> sortKey = mappedTable.tableSchema().tableMetadata().primarySortKey();
+
+        return keysAndAttributes.keys()
+                                .stream()
+                                .map(keyMap -> {
+                                    AttributeValue partitionValue = keyMap.get(partitionKey);
+                                    AttributeValue sortValue = sortKey.map(keyMap::get).orElse(null);
+                                    return Key.builder()
+                                              .partitionValue(partitionValue)
+                                              .sortValue(sortValue)
+                                              .build(); })
+                                .collect(Collectors.toList());
     }
 
     /**
