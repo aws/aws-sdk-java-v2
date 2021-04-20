@@ -194,7 +194,7 @@ public class ClientOverrideConfigurationTest {
                 .executionAttributes(executionAttributes)
                 .build();
 
-        executionAttributes.getAttributes().remove(testAttribute);
+        executionAttributes.putAttribute(testAttribute, "Value2");
         assertThat(overrideConfig.executionAttributes().getAttribute(testAttribute)).isEqualTo(expectedValue);
     }
 

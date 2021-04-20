@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -54,8 +55,8 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     /**
      * Retrieve the collection of attributes.
      */
-    public Map<ExecutionAttribute<?>, ?> getAttributes() {
-        return attributes;
+    public Map<ExecutionAttribute<?>, Object> getAttributes() {
+        return Collections.unmodifiableMap(attributes);
     }
 
     /**
@@ -102,7 +103,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
 
     private static class UnmodifiableExecutionAttributes extends ExecutionAttributes {
         UnmodifiableExecutionAttributes(ExecutionAttributes executionAttributes) {
-            super(executionAttributes.getAttributes());
+            super(executionAttributes.attributes);
         }
 
         @Override
