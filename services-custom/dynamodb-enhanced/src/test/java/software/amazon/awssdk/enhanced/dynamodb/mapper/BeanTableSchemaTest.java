@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -29,6 +30,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -203,6 +205,25 @@ public class BeanTableSchemaTest {
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("innerBean1", expectedMapForInnerBean1));
         assertThat(itemMap.get("innerBean2").m(), hasEntry("attribute2", nullAttributeValue()));
+    }
+
+    @Test
+    public void dynamoDbIgnoreNulls_onList_shouldOmitNulls() {
+        BeanTableSchema<NestedBeanIgnoreNulls> beanTableSchema = BeanTableSchema.create(NestedBeanIgnoreNulls.class);
+        NestedBeanIgnoreNulls bean = new NestedBeanIgnoreNulls();
+
+        bean.setInnerBeanList1(Collections.singletonList(new AbstractBean()));
+        bean.setInnerBeanList2(Collections.singletonList(new AbstractBean()));
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
+        AttributeValue expectedMapForInnerBean1 = AttributeValue.builder().l(l -> l.m(emptyMap())).build();
+        AttributeValue expectedMapForInnerBean2 = AttributeValue.builder()
+                                                                .l(l -> l.m(singletonMap("attribute2", nullAttributeValue())))
+                                                                .build();
+
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("innerBeanList1", expectedMapForInnerBean1));
+        assertThat(itemMap, hasEntry("innerBeanList2", expectedMapForInnerBean2));
     }
 
     @Test
