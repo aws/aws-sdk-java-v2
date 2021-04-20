@@ -86,7 +86,7 @@
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
         <awsjavasdk.previous.version>2.16.44</awsjavasdk.previous.version>
-        <jackson.version>2.12.1</jackson.version>
+        <jackson.version>2.12.3</jackson.version>
         <jackson.databind.version>2.12.1</jackson.databind.version>
         <jacksonjr.version>2.11.2</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
