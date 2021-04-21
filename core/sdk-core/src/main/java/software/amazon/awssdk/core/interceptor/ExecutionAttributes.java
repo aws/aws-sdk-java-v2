@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A mutable collection of {@link ExecutionAttribute}s that can be modified by {@link ExecutionInterceptor}s in order to save and
@@ -28,8 +32,16 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 @NotThreadSafe
-public final class ExecutionAttributes {
-    private final Map<ExecutionAttribute<?>, Object> attributes = new HashMap<>();
+public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttributes.Builder, ExecutionAttributes> {
+    private final Map<ExecutionAttribute<?>, Object> attributes;
+
+    public ExecutionAttributes() {
+        this.attributes = new HashMap<>();
+    }
+
+    protected ExecutionAttributes(Map<? extends ExecutionAttribute<?>, ?> attributes) {
+        this.attributes = new HashMap<>(attributes);
+    }
 
     /**
      * Retrieve the current value of the provided attribute in this collection of attributes. This will return null if the value
@@ -41,6 +53,13 @@ public final class ExecutionAttributes {
     }
 
     /**
+     * Retrieve the collection of attributes.
+     */
+    public Map<ExecutionAttribute<?>, Object> getAttributes() {
+        return Collections.unmodifiableMap(attributes);
+    }
+
+    /**
      * Update or set the provided attribute in this collection of attributes.
      */
     public <U> ExecutionAttributes putAttribute(ExecutionAttribute<U> attribute, U value) {
@@ -49,10 +68,82 @@ public final class ExecutionAttributes {
     }
 
     /**
+     * Merge attributes of a higher precedence into the current lower precedence collection.
+     */
+    public ExecutionAttributes merge(ExecutionAttributes lowerPrecedenceExecutionAttributes) {
+        Map<ExecutionAttribute<?>, Object> copiedAttributes = new HashMap<>(this.attributes);
+        lowerPrecedenceExecutionAttributes.getAttributes().forEach(copiedAttributes::putIfAbsent);
+        return new ExecutionAttributes(copiedAttributes);
+    }
+
+    /**
      * Set the provided attribute in this collection of attributes if it does not already exist in the collection.
      */
     public <U> ExecutionAttributes putAttributeIfAbsent(ExecutionAttribute<U> attribute, U value) {
         attributes.putIfAbsent(attribute, value);
         return this;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return builder().putAll(attributes);
+    }
+
+    public ExecutionAttributes copy() {
+        return toBuilder().build();
+    }
+
+    public static ExecutionAttributes unmodifiableExecutionAttributes(ExecutionAttributes attributes) {
+        return new UnmodifiableExecutionAttributes(attributes);
+    }
+
+    private static class UnmodifiableExecutionAttributes extends ExecutionAttributes {
+        UnmodifiableExecutionAttributes(ExecutionAttributes executionAttributes) {
+            super(executionAttributes.attributes);
+        }
+
+        @Override
+        public <U> ExecutionAttributes putAttribute(ExecutionAttribute<U> attribute, U value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <U> ExecutionAttributes putAttributeIfAbsent(ExecutionAttribute<U> attribute, U value) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static final class Builder implements CopyableBuilder<ExecutionAttributes.Builder, ExecutionAttributes> {
+
+        private final Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
+
+        private Builder() {
+        }
+
+        /**
+         * Add a mapping between the provided key and value.
+         */
+        public <T> ExecutionAttributes.Builder put(ExecutionAttribute<T> key, T value) {
+            Validate.notNull(key, "Key to set must not be null.");
+            executionAttributes.put(key, value);
+            return this;
+        }
+
+        /**
+         * Adds all the attributes from the map provided.
+         */
+        public ExecutionAttributes.Builder putAll(Map<? extends ExecutionAttribute<?>, ?> attributes) {
+            executionAttributes.putAll(attributes);
+            return this;
+        }
+
+        @Override
+        public ExecutionAttributes build() {
+            return new ExecutionAttributes(executionAttributes);
+        }
     }
 }

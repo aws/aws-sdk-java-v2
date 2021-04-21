@@ -18,7 +18,6 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.ListTrait;
@@ -28,7 +27,6 @@ import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -63,8 +61,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
 
     private static final SdkField<Short> SHORT_MEMBER_FIELD = SdkField.<Short> builder(MarshallingType.SHORT)
-            .memberName("ShortMember").getter(getter(AllTypesResponse::shortMember)).setter(setter(Builder::shortMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ShortMember").build()).build();
+                                                                      .memberName("ShortMember").getter(getter(AllTypesResponse::shortMember)).setter(setter(Builder::shortMember))
+                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ShortMember").build()).build();
 
     private static final SdkField<List<String>> SIMPLE_LIST_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
@@ -593,7 +591,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
     /**
      * Returns the value of the ShortMember property for this object.
-     * 
+     *
      * @return The value of the ShortMember property for this object.
      */
     public final Short shortMember() {
@@ -1298,9 +1296,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         return Objects.equals(stringMember(), other.stringMember()) && Objects.equals(integerMember(), other.integerMember())
                && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
                && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
-               && Objects.equals(shortMember(), other.shortMember())
-               && hasSimpleList() == other.hasSimpleList() && Objects.equals(simpleList(), other.simpleList())
-               && hasListOfEnums() == other.hasListOfEnums()
+               && Objects.equals(shortMember(), other.shortMember()) && hasSimpleList() == other.hasSimpleList()
+               && Objects.equals(simpleList(), other.simpleList()) && hasListOfEnums() == other.hasListOfEnums()
                && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
                && hasListOfMaps() == other.hasListOfMaps() && Objects.equals(listOfMaps(), other.listOfMaps())
                && hasListOfStructs() == other.hasListOfStructs() && Objects.equals(listOfStructs(), other.listOfStructs())
@@ -1795,7 +1792,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
          *        The new value for the MapOfEnumToMapOfStringToEnum property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder mapOfEnumToMapOfStringToEnumWithStrings(Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum);
+        Builder mapOfEnumToMapOfStringToEnumWithStrings(Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum);
 
         /**
          * Sets the value of the MapOfEnumToMapOfStringToEnum property for this object.
@@ -1804,7 +1801,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
          *        The new value for the MapOfEnumToMapOfStringToEnum property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder mapOfEnumToMapOfStringToEnum(Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnum);
+        Builder mapOfEnumToMapOfStringToEnum(Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum);
 
         /**
          * Sets the value of the TimestampMember property for this object.
@@ -2327,12 +2324,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
         }
 
-        public final Collection<SimpleStruct.Builder> getListOfStructs() {
-            if (listOfStructs instanceof SdkAutoConstructList) {
+        public final List<SimpleStruct.Builder> getListOfStructs() {
+            List<SimpleStruct.Builder> result = ListOfSimpleStructsCopier.copyToBuilder(this.listOfStructs);
+            if (result instanceof SdkAutoConstructList) {
                 return null;
             }
-            return listOfStructs != null ? listOfStructs.stream().map(SimpleStruct::toBuilder).collect(Collectors.toList())
-                                         : null;
+            return result;
         }
 
         @Override
@@ -2384,15 +2381,13 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
         }
 
-        public final Collection<Map<String, SimpleStruct.Builder>> getListOfMapOfStringToStruct() {
-            if (listOfMapOfStringToStruct instanceof SdkAutoConstructList) {
+        public final List<Map<String, SimpleStruct.Builder>> getListOfMapOfStringToStruct() {
+            List<Map<String, SimpleStruct.Builder>> result = ListOfMapOfStringToStructCopier
+                .copyToBuilder(this.listOfMapOfStringToStruct);
+            if (result instanceof SdkAutoConstructList) {
                 return null;
             }
-            return listOfMapOfStringToStruct != null ? listOfMapOfStringToStruct
-                .stream()
-                .map(m -> m.entrySet().stream()
-                           .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().toBuilder())))
-                .collect(Collectors.toList()) : null;
+            return result;
         }
 
         @Override
@@ -2408,7 +2403,8 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setListOfMapOfStringToStruct(Collection<Map<String, SimpleStruct.BuilderImpl>> listOfMapOfStringToStruct) {
+        public final void setListOfMapOfStringToStruct(
+            Collection<? extends Map<String, SimpleStruct.BuilderImpl>> listOfMapOfStringToStruct) {
             this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copyFromBuilder(listOfMapOfStringToStruct);
         }
 
@@ -2447,11 +2443,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final Map<String, SimpleStruct.Builder> getMapOfStringToSimpleStruct() {
-            if (mapOfStringToSimpleStruct instanceof SdkAutoConstructMap) {
+            Map<String, SimpleStruct.Builder> result = MapOfStringToSimpleStructCopier
+                .copyToBuilder(this.mapOfStringToSimpleStruct);
+            if (result instanceof SdkAutoConstructMap) {
                 return null;
             }
-            return mapOfStringToSimpleStruct != null ? CollectionUtils.mapValues(mapOfStringToSimpleStruct,
-                                                                                 SimpleStruct::toBuilder) : null;
+            return result;
         }
 
         @Override
@@ -2534,11 +2531,11 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final Map<String, SimpleStruct.Builder> getMapOfEnumToSimpleStruct() {
-            if (mapOfEnumToSimpleStruct instanceof SdkAutoConstructMap) {
+            Map<String, SimpleStruct.Builder> result = MapOfEnumToSimpleStructCopier.copyToBuilder(this.mapOfEnumToSimpleStruct);
+            if (result instanceof SdkAutoConstructMap) {
                 return null;
             }
-            return mapOfEnumToSimpleStruct != null ? CollectionUtils.mapValues(mapOfEnumToSimpleStruct, SimpleStruct::toBuilder)
-                                                   : null;
+            return result;
         }
 
         @Override
@@ -2580,7 +2577,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
         }
 
-        public final Map<String, Map<String, String>> getMapOfEnumToMapOfStringToEnum() {
+        public final Map<String, ? extends Map<String, String>> getMapOfEnumToMapOfStringToEnum() {
             if (mapOfEnumToMapOfStringToEnum instanceof SdkAutoConstructMap) {
                 return null;
             }
@@ -2588,18 +2585,20 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         @Override
-        public final Builder mapOfEnumToMapOfStringToEnumWithStrings(Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+        public final Builder mapOfEnumToMapOfStringToEnumWithStrings(
+            Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
             return this;
         }
 
         @Override
-        public final Builder mapOfEnumToMapOfStringToEnum(Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
+        public final Builder mapOfEnumToMapOfStringToEnum(
+            Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copyEnumToString(mapOfEnumToMapOfStringToEnum);
             return this;
         }
 
-        public final void setMapOfEnumToMapOfStringToEnum(Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+        public final void setMapOfEnumToMapOfStringToEnum(Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
         }
 
@@ -2638,7 +2637,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
         @Override
         public final Builder blobArg(SdkBytes blobArg) {
-            this.blobArg = StandardMemberCopier.copy(blobArg);
+            this.blobArg = blobArg;
             return this;
         }
 
