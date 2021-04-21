@@ -616,6 +616,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "duy3101",
+      "name": "Dewey Nguyen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44629464?v=4",
+      "profile": "http://imdewey.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
