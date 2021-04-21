@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSKendraFrontendService",
+    "contributor": "",
+    "description": "Amazon Kendra now enables users to override index-level boosting configurations for each query."
+}
