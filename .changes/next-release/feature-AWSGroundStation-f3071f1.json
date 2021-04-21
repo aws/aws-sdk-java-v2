@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Ground Station",
+    "contributor": "",
+    "description": "Support new S3 Recording Config allowing customers to write downlink data directly to S3."
+}
