@@ -115,7 +115,7 @@
 
         <!--Test dependencies -->
         <junit.version>4.12</junit.version>
-        <junit5.version>5.4.2</junit5.version>
+        <junit5.version>5.7.1</junit5.version>
         <hamcrest.version>1.3</hamcrest.version>
         <mockito.version>1.10.19</mockito.version>
         <mockito2.version>2.28.2</mockito2.version>
