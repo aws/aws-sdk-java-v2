@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "contributor": "",
+    "description": "Added support for creating and updating stack sets with self-managed permissions from templates that reference macros."
+}
