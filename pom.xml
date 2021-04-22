@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.16.46-SNAPSHOT</version>
+    <version>2.16.47-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -85,7 +85,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.16.45</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.16.46</awsjavasdk.previous.version>
         <jackson.version>2.12.3</jackson.version>
         <jackson.databind.version>2.12.1</jackson.databind.version>
         <jacksonjr.version>2.11.2</jacksonjr.version>
@@ -131,7 +131,7 @@
         <!-- build plugin dependencies-->
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
@@ -162,7 +162,7 @@
         <unitils.version>3.3</unitils.version>
 
         <!-- Reactive Streams version -->
-        <reactive-streams.version>1.0.2</reactive-streams.version>
+        <reactive-streams.version>1.0.3</reactive-streams.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
