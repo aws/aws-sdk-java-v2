@@ -71,6 +71,8 @@ public class ModelSerializationTest {
                                                     .simpleList("foo", "bar")
                                                     .listOfMaps(singletonList(singletonMap("foo", "bar")))
                                                     .listOfMapsOfStringToStruct(singletonList(singletonMap("bar", simpleStruct)))
+                                                    .listOfListOfMapsOfStringToStruct(
+                                                        singletonList(singletonList(singletonMap("bar", simpleStruct))))
                                                     .listOfStructs(simpleStruct)
                                                     .mapOfStringToIntegerList(singletonMap("foo", singletonList(5)))
                                                     .mapOfStringToStruct(singletonMap("foo", simpleStruct))

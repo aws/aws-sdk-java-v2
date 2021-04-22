@@ -71,10 +71,10 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-
         return measureApiCallSuccess(executionParams, () -> {
             validateExecutionParams(executionParams);
-            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
+            ExecutionAttributes overrideAttributes = addExecutionAttributeOverrides(executionParams);
+            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(overrideAttributes);
             ExecutionContext executionContext = createExecutionContext(executionParams, executionAttributes);
             TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler;
 
@@ -108,7 +108,8 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                    + "ClientExecutionParams object.");
             }
 
-            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(executionParams.executionAttributes());
+            ExecutionAttributes overrideAttributes = addExecutionAttributeOverrides(executionParams);
+            ExecutionAttributes executionAttributes = addInitialExecutionAttributes(overrideAttributes);
 
             AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
                 new AsyncStreamingResponseHandler<>(asyncResponseTransformer);

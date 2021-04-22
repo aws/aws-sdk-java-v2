@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -197,6 +198,23 @@ public abstract class BaseClientHandler {
 
     static ExecutionAttributes addInitialExecutionAttributes(ExecutionAttributes executionAttributes) {
         return executionAttributes.putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1);
+    }
+
+    protected  <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionAttributes addExecutionAttributeOverrides(
+            ClientExecutionParams<InputT, OutputT> executionParams) {
+        SdkRequest originalRequest = executionParams.getInput();
+        ExecutionAttributes executionAttributes = executionParams.executionAttributes();
+        ExecutionAttributes clientOverrideExecutionAttributes = clientConfiguration.option(SdkClientOption.EXECUTION_ATTRIBUTES);
+        if (clientOverrideExecutionAttributes != null) {
+            executionAttributes = clientOverrideExecutionAttributes.merge(executionAttributes);
+        }
+
+        Optional<? extends RequestOverrideConfiguration> requestOverrideConfiguration = originalRequest.overrideConfiguration();
+        if (requestOverrideConfiguration.isPresent()) {
+            executionAttributes = requestOverrideConfiguration.get().executionAttributes().merge(executionAttributes);
+        }
+
+        return executionAttributes;
     }
 
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
