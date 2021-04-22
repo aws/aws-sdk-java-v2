@@ -162,7 +162,7 @@
         <unitils.version>3.3</unitils.version>
 
         <!-- Reactive Streams version -->
-        <reactive-streams.version>1.0.2</reactive-streams.version>
+        <reactive-streams.version>1.0.3</reactive-streams.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
