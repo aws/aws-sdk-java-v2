@@ -1,3 +1,16 @@
+# __2.16.47__ __2021-04-23__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Add support for Widevine DRM on CMAF origin endpoints. Both Widevine and FairPlay DRMs can now be used simultaneously, with CBCS encryption.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Amazon SNS adds two new attributes, TemplateId and EntityId, for using sender IDs to send SMS messages to destinations in India.
+
 # __2.16.46__ __2021-04-22__
 ## __AWS SDK for Java v2__
   - ### Features
