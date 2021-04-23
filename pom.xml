@@ -138,7 +138,7 @@
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <checkstyle.version>8.38</checkstyle.version>
+        <checkstyle.version>8.41.1</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
