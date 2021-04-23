@@ -112,18 +112,25 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     @Override
     protected final SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
         SdkClientConfiguration config = mergeServiceDefaults(configuration);
-
-        return config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
+        config = config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
                                   .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
                                   .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
                                   .option(SdkClientOption.SERVICE_NAME, serviceName())
                                   .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));
+        return mergeInternalDefaults(config);
     }
 
     /**
      * Optionally overridden by child classes to define service-specific default configuration.
      */
     protected SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration configuration) {
+        return configuration;
+    }
+
+    /**
+     * Optionally overridden by child classes to define internal default configuration.
+     */
+    protected SdkClientConfiguration mergeInternalDefaults(SdkClientConfiguration configuration) {
         return configuration;
     }
 

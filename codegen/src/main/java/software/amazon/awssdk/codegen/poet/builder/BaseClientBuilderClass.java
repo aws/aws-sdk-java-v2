@@ -91,6 +91,11 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(serviceEndpointPrefixMethod());
         builder.addMethod(serviceNameMethod());
         builder.addMethod(mergeServiceDefaultsMethod());
+
+        if (model.getCustomizationConfig().getUserAgent() != null) {
+            builder.addMethod(mergeInternalDefaultsMethod());
+        }
+
         builder.addMethod(finalizeServiceConfigurationMethod());
         builder.addMethod(defaultSignerMethod());
         builder.addMethod(signingNameMethod());
@@ -165,6 +170,21 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addCode(".option($T.SERVICE_CONFIGURATION, $T.builder().build())",
                             SdkClientOption.class, ClassName.bestGuess(clientConfigClassName));
         }
+
+        builder.addCode(");");
+        return builder.build();
+    }
+
+    private MethodSpec mergeInternalDefaultsMethod() {
+        String userAgent = model.getCustomizationConfig().getUserAgent();
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeInternalDefaults")
+                                               .addAnnotation(Override.class)
+                                               .addModifiers(PROTECTED, FINAL)
+                                               .returns(SdkClientConfiguration.class)
+                                               .addParameter(SdkClientConfiguration.class, "config")
+                                               .addCode("return config.merge(c -> c.option($T.INTERNAL_USER_AGENT, $S)\n",
+                                                        SdkClientOption.class, userAgent);
 
         builder.addCode(");");
         return builder.build();
