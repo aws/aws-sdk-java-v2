@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CodeGuru Reviewer",
-    "contributor": "",
-    "description": "Include KMS Key Details in Repository Association APIs to enable usage of customer managed KMS Keys."
-}

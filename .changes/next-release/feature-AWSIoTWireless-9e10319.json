@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Wireless",
-    "contributor": "",
-    "description": "Add a new optional field MessageType to support Sidewalk devices in SendDataToWirelessDevice API"
-}
