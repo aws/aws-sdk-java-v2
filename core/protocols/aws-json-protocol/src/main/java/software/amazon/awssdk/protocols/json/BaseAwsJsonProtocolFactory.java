@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -145,8 +146,8 @@ public abstract class BaseAwsJsonProtocolFactory {
         return getSdkFactory().createWriter(getContentType());
     }
 
-    @SdkTestInternalApi
-    protected final String getContentType() {
+    @SdkInternalApi
+    public final String getContentType() {
         return getContentTypeResolver().resolveContentType(protocolMetadata);
     }
 
@@ -182,6 +183,7 @@ public abstract class BaseAwsJsonProtocolFactory {
                                             .contentType(getContentType())
                                             .operationInfo(operationInfo)
                                             .sendExplicitNullForPayload(false)
+                                            .protocolMetadata(protocolMetadata)
                                             .build();
     }
 
