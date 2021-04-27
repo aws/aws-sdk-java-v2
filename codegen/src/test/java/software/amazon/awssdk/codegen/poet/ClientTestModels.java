@@ -32,9 +32,9 @@ public class ClientTestModels {
     private ClientTestModels() {}
 
     public static IntermediateModel jsonServiceModels() {
-        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/json/service-2.json").getFile());
-        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/json/customization.config").getFile());
-        File paginatorsModel = new File(ClientTestModels.class.getResource("client/c2j/json/paginators.json").getFile());
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/customization.config").getFile());
+        File paginatorsModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/paginators.json").getFile());
         C2jModels models = C2jModels.builder()
                                     .serviceModel(getServiceModel(serviceModel))
                                     .customizationConfig(getCustomizationConfig(customizationModel))
