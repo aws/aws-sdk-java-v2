@@ -1,3 +1,12 @@
+# __2.16.49__ __2021-04-27__
+## __AWS Audit Manager__
+  - ### Features
+    - This release restricts using backslashes in control, assessment, and framework names. The controlSetName field of the UpdateAssessmentFrameworkControlSet API now allows strings without backslashes.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.16.48__ __2021-04-26__
 ## __AWS Elemental MediaConvert__
   - ### Features

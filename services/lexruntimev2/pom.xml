@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.16.48</version>
+        <version>2.16.49</version>
     </parent>
     <artifactId>lexruntimev2</artifactId>
     <name>AWS Java SDK :: Services :: Lex Runtime V2</name>
