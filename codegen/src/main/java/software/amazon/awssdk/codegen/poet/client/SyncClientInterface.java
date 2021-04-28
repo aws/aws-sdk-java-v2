@@ -34,6 +34,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.docs.ClientType;
@@ -75,7 +77,10 @@ public final class SyncClientInterface implements ClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
 
+
         result.addSuperinterface(SdkClient.class)
+              .addAnnotation(SdkPublicApi.class)
+              .addAnnotation(ThreadSafe.class)
               .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                  .initializer("$S", model.getMetadata().getSigningName())

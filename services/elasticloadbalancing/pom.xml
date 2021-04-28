@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.16.49</version>
+        <version>2.16.50</version>
     </parent>
     <artifactId>elasticloadbalancing</artifactId>
     <name>AWS Java SDK :: Services :: Elastic Load Balancing</name>

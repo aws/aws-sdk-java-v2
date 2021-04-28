@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -72,6 +74,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         String systemUserAgent = UserAgentUtils.getUserAgent();
         if (!systemUserAgent.equals(userDefinedPrefix)) {
             userAgent.append(COMMA).append(systemUserAgent);
+        }
+
+        String internalUserAgent = StringUtils.trimToEmpty(clientConfig.option(INTERNAL_USER_AGENT));
+        if (!internalUserAgent.isEmpty()) {
+            userAgent.append(SPACE).append(internalUserAgent);
         }
 
         if (!StringUtils.isEmpty(awsExecutionEnvironment)) {

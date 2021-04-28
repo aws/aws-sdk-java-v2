@@ -144,6 +144,10 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<ExecutionAttributes> EXECUTION_ATTRIBUTES =
             new SdkClientOption<>(new UnsafeValueType(ExecutionAttributes.class));
+    /**
+     * Option to specify the internal user agent.
+     */
+    public static final SdkClientOption<String> INTERNAL_USER_AGENT = new SdkClientOption<>(String.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

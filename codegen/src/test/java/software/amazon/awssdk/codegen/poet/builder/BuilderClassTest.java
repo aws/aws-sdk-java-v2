@@ -39,6 +39,11 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void baseClientBuilderClassWithInternalUserAgent() throws Exception {
+        assertThat(new BaseClientBuilderClass(ClientTestModels.internalConfigModels()), generatesTo("test-client-builder-internal-user-agent-class.java"));
+    }
+
+    @Test
     public void baseQueryClientBuilderClass() throws Exception {
         validateQueryGeneration(BaseClientBuilderClass::new, "test-query-client-builder-class.java");
     }
