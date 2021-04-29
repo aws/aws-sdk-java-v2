@@ -16,8 +16,10 @@
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import static software.amazon.awssdk.core.internal.util.Mimetype.MIMETYPE_EVENT_STREAM;
+import static software.amazon.awssdk.http.Header.CHUNKED;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
+import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -39,6 +41,8 @@ import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToString;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 
 /**
@@ -56,6 +60,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final StructuredJsonGenerator jsonGenerator;
     private final SdkHttpFullRequest.Builder request;
     private final String contentType;
+    private final AwsJsonProtocolMetadata protocolMetadata;
     private final boolean hasExplicitPayloadMember;
     private final boolean hasStreamingInput;
 
@@ -66,10 +71,12 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     JsonProtocolMarshaller(URI endpoint,
                            StructuredJsonGenerator jsonGenerator,
                            String contentType,
-                           OperationInfo operationInfo) {
+                           OperationInfo operationInfo,
+                           AwsJsonProtocolMetadata protocolMetadata) {
         this.endpoint = endpoint;
         this.jsonGenerator = jsonGenerator;
         this.contentType = contentType;
+        this.protocolMetadata = protocolMetadata;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
         this.hasStreamingInput = operationInfo.hasStreamingInput();
         this.hasEventStreamingInput = operationInfo.hasEventStreamingInput();
@@ -220,7 +227,17 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         // and not from the original request
         if (!request.headers().containsKey(CONTENT_TYPE) && !hasEvent) {
             if (hasEventStreamingInput) {
-                request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
+                AwsJsonProtocol protocol = protocolMetadata.protocol();
+                if (protocol == AwsJsonProtocol.AWS_JSON) {
+                    // For RPC formats, this content type will later be pushed down into the `initial-event` in the body
+                    request.putHeader(CONTENT_TYPE, contentType);
+                } else if (protocol == AwsJsonProtocol.REST_JSON) {
+                    request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
+                } else {
+                    throw new IllegalArgumentException("Unknown AwsJsonProtocol: " + protocol);
+                }
+                request.removeHeader(CONTENT_LENGTH);
+                request.putHeader(TRANSFER_ENCODING, CHUNKED);
             } else if (contentType != null && !hasStreamingInput && request.contentStreamProvider() != null) {
                 request.putHeader(CONTENT_TYPE, contentType);
             }
