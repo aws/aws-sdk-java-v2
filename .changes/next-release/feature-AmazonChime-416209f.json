@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime",
-    "contributor": "",
-    "description": "Increase AppInstanceUserId length to 64 characters"
-}
