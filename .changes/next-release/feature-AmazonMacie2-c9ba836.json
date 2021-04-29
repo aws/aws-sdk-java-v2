@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Macie 2",
+    "contributor": "",
+    "description": "The Amazon Macie API now provides S3 bucket metadata that indicates whether a bucket policy requires server-side encryption of objects when objects are uploaded to the bucket."
+}
