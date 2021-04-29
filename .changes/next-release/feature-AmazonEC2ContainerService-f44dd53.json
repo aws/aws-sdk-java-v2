@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "Add support for EphemeralStorage on TaskDefinition and TaskOverride"
+}
