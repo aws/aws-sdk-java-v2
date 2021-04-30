@@ -114,23 +114,23 @@ public class S3ObjectLambdaEndpointResolutionTest {
     }
 
     @Test
-    public void objectLambdaArn_missingRegion_throwsIllegalArgumentException() {
+    public void objectLambdaArn_missingRegion_throwsNullPointerException() {
         S3Client s3Client = clientBuilder().build();
         String objectLambdaArn = "arn:aws:s3-object-lambda::123456789012:accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("region must not be blank or empty");
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("region must not be null");
     }
 
     @Test
-    public void objectLambdaArn_missingAccountId_throwsIllegalArgumentException() {
+    public void objectLambdaArn_missingAccountId_throwsNullPointerException() {
         S3Client s3Client = clientBuilder().build();
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2::accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("accountId must not be blank or empty");
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("accountId must not be null");
     }
 
     @Test
