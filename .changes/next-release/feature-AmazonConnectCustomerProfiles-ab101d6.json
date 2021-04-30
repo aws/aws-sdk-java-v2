@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Customer Profiles",
+    "contributor": "",
+    "description": "This release introduces GetMatches and MergeProfiles APIs to fetch and merge duplicate profiles"
+}
