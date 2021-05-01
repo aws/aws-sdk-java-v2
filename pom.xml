@@ -512,6 +512,10 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
+                            <exclude>software.amazon.awssdk.core.client.handler.ClientExecutionParams</exclude>
+                            <exclude>software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute</exclude>
+                            <exclude>software.amazon.awssdk.awscore.eventstream.*</exclude>
+                            <exclude>software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory</exclude>
                             <exclude>*.SubscribeToShardEvent$BuilderImpl</exclude>
                             <exclude>*.ConfigurationEvent$BuilderImpl</exclude>
                             <exclude>*.IntentResultEvent$BuilderImpl</exclude>

@@ -16,8 +16,6 @@
 package software.amazon.awssdk.codegen.poet;
 
 import java.io.File;
-
-import org.eclipse.core.runtime.internal.adaptor.IModel;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -33,20 +31,7 @@ import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 public class ClientTestModels {
     private ClientTestModels() {}
 
-    public static IntermediateModel awsJsonServiceModels() {
-        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/json/service-2.json").getFile());
-        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/json/customization.config").getFile());
-        File paginatorsModel = new File(ClientTestModels.class.getResource("client/c2j/json/paginators.json").getFile());
-        C2jModels models = C2jModels.builder()
-            .serviceModel(getServiceModel(serviceModel))
-            .customizationConfig(getCustomizationConfig(customizationModel))
-            .paginatorsModel(getPaginatorsModel(paginatorsModel))
-            .build();
-
-        return new IntermediateModelBuilder(models).build();
-    }
-
-    public static IntermediateModel restJsonServiceModels() {
+    public static IntermediateModel jsonServiceModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/customization.config").getFile());
         File paginatorsModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/paginators.json").getFile());

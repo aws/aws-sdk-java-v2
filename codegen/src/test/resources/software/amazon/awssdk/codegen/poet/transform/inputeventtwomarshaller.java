@@ -35,7 +35,7 @@ public class InputEventTwoMarshaller implements Marshaller<InputEventTwo> {
                     .createProtocolMarshaller(SDK_OPERATION_BINDING);
             return protocolMarshaller.marshall(inputEventTwo).toBuilder().putHeader(":message-type", "event")
                     .putHeader(":event-type", inputEventTwo.sdkEventType().toString())
-                    .putHeader(":content-type", protocolFactory.getContentType()).build();
+                    .putHeader(":content-type", "application/json").build();
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
