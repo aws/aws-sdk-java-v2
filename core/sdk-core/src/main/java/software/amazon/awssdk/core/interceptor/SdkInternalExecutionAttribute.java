@@ -30,13 +30,6 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> IS_FULL_DUPLEX = new ExecutionAttribute<>("IsFullDuplex");
 
-    /**
-     * If true, indicates that this is an event streaming request being sent over RPC, and therefore the serialized
-     * request object is encapsulated as an event of type {@code initial-request}.
-     */
-    public static final ExecutionAttribute<Boolean> HAS_INITIAL_REQUEST_EVENT = new ExecutionAttribute<>(
-        "HasInitialRequestEvent");
-
     public static final ExecutionAttribute<HttpChecksumRequired> HTTP_CHECKSUM_REQUIRED =
         new ExecutionAttribute<>("HttpChecksumRequired");
 

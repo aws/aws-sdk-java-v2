@@ -20,7 +20,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
-import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 
 /**
@@ -34,7 +33,6 @@ public final class JsonProtocolMarshallerBuilder {
     private String contentType;
     private OperationInfo operationInfo;
     private boolean sendExplicitNullForPayload;
-    private AwsJsonProtocolMetadata protocolMetadata;
 
     private JsonProtocolMarshallerBuilder() {
     }
@@ -95,14 +93,6 @@ public final class JsonProtocolMarshallerBuilder {
     }
 
     /**
-     * @param protocolMetadata
-     */
-    public JsonProtocolMarshallerBuilder protocolMetadata(AwsJsonProtocolMetadata protocolMetadata) {
-        this.protocolMetadata = protocolMetadata;
-        return this;
-    }
-
-    /**
      * @return New instance of {@link ProtocolMarshaller}. If {@link #sendExplicitNullForPayload} is true then the marshaller
      * will be wrapped with {@link NullAsEmptyBodyProtocolRequestMarshaller}.
      */
@@ -110,8 +100,7 @@ public final class JsonProtocolMarshallerBuilder {
         ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = new JsonProtocolMarshaller(endpoint,
                                                                                                jsonGenerator,
                                                                                                contentType,
-                                                                                               operationInfo,
-                                                                                               protocolMetadata);
+                                                                                               operationInfo);
         return sendExplicitNullForPayload ? protocolMarshaller
                                           : new NullAsEmptyBodyProtocolRequestMarshaller(protocolMarshaller);
     }
