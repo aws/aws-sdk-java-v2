@@ -35,7 +35,7 @@
         <!--
             JMH version to use with this project.
           -->
-        <jmh.version>1.21</jmh.version>
+        <jmh.version>1.29</jmh.version>
 
         <!--
             Java source/target to use for compilation.
