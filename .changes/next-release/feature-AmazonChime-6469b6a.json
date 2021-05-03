@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "contributor": "",
+    "description": "Added new BatchCreateChannelMembership API to support multiple membership creation for channels"
+}
