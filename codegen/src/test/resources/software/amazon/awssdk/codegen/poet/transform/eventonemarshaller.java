@@ -34,7 +34,7 @@ public class EventOneMarshaller implements Marshaller<EventOne> {
             ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
                     .createProtocolMarshaller(SDK_OPERATION_BINDING);
             return protocolMarshaller.marshall(eventOne).toBuilder().putHeader(":message-type", "event")
-                    .putHeader(":event-type", eventOne.sdkEventType().toString()).putHeader(":content-type", protocolFactory.getContentType())
+                    .putHeader(":event-type", eventOne.sdkEventType().toString()).putHeader(":content-type", "application/json")
                     .build();
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
