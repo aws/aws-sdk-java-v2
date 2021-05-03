@@ -1,16 +1,4 @@
 # __2.16.54__ __2021-05-03__
-## __AWS SecurityHub__
-  - ### Features
-    - Updated ASFF to add the following new resource details objects: AwsEc2NetworkAcl, AwsEc2Subnet, and AwsElasticBeanstalkEnvironment.
-
-## __Amazon Chime__
-  - ### Features
-    - Added new BatchCreateChannelMembership API to support multiple membership creation for channels
-
-## __Amazon Mechanical Turk__
-  - ### Features
-    - Documentation updates for Amazon Mechanical Turk, GetAccountBalanceOperation operation
-
 ## __FinSpace Public API__
   - ### Features
     - This is the initial SDK release for the data APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics application for the financial services industry (FSI).
@@ -31,14 +19,6 @@
 ## __Amazon Mechanical Turk__
   - ### Features
     - Documentation updates for Amazon Mechanical Turk, GetAccountBalanceOperation operation
-
-## __FinSpace Public API__
-  - ### Features
-    - This is the initial SDK release for the data APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics application for the financial services industry (FSI).
-
-## __FinSpace User Environment Management service__
-  - ### Features
-    - This is the initial SDK release for the management APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics service for the financial services industry (FSI).
 
 # __2.16.52__ __2021-04-30__
 ## __AWS Marketplace Catalog Service__
