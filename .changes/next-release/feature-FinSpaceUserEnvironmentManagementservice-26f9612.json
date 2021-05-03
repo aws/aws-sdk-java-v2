@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "FinSpace User Environment Management service",
-    "contributor": "",
-    "description": "This is the initial SDK release for the management APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics service for the financial services industry (FSI)."
-}
