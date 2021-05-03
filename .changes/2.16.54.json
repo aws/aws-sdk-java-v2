@@ -1,0 +1,36 @@
+{
+    "version": "2.16.54",
+    "date": "2021-05-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "contributor": "",
+            "description": "Added new BatchCreateChannelMembership API to support multiple membership creation for channels"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Updated ASFF to add the following new resource details objects: AwsEc2NetworkAcl, AwsEc2Subnet, and AwsElasticBeanstalkEnvironment."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "This is the initial SDK release for the management APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics service for the financial services industry (FSI)."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "This is the initial SDK release for the data APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics application for the financial services industry (FSI)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Mechanical Turk",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Mechanical Turk, GetAccountBalanceOperation operation"
+        }
+    ]
+}
