@@ -97,6 +97,26 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
         return toBuilder().build();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ExecutionAttributes that = (ExecutionAttributes) o;
+
+        return attributes != null ? attributes.equals(that.attributes) : that.attributes == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return attributes != null ? attributes.hashCode() : 0;
+    }
+
     public static ExecutionAttributes unmodifiableExecutionAttributes(ExecutionAttributes attributes) {
         return new UnmodifiableExecutionAttributes(attributes);
     }

@@ -281,7 +281,7 @@ public class RequestOverrideConfigurationTest {
                 .build();
 
         assertThat(request1Override).isEqualTo(request1Override);
-        assertThat(request1Override).isNotEqualTo(request2Override);
+        assertThat(request1Override).isEqualTo(request2Override);
         assertThat(request1Override).isNotEqualTo(null);
     }
 }
