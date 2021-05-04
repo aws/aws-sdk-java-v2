@@ -42,7 +42,10 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -65,15 +68,41 @@ public class AwsExecutionContextBuilderTest {
 
     @Test
     public void verifyInterceptors() {
-        AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), testClientConfiguration());
+        AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                               testClientConfiguration().build());
         verify(interceptor, times(1)).beforeExecution(any(), any());
         verify(interceptor, times(1)).modifyRequest(any(), any());
     }
 
     @Test
+    public void verifyCoreExecutionAttributesTakePrecedence() {
+        ExecutionAttributes requestOverrides = ExecutionAttributes.builder()
+                                                                  .put(SdkExecutionAttribute.SERVICE_NAME, "RequestOverrideServiceName")
+                                                                  .build();
+        Optional requestOverrideConfiguration = Optional.of(AwsRequestOverrideConfiguration.builder()
+                                                                                           .executionAttributes(requestOverrides)
+                                                                                           .build());
+        when(sdkRequest.overrideConfiguration()).thenReturn(requestOverrideConfiguration);
+
+        ExecutionAttributes clientConfigOverrides = ExecutionAttributes.builder()
+                                                                       .put(SdkExecutionAttribute.SERVICE_NAME, "ClientConfigServiceName")
+                                                                       .build();
+        SdkClientConfiguration testClientConfiguration = testClientConfiguration()
+            .option(SdkClientOption.SERVICE_NAME, "DoNotOverrideService")
+            .option(SdkClientOption.EXECUTION_ATTRIBUTES, clientConfigOverrides)
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), testClientConfiguration);
+
+        assertThat(executionContext.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_NAME)).isEqualTo("DoNotOverrideService");
+    }
+
+    @Test
     public void signing_ifNoOverrides_assignDefaultSigner() {
         ExecutionContext executionContext =
-            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), testClientConfiguration());
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   testClientConfiguration().build());
 
         assertThat(executionContext.signer()).isEqualTo(defaultSigner);
     }
@@ -86,7 +115,8 @@ public class AwsExecutionContextBuilderTest {
         when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
 
         ExecutionContext executionContext =
-            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), testClientConfiguration());
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   testClientConfiguration().build());
 
         assertThat(executionContext.signer()).isEqualTo(clientOverrideSigner);
     }
@@ -98,13 +128,12 @@ public class AwsExecutionContextBuilderTest {
             .withOperationName("TestOperation");
     }
 
-    private SdkClientConfiguration testClientConfiguration() {
+    private SdkClientConfiguration.Builder testClientConfiguration() {
         List<ExecutionInterceptor> interceptorList = Collections.singletonList(interceptor);
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptorList)
                                      .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
-                                     .option(SdkAdvancedClientOption.SIGNER, this.defaultSigner)
-                                     .build();
+                                     .option(SdkAdvancedClientOption.SIGNER, this.defaultSigner);
     }
 }
