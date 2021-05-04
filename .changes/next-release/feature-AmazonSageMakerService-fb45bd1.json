@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Enable retrying Training and Tuning Jobs that fail with InternalServerError by setting RetryStrategy."
+}
