@@ -2,12 +2,13 @@
   "version": "2.0",
   "metadata": {
     "apiVersion": "2010-05-08",
-    "endpointPrefix": "json-service",
+    "endpointPrefix": "json-service-endpoint",
     "globalEndpoint": "json-service.amazonaws.com",
-    "protocol": "rest-json",
+    "protocol": "json",
     "serviceAbbreviation": "Json Service",
-    "serviceFullName": "Some Service That Uses Json Protocol",
-    "serviceId":"Json Service",
+    "serviceFullName": "Some Service That Uses AWS Json Protocol",
+    "serviceId": "Json Service",
+    "signingName": "json-service",
     "signatureVersion": "v4",
     "uid": "json-service-2010-05-08",
     "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"

@@ -17,8 +17,10 @@ package software.amazon.awssdk.core;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
@@ -36,13 +40,13 @@ public class RequestOverrideConfigurationTest {
     @Test
     public void addingSameItemTwice_shouldOverride() {
         RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
-                                                                                    .putHeader(HEADER, "foo")
-                                                                                    .putHeader(HEADER, "bar")
-                                                                                    .putRawQueryParameter(QUERY_PARAM, "foo")
-                                                                                    .putRawQueryParameter(QUERY_PARAM, "bar")
-                                                                                    .addApiName(a -> a.name("test1").version("1"))
-                                                                                    .addApiName(a -> a.name("test2").version("2"))
-                                                                                    .build();
+                .putHeader(HEADER, "foo")
+                .putHeader(HEADER, "bar")
+                .putRawQueryParameter(QUERY_PARAM, "foo")
+                .putRawQueryParameter(QUERY_PARAM, "bar")
+                .addApiName(a -> a.name("test1").version("1"))
+                .addApiName(a -> a.name("test2").version("2"))
+                .build();
 
         assertThat(configuration.headers().get(HEADER)).containsExactly("bar");
         assertThat(configuration.rawQueryParameters().get(QUERY_PARAM)).containsExactly("bar");
@@ -52,15 +56,15 @@ public class RequestOverrideConfigurationTest {
     @Test
     public void settingCollection_shouldOverrideAddItem() {
         ImmutableMap<String, List<String>> map =
-            ImmutableMap.of(HEADER, Arrays.asList("hello", "world"));
+                ImmutableMap.of(HEADER, Arrays.asList("hello", "world"));
         ImmutableMap<String, List<String>> queryMap =
-            ImmutableMap.of(QUERY_PARAM, Arrays.asList("hello", "world"));
+                ImmutableMap.of(QUERY_PARAM, Arrays.asList("hello", "world"));
         RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
-                                                                                    .putHeader(HEADER, "blah")
-                                                                                    .headers(map)
-                                                                                    .putRawQueryParameter(QUERY_PARAM, "blah")
-                                                                                    .rawQueryParameters(queryMap)
-                                                                                    .build();
+                .putHeader(HEADER, "blah")
+                .headers(map)
+                .putRawQueryParameter(QUERY_PARAM, "blah")
+                .rawQueryParameters(queryMap)
+                .build();
 
         assertThat(configuration.headers().get(HEADER)).containsExactly("hello", "world");
         assertThat(configuration.rawQueryParameters().get(QUERY_PARAM)).containsExactly("hello", "world");
@@ -69,11 +73,11 @@ public class RequestOverrideConfigurationTest {
     @Test
     public void addSameItemAfterSetCollection_shouldOverride() {
         ImmutableMap<String, List<String>> map =
-            ImmutableMap.of(HEADER, Arrays.asList("hello", "world"));
+                ImmutableMap.of(HEADER, Arrays.asList("hello", "world"));
         RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
-                                                                                    .headers(map)
-                                                                                    .putHeader(HEADER, "blah")
-                                                                                    .build();
+                .headers(map)
+                .putHeader(HEADER, "blah")
+                .build();
 
         assertThat(configuration.headers().get(HEADER)).containsExactly("blah");
     }
@@ -87,7 +91,7 @@ public class RequestOverrideConfigurationTest {
         headers.put("foo", headerValues);
 
         SdkRequestOverrideConfiguration.Builder configurationBuilder =
-            SdkRequestOverrideConfiguration.builder().headers(headers);
+                SdkRequestOverrideConfiguration.builder().headers(headers);
 
         headerValues.add("test");
         headers.put("new header", Collections.singletonList("new value"));
@@ -164,5 +168,120 @@ public class RequestOverrideConfigurationTest {
         SdkRequestOverrideConfiguration overrideConfig = builder.build();
 
         assertThat(overrideConfig.metricPublishers()).containsExactly(publishers.get(0), publishers.get(1), thirdAdded);
+    }
+
+    @Test
+    public void executionAttributes_createsCopy() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        String expectedValue = "Value1";
+        executionAttributes.putAttribute(testAttribute, expectedValue);
+
+        SdkRequestOverrideConfiguration overrideConfig = SdkRequestOverrideConfiguration.builder()
+                .executionAttributes(executionAttributes)
+                .build();
+
+        executionAttributes.putAttribute(testAttribute, "Value2");
+
+        assertThat(overrideConfig.executionAttributes().getAttribute(testAttribute)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    public void executionAttributes_isImmutable() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        ExecutionAttribute testAttribute = new ExecutionAttribute("TestAttribute");
+        String expectedValue = "Value1";
+        executionAttributes.putAttribute(testAttribute, expectedValue);
+
+        SdkRequestOverrideConfiguration overrideConfig = SdkRequestOverrideConfiguration.builder()
+                .executionAttributes(executionAttributes)
+                .build();
+        try {
+            overrideConfig.executionAttributes().putAttribute(testAttribute, 2);
+            fail("Expected unsupported operation exception");
+        } catch(Exception ex) {
+            assertThat(ex instanceof UnsupportedOperationException).isTrue();
+        }
+
+        try {
+            overrideConfig.executionAttributes().putAttributeIfAbsent(testAttribute, 2);
+            fail("Expected unsupported operation exception");
+        } catch(Exception ex) {
+            assertThat(ex instanceof UnsupportedOperationException).isTrue();
+        }
+    }
+
+    @Test
+    public void executionAttributes_maintainsAllAdded() {
+        Map<ExecutionAttribute, Object> executionAttributeObjectMap = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
+            executionAttributeObjectMap.put(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+
+        for (Map.Entry<ExecutionAttribute, Object> attributeObjectEntry : executionAttributeObjectMap.entrySet()) {
+            builder.putExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
+        }
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributeObjectMap);
+    }
+
+    @Test
+    public void executionAttributes_overwritesPreviouslyAdded() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.putAttribute(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+
+        builder.putExecutionAttribute(new ExecutionAttribute("AddedAttribute"), mock(Object.class));
+        builder.executionAttributes(executionAttributes);
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes.getAttributes());
+    }
+
+    @Test
+    public void executionAttributes_listPreviouslyAdded_appendedToList() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.putAttribute(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+
+        builder.executionAttributes(executionAttributes);
+        ExecutionAttribute addedAttribute = new ExecutionAttribute("AddedAttribute");
+        Object addedValue = mock(Object.class);
+
+        builder.putExecutionAttribute(addedAttribute, addedValue);
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes().getAttribute(addedAttribute)).isEqualTo(addedValue);
+    }
+
+    @Test
+    public void testConfigurationEquals() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.putAttribute(new ExecutionAttribute<>("Attribute" + i), mock(Object.class));
+        }
+
+        SdkRequestOverrideConfiguration request1Override  = SdkRequestOverrideConfiguration.builder()
+                .apiCallTimeout(Duration.ofMinutes(1))
+                .executionAttributes(executionAttributes)
+                .build();
+
+        SdkRequestOverrideConfiguration request2Override  = SdkRequestOverrideConfiguration.builder()
+                .apiCallTimeout(Duration.ofMinutes(1))
+                .executionAttributes(executionAttributes)
+                .build();
+
+        assertThat(request1Override).isEqualTo(request1Override);
+        assertThat(request1Override).isNotEqualTo(request2Override);
+        assertThat(request1Override).isNotEqualTo(null);
     }
 }

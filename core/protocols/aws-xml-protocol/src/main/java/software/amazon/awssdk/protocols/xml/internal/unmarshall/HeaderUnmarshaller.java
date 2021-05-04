@@ -32,6 +32,7 @@ public final class HeaderUnmarshaller {
     public static final XmlUnmarshaller<String> STRING = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_STRING);
     public static final XmlUnmarshaller<Integer> INTEGER = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_INTEGER);
     public static final XmlUnmarshaller<Long> LONG = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_LONG);
+    public static final XmlUnmarshaller<Short> SHORT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_SHORT);
     public static final XmlUnmarshaller<Float> FLOAT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_FLOAT);
     public static final XmlUnmarshaller<Double> DOUBLE = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_DOUBLE);
     public static final XmlUnmarshaller<Boolean> BOOLEAN = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_BOOLEAN);

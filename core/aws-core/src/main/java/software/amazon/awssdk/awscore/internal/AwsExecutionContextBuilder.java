@@ -62,7 +62,11 @@ public final class AwsExecutionContextBuilder {
         SdkRequest originalRequest = executionParams.getInput();
         MetricCollector metricCollector = resolveMetricCollector(executionParams);
 
-        ExecutionAttributes executionAttributes = executionParams.executionAttributes();
+        ExecutionAttributes executionAttributes = mergeExecutionAttributeOverrides(
+            executionParams.executionAttributes(),
+            clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES),
+            originalRequest.overrideConfiguration().map(c -> c.executionAttributes()).orElse(null));
+
         executionAttributes
             .putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG,
@@ -164,6 +168,22 @@ public final class AwsExecutionContextBuilder {
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
         return credentials;
+    }
+
+    private static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionAttributes mergeExecutionAttributeOverrides(
+        ExecutionAttributes executionAttributes,
+        ExecutionAttributes clientOverrideExecutionAttributes,
+        ExecutionAttributes requestOverrideExecutionAttributes) {
+
+        if (clientOverrideExecutionAttributes != null) {
+            executionAttributes = clientOverrideExecutionAttributes.merge(executionAttributes);
+        }
+
+        if (requestOverrideExecutionAttributes != null) {
+            executionAttributes = requestOverrideExecutionAttributes.merge(executionAttributes);
+        }
+
+        return executionAttributes;
     }
 
     private static MetricCollector resolveMetricCollector(ClientExecutionParams<?, ?> params) {

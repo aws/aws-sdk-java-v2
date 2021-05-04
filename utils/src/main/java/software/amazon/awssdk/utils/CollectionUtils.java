@@ -126,4 +126,17 @@ public final class CollectionUtils {
     public static <K, VInT, VOutT> Map<K, VOutT> mapValues(Map<K, VInT> inputMap, Function<VInT, VOutT> mapper) {
         return inputMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapper.apply(e.getValue())));
     }
+
+    /**
+     * Return a new map that is the inverse of the supplied map, with the values becoming the keys
+     * and vice versa. Requires the values to be unique.
+     *
+     * @param inputMap a map where both the keys and values are unique
+     * @param <K> the key type
+     * @param <V> the value type
+     * @return a map
+     */
+    public static <K, V> Map<K, V> inverseMap(Map<V, K> inputMap) {
+        return inputMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    }
 }

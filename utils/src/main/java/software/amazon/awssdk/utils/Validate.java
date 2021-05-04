@@ -649,6 +649,15 @@ public final class Validate {
         return num;
     }
 
+    public static long isNotNegative(long num, String fieldName) {
+
+        if (num < 0) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return num;
+    }
+
     /**
      * Asserts that the given duration is positive (non-negative and non-zero).
      *

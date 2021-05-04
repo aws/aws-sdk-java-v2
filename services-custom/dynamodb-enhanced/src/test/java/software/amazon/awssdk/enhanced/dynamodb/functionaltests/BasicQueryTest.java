@@ -395,9 +395,8 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-1"));
         assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(nullValue()));
         results =
-                mappedNestedTable.query(b -> b
-                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
-                        .addNestedAttributeToProject(NestedAttributeName.create("sort"))
+            mappedNestedTable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
                 .addAttributeToProject("sort")).iterator();
         assertThat(results.hasNext(), is(true));
         page = results.next();
@@ -409,18 +408,18 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
     }
 
-
     @Test
     public void queryNestedRecord_withAttributeNameList() {
         insertNestedRecords();
         Iterator<Page<NestedTestRecord>> results =
-                mappedNestedTable.query(b -> b
-                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
-                        .addNestedAttributesToProject(Arrays.asList(
-                                NestedAttributeName.builder().elements("innerAttributeRecord", "attribOne").build(),
-                                NestedAttributeName.builder().addElement("outerAttribOne").build()))
+            mappedNestedTable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
+                .addNestedAttributesToProject(Arrays.asList(
+                    NestedAttributeName.builder().elements("innerAttributeRecord", "attribOne").build(),
+                    NestedAttributeName.builder().addElement("outerAttribOne").build()))
                 .addNestedAttributesToProject(NestedAttributeName.builder()
-                        .addElements(Arrays.asList("innerAttributeRecord","attribTwo")).build())).iterator();
+                                                                 .addElements(Arrays.asList("innerAttributeRecord",
+                                                                                            "attribTwo")).build())).iterator();
         assertThat(results.hasNext(), is(true));
         Page<NestedTestRecord> page = results.next();
         assertThat(results.hasNext(), is(false));

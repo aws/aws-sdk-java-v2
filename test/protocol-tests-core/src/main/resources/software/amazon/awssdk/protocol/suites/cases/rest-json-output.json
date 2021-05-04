@@ -38,7 +38,7 @@
     }
   },
   {
-    "description": "Base 64 string header with JSON trait is decoded",
+    "description": "Base 64 string header with JSON trait is decoded, unquoted string preserved (invalid json)",
     "given": {
       "response": {
         "status_code": 200,
@@ -55,6 +55,50 @@
     "then": {
       "deserializedAs": {
         "JsonValueHeaderMember": "toDecode",
+        "JsonValueMember": "dontDecode"
+      }
+    }
+  },
+  {
+    "description": "Base 64 string header with JSON trait is decoded, quoted string preserved (valid json)",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Encoded-Header": "InRvRGVjb2RlIg=="
+        },
+        "body": "{\"JsonValueMember\":\"dontDecode\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonValuesOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "JsonValueHeaderMember": "\"toDecode\"",
+        "JsonValueMember": "dontDecode"
+      }
+    }
+  },
+  {
+    "description": "Base 64 string header with JSON trait is decoded, quoted json object preserved",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Encoded-Header": "IntcImxpc3RcIjpbMSwyLDNdLFwibWFwXCI6e1wiZmlyc3RcIjpcInZhbHVlMVwiLFwic2Vjb25kXCI6XCJ2YWx1ZTJcIn19Ig=="
+        },
+        "body": "{\"JsonValueMember\":\"dontDecode\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonValuesOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "JsonValueHeaderMember": "\"{\\\"list\\\":[1,2,3],\\\"map\\\":{\\\"first\\\":\\\"value1\\\",\\\"second\\\":\\\"value2\\\"}}\"",
         "JsonValueMember": "dontDecode"
       }
     }

@@ -19,7 +19,6 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.ListTrait;
@@ -29,7 +28,6 @@ import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -38,374 +36,402 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class AllTypesRequest extends JsonProtocolTestsRequest implements
-        ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
+                                                                    ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("StringMember").getter(getter(AllTypesRequest::stringMember)).setter(setter(Builder::stringMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
+                                                                        .memberName("StringMember").getter(getter(AllTypesRequest::stringMember)).setter(setter(Builder::stringMember))
+                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final SdkField<Integer> INTEGER_MEMBER_FIELD = SdkField.<Integer> builder(MarshallingType.INTEGER)
-            .memberName("IntegerMember").getter(getter(AllTypesRequest::integerMember)).setter(setter(Builder::integerMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("IntegerMember").build()).build();
+                                                                          .memberName("IntegerMember").getter(getter(AllTypesRequest::integerMember)).setter(setter(Builder::integerMember))
+                                                                          .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("IntegerMember").build()).build();
 
     private static final SdkField<Boolean> BOOLEAN_MEMBER_FIELD = SdkField.<Boolean> builder(MarshallingType.BOOLEAN)
-            .memberName("BooleanMember").getter(getter(AllTypesRequest::booleanMember)).setter(setter(Builder::booleanMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BooleanMember").build()).build();
+                                                                          .memberName("BooleanMember").getter(getter(AllTypesRequest::booleanMember)).setter(setter(Builder::booleanMember))
+                                                                          .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BooleanMember").build()).build();
 
     private static final SdkField<Float> FLOAT_MEMBER_FIELD = SdkField.<Float> builder(MarshallingType.FLOAT)
-            .memberName("FloatMember").getter(getter(AllTypesRequest::floatMember)).setter(setter(Builder::floatMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("FloatMember").build()).build();
+                                                                      .memberName("FloatMember").getter(getter(AllTypesRequest::floatMember)).setter(setter(Builder::floatMember))
+                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("FloatMember").build()).build();
 
     private static final SdkField<Double> DOUBLE_MEMBER_FIELD = SdkField.<Double> builder(MarshallingType.DOUBLE)
-            .memberName("DoubleMember").getter(getter(AllTypesRequest::doubleMember)).setter(setter(Builder::doubleMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("DoubleMember").build()).build();
+                                                                        .memberName("DoubleMember").getter(getter(AllTypesRequest::doubleMember)).setter(setter(Builder::doubleMember))
+                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("DoubleMember").build()).build();
 
     private static final SdkField<Long> LONG_MEMBER_FIELD = SdkField.<Long> builder(MarshallingType.LONG)
-            .memberName("LongMember").getter(getter(AllTypesRequest::longMember)).setter(setter(Builder::longMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
+                                                                    .memberName("LongMember").getter(getter(AllTypesRequest::longMember)).setter(setter(Builder::longMember))
+                                                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
+
+    private static final SdkField<Short> SHORT_MEMBER_FIELD = SdkField.<Short> builder(MarshallingType.SHORT)
+                                                                      .memberName("ShortMember").getter(getter(AllTypesRequest::shortMember)).setter(setter(Builder::shortMember))
+                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ShortMember").build()).build();
 
     private static final SdkField<List<String>> SIMPLE_LIST_FIELD = SdkField
-            .<List<String>> builder(MarshallingType.LIST)
-            .memberName("SimpleList")
-            .getter(getter(AllTypesRequest::simpleList))
-            .setter(setter(Builder::simpleList))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SimpleList").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+        .<List<String>> builder(MarshallingType.LIST)
+        .memberName("SimpleList")
+        .getter(getter(AllTypesRequest::simpleList))
+        .setter(setter(Builder::simpleList))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SimpleList").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<String> builder(MarshallingType.STRING)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<List<String>> LIST_OF_ENUMS_FIELD = SdkField
-            .<List<String>> builder(MarshallingType.LIST)
-            .memberName("ListOfEnums")
-            .getter(getter(AllTypesRequest::listOfEnumsAsStrings))
-            .setter(setter(Builder::listOfEnumsWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfEnums").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+        .<List<String>> builder(MarshallingType.LIST)
+        .memberName("ListOfEnums")
+        .getter(getter(AllTypesRequest::listOfEnumsAsStrings))
+        .setter(setter(Builder::listOfEnumsWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfEnums").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<String> builder(MarshallingType.STRING)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<List<Map<String, String>>> LIST_OF_MAPS_FIELD = SdkField
-            .<List<Map<String, String>>> builder(MarshallingType.LIST)
-            .memberName("ListOfMaps")
-            .getter(getter(AllTypesRequest::listOfMaps))
-            .setter(setter(Builder::listOfMaps))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMaps").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<Map<String, String>> builder(MarshallingType.MAP)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build(),
-                                                    MapTrait.builder()
-                                                            .keyLocationName("key")
-                                                            .valueLocationName("value")
-                                                            .valueFieldInfo(
-                                                                    SdkField.<String> builder(MarshallingType.STRING)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("value").build()).build())
-                                                            .build()).build()).build()).build();
+        .<List<Map<String, String>>> builder(MarshallingType.LIST)
+        .memberName("ListOfMaps")
+        .getter(getter(AllTypesRequest::listOfMaps))
+        .setter(setter(Builder::listOfMaps))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMaps").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<Map<String, String>> builder(MarshallingType.MAP)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build(),
+                                        MapTrait.builder()
+                                                .keyLocationName("key")
+                                                .valueLocationName("value")
+                                                .valueFieldInfo(
+                                                    SdkField.<String> builder(MarshallingType.STRING)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("value").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<List<SimpleStruct>> LIST_OF_STRUCTS_FIELD = SdkField
-            .<List<SimpleStruct>> builder(MarshallingType.LIST)
-            .memberName("ListOfStructs")
-            .getter(getter(AllTypesRequest::listOfStructs))
-            .setter(setter(Builder::listOfStructs))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfStructs").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
-                                            .constructor(SimpleStruct::builder)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+        .<List<SimpleStruct>> builder(MarshallingType.LIST)
+        .memberName("ListOfStructs")
+        .getter(getter(AllTypesRequest::listOfStructs))
+        .setter(setter(Builder::listOfStructs))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfStructs").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                .constructor(SimpleStruct::builder)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<List<Map<String, String>>> LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD = SdkField
-            .<List<Map<String, String>>> builder(MarshallingType.LIST)
-            .memberName("ListOfMapOfEnumToString")
-            .getter(getter(AllTypesRequest::listOfMapOfEnumToStringAsStrings))
-            .setter(setter(Builder::listOfMapOfEnumToStringWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfEnumToString").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<Map<String, String>> builder(MarshallingType.MAP)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build(),
-                                                    MapTrait.builder()
-                                                            .keyLocationName("key")
-                                                            .valueLocationName("value")
-                                                            .valueFieldInfo(
-                                                                    SdkField.<String> builder(MarshallingType.STRING)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("value").build()).build())
-                                                            .build()).build()).build()).build();
+        .<List<Map<String, String>>> builder(MarshallingType.LIST)
+        .memberName("ListOfMapOfEnumToString")
+        .getter(getter(AllTypesRequest::listOfMapOfEnumToStringAsStrings))
+        .setter(setter(Builder::listOfMapOfEnumToStringWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfEnumToString").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<Map<String, String>> builder(MarshallingType.MAP)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build(),
+                                        MapTrait.builder()
+                                                .keyLocationName("key")
+                                                .valueLocationName("value")
+                                                .valueFieldInfo(
+                                                    SdkField.<String> builder(MarshallingType.STRING)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("value").build()).build())
+                                                .build()).build()).build()).build();
+
+    private static final SdkField<List<Map<String, SimpleStruct>>> LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD = SdkField
+        .<List<Map<String, SimpleStruct>>> builder(MarshallingType.LIST)
+        .memberName("ListOfMapOfStringToStruct")
+        .getter(getter(AllTypesRequest::listOfMapOfStringToStruct))
+        .setter(setter(Builder::listOfMapOfStringToStruct))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfStringToStruct").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build(),
+                                        MapTrait.builder()
+                                                .keyLocationName("key")
+                                                .valueLocationName("value")
+                                                .valueFieldInfo(
+                                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                                            .constructor(SimpleStruct::builder)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("value").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<Map<String, List<Integer>>> MAP_OF_STRING_TO_INTEGER_LIST_FIELD = SdkField
-            .<Map<String, List<Integer>>> builder(MarshallingType.MAP)
-            .memberName("MapOfStringToIntegerList")
-            .getter(getter(AllTypesRequest::mapOfStringToIntegerList))
-            .setter(setter(Builder::mapOfStringToIntegerList))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToIntegerList").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<List<Integer>> builder(MarshallingType.LIST)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build(),
-                                                    ListTrait
-                                                            .builder()
-                                                            .memberLocationName(null)
-                                                            .memberFieldInfo(
-                                                                    SdkField.<Integer> builder(MarshallingType.INTEGER)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("member").build()).build())
-                                                            .build()).build()).build()).build();
+        .<Map<String, List<Integer>>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToIntegerList")
+        .getter(getter(AllTypesRequest::mapOfStringToIntegerList))
+        .setter(setter(Builder::mapOfStringToIntegerList))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToIntegerList").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<List<Integer>> builder(MarshallingType.LIST)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build(),
+                                            ListTrait
+                                                .builder()
+                                                .memberLocationName(null)
+                                                .memberFieldInfo(
+                                                    SdkField.<Integer> builder(MarshallingType.INTEGER)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("member").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_STRING_FIELD = SdkField
-            .<Map<String, String>> builder(MarshallingType.MAP)
-            .memberName("MapOfStringToString")
-            .getter(getter(AllTypesRequest::mapOfStringToString))
-            .setter(setter(Builder::mapOfStringToString))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToString").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToString")
+        .getter(getter(AllTypesRequest::mapOfStringToString))
+        .setter(setter(Builder::mapOfStringToString))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToString").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, SimpleStruct>> MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD = SdkField
-            .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
-            .memberName("MapOfStringToSimpleStruct")
-            .getter(getter(AllTypesRequest::mapOfStringToSimpleStruct))
-            .setter(setter(Builder::mapOfStringToSimpleStruct))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToSimpleStruct").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
-                                            .constructor(SimpleStruct::builder)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToSimpleStruct")
+        .getter(getter(AllTypesRequest::mapOfStringToSimpleStruct))
+        .setter(setter(Builder::mapOfStringToSimpleStruct))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToSimpleStruct").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                    .constructor(SimpleStruct::builder)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_ENUM_FIELD = SdkField
-            .<Map<String, String>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToEnum")
-            .getter(getter(AllTypesRequest::mapOfEnumToEnumAsStrings))
-            .setter(setter(Builder::mapOfEnumToEnumWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToEnum").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToEnum")
+        .getter(getter(AllTypesRequest::mapOfEnumToEnumAsStrings))
+        .setter(setter(Builder::mapOfEnumToEnumWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToEnum").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_STRING_FIELD = SdkField
-            .<Map<String, String>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToString")
-            .getter(getter(AllTypesRequest::mapOfEnumToStringAsStrings))
-            .setter(setter(Builder::mapOfEnumToStringWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToString").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToString")
+        .getter(getter(AllTypesRequest::mapOfEnumToStringAsStrings))
+        .setter(setter(Builder::mapOfEnumToStringWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToString").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_ENUM_FIELD = SdkField
-            .<Map<String, String>> builder(MarshallingType.MAP)
-            .memberName("MapOfStringToEnum")
-            .getter(getter(AllTypesRequest::mapOfStringToEnumAsStrings))
-            .setter(setter(Builder::mapOfStringToEnumWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToEnum").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToEnum")
+        .getter(getter(AllTypesRequest::mapOfStringToEnumAsStrings))
+        .setter(setter(Builder::mapOfStringToEnumWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToEnum").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, SimpleStruct>> MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD = SdkField
-            .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToSimpleStruct")
-            .getter(getter(AllTypesRequest::mapOfEnumToSimpleStructAsStrings))
-            .setter(setter(Builder::mapOfEnumToSimpleStructWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToSimpleStruct").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
-                                            .constructor(SimpleStruct::builder)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToSimpleStruct")
+        .getter(getter(AllTypesRequest::mapOfEnumToSimpleStructAsStrings))
+        .setter(setter(Builder::mapOfEnumToSimpleStructWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToSimpleStruct").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                    .constructor(SimpleStruct::builder)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, List<String>>> MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD = SdkField
-            .<Map<String, List<String>>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToListOfEnums")
-            .getter(getter(AllTypesRequest::mapOfEnumToListOfEnumsAsStrings))
-            .setter(setter(Builder::mapOfEnumToListOfEnumsWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToListOfEnums").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<List<String>> builder(MarshallingType.LIST)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build(),
-                                                    ListTrait
-                                                            .builder()
-                                                            .memberLocationName(null)
-                                                            .memberFieldInfo(
-                                                                    SdkField.<String> builder(MarshallingType.STRING)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("member").build()).build())
-                                                            .build()).build()).build()).build();
+        .<Map<String, List<String>>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToListOfEnums")
+        .getter(getter(AllTypesRequest::mapOfEnumToListOfEnumsAsStrings))
+        .setter(setter(Builder::mapOfEnumToListOfEnumsWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToListOfEnums").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<List<String>> builder(MarshallingType.LIST)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build(),
+                                            ListTrait
+                                                .builder()
+                                                .memberLocationName(null)
+                                                .memberFieldInfo(
+                                                    SdkField.<String> builder(MarshallingType.STRING)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("member").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<Map<String, Map<String, String>>> MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD = SdkField
-            .<Map<String, Map<String, String>>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToMapOfStringToEnum")
-            .getter(getter(AllTypesRequest::mapOfEnumToMapOfStringToEnumAsStrings))
-            .setter(setter(Builder::mapOfEnumToMapOfStringToEnumWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToMapOfStringToEnum")
-                    .build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<Map<String, String>> builder(MarshallingType.MAP)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build(),
-                                                    MapTrait.builder()
-                                                            .keyLocationName("key")
-                                                            .valueLocationName("value")
-                                                            .valueFieldInfo(
-                                                                    SdkField.<String> builder(MarshallingType.STRING)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("value").build()).build())
-                                                            .build()).build()).build()).build();
+        .<Map<String, Map<String, String>>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToMapOfStringToEnum")
+        .getter(getter(AllTypesRequest::mapOfEnumToMapOfStringToEnumAsStrings))
+        .setter(setter(Builder::mapOfEnumToMapOfStringToEnumWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToMapOfStringToEnum")
+                             .build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<Map<String, String>> builder(MarshallingType.MAP)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build(),
+                                            MapTrait.builder()
+                                                    .keyLocationName("key")
+                                                    .valueLocationName("value")
+                                                    .valueFieldInfo(
+                                                        SdkField.<String> builder(MarshallingType.STRING)
+                                                                .traits(LocationTrait.builder()
+                                                                                     .location(MarshallLocation.PAYLOAD)
+                                                                                     .locationName("value").build()).build())
+                                                    .build()).build()).build()).build();
 
     private static final SdkField<Instant> TIMESTAMP_MEMBER_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-            .memberName("TimestampMember").getter(getter(AllTypesRequest::timestampMember))
-            .setter(setter(Builder::timestampMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("TimestampMember").build()).build();
+                                                                            .memberName("TimestampMember").getter(getter(AllTypesRequest::timestampMember))
+                                                                            .setter(setter(Builder::timestampMember))
+                                                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("TimestampMember").build()).build();
 
     private static final SdkField<StructWithTimestamp> STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD = SdkField
-            .<StructWithTimestamp> builder(MarshallingType.SDK_POJO)
-            .memberName("StructWithNestedTimestampMember")
-            .getter(getter(AllTypesRequest::structWithNestedTimestampMember))
-            .setter(setter(Builder::structWithNestedTimestampMember))
-            .constructor(StructWithTimestamp::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedTimestampMember")
-                    .build()).build();
+        .<StructWithTimestamp> builder(MarshallingType.SDK_POJO)
+        .memberName("StructWithNestedTimestampMember")
+        .getter(getter(AllTypesRequest::structWithNestedTimestampMember))
+        .setter(setter(Builder::structWithNestedTimestampMember))
+        .constructor(StructWithTimestamp::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedTimestampMember")
+                             .build()).build();
 
     private static final SdkField<SdkBytes> BLOB_ARG_FIELD = SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-            .memberName("BlobArg").getter(getter(AllTypesRequest::blobArg)).setter(setter(Builder::blobArg))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobArg").build()).build();
+                                                                     .memberName("BlobArg").getter(getter(AllTypesRequest::blobArg)).setter(setter(Builder::blobArg))
+                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobArg").build()).build();
 
     private static final SdkField<StructWithNestedBlobType> STRUCT_WITH_NESTED_BLOB_FIELD = SdkField
-            .<StructWithNestedBlobType> builder(MarshallingType.SDK_POJO).memberName("StructWithNestedBlob")
-            .getter(getter(AllTypesRequest::structWithNestedBlob)).setter(setter(Builder::structWithNestedBlob))
-            .constructor(StructWithNestedBlobType::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedBlob").build())
-            .build();
+        .<StructWithNestedBlobType> builder(MarshallingType.SDK_POJO).memberName("StructWithNestedBlob")
+        .getter(getter(AllTypesRequest::structWithNestedBlob)).setter(setter(Builder::structWithNestedBlob))
+        .constructor(StructWithNestedBlobType::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedBlob").build())
+        .build();
 
     private static final SdkField<Map<String, SdkBytes>> BLOB_MAP_FIELD = SdkField
-            .<Map<String, SdkBytes>> builder(MarshallingType.MAP)
-            .memberName("BlobMap")
-            .getter(getter(AllTypesRequest::blobMap))
-            .setter(setter(Builder::blobMap))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobMap").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, SdkBytes>> builder(MarshallingType.MAP)
+        .memberName("BlobMap")
+        .getter(getter(AllTypesRequest::blobMap))
+        .setter(setter(Builder::blobMap))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobMap").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<List<SdkBytes>> LIST_OF_BLOBS_FIELD = SdkField
-            .<List<SdkBytes>> builder(MarshallingType.LIST)
-            .memberName("ListOfBlobs")
-            .getter(getter(AllTypesRequest::listOfBlobs))
-            .setter(setter(Builder::listOfBlobs))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfBlobs").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+        .<List<SdkBytes>> builder(MarshallingType.LIST)
+        .memberName("ListOfBlobs")
+        .getter(getter(AllTypesRequest::listOfBlobs))
+        .setter(setter(Builder::listOfBlobs))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfBlobs").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<RecursiveStructType> RECURSIVE_STRUCT_FIELD = SdkField
-            .<RecursiveStructType> builder(MarshallingType.SDK_POJO).memberName("RecursiveStruct")
-            .getter(getter(AllTypesRequest::recursiveStruct)).setter(setter(Builder::recursiveStruct))
-            .constructor(RecursiveStructType::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveStruct").build()).build();
+        .<RecursiveStructType> builder(MarshallingType.SDK_POJO).memberName("RecursiveStruct")
+        .getter(getter(AllTypesRequest::recursiveStruct)).setter(setter(Builder::recursiveStruct))
+        .constructor(RecursiveStructType::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveStruct").build()).build();
 
     private static final SdkField<BaseType> POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD = SdkField
-            .<BaseType> builder(MarshallingType.SDK_POJO)
-            .memberName("PolymorphicTypeWithSubTypes")
-            .getter(getter(AllTypesRequest::polymorphicTypeWithSubTypes))
-            .setter(setter(Builder::polymorphicTypeWithSubTypes))
-            .constructor(BaseType::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithSubTypes")
-                    .build()).build();
+        .<BaseType> builder(MarshallingType.SDK_POJO)
+        .memberName("PolymorphicTypeWithSubTypes")
+        .getter(getter(AllTypesRequest::polymorphicTypeWithSubTypes))
+        .setter(setter(Builder::polymorphicTypeWithSubTypes))
+        .constructor(BaseType::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithSubTypes")
+                             .build()).build();
 
     private static final SdkField<SubTypeOne> POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD = SdkField
-            .<SubTypeOne> builder(MarshallingType.SDK_POJO)
-            .memberName("PolymorphicTypeWithoutSubTypes")
-            .getter(getter(AllTypesRequest::polymorphicTypeWithoutSubTypes))
-            .setter(setter(Builder::polymorphicTypeWithoutSubTypes))
-            .constructor(SubTypeOne::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithoutSubTypes")
-                    .build()).build();
+        .<SubTypeOne> builder(MarshallingType.SDK_POJO)
+        .memberName("PolymorphicTypeWithoutSubTypes")
+        .getter(getter(AllTypesRequest::polymorphicTypeWithoutSubTypes))
+        .setter(setter(Builder::polymorphicTypeWithoutSubTypes))
+        .constructor(SubTypeOne::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithoutSubTypes")
+                             .build()).build();
 
     private static final SdkField<String> ENUM_TYPE_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("EnumType").getter(getter(AllTypesRequest::enumTypeAsString)).setter(setter(Builder::enumType))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EnumType").build()).build();
+                                                                    .memberName("EnumType").getter(getter(AllTypesRequest::enumTypeAsString)).setter(setter(Builder::enumType))
+                                                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EnumType").build()).build();
 
     private static final SdkField<Underscore_Name_Type> UNDERSCORE_NAME_TYPE_FIELD = SdkField
-            .<Underscore_Name_Type> builder(MarshallingType.SDK_POJO).memberName("Underscore_Name_Type")
-            .getter(getter(AllTypesRequest::underscore_Name_Type)).setter(setter(Builder::underscore_Name_Type))
-            .constructor(Underscore_Name_Type::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Underscore_Name_Type").build())
-            .build();
+        .<Underscore_Name_Type> builder(MarshallingType.SDK_POJO).memberName("Underscore_Name_Type")
+        .getter(getter(AllTypesRequest::underscore_Name_Type)).setter(setter(Builder::underscore_Name_Type))
+        .constructor(Underscore_Name_Type::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Underscore_Name_Type").build())
+        .build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
-            INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
-            SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
-            LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD, MAP_OF_STRING_TO_INTEGER_LIST_FIELD, MAP_OF_STRING_TO_STRING_FIELD,
-            MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_ENUM_FIELD, MAP_OF_ENUM_TO_STRING_FIELD,
-            MAP_OF_STRING_TO_ENUM_FIELD, MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD,
-            MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD, TIMESTAMP_MEMBER_FIELD, STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD,
-            BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD, LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD,
-            POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD, POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD,
-            UNDERSCORE_NAME_TYPE_FIELD));
+                                                                                                   INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
+                                                                                                   SHORT_MEMBER_FIELD, SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
+                                                                                                   LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD, LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD, MAP_OF_STRING_TO_INTEGER_LIST_FIELD,
+                                                                                                   MAP_OF_STRING_TO_STRING_FIELD, MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_ENUM_FIELD,
+                                                                                                   MAP_OF_ENUM_TO_STRING_FIELD, MAP_OF_STRING_TO_ENUM_FIELD, MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD,
+                                                                                                   MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD, MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD, TIMESTAMP_MEMBER_FIELD,
+                                                                                                   STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD, BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD,
+                                                                                                   LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
+                                                                                                   POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD));
 
     private final String stringMember;
 
@@ -419,6 +445,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private final Long longMember;
 
+    private final Short shortMember;
+
     private final List<String> simpleList;
 
     private final List<String> listOfEnums;
@@ -428,6 +456,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     private final List<SimpleStruct> listOfStructs;
 
     private final List<Map<String, String>> listOfMapOfEnumToString;
+
+    private final List<Map<String, SimpleStruct>> listOfMapOfStringToStruct;
 
     private final Map<String, List<Integer>> mapOfStringToIntegerList;
 
@@ -477,11 +507,13 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         this.floatMember = builder.floatMember;
         this.doubleMember = builder.doubleMember;
         this.longMember = builder.longMember;
+        this.shortMember = builder.shortMember;
         this.simpleList = builder.simpleList;
         this.listOfEnums = builder.listOfEnums;
         this.listOfMaps = builder.listOfMaps;
         this.listOfStructs = builder.listOfStructs;
         this.listOfMapOfEnumToString = builder.listOfMapOfEnumToString;
+        this.listOfMapOfStringToStruct = builder.listOfMapOfStringToStruct;
         this.mapOfStringToIntegerList = builder.mapOfStringToIntegerList;
         this.mapOfStringToString = builder.mapOfStringToString;
         this.mapOfStringToSimpleStruct = builder.mapOfStringToSimpleStruct;
@@ -506,7 +538,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the StringMember property for this object.
-     * 
+     *
      * @return The value of the StringMember property for this object.
      */
     public final String stringMember() {
@@ -515,7 +547,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the IntegerMember property for this object.
-     * 
+     *
      * @return The value of the IntegerMember property for this object.
      */
     public final Integer integerMember() {
@@ -524,7 +556,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the BooleanMember property for this object.
-     * 
+     *
      * @return The value of the BooleanMember property for this object.
      */
     public final Boolean booleanMember() {
@@ -533,7 +565,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the FloatMember property for this object.
-     * 
+     *
      * @return The value of the FloatMember property for this object.
      */
     public final Float floatMember() {
@@ -542,7 +574,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the DoubleMember property for this object.
-     * 
+     *
      * @return The value of the DoubleMember property for this object.
      */
     public final Double doubleMember() {
@@ -551,11 +583,20 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the LongMember property for this object.
-     * 
+     *
      * @return The value of the LongMember property for this object.
      */
     public final Long longMember() {
         return longMember;
+    }
+
+    /**
+     * Returns the value of the ShortMember property for this object.
+     *
+     * @return The value of the ShortMember property for this object.
+     */
+    public final Short shortMember() {
+        return shortMember;
     }
 
     /**
@@ -574,7 +615,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasSimpleList()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the SimpleList property for this object.
      */
     public final List<String> simpleList() {
@@ -589,7 +630,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasListOfEnums()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the ListOfEnums property for this object.
      */
     public final List<EnumType> listOfEnums() {
@@ -612,7 +653,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasListOfEnums()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the ListOfEnums property for this object.
      */
     public final List<String> listOfEnumsAsStrings() {
@@ -635,7 +676,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasListOfMaps()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the ListOfMaps property for this object.
      */
     public final List<Map<String, String>> listOfMaps() {
@@ -658,7 +699,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasListOfStructs()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the ListOfStructs property for this object.
      */
     public final List<SimpleStruct> listOfStructs() {
@@ -673,7 +714,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasListOfMapOfEnumToString()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the ListOfMapOfEnumToString property for this object.
      */
     public final List<Map<EnumType, String>> listOfMapOfEnumToString() {
@@ -697,11 +738,35 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasListOfMapOfEnumToString()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the ListOfMapOfEnumToString property for this object.
      */
     public final List<Map<String, String>> listOfMapOfEnumToStringAsStrings() {
         return listOfMapOfEnumToString;
+    }
+
+    /**
+     * Returns true if the ListOfMapOfStringToStruct property was specified by the sender (it may be empty), or false if
+     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
+     * service.
+     */
+    public final boolean hasListOfMapOfStringToStruct() {
+        return listOfMapOfStringToStruct != null && !(listOfMapOfStringToStruct instanceof SdkAutoConstructList);
+    }
+
+    /**
+     * Returns the value of the ListOfMapOfStringToStruct property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     * <p>
+     * You can use {@link #hasListOfMapOfStringToStruct()} to see if a value was sent in this field.
+     * </p>
+     *
+     * @return The value of the ListOfMapOfStringToStruct property for this object.
+     */
+    public final List<Map<String, SimpleStruct>> listOfMapOfStringToStruct() {
+        return listOfMapOfStringToStruct;
     }
 
     /**
@@ -721,7 +786,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfStringToIntegerList()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToIntegerList property for this object.
      */
     public final Map<String, List<Integer>> mapOfStringToIntegerList() {
@@ -745,7 +810,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfStringToString()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToString property for this object.
      */
     public final Map<String, String> mapOfStringToString() {
@@ -769,7 +834,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfStringToSimpleStruct()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToSimpleStruct property for this object.
      */
     public final Map<String, SimpleStruct> mapOfStringToSimpleStruct() {
@@ -784,7 +849,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToEnum()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToEnum property for this object.
      */
     public final Map<EnumType, EnumType> mapOfEnumToEnum() {
@@ -808,7 +873,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToEnum()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToEnum property for this object.
      */
     public final Map<String, String> mapOfEnumToEnumAsStrings() {
@@ -823,7 +888,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToString()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToString property for this object.
      */
     public final Map<EnumType, String> mapOfEnumToString() {
@@ -847,7 +912,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToString()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToString property for this object.
      */
     public final Map<String, String> mapOfEnumToStringAsStrings() {
@@ -862,7 +927,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfStringToEnum()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToEnum property for this object.
      */
     public final Map<String, EnumType> mapOfStringToEnum() {
@@ -886,7 +951,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfStringToEnum()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToEnum property for this object.
      */
     public final Map<String, String> mapOfStringToEnumAsStrings() {
@@ -901,7 +966,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToSimpleStruct()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToSimpleStruct property for this object.
      */
     public final Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct() {
@@ -925,7 +990,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToSimpleStruct()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToSimpleStruct property for this object.
      */
     public final Map<String, SimpleStruct> mapOfEnumToSimpleStructAsStrings() {
@@ -940,7 +1005,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToListOfEnums()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToListOfEnums property for this object.
      */
     public final Map<EnumType, List<EnumType>> mapOfEnumToListOfEnums() {
@@ -964,7 +1029,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToListOfEnums()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToListOfEnums property for this object.
      */
     public final Map<String, List<String>> mapOfEnumToListOfEnumsAsStrings() {
@@ -979,7 +1044,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToMapOfStringToEnum()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToMapOfStringToEnum property for this object.
      */
     public final Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnum() {
@@ -1003,7 +1068,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasMapOfEnumToMapOfStringToEnum()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToMapOfStringToEnum property for this object.
      */
     public final Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnumAsStrings() {
@@ -1012,7 +1077,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the TimestampMember property for this object.
-     * 
+     *
      * @return The value of the TimestampMember property for this object.
      */
     public final Instant timestampMember() {
@@ -1021,7 +1086,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the StructWithNestedTimestampMember property for this object.
-     * 
+     *
      * @return The value of the StructWithNestedTimestampMember property for this object.
      */
     public final StructWithTimestamp structWithNestedTimestampMember() {
@@ -1030,7 +1095,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the BlobArg property for this object.
-     * 
+     *
      * @return The value of the BlobArg property for this object.
      */
     public final SdkBytes blobArg() {
@@ -1039,7 +1104,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the StructWithNestedBlob property for this object.
-     * 
+     *
      * @return The value of the StructWithNestedBlob property for this object.
      */
     public final StructWithNestedBlobType structWithNestedBlob() {
@@ -1062,7 +1127,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasBlobMap()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the BlobMap property for this object.
      */
     public final Map<String, SdkBytes> blobMap() {
@@ -1085,7 +1150,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * <p>
      * You can use {@link #hasListOfBlobs()} to see if a value was sent in this field.
      * </p>
-     * 
+     *
      * @return The value of the ListOfBlobs property for this object.
      */
     public final List<SdkBytes> listOfBlobs() {
@@ -1094,7 +1159,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the RecursiveStruct property for this object.
-     * 
+     *
      * @return The value of the RecursiveStruct property for this object.
      */
     public final RecursiveStructType recursiveStruct() {
@@ -1103,7 +1168,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the PolymorphicTypeWithSubTypes property for this object.
-     * 
+     *
      * @return The value of the PolymorphicTypeWithSubTypes property for this object.
      */
     public final BaseType polymorphicTypeWithSubTypes() {
@@ -1112,7 +1177,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the PolymorphicTypeWithoutSubTypes property for this object.
-     * 
+     *
      * @return The value of the PolymorphicTypeWithoutSubTypes property for this object.
      */
     public final SubTypeOne polymorphicTypeWithoutSubTypes() {
@@ -1126,7 +1191,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * return {@link EnumType#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
      * {@link #enumTypeAsString}.
      * </p>
-     * 
+     *
      * @return The value of the EnumType property for this object.
      * @see EnumType
      */
@@ -1141,7 +1206,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      * return {@link EnumType#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
      * {@link #enumTypeAsString}.
      * </p>
-     * 
+     *
      * @return The value of the EnumType property for this object.
      * @see EnumType
      */
@@ -1151,7 +1216,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     /**
      * Returns the value of the Underscore_Name_Type property for this object.
-     * 
+     *
      * @return The value of the Underscore_Name_Type property for this object.
      */
     public final Underscore_Name_Type underscore_Name_Type() {
@@ -1181,11 +1246,13 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         hashCode = 31 * hashCode + Objects.hashCode(floatMember());
         hashCode = 31 * hashCode + Objects.hashCode(doubleMember());
         hashCode = 31 * hashCode + Objects.hashCode(longMember());
+        hashCode = 31 * hashCode + Objects.hashCode(shortMember());
         hashCode = 31 * hashCode + Objects.hashCode(hasSimpleList() ? simpleList() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasListOfEnums() ? listOfEnumsAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasListOfMaps() ? listOfMaps() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasListOfStructs() ? listOfStructs() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasListOfMapOfEnumToString() ? listOfMapOfEnumToStringAsStrings() : null);
+        hashCode = 31 * hashCode + Objects.hashCode(hasListOfMapOfStringToStruct() ? listOfMapOfStringToStruct() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfStringToIntegerList() ? mapOfStringToIntegerList() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfStringToString() ? mapOfStringToString() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfStringToSimpleStruct() ? mapOfStringToSimpleStruct() : null);
@@ -1195,7 +1262,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfEnumToSimpleStruct() ? mapOfEnumToSimpleStructAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfEnumToListOfEnums() ? mapOfEnumToListOfEnumsAsStrings() : null);
         hashCode = 31 * hashCode
-                + Objects.hashCode(hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null);
+                   + Objects.hashCode(hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(timestampMember());
         hashCode = 31 * hashCode + Objects.hashCode(structWithNestedTimestampMember());
         hashCode = 31 * hashCode + Objects.hashCode(blobArg());
@@ -1228,44 +1295,46 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
         AllTypesRequest other = (AllTypesRequest) obj;
         return Objects.equals(stringMember(), other.stringMember()) && Objects.equals(integerMember(), other.integerMember())
-                && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
-                && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
-                && hasSimpleList() == other.hasSimpleList() && Objects.equals(simpleList(), other.simpleList())
-                && hasListOfEnums() == other.hasListOfEnums()
-                && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
-                && hasListOfMaps() == other.hasListOfMaps() && Objects.equals(listOfMaps(), other.listOfMaps())
-                && hasListOfStructs() == other.hasListOfStructs() && Objects.equals(listOfStructs(), other.listOfStructs())
-                && hasListOfMapOfEnumToString() == other.hasListOfMapOfEnumToString()
-                && Objects.equals(listOfMapOfEnumToStringAsStrings(), other.listOfMapOfEnumToStringAsStrings())
-                && hasMapOfStringToIntegerList() == other.hasMapOfStringToIntegerList()
-                && Objects.equals(mapOfStringToIntegerList(), other.mapOfStringToIntegerList())
-                && hasMapOfStringToString() == other.hasMapOfStringToString()
-                && Objects.equals(mapOfStringToString(), other.mapOfStringToString())
-                && hasMapOfStringToSimpleStruct() == other.hasMapOfStringToSimpleStruct()
-                && Objects.equals(mapOfStringToSimpleStruct(), other.mapOfStringToSimpleStruct())
-                && hasMapOfEnumToEnum() == other.hasMapOfEnumToEnum()
-                && Objects.equals(mapOfEnumToEnumAsStrings(), other.mapOfEnumToEnumAsStrings())
-                && hasMapOfEnumToString() == other.hasMapOfEnumToString()
-                && Objects.equals(mapOfEnumToStringAsStrings(), other.mapOfEnumToStringAsStrings())
-                && hasMapOfStringToEnum() == other.hasMapOfStringToEnum()
-                && Objects.equals(mapOfStringToEnumAsStrings(), other.mapOfStringToEnumAsStrings())
-                && hasMapOfEnumToSimpleStruct() == other.hasMapOfEnumToSimpleStruct()
-                && Objects.equals(mapOfEnumToSimpleStructAsStrings(), other.mapOfEnumToSimpleStructAsStrings())
-                && hasMapOfEnumToListOfEnums() == other.hasMapOfEnumToListOfEnums()
-                && Objects.equals(mapOfEnumToListOfEnumsAsStrings(), other.mapOfEnumToListOfEnumsAsStrings())
-                && hasMapOfEnumToMapOfStringToEnum() == other.hasMapOfEnumToMapOfStringToEnum()
-                && Objects.equals(mapOfEnumToMapOfStringToEnumAsStrings(), other.mapOfEnumToMapOfStringToEnumAsStrings())
-                && Objects.equals(timestampMember(), other.timestampMember())
-                && Objects.equals(structWithNestedTimestampMember(), other.structWithNestedTimestampMember())
-                && Objects.equals(blobArg(), other.blobArg())
-                && Objects.equals(structWithNestedBlob(), other.structWithNestedBlob()) && hasBlobMap() == other.hasBlobMap()
-                && Objects.equals(blobMap(), other.blobMap()) && hasListOfBlobs() == other.hasListOfBlobs()
-                && Objects.equals(listOfBlobs(), other.listOfBlobs())
-                && Objects.equals(recursiveStruct(), other.recursiveStruct())
-                && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
-                && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
-                && Objects.equals(enumTypeAsString(), other.enumTypeAsString())
-                && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type());
+               && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
+               && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
+               && Objects.equals(shortMember(), other.shortMember()) && hasSimpleList() == other.hasSimpleList()
+               && Objects.equals(simpleList(), other.simpleList()) && hasListOfEnums() == other.hasListOfEnums()
+               && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
+               && hasListOfMaps() == other.hasListOfMaps() && Objects.equals(listOfMaps(), other.listOfMaps())
+               && hasListOfStructs() == other.hasListOfStructs() && Objects.equals(listOfStructs(), other.listOfStructs())
+               && hasListOfMapOfEnumToString() == other.hasListOfMapOfEnumToString()
+               && Objects.equals(listOfMapOfEnumToStringAsStrings(), other.listOfMapOfEnumToStringAsStrings())
+               && hasListOfMapOfStringToStruct() == other.hasListOfMapOfStringToStruct()
+               && Objects.equals(listOfMapOfStringToStruct(), other.listOfMapOfStringToStruct())
+               && hasMapOfStringToIntegerList() == other.hasMapOfStringToIntegerList()
+               && Objects.equals(mapOfStringToIntegerList(), other.mapOfStringToIntegerList())
+               && hasMapOfStringToString() == other.hasMapOfStringToString()
+               && Objects.equals(mapOfStringToString(), other.mapOfStringToString())
+               && hasMapOfStringToSimpleStruct() == other.hasMapOfStringToSimpleStruct()
+               && Objects.equals(mapOfStringToSimpleStruct(), other.mapOfStringToSimpleStruct())
+               && hasMapOfEnumToEnum() == other.hasMapOfEnumToEnum()
+               && Objects.equals(mapOfEnumToEnumAsStrings(), other.mapOfEnumToEnumAsStrings())
+               && hasMapOfEnumToString() == other.hasMapOfEnumToString()
+               && Objects.equals(mapOfEnumToStringAsStrings(), other.mapOfEnumToStringAsStrings())
+               && hasMapOfStringToEnum() == other.hasMapOfStringToEnum()
+               && Objects.equals(mapOfStringToEnumAsStrings(), other.mapOfStringToEnumAsStrings())
+               && hasMapOfEnumToSimpleStruct() == other.hasMapOfEnumToSimpleStruct()
+               && Objects.equals(mapOfEnumToSimpleStructAsStrings(), other.mapOfEnumToSimpleStructAsStrings())
+               && hasMapOfEnumToListOfEnums() == other.hasMapOfEnumToListOfEnums()
+               && Objects.equals(mapOfEnumToListOfEnumsAsStrings(), other.mapOfEnumToListOfEnumsAsStrings())
+               && hasMapOfEnumToMapOfStringToEnum() == other.hasMapOfEnumToMapOfStringToEnum()
+               && Objects.equals(mapOfEnumToMapOfStringToEnumAsStrings(), other.mapOfEnumToMapOfStringToEnumAsStrings())
+               && Objects.equals(timestampMember(), other.timestampMember())
+               && Objects.equals(structWithNestedTimestampMember(), other.structWithNestedTimestampMember())
+               && Objects.equals(blobArg(), other.blobArg())
+               && Objects.equals(structWithNestedBlob(), other.structWithNestedBlob()) && hasBlobMap() == other.hasBlobMap()
+               && Objects.equals(blobMap(), other.blobMap()) && hasListOfBlobs() == other.hasListOfBlobs()
+               && Objects.equals(listOfBlobs(), other.listOfBlobs())
+               && Objects.equals(recursiveStruct(), other.recursiveStruct())
+               && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
+               && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
+               && Objects.equals(enumTypeAsString(), other.enumTypeAsString())
+               && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type());
     }
 
     /**
@@ -1275,103 +1344,109 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     @Override
     public final String toString() {
         return ToString
-                .builder("AllTypesRequest")
-                .add("StringMember", stringMember())
-                .add("IntegerMember", integerMember())
-                .add("BooleanMember", booleanMember())
-                .add("FloatMember", floatMember())
-                .add("DoubleMember", doubleMember())
-                .add("LongMember", longMember())
-                .add("SimpleList", hasSimpleList() ? simpleList() : null)
-                .add("ListOfEnums", hasListOfEnums() ? listOfEnumsAsStrings() : null)
-                .add("ListOfMaps", hasListOfMaps() ? listOfMaps() : null)
-                .add("ListOfStructs", hasListOfStructs() ? listOfStructs() : null)
-                .add("ListOfMapOfEnumToString", hasListOfMapOfEnumToString() ? listOfMapOfEnumToStringAsStrings() : null)
-                .add("MapOfStringToIntegerList", hasMapOfStringToIntegerList() ? mapOfStringToIntegerList() : null)
-                .add("MapOfStringToString", hasMapOfStringToString() ? mapOfStringToString() : null)
-                .add("MapOfStringToSimpleStruct", hasMapOfStringToSimpleStruct() ? mapOfStringToSimpleStruct() : null)
-                .add("MapOfEnumToEnum", hasMapOfEnumToEnum() ? mapOfEnumToEnumAsStrings() : null)
-                .add("MapOfEnumToString", hasMapOfEnumToString() ? mapOfEnumToStringAsStrings() : null)
-                .add("MapOfStringToEnum", hasMapOfStringToEnum() ? mapOfStringToEnumAsStrings() : null)
-                .add("MapOfEnumToSimpleStruct", hasMapOfEnumToSimpleStruct() ? mapOfEnumToSimpleStructAsStrings() : null)
-                .add("MapOfEnumToListOfEnums", hasMapOfEnumToListOfEnums() ? mapOfEnumToListOfEnumsAsStrings() : null)
-                .add("MapOfEnumToMapOfStringToEnum",
-                        hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null)
-                .add("TimestampMember", timestampMember())
-                .add("StructWithNestedTimestampMember", structWithNestedTimestampMember()).add("BlobArg", blobArg())
-                .add("StructWithNestedBlob", structWithNestedBlob()).add("BlobMap", hasBlobMap() ? blobMap() : null)
-                .add("ListOfBlobs", hasListOfBlobs() ? listOfBlobs() : null).add("RecursiveStruct", recursiveStruct())
-                .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
-                .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
-                .add("Underscore_Name_Type", underscore_Name_Type()).build();
+            .builder("AllTypesRequest")
+            .add("StringMember", stringMember())
+            .add("IntegerMember", integerMember())
+            .add("BooleanMember", booleanMember())
+            .add("FloatMember", floatMember())
+            .add("DoubleMember", doubleMember())
+            .add("LongMember", longMember())
+            .add("ShortMember", shortMember())
+            .add("SimpleList", hasSimpleList() ? simpleList() : null)
+            .add("ListOfEnums", hasListOfEnums() ? listOfEnumsAsStrings() : null)
+            .add("ListOfMaps", hasListOfMaps() ? listOfMaps() : null)
+            .add("ListOfStructs", hasListOfStructs() ? listOfStructs() : null)
+            .add("ListOfMapOfEnumToString", hasListOfMapOfEnumToString() ? listOfMapOfEnumToStringAsStrings() : null)
+            .add("ListOfMapOfStringToStruct", hasListOfMapOfStringToStruct() ? listOfMapOfStringToStruct() : null)
+            .add("MapOfStringToIntegerList", hasMapOfStringToIntegerList() ? mapOfStringToIntegerList() : null)
+            .add("MapOfStringToString", hasMapOfStringToString() ? mapOfStringToString() : null)
+            .add("MapOfStringToSimpleStruct", hasMapOfStringToSimpleStruct() ? mapOfStringToSimpleStruct() : null)
+            .add("MapOfEnumToEnum", hasMapOfEnumToEnum() ? mapOfEnumToEnumAsStrings() : null)
+            .add("MapOfEnumToString", hasMapOfEnumToString() ? mapOfEnumToStringAsStrings() : null)
+            .add("MapOfStringToEnum", hasMapOfStringToEnum() ? mapOfStringToEnumAsStrings() : null)
+            .add("MapOfEnumToSimpleStruct", hasMapOfEnumToSimpleStruct() ? mapOfEnumToSimpleStructAsStrings() : null)
+            .add("MapOfEnumToListOfEnums", hasMapOfEnumToListOfEnums() ? mapOfEnumToListOfEnumsAsStrings() : null)
+            .add("MapOfEnumToMapOfStringToEnum",
+                 hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null)
+            .add("TimestampMember", timestampMember())
+            .add("StructWithNestedTimestampMember", structWithNestedTimestampMember()).add("BlobArg", blobArg())
+            .add("StructWithNestedBlob", structWithNestedBlob()).add("BlobMap", hasBlobMap() ? blobMap() : null)
+            .add("ListOfBlobs", hasListOfBlobs() ? listOfBlobs() : null).add("RecursiveStruct", recursiveStruct())
+            .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
+            .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
+            .add("Underscore_Name_Type", underscore_Name_Type()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "StringMember":
-            return Optional.ofNullable(clazz.cast(stringMember()));
-        case "IntegerMember":
-            return Optional.ofNullable(clazz.cast(integerMember()));
-        case "BooleanMember":
-            return Optional.ofNullable(clazz.cast(booleanMember()));
-        case "FloatMember":
-            return Optional.ofNullable(clazz.cast(floatMember()));
-        case "DoubleMember":
-            return Optional.ofNullable(clazz.cast(doubleMember()));
-        case "LongMember":
-            return Optional.ofNullable(clazz.cast(longMember()));
-        case "SimpleList":
-            return Optional.ofNullable(clazz.cast(simpleList()));
-        case "ListOfEnums":
-            return Optional.ofNullable(clazz.cast(listOfEnumsAsStrings()));
-        case "ListOfMaps":
-            return Optional.ofNullable(clazz.cast(listOfMaps()));
-        case "ListOfStructs":
-            return Optional.ofNullable(clazz.cast(listOfStructs()));
-        case "ListOfMapOfEnumToString":
-            return Optional.ofNullable(clazz.cast(listOfMapOfEnumToStringAsStrings()));
-        case "MapOfStringToIntegerList":
-            return Optional.ofNullable(clazz.cast(mapOfStringToIntegerList()));
-        case "MapOfStringToString":
-            return Optional.ofNullable(clazz.cast(mapOfStringToString()));
-        case "MapOfStringToSimpleStruct":
-            return Optional.ofNullable(clazz.cast(mapOfStringToSimpleStruct()));
-        case "MapOfEnumToEnum":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToEnumAsStrings()));
-        case "MapOfEnumToString":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToStringAsStrings()));
-        case "MapOfStringToEnum":
-            return Optional.ofNullable(clazz.cast(mapOfStringToEnumAsStrings()));
-        case "MapOfEnumToSimpleStruct":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToSimpleStructAsStrings()));
-        case "MapOfEnumToListOfEnums":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToListOfEnumsAsStrings()));
-        case "MapOfEnumToMapOfStringToEnum":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToMapOfStringToEnumAsStrings()));
-        case "TimestampMember":
-            return Optional.ofNullable(clazz.cast(timestampMember()));
-        case "StructWithNestedTimestampMember":
-            return Optional.ofNullable(clazz.cast(structWithNestedTimestampMember()));
-        case "BlobArg":
-            return Optional.ofNullable(clazz.cast(blobArg()));
-        case "StructWithNestedBlob":
-            return Optional.ofNullable(clazz.cast(structWithNestedBlob()));
-        case "BlobMap":
-            return Optional.ofNullable(clazz.cast(blobMap()));
-        case "ListOfBlobs":
-            return Optional.ofNullable(clazz.cast(listOfBlobs()));
-        case "RecursiveStruct":
-            return Optional.ofNullable(clazz.cast(recursiveStruct()));
-        case "PolymorphicTypeWithSubTypes":
-            return Optional.ofNullable(clazz.cast(polymorphicTypeWithSubTypes()));
-        case "PolymorphicTypeWithoutSubTypes":
-            return Optional.ofNullable(clazz.cast(polymorphicTypeWithoutSubTypes()));
-        case "EnumType":
-            return Optional.ofNullable(clazz.cast(enumTypeAsString()));
-        case "Underscore_Name_Type":
-            return Optional.ofNullable(clazz.cast(underscore_Name_Type()));
-        default:
-            return Optional.empty();
+            case "StringMember":
+                return Optional.ofNullable(clazz.cast(stringMember()));
+            case "IntegerMember":
+                return Optional.ofNullable(clazz.cast(integerMember()));
+            case "BooleanMember":
+                return Optional.ofNullable(clazz.cast(booleanMember()));
+            case "FloatMember":
+                return Optional.ofNullable(clazz.cast(floatMember()));
+            case "DoubleMember":
+                return Optional.ofNullable(clazz.cast(doubleMember()));
+            case "LongMember":
+                return Optional.ofNullable(clazz.cast(longMember()));
+            case "ShortMember":
+                return Optional.ofNullable(clazz.cast(shortMember()));
+            case "SimpleList":
+                return Optional.ofNullable(clazz.cast(simpleList()));
+            case "ListOfEnums":
+                return Optional.ofNullable(clazz.cast(listOfEnumsAsStrings()));
+            case "ListOfMaps":
+                return Optional.ofNullable(clazz.cast(listOfMaps()));
+            case "ListOfStructs":
+                return Optional.ofNullable(clazz.cast(listOfStructs()));
+            case "ListOfMapOfEnumToString":
+                return Optional.ofNullable(clazz.cast(listOfMapOfEnumToStringAsStrings()));
+            case "ListOfMapOfStringToStruct":
+                return Optional.ofNullable(clazz.cast(listOfMapOfStringToStruct()));
+            case "MapOfStringToIntegerList":
+                return Optional.ofNullable(clazz.cast(mapOfStringToIntegerList()));
+            case "MapOfStringToString":
+                return Optional.ofNullable(clazz.cast(mapOfStringToString()));
+            case "MapOfStringToSimpleStruct":
+                return Optional.ofNullable(clazz.cast(mapOfStringToSimpleStruct()));
+            case "MapOfEnumToEnum":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToEnumAsStrings()));
+            case "MapOfEnumToString":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToStringAsStrings()));
+            case "MapOfStringToEnum":
+                return Optional.ofNullable(clazz.cast(mapOfStringToEnumAsStrings()));
+            case "MapOfEnumToSimpleStruct":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToSimpleStructAsStrings()));
+            case "MapOfEnumToListOfEnums":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToListOfEnumsAsStrings()));
+            case "MapOfEnumToMapOfStringToEnum":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToMapOfStringToEnumAsStrings()));
+            case "TimestampMember":
+                return Optional.ofNullable(clazz.cast(timestampMember()));
+            case "StructWithNestedTimestampMember":
+                return Optional.ofNullable(clazz.cast(structWithNestedTimestampMember()));
+            case "BlobArg":
+                return Optional.ofNullable(clazz.cast(blobArg()));
+            case "StructWithNestedBlob":
+                return Optional.ofNullable(clazz.cast(structWithNestedBlob()));
+            case "BlobMap":
+                return Optional.ofNullable(clazz.cast(blobMap()));
+            case "ListOfBlobs":
+                return Optional.ofNullable(clazz.cast(listOfBlobs()));
+            case "RecursiveStruct":
+                return Optional.ofNullable(clazz.cast(recursiveStruct()));
+            case "PolymorphicTypeWithSubTypes":
+                return Optional.ofNullable(clazz.cast(polymorphicTypeWithSubTypes()));
+            case "PolymorphicTypeWithoutSubTypes":
+                return Optional.ofNullable(clazz.cast(polymorphicTypeWithoutSubTypes()));
+            case "EnumType":
+                return Optional.ofNullable(clazz.cast(enumTypeAsString()));
+            case "Underscore_Name_Type":
+                return Optional.ofNullable(clazz.cast(underscore_Name_Type()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -1442,6 +1517,15 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder longMember(Long longMember);
+
+        /**
+         * Sets the value of the ShortMember property for this object.
+         *
+         * @param shortMember
+         *        The new value for the ShortMember property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder shortMember(Short shortMember);
 
         /**
          * Sets the value of the SimpleList property for this object.
@@ -1541,7 +1625,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *
          * When the {@link Consumer} completes, {@link List<SimpleStruct>.Builder#build()} is called immediately and its
          * result is passed to {@link #listOfStructs(List<SimpleStruct>)}.
-         * 
+         *
          * @param listOfStructs
          *        a consumer that will call methods on {@link List<SimpleStruct>.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -1566,6 +1650,24 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfMapOfEnumToStringWithStrings(Map<String, String>... listOfMapOfEnumToString);
+
+        /**
+         * Sets the value of the ListOfMapOfStringToStruct property for this object.
+         *
+         * @param listOfMapOfStringToStruct
+         *        The new value for the ListOfMapOfStringToStruct property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder listOfMapOfStringToStruct(Collection<? extends Map<String, SimpleStruct>> listOfMapOfStringToStruct);
+
+        /**
+         * Sets the value of the ListOfMapOfStringToStruct property for this object.
+         *
+         * @param listOfMapOfStringToStruct
+         *        The new value for the ListOfMapOfStringToStruct property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder listOfMapOfStringToStruct(Map<String, SimpleStruct>... listOfMapOfStringToStruct);
 
         /**
          * Sets the value of the MapOfStringToIntegerList property for this object.
@@ -1691,7 +1793,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *        The new value for the MapOfEnumToMapOfStringToEnum property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder mapOfEnumToMapOfStringToEnumWithStrings(Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum);
+        Builder mapOfEnumToMapOfStringToEnumWithStrings(Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum);
 
         /**
          * Sets the value of the MapOfEnumToMapOfStringToEnum property for this object.
@@ -1700,7 +1802,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *        The new value for the MapOfEnumToMapOfStringToEnum property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder mapOfEnumToMapOfStringToEnum(Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnum);
+        Builder mapOfEnumToMapOfStringToEnum(Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum);
 
         /**
          * Sets the value of the TimestampMember property for this object.
@@ -1728,7 +1830,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *
          * When the {@link Consumer} completes, {@link StructWithTimestamp.Builder#build()} is called immediately and
          * its result is passed to {@link #structWithNestedTimestampMember(StructWithTimestamp)}.
-         * 
+         *
          * @param structWithNestedTimestampMember
          *        a consumer that will call methods on {@link StructWithTimestamp.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -1736,7 +1838,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          */
         default Builder structWithNestedTimestampMember(Consumer<StructWithTimestamp.Builder> structWithNestedTimestampMember) {
             return structWithNestedTimestampMember(StructWithTimestamp.builder().applyMutation(structWithNestedTimestampMember)
-                    .build());
+                                                                      .build());
         }
 
         /**
@@ -1765,7 +1867,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *
          * When the {@link Consumer} completes, {@link StructWithNestedBlobType.Builder#build()} is called immediately
          * and its result is passed to {@link #structWithNestedBlob(StructWithNestedBlobType)}.
-         * 
+         *
          * @param structWithNestedBlob
          *        a consumer that will call methods on {@link StructWithNestedBlobType.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -1819,7 +1921,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *
          * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
          * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
-         * 
+         *
          * @param recursiveStruct
          *        a consumer that will call methods on {@link RecursiveStructType.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -1846,7 +1948,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *
          * When the {@link Consumer} completes, {@link BaseType.Builder#build()} is called immediately and its result is
          * passed to {@link #polymorphicTypeWithSubTypes(BaseType)}.
-         * 
+         *
          * @param polymorphicTypeWithSubTypes
          *        a consumer that will call methods on {@link BaseType.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -1873,7 +1975,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *
          * When the {@link Consumer} completes, {@link SubTypeOne.Builder#build()} is called immediately and its result
          * is passed to {@link #polymorphicTypeWithoutSubTypes(SubTypeOne)}.
-         * 
+         *
          * @param polymorphicTypeWithoutSubTypes
          *        a consumer that will call methods on {@link SubTypeOne.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -1922,7 +2024,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *
          * When the {@link Consumer} completes, {@link Underscore_Name_Type.Builder#build()} is called immediately and
          * its result is passed to {@link #underscore_Name_Type(Underscore_Name_Type)}.
-         * 
+         *
          * @param underscore_Name_Type
          *        a consumer that will call methods on {@link Underscore_Name_Type.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -1952,6 +2054,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         private Long longMember;
 
+        private Short shortMember;
+
         private List<String> simpleList = DefaultSdkAutoConstructList.getInstance();
 
         private List<String> listOfEnums = DefaultSdkAutoConstructList.getInstance();
@@ -1961,6 +2065,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         private List<SimpleStruct> listOfStructs = DefaultSdkAutoConstructList.getInstance();
 
         private List<Map<String, String>> listOfMapOfEnumToString = DefaultSdkAutoConstructList.getInstance();
+
+        private List<Map<String, SimpleStruct>> listOfMapOfStringToStruct = DefaultSdkAutoConstructList.getInstance();
 
         private Map<String, List<Integer>> mapOfStringToIntegerList = DefaultSdkAutoConstructMap.getInstance();
 
@@ -2013,11 +2119,13 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             floatMember(model.floatMember);
             doubleMember(model.doubleMember);
             longMember(model.longMember);
+            shortMember(model.shortMember);
             simpleList(model.simpleList);
             listOfEnumsWithStrings(model.listOfEnums);
             listOfMaps(model.listOfMaps);
             listOfStructs(model.listOfStructs);
             listOfMapOfEnumToStringWithStrings(model.listOfMapOfEnumToString);
+            listOfMapOfStringToStruct(model.listOfMapOfStringToStruct);
             mapOfStringToIntegerList(model.mapOfStringToIntegerList);
             mapOfStringToString(model.mapOfStringToString);
             mapOfStringToSimpleStruct(model.mapOfStringToSimpleStruct);
@@ -2124,6 +2232,20 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             this.longMember = longMember;
         }
 
+        public final Short getShortMember() {
+            return shortMember;
+        }
+
+        @Override
+        public final Builder shortMember(Short shortMember) {
+            this.shortMember = shortMember;
+            return this;
+        }
+
+        public final void setShortMember(Short shortMember) {
+            this.shortMember = shortMember;
+        }
+
         public final Collection<String> getSimpleList() {
             if (simpleList instanceof SdkAutoConstructList) {
                 return null;
@@ -2209,12 +2331,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
         }
 
-        public final Collection<SimpleStruct.Builder> getListOfStructs() {
-            if (listOfStructs instanceof SdkAutoConstructList) {
+        public final List<SimpleStruct.Builder> getListOfStructs() {
+            List<SimpleStruct.Builder> result = ListOfSimpleStructsCopier.copyToBuilder(this.listOfStructs);
+            if (result instanceof SdkAutoConstructList) {
                 return null;
             }
-            return listOfStructs != null ? listOfStructs.stream().map(SimpleStruct::toBuilder).collect(Collectors.toList())
-                    : null;
+            return result;
         }
 
         @Override
@@ -2234,7 +2356,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         @SafeVarargs
         public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
             listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().applyMutation(c).build())
-                    .collect(Collectors.toList()));
+                                .collect(Collectors.toList()));
             return this;
         }
 
@@ -2264,6 +2386,33 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setListOfMapOfEnumToString(Collection<? extends Map<String, String>> listOfMapOfEnumToString) {
             this.listOfMapOfEnumToString = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
+        }
+
+        public final List<Map<String, SimpleStruct.Builder>> getListOfMapOfStringToStruct() {
+            List<Map<String, SimpleStruct.Builder>> result = ListOfMapOfStringToStructCopier
+                .copyToBuilder(this.listOfMapOfStringToStruct);
+            if (result instanceof SdkAutoConstructList) {
+                return null;
+            }
+            return result;
+        }
+
+        @Override
+        public final Builder listOfMapOfStringToStruct(Collection<? extends Map<String, SimpleStruct>> listOfMapOfStringToStruct) {
+            this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copy(listOfMapOfStringToStruct);
+            return this;
+        }
+
+        @Override
+        @SafeVarargs
+        public final Builder listOfMapOfStringToStruct(Map<String, SimpleStruct>... listOfMapOfStringToStruct) {
+            listOfMapOfStringToStruct(Arrays.asList(listOfMapOfStringToStruct));
+            return this;
+        }
+
+        public final void setListOfMapOfStringToStruct(
+            Collection<? extends Map<String, SimpleStruct.BuilderImpl>> listOfMapOfStringToStruct) {
+            this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copyFromBuilder(listOfMapOfStringToStruct);
         }
 
         public final Map<String, ? extends Collection<Integer>> getMapOfStringToIntegerList() {
@@ -2301,11 +2450,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         public final Map<String, SimpleStruct.Builder> getMapOfStringToSimpleStruct() {
-            if (mapOfStringToSimpleStruct instanceof SdkAutoConstructMap) {
+            Map<String, SimpleStruct.Builder> result = MapOfStringToSimpleStructCopier
+                .copyToBuilder(this.mapOfStringToSimpleStruct);
+            if (result instanceof SdkAutoConstructMap) {
                 return null;
             }
-            return mapOfStringToSimpleStruct != null ? CollectionUtils.mapValues(mapOfStringToSimpleStruct,
-                    SimpleStruct::toBuilder) : null;
+            return result;
         }
 
         @Override
@@ -2388,11 +2538,11 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         public final Map<String, SimpleStruct.Builder> getMapOfEnumToSimpleStruct() {
-            if (mapOfEnumToSimpleStruct instanceof SdkAutoConstructMap) {
+            Map<String, SimpleStruct.Builder> result = MapOfEnumToSimpleStructCopier.copyToBuilder(this.mapOfEnumToSimpleStruct);
+            if (result instanceof SdkAutoConstructMap) {
                 return null;
             }
-            return mapOfEnumToSimpleStruct != null ? CollectionUtils.mapValues(mapOfEnumToSimpleStruct, SimpleStruct::toBuilder)
-                    : null;
+            return result;
         }
 
         @Override
@@ -2434,7 +2584,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             this.mapOfEnumToListOfEnums = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
         }
 
-        public final Map<String, Map<String, String>> getMapOfEnumToMapOfStringToEnum() {
+        public final Map<String, ? extends Map<String, String>> getMapOfEnumToMapOfStringToEnum() {
             if (mapOfEnumToMapOfStringToEnum instanceof SdkAutoConstructMap) {
                 return null;
             }
@@ -2442,18 +2592,20 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        public final Builder mapOfEnumToMapOfStringToEnumWithStrings(Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+        public final Builder mapOfEnumToMapOfStringToEnumWithStrings(
+            Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
             return this;
         }
 
         @Override
-        public final Builder mapOfEnumToMapOfStringToEnum(Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
+        public final Builder mapOfEnumToMapOfStringToEnum(
+            Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copyEnumToString(mapOfEnumToMapOfStringToEnum);
             return this;
         }
 
-        public final void setMapOfEnumToMapOfStringToEnum(Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+        public final void setMapOfEnumToMapOfStringToEnum(Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
         }
 
@@ -2483,7 +2635,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                    .build() : null;
+                .build() : null;
         }
 
         public final ByteBuffer getBlobArg() {
@@ -2492,7 +2644,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         @Override
         public final Builder blobArg(SdkBytes blobArg) {
-            this.blobArg = StandardMemberCopier.copy(blobArg);
+            this.blobArg = blobArg;
             return this;
         }
 
@@ -2519,7 +2671,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                 return null;
             }
             return blobMap == null ? null : blobMap.entrySet().stream()
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));
+                                                   .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));
         }
 
         @Override
@@ -2530,7 +2682,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setBlobMap(Map<String, ByteBuffer> blobMap) {
             blobMap(blobMap == null ? null : blobMap.entrySet().stream()
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> SdkBytes.fromByteBuffer(e.getValue()))));
+                                                    .collect(Collectors.toMap(e -> e.getKey(), e -> SdkBytes.fromByteBuffer(e.getValue()))));
         }
 
         public final List<ByteBuffer> getListOfBlobs() {
@@ -2555,7 +2707,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setListOfBlobs(Collection<ByteBuffer> listOfBlobs) {
             listOfBlobs(listOfBlobs == null ? null : listOfBlobs.stream().map(SdkBytes::fromByteBuffer)
-                    .collect(Collectors.toList()));
+                                                                .collect(Collectors.toList()));
         }
 
         public final RecursiveStructType.Builder getRecursiveStruct() {
@@ -2598,7 +2750,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setPolymorphicTypeWithoutSubTypes(SubTypeOne.BuilderImpl polymorphicTypeWithoutSubTypes) {
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes != null ? polymorphicTypeWithoutSubTypes.build()
-                    : null;
+                                                                                         : null;
         }
 
         public final String getEnumType() {
@@ -2658,4 +2810,3 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
     }
 }
-

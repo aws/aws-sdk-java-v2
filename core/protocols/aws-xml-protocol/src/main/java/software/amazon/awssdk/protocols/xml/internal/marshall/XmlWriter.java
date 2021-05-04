@@ -193,6 +193,8 @@ final class XmlWriter {
             s = s.replace("&apos;", "'");
             s = s.replace("&lt;", "<");
             s = s.replace("&gt;", ">");
+            s = s.replace("&#x0D;", "\r");
+            s = s.replace("&#x0A;", "\n");
             // Ampersands should always be the last to unescape
             s = s.replace("&amp;", "&");
         }
@@ -202,6 +204,8 @@ final class XmlWriter {
         s = s.replace("'", "&apos;");
         s = s.replace("<", "&lt;");
         s = s.replace(">", "&gt;");
+        s = s.replace("\r", "&#x0D;");
+        s = s.replace("\n", "&#x0A;");
         return s;
     }
 

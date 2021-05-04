@@ -235,6 +235,21 @@
       "documentation":"<p>Deletes a predictor backtest export job.</p>",
       "idempotent":true
     },
+    "DeleteResourceTree":{
+      "name":"DeleteResourceTree",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteResourceTreeRequest"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"}
+      ],
+      "documentation":"<p>Deletes an entire resource tree. This operation will delete the parent resource and its child resources.</p> <p>Child resources are resources that were created from another resource. For example, when a forecast is generated from a predictor, the forecast is the child resource and the predictor is the parent resource.</p> <p>Amazon Forecast resources possess the following parent-child resource hierarchies:</p> <ul> <li> <p> <b>Dataset Group</b>: predictors, predictor backtest export jobs, forecasts, forecast export jobs</p> </li> <li> <p> <b>Dataset</b>: dataset import jobs</p> </li> <li> <p> <b>Predictor</b>: predictor backtest export jobs, forecasts, forecast export jobs</p> </li> <li> <p> <b>Forecast</b>: forecast export jobs</p> </li> </ul> <note> <p> <code>DeleteResourceTree</code> will only delete Amazon Forecast resources, and will not delete datasets or exported files stored in Amazon S3. </p> </note>",
+      "idempotent":true
+    },
     "DescribeDataset":{
       "name":"DescribeDataset",
       "http":{
@@ -1116,6 +1131,16 @@
         }
       }
     },
+    "DeleteResourceTreeRequest":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the parent resource to delete. All child resources of the parent resource will also be deleted.</p>"
+        }
+      }
+    },
     "DescribeDatasetGroupRequest":{
       "type":"structure",
       "required":["DatasetGroupArn"],
@@ -1203,6 +1228,10 @@
         "DataSource":{
           "shape":"DataSource",
           "documentation":"<p>The location of the training data to import and an AWS Identity and Access Management (IAM) role that Amazon Forecast can assume to access the data.</p> <p>If encryption is used, <code>DataSource</code> includes an AWS Key Management Service (KMS) key.</p>"
+        },
+        "EstimatedTimeRemainingInMinutes":{
+          "shape":"Long",
+          "documentation":"<p>The estimated time remaining in minutes for the dataset import job to complete.</p>"
         },
         "FieldStatistics":{
           "shape":"FieldStatistics",
@@ -1365,6 +1394,10 @@
           "shape":"Arn",
           "documentation":"<p>The ARN of the dataset group that provided the data used to train the predictor.</p>"
         },
+        "EstimatedTimeRemainingInMinutes":{
+          "shape":"Long",
+          "documentation":"<p>The estimated time remaining in minutes for the forecast job to complete.</p>"
+        },
         "Status":{
           "shape":"String",
           "documentation":"<p>The status of the forecast. States include:</p> <ul> <li> <p> <code>ACTIVE</code> </p> </li> <li> <p> <code>CREATE_PENDING</code>, <code>CREATE_IN_PROGRESS</code>, <code>CREATE_FAILED</code> </p> </li> <li> <p> <code>CREATE_STOPPING</code>, <code>CREATE_STOPPED</code> </p> </li> <li> <p> <code>DELETE_PENDING</code>, <code>DELETE_IN_PROGRESS</code>, <code>DELETE_FAILED</code> </p> </li> </ul> <note> <p>The <code>Status</code> of the forecast must be <code>ACTIVE</code> before you can query or export the forecast.</p> </note>"
@@ -1495,6 +1528,10 @@
         "PredictorExecutionDetails":{
           "shape":"PredictorExecutionDetails",
           "documentation":"<p>Details on the the status and results of the backtests performed to evaluate the accuracy of the predictor. You specify the number of backtests to perform when you call the operation.</p>"
+        },
+        "EstimatedTimeRemainingInMinutes":{
+          "shape":"Long",
+          "documentation":"<p>The estimated time remaining in minutes for the predictor training job to complete.</p>"
         },
         "DatasetImportJobArns":{
           "shape":"ArnList",
@@ -2155,6 +2192,7 @@
         }
       }
     },
+    "Long":{"type":"long"},
     "MaxResults":{
       "type":"integer",
       "max":100,

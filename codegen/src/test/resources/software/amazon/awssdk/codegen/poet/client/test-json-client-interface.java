@@ -3,6 +3,8 @@ package software.amazon.awssdk.services.json;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -40,8 +42,16 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
+@SdkPublicApi
+@ThreadSafe
 public interface JsonClient extends SdkClient {
     String SERVICE_NAME = "json-service";
+
+    /**
+     * Value for looking up the service's metadata from the
+     * {@link software.amazon.awssdk.regions.ServiceMetadataProvider}.
+     */
+    String SERVICE_METADATA_ID = "json-service-endpoint";
 
     /**
      * Create a {@link JsonClient} with the region loaded from the
@@ -1358,7 +1368,7 @@ public interface JsonClient extends SdkClient {
     }
 
     static ServiceMetadata serviceMetadata() {
-        return ServiceMetadata.of("json-service");
+        return ServiceMetadata.of(SERVICE_METADATA_ID);
     }
 
     /**

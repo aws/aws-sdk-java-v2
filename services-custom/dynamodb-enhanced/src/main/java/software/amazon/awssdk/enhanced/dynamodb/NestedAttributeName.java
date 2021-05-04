@@ -19,23 +19,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * High-level representation of a DynamoDB 'NestedAttributeName' that can be used in various situations where the API requires
- * or accepts an Nested Attribute Name.
- * Simple Attribute Name can be represented by passing just the name of the attribute.
- * Nested Attributes are represented by List of String where each index of list corresponds to Nesting level Names.
- * <p> While using attributeToProject in {@link software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest}
- * and {@link software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest} we need  way to represent Nested Attributes.
- * The normal DOT(.) separator is not recognized as a Nesting level separator by DynamoDB request,
- * thus we need to use NestedAttributeName
- * which can be used to represent Nested attributes.
- * <p> Example : NestedAttributeName.create("foo") corresponds to a NestedAttributeName with elements list
- * with single element foo which represents Simple attribute name "foo" without nesting.
- * <p>NestedAttributeName.create("foo", "bar") corresponds to a NestedAttributeName with elements list "foo", "bar"
- * respresenting nested attribute name "foo.bar".
+ * A high-level representation of a DynamoDB nested attribute name that can be used in various situations where the API requires
+ * or accepts a nested attribute name. The nested attributes are represented by a list of strings where each element
+ * corresponds to a nesting level. A simple (top-level) attribute name can be represented by creating an instance with a
+ * single string element.
+ * <p>
+ * NestedAttributeName is used directly in {@link QueryEnhancedRequest#nestedAttributesToProject()}
+ * and {@link ScanEnhancedRequest#nestedAttributesToProject()}, and indirectly by
+ * {@link QueryEnhancedRequest#attributesToProject()} and {@link ScanEnhancedRequest#attributesToProject()}.
+ * <p>
+ * Examples of creating NestedAttributeNames:
+ * <ul>
+ *     <li>Simple attribute {@code Level0} can be created as {@code NestedAttributeName.create("Level0")}</li>
+ *     <li>Nested attribute {@code Level0.Level1} can be created as {@code NestedAttributeName.create("Level0", "Level1")}</li>
+ *     <li>Nested attribute {@code Level0.Level-2} can be created as {@code NestedAttributeName.create("Level0", "Level-2")}</li>
+ *     <li>List item 0 of {@code ListAttribute} can be created as {@code NestedAttributeName.create("ListAttribute[0]")}
+ *     </li>
+ * </ul>
  */
 @SdkPublicApi
 public final class NestedAttributeName {
@@ -132,6 +139,11 @@ public final class NestedAttributeName {
         return elements != null ? elements.hashCode() : 0;
     }
 
+    @Override
+    public String toString() {
+        return elements == null ? "" : elements.stream().collect(Collectors.joining("."));
+    }
+
     /**
      * A builder for {@link NestedAttributeName}.
      */
@@ -226,7 +238,6 @@ public final class NestedAttributeName {
             this.elements = new ArrayList<>(elements);
             return this;
         }
-
 
         public NestedAttributeName build() {
             return new NestedAttributeName(elements);

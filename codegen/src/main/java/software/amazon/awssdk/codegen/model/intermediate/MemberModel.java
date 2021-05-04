@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
@@ -615,9 +616,26 @@ public class MemberModel extends DocumentationModel {
     }
 
     @JsonIgnore
-    public boolean isCollectionWithBuilderMember() {
-        return (isList() && getListModel().getListMemberModel() != null && getListModel().getListMemberModel().hasBuilder()) ||
-               (isMap() && getMapModel().getValueModel() != null && getMapModel().getValueModel().hasBuilder());
+    public boolean containsBuildable() {
+        return containsBuildable(true);
+    }
+
+    private boolean containsBuildable(boolean root) {
+        if (!root && hasBuilder()) {
+            return true;
+        }
+
+        if (isList()) {
+            return getListModel().getListMemberModel().containsBuildable(false);
+        }
+
+        if (isMap()) {
+            MapModel mapModel = getMapModel();
+            return mapModel.getKeyModel().containsBuildable(false) ||
+                   mapModel.getValueModel().containsBuildable(false);
+        }
+
+        return false;
     }
 
     @JsonIgnore
