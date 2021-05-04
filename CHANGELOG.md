@@ -1,3 +1,24 @@
+# __2.16.55__ __2021-05-04__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - This release adds the KeyStorageSecurityStandard parameter to the CreateCertificateAuthority API to allow customers to mandate a security standard to which the CA key will be stored within.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Documentation updates for health
+
+## __Amazon Chime__
+  - ### Features
+    - This release adds the ability to search for and order international phone numbers for Amazon Chime SIP media applications.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Added GetCostEstimation and StartCostEstimation to get the monthly resource usage cost and added ability to view resource health by AWS service name and to search insights be AWS service name.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable retrying Training and Tuning Jobs that fail with InternalServerError by setting RetryStrategy.
+
 # __2.16.54__ __2021-05-03__
 ## __FinSpace Public API__
   - ### Features
@@ -19,6 +40,14 @@
 ## __Amazon Mechanical Turk__
   - ### Features
     - Documentation updates for Amazon Mechanical Turk, GetAccountBalanceOperation operation
+
+## __FinSpace Public API__
+  - ### Features
+    - This is the initial SDK release for the data APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics application for the financial services industry (FSI).
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - This is the initial SDK release for the management APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics service for the financial services industry (FSI).
 
 # __2.16.52__ __2021-04-30__
 ## __AWS Marketplace Catalog Service__
