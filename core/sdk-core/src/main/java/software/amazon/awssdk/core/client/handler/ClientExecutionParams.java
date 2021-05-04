@@ -47,7 +47,6 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
     private HttpResponseHandler<Response<OutputT>> combinedResponseHandler;
     private boolean fullDuplex;
-    private boolean hasInitialRequestEvent;
     private String hostPrefixExpression;
     private String operationName;
     private URI discoveredEndpoint;
@@ -136,18 +135,6 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
      */
     public ClientExecutionParams<InputT, OutputT> withFullDuplex(boolean fullDuplex) {
         this.fullDuplex = fullDuplex;
-        return this;
-    }
-
-    public boolean hasInitialRequestEvent() {
-        return hasInitialRequestEvent;
-    }
-
-    /**
-     * Sets whether this is an event streaming request over RPC.
-     */
-    public ClientExecutionParams<InputT, OutputT> withInitialRequestEvent(boolean hasInitialRequestEvent) {
-        this.hasInitialRequestEvent = hasInitialRequestEvent;
         return this;
     }
 

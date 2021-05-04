@@ -28,26 +28,27 @@ public class PoetClientFunctionalTests {
 
     @Test
     public void asyncClientClass() throws Exception {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.restJsonServiceModels());
+        AsyncClientClass asyncClientClass = new AsyncClientClass(
+                GeneratorTaskParams.create(ClientTestModels.jsonServiceModels(), "sources/", "tests/"));
         assertThat(asyncClientClass, generatesTo("test-async-client-class.java"));
     }
 
     @Test
     public void asyncClientInterface() throws Exception {
-        ClassSpec asyncClientInterface = new AsyncClientInterface(ClientTestModels.restJsonServiceModels());
+        ClassSpec asyncClientInterface = new AsyncClientInterface(ClientTestModels.jsonServiceModels());
         assertThat(asyncClientInterface, generatesTo("test-json-async-client-interface.java"));
     }
 
     @Test
     public void simpleMethodsIntegClass() throws Exception {
         ClientSimpleMethodsIntegrationTests simpleMethodsClass = new ClientSimpleMethodsIntegrationTests(
-                ClientTestModels.restJsonServiceModels());
+                ClientTestModels.jsonServiceModels());
         assertThat(simpleMethodsClass, generatesTo("test-simple-methods-integ-class.java"));
     }
 
     @Test
-    public void syncClientClassRestJson() throws Exception {
-        SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.restJsonServiceModels());
+    public void syncClientClassJson() throws Exception {
+        SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.jsonServiceModels());
         assertThat(syncClientClass, generatesTo("test-json-client-class.java"));
     }
 
@@ -57,11 +58,6 @@ public class PoetClientFunctionalTests {
         assertThat(syncClientClass, generatesTo("test-query-client-class.java"));
     }
 
-    @Test
-    public void asyncClientClassAwsJson() throws Exception {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.awsJsonServiceModels());
-        assertThat(asyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
-    }
 
     @Test
     public void asyncClientClassQuery() throws Exception {
@@ -74,6 +70,7 @@ public class PoetClientFunctionalTests {
         SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.xmlServiceModels());
         assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
     }
+
 
     @Test
     public void asyncClientClassXml() throws Exception {
@@ -91,7 +88,7 @@ public class PoetClientFunctionalTests {
 
     @Test
     public void syncClientInterface() throws Exception {
-        ClassSpec syncClientInterface = new SyncClientInterface(ClientTestModels.restJsonServiceModels());
+        ClassSpec syncClientInterface = new SyncClientInterface(ClientTestModels.jsonServiceModels());
         assertThat(syncClientInterface, generatesTo("test-json-client-interface.java"));
     }
 
