@@ -1,3 +1,12 @@
+# __2.16.56__ __2021-05-04__
+## __FinSpace Public API__
+  - ### Features
+    - Documentation updates for FinSpaceData API.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Documentation updates for FinSpace API.
+
 # __2.16.55__ __2021-05-04__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
