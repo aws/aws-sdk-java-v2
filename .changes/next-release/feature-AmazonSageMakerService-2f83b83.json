@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Amazon SageMaker Autopilot now provides the ability to automatically deploy the best model to an endpoint"
-}

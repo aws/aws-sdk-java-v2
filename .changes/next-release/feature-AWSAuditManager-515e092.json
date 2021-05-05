@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Audit Manager",
-    "contributor": "",
-    "description": "This release updates the CreateAssessmentFrameworkControlSet and UpdateAssessmentFrameworkControlSet API data types. For both of these data types, the control set name is now a required attribute."
-}
