@@ -1,0 +1,30 @@
+{
+    "version": "2.16.57",
+    "date": "2021-05-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AmazonNimbleStudio",
+            "contributor": "",
+            "description": "Documentation Updates for Amazon Nimble Studio."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Audit Manager",
+            "contributor": "",
+            "description": "This release updates the CreateAssessmentFrameworkControlSet and UpdateAssessmentFrameworkControlSet API data types. For both of these data types, the control set name is now a required attribute."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker Autopilot now provides the ability to automatically deploy the best model to an endpoint"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Analytics",
+            "contributor": "",
+            "description": "Amazon Kinesis Analytics now supports RollbackApplication for Apache Flink applications to revert the application to the previous running version"
+        }
+    ]
+}
