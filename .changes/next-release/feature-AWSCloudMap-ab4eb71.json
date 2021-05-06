@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Map",
+    "contributor": "",
+    "description": "Bugfix: Improved input validation for RegisterInstance action, InstanceId field"
+}
