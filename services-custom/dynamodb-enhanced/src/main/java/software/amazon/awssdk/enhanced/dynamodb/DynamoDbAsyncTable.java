@@ -667,4 +667,28 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     default CompletableFuture<T> updateItem(T item) {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * Deletes a table in DynamoDb with the name and schema already defined for this DynamoDbTable.
+     * <p>
+     * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteTable operation.
+     * Note that this is an asynchronous operation and that the table may not immediately deleted. You can use
+     * {@link software.amazon.awssdk.services.dynamodb.waiters.DynamoDbAsyncWaiter#waitUntilTableNotExists}
+     * in the underlying client.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.deleteTable().join();
+     * }
+     * </pre>
+     *
+     * @return a {@link CompletableFuture} of {@link Void}.
+     */
+    default CompletableFuture<Void> deleteTable() {
+        throw new UnsupportedOperationException();
+    }
 }
