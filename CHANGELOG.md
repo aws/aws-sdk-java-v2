@@ -1,3 +1,101 @@
+# __2.16.58__ __2021-05-06__
+## __AWS Cloud Map__
+  - ### Features
+    - Bugfix: Improved input validation for RegisterInstance action, InstanceId field
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - AWS Snow Family adds APIs for ordering and managing Snow jobs with long term pricing
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - SSM feature release - ChangeCalendar integration with StateManager.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - IAM Access Control for Amazon MSK enables you to create clusters that use IAM to authenticate clients and to allow or deny Apache Kafka actions for those clients.
+
+# __2.16.57__ __2021-05-05__
+## __AWS Audit Manager__
+  - ### Features
+    - This release updates the CreateAssessmentFrameworkControlSet and UpdateAssessmentFrameworkControlSet API data types. For both of these data types, the control set name is now a required attribute.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Amazon Kinesis Analytics now supports RollbackApplication for Apache Flink applications to revert the application to the previous running version
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot now provides the ability to automatically deploy the best model to an endpoint
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Documentation Updates for Amazon Nimble Studio.
+
+# __2.16.56__ __2021-05-04__
+## __FinSpace Public API__
+  - ### Features
+    - Documentation updates for FinSpaceData API.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Documentation updates for FinSpace API.
+
+# __2.16.55__ __2021-05-04__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - This release adds the KeyStorageSecurityStandard parameter to the CreateCertificateAuthority API to allow customers to mandate a security standard to which the CA key will be stored within.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Documentation updates for health
+
+## __Amazon Chime__
+  - ### Features
+    - This release adds the ability to search for and order international phone numbers for Amazon Chime SIP media applications.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Added GetCostEstimation and StartCostEstimation to get the monthly resource usage cost and added ability to view resource health by AWS service name and to search insights be AWS service name.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable retrying Training and Tuning Jobs that fail with InternalServerError by setting RetryStrategy.
+
+# __2.16.54__ __2021-05-03__
+## __FinSpace Public API__
+  - ### Features
+    - This is the initial SDK release for the data APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics application for the financial services industry (FSI).
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - This is the initial SDK release for the management APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics service for the financial services industry (FSI).
+
+# __2.16.53__ __2021-05-03__
+## __AWS SecurityHub__
+  - ### Features
+    - Updated ASFF to add the following new resource details objects: AwsEc2NetworkAcl, AwsEc2Subnet, and AwsElasticBeanstalkEnvironment.
+
+## __Amazon Chime__
+  - ### Features
+    - Added new BatchCreateChannelMembership API to support multiple membership creation for channels
+
+## __Amazon Mechanical Turk__
+  - ### Features
+    - Documentation updates for Amazon Mechanical Turk, GetAccountBalanceOperation operation
+
+## __FinSpace Public API__
+  - ### Features
+    - This is the initial SDK release for the data APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics application for the financial services industry (FSI).
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - This is the initial SDK release for the management APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics service for the financial services industry (FSI).
+
 # __2.16.52__ __2021-04-30__
 ## __AWS Marketplace Catalog Service__
   - ### Features

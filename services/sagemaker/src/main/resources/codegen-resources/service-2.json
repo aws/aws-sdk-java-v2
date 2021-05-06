@@ -36,7 +36,7 @@
       },
       "input":{"shape":"AddTagsInput"},
       "output":{"shape":"AddTagsOutput"},
-      "documentation":"<p>Adds or overwrites one or more tags for the specified Amazon SageMaker resource. You can add tags to notebook instances, training jobs, hyperparameter tuning jobs, batch transform jobs, models, labeling jobs, work teams, endpoint configurations, and endpoints.</p> <p>Each tag consists of a key and an optional value. Tag keys must be unique per resource. For more information about tags, see For more information, see <a href=\"https://aws.amazon.com/answers/account-management/aws-tagging-strategies/\">AWS Tagging Strategies</a>.</p> <note> <p>Tags that you add to a hyperparameter tuning job by calling this API are also added to any training jobs that the hyperparameter tuning job launches after you call this API, but not to training jobs that the hyperparameter tuning job launched before you called this API. To make sure that the tags associated with a hyperparameter tuning job are also added to all training jobs that the hyperparameter tuning job launches, add the tags when you first create the tuning job by specifying them in the <code>Tags</code> parameter of <a>CreateHyperParameterTuningJob</a> </p> </note>"
+      "documentation":"<p>Adds or overwrites one or more tags for the specified Amazon SageMaker resource. You can add tags to notebook instances, training jobs, hyperparameter tuning jobs, batch transform jobs, models, labeling jobs, work teams, endpoint configurations, and endpoints.</p> <p>Each tag consists of a key and an optional value. Tag keys must be unique per resource. For more information about tags, see For more information, see <a href=\"https://aws.amazon.com/answers/account-management/aws-tagging-strategies/\">AWS Tagging Strategies</a>.</p> <note> <p>Tags that you add to a hyperparameter tuning job by calling this API are also added to any training jobs that the hyperparameter tuning job launches after you call this API, but not to training jobs that the hyperparameter tuning job launched before you called this API. To make sure that the tags associated with a hyperparameter tuning job are also added to all training jobs that the hyperparameter tuning job launches, add the tags when you first create the tuning job by specifying them in the <code>Tags</code> parameter of <a>CreateHyperParameterTuningJob</a> </p> </note> <note> <p>Tags that you add to a SageMaker Studio Domain or User Profile by calling this API are also added to any Apps that the Domain or User Profile launches after you call this API, but not to Apps that the Domain or User Profile launched before you called this API. To make sure that the tags associated with a Domain or User Profile are also added to all Apps that the Domain or User Profile launches, add the tags when you first create the Domain or User Profile by specifying them in the <code>Tags</code> parameter of <a>CreateDomain</a> or <a>CreateUserProfile</a>.</p> </note>"
     },
     "AssociateTrialComponent":{
       "name":"AssociateTrialComponent",
@@ -63,7 +63,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an <i>action</i>. An action is a lineage tracking entity that represents an action or activity. For example, a model deployment or an HPO job. Generally, an action involves at least one input or output artifact. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
+      "documentation":"<p>Creates an <i>action</i>. An action is a lineage tracking entity that represents an action or activity. For example, a model deployment or an HPO job. Generally, an action involves at least one input or output artifact. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateAction</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateAction</code> from outside one of these environments results in an error.</p> </note>"
     },
     "CreateAlgorithm":{
       "name":"CreateAlgorithm",
@@ -113,7 +113,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an <i>artifact</i>. An artifact is a lineage tracking entity that represents a URI addressable object or data. Some examples are the S3 URI of a dataset and the ECR registry path of an image. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
+      "documentation":"<p>Creates an <i>artifact</i>. An artifact is a lineage tracking entity that represents a URI addressable object or data. Some examples are the S3 URI of a dataset and the ECR registry path of an image. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateArtifact</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateArtifact</code> from outside one of these environments results in an error.</p> </note>"
     },
     "CreateAutoMLJob":{
       "name":"CreateAutoMLJob",
@@ -164,7 +164,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates a <i>context</i>. A context is a lineage tracking entity that represents a logical grouping of other tracking or experiment entities. Some examples are an endpoint and a model package. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p>"
+      "documentation":"<p>Creates a <i>context</i>. A context is a lineage tracking entity that represents a logical grouping of other tracking or experiment entities. Some examples are an endpoint and a model package. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/lineage-tracking.html\">Amazon SageMaker ML Lineage Tracking</a>.</p> <note> <p> <code>CreateContext</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateContext</code> from outside one of these environments results in an error.</p> </note>"
     },
     "CreateDataQualityJobDefinition":{
       "name":"CreateDataQualityJobDefinition",
@@ -256,7 +256,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an SageMaker <i>experiment</i>. An experiment is a collection of <i>trials</i> that are observed, compared and evaluated as a group. A trial is a set of steps, called <i>trial components</i>, that produce a machine learning model.</p> <p>The goal of an experiment is to determine the components that produce the best model. Multiple trials are performed, each one isolating and measuring the impact of a change to one or more inputs, while keeping the remaining inputs constant.</p> <p>When you use Amazon SageMaker Studio or the Amazon SageMaker Python SDK, all experiments, trials, and trial components are automatically tracked, logged, and indexed. When you use the AWS SDK for Python (Boto), you must use the logging APIs provided by the SDK.</p> <p>You can add tags to experiments, trials, trial components and then use the <a>Search</a> API to search for the tags.</p> <p>To add a description to an experiment, specify the optional <code>Description</code> parameter. To add a description later, or to change the description, call the <a>UpdateExperiment</a> API.</p> <p>To get a list of all your experiments, call the <a>ListExperiments</a> API. To view an experiment's properties, call the <a>DescribeExperiment</a> API. To get a list of all the trials associated with an experiment, call the <a>ListTrials</a> API. To create a trial call the <a>CreateTrial</a> API.</p>"
+      "documentation":"<p>Creates an SageMaker <i>experiment</i>. An experiment is a collection of <i>trials</i> that are observed, compared and evaluated as a group. A trial is a set of steps, called <i>trial components</i>, that produce a machine learning model.</p> <p>The goal of an experiment is to determine the components that produce the best model. Multiple trials are performed, each one isolating and measuring the impact of a change to one or more inputs, while keeping the remaining inputs constant.</p> <p>When you use SageMaker Studio or the SageMaker Python SDK, all experiments, trials, and trial components are automatically tracked, logged, and indexed. When you use the AWS SDK for Python (Boto), you must use the logging APIs provided by the SDK.</p> <p>You can add tags to experiments, trials, trial components and then use the <a>Search</a> API to search for the tags.</p> <p>To add a description to an experiment, specify the optional <code>Description</code> parameter. To add a description later, or to change the description, call the <a>UpdateExperiment</a> API.</p> <p>To get a list of all your experiments, call the <a>ListExperiments</a> API. To view an experiment's properties, call the <a>DescribeExperiment</a> API. To get a list of all the trials associated with an experiment, call the <a>ListTrials</a> API. To create a trial call the <a>CreateTrial</a> API.</p>"
     },
     "CreateFeatureGroup":{
       "name":"CreateFeatureGroup",
@@ -557,7 +557,7 @@
         {"shape":"ResourceLimitExceeded"},
         {"shape":"ResourceNotFound"}
       ],
-      "documentation":"<p>Starts a model training job. After training completes, Amazon SageMaker saves the resulting model artifacts to an Amazon S3 location that you specify. </p> <p>If you choose to host your model using Amazon SageMaker hosting services, you can use the resulting model artifacts as part of the model. You can also use the artifacts in a machine learning service other than Amazon SageMaker, provided that you know how to use them for inference. </p> <p>In the request body, you provide the following: </p> <ul> <li> <p> <code>AlgorithmSpecification</code> - Identifies the training algorithm to use. </p> </li> <li> <p> <code>HyperParameters</code> - Specify these algorithm-specific parameters to enable the estimation of model parameters during training. Hyperparameters can be tuned to optimize this learning process. For a list of hyperparameters for each training algorithm provided by Amazon SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>. </p> </li> <li> <p> <code>InputDataConfig</code> - Describes the training dataset and the Amazon S3, EFS, or FSx location where it is stored.</p> </li> <li> <p> <code>OutputDataConfig</code> - Identifies the Amazon S3 bucket where you want Amazon SageMaker to save the results of model training. </p> <p/> </li> <li> <p> <code>ResourceConfig</code> - Identifies the resources, ML compute instances, and ML storage volumes to deploy for model training. In distributed training, you specify more than one instance. </p> </li> <li> <p> <code>EnableManagedSpotTraining</code> - Optimize the cost of training machine learning models by up to 80% by using Amazon EC2 Spot instances. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html\">Managed Spot Training</a>. </p> </li> <li> <p> <code>RoleArn</code> - The Amazon Resource Name (ARN) that Amazon SageMaker assumes to perform tasks on your behalf during model training. You must grant this role the necessary permissions so that Amazon SageMaker can successfully complete model training. </p> </li> <li> <p> <code>StoppingCondition</code> - To help cap training costs, use <code>MaxRuntimeInSeconds</code> to set a time limit for training. Use <code>MaxWaitTimeInSeconds</code> to specify how long you are willing to wait for a managed spot training job to complete. </p> </li> <li> <p> <code>Environment</code> - The environment variables to set in the Docker container.</p> </li> </ul> <p> For more information about Amazon SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works.html\">How It Works</a>. </p>"
+      "documentation":"<p>Starts a model training job. After training completes, Amazon SageMaker saves the resulting model artifacts to an Amazon S3 location that you specify. </p> <p>If you choose to host your model using Amazon SageMaker hosting services, you can use the resulting model artifacts as part of the model. You can also use the artifacts in a machine learning service other than Amazon SageMaker, provided that you know how to use them for inference. </p> <p>In the request body, you provide the following: </p> <ul> <li> <p> <code>AlgorithmSpecification</code> - Identifies the training algorithm to use. </p> </li> <li> <p> <code>HyperParameters</code> - Specify these algorithm-specific parameters to enable the estimation of model parameters during training. Hyperparameters can be tuned to optimize this learning process. For a list of hyperparameters for each training algorithm provided by Amazon SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>. </p> </li> <li> <p> <code>InputDataConfig</code> - Describes the training dataset and the Amazon S3, EFS, or FSx location where it is stored.</p> </li> <li> <p> <code>OutputDataConfig</code> - Identifies the Amazon S3 bucket where you want Amazon SageMaker to save the results of model training. </p> </li> <li> <p> <code>ResourceConfig</code> - Identifies the resources, ML compute instances, and ML storage volumes to deploy for model training. In distributed training, you specify more than one instance. </p> </li> <li> <p> <code>EnableManagedSpotTraining</code> - Optimize the cost of training machine learning models by up to 80% by using Amazon EC2 Spot instances. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html\">Managed Spot Training</a>. </p> </li> <li> <p> <code>RoleArn</code> - The Amazon Resource Name (ARN) that Amazon SageMaker assumes to perform tasks on your behalf during model training. You must grant this role the necessary permissions so that Amazon SageMaker can successfully complete model training. </p> </li> <li> <p> <code>StoppingCondition</code> - To help cap training costs, use <code>MaxRuntimeInSeconds</code> to set a time limit for training. Use <code>MaxWaitTimeInSeconds</code> to specify how long a managed spot training job has to complete. </p> </li> <li> <p> <code>Environment</code> - The environment variables to set in the Docker container.</p> </li> <li> <p> <code>RetryStrategy</code> - The number of times to retry the job when the job fails due to an <code>InternalServerError</code>.</p> </li> </ul> <p> For more information about Amazon SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works.html\">How It Works</a>. </p>"
     },
     "CreateTransformJob":{
       "name":"CreateTransformJob",
@@ -586,7 +586,7 @@
         {"shape":"ResourceNotFound"},
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an Amazon SageMaker <i>trial</i>. A trial is a set of steps called <i>trial components</i> that produce a machine learning model. A trial is part of a single Amazon SageMaker <i>experiment</i>.</p> <p>When you use Amazon SageMaker Studio or the Amazon SageMaker Python SDK, all experiments, trials, and trial components are automatically tracked, logged, and indexed. When you use the AWS SDK for Python (Boto), you must use the logging APIs provided by the SDK.</p> <p>You can add tags to a trial and then use the <a>Search</a> API to search for the tags.</p> <p>To get a list of all your trials, call the <a>ListTrials</a> API. To view a trial's properties, call the <a>DescribeTrial</a> API. To create a trial component, call the <a>CreateTrialComponent</a> API.</p>"
+      "documentation":"<p>Creates an SageMaker <i>trial</i>. A trial is a set of steps called <i>trial components</i> that produce a machine learning model. A trial is part of a single SageMaker <i>experiment</i>.</p> <p>When you use SageMaker Studio or the SageMaker Python SDK, all experiments, trials, and trial components are automatically tracked, logged, and indexed. When you use the AWS SDK for Python (Boto), you must use the logging APIs provided by the SDK.</p> <p>You can add tags to a trial and then use the <a>Search</a> API to search for the tags.</p> <p>To get a list of all your trials, call the <a>ListTrials</a> API. To view a trial's properties, call the <a>DescribeTrial</a> API. To create a trial component, call the <a>CreateTrialComponent</a> API.</p>"
     },
     "CreateTrialComponent":{
       "name":"CreateTrialComponent",
@@ -599,7 +599,7 @@
       "errors":[
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates a <i>trial component</i>, which is a stage of a machine learning <i>trial</i>. A trial is composed of one or more trial components. A trial component can be used in multiple trials.</p> <p>Trial components include pre-processing jobs, training jobs, and batch transform jobs.</p> <p>When you use Amazon SageMaker Studio or the Amazon SageMaker Python SDK, all experiments, trials, and trial components are automatically tracked, logged, and indexed. When you use the AWS SDK for Python (Boto), you must use the logging APIs provided by the SDK.</p> <p>You can add tags to a trial component and then use the <a>Search</a> API to search for the tags.</p> <note> <p> <code>CreateTrialComponent</code> can only be invoked from within an Amazon SageMaker managed environment. This includes Amazon SageMaker training jobs, processing jobs, transform jobs, and Amazon SageMaker notebooks. A call to <code>CreateTrialComponent</code> from outside one of these environments results in an error.</p> </note>"
+      "documentation":"<p>Creates a <i>trial component</i>, which is a stage of a machine learning <i>trial</i>. A trial is composed of one or more trial components. A trial component can be used in multiple trials.</p> <p>Trial components include pre-processing jobs, training jobs, and batch transform jobs.</p> <p>When you use SageMaker Studio or the SageMaker Python SDK, all experiments, trials, and trial components are automatically tracked, logged, and indexed. When you use the AWS SDK for Python (Boto), you must use the logging APIs provided by the SDK.</p> <p>You can add tags to a trial component and then use the <a>Search</a> API to search for the tags.</p> <note> <p> <code>CreateTrialComponent</code> can only be invoked from within an SageMaker managed environment. This includes SageMaker training jobs, processing jobs, transform jobs, and SageMaker notebooks. A call to <code>CreateTrialComponent</code> from outside one of these environments results in an error.</p> </note>"
     },
     "CreateUserProfile":{
       "name":"CreateUserProfile",
@@ -800,7 +800,7 @@
       "errors":[
         {"shape":"ResourceNotFound"}
       ],
-      "documentation":"<p>Deletes an Amazon SageMaker experiment. All trials associated with the experiment must be deleted first. Use the <a>ListTrials</a> API to get a list of the trials associated with the experiment.</p>"
+      "documentation":"<p>Deletes an SageMaker experiment. All trials associated with the experiment must be deleted first. Use the <a>ListTrials</a> API to get a list of the trials associated with the experiment.</p>"
     },
     "DeleteFeatureGroup":{
       "name":"DeleteFeatureGroup",
@@ -985,7 +985,7 @@
       "errors":[
         {"shape":"ResourceNotFound"}
       ],
-      "documentation":"<p>Deletes a pipeline if there are no in-progress executions.</p>"
+      "documentation":"<p>Deletes a pipeline if there are no running instances of the pipeline. To delete a pipeline, you must stop all running instances of the pipeline using the <code>StopPipelineExecution</code> API. When you delete a pipeline, all instances of the pipeline are deleted.</p>"
     },
     "DeleteProject":{
       "name":"DeleteProject",
@@ -1004,7 +1004,7 @@
       },
       "input":{"shape":"DeleteTagsInput"},
       "output":{"shape":"DeleteTagsOutput"},
-      "documentation":"<p>Deletes the specified tags from an Amazon SageMaker resource.</p> <p>To list a resource's tags, use the <code>ListTags</code> API. </p> <note> <p>When you call this API to delete tags from a hyperparameter tuning job, the deleted tags are not removed from training jobs that the hyperparameter tuning job launched before you called this API.</p> </note>"
+      "documentation":"<p>Deletes the specified tags from an Amazon SageMaker resource.</p> <p>To list a resource's tags, use the <code>ListTags</code> API. </p> <note> <p>When you call this API to delete tags from a hyperparameter tuning job, the deleted tags are not removed from training jobs that the hyperparameter tuning job launched before you called this API.</p> </note> <note> <p>When you call this API to delete tags from a SageMaker Studio Domain or User Profile, the deleted tags are not removed from Apps that the SageMaker Studio Domain or User Profile launched before you called this API.</p> </note>"
     },
     "DeleteTrial":{
       "name":"DeleteTrial",
@@ -2197,7 +2197,7 @@
       },
       "input":{"shape":"ListTrainingJobsRequest"},
       "output":{"shape":"ListTrainingJobsResponse"},
-      "documentation":"<p>Lists training jobs.</p> <note> <p>When <code>StatusEquals</code> and <code>MaxResults</code> are set at the same time, the <code>MaxResults</code> number of training jobs are first retrieved ignoring the <code>StatusEquals</code> parameter and then they are filtered by the <code>StatusEquals</code> parameter, which is returned as a response. For example, if <code>ListTrainingJobs</code> is invoked with the following parameters:</p> <p> <code>{ ... MaxResults: 100, StatusEquals: InProgress ... }</code> </p> <p>Then, 100 trainings jobs with any status including those other than <code>InProgress</code> are selected first (sorted according the creation time, from the latest to the oldest) and those with status <code>InProgress</code> are returned.</p> <p>You can quickly test the API using the following AWS CLI code.</p> <p> <code>aws sagemaker list-training-jobs --max-results 100 --status-equals InProgress</code> </p> </note>"
+      "documentation":"<p>Lists training jobs.</p> <note> <p>When <code>StatusEquals</code> and <code>MaxResults</code> are set at the same time, the <code>MaxResults</code> number of training jobs are first retrieved ignoring the <code>StatusEquals</code> parameter and then they are filtered by the <code>StatusEquals</code> parameter, which is returned as a response.</p> <p>For example, if <code>ListTrainingJobs</code> is invoked with the following parameters:</p> <p> <code>{ ... MaxResults: 100, StatusEquals: InProgress ... }</code> </p> <p>First, 100 trainings jobs with any status, including those other than <code>InProgress</code>, are selected (sorted according to the creation time, from the most current to the oldest). Next, those with a status of <code>InProgress</code> are returned.</p> <p>You can quickly test the API using the following AWS CLI code.</p> <p> <code>aws sagemaker list-training-jobs --max-results 100 --status-equals InProgress</code> </p> </note>"
     },
     "ListTrainingJobsForHyperParameterTuningJob":{
       "name":"ListTrainingJobsForHyperParameterTuningJob",
@@ -3644,6 +3644,7 @@
         "IAM"
       ]
     },
+    "AutoGenerateEndpointName":{"type":"boolean"},
     "AutoMLCandidate":{
       "type":"structure",
       "required":[
@@ -3657,16 +3658,16 @@
       "members":{
         "CandidateName":{
           "shape":"CandidateName",
-          "documentation":"<p>The candidate name.</p>"
+          "documentation":"<p>The name of the candidate.</p>"
         },
         "FinalAutoMLJobObjectiveMetric":{"shape":"FinalAutoMLJobObjectiveMetric"},
         "ObjectiveStatus":{
           "shape":"ObjectiveStatus",
-          "documentation":"<p>The objective status.</p>"
+          "documentation":"<p>The objective's status.</p>"
         },
         "CandidateSteps":{
           "shape":"CandidateSteps",
-          "documentation":"<p>The candidate's steps.</p>"
+          "documentation":"<p>Information about the candidate's steps.</p>"
         },
         "CandidateStatus":{
           "shape":"CandidateStatus",
@@ -3674,7 +3675,7 @@
         },
         "InferenceContainers":{
           "shape":"AutoMLContainerDefinitions",
-          "documentation":"<p>The inference containers.</p>"
+          "documentation":"<p>Information about the inference container definitions.</p>"
         },
         "CreationTime":{
           "shape":"Timestamp",
@@ -3697,7 +3698,7 @@
           "documentation":"<p>The AutoML candidate's properties.</p>"
         }
       },
-      "documentation":"<p>An Autopilot job returns recommendations, or candidates. Each candidate has futher details about the steps involed, and the status.</p>"
+      "documentation":"<p>An Autopilot job returns recommendations, or candidates. Each candidate has futher details about the steps involved and the status.</p>"
     },
     "AutoMLCandidateStep":{
       "type":"structure",
@@ -3709,18 +3710,18 @@
       "members":{
         "CandidateStepType":{
           "shape":"CandidateStepType",
-          "documentation":"<p>Whether the Candidate is at the transform, training, or processing step.</p>"
+          "documentation":"<p>Whether the candidate is at the transform, training, or processing step.</p>"
         },
         "CandidateStepArn":{
           "shape":"CandidateStepArn",
-          "documentation":"<p>The ARN for the Candidate's step.</p>"
+          "documentation":"<p>The ARN for the candidate's step.</p>"
         },
         "CandidateStepName":{
           "shape":"CandidateStepName",
-          "documentation":"<p>The name for the Candidate's step.</p>"
+          "documentation":"<p>The name for the candidate's step.</p>"
         }
       },
-      "documentation":"<p>Information about the steps for a Candidate, and what step it is working on.</p>"
+      "documentation":"<p>Information about the steps for a candidate and what step it is working on.</p>"
     },
     "AutoMLCandidates":{
       "type":"list",
@@ -3765,7 +3766,7 @@
         },
         "Environment":{
           "shape":"EnvironmentMap",
-          "documentation":"<p>Environment variables to set in the container. For more information, see .</p>"
+          "documentation":"<p>The environment variables to set in the container. For more information, see .</p>"
         }
       },
       "documentation":"<p>A list of container definitions that describe the different containers that make up an AutoML candidate. For more information, see .</p>"
@@ -3807,14 +3808,14 @@
       "members":{
         "CandidateDefinitionNotebookLocation":{
           "shape":"CandidateDefinitionNotebookLocation",
-          "documentation":"<p>The URL to the notebook location.</p>"
+          "documentation":"<p>The URL of the notebook location.</p>"
         },
         "DataExplorationNotebookLocation":{
           "shape":"DataExplorationNotebookLocation",
-          "documentation":"<p>The URL to the notebook location.</p>"
+          "documentation":"<p>The URL of the notebook location.</p>"
         }
       },
-      "documentation":"<p>Artifacts that are generation during a job.</p>"
+      "documentation":"<p>The artifacts that are generated during an AutoML job.</p>"
     },
     "AutoMLJobCompletionCriteria":{
       "type":"structure",
@@ -3843,7 +3844,7 @@
         },
         "SecurityConfig":{
           "shape":"AutoMLSecurityConfig",
-          "documentation":"<p>Security configuration for traffic encryption or Amazon VPC settings.</p>"
+          "documentation":"<p>The security configuration for traffic encryption or Amazon VPC settings.</p>"
         }
       },
       "documentation":"<p>A collection of settings used for an AutoML job.</p>"
@@ -3860,7 +3861,7 @@
       "members":{
         "MetricName":{
           "shape":"AutoMLMetricEnum",
-          "documentation":"<p>The name of the objective metric used to measure the predictive quality of a machine learning system. This metric is optimized during training to provide the best estimate for model parameter values from data.</p> <p>Here are the options:</p> <ul> <li> <p> <code>MSE</code>: The mean squared error (MSE) is the average of the squared differences between the predicted and actual values. It is used for regression. MSE values are always positive, the better a model is at predicting the actual values the smaller the MSE value. When the data contains outliers, they tend to dominate the MSE which might cause subpar prediction performance.</p> </li> <li> <p> <code>Accuracy</code>: The ratio of the number correctly classified items to the total number (correctly and incorrectly) classified. It is used for binary and multiclass classification. Measures how close the predicted class values are to the actual values. Accuracy values vary between zero and one, one being perfect accuracy and zero perfect inaccuracy.</p> </li> <li> <p> <code>F1</code>: The F1 score is the harmonic mean of the precision and recall. It is used for binary classification into classes traditionally referred to as positive and negative. Predictions are said to be true when they match their actual (correct) class; false when they do not. Precision is the ratio of the true positive predictions to all positive predictions (including the false positives) in a data set and measures the quality of the prediction when it predicts the positive class. Recall (or sensitivity) is the ratio of the true positive predictions to all actual positive instances and measures how completely a model predicts the actual class members in a data set. The standard F1 score weighs precision and recall equally. But which metric is paramount typically depends on specific aspects of a problem. F1 scores vary between zero and one, one being the best possible performance and zero the worst.</p> </li> <li> <p> <code>AUC</code>: The area under the curve (AUC) metric is used to compare and evaluate binary classification by algorithms such as logistic regression that return probabilities. A threshold is needed to map the probabilities into classifications. The relevant curve is the receiver operating characteristic curve that plots the true positive rate (TPR) of predictions (or recall) against the false positive rate (FPR) as a function of the threshold value, above which a prediction is considered positive. Increasing the threshold results in fewer false positives but more false negatives. AUC is the area under this receiver operating characteristic curve and so provides an aggregated measure of the model performance across all possible classification thresholds. The AUC score can also be interpreted as the probability that a randomly selected positive data point is more likely to be predicted positive than a randomly selected negative example. AUC scores vary between zero and one, one being perfect accuracy and one half not better than a random classifier. Values less that one half predict worse than a random predictor and such consistently bad predictors can be inverted to obtain better than random predictors.</p> </li> <li> <p> <code>F1macro</code>: The F1macro score applies F1 scoring to multiclass classification. In this context, you have multiple classes to predict. You just calculate the precision and recall for each class as you did for the positive class in binary classification. Then used these values to calculate the F1 score for each class and average them to obtain the F1macro score. F1macro scores vary between zero and one, one being the best possible performance and zero the worst.</p> </li> </ul> <p>If you do not specify a metric explicitly, the default behavior is to automatically use:</p> <ul> <li> <p> <code>MSE</code>: for regression.</p> </li> <li> <p> <code>F1</code>: for binary classification</p> </li> <li> <p> <code>Accuracy</code>: for multiclass classification.</p> </li> </ul>"
+          "documentation":"<p>The name of the objective metric used to measure the predictive quality of a machine learning system. This metric is optimized during training to provide the best estimate for model parameter values from data.</p> <p>Here are the options:</p> <ul> <li> <p> <code>MSE</code>: The mean squared error (MSE) is the average of the squared differences between the predicted and actual values. It is used for regression. MSE values are always positive: the better a model is at predicting the actual values, the smaller the MSE value. When the data contains outliers, they tend to dominate the MSE, which might cause subpar prediction performance.</p> </li> <li> <p> <code>Accuracy</code>: The ratio of the number of correctly classified items to the total number of (correctly and incorrectly) classified items. It is used for binary and multiclass classification. It measures how close the predicted class values are to the actual values. Accuracy values vary between zero and one: one indicates perfect accuracy and zero indicates perfect inaccuracy.</p> </li> <li> <p> <code>F1</code>: The F1 score is the harmonic mean of the precision and recall. It is used for binary classification into classes traditionally referred to as positive and negative. Predictions are said to be true when they match their actual (correct) class and false when they do not. Precision is the ratio of the true positive predictions to all positive predictions (including the false positives) in a data set and measures the quality of the prediction when it predicts the positive class. Recall (or sensitivity) is the ratio of the true positive predictions to all actual positive instances and measures how completely a model predicts the actual class members in a data set. The standard F1 score weighs precision and recall equally. But which metric is paramount typically depends on specific aspects of a problem. F1 scores vary between zero and one: one indicates the best possible performance and zero the worst.</p> </li> <li> <p> <code>AUC</code>: The area under the curve (AUC) metric is used to compare and evaluate binary classification by algorithms such as logistic regression that return probabilities. A threshold is needed to map the probabilities into classifications. The relevant curve is the receiver operating characteristic curve that plots the true positive rate (TPR) of predictions (or recall) against the false positive rate (FPR) as a function of the threshold value, above which a prediction is considered positive. Increasing the threshold results in fewer false positives but more false negatives. AUC is the area under this receiver operating characteristic curve and so provides an aggregated measure of the model performance across all possible classification thresholds. The AUC score can also be interpreted as the probability that a randomly selected positive data point is more likely to be predicted positive than a randomly selected negative example. AUC scores vary between zero and one: a score of one indicates perfect accuracy and a score of one half indicates that the prediction is not better than a random classifier. Values under one half predict less accurately than a random predictor. But such consistently bad predictors can simply be inverted to obtain better than random predictors.</p> </li> <li> <p> <code>F1macro</code>: The F1macro score applies F1 scoring to multiclass classification. In this context, you have multiple classes to predict. You just calculate the precision and recall for each class as you did for the positive class in binary classification. Then, use these values to calculate the F1 score for each class and average them to obtain the F1macro score. F1macro scores vary between zero and one: one indicates the best possible performance and zero the worst.</p> </li> </ul> <p>If you do not specify a metric explicitly, the default behavior is to automatically use:</p> <ul> <li> <p> <code>MSE</code>: for regression.</p> </li> <li> <p> <code>F1</code>: for binary classification</p> </li> <li> <p> <code>Accuracy</code>: for multiclass classification.</p> </li> </ul>"
         }
       },
       "documentation":"<p>Specifies a metric to minimize or maximize as the objective of a job.</p>"
@@ -3887,7 +3888,9 @@
         "CandidateDefinitionsGenerated",
         "GeneratingExplainabilityReport",
         "Completed",
-        "ExplainabilityError"
+        "ExplainabilityError",
+        "DeployingModel",
+        "ModelDeploymentError"
       ]
     },
     "AutoMLJobStatus":{
@@ -4043,7 +4046,7 @@
         },
         "VpcConfig":{
           "shape":"VpcConfig",
-          "documentation":"<p>VPC configuration.</p>"
+          "documentation":"<p>The VPC configuration.</p>"
         }
       },
       "documentation":"<p>Security options.</p>"
@@ -4154,10 +4157,10 @@
       "members":{
         "Explainability":{
           "shape":"ExplainabilityLocation",
-          "documentation":"<p>The S3 prefix to the explainability artifacts generated for the AutoML candidate.</p>"
+          "documentation":"<p>The Amazon S3 prefix to the explainability artifacts generated for the AutoML candidate.</p>"
         }
       },
-      "documentation":"<p>Location of artifacts for an AutoML candidate job.</p>"
+      "documentation":"<p>The location of artifacts for an AutoML candidate job.</p>"
     },
     "CandidateDefinitionNotebookLocation":{
       "type":"string",
@@ -4173,7 +4176,7 @@
       "members":{
         "CandidateArtifactLocations":{
           "shape":"CandidateArtifactLocations",
-          "documentation":"<p>The S3 prefix to the artifacts generated for an AutoML candidate.</p>"
+          "documentation":"<p>The Amazon S3 prefix to the artifacts generated for an AutoML candidate.</p>"
         }
       },
       "documentation":"<p>The properties of an AutoML candidate job.</p>"
@@ -4452,15 +4455,15 @@
     },
     "ClientId":{
       "type":"string",
-      "max":128,
+      "max":1024,
       "min":1,
-      "pattern":"[\\w+-]+"
+      "pattern":"[ -~]+"
     },
     "ClientSecret":{
       "type":"string",
-      "max":64,
+      "max":1024,
       "min":1,
-      "pattern":"[\\w+=/-]+",
+      "pattern":"[ -~]+",
       "sensitive":true
     },
     "ClientToken":{
@@ -4754,7 +4757,7 @@
       "members":{
         "Message":{"shape":"FailureReason"}
       },
-      "documentation":"<p>There was a conflict when you attempted to modify an experiment, trial, or trial component.</p>",
+      "documentation":"<p>There was a conflict when you attempted to modify a SageMaker entity such as an <code>Experiment</code> or <code>Artifact</code>.</p>",
       "exception":true
     },
     "ContainerArgument":{
@@ -5198,23 +5201,23 @@
         },
         "OutputDataConfig":{
           "shape":"AutoMLOutputDataConfig",
-          "documentation":"<p>Provides information about encryption and the Amazon S3 output path needed to store artifacts from an AutoML job. Format(s) supported: CSV.</p>"
+          "documentation":"<p>Provides information about encryption and the Amazon S3 output path needed to store artifacts from an AutoML job. Format(s) supported: CSV.</p> <p>&lt;para&gt;Specifies whether to automatically deploy the best &amp;ATP; model to an endpoint and the name of that endpoint if deployed automatically.&lt;/para&gt;</p>"
         },
         "ProblemType":{
           "shape":"ProblemType",
-          "documentation":"<p>Defines the type of supervised learning available for the candidates. Options include: BinaryClassification, MulticlassClassification, and Regression. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development-problem-types.html\"> Amazon SageMaker Autopilot problem types and algorithm support</a>.</p>"
+          "documentation":"<p>Defines the type of supervised learning available for the candidates. Options include: <code>BinaryClassification</code>, <code>MulticlassClassification</code>, and <code>Regression</code>. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development-problem-types.html\"> Amazon SageMaker Autopilot problem types and algorithm support</a>.</p>"
         },
         "AutoMLJobObjective":{
           "shape":"AutoMLJobObjective",
-          "documentation":"<p>Defines the objective metric used to measure the predictive quality of an AutoML job. You provide a <a>AutoMLJobObjective$MetricName</a> and Autopilot infers whether to minimize or maximize it.</p>"
+          "documentation":"<p>Defines the objective metric used to measure the predictive quality of an AutoML job. You provide an <a>AutoMLJobObjective$MetricName</a> and Autopilot infers whether to minimize or maximize it.</p>"
         },
         "AutoMLJobConfig":{
           "shape":"AutoMLJobConfig",
-          "documentation":"<p>Contains CompletionCriteria and SecurityConfig settings for the AutoML job.</p>"
+          "documentation":"<p>Contains <code>CompletionCriteria</code> and <code>SecurityConfig</code> settings for the AutoML job.</p>"
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The ARN of the role that is used to access the data.</p>"
+          "documentation":"<p>The ARN of the role that is used to access the data.</p> <p>&lt;para&gt;Specifies whether to automatically deploy the best &amp;ATP; model to an endpoint and the name of that endpoint if deployed automatically.&lt;/para&gt;</p>"
         },
         "GenerateCandidateDefinitionsOnly":{
           "shape":"GenerateCandidateDefinitionsOnly",
@@ -5223,6 +5226,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>Each tag consists of a key and an optional value. Tag keys must be unique per resource.</p>"
+        },
+        "ModelDeployConfig":{
+          "shape":"ModelDeployConfig",
+          "documentation":"<p>Specifies how to generate the endpoint name for an automatic one-click Autopilot model deployment.</p>"
         }
       }
     },
@@ -5471,7 +5478,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>Tags to associated with the Domain. Each tag consists of a key and an optional value. Tag keys must be unique per resource. Tags are searchable using the <code>Search</code> API.</p>"
+          "documentation":"<p>Tags to associated with the Domain. Each tag consists of a key and an optional value. Tag keys must be unique per resource. Tags are searchable using the <code>Search</code> API.</p> <p>Tags that you specify for the Domain are also added to all Apps that the Domain launches.</p>"
         },
         "AppNetworkAccessType":{
           "shape":"AppNetworkAccessType",
@@ -6330,7 +6337,7 @@
         },
         "DirectInternetAccess":{
           "shape":"DirectInternetAccess",
-          "documentation":"<p>Sets whether Amazon SageMaker provides internet access to the notebook instance. If you set this to <code>Disabled</code> this notebook instance will be able to access resources only in your VPC, and will not be able to connect to Amazon SageMaker training and endpoint services unless your configure a NAT Gateway in your VPC.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/appendix-additional-considerations.html#appendix-notebook-and-internet-access\">Notebook Instances Are Internet-Enabled by Default</a>. You can set the value of this parameter to <code>Disabled</code> only if you set a value for the <code>SubnetId</code> parameter.</p>"
+          "documentation":"<p>Sets whether Amazon SageMaker provides internet access to the notebook instance. If you set this to <code>Disabled</code> this notebook instance is able to access resources only in your VPC, and is not be able to connect to Amazon SageMaker training and endpoint services unless you configure a NAT Gateway in your VPC.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/appendix-additional-considerations.html#appendix-notebook-and-internet-access\">Notebook Instances Are Internet-Enabled by Default</a>. You can set the value of this parameter to <code>Disabled</code> only if you set a value for the <code>SubnetId</code> parameter.</p>"
         },
         "VolumeSizeInGB":{
           "shape":"NotebookInstanceVolumeSizeInGB",
@@ -6645,7 +6652,7 @@
         },
         "StoppingCondition":{
           "shape":"StoppingCondition",
-          "documentation":"<p>Specifies a limit to how long a model training job can run. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p>"
+          "documentation":"<p>Specifies a limit to how long a model training job can run. It also specifies how long a managed Spot training job has to complete. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -6682,6 +6689,10 @@
         "Environment":{
           "shape":"TrainingEnvironmentMap",
           "documentation":"<p>The environment variables to set in the Docker container.</p>"
+        },
+        "RetryStrategy":{
+          "shape":"RetryStrategy",
+          "documentation":"<p>The number of times to retry the job when the job fails due to an <code>InternalServerError</code>.</p>"
         }
       }
     },
@@ -6866,7 +6877,7 @@
         },
         "UserProfileName":{
           "shape":"UserProfileName",
-          "documentation":"<p>A name for the UserProfile.</p>"
+          "documentation":"<p>A name for the UserProfile. This value is not case sensitive.</p>"
         },
         "SingleSignOnUserIdentifier":{
           "shape":"SingleSignOnUserIdentifier",
@@ -6878,7 +6889,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>Each tag consists of a key and an optional value. Tag keys must be unique per resource.</p>"
+          "documentation":"<p>Each tag consists of a key and an optional value. Tag keys must be unique per resource.</p> <p>Tags that you specify for the User Profile are also added to all Apps that the User Profile launches.</p>"
         },
         "UserSettings":{
           "shape":"UserSettings",
@@ -7133,7 +7144,7 @@
         },
         "JoinSource":{
           "shape":"JoinSource",
-          "documentation":"<p>Specifies the source of the data to join with the transformed data. The valid values are <code>None</code> and <code>Input</code>. The default value is <code>None</code>, which specifies not to join the input with the transformed data. If you want the batch transform job to join the original input data with the transformed data, set <code>JoinSource</code> to <code>Input</code>. </p> <p>For JSON or JSONLines objects, such as a JSON array, Amazon SageMaker adds the transformed data to the input JSON object in an attribute called <code>SageMakerOutput</code>. The joined result for JSON must be a key-value pair object. If the input is not a key-value pair object, Amazon SageMaker creates a new JSON file. In the new JSON file, and the input data is stored under the <code>SageMakerInput</code> key and the results are stored in <code>SageMakerOutput</code>.</p> <p>For CSV files, Amazon SageMaker combines the transformed data with the input data at the end of the input data and stores it in the output file. The joined data has the joined input data followed by the transformed data and the output is a CSV file. </p>"
+          "documentation":"<p>Specifies the source of the data to join with the transformed data. The valid values are <code>None</code> and <code>Input</code>. The default value is <code>None</code>, which specifies not to join the input with the transformed data. If you want the batch transform job to join the original input data with the transformed data, set <code>JoinSource</code> to <code>Input</code>. You can specify <code>OutputFilter</code> as an additional filter to select a portion of the joined dataset and store it in the output file.</p> <p>For JSON or JSONLines objects, such as a JSON array, Amazon SageMaker adds the transformed data to the input JSON object in an attribute called <code>SageMakerOutput</code>. The joined result for JSON must be a key-value pair object. If the input is not a key-value pair object, Amazon SageMaker creates a new JSON file. In the new JSON file, and the input data is stored under the <code>SageMakerInput</code> key and the results are stored in <code>SageMakerOutput</code>.</p> <p>For CSV data, Amazon SageMaker takes each row as a JSON array and joins the transformed data with the input by appending each transformed row to the end of the input. The joined data has the original input data followed by the transformed data and the output is a CSV file.</p> <p>For information on how joining in applied, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/batch-transform-data-processing.html#batch-transform-data-processing-workflow\">Workflow for Associating Inferences with Input Records</a>.</p>"
         }
       },
       "documentation":"<p>The data structure used to specify the data to be used for inference in a batch transform job and to associate the data that is relevant to the prediction results in the output. The input filter provided allows you to exclude input data that is not needed for inference in a batch transform job. The output filter provided allows you to include input data relevant to interpreting the predictions in the output from the job. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/batch-transform-data-processing.html\">Associate Prediction Results with their Corresponding Input Records</a>.</p>"
@@ -8286,19 +8297,19 @@
         },
         "FailureReason":{
           "shape":"AutoMLFailureReason",
-          "documentation":"<p>Returns the job's FailureReason.</p>"
+          "documentation":"<p>Returns the failure reason for an AutoML job, when applicable.</p>"
         },
         "PartialFailureReasons":{
           "shape":"AutoMLPartialFailureReasons",
-          "documentation":"<p>Returns a list of reasons for partial failures within an AutoML job. </p>"
+          "documentation":"<p>Returns a list of reasons for partial failures within an AutoML job.</p>"
         },
         "BestCandidate":{
           "shape":"AutoMLCandidate",
-          "documentation":"<p>Returns the job's BestCandidate.</p>"
+          "documentation":"<p>Returns the job's best <code>AutoMLCandidate</code>.</p>"
         },
         "AutoMLJobStatus":{
           "shape":"AutoMLJobStatus",
-          "documentation":"<p>Returns the status of the AutoML job's AutoMLJobStatus.</p>"
+          "documentation":"<p>Returns the status of the AutoML job.</p>"
         },
         "AutoMLJobSecondaryStatus":{
           "shape":"AutoMLJobSecondaryStatus",
@@ -8306,15 +8317,23 @@
         },
         "GenerateCandidateDefinitionsOnly":{
           "shape":"GenerateCandidateDefinitionsOnly",
-          "documentation":"<p>Returns the job's output from GenerateCandidateDefinitionsOnly.</p>"
+          "documentation":"<p>Indicates whether the output for an AutoML job generates candidate definitions only.</p>"
         },
         "AutoMLJobArtifacts":{
           "shape":"AutoMLJobArtifacts",
-          "documentation":"<p>Returns information on the job's artifacts found in AutoMLJobArtifacts.</p>"
+          "documentation":"<p>Returns information on the job's artifacts found in <code>AutoMLJobArtifacts</code>.</p>"
         },
         "ResolvedAttributes":{
           "shape":"ResolvedAttributes",
-          "documentation":"<p>This contains ProblemType, AutoMLJobObjective and CompletionCriteria. If you do not provide these values, they are auto-inferred. If you do provide them, they are the values you provide.</p>"
+          "documentation":"<p>This contains <code>ProblemType</code>, <code>AutoMLJobObjective</code> and <code>CompletionCriteria</code>. If you do not provide these values, they are auto-inferred. If you do provide them, the values used are the ones you provide.</p>"
+        },
+        "ModelDeployConfig":{
+          "shape":"ModelDeployConfig",
+          "documentation":"<p>Indicates whether the model was deployed automatically to an endpoint and the name of that endpoint if deployed automatically.</p>"
+        },
+        "ModelDeployResult":{
+          "shape":"ModelDeployResult",
+          "documentation":"<p>Provides information about endpoint for the model deployment.</p>"
         }
       }
     },
@@ -10395,7 +10414,7 @@
         },
         "SecondaryStatus":{
           "shape":"SecondaryStatus",
-          "documentation":"<p> Provides detailed information about the state of the training job. For detailed information on the secondary status of the training job, see <code>StatusMessage</code> under <a>SecondaryStatusTransition</a>.</p> <p>Amazon SageMaker provides primary statuses and secondary statuses that apply to each of them:</p> <dl> <dt>InProgress</dt> <dd> <ul> <li> <p> <code>Starting</code> - Starting the training job.</p> </li> <li> <p> <code>Downloading</code> - An optional stage for algorithms that support <code>File</code> training input mode. It indicates that data is being downloaded to the ML storage volumes.</p> </li> <li> <p> <code>Training</code> - Training is in progress.</p> </li> <li> <p> <code>Interrupted</code> - The job stopped because the managed spot training instances were interrupted. </p> </li> <li> <p> <code>Uploading</code> - Training is complete and the model artifacts are being uploaded to the S3 location.</p> </li> </ul> </dd> <dt>Completed</dt> <dd> <ul> <li> <p> <code>Completed</code> - The training job has completed.</p> </li> </ul> </dd> <dt>Failed</dt> <dd> <ul> <li> <p> <code>Failed</code> - The training job has failed. The reason for the failure is returned in the <code>FailureReason</code> field of <code>DescribeTrainingJobResponse</code>.</p> </li> </ul> </dd> <dt>Stopped</dt> <dd> <ul> <li> <p> <code>MaxRuntimeExceeded</code> - The job stopped because it exceeded the maximum allowed runtime.</p> </li> <li> <p> <code>MaxWaitTimeExceeded</code> - The job stopped because it exceeded the maximum allowed wait time.</p> </li> <li> <p> <code>Stopped</code> - The training job has stopped.</p> </li> </ul> </dd> <dt>Stopping</dt> <dd> <ul> <li> <p> <code>Stopping</code> - Stopping the training job.</p> </li> </ul> </dd> </dl> <important> <p>Valid values for <code>SecondaryStatus</code> are subject to change. </p> </important> <p>We no longer support the following secondary statuses:</p> <ul> <li> <p> <code>LaunchingMLInstances</code> </p> </li> <li> <p> <code>PreparingTrainingStack</code> </p> </li> <li> <p> <code>DownloadingTrainingImage</code> </p> </li> </ul>"
+          "documentation":"<p> Provides detailed information about the state of the training job. For detailed information on the secondary status of the training job, see <code>StatusMessage</code> under <a>SecondaryStatusTransition</a>.</p> <p>Amazon SageMaker provides primary statuses and secondary statuses that apply to each of them:</p> <dl> <dt>InProgress</dt> <dd> <ul> <li> <p> <code>Starting</code> - Starting the training job.</p> </li> <li> <p> <code>Downloading</code> - An optional stage for algorithms that support <code>File</code> training input mode. It indicates that data is being downloaded to the ML storage volumes.</p> </li> <li> <p> <code>Training</code> - Training is in progress.</p> </li> <li> <p> <code>Interrupted</code> - The job stopped because the managed spot training instances were interrupted. </p> </li> <li> <p> <code>Uploading</code> - Training is complete and the model artifacts are being uploaded to the S3 location.</p> </li> </ul> </dd> <dt>Completed</dt> <dd> <ul> <li> <p> <code>Completed</code> - The training job has completed.</p> </li> </ul> </dd> <dt>Failed</dt> <dd> <ul> <li> <p> <code>Failed</code> - The training job has failed. The reason for the failure is returned in the <code>FailureReason</code> field of <code>DescribeTrainingJobResponse</code>.</p> </li> </ul> </dd> <dt>Stopped</dt> <dd> <ul> <li> <p> <code>MaxRuntimeExceeded</code> - The job stopped because it exceeded the maximum allowed runtime.</p> </li> <li> <p> <code>MaxWaitTimeExceeded</code> - The job stopped because it exceeded the maximum allowed wait time.</p> </li> <li> <p> <code>Stopped</code> - The training job has stopped.</p> </li> </ul> </dd> <dt>Stopping</dt> <dd> <ul> <li> <p> <code>Stopping</code> - Stopping the training job.</p> </li> </ul> </dd> </dl> <important> <p>Valid values for <code>SecondaryStatus</code> are subject to change. </p> </important> <p>We no longer support the following secondary statuses:</p> <ul> <li> <p> <code>LaunchingMLInstances</code> </p> </li> <li> <p> <code>PreparingTraining</code> </p> </li> <li> <p> <code>DownloadingTrainingImage</code> </p> </li> </ul>"
         },
         "FailureReason":{
           "shape":"FailureReason",
@@ -10431,7 +10450,7 @@
         },
         "StoppingCondition":{
           "shape":"StoppingCondition",
-          "documentation":"<p>Specifies a limit to how long a model training job can run. It also specifies the maximum time to wait for a spot instance. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p>"
+          "documentation":"<p>Specifies a limit to how long a model training job can run. It also specifies how long a managed Spot training job has to complete. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p>"
         },
         "CreationTime":{
           "shape":"Timestamp",
@@ -10501,6 +10520,10 @@
         "ProfilingStatus":{
           "shape":"ProfilingStatus",
           "documentation":"<p>Profiling status of a training job.</p>"
+        },
+        "RetryStrategy":{
+          "shape":"RetryStrategy",
+          "documentation":"<p>The number of times to retry the job when the job fails due to an <code>InternalServerError</code>.</p>"
         },
         "Environment":{
           "shape":"TrainingEnvironmentMap",
@@ -10747,7 +10770,7 @@
         },
         "UserProfileName":{
           "shape":"UserProfileName",
-          "documentation":"<p>The user profile name.</p>"
+          "documentation":"<p>The user profile name. This value is not case sensitive.</p>"
         }
       }
     },
@@ -11494,7 +11517,7 @@
         },
         "S3DataDistributionType":{
           "shape":"ProcessingS3DataDistributionType",
-          "documentation":"<p>Whether input data distributed in Amazon S3 is fully replicated or sharded by an S3 key. Defauts to <code>FullyReplicated</code> </p>"
+          "documentation":"<p>Whether input data distributed in Amazon S3 is fully replicated or sharded by an S3 key. Defaults to <code>FullyReplicated</code> </p>"
         },
         "FeaturesAttribute":{
           "shape":"String",
@@ -12709,7 +12732,7 @@
         },
         "StoppingCondition":{
           "shape":"StoppingCondition",
-          "documentation":"<p>Specifies a limit to how long a model hyperparameter training job can run. It also specifies how long you are willing to wait for a managed spot training job to complete. When the job reaches the a limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p>"
+          "documentation":"<p>Specifies a limit to how long a model hyperparameter training job can run. It also specifies how long a managed spot training job has to complete. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p>"
         },
         "EnableNetworkIsolation":{
           "shape":"Boolean",
@@ -12723,7 +12746,11 @@
           "shape":"Boolean",
           "documentation":"<p>A Boolean indicating whether managed spot training is enabled (<code>True</code>) or not (<code>False</code>).</p>"
         },
-        "CheckpointConfig":{"shape":"CheckpointConfig"}
+        "CheckpointConfig":{"shape":"CheckpointConfig"},
+        "RetryStrategy":{
+          "shape":"RetryStrategy",
+          "documentation":"<p>The number of times to retry the job when the job fails due to an <code>InternalServerError</code>.</p>"
+        }
       },
       "documentation":"<p>Defines the training jobs launched by a hyperparameter tuning job.</p>"
     },
@@ -13672,7 +13699,7 @@
         },
         "WorkRequesterAccountId":{
           "shape":"AccountId",
-          "documentation":"<p/>"
+          "documentation":"<p>The AWS account ID of the account used to start the labeling job.</p>"
         },
         "CreationTime":{
           "shape":"Timestamp",
@@ -13743,7 +13770,7 @@
         },
         "SnsTopicArn":{
           "shape":"SnsTopicArn",
-          "documentation":"<p>An Amazon Simple Notification Service (Amazon SNS) output topic ARN.</p> <p>If you provide an <code>SnsTopicArn</code> in <code>OutputConfig</code>, when workers complete labeling tasks, Ground Truth will send labeling task output data to the SNS output topic you specify here. </p> <p>To learn more, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sms-streaming-labeling-job.html#sms-streaming-how-it-works-output-data\">Receive Output Data from a Streaming Labeling Job</a>. </p>"
+          "documentation":"<p>An Amazon Simple Notification Service (Amazon SNS) output topic ARN. Provide a <code>SnsTopicArn</code> if you want to do real time chaining to another streaming job and receive an Amazon SNS notifications each time a data object is submitted by a worker.</p> <p>If you provide an <code>SnsTopicArn</code> in <code>OutputConfig</code>, when workers complete labeling tasks, Ground Truth will send labeling task output data to the SNS output topic you specify here. </p> <p>To learn more, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sms-streaming-labeling-job.html#sms-streaming-how-it-works-output-data\">Receive Output Data from a Streaming Labeling Job</a>. </p>"
         }
       },
       "documentation":"<p>Output configuration information for a labeling job.</p>"
@@ -14219,11 +14246,11 @@
         },
         "SortOrder":{
           "shape":"AutoMLSortOrder",
-          "documentation":"<p>The sort order for the results. The default is Descending.</p>"
+          "documentation":"<p>The sort order for the results. The default is <code>Descending</code>.</p>"
         },
         "SortBy":{
           "shape":"AutoMLSortBy",
-          "documentation":"<p>The parameter by which to sort the results. The default is AutoMLJobName.</p>"
+          "documentation":"<p>The parameter by which to sort the results. The default is <code>Name</code>.</p>"
         },
         "MaxResults":{
           "shape":"AutoMLMaxResults",
@@ -14291,7 +14318,7 @@
       "members":{
         "Candidates":{
           "shape":"AutoMLCandidates",
-          "documentation":"<p>Summaries about the Candidates.</p>"
+          "documentation":"<p>Summaries about the <code>AutoMLCandidates</code>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -14791,7 +14818,7 @@
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of endpoints to return in the response.</p>"
+          "documentation":"<p>The maximum number of endpoints to return in the response. This value defaults to 10.</p>"
         },
         "NameContains":{
           "shape":"EndpointNameContains",
@@ -16685,6 +16712,11 @@
       "max":14400,
       "min":600
     },
+    "MaximumRetryAttempts":{
+      "type":"integer",
+      "max":30,
+      "min":1
+    },
     "MediaType":{
       "type":"string",
       "max":64,
@@ -16837,7 +16869,7 @@
           "documentation":"<p>The path of the S3 object that contains the model artifacts. For example, <code>s3://bucket-name/keynameprefix/model.tar.gz</code>.</p>"
         }
       },
-      "documentation":"<p>Provides information about the location that is configured for storing model artifacts. </p> <p>Model artifacts are the output that results from training a model, and typically consist of trained parameters, a model defintion that desribes how to compute inferences, and other metadata.</p>"
+      "documentation":"<p>Provides information about the location that is configured for storing model artifacts. </p> <p>Model artifacts are the output that results from training a model, and typically consist of trained parameters, a model defintion that describes how to compute inferences, and other metadata.</p>"
     },
     "ModelBiasAppSpecification":{
       "type":"structure",
@@ -16921,6 +16953,30 @@
         }
       },
       "documentation":"<p>Data quality constraints and statistics for a model.</p>"
+    },
+    "ModelDeployConfig":{
+      "type":"structure",
+      "members":{
+        "AutoGenerateEndpointName":{
+          "shape":"AutoGenerateEndpointName",
+          "documentation":"<p>Set to <code>True</code> to automatically generate an endpoint name for a one-click Autopilot model deployment; set to <code>False</code> otherwise. The default value is <code>True</code>.</p> <note> <p>If you set <code>AutoGenerateEndpointName</code> to <code>True</code>, do not specify the <code>EndpointName</code>; otherwise a 400 error is thrown.</p> </note>"
+        },
+        "EndpointName":{
+          "shape":"EndpointName",
+          "documentation":"<p>Specifies the endpoint name to use for a one-click Autopilot model deployment if the endpoint name is not generated automatically.</p> <note> <p>Specify the <code>EndpointName</code> if and only if you set <code>AutoGenerateEndpointName</code> to <code>False</code>; otherwise a 400 error is thrown.</p> </note>"
+        }
+      },
+      "documentation":"<p>Specifies how to generate the endpoint name for an automatic one-click Autopilot model deployment.</p>"
+    },
+    "ModelDeployResult":{
+      "type":"structure",
+      "members":{
+        "EndpointName":{
+          "shape":"EndpointName",
+          "documentation":"<p>The name of the endpoint to which the model has been deployed.</p> <note> <p>If model deployment fails, this field is omitted from the response.</p> </note>"
+        }
+      },
+      "documentation":"<p>Provides information about the endpoint of the model deployment.</p>"
     },
     "ModelDigests":{
       "type":"structure",
@@ -18016,7 +18072,7 @@
       "members":{
         "MaxRuntimeInSeconds":{
           "shape":"MonitoringMaxRuntimeInSeconds",
-          "documentation":"<p>The maximum runtime allowed in seconds.</p>"
+          "documentation":"<p>The maximum runtime allowed in seconds.</p> <note> <p>The <code>MaxRuntimeInSeconds</code> cannot exceed the frequency of the job. For data quality and model explainability, this can be up to 3600 seconds for an hourly schedule. For model bias and model quality hourly schedules, this can be up to 1800 seconds.</p> </note>"
         }
       },
       "documentation":"<p>A time limit for how long the monitoring job is allowed to run before stopping.</p>"
@@ -18578,7 +18634,7 @@
       "members":{
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The AWS Key Management Service (AWS KMS) key that Amazon SageMaker uses to encrypt the model artifacts at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your master key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mazonS3/latest/dev/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateTrainingJob</code>, <code>CreateTransformJob</code>, or <code>CreateHyperParameterTuningJob</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in AWS KMS</a> in the <i>AWS Key Management Service Developer Guide</i>.</p>"
+          "documentation":"<p>The AWS Key Management Service (AWS KMS) key that Amazon SageMaker uses to encrypt the model artifacts at rest using Amazon S3 server-side encryption. The <code>KmsKeyId</code> can be any of the following formats: </p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// KMS Key Alias</p> <p> <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key Alias</p> <p> <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul> <p>If you use a KMS key ID or an alias of your master key, the Amazon SageMaker execution role must include permissions to call <code>kms:Encrypt</code>. If you don't provide a KMS key ID, Amazon SageMaker uses the default KMS key for Amazon S3 for your role's account. Amazon SageMaker uses server-side encryption with KMS-managed keys for <code>OutputDataConfig</code>. If you use a bucket policy with an <code>s3:PutObject</code> permission that only allows objects with server-side encryption, set the condition key of <code>s3:x-amz-server-side-encryption</code> to <code>\"aws:kms\"</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html\">KMS-Managed Encryption Keys</a> in the <i>Amazon Simple Storage Service Developer Guide.</i> </p> <p>The KMS key policy must grant permission to the IAM role that you specify in your <code>CreateTrainingJob</code>, <code>CreateTransformJob</code>, or <code>CreateHyperParameterTuningJob</code> requests. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html\">Using Key Policies in AWS KMS</a> in the <i>AWS Key Management Service Developer Guide</i>.</p>"
         },
         "S3OutputPath":{
           "shape":"S3Uri",
@@ -20367,6 +20423,17 @@
         "Delete"
       ]
     },
+    "RetryStrategy":{
+      "type":"structure",
+      "required":["MaximumRetryAttempts"],
+      "members":{
+        "MaximumRetryAttempts":{
+          "shape":"MaximumRetryAttempts",
+          "documentation":"<p>The number of times to retry the job. When the job is retried, it's <code>SecondaryStatus</code> is changed to <code>STARTING</code>.</p>"
+        }
+      },
+      "documentation":"<p>The retry strategy to use when a training job fails due to an <code>InternalServerError</code>. <code>RetryStrategy</code> is specified as part of the <code>CreateTrainingJob</code> and <code>CreateHyperParameterTuningJob</code> requests. You can add the <code>StoppingCondition</code> parameter to the request to limit the training time for the complete job.</p>"
+    },
     "RoleArn":{
       "type":"string",
       "max":2048,
@@ -20634,7 +20701,8 @@
         "Failed",
         "Interrupted",
         "MaxWaitTimeExceeded",
-        "Updating"
+        "Updating",
+        "Restarting"
       ]
     },
     "SecondaryStatusTransition":{
@@ -21125,14 +21193,14 @@
       "members":{
         "MaxRuntimeInSeconds":{
           "shape":"MaxRuntimeInSeconds",
-          "documentation":"<p>The maximum length of time, in seconds, that the training or compilation job can run. If job does not complete during this time, Amazon SageMaker ends the job. If value is not specified, default value is 1 day. The maximum value is 28 days.</p>"
+          "documentation":"<p>The maximum length of time, in seconds, that a training or compilation job can run. If the job does not complete during this time, Amazon SageMaker ends the job.</p> <p>When <code>RetryStrategy</code> is specified in the job request, <code>MaxRuntimeInSeconds</code> specifies the maximum time for all of the attempts in total, not each individual attempt.</p> <p>The default value is 1 day. The maximum value is 28 days.</p>"
         },
         "MaxWaitTimeInSeconds":{
           "shape":"MaxWaitTimeInSeconds",
-          "documentation":"<p>The maximum length of time, in seconds, how long you are willing to wait for a managed spot training job to complete. It is the amount of time spent waiting for Spot capacity plus the amount of time the training job runs. It must be equal to or greater than <code>MaxRuntimeInSeconds</code>. </p>"
+          "documentation":"<p>The maximum length of time, in seconds, that a managed Spot training job has to complete. It is the amount of time spent waiting for Spot capacity plus the amount of time the job can run. It must be equal to or greater than <code>MaxRuntimeInSeconds</code>. If the job does not complete during this time, Amazon SageMaker ends the job.</p> <p>When <code>RetryStrategy</code> is specified in the job request, <code>MaxWaitTimeInSeconds</code> specifies the maximum time for all of the attempts in total, not each individual attempt.</p>"
         }
       },
-      "documentation":"<p>Specifies a limit to how long a model training or compilation job can run. It also specifies how long you are willing to wait for a managed spot training job to complete. When the job reaches the time limit, Amazon SageMaker ends the training or compilation job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p> <p>The training algorithms provided by Amazon SageMaker automatically save the intermediate results of a model training job when possible. This attempt to save artifacts is only a best effort case as model might not be in a state from which it can be saved. For example, if training has just started, the model might not be ready to save. When saved, this intermediate data is a valid model artifact. You can use it to create a model with <code>CreateModel</code>.</p> <note> <p>The Neural Topic Model (NTM) currently does not support saving intermediate model artifacts. When training NTMs, make sure that the maximum runtime is sufficient for the training job to complete.</p> </note>"
+      "documentation":"<p>Specifies a limit to how long a model training job, model compilation job, or hyperparameter tuning job can run. It also specifies how long a managed Spot training job has to complete. When the job reaches the time limit, Amazon SageMaker ends the training or compilation job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p> <p>The training algorithms provided by Amazon SageMaker automatically save the intermediate results of a model training job when possible. This attempt to save artifacts is only a best effort case as model might not be in a state from which it can be saved. For example, if training has just started, the model might not be ready to save. When saved, this intermediate data is a valid model artifact. You can use it to create a model with <code>CreateModel</code>.</p> <note> <p>The Neural Topic Model (NTM) currently does not support saving intermediate model artifacts. When training NTMs, make sure that the maximum runtime is sufficient for the training job to complete.</p> </note>"
     },
     "String":{"type":"string"},
     "String1024":{
@@ -21621,7 +21689,7 @@
         },
         "StoppingCondition":{
           "shape":"StoppingCondition",
-          "documentation":"<p>Specifies a limit to how long a model training job can run. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p>"
+          "documentation":"<p>Specifies a limit to how long a model training job can run. It also specifies how long a managed Spot training job has to complete. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p>"
         },
         "CreationTime":{
           "shape":"Timestamp",
@@ -21683,6 +21751,10 @@
           "shape":"TrainingEnvironmentMap",
           "documentation":"<p>The environment variables to set in the Docker container.</p>"
         },
+        "RetryStrategy":{
+          "shape":"RetryStrategy",
+          "documentation":"<p>The number of times to retry the job when the job fails due to an <code>InternalServerError</code>.</p>"
+        },
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>An array of key-value pairs. You can use tags to categorize your AWS resources in different ways, for example, by purpose, owner, or environment. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging AWS Resources</a>.</p>"
@@ -21727,7 +21799,7 @@
         },
         "StoppingCondition":{
           "shape":"StoppingCondition",
-          "documentation":"<p>Specifies a limit to how long a model training job can run. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the SIGTERM signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts.</p>"
+          "documentation":"<p>Specifies a limit to how long a model training job can run. It also specifies how long a managed Spot training job has to complete. When the job reaches the time limit, Amazon SageMaker ends the training job. Use this API to cap model training costs.</p> <p>To stop a job, Amazon SageMaker sends the algorithm the SIGTERM signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts.</p>"
         }
       },
       "documentation":"<p>Defines the input needed to run a training job using the algorithm.</p>"
@@ -21936,7 +22008,7 @@
         },
         "SplitType":{
           "shape":"SplitType",
-          "documentation":"<p>The method to use to split the transform job's data files into smaller batches. Splitting is necessary when the total size of each object is too large to fit in a single request. You can also use data splitting to improve performance by processing multiple concurrent mini-batches. The default value for <code>SplitType</code> is <code>None</code>, which indicates that input data files are not split, and request payloads contain the entire contents of an input object. Set the value of this parameter to <code>Line</code> to split records on a newline character boundary. <code>SplitType</code> also supports a number of record-oriented binary data formats. Currently, the supported record formats are:</p> <ul> <li> <p>RecordIO</p> </li> <li> <p>TFRecord</p> </li> </ul> <p>When splitting is enabled, the size of a mini-batch depends on the values of the <code>BatchStrategy</code> and <code>MaxPayloadInMB</code> parameters. When the value of <code>BatchStrategy</code> is <code>MultiRecord</code>, Amazon SageMaker sends the maximum number of records in each request, up to the <code>MaxPayloadInMB</code> limit. If the value of <code>BatchStrategy</code> is <code>SingleRecord</code>, Amazon SageMaker sends individual records in each request.</p> <note> <p>Some data formats represent a record as a binary payload wrapped with extra padding bytes. When splitting is applied to a binary data format, padding is removed if the value of <code>BatchStrategy</code> is set to <code>SingleRecord</code>. Padding is not removed if the value of <code>BatchStrategy</code> is set to <code>MultiRecord</code>.</p> <p>For more information about <code>RecordIO</code>, see <a href=\"https://mxnet.apache.org/api/faq/recordio\">Create a Dataset Using RecordIO</a> in the MXNet documentation. For more information about <code>TFRecord</code>, see <a href=\"https://www.tensorflow.org/guide/datasets#consuming_tfrecord_data\">Consuming TFRecord data</a> in the TensorFlow documentation.</p> </note>"
+          "documentation":"<p>The method to use to split the transform job's data files into smaller batches. Splitting is necessary when the total size of each object is too large to fit in a single request. You can also use data splitting to improve performance by processing multiple concurrent mini-batches. The default value for <code>SplitType</code> is <code>None</code>, which indicates that input data files are not split, and request payloads contain the entire contents of an input object. Set the value of this parameter to <code>Line</code> to split records on a newline character boundary. <code>SplitType</code> also supports a number of record-oriented binary data formats. Currently, the supported record formats are:</p> <ul> <li> <p>RecordIO</p> </li> <li> <p>TFRecord</p> </li> </ul> <p>When splitting is enabled, the size of a mini-batch depends on the values of the <code>BatchStrategy</code> and <code>MaxPayloadInMB</code> parameters. When the value of <code>BatchStrategy</code> is <code>MultiRecord</code>, Amazon SageMaker sends the maximum number of records in each request, up to the <code>MaxPayloadInMB</code> limit. If the value of <code>BatchStrategy</code> is <code>SingleRecord</code>, Amazon SageMaker sends individual records in each request.</p> <note> <p>Some data formats represent a record as a binary payload wrapped with extra padding bytes. When splitting is applied to a binary data format, padding is removed if the value of <code>BatchStrategy</code> is set to <code>SingleRecord</code>. Padding is not removed if the value of <code>BatchStrategy</code> is set to <code>MultiRecord</code>.</p> <p>For more information about <code>RecordIO</code>, see <a href=\"https://mxnet.apache.org/api/faq/recordio\">Create a Dataset Using RecordIO</a> in the MXNet documentation. For more information about <code>TFRecord</code>, see <a href=\"https://www.tensorflow.org/guide/data#consuming_tfrecord_data\">Consuming TFRecord data</a> in the TensorFlow documentation.</p> </note>"
         }
       },
       "documentation":"<p>Describes the input source of a transform job and the way the transform job consumes it.</p>"
@@ -22678,7 +22750,7 @@
           "documentation":"<p>Fractions of a cent, in tenths.</p>"
         }
       },
-      "documentation":"<p>Represents an amount of money in United States dollars/</p>"
+      "documentation":"<p>Represents an amount of money in United States dollars.</p>"
     },
     "UiConfig":{
       "type":"structure",
