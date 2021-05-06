@@ -63,7 +63,9 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
-                                          .build(), file.toPath()).join();
+                                          .build(), file.toPath());
+
+        s3Async.waiter().waitUntilObjectExists(b -> b.bucket(BUCKET).key(KEY)).join();
     }
 
     @AfterClass
