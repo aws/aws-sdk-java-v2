@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.waiters;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -71,7 +72,17 @@ public final class AsyncWaiterExecutor<T> {
                                          long startTime) {
         asyncPollingFunction.get().whenComplete((response, exception) -> {
             try {
-                Either<T, Throwable> responseOrException = exception == null ? Either.left(response) : Either.right(exception);
+                Either<T, Throwable> responseOrException;
+
+                if (exception == null) {
+                    responseOrException = Either.left(response);
+                } else {
+                    if (exception instanceof CompletionException) {
+                        responseOrException = Either.right(exception.getCause());
+                    } else {
+                        responseOrException = Either.right(exception);
+                    }
+                }
 
                 Optional<WaiterAcceptor<? super T>> optionalWaiterAcceptor =
                     executorHelper.firstWaiterAcceptorIfMatched(responseOrException);
