@@ -653,4 +653,27 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     default T updateItem(T item) {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * Deletes a table in DynamoDb with the name and schema already defined for this DynamoDbTable.
+     * <p>
+     * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteTable operation.
+     * Note that this is an asynchronousoperation and that the table may not immediately be deleted. You can use
+     * {@link software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter#waitUntilTableNotExists}
+     * in the underlying client.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.deleteTable();
+     * }
+     * </pre>
+     *
+     */
+    default void deleteTable() {
+        throw new UnsupportedOperationException();
+    }
 }
