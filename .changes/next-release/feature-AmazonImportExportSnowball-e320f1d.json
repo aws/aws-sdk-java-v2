@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Import/Export Snowball",
-    "contributor": "",
-    "description": "AWS Snow Family adds APIs for ordering and managing Snow jobs with long term pricing"
-}

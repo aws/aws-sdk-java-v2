@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "contributor": "",
-    "description": "SSM feature release - ChangeCalendar integration with StateManager."
-}
