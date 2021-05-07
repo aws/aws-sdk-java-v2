@@ -1,3 +1,20 @@
+# __2.16.59__ __2021-05-07__
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds Tag Based Access Control to AWS Lake Formation service
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where an async waiter failed to match exception when the exception was wrapped with CompletionException. See [#2460](https://github.com/aws/aws-sdk-java-v2/issues/2460)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds tagging support for Connect APIs CreateIntegrationAssociation and CreateUseCase.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Enforcing UUID style for parameters that are already in UUID format today. Documentation specifying eventual consistency of lookoutmetrics resources.
+
 # __2.16.58__ __2021-05-06__
 ## __AWS Cloud Map__
   - ### Features

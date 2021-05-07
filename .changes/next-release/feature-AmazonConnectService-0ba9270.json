@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Adds tagging support for Connect APIs CreateIntegrationAssociation and CreateUseCase."
-}
