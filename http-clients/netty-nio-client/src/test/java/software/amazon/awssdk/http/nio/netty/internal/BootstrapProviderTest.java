@@ -17,19 +17,17 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
-
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TCP_KEEPALIVE;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.resolver.AddressResolver;
-import io.netty.resolver.AddressResolverGroup;
+import io.netty.channel.ChannelOption;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
+import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BootstrapProviderTest {
@@ -52,5 +50,28 @@ public class BootstrapProviderTest {
         InetSocketAddress inetSocketAddress = (InetSocketAddress)socketAddress;
 
         assertThat(inetSocketAddress.isUnresolved()).isTrue();
+    }
+
+    @Test
+    public void createBootstrap_defaultConfiguration_tcpKeepAliveShouldBeFalse() {
+        Bootstrap bootstrap = bootstrapProvider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443);
+
+        Boolean keepAlive = (Boolean) bootstrap.config().options().get(ChannelOption.SO_KEEPALIVE);
+        assertThat(keepAlive).isFalse();
+    }
+
+    @Test
+    public void createBootstrap_tcpKeepAliveTrue_shouldApply() {
+        NettyConfiguration nettyConfiguration =
+            new NettyConfiguration(AttributeMap.builder().put(TCP_KEEPALIVE, true)
+                                                         .build().merge(GLOBAL_HTTP_DEFAULTS));
+        BootstrapProvider provider =
+            new BootstrapProvider(SdkEventLoopGroup.builder().build(),
+                                  nettyConfiguration,
+                                  new SdkChannelOptions());
+
+        Bootstrap bootstrap = provider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443);
+        Boolean keepAlive = (Boolean) bootstrap.config().options().get(ChannelOption.SO_KEEPALIVE);
+        assertThat(keepAlive).isTrue();
     }
 }
