@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Support delete-table operation in DDBEnhanced."
+}
