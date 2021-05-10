@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PaginatedTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
@@ -230,6 +231,13 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     @Override
     public Key keyFrom(T item) {
         return createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
+    }
+
+
+    @Override
+    public CompletableFuture<Void> deleteTable() {
+        TableOperation<T, ?, ?, Void> operation = DeleteTableOperation.create();
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
