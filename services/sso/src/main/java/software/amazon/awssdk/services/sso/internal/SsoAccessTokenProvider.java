@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.sso.internal;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -53,7 +53,7 @@ public final class SsoAccessTokenProvider {
     }
 
     private String getTokenFromJson(String json) {
-        JsonNode jsonNode = JacksonUtils.sensitiveJsonNodeOf(json);
+        JrsValue jsonNode = JacksonUtils.sensitiveJsonNodeOf(json);
 
         if (validateToken(jsonNode.get("expiresAt").asText())) {
             throw ExpiredTokenException.builder().message("The SSO session associated with this profile has expired or is"

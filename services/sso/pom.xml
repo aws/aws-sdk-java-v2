@@ -57,6 +57,10 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.jr</groupId>
+            <artifactId>jackson-jr-stree</artifactId>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>profiles</artifactId>
             <version>${awsjavasdk.version}</version>

@@ -50,6 +50,11 @@
                 <version>${jacksonjr.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.fasterxml.jackson.jr</groupId>
+                <artifactId>jackson-jr-annotation-support</artifactId>
+                <version>${jacksonjr.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>

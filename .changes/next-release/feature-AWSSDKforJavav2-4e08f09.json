@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "MikeDombo", 
+    "type": "feature", 
+    "description": "Removes usage of Jackson-Databind and replaces it with Jackson-jr in order to reduce memory requirement"
+}

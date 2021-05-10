@@ -88,7 +88,7 @@
         <awsjavasdk.previous.version>2.16.62</awsjavasdk.previous.version>
         <jackson.version>2.12.3</jackson.version>
         <jackson.databind.version>2.12.3</jackson.databind.version>
-        <jacksonjr.version>2.12.3</jacksonjr.version>
+        <jacksonjr.version>2.13.0-SNAPSHOT</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.12.0</commons.lang.version>
@@ -513,6 +513,7 @@
                             <exclude>software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute</exclude>
                             <exclude>software.amazon.awssdk.awscore.eventstream.*</exclude>
                             <exclude>software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory</exclude>
+                            <exclude>software.amazon.awssdk.core.util.json.JacksonUtils</exclude>
                             <exclude>*.SubscribeToShardEvent$BuilderImpl</exclude>
                             <exclude>*.ConfigurationEvent$BuilderImpl</exclude>
                             <exclude>*.IntentResultEvent$BuilderImpl</exclude>

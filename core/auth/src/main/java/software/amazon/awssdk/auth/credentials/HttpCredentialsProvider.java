@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -73,11 +73,11 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
         try {
             String credentialsResponse = HttpResourcesUtils.instance().readResource(getCredentialsEndpointProvider());
 
-            JsonNode node = JacksonUtils.sensitiveJsonNodeOf(credentialsResponse);
-            JsonNode accessKey = node.get("AccessKeyId");
-            JsonNode secretKey = node.get("SecretAccessKey");
-            JsonNode token = node.get("Token");
-            JsonNode expirationNode = node.get("Expiration");
+            JrsValue node = JacksonUtils.sensitiveJsonNodeOf(credentialsResponse);
+            JrsValue accessKey = node.get("AccessKeyId");
+            JrsValue secretKey = node.get("SecretAccessKey");
+            JrsValue token = node.get("Token");
+            JrsValue expirationNode = node.get("Expiration");
 
             Validate.notNull(accessKey, "Failed to load access key.");
             Validate.notNull(secretKey, "Failed to load secret key.");
@@ -98,7 +98,7 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
                                 .build();
         } catch (SdkClientException e) {
             throw e;
-        } catch (JsonMappingException e) {
+        } catch (JsonProcessingException e) {
             throw SdkClientException.builder()
                                     .message("Unable to parse response returned from service endpoint.")
                                     .cause(e)
@@ -111,7 +111,7 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
         }
     }
 
-    private Optional<Instant> getExpiration(JsonNode expirationNode) {
+    private Optional<Instant> getExpiration(JrsValue expirationNode) {
         return Optional.ofNullable(expirationNode).map(node -> {
             // Convert the expirationNode string to ISO-8601 format.
             String expirationValue = node.asText().replaceAll("\\+0000$", "Z");

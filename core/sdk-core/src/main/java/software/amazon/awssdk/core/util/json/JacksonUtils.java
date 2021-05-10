@@ -17,12 +17,11 @@ package software.amazon.awssdk.core.util.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.jr.annotationsupport.JacksonAnnotationExtension;
+import com.fasterxml.jackson.jr.ob.JSON;
+import com.fasterxml.jackson.jr.stree.JacksonJrsTreeCodec;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import java.io.IOException;
 import java.io.Writer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -30,23 +29,20 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 
 @SdkProtectedApi
 public final class JacksonUtils {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final ObjectWriter WRITER = OBJECT_MAPPER.writer();
-
-
-    private static final ObjectWriter PRETTY_WRITER = OBJECT_MAPPER.writerWithDefaultPrettyPrinter();
-
-    static {
-        OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
+    private static final JSON OBJECT_MAPPER =
+            JSON.builder().treeCodec(JacksonJrsTreeCodec.SINGLETON).register(JacksonAnnotationExtension.std)
+                    .enable(JSON.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+                    .build();
+    private static final JSON PRETTY_WRITER =
+            JSON.builder().treeCodec(JacksonJrsTreeCodec.SINGLETON).register(JacksonAnnotationExtension.std)
+                    .enable(JSON.Feature.PRETTY_PRINT_OUTPUT).build();
 
     private JacksonUtils() {
     }
 
     public static String toJsonPrettyString(Object value) {
         try {
-            return PRETTY_WRITER.writeValueAsString(value);
+            return PRETTY_WRITER.asString(value);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -54,53 +50,72 @@ public final class JacksonUtils {
 
     public static String toJsonString(Object value) {
         try {
-            return WRITER.writeValueAsString(value);
+            return OBJECT_MAPPER.asString(value);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
     }
 
     /**
-     * Returns the deserialized object from the given json string and target
-     * class; or null if the given json string is null.
+     * Returns the deserialized object from the given json string and target class; or null if the given json string is
+     * null.
      */
     public static <T> T fromJsonString(String json, Class<T> clazz) {
         if (json == null) {
             return null;
         }
         try {
-            return OBJECT_MAPPER.readValue(json, clazz);
+            return OBJECT_MAPPER.beanFrom(clazz, json);
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to parse Json String.").cause(e).build();
         }
     }
 
     /**
-     * Returns the deserialized object from the given json string and target
-     * class; or null if the given json string is null. Clears the JSON location in the event of an error
+     * Returns the deserialized object from the given json string and target class; or null if the given json string is
+     * null. Clears the JSON location in the event of an error
      */
     public static <T> T fromSensitiveJsonString(String json, Class<T> clazz) {
         if (json == null) {
             return null;
         }
         try {
-            return OBJECT_MAPPER.readValue(json, clazz);
+            return OBJECT_MAPPER.beanFrom(clazz, json);
         } catch (Exception e) {
             // If underlying exception is a json parsing issue, clear out the location so that the exception message
             // does not contain the raw json
-            if (e instanceof JsonParseException) {
-                ((JsonParseException) e).clearLocation();
+            if (e instanceof JsonProcessingException) {
+                ((JsonProcessingException) e).clearLocation();
             }
             throw SdkClientException.builder().message("Unable to parse Json String.").cause(e).build();
         }
     }
 
-    public static JsonNode jsonNodeOf(String json) {
-        return fromJsonString(json, JsonNode.class);
+    public static JrsValue jsonNodeOf(String json) {
+        if (json == null) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.treeFrom(json);
+        } catch (Exception e) {
+            throw SdkClientException.builder().message("Unable to parse Json String.").cause(e).build();
+        }
     }
 
-    public static JsonNode sensitiveJsonNodeOf(String json) {
-        return fromSensitiveJsonString(json, JsonNode.class);
+    public static JrsValue sensitiveJsonNodeOf(String json) {
+        if (json == null) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.treeFrom(json);
+        } catch (Exception e) {
+            // If underlying exception is a json parsing issue, clear out the location so that the exception message
+            // does not contain the raw json
+            if (e instanceof JsonProcessingException) {
+                ((JsonProcessingException) e).clearLocation();
+            }
+            throw SdkClientException.builder().message("Unable to parse Json String.").cause(e).build();
+        }
     }
 
     public static JsonGenerator jsonGeneratorOf(Writer writer) throws IOException {
