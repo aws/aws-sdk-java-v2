@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "This release updates create-nodegroup and update-nodegroup-config APIs for adding/updating taints on managed nodegroups."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Analytics",
-    "contributor": "",
-    "description": "Amazon Kinesis Analytics now supports ListApplicationVersions and DescribeApplicationVersion API for Apache Flink applications"
-}
