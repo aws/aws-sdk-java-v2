@@ -17,14 +17,10 @@ package software.amazon.awssdk.regions.internal.util;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -80,7 +76,6 @@ public final class EC2MetadataUtils {
 
     private static final int DEFAULT_QUERY_RETRIES = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
-    private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
     private static Map<String, String> cache = new ConcurrentHashMap<>();
 
@@ -88,11 +83,6 @@ public final class EC2MetadataUtils {
             new InstanceProviderTokenEndpointProvider();
 
     private EC2MetadataUtils() {
-    }
-
-    static {
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        MAPPER.setPropertyNamingStrategy(PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE);
     }
 
     /**
@@ -229,7 +219,7 @@ public final class EC2MetadataUtils {
 
         try {
 
-            return MAPPER.readValue(json, IamInfo.class);
+            return JacksonUtils.fromJsonString(json, IamInfo.class);
 
         } catch (Exception e) {
             log.warn("Unable to parse IAM Instance profile info (" + json
@@ -291,8 +281,8 @@ public final class EC2MetadataUtils {
     static String doGetEC2InstanceRegion(final String json) {
         if (null != json) {
             try {
-                JsonNode node = MAPPER.readTree(json.getBytes(StandardCharsets.UTF_8));
-                JsonNode region = node.findValue(REGION);
+                JrsValue node = JacksonUtils.jsonNodeOf(json);
+                JrsValue region = node.get(REGION);
                 return region.asText();
             } catch (Exception e) {
                 log.warn("Unable to parse EC2 instance info (" + json
@@ -318,8 +308,8 @@ public final class EC2MetadataUtils {
                 String json = getData(EC2_METADATA_ROOT
                                       + "/iam/security-credentials/" + credential);
                 try {
-                    IamSecurityCredential credentialInfo = MAPPER
-                            .readValue(json, IamSecurityCredential.class);
+                    IamSecurityCredential credentialInfo = JacksonUtils
+                            .fromJsonString(json, IamSecurityCredential.class);
                     credentialsInfoMap.put(credential, credentialInfo);
                 } catch (Exception e) {
                     log.warn("Unable to process the credential (" + credential

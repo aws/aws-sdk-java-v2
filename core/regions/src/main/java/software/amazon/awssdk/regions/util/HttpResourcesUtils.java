@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.regions.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -154,9 +154,9 @@ public final class HttpResourcesUtils {
             String errorResponse = IoUtils.toUtf8String(errorStream);
 
             try {
-                JsonNode node = JacksonUtils.jsonNodeOf(errorResponse);
-                JsonNode code = node.get("code");
-                JsonNode message = node.get("message");
+                JrsValue node = JacksonUtils.jsonNodeOf(errorResponse);
+                JrsValue code = node.get("code");
+                JrsValue message = node.get("message");
                 if (code != null && message != null) {
                     responseMessage = message.asText();
                 }

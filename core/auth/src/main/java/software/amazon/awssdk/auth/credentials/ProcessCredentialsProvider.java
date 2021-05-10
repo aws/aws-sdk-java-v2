@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.jr.stree.JrsNumber;
+import com.fasterxml.jackson.jr.stree.JrsString;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -109,7 +111,7 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
     private RefreshResult<AwsCredentials> refreshCredentials() {
         try {
             String processOutput = executeCommand();
-            JsonNode credentialsJson = parseProcessOutput(processOutput);
+            JrsValue credentialsJson = parseProcessOutput(processOutput);
 
             AwsCredentials credentials = credentials(credentialsJson);
             Instant credentialExpirationTime = credentialExpirationTime(credentialsJson);
@@ -128,15 +130,15 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
     /**
      * Parse the output from the credentials process.
      */
-    private JsonNode parseProcessOutput(String processOutput) {
-        JsonNode credentialsJson = JacksonUtils.sensitiveJsonNodeOf(processOutput);
+    private JrsValue parseProcessOutput(String processOutput) {
+        JrsValue credentialsJson = JacksonUtils.sensitiveJsonNodeOf(processOutput);
 
         if (!credentialsJson.isObject()) {
             throw new IllegalStateException("Process did not return a JSON object.");
         }
 
-        JsonNode version = credentialsJson.get("Version");
-        if (version == null || !version.isInt() || version.asInt() != 1) {
+        JrsValue version = credentialsJson.get("Version");
+        if (version == null || !version.isNumber() || ((JrsNumber) version).getValue().intValue() != 1) {
             throw new IllegalStateException("Unsupported credential version: " + version);
         }
         return credentialsJson;
@@ -145,7 +147,7 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
     /**
      * Parse the process output to retrieve the credentials.
      */
-    private AwsCredentials credentials(JsonNode credentialsJson) {
+    private AwsCredentials credentials(JrsValue credentialsJson) {
         String accessKeyId = getText(credentialsJson, "AccessKeyId");
         String secretAccessKey = getText(credentialsJson, "SecretAccessKey");
         String sessionToken = getText(credentialsJson, "SessionToken");
@@ -163,7 +165,7 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
     /**
      * Parse the process output to retrieve the expiration date and time.
      */
-    private Instant credentialExpirationTime(JsonNode credentialsJson) {
+    private Instant credentialExpirationTime(JrsValue credentialsJson) {
         String expiration = getText(credentialsJson, "Expiration");
 
         if (expiration != null) {
@@ -176,16 +178,16 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
     /**
      * Get a textual value from a json object, throwing an exception if the node is missing or not textual.
      */
-    private String getText(JsonNode jsonObject, String nodeName) {
-        JsonNode subNode = jsonObject.get(nodeName);
+    private String getText(JrsValue jsonObject, String nodeName) {
+        JrsValue subNode = jsonObject.get(nodeName);
 
         if (subNode == null) {
             return null;
         }
 
-        if (!subNode.isTextual()) {
+        if (!(subNode instanceof JrsString)) {
             throw new IllegalStateException(nodeName + " from credential process should be textual, but was " +
-                                            subNode.getNodeType());
+                                            subNode.getClass().getSimpleName());
         }
 
         return subNode.asText();
