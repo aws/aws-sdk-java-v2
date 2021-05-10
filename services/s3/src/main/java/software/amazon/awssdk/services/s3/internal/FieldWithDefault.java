@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.Lazy;
  */
 @SdkInternalApi
 public abstract class FieldWithDefault<T> {
-    private FieldWithDefault(){
+    private FieldWithDefault() {
     }
 
     /**
