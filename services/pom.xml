@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.16.60</version>
+        <version>2.16.61</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -285,6 +285,8 @@
         <module>nimble</module>
         <module>finspacedata</module>
         <module>finspace</module>
+        <module>ssmincidents</module>
+        <module>ssmcontacts</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

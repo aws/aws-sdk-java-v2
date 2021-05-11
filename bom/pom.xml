@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.16.60</version>
+        <version>2.16.61</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>bom</artifactId>
@@ -1466,6 +1466,16 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>finspace</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>ssmincidents</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>ssmcontacts</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
         </dependencies>

@@ -151,6 +151,10 @@
         "Confidence":{
           "shape":"Confidence",
           "documentation":"<p>A value between 0 and 1 for an item that is a confidence score that Amazon Transcribe assigns to each word or phrase that it transcribes.</p>"
+        },
+        "Stable":{
+          "shape":"Stable",
+          "documentation":"<p>If partial result stabilization has been enabled, indicates whether the word or phrase in the item is stable. If <code>Stable</code> is <code>true</code>, the result is stable.</p>"
         }
       },
       "documentation":"<p>A word, phrase, or punctuation mark that is transcribed from the input audio.</p>"
@@ -370,6 +374,14 @@
       "type":"integer",
       "min":2
     },
+    "PartialResultsStability":{
+      "type":"string",
+      "enum":[
+        "high",
+        "medium",
+        "low"
+      ]
+    },
     "RequestId":{"type":"string"},
     "Result":{
       "type":"structure",
@@ -431,6 +443,7 @@
         "UROLOGY"
       ]
     },
+    "Stable":{"type":"boolean"},
     "StartMedicalStreamTranscriptionRequest":{
       "type":"structure",
       "required":[
@@ -666,6 +679,18 @@
           "documentation":"<p>The number of channels that are in your audio stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-number-of-channels"
+        },
+        "EnablePartialResultsStabilization":{
+          "shape":"Boolean",
+          "documentation":"<p>When <code>true</code>, instructs Amazon Transcribe to present transcription results that have the partial results stabilized. Normally, any word or phrase from one partial result can change in a subsequent partial result. With partial results stabilization enabled, only the last few words of one partial result can change in another partial result.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-enable-partial-results-stabilization"
+        },
+        "PartialResultsStability":{
+          "shape":"PartialResultsStability",
+          "documentation":"<p>You can use this field to set the stability level of the transcription results. A higher stability level means that the transcription results are less likely to change. Higher stability levels can come with lower overall transcription accuracy.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-partial-results-stability"
         }
       },
       "payload":"AudioStream"
@@ -742,6 +767,18 @@
           "documentation":"<p>The number of channels identified in the stream.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-number-of-channels"
+        },
+        "EnablePartialResultsStabilization":{
+          "shape":"Boolean",
+          "documentation":"<p>Shows whether partial results stabilization has been enabled in the stream.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-enable-partial-results-stabilization"
+        },
+        "PartialResultsStability":{
+          "shape":"PartialResultsStability",
+          "documentation":"<p>If partial results stabilization has been enabled in the stream, shows the stability level.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-partial-results-stability"
         }
       },
       "payload":"TranscriptResultStream"
