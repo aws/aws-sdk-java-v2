@@ -1,0 +1,30 @@
+{
+    "version": "2.16.61",
+    "date": "2021-05-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Streaming Service",
+            "contributor": "",
+            "description": "Amazon Transcribe supports partial results stabilization for streaming transcription."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager",
+            "contributor": "",
+            "description": "AWS Systems Manager Incident Manager enables faster resolution of critical application availability and performance issues, management of contacts and post-incident analysis"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager Contacts",
+            "contributor": "",
+            "description": "AWS Systems Manager Incident Manager enables faster resolution of critical application availability and performance issues, management of contacts and post incident analysis"
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Documentation updates for Amazon S3-control"
+        }
+    ]
+}
