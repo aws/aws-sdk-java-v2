@@ -88,7 +88,7 @@
         <awsjavasdk.previous.version>2.16.60</awsjavasdk.previous.version>
         <jackson.version>2.12.3</jackson.version>
         <jackson.databind.version>2.12.1</jackson.databind.version>
-        <jacksonjr.version>2.11.2</jacksonjr.version>
+        <jacksonjr.version>2.12.3</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.4</commons.lang.version>
@@ -138,7 +138,7 @@
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <checkstyle.version>8.38</checkstyle.version>
+        <checkstyle.version>8.42</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
