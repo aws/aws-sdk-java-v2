@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Streaming Service",
+    "contributor": "",
+    "description": "Amazon Transcribe supports partial results stabilization for streaming transcription."
+}
