@@ -43,14 +43,6 @@ public class S3EndpointUtilsTest {
     }
 
     @Test
-    public void isFipsRegionProvided() {
-        assertTrue(S3EndpointUtils.isFipsRegionProvided("fips-us-east-1", "us-east-1", false));
-        assertFalse(S3EndpointUtils.isFipsRegionProvided("us-east-1", "fips-us-east-1", false));
-        assertTrue(S3EndpointUtils.isFipsRegionProvided("us-east-1", "us-east-1-fips", true));
-        assertFalse(S3EndpointUtils.isFipsRegionProvided("us-east-1-fips", "us-east-1", true));
-    }
-
-    @Test
     public void isAccelerateEnabled() {
         assertFalse(S3EndpointUtils.isAccelerateEnabled(S3Configuration.builder().build()));
         assertFalse(S3EndpointUtils.isAccelerateEnabled(null));
