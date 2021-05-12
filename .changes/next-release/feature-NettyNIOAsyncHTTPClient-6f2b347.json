@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO Async HTTP Client", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Add `tcpKeepAlive` configuration."
-}

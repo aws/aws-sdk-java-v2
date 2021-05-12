@@ -1,3 +1,16 @@
+# __2.16.62__ __2021-05-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - High Memory virtual instances are powered by Intel Sky Lake CPUs and offer up to 12TB of memory.
+
+## __Netty NIO Async HTTP Client__
+  - ### Features
+    - Add `tcpKeepAlive` configuration.
+
 # __2.16.61__ __2021-05-11__
 ## __AWS S3 Control__
   - ### Features
