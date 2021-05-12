@@ -111,7 +111,7 @@
         <rxjava.version>2.2.21</rxjava.version>
         <commons-codec.verion>1.10</commons-codec.verion>
         <jmh.version>1.29</jmh.version>
-        <awscrt.version>0.12.3</awscrt.version>
+        <awscrt.version>0.12.4</awscrt.version>
 
         <!--Test dependencies -->
         <junit.version>4.13.1</junit.version>
