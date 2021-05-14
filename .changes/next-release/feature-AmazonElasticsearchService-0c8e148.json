@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elasticsearch Service",
+    "contributor": "",
+    "description": "Adds support for cold storage."
+}
