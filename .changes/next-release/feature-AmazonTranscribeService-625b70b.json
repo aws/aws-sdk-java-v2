@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "contributor": "",
-    "description": "Transcribe Medical now supports identification of PHI entities within transcripts"
-}
