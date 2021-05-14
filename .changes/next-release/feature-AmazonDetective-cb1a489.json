@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Detective",
+    "contributor": "",
+    "description": "Updated descriptions of array parameters to add the restrictions on the array and value lengths."
+}
