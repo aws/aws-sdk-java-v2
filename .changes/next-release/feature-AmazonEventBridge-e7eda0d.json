@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EventBridge",
+    "contributor": "",
+    "description": "Update InputTransformer variable limit from 10 to 100 variables."
+}
