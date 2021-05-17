@@ -518,6 +518,7 @@
                             <exclude>*.IntentResultEvent$BuilderImpl</exclude>
                             <exclude>*.TextResponseEvent$BuilderImpl</exclude>
                             <exclude>*.IntentResultEvent$BuilderImpl</exclude>
+                            <exclude>software.amazon.awssdk.services.iotdeviceadvisor.*</exclude>
                         </excludes>
 
                         <excludeModules>
