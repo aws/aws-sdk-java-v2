@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Neptune",
-    "contributor": "",
-    "description": "Neptune support for CopyTagsToSnapshots"
-}
