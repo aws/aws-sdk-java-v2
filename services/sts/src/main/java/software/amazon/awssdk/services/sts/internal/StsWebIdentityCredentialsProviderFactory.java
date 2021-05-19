@@ -50,30 +50,39 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public final class StsWebIdentityCredentialsProviderFactory implements WebIdentityTokenCredentialsProviderFactory {
 
     public AwsCredentialsProvider create(WebIdentityTokenCredentialProperties credentialProperties) {
-        return new StsWebIdentityCredentialsProvider(credentialProperties);
+        return new StsWebIdentityCredentialsProvider(credentialProperties, null);
+    }
+
+    public AwsCredentialsProvider create(WebIdentityTokenCredentialProperties credentialProperties,
+                                         StsClient stsClient) {
+        return new StsWebIdentityCredentialsProvider(credentialProperties, stsClient);
     }
 
     /**
      * A wrapper for a {@link StsAssumeRoleWithWebIdentityCredentialsProvider} that is returned by this factory when
      * {@link #create(WebIdentityTokenCredentialProperties)} is invoked. This wrapper is important because it ensures the parent
      * credentials provider is closed when the assume-role credentials provider is no longer needed.
+     * It creates default StsClient if StsClient is null or if StsClient is not passed while creating the instance.
      */
     private static final class StsWebIdentityCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
         private final StsClient stsClient;
         private final StsAssumeRoleWithWebIdentityCredentialsProvider credentialsProvider;
 
-        private StsWebIdentityCredentialsProvider(WebIdentityTokenCredentialProperties credentialProperties) {
+        private StsWebIdentityCredentialsProvider(WebIdentityTokenCredentialProperties credentialProperties,
+                                                  StsClient stsClient) {
             String roleSessionName = credentialProperties.roleSessionName();
             String sessionName = roleSessionName != null ? roleSessionName : "aws-sdk-java-" + System.currentTimeMillis();
 
             OrRetryCondition retryCondition = OrRetryCondition.create(new StsRetryCondition(),
                                                                       RetryCondition.defaultRetryCondition());
 
-            this.stsClient = StsClient.builder()
+            this.stsClient = stsClient == null ?
+                    StsClient.builder()
                                       .applyMutation(this::configureEndpoint)
                                       .credentialsProvider(AnonymousCredentialsProvider.create())
                                       .overrideConfiguration(o -> o.retryPolicy(r -> r.retryCondition(retryCondition)))
-                                      .build();
+                                      .build()
+                    : stsClient;
 
             AssumeRoleWithWebIdentityRequest request = AssumeRoleWithWebIdentityRequest.builder()
                                                                                        .roleArn(credentialProperties.roleArn())
@@ -86,7 +95,7 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
 
             this.credentialsProvider =
                 StsAssumeRoleWithWebIdentityCredentialsProvider.builder()
-                                                               .stsClient(stsClient)
+                                                               .stsClient(this.stsClient)
                                                                .refreshRequest(supplier)
                                                                .build();
         }
