@@ -1,6 +1,0 @@
-{
-    "category": "AWS S3", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Do not allow cross-region requests for S3 client with Fips Region."
-}

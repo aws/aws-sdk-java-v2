@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Identity and Access Management",
-    "contributor": "",
-    "description": "Add pagination to ListUserTags operation"
-}
