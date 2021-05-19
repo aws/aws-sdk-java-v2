@@ -121,11 +121,11 @@ public class S3AccessPointBuilder {
 
         String uri;
         if (endpointOverride == null) {
-            String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "fips-" : "";
+            String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "-fips" : "";
             String dualStackSegment = Boolean.TRUE.equals(dualstackEnabled) ? ".dualstack" : "";
 
-            uri = String.format("%s://%s-%s.s3-accesspoint%s.%s%s.%s", protocol, urlEncode(accessPointName),
-                                accountId, dualStackSegment, fipsSegment, region, domain);
+            uri = String.format("%s://%s-%s.s3-accesspoint%s%s.%s.%s", protocol, urlEncode(accessPointName),
+                                accountId, fipsSegment, dualStackSegment, region, domain);
         } else {
             Validate.isTrue(!Boolean.TRUE.equals(fipsEnabled),
                             "FIPS regions are not supported with an endpoint override specified");
