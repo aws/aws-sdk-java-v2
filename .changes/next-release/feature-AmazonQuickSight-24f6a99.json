@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "Add ARN based Row Level Security support to CreateDataSet/UpdateDataSet APIs."
-}
