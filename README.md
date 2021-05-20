@@ -4,7 +4,7 @@
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-69-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-70-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -269,6 +269,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/bondj"><img src="https://avatars.githubusercontent.com/u/4749778?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jonathan Bond</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=bondj" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ajs139"><img src="https://avatars.githubusercontent.com/u/9387176?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ajs139</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=ajs139" title="Code">💻</a></td>
     <td align="center"><a href="http://imdewey.com"><img src="https://avatars.githubusercontent.com/u/44629464?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dewey Nguyen</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=duy3101" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/dleen"><img src="https://avatars.githubusercontent.com/u/1297964?v=4?s=100" width="100px;" alt=""/><br /><sub><b>David Leen</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=dleen" title="Code">💻</a></td>
   </tr>
 </table>
 
