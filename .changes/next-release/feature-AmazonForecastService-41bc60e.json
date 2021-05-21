@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Forecast Service",
+    "contributor": "",
+    "description": "Updated attribute statistics in DescribeDatasetImportJob response to support Long values"
+}
