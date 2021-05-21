@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic File System",
+    "contributor": "",
+    "description": "EFS now supports account preferences. Utilizing the new capability, users can customize some aspects of their experience using EFS APIs and the EFS Console. The first preference clients are able to set is whether to start using longer File System and Mount Target IDs before EFS migrates to such IDs."
+}
