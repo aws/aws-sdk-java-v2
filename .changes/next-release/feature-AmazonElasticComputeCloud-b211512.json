@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "This release adds support for creating and managing EC2 On-Demand Capacity Reservations on Outposts."
-}
