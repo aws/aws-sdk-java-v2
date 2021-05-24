@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Logs",
+    "contributor": "",
+    "description": "This release provides dimensions and unit support for metric filters."
+}
