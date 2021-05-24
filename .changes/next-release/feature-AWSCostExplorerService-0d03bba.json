@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "contributor": "",
+    "description": "Introduced FindingReasonCodes, PlatformDifferences, DiskResourceUtilization and NetworkResourceUtilization to GetRightsizingRecommendation action"
+}
