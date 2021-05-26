@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Outposts",
-    "contributor": "",
-    "description": "Add ConflictException to DeleteOutpost, CreateOutpost"
-}

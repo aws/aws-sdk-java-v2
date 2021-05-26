@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "contributor": "",
-    "description": "The release adds support for registering External instances to your Amazon ECS clusters."
-}
