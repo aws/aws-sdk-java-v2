@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonMWAA",
+    "contributor": "",
+    "description": "Adds scheduler count selection for Environments using Airflow version 2.0.2 or later."
+}
