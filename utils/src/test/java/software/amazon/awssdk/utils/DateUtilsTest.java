@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
@@ -25,6 +26,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -91,6 +94,17 @@ public class DateUtilsTest {
     @Test
     public void parseIso8601Date() throws ParseException {
         checkParsing(DateTimeFormatter.ISO_INSTANT, COMMON_DATE_FORMAT);
+    }
+
+    @Test
+    public void parseIso8601Date_withUtcOffset() {
+        String formatted = "2021-05-10T17:12:13-07:00";
+        Instant expected = ISO_OFFSET_DATE_TIME.parse(formatted, Instant::from);
+        Instant actual = DateUtils.parseIso8601Date(formatted);
+        assertEquals(expected, actual);
+
+        String actualString = OffsetDateTime.ofInstant(actual, ZoneId.of("-7")).toString();
+        assertEquals(formatted, actualString);
     }
 
     @Test
