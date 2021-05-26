@@ -625,6 +625,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dleen",
+      "name": "David Leen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1297964?v=4",
+      "profile": "https://github.com/dleen",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

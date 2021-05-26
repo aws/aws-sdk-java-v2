@@ -69,7 +69,7 @@ public class S3AccessPointBuilderTest {
                                          .fipsEnabled(true)
                                          .toUri();
 
-        assertThat(result, is(URI.create("protocol://access-point-account-id.s3-accesspoint.fips-region.domain")));
+        assertThat(result, is(URI.create("protocol://access-point-account-id.s3-accesspoint-fips.region.domain")));
     }
 
     @Test

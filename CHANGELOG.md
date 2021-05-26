@@ -1,3 +1,240 @@
+# __2.16.71__ __2021-05-26__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - This release enables customers to store CRLs in S3 buckets with Block Public Access enabled. The release adds the S3ObjectAcl parameter to the CreateCertificateAuthority and UpdateCertificateAuthority APIs to allow customers to choose whether their CRL will be publicly available.
+
+## __AWS Outposts__
+  - ### Features
+    - Add ConflictException to DeleteOutpost, CreateOutpost
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation fix for CloudFront
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - The release adds support for registering External instances to your Amazon ECS clusters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds resource ids and tagging support for VPC security group rules.
+
+## __Amazon QLDB__
+  - ### Features
+    - Support STANDARD permissions mode in CreateLedger and DescribeLedger. Add UpdateLedgerPermissionsMode to update permissions mode on existing ledgers.
+
+## __AmazonMWAA__
+  - ### Features
+    - Adds scheduler count selection for Environments using Airflow version 2.0.2 or later.
+
+# __2.16.70__ __2021-05-25__
+## __AWS IoT__
+  - ### Features
+    - This release includes support for a new feature: Job templates for AWS IoT Device Management Jobs. The release includes job templates as a new resource and APIs for managing job templates.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family customers can now use AWS Managed Active Directory or AD Connector to authenticate their end users, enabling seamless migration of file transfer workflows that rely on AD authentication, without changing end users' credentials or needing a custom authorizer.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Adds support for Linux device types in WorkspaceAccessProperties
+
+# __2.16.69__ __2021-05-24__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for 1) additional instance types, 2) additional instance metrics, 3) finding reasons for instance recommendations, and 4) platform differences between a current instance and a recommended instance type.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Introduced FindingReasonCodes, PlatformDifferences, DiskResourceUtilization and NetworkResourceUtilization to GetRightsizingRecommendation action
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release provides dimensions and unit support for metric filters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for creating and managing EC2 On-Demand Capacity Reservations on Outposts.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add new parameters on RegisterUser and UpdateUser APIs to assign or update external ID associated to QuickSight users federated through web identity.
+
+# __2.16.68__ __2021-05-21__
+## __AWS OpsWorks CM__
+  - ### Features
+    - New PUPPET_API_CRL attribute returned by DescribeServers API; new EngineVersion of 2019 available for Puppet Enterprise servers.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - EFS now supports account preferences. Utilizing the new capability, users can customize some aspects of their experience using EFS APIs and the EFS Console. The first preference clients are able to set is whether to start using longer File System and Mount Target IDs before EFS migrates to such IDs.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Updated attribute statistics in DescribeDatasetImportJob response to support Long values
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3
+
+# __2.16.67__ __2021-05-20__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Customers can now use resource-based policies to control access to their Lex V2 bots. This release adds APIs to attach and manage permissions for a bot or a bot alias. For details, see: https://docs.aws.amazon.com/lexv2/latest/dg/security_iam_service-with-iam.html
+
+## __Amazon Personalize__
+  - ### Features
+    - Added new API to stop a solution version creation that is pending or in progress for Amazon Personalize
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add ARN based Row Level Security support to CreateDataSet/UpdateDataSet APIs.
+
+# __2.16.66__ __2021-05-19__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Add pagination to ListUserTags operation
+
+## __AWS S3__
+  - ### Bugfixes
+    - Do not allow cross-region requests for S3 client with Fips Region.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Update the EKS AddonActive waiter.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Kinesis Data Analytics now allows rapid iteration on Apache Flink stream processing through the Kinesis Data Analytics Studio feature.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Amazon Lightsail.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Amazon Rekognition Custom Labels adds support for customer managed encryption, using AWS Key Management Service, of image files copied into the service and files written back to the customer.
+
+## __Auto Scaling__
+  - ### Features
+    - With this release, customers can easily use Predictive Scaling as a policy directly through Amazon EC2 Auto Scaling configurations to proactively scale their applications ahead of predicted demand.
+
+# __2.16.65__ __2021-05-18__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner is a service that provides a fast, simple, and cost-effective way to deploy from source code or a container image directly to a scalable and secure web application in the AWS Cloud.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables compute optimizer to support exporting recommendations to Amazon S3 for EBS volumes and Lambda Functions.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Documentation updates for AWS IoT SiteWise.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now supports periodic report generation.
+
+## __AWS Support__
+  - ### Features
+    - Documentation updates for support
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for exporting and importing Lex V2 bots and bot locales. It also adds validations to enforce minimum number of tags on Lex V2 resources. For details, see https://docs.aws.amazon.com/lexv2/latest/dg/importing-exporting.html
+
+## __Amazon Personalize__
+  - ### Features
+    - Amazon Personalize now supports the ability to optimize a solution for a custom objective in addition to maximizing relevance.
+
+# __2.16.64__ __2021-05-17__
+## __AWS Application Cost Profiler__
+  - ### Features
+    - APIs for AWS Application Cost Profiler.
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - AWS IoT Core Device Advisor is fully managed test capability for IoT devices. Device manufacturers can use Device Advisor to test their IoT devices for reliable and secure connectivity with AWS IoT.
+
+## __AWS MediaConnect__
+  - ### Features
+    - MediaConnect now supports JPEG XS for AWS Cloud Digital Interface (AWS CDI) uncompressed workflows, allowing you to establish a bridge between your on-premises live video network and the AWS Cloud.
+
+## __Amazon Augmented AI Runtime__
+  - ### Features
+    - Documentation updates for Amazon A2I Runtime model
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation updates for elasticache
+
+## __Amazon Neptune__
+  - ### Features
+    - Neptune support for CopyTagsToSnapshots
+
+# __2.16.63__ __2021-05-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Updated descriptions to add notes on array lengths.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Update InputTransformer variable limit from 10 to 100 variables.
+
+## __Amazon Detective__
+  - ### Features
+    - Updated descriptions of array parameters to add the restrictions on the array and value lengths.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adds support for cold storage.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Update InputTransformer variable limit from 10 to 100 variables.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API adds support for defining run-time, S3 bucket criteria for classification jobs. It also adds resources for querying data about AWS resources that Macie monitors.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Transcribe Medical now supports identification of PHI entities within transcripts
+
+## __EC2 Image Builder__
+  - ### Features
+    - Text-only updates for bundled documentation feedback tickets - spring 2021.
+
 # __2.16.62__ __2021-05-12__
 ## __AWS SDK for Java v2__
   - ### Features

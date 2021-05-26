@@ -85,7 +85,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
         String arnPartion = arn.partition();
         S3Resource parentS3Resource = s3Resource.parentS3Resource().orElse(null);
 
-        Validate.isTrue(!willCallFipsRegion(signingRegion, arnRegion, serviceConfig),
+        Validate.isTrue(!isFipsInvolved(signingRegion, arnRegion, serviceConfig),
                         "FIPS is not supported for outpost requests.");
 
         // Even though we validated that we're not *calling* a FIPS region, the client region may still be a FIPS region if we're
@@ -202,16 +202,12 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
         return executionAttributes.getAttribute(CLIENT_ENDPOINT);
     }
 
-    private boolean willCallFipsRegion(String signingRegion, String arnRegion, S3ControlConfiguration serviceConfig) {
-        if (useArnRegion(serviceConfig)) {
-            return isFipsRegion(arnRegion);
-        }
-
+    private boolean isFipsInvolved(String signingRegion, String arnRegion, S3ControlConfiguration serviceConfig) {
         if (serviceConfig.fipsModeEnabled()) {
             return true;
         }
 
-        return isFipsRegion(signingRegion);
+        return isFipsRegion(signingRegion) || isFipsRegion(arnRegion);
     }
 
     private String removeFipsIfNeeded(String region) {
