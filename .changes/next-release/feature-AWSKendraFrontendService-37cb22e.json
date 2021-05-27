@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSKendraFrontendService",
+    "contributor": "",
+    "description": "Amazon Kendra now suggests popular queries in order to help guide query typing and help overall accuracy."
+}
