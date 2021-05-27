@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "contributor": "",
-    "description": "IoT SiteWise Monitor Portal API updates to add alarms feature configuration."
-}

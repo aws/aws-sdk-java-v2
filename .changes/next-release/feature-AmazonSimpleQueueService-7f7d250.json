@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Queue Service",
-    "contributor": "",
-    "description": "Documentation updates for Amazon SQS for General Availability of high throughput for FIFO queues."
-}
