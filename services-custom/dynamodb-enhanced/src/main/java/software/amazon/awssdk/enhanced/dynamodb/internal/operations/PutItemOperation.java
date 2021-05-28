@@ -85,8 +85,11 @@ public class PutItemOperation<T>
 
         PutItemRequest.Builder requestBuilder = PutItemRequest.builder()
                                                               .tableName(operationContext.tableName())
-                                                              .item(itemMap)
-                                                              .returnValues(request.returnValue());
+                                                              .item(itemMap);
+
+        if(request.returnValue() != null) {
+            requestBuilder = requestBuilder.returnValues(request.returnValue());
+        }
 
         requestBuilder = addExpressionsIfExist(requestBuilder, transformation);
 

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
-import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -116,7 +115,6 @@ public final class PutItemEnhancedRequest<T> {
         private ReturnValue returnValue;
 
         private Builder() {
-            returnValue = ReturnValue.ALL_NEW;
         }
 
         /**
@@ -145,7 +143,8 @@ public final class PutItemEnhancedRequest<T> {
         }
 
         /**
-         *  Sets what the update operation should return. By default, the value is ALL_NEW.
+         *  Sets what the update operation should return. When set to null (which is also the default), this value will
+         *  not be added in the request.
          *  <p>
          *  See {@link ReturnValue} for the types that are possible.
          *
@@ -153,7 +152,6 @@ public final class PutItemEnhancedRequest<T> {
          * @return a builder of this type
          */
         public Builder<T> returnValue(ReturnValue returnValue) {
-            Objects.requireNonNull(returnValue, "returnValue can not be null");
             this.returnValue = returnValue;
             return this;
         }
