@@ -173,13 +173,13 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
-    public CompletableFuture<Void> putItem(PutItemEnhancedRequest<T> request) {
-        TableOperation<T, ?, ?, Void> operation = PutItemOperation.create(request);
+    public CompletableFuture<T> putItem(PutItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, T> operation = PutItemOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
-    public CompletableFuture<Void> putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    public CompletableFuture<T> putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         PutItemEnhancedRequest.Builder<T> builder =
             PutItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
@@ -187,7 +187,7 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
-    public CompletableFuture<Void> putItem(T item) {
+    public CompletableFuture<T> putItem(T item) {
         return putItem(r -> r.item(item));
     }
 

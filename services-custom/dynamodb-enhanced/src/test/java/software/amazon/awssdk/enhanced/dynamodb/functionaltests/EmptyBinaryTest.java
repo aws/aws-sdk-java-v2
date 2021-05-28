@@ -36,13 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class EmptyBinaryTest {
@@ -94,6 +88,9 @@ public class EmptyBinaryTest {
         TestBean testBean = new TestBean();
         testBean.setId("id123");
         testBean.setB(EMPTY_BYTES);
+
+        PutItemResponse response = PutItemResponse.builder().build();
+        when(mockDynamoDbClient.putItem(any(PutItemRequest.class))).thenReturn(response);
 
         dynamoDbTable.putItem(testBean);
 

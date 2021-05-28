@@ -444,8 +444,9 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      *
      * @param request A {@link PutItemEnhancedRequest} that includes the item to enter into
      * the table, its class and optional directives.
+     * @return The old return value if requested so, otherwise null
      */
-    default void putItem(PutItemEnhancedRequest<T> request) {
+    default T putItem(PutItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
     }
 
@@ -469,8 +470,9 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      *
      * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
      * to enter into the table, its class and optional directives.
+     * @return The old return value if requested so, otherwise null
      */
-    default void putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default T putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -490,8 +492,9 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * </pre>
      *
      * @param item the modelled item to be inserted into or overwritten in the database table.
+     * @return The old return value if requested so, otherwise null
      */
-    default void putItem(T item) {
+    default T putItem(T item) {
         throw new UnsupportedOperationException();
     }
 

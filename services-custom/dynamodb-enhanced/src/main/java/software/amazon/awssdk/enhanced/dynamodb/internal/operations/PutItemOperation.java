@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -29,19 +31,13 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynam
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.Put;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.PutRequest;
-import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
-import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 @SdkInternalApi
 public class PutItemOperation<T>
     implements BatchableWriteOperation<T>,
                TransactableWriteOperation<T>,
-               TableOperation<T, PutItemRequest, PutItemResponse, Void> {
+               TableOperation<T, PutItemRequest, PutItemResponse, T> {
 
     private final PutItemEnhancedRequest<T> request;
 
@@ -97,12 +93,20 @@ public class PutItemOperation<T>
     }
 
     @Override
-    public Void transformResponse(PutItemResponse response,
+    public T transformResponse(PutItemResponse response,
                                   TableSchema<T> tableSchema,
                                   OperationContext operationContext,
                                   DynamoDbEnhancedClientExtension extension) {
-        // No results are returned by this operation
-        return null;
+        try {
+            return readAndTransformSingleItem(response.attributes(), tableSchema, operationContext, extension);
+        } catch (RuntimeException e) {
+            // With a partial update it's possible to update the record into a state that the mapper can no longer
+            // read or validate. This is more likely to happen with signed and encrypted records that undergo partial
+            // updates (that practice is discouraged for this reason).
+            throw new IllegalStateException("Unable to read the new item returned by PutItem after the put "
+                    + "occurred. Rollbacks are not supported by this operation, therefore the "
+                    + "record may no longer be readable using this model.", e);
+        }
     }
 
     @Override
