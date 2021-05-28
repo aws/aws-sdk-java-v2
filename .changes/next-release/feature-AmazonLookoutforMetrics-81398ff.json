@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lookout for Metrics",
-    "contributor": "",
-    "description": "Allowing dot(.) character in table name for RDS and Redshift as source connector."
-}

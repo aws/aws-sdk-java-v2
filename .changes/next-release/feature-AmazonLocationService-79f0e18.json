@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Location Service",
-    "contributor": "",
-    "description": "Adds support for calculation of routes, resource tagging and customer provided KMS keys."
-}
