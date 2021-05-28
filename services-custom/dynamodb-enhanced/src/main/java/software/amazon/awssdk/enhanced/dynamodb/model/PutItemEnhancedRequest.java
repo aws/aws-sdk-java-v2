@@ -15,13 +15,12 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
-
-import java.util.Objects;
 
 /**
  * Defines parameters used to write an item to a DynamoDb table using the putItem() operation (such as
@@ -58,7 +57,7 @@ public final class PutItemEnhancedRequest<T> {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder<T> toBuilder() {
-        return new Builder<T>().item(item).conditionExpression(conditionExpression);
+        return new Builder<T>().item(item).conditionExpression(conditionExpression).returnValue(returnValue);
     }
 
     /**
