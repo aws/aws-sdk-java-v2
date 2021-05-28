@@ -31,7 +31,13 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynam
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.*;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.Put;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.PutRequest;
+import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
+import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
 @SdkInternalApi
 public class PutItemOperation<T>
@@ -83,7 +89,7 @@ public class PutItemOperation<T>
                                                               .tableName(operationContext.tableName())
                                                               .item(itemMap);
 
-        if(request.returnValue() != null) {
+        if (request.returnValue() != null) {
             requestBuilder = requestBuilder.returnValues(request.returnValue());
         }
 
