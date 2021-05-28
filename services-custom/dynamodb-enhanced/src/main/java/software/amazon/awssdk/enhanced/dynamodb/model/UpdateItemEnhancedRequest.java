@@ -19,6 +19,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
+
+import java.util.Objects;
 
 /**
  * Defines parameters used to update an item to a DynamoDb table using the updateItem() operation (such as
@@ -35,11 +38,13 @@ public final class UpdateItemEnhancedRequest<T> {
     private final T item;
     private final Boolean ignoreNulls;
     private final Expression conditionExpression;
+    private final ReturnValue returnValue;
 
     private UpdateItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.returnValue = builder.returnValue;
     }
 
     /**
@@ -57,7 +62,7 @@ public final class UpdateItemEnhancedRequest<T> {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder<T> toBuilder() {
-        return new Builder<T>().item(item).ignoreNulls(ignoreNulls);
+        return new Builder<T>().item(item).ignoreNulls(ignoreNulls).returnValue(returnValue);
     }
 
     /**
@@ -81,6 +86,13 @@ public final class UpdateItemEnhancedRequest<T> {
         return conditionExpression;
     }
 
+    /**
+     * Returns if the update operation should return the data before the update or after the update.
+     */
+    public ReturnValue returnValue() {
+        return returnValue;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -95,6 +107,9 @@ public final class UpdateItemEnhancedRequest<T> {
         if (item != null ? ! item.equals(that.item) : that.item != null) {
             return false;
         }
+        if (returnValue != null ? ! returnValue.equals(that.returnValue) : that.returnValue != null) {
+            return false;
+        }
         return ignoreNulls != null ? ignoreNulls.equals(that.ignoreNulls) : that.ignoreNulls == null;
     }
 
@@ -102,6 +117,7 @@ public final class UpdateItemEnhancedRequest<T> {
     public int hashCode() {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
+        result = 31 * result + (returnValue != null ? returnValue.hashCode() : 0);
         return result;
     }
 
@@ -114,8 +130,10 @@ public final class UpdateItemEnhancedRequest<T> {
         private T item;
         private Boolean ignoreNulls;
         private Expression conditionExpression;
+        private ReturnValue returnValue;
 
         private Builder() {
+            returnValue = ReturnValue.ALL_NEW;
         }
 
         /**
@@ -144,6 +162,20 @@ public final class UpdateItemEnhancedRequest<T> {
          */
         public Builder<T> conditionExpression(Expression conditionExpression) {
             this.conditionExpression = conditionExpression;
+            return this;
+        }
+
+        /**
+         *  Sets what the update operation should return. By default, the value is ALL_NEW.
+         *  <p>
+         *  See {@link ReturnValue} for the types that are possible.
+         *
+         * @param returnValue the return value
+         * @return a builder of this type
+         */
+        public Builder<T> returnValue(ReturnValue returnValue) {
+            Objects.requireNonNull(returnValue, "returnValue can not be null");
+            this.returnValue = returnValue;
             return this;
         }
 

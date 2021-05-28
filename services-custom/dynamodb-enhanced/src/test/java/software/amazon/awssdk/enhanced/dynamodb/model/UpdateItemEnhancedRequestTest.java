@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UpdateItemEnhancedRequestTest {
@@ -55,11 +56,13 @@ public class UpdateItemEnhancedRequestTest {
                                                                                    .item(fakeItem)
                                                                                    .ignoreNulls(true)
                                                                                    .conditionExpression(conditionExpression)
+                                                                                   .returnValue(ReturnValue.UPDATED_NEW)
                                                                                    .build();
 
         assertThat(builtObject.item(), is(fakeItem));
         assertThat(builtObject.ignoreNulls(), is(true));
         assertThat(builtObject.conditionExpression(), is(conditionExpression));
+        assertThat(builtObject.returnValue(), is(ReturnValue.UPDATED_NEW));
     }
 
     @Test

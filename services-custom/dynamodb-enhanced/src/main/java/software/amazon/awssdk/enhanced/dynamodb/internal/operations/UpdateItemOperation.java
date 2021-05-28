@@ -41,7 +41,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.Update;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
@@ -104,7 +103,7 @@ public class UpdateItemOperation<T>
         UpdateItemRequest.Builder requestBuilder = UpdateItemRequest.builder()
             .tableName(operationContext.tableName())
             .key(keyAttributeValues)
-            .returnValues(ReturnValue.ALL_NEW);
+            .returnValues(request.returnValue());
 
         Map<String, AttributeValue> filteredAttributeValues = itemMap.entrySet().stream()
             .filter(entry -> !primaryKeys.contains(entry.getKey()))
