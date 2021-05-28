@@ -47,11 +47,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemC
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.Put;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PutItemOperationTest {
@@ -169,6 +165,35 @@ public class PutItemOperationTest {
     }
 
     @Test
+    public void generateRequest_withReturnValue() {
+        FakeItem fakeItem = createUniqueFakeItem();
+
+        PutItemOperation<FakeItem> putItemOperation =
+                PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                        .conditionExpression(CONDITION_EXPRESSION)
+                        .item(fakeItem)
+                        .returnValue(ReturnValue.UPDATED_OLD)
+                        .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                PRIMARY_CONTEXT,
+                null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        PutItemRequest expectedRequest =
+                PutItemRequest.builder()
+                        .tableName(TABLE_NAME)
+                        .item(expectedItemMap)
+                        .conditionExpression(CONDITION_EXPRESSION.expression())
+                        .expressionAttributeNames(CONDITION_EXPRESSION.expressionNames())
+                        .expressionAttributeValues(CONDITION_EXPRESSION.expressionValues())
+                        .returnValues(ReturnValue.UPDATED_OLD)
+                        .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
     public void generateRequest_withMinimalConditionExpression() {
         FakeItem fakeItem = createUniqueFakeItem();
         PutItemOperation<FakeItem> putItemOperation =
@@ -185,6 +210,7 @@ public class PutItemOperationTest {
         assertThat(request.expressionAttributeNames(), is(emptyMap()));
         assertThat(request.expressionAttributeValues(), is(emptyMap()));
     }
+
 
     @Test
     public void generateRequest_withConditionExpression_andExtensionWithSingleCondition() {
