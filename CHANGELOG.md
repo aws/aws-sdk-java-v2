@@ -1,3 +1,23 @@
+# __2.16.74__ __2021-05-28__
+## __AWS DataSync__
+  - ### Features
+    - Added SecurityDescriptorCopyFlags option that allows for control of which components of SMB security descriptors are copied from source to destination objects.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed the issue where the SDK failed to parse timestamps with offsets. See [#2477](https://github.com/aws/aws-sdk-java-v2/issues/2477)
+
+## __Amazon Location Service__
+  - ### Features
+    - Adds support for calculation of routes, resource tagging and customer provided KMS keys.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Allowing dot(.) character in table name for RDS and Redshift as source connector.
+
 # __2.16.73__ __2021-05-27__
 ## __AWS Device Farm__
   - ### Features
