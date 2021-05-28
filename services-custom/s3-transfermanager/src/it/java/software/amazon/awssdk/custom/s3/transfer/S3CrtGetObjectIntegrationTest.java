@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.crt;
+package software.amazon.awssdk.custom.s3.transfer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
@@ -29,12 +29,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.custom.s3.transfer.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
-import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Md5Utils;
 
 public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
@@ -45,21 +45,21 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
 
     @BeforeClass
     public static void setup() throws IOException {
-        createBucket(BUCKET);
+        S3IntegrationTestBase.createBucket(BUCKET);
         crtClient = S3CrtAsyncClient.builder()
-                                    .region(DEFAULT_REGION)
-                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                    .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                    .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
                                     .build();
         file = new RandomTempFile(10_000);
-        s3.putObject(PutObjectRequest.builder()
-                                          .bucket(BUCKET)
-                                          .key(KEY)
-                                          .build(), file.toPath());
+        S3IntegrationTestBase.s3.putObject(PutObjectRequest.builder()
+                                                           .bucket(BUCKET)
+                                                           .key(KEY)
+                                                           .build(), file.toPath());
     }
 
     @AfterClass
     public static void cleanup() {
-        deleteBucketAndAllContents(BUCKET);
+        S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
     }
 
     @Test

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.s3crt;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import java.net.URI;
 import java.util.function.Consumer;
@@ -21,8 +21,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 
 @SdkInternalApi
 public final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {

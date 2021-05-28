@@ -27,7 +27,6 @@ import software.amazon.awssdk.custom.s3.transfer.DownloadRequest;
 import software.amazon.awssdk.custom.s3.transfer.S3TransferManager;
 import software.amazon.awssdk.custom.s3.transfer.Upload;
 import software.amazon.awssdk.custom.s3.transfer.UploadRequest;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.s3crt;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import java.nio.ByteBuffer;
 import java.util.Queue;
@@ -131,8 +131,8 @@ public final class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
             // If it's a terminal event, then we don't to check if there's an outstandingDemand
             Event firstEvent = buffer.peek();
             if (firstEvent != null && isTerminalEvent(firstEvent)) {
-                buffer.poll();
-                handleTerminalEvent(firstEvent);
+                Event terminalEvent = buffer.poll();
+                handleTerminalEvent(terminalEvent);
                 isDelivering.set(false);
                 return;
             }

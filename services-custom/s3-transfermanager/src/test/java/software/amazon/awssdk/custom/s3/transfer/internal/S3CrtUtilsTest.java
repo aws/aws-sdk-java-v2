@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
@@ -26,7 +26,6 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
-import software.amazon.awssdk.services.s3.internal.s3crt.S3CrtUtils;
 
 public class S3CrtUtilsTest {
 
@@ -42,9 +41,9 @@ public class S3CrtUtilsTest {
 
         Credentials credentials = crtCredentialsProvider.getCredentials().get();
 
-        assertThat(ACCESS_KEY, equalTo(new String(credentials.getAccessKeyId(), StandardCharsets.UTF_8)));
-        assertThat(SECRET_ACCESS_KEY, equalTo(new String(credentials.getSecretAccessKey(), StandardCharsets.UTF_8)));
-        assertThat(SESSION_TOKEN, equalTo(new String(credentials.getSessionToken(), StandardCharsets.UTF_8)));
+        assertThat(ACCESS_KEY.getBytes(StandardCharsets.UTF_8)).isEqualTo(credentials.getAccessKeyId());
+        assertThat(SECRET_ACCESS_KEY.getBytes(StandardCharsets.UTF_8)).isEqualTo(credentials.getSecretAccessKey());
+        assertThat(SESSION_TOKEN.getBytes(StandardCharsets.UTF_8)).isEqualTo(credentials.getSessionToken());
     }
 
 }

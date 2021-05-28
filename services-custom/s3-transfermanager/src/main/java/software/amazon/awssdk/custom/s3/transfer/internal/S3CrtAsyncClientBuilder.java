@@ -13,23 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import java.net.URI;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 /**
  * A builder for creating an instance of {@link S3CrtAsyncClient}. This can be created with the static
  * {@link S3AsyncClient#crtBuilder()} method.
  */
-@SdkPreviewApi
-@SdkPublicApi
+@SdkInternalApi
 public interface S3CrtAsyncClientBuilder extends AwsClientBuilder<S3CrtAsyncClientBuilder, S3CrtAsyncClient> {
     @Override
     S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider);

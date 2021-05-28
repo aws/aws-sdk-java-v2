@@ -13,10 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.s3crt;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -84,8 +85,8 @@ public class RequestDataSupplierAdapterTest {
         RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
 
         assertThatThrownBy(() -> adapter.getRequestBytes(ByteBuffer.allocate(16)))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Something wrong happened");
+                  .isInstanceOf(RuntimeException.class)
+                  .hasMessageContaining("Something wrong happened");
     }
 
     @Test
@@ -96,8 +97,8 @@ public class RequestDataSupplierAdapterTest {
         RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
 
         assertThatThrownBy(() -> adapter.getRequestBytes(ByteBuffer.allocate(16)))
-                .isInstanceOf(RuntimeException.class)
-                .hasCauseInstanceOf(IOException.class);
+                  .isInstanceOf(RuntimeException.class)
+                  .hasCauseInstanceOf(IOException.class);
     }
 
     @Test

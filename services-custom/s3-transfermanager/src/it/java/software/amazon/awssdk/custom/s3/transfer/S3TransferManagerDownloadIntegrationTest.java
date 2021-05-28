@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
+import software.amazon.awssdk.custom.s3.transfer.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Md5Utils;
