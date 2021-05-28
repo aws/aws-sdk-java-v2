@@ -13,10 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3;
+package software.amazon.awssdk.custom.s3.transfer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -37,12 +39,13 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.custom.s3.transfer.internal.S3CrtAsyncClient;
+import software.amazon.awssdk.custom.s3.transfer.util.ChecksumUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
-public class CrtClientIntegrationTest extends S3IntegrationTestBase {
-    private static final String TEST_BUCKET = temporaryBucketName(CrtClientIntegrationTest.class);
+public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
+    private static final String TEST_BUCKET = temporaryBucketName(S3CrtClientPutObjectIntegrationTest.class);
     private static final String TEST_KEY = "8mib_file.dat";
     private static final int OBJ_SIZE = 8 * 1024 * 1024;
 
@@ -53,7 +56,7 @@ public class CrtClientIntegrationTest extends S3IntegrationTestBase {
     @BeforeClass
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
-        createBucket(TEST_BUCKET);
+        S3IntegrationTestBase.createBucket(TEST_BUCKET);
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
     }
@@ -61,9 +64,9 @@ public class CrtClientIntegrationTest extends S3IntegrationTestBase {
     @Before
     public void methodSetup() {
         s3Crt = S3CrtAsyncClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .region(DEFAULT_REGION)
-                .build();
+                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                .build();
     }
 
     @After
@@ -73,7 +76,7 @@ public class CrtClientIntegrationTest extends S3IntegrationTestBase {
 
     @AfterClass
     public static void teardown() throws IOException {
-        deleteBucketAndAllContents(TEST_BUCKET);
+        S3IntegrationTestBase.deleteBucketAndAllContents(TEST_BUCKET);
         Files.delete(testFile.toPath());
     }
 
@@ -82,12 +85,12 @@ public class CrtClientIntegrationTest extends S3IntegrationTestBase {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
-        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
-                ResponseTransformer.toInputStream());
+        ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                                               ResponseTransformer.toInputStream());
 
         byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
 
-        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+        Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
     }
 
     @Test
@@ -100,12 +103,12 @@ public class CrtClientIntegrationTest extends S3IntegrationTestBase {
 
         s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
-        ResponseBytes<GetObjectResponse> responseBytes = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
-                ResponseTransformer.toBytes());
+        ResponseBytes<GetObjectResponse> responseBytes = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                                            ResponseTransformer.toBytes());
 
         byte[] expectedSum = ChecksumUtils.computeCheckSum(byteBuffer);
 
-        assertThat(ChecksumUtils.computeCheckSum(responseBytes.asByteBuffer())).isEqualTo(expectedSum);
+        Assertions.assertThat(ChecksumUtils.computeCheckSum(responseBytes.asByteBuffer())).isEqualTo(expectedSum);
     }
 
     @Test
@@ -139,10 +142,10 @@ public class CrtClientIntegrationTest extends S3IntegrationTestBase {
 
         s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), customRequestBody).join();
 
-        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
-                ResponseTransformer.toInputStream());
+        ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                                               ResponseTransformer.toInputStream());
 
 
-        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+        Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
     }
 }

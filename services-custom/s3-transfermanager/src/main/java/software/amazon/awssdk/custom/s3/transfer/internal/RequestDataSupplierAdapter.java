@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.s3crt;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import com.amazonaws.s3.RequestDataSupplier;
 import java.nio.ByteBuffer;

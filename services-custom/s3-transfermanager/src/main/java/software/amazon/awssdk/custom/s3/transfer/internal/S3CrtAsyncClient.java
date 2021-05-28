@@ -13,18 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.s3.internal.s3crt.DefaultS3CrtClientBuilder;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 /**
  * Service client for accessing Amazon S3 asynchronously using the AWS Common Runtime S3 client. This can be created using the
  * static {@link #builder()} method.
  */
-@SdkPreviewApi
-@SdkPublicApi
+@SdkInternalApi
 public interface S3CrtAsyncClient extends S3AsyncClient {
 
     /**

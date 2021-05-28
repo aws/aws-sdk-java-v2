@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.s3crt;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import com.amazonaws.s3.model.ObjectCannedACL;
 import com.amazonaws.s3.model.ObjectLockLegalHoldStatus;
@@ -22,6 +22,7 @@ import com.amazonaws.s3.model.PutObjectOutput;
 import com.amazonaws.s3.model.RequestPayer;
 import com.amazonaws.s3.model.ServerSideEncryption;
 import com.amazonaws.s3.model.StorageClass;
+import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -50,11 +51,11 @@ public final class S3CrtUtils {
             new StaticCredentialsProvider.StaticCredentialsProviderBuilder();
 
         if (sdkCredentials instanceof AwsSessionCredentials) {
-            builder.withSessionToken(((AwsSessionCredentials) sdkCredentials).sessionToken().getBytes());
+            builder.withSessionToken(((AwsSessionCredentials) sdkCredentials).sessionToken().getBytes(StandardCharsets.UTF_8));
         }
 
-        return builder.withAccessKeyId(sdkCredentials.accessKeyId().getBytes())
-                      .withSecretAccessKey(sdkCredentials.secretAccessKey().getBytes())
+        return builder.withAccessKeyId(sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8))
+                      .withSecretAccessKey(sdkCredentials.secretAccessKey().getBytes(StandardCharsets.UTF_8))
                       .build();
     }
 

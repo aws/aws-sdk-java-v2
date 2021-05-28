@@ -18,7 +18,7 @@ package software.amazon.awssdk.custom.s3.transfer;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.custom.s3.transfer.internal.DefaultS3TransferManager;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClient;
+import software.amazon.awssdk.custom.s3.transfer.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**

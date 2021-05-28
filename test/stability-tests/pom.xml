@@ -119,6 +119,12 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3-transfermanager</artifactId>
+            <version>${awsjavasdk.version}-PREVIEW</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>transcribestreaming</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>

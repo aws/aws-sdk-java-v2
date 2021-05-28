@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.services.s3.internal.s3crt.S3CrtDataPublisher;
 
 public class S3CrtDataPublisherTest {
 
