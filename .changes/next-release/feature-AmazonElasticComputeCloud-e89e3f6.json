@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Added idempotency to CreateNetworkInterface using the ClientToken parameter."
-}

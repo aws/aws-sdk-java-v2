@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Cloud Map",
-    "contributor": "",
-    "description": "Bugfixes - The DiscoverInstances API operation now provides an option to return all instances for health-checked services when there are no healthy instances available."
-}
