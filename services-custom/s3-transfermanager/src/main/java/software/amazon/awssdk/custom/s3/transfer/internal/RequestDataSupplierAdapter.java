@@ -29,6 +29,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -53,15 +54,22 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
     // ensure that CRT actually ensures consistency across their threads...
     private Subscriber<? super ByteBuffer> subscriber;
     private long pending = 0;
+    private final ResponseHeadersHandler headersHandler;
 
     public RequestDataSupplierAdapter(Publisher<ByteBuffer> bodyPublisher) {
         this.bodyPublisher = bodyPublisher;
         this.subscriber = createSubscriber();
+        this.headersHandler = new ResponseHeadersHandler();
+    }
+
+    @Override
+    public void onResponseHeaders(final int statusCode, final HttpHeader[] headers) {
+        headersHandler.onResponseHeaders(statusCode, headers);
     }
 
     @Override
     public boolean getRequestBytes(ByteBuffer outBuffer) {
-        LOG.debug(() -> "Getting data to fill buffer of size " + outBuffer.remaining());
+        LOG.trace(() -> "Getting data to fill buffer of size " + outBuffer.remaining());
 
         // Per the spec, onSubscribe is always called before any other
         // signal, so we expect a subscription to always be provided; we just
@@ -214,7 +222,7 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
             if (byteBuffer == null) {
                 throw new NullPointerException("byteBuffer must not be null");
             }
-            LOG.debug(() -> "Received new data of size: " + byteBuffer.remaining());
+            LOG.trace(() -> "Received new data of size: " + byteBuffer.remaining());
             eventBuffer.add(new DataEvent(this, byteBuffer));
         }
 

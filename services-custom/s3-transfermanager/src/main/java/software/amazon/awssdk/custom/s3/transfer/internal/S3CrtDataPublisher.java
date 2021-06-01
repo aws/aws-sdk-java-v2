@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.Logger;
  * Publisher of the response data from crt. Tracks outstanding demand and delivers the data to the subscriber
  */
 @SdkInternalApi
-public final class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
+public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(S3CrtDataPublisher.class);
     private static final Event COMPLETE = new CompleteEvent();
     private static final Event CANCEL = new CancelEvent();
@@ -138,7 +138,7 @@ public final class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
             }
 
             while (!buffer.isEmpty() && outstandingDemand.get() > 0) {
-                log.debug(() -> "Publishing data, buffer size: " + buffer.size() + ", demand: " + outstandingDemand.get());
+                log.trace(() -> "Publishing data, buffer size: " + buffer.size() + ", demand: " + outstandingDemand.get());
                 Event event = buffer.poll();
                 // It's possible that the buffer gets cleared in notifyError() or cancel() and the subscriber
                 // gets cleared in cancel()
@@ -174,7 +174,7 @@ public final class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
             }
 
             addDemand(n);
-            log.debug(() -> "Received demand: " + n + ". Total demands: " + outstandingDemand.get());
+            log.trace(() -> "Received demand: " + n + ". Total demands: " + outstandingDemand.get());
             flushBuffer();
         }
 

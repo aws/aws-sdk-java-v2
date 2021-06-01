@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
+import com.amazonaws.s3.model.GetObjectOutput;
 import com.amazonaws.s3.model.ObjectCannedACL;
 import com.amazonaws.s3.model.ObjectLockLegalHoldStatus;
 import com.amazonaws.s3.model.ObjectLockMode;
@@ -23,16 +24,21 @@ import com.amazonaws.s3.model.RequestPayer;
 import com.amazonaws.s3.model.ServerSideEncryption;
 import com.amazonaws.s3.model.StorageClass;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3ResponseMetadata;
 
 @SdkInternalApi
 public final class S3CrtUtils {
@@ -59,7 +65,7 @@ public final class S3CrtUtils {
                       .build();
     }
 
-    // TODO: codegen
+    // TODO: codegen and add tests
     public static com.amazonaws.s3.model.GetObjectRequest adaptGetObjectRequest(GetObjectRequest request) {
         return com.amazonaws.s3.model.GetObjectRequest.builder()
                                                       .key(request.key())
@@ -71,28 +77,32 @@ public final class S3CrtUtils {
                                                       .build();
     }
 
-    // TODO: codegen
-    public static GetObjectResponse adaptGetObjectOutput(com.amazonaws.s3.model.GetObjectOutput response) {
-        return GetObjectResponse.builder()
-                .bucketKeyEnabled(response.bucketKeyEnabled())
-                .acceptRanges(response.acceptRanges())
-                .contentDisposition(response.contentDisposition())
-                .cacheControl(response.cacheControl())
-                .contentEncoding(response.contentEncoding())
-                .contentLanguage(response.contentLanguage())
-                .contentRange(response.contentRange())
-                .contentLength(response.contentLength())
-                .contentType(response.contentType())
-                .deleteMarker(response.deleteMarker())
-                .eTag(response.eTag())
-                .expiration(response.expiration())
-                .expires(response.expires())
-                .lastModified(response.lastModified())
-                .metadata(response.metadata())
-                .build();
+    // TODO: codegen and add tests
+    public static GetObjectResponse adaptGetObjectOutput(GetObjectOutput response, SdkHttpResponse sdkHttpResponse) {
+        S3ResponseMetadata s3ResponseMetadata = createS3ResponseMetadata(sdkHttpResponse);
+
+        return (GetObjectResponse) GetObjectResponse.builder()
+                                                    .bucketKeyEnabled(response.bucketKeyEnabled())
+                                                    .acceptRanges(response.acceptRanges())
+                                                    .contentDisposition(response.contentDisposition())
+                                                    .cacheControl(response.cacheControl())
+                                                    .contentEncoding(response.contentEncoding())
+                                                    .contentLanguage(response.contentLanguage())
+                                                    .contentRange(response.contentRange())
+                                                    .contentLength(response.contentLength())
+                                                    .contentType(response.contentType())
+                                                    .deleteMarker(response.deleteMarker())
+                                                    .eTag(response.eTag())
+                                                    .expiration(response.expiration())
+                                                    .expires(response.expires())
+                                                    .lastModified(response.lastModified())
+                                                    .metadata(response.metadata())
+                                                    .responseMetadata(s3ResponseMetadata)
+                                                    .sdkHttpResponse(sdkHttpResponse)
+                                                    .build();
     }
 
-    //TODO: codegen
+    // TODO: codegen and add tests
     public static com.amazonaws.s3.model.PutObjectRequest toCrtPutObjectRequest(PutObjectRequest sdkPutObject) {
         return com.amazonaws.s3.model.PutObjectRequest.builder()
                 .contentLength(sdkPutObject.contentLength())
@@ -129,7 +139,7 @@ public final class S3CrtUtils {
                 .build();
     }
 
-    //TODO: codegen
+    // TODO: codegen and add tests
     public static PutObjectResponse fromCrtPutObjectOutput(PutObjectOutput crtPutObjectOutput) {
         // TODO: Provide the HTTP request-level data (e.g. response metadata, HTTP response)
         PutObjectResponse.Builder builder = PutObjectResponse.builder()
@@ -151,5 +161,11 @@ public final class S3CrtUtils {
         }
 
         return builder.build();
+    }
+
+    private static S3ResponseMetadata createS3ResponseMetadata(SdkHttpResponse sdkHttpResponse) {
+        Map<String, String> metadata = new HashMap<>();
+        sdkHttpResponse.headers().forEach((key, value) -> metadata.put(key, value.get(0)));
+        return S3ResponseMetadata.create(DefaultAwsResponseMetadata.create(metadata));
     }
 }
