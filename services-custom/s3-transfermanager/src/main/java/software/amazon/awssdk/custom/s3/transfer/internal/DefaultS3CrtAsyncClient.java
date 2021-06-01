@@ -87,6 +87,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         return future;
     }
 
+    @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
         com.amazonaws.s3.model.PutObjectRequest adaptedRequest = S3CrtUtils.toCrtPutObjectRequest(putObjectRequest);
 

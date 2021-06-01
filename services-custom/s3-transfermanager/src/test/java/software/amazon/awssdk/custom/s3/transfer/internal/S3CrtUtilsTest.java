@@ -18,6 +18,7 @@ package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.amazonaws.s3.model.GetObjectOutput;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import org.junit.Test;
@@ -26,6 +27,9 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
+import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.testutils.smoketest.ReflectionUtils;
 
 public class S3CrtUtilsTest {
 
@@ -46,4 +50,24 @@ public class S3CrtUtilsTest {
         assertThat(SESSION_TOKEN.getBytes(StandardCharsets.UTF_8)).isEqualTo(credentials.getSessionToken());
     }
 
+    @Test
+    public void adaptGetObjectOutput() {
+        String expectedRequestId = "123456";
+        GetObjectOutput output = GetObjectOutput.builder().build();
+        SdkHttpResponse response = SdkHttpResponse.builder()
+                                                  .statusCode(200)
+                                                  .appendHeader("x-amz-request-id", expectedRequestId)
+                                                  .build();
+
+
+        GetObjectResponse getObjectResponse = S3CrtUtils.adaptGetObjectOutput(output, response);
+        assertThat(output).isEqualToIgnoringGivenFields(getObjectResponse, "body",
+                                                        "sSECustomerAlgorithm",
+                                                        "sSECustomerKeyMD5",
+                                                        "sSEKMSKeyId",
+                                                        "metadata");
+
+        assertThat(getObjectResponse.sdkHttpResponse()).isEqualTo(response);
+        assertThat(getObjectResponse.responseMetadata().requestId()).isEqualTo(expectedRequestId);
+    }
 }
