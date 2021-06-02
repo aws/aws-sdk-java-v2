@@ -42,37 +42,4 @@ public class Ec2MetadataUtilsTt0049160280Test {
         String region = EC2MetadataUtils.doGetEC2InstanceRegion(JSON);
         Assert.assertEquals("us-east-1", region);
     }
-
-    @Test
-    public void tt0049160280() {
-        EC2MetadataUtils.InstanceInfo info = EC2MetadataUtils.doGetInstanceInfo(JSON);
-        String[] billingProducts = info.getBillingProducts();
-        Assert.assertTrue(billingProducts.length == 1);
-        Assert.assertEquals(billingProducts[0], "bp-6ba54002");
-    }
-
-    @Test
-    public void devProductCodes() {
-        final String JSON = "{"
-                            + "  \"privateIp\" : \"172.31.56.174\","
-                            + "  \"devpayProductCodes\" : [\"foo\", \"bar\"],"
-                            + "  \"availabilityZone\" : \"us-east-1b\","
-                            + "  \"version\" : \"2010-08-31\","
-                            + "  \"accountId\" : \"123456789012\","
-                            + "  \"instanceId\" : \"i-b32c0064\","
-                            + "  \"billingProducts\" : [\"bp-6ba54002\" ],"
-                            + "  \"imageId\" : \"ami-ac3a1cc4\","
-                            + "  \"instanceType\" : \"t2.small\","
-                            + "  \"kernelId\" : null,"
-                            + "  \"ramdiskId\" : null,"
-                            + "  \"pendingTime\" : \"2015-04-13T19:57:24Z\","
-                            + "  \"architecture\" : \"x86_64\","
-                            + "  \"region\" : \"us-east-1\""
-                            + "}";
-        EC2MetadataUtils.InstanceInfo info = EC2MetadataUtils.doGetInstanceInfo(JSON);
-        String[] devpayProductCodes = info.getDevpayProductCodes();
-        Assert.assertTrue(devpayProductCodes.length == 2);
-        Assert.assertEquals(devpayProductCodes[0], "foo");
-        Assert.assertEquals(devpayProductCodes[1], "bar");
-    }
 }

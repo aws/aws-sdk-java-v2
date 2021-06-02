@@ -14,6 +14,10 @@
 # Maven
 target/
 
+# JEnv
+.java-version
+
+# Shade
 **/dependency-reduced-pom.xml
 
 *.pyc

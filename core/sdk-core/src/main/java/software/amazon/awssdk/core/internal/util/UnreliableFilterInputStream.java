@@ -19,7 +19,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.json.JacksonUtils;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * An internal class used solely for the purpose of testing via failure
@@ -168,6 +168,15 @@ public class UnreliableFilterInputStream extends FilterInputStream {
 
     @Override
     public String toString() {
-        return JacksonUtils.toJsonString(this);
+        return ToString.builder("UnreliableFilterInputStream")
+                       .add("isFakeIoException", isFakeIoException)
+                       .add("maxNumErrors", maxNumErrors)
+                       .add("currNumErrors", currNumErrors)
+                       .add("bytesReadBeforeException", bytesReadBeforeException)
+                       .add("marked", marked)
+                       .add("position", position)
+                       .add("resetCount", resetCount)
+                       .add("resetIntervalBeforeException", resetIntervalBeforeException)
+                       .toString();
     }
 }

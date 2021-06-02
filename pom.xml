@@ -68,6 +68,7 @@
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
         <module>archetypes</module>
+        <module>third-party</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -90,7 +91,6 @@
         <jackson.databind.version>2.12.3</jackson.databind.version>
         <jacksonjr.version>2.12.3</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
-        <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.12.0</commons.lang.version>
         <wiremock.version>2.18.0</wiremock.version>
         <slf4j.version>1.7.30</slf4j.version>
@@ -514,6 +514,10 @@
                             <exclude>software.amazon.awssdk.awscore.eventstream.*</exclude>
                             <exclude>software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory</exclude>
                             <exclude>software.amazon.awssdk.services.macie2.model.*</exclude>
+
+                            <!-- Jackson removal -->
+                            <exclude>software.amazon.awssdk.core.util.json.JacksonUtils</exclude>
+                            <exclude>software.amazon.awssdk.protocols.json.*</exclude>
                         </excludes>
 
                         <excludeModules>

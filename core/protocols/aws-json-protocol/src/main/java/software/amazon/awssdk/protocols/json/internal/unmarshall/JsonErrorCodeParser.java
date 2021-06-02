@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 
 @SdkInternalApi
 public class JsonErrorCodeParser implements ErrorCodeParser {
@@ -115,15 +115,15 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      * <b>"prefix#typeName"</b> Examples : "AccessDeniedException",
      * "software.amazon.awssdk.dynamodb.v20111205#ProvisionedThroughputExceededException"
      */
-    private String parseErrorCodeFromContents(SdkJsonNode jsonContents) {
+    private String parseErrorCodeFromContents(JsonNode jsonContents) {
         if (jsonContents == null) {
             return null;
         }
-        SdkJsonNode errorCodeField = jsonContents.get(errorCodeFieldName);
+        JsonNode errorCodeField = jsonContents.get(errorCodeFieldName).orElse(null);
         if (errorCodeField == null) {
             return null;
         }
-        String code = errorCodeField.asText();
+        String code = errorCodeField.text();
         int separator = code.lastIndexOf("#");
         return code.substring(separator + 1);
     }

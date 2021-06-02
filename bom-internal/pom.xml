@@ -85,11 +85,6 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>software.amazon.ion</groupId>
-                <artifactId>ion-java</artifactId>
-                <version>${ion.java.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${httpcomponents.httpclient.version}</version>
