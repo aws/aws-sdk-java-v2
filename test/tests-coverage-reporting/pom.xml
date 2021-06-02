@@ -43,6 +43,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <artifactId>json-utils</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <artifactId>aws-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
@@ -69,11 +74,6 @@
         </dependency>
         <dependency>
             <artifactId>aws-cbor-protocol</artifactId>
-            <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <artifactId>aws-ion-protocol</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>
