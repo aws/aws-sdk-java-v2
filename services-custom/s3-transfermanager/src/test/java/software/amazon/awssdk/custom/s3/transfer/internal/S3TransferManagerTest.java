@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.custom.s3.transfer;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -28,6 +28,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.custom.s3.transfer.CompletedDownload;
+import software.amazon.awssdk.custom.s3.transfer.CompletedUpload;
+import software.amazon.awssdk.custom.s3.transfer.DownloadRequest;
+import software.amazon.awssdk.custom.s3.transfer.S3TransferManager;
+import software.amazon.awssdk.custom.s3.transfer.UploadRequest;
+import software.amazon.awssdk.custom.s3.transfer.internal.DefaultS3TransferManager;
 import software.amazon.awssdk.custom.s3.transfer.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -44,9 +50,7 @@ public class S3TransferManagerTest {
     @Before
     public void methodSetup() {
         mockS3Crt = mock(S3CrtAsyncClient.class);
-        tm = S3TransferManager.builder()
-                .s3CrtClient(mockS3Crt)
-                .build();
+        tm = new DefaultS3TransferManager(mockS3Crt);
     }
 
     @After
@@ -61,12 +65,12 @@ public class S3TransferManagerTest {
                 .thenReturn(CompletableFuture.completedFuture(response));
 
         CompletedUpload completedUpload = tm.upload(UploadRequest.builder()
-                .bucket("bucket")
-                .key("key")
-                .source(Paths.get("."))
-                .build())
-                .completionFuture()
-                .join();
+                                                                 .bucket("bucket")
+                                                                 .key("key")
+                                                                 .source(Paths.get("."))
+                                                                 .build())
+                                            .completionFuture()
+                                            .join();
 
         assertThat(completedUpload.response()).isEqualTo(response);
     }
@@ -78,12 +82,12 @@ public class S3TransferManagerTest {
             .thenReturn(CompletableFuture.completedFuture(response));
 
         CompletedDownload completedDownload = tm.download(DownloadRequest.builder()
-                                                                       .bucket("bucket")
-                                                                       .key("key")
-                                                                       .destination(Paths.get("."))
-                                                                       .build())
-                                              .completionFuture()
-                                              .join();
+                                                                         .bucket("bucket")
+                                                                         .key("key")
+                                                                         .destination(Paths.get("."))
+                                                                         .build())
+                                                .completionFuture()
+                                                .join();
         assertThat(completedDownload.response()).isEqualTo(response);
     }
 

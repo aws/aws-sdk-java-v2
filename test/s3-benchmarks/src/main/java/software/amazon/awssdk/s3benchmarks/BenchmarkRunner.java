@@ -76,7 +76,7 @@ public class BenchmarkRunner {
                                              .key(key)
                                              .bucket(bucket)
                                              .partSizeInMb(partSize)
-                                             .maxThroughput(maxThroughput)
+                                             .targetThroughput(maxThroughput)
                                              .filePath(filePath)
                                              .build();
     }

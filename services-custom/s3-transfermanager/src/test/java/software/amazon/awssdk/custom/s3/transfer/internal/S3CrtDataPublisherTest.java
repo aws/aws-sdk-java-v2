@@ -18,6 +18,8 @@ package software.amazon.awssdk.custom.s3.transfer.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -166,17 +168,21 @@ public class S3CrtDataPublisherTest {
     }
 
     @Test
-    public void subscriberCancels_shouldNotInovokeTerminalMethods() {
+    public void subscriberCancels_shouldNotInvokeTerminalMethods() {
         AtomicBoolean onCompleteCalled = new AtomicBoolean(false);
         AtomicBoolean errorOccurred = new AtomicBoolean(false);
 
         Queue<ByteBuffer> events = new ConcurrentLinkedQueue<>();
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         int numOfData = 3;
         for (int i = 0; i < numOfData; i++) {
-            CompletableFuture.runAsync(() -> dataPublisher.deliverData(ByteBuffer.wrap(RandomUtils.nextBytes(20))));
+            futures.add(
+                CompletableFuture.runAsync(() -> dataPublisher.deliverData(ByteBuffer.wrap(RandomUtils.nextBytes(20)))));
         }
 
-        CompletableFuture.runAsync(() -> dataPublisher.notifyStreamingFinished());
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((r, t) -> {
+            CompletableFuture.runAsync(() -> dataPublisher.notifyStreamingFinished());
+        });
 
         dataPublisher.subscribe(new Subscriber<ByteBuffer>() {
             private Subscription subscription;

@@ -24,21 +24,27 @@ import com.amazonaws.s3.model.RequestPayer;
 import com.amazonaws.s3.model.ServerSideEncryption;
 import com.amazonaws.s3.model.StorageClass;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3ResponseMetadata;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class S3CrtUtils {
@@ -66,15 +72,24 @@ public final class S3CrtUtils {
     }
 
     // TODO: codegen and add tests
-    public static com.amazonaws.s3.model.GetObjectRequest adaptGetObjectRequest(GetObjectRequest request) {
-        return com.amazonaws.s3.model.GetObjectRequest.builder()
-                                                      .key(request.key())
-                                                      .bucket(request.bucket())
-                                                      .expectedBucketOwner(request.expectedBucketOwner())
-                                                      .ifMatch(request.ifMatch())
-                                                      .ifModifiedSince(request.ifModifiedSince())
-                                                      .ifNoneMatch(request.ifNoneMatch())
-                                                      .build();
+    public static com.amazonaws.s3.model.GetObjectRequest toCrtGetObjectRequest(GetObjectRequest request) {
+        com.amazonaws.s3.model.GetObjectRequest.Builder getObjectBuilder =
+            com.amazonaws.s3.model.GetObjectRequest.builder()
+                                                   .key(request.key())
+                                                   .bucket(request.bucket())
+                                                   .expectedBucketOwner(request.expectedBucketOwner())
+                                                   .ifMatch(request.ifMatch())
+                                                   .ifModifiedSince(request.ifModifiedSince())
+                                                   .ifNoneMatch(request.ifNoneMatch());
+
+        if (request.overrideConfiguration().isPresent()) {
+            addRequestOverrideConfiguration(request.overrideConfiguration().get(),
+                                            getObjectBuilder::customHeaders,
+                                            getObjectBuilder::customQueryParameters);
+        }
+
+        return getObjectBuilder.build();
+
     }
 
     // TODO: codegen and add tests
@@ -104,53 +119,65 @@ public final class S3CrtUtils {
 
     // TODO: codegen and add tests
     public static com.amazonaws.s3.model.PutObjectRequest toCrtPutObjectRequest(PutObjectRequest sdkPutObject) {
-        return com.amazonaws.s3.model.PutObjectRequest.builder()
-                .contentLength(sdkPutObject.contentLength())
-                .aCL(ObjectCannedACL.fromValue(sdkPutObject.aclAsString()))
-                .bucket(sdkPutObject.bucket())
-                .key(sdkPutObject.key())
-                .bucketKeyEnabled(sdkPutObject.bucketKeyEnabled())
-                .cacheControl(sdkPutObject.cacheControl())
-                .contentDisposition(sdkPutObject.contentDisposition())
-                .contentEncoding(sdkPutObject.contentEncoding())
-                .contentLanguage(sdkPutObject.contentLanguage())
-                .contentMD5(sdkPutObject.contentMD5())
-                .contentType(sdkPutObject.contentType())
-                .expectedBucketOwner(sdkPutObject.expectedBucketOwner())
-                .expires(sdkPutObject.expires())
-                .grantFullControl(sdkPutObject.grantFullControl())
-                .grantRead(sdkPutObject.grantRead())
-                .grantReadACP(sdkPutObject.grantReadACP())
-                .grantWriteACP(sdkPutObject.grantWriteACP())
-                .metadata(sdkPutObject.metadata())
-                .objectLockLegalHoldStatus(ObjectLockLegalHoldStatus.fromValue(sdkPutObject.objectLockLegalHoldStatusAsString()))
-                .objectLockMode(ObjectLockMode.fromValue(sdkPutObject.objectLockModeAsString()))
-                .objectLockRetainUntilDate(sdkPutObject.objectLockRetainUntilDate())
-                .requestPayer(RequestPayer.fromValue(sdkPutObject.requestPayerAsString()))
-                .serverSideEncryption(ServerSideEncryption.fromValue(sdkPutObject.requestPayerAsString()))
-                .sSECustomerAlgorithm(sdkPutObject.sseCustomerAlgorithm())
-                .sSECustomerKey(sdkPutObject.sseCustomerKey())
-                .sSECustomerKeyMD5(sdkPutObject.sseCustomerKeyMD5())
-                .sSEKMSEncryptionContext(sdkPutObject.ssekmsEncryptionContext())
-                .sSEKMSKeyId(sdkPutObject.ssekmsKeyId())
-                .storageClass(StorageClass.fromValue(sdkPutObject.storageClassAsString()))
-                .tagging(sdkPutObject.tagging())
-                .websiteRedirectLocation(sdkPutObject.websiteRedirectLocation())
-                .build();
+        com.amazonaws.s3.model.PutObjectRequest.Builder putObjectBuilder =
+            com.amazonaws.s3.model.PutObjectRequest.builder()
+                                                   .contentLength(sdkPutObject.contentLength())
+                                                   .aCL(ObjectCannedACL.fromValue(sdkPutObject.aclAsString()))
+                                                   .bucket(sdkPutObject.bucket())
+                                                   .key(sdkPutObject.key())
+                                                   .bucketKeyEnabled(sdkPutObject.bucketKeyEnabled())
+                                                   .cacheControl(sdkPutObject.cacheControl())
+                                                   .contentDisposition(sdkPutObject.contentDisposition())
+                                                   .contentEncoding(sdkPutObject.contentEncoding())
+                                                   .contentLanguage(sdkPutObject.contentLanguage())
+                                                   .contentMD5(sdkPutObject.contentMD5())
+                                                   .contentType(sdkPutObject.contentType())
+                                                   .expectedBucketOwner(sdkPutObject.expectedBucketOwner())
+                                                   .expires(sdkPutObject.expires())
+                                                   .grantFullControl(sdkPutObject.grantFullControl())
+                                                   .grantRead(sdkPutObject.grantRead())
+                                                   .grantReadACP(sdkPutObject.grantReadACP())
+                                                   .grantWriteACP(sdkPutObject.grantWriteACP())
+                                                   .metadata(sdkPutObject.metadata())
+                                                   .objectLockLegalHoldStatus(ObjectLockLegalHoldStatus.fromValue(
+                                                       sdkPutObject.objectLockLegalHoldStatusAsString()))
+                                                   .objectLockMode(ObjectLockMode.fromValue(
+                                                       sdkPutObject.objectLockModeAsString()))
+                                                   .objectLockRetainUntilDate(sdkPutObject.objectLockRetainUntilDate())
+                                                   .requestPayer(RequestPayer.fromValue(sdkPutObject.requestPayerAsString()))
+                                                   .serverSideEncryption(ServerSideEncryption.fromValue(
+                                                       sdkPutObject.requestPayerAsString()))
+                                                   .sSECustomerAlgorithm(sdkPutObject.sseCustomerAlgorithm())
+                                                   .sSECustomerKey(sdkPutObject.sseCustomerKey())
+                                                   .sSECustomerKeyMD5(sdkPutObject.sseCustomerKeyMD5())
+                                                   .sSEKMSEncryptionContext(sdkPutObject.ssekmsEncryptionContext())
+                                                   .sSEKMSKeyId(sdkPutObject.ssekmsKeyId())
+                                                   .storageClass(StorageClass.fromValue(sdkPutObject.storageClassAsString()))
+                                                   .tagging(sdkPutObject.tagging())
+                                                   .websiteRedirectLocation(sdkPutObject.websiteRedirectLocation());
+
+
+        if (sdkPutObject.overrideConfiguration().isPresent()) {
+            addRequestOverrideConfiguration(sdkPutObject.overrideConfiguration().get(),
+                                            putObjectBuilder::customHeaders,
+                                            putObjectBuilder::customQueryParameters);
+        }
+        return putObjectBuilder.build();
     }
 
     // TODO: codegen and add tests
     public static PutObjectResponse fromCrtPutObjectOutput(PutObjectOutput crtPutObjectOutput) {
         // TODO: Provide the HTTP request-level data (e.g. response metadata, HTTP response)
         PutObjectResponse.Builder builder = PutObjectResponse.builder()
-                .bucketKeyEnabled(crtPutObjectOutput.bucketKeyEnabled())
-                .eTag(crtPutObjectOutput.eTag())
-                .expiration(crtPutObjectOutput.expiration())
-                .sseCustomerAlgorithm(crtPutObjectOutput.sSECustomerAlgorithm())
-                .sseCustomerKeyMD5(crtPutObjectOutput.sSECustomerKeyMD5())
-                .ssekmsEncryptionContext(crtPutObjectOutput.sSEKMSEncryptionContext())
-                .ssekmsKeyId(crtPutObjectOutput.sSEKMSKeyId())
-                .versionId(crtPutObjectOutput.versionId());
+                                                             .bucketKeyEnabled(crtPutObjectOutput.bucketKeyEnabled())
+                                                             .eTag(crtPutObjectOutput.eTag())
+                                                             .expiration(crtPutObjectOutput.expiration())
+                                                             .sseCustomerAlgorithm(crtPutObjectOutput.sSECustomerAlgorithm())
+                                                             .sseCustomerKeyMD5(crtPutObjectOutput.sSECustomerKeyMD5())
+                                                             .ssekmsEncryptionContext(
+                                                                 crtPutObjectOutput.sSEKMSEncryptionContext())
+                                                             .ssekmsKeyId(crtPutObjectOutput.sSEKMSKeyId())
+                                                             .versionId(crtPutObjectOutput.versionId());
 
         if (crtPutObjectOutput.requestCharged() != null) {
             builder.requestCharged(crtPutObjectOutput.requestCharged().value());
@@ -167,5 +194,63 @@ public final class S3CrtUtils {
         Map<String, String> metadata = new HashMap<>();
         sdkHttpResponse.headers().forEach((key, value) -> metadata.put(key, value.get(0)));
         return S3ResponseMetadata.create(DefaultAwsResponseMetadata.create(metadata));
+    }
+
+    private static void throwExceptionForUnsupportedConfigurations(AwsRequestOverrideConfiguration overrideConfiguration) {
+        if (!overrideConfiguration.metricPublishers().isEmpty()) {
+            throw new UnsupportedOperationException("Metric publishers are not supported");
+        }
+
+        if (overrideConfiguration.signer().isPresent()) {
+            throw new UnsupportedOperationException("signer are not supported");
+        }
+
+        if (!overrideConfiguration.apiNames().isEmpty()) {
+            throw new UnsupportedOperationException("apiNames are not supported");
+        }
+
+        if (overrideConfiguration.apiCallAttemptTimeout().isPresent()) {
+            throw new UnsupportedOperationException("apiCallAttemptTimeout is not supported");
+        }
+
+        if (overrideConfiguration.apiCallTimeout().isPresent()) {
+            throw new UnsupportedOperationException("apiCallTimeout is not supported");
+        }
+
+        if (overrideConfiguration.credentialsProvider().isPresent()) {
+            throw new UnsupportedOperationException("credentialsProvider is not supported");
+        }
+    }
+
+    private static HttpHeader[] createHttpHeaders(Map<String, List<String>> headers) {
+        List<HttpHeader> crtHeaders = new ArrayList<>(headers.size());
+
+        headers.forEach((key, value) -> {
+            value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaders::add);
+        });
+
+        return crtHeaders.toArray(new HttpHeader[0]);
+    }
+
+    private static String encodedQueryString(Map<String, List<String>> rawQueryParameters) {
+        return SdkHttpUtils.encodeAndFlattenQueryParameters(rawQueryParameters)
+                           .map(value -> "?" + value)
+                           .orElse("");
+    }
+
+    private static void addRequestOverrideConfiguration(AwsRequestOverrideConfiguration requestOverrideConfiguration,
+                                                        Consumer<HttpHeader[]> headersConsumer,
+                                                        Consumer<String> queryParametersConsumer) {
+        throwExceptionForUnsupportedConfigurations(requestOverrideConfiguration);
+
+        if (!requestOverrideConfiguration.headers().isEmpty()) {
+            HttpHeader[] httpHeaders = createHttpHeaders(requestOverrideConfiguration.headers());
+            headersConsumer.accept(httpHeaders);
+        }
+
+        if (!requestOverrideConfiguration.rawQueryParameters().isEmpty()) {
+            String encodedQueryString = encodedQueryString(requestOverrideConfiguration.rawQueryParameters());
+            queryParametersConsumer.accept(encodedQueryString);
+        }
     }
 }
