@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DocumentDB with MongoDB compatibility",
-    "contributor": "",
-    "description": "This SDK release adds support for DocDB global clusters."
-}
