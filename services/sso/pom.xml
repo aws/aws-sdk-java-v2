@@ -58,6 +58,11 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>json-utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>profiles</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
