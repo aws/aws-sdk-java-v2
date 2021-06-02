@@ -36,7 +36,6 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     private static final int OBJ_SIZE = 8 * 1024 * 1024;
 
     private static RandomTempFile testFile;
-    private static S3CrtAsyncClient s3Crt;
     private static S3TransferManager tm;
 
     @BeforeClass
@@ -46,26 +45,23 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
 
-        s3Crt = S3CrtAsyncClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .region(DEFAULT_REGION)
-                .build();
-
         tm = S3TransferManager.builder()
-                .s3CrtClient(s3Crt)
-                .build();
+                              .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                           .region(DEFAULT_REGION)
+                                                           .maxConcurrency(100))
+                              .build();
+
     }
 
     @AfterClass
     public static void teardown() throws IOException {
         tm.close();
-        s3Crt.close();
         Files.delete(testFile.toPath());
         deleteBucketAndAllContents(TEST_BUCKET);
     }
 
     @Test
-    public void upload_fileSentCorrectly() throws IOException, NoSuchAlgorithmException {
+    public void upload_fileSentCorrectly() throws IOException {
         Upload upload = tm.upload(UploadRequest.builder()
                 .bucket(TEST_BUCKET)
                 .key(TEST_KEY)
@@ -79,5 +75,6 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
         assertThat(ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath())))
                 .isEqualTo(ChecksumUtils.computeCheckSum(obj));
+        assertThat(obj.response().responseMetadata().requestId()).isNotNull();
     }
 }

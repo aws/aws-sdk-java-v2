@@ -15,36 +15,40 @@
 
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.custom.s3.transfer.CompletedUpload;
 import software.amazon.awssdk.custom.s3.transfer.Download;
 import software.amazon.awssdk.custom.s3.transfer.DownloadRequest;
+import software.amazon.awssdk.custom.s3.transfer.S3ClientConfiguration;
 import software.amazon.awssdk.custom.s3.transfer.S3TransferManager;
 import software.amazon.awssdk.custom.s3.transfer.Upload;
 import software.amazon.awssdk.custom.s3.transfer.UploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
 public final class DefaultS3TransferManager implements S3TransferManager {
     private final S3CrtAsyncClient s3CrtAsyncClient;
-    private final List<SdkAutoCloseable> closables = new ArrayList<>();
 
     public DefaultS3TransferManager(DefaultBuilder builder) {
-        if (builder.s3CrtAsyncClient == null) {
-            s3CrtAsyncClient = S3CrtAsyncClient.builder()
-                                               .build();
-            closables.add(s3CrtAsyncClient);
-        } else {
-            s3CrtAsyncClient = builder.s3CrtAsyncClient;
-        }
+        S3CrtAsyncClient.S3CrtAsyncClientBuilder clientBuilder = S3CrtAsyncClient.builder();
+        builder.s3ClientConfiguration.credentialsProvider().ifPresent(clientBuilder::credentialsProvider);
+        builder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
+        builder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
+        builder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
+        builder.s3ClientConfiguration.targetThroughputGbps().ifPresent(clientBuilder::targetThroughputGbps);
+
+        s3CrtAsyncClient = clientBuilder.build();
+    }
+
+    @SdkTestInternalApi
+    DefaultS3TransferManager(S3CrtAsyncClient s3CrtAsyncClient) {
+        this.s3CrtAsyncClient = s3CrtAsyncClient;
     }
 
     @Override
@@ -55,8 +59,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         CompletableFuture<PutObjectResponse> putObjFuture = s3CrtAsyncClient.putObject(putObjectRequest, requestBody);
 
         return new DefaultUpload(putObjFuture.thenApply(r -> CompletedUpload.builder()
-                .response(r)
-                .build()));
+                                                                            .response(r)
+                                                                            .build()));
     }
 
     @Override
@@ -69,7 +73,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     @Override
     public void close() {
-        closables.forEach(SdkAutoCloseable::close);
+        s3CrtAsyncClient.close();
     }
 
     public static Builder builder() {
@@ -81,12 +85,11 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     }
 
     private static class DefaultBuilder implements S3TransferManager.Builder {
-        private S3CrtAsyncClient s3CrtAsyncClient;
-
+        private S3ClientConfiguration s3ClientConfiguration;
 
         @Override
-        public Builder s3CrtClient(S3CrtAsyncClient s3CrtAsyncClient) {
-            this.s3CrtAsyncClient = s3CrtAsyncClient;
+        public Builder s3ClientConfiguration(S3ClientConfiguration configuration) {
+            this.s3ClientConfiguration = configuration;
             return this;
         }
 

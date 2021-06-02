@@ -19,14 +19,14 @@ public class TransferManagerBenchmarkConfig {
     private final String filePath;
     private final String bucket;
     private final String key;
-    private final Double maxThroughput;
+    private final Double targetThroughput;
     private final Long partSizeInMb;
 
     private TransferManagerBenchmarkConfig(Builder builder) {
         this.filePath = builder.filePath;
         this.bucket = builder.bucket;
         this.key = builder.key;
-        this.maxThroughput = builder.maxThroughput;
+        this.targetThroughput = builder.targetThroughput;
         this.partSizeInMb = builder.partSizeInMb;
     }
 
@@ -42,8 +42,8 @@ public class TransferManagerBenchmarkConfig {
         return key;
     }
 
-    public Double maxThroughput() {
-        return maxThroughput;
+    public Double targetThroughput() {
+        return targetThroughput;
     }
 
     public Long partSizeInMb() {
@@ -60,7 +60,7 @@ public class TransferManagerBenchmarkConfig {
                "filePath: '" + filePath + '\'' +
                ", bucket: '" + bucket + '\'' +
                ", key: '" + key + '\'' +
-               ", maxThroughput: " + maxThroughput +
+               ", targetThroughput: " + targetThroughput +
                ", partSizeInMB: " + partSizeInMb +
                '}';
     }
@@ -69,7 +69,7 @@ public class TransferManagerBenchmarkConfig {
         private String filePath;
         private String bucket;
         private String key;
-        private Double maxThroughput;
+        private Double targetThroughput;
         private Long partSizeInMb;
 
         public Builder filePath(String filePath) {
@@ -87,8 +87,8 @@ public class TransferManagerBenchmarkConfig {
             return this;
         }
 
-        public Builder maxThroughput(Double maxThroughput) {
-            this.maxThroughput = maxThroughput;
+        public Builder targetThroughput(Double targetThroughput) {
+            this.targetThroughput = targetThroughput;
             return this;
         }
 

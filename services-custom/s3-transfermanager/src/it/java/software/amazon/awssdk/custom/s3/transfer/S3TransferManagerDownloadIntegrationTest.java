@@ -35,29 +35,24 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     private static final String KEY = "key";
     private static S3TransferManager transferManager;
     private static File file;
-    private static S3CrtAsyncClient crtClient;
 
     @BeforeClass
     public static void setup() throws IOException {
         createBucket(BUCKET);
-        crtClient = S3CrtAsyncClient.builder()
-                                    .region(DEFAULT_REGION)
-                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                    .build();
         file = new RandomTempFile(10_000);
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
                                      .build(), file.toPath());
         transferManager = S3TransferManager.builder()
-                                           .s3CrtClient(crtClient)
+                                           .s3ClientConfiguration(b -> b.region(DEFAULT_REGION)
+                                                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN))
                                            .build();
     }
 
     @AfterClass
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
-        crtClient.close();
         transferManager.close();
     }
 

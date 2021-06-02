@@ -18,7 +18,6 @@ package software.amazon.awssdk.custom.s3.transfer;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.custom.s3.transfer.internal.DefaultS3TransferManager;
-import software.amazon.awssdk.custom.s3.transfer.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -28,7 +27,6 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * The list of features includes:
  * <ul>
  * <li>Parallel uploads and downloads</li>
- * <li>Bandwidth limiting</li>
  * </ul>
  * <p>
  * <b>Usage Example:</b>
@@ -135,13 +133,13 @@ public interface S3TransferManager extends SdkAutoCloseable {
 
     interface Builder {
 
-        /**
-         * The low-level {@link S3CrtAsyncClient} to use with the transfer manager
-         *
-         * @param s3CrtClient the {@link S3CrtAsyncClient}
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder s3CrtClient(S3CrtAsyncClient s3CrtClient);
+        Builder s3ClientConfiguration(S3ClientConfiguration configuration);
+
+        default Builder s3ClientConfiguration(Consumer<S3ClientConfiguration.Builder> builderConsumer) {
+            S3ClientConfiguration.Builder builder = S3ClientConfiguration.builder();
+            builderConsumer.accept(builder);
+            return this;
+        }
 
         /**
          * Build an instance of {@link S3TransferManager} based on the settings supplied to this builder

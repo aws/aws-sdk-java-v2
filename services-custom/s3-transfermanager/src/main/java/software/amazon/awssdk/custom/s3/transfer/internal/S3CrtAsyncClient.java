@@ -16,7 +16,10 @@
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Service client for accessing Amazon S3 asynchronously using the AWS Common Runtime S3 client. This can be created using the
@@ -25,10 +28,25 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 @SdkInternalApi
 public interface S3CrtAsyncClient extends S3AsyncClient {
 
+    interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuilder, S3CrtAsyncClient> {
+        S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+
+        S3CrtAsyncClientBuilder region(Region region);
+
+        S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long uploadPartSize);
+
+        S3CrtAsyncClientBuilder targetThroughputGbps(Double targetThroughputGbps);
+
+        S3CrtAsyncClientBuilder maxConcurrency(Integer maxConcurrency);
+
+        @Override
+        S3CrtAsyncClient build();
+    }
+
     /**
      * Create a builder that can be used to configure and create a {@link S3AsyncClient}.
      */
     static S3CrtAsyncClientBuilder builder() {
-        return new DefaultS3CrtClientBuilder();
+        return new DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder();
     }
 }

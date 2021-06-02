@@ -23,8 +23,10 @@ import com.amazonaws.s3.S3NativeClient;
 import com.amazonaws.s3.model.PutObjectOutput;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -36,8 +38,10 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     private final S3NativeClientConfiguration configuration;
 
     public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
-        S3NativeClientConfiguration.Builder configBuilder = S3NativeClientConfiguration.builder();
-
+        S3NativeClientConfiguration.Builder configBuilder =
+            S3NativeClientConfiguration.builder()
+                                       .targetThroughputGbps(builder.targetThroughputGbps())
+                                       .partSizeBytes(builder.partSizeBytes());
         if (builder.region() != null) {
             configBuilder.signingRegion(builder.region().id());
         }
@@ -45,22 +49,14 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         if (builder.credentialsProvider() != null) {
             configBuilder.credentialsProvider(createCrtCredentialsProvider(builder.credentialsProvider()));
         }
-
-        if (builder.maxThroughputGbps() != null) {
-            configBuilder.maxThroughputGbps(builder.maxThroughputGbps());
-        }
-
-        if (builder.partSizeBytes() != null) {
-            configBuilder.partSizeBytes(builder.partSizeBytes());
-        }
-
         configuration = configBuilder.build();
 
         this.s3NativeClient = new S3NativeClient(configuration.signingRegion(),
                                                  configuration.clientBootstrap(),
                                                  configuration.credentialsProvider(),
                                                  configuration.partSizeBytes(),
-                                                 configuration.maxThroughputGbps());
+                                                 configuration.targetThroughputGbps(),
+                                                 configuration.maxConcurrency());
     }
 
     @Override
@@ -68,7 +64,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
 
         CompletableFuture<ReturnT> future = new CompletableFuture<>();
-        com.amazonaws.s3.model.GetObjectRequest crtGetObjectRequest = S3CrtUtils.adaptGetObjectRequest(getObjectRequest);
+        com.amazonaws.s3.model.GetObjectRequest crtGetObjectRequest = S3CrtUtils.toCrtGetObjectRequest(getObjectRequest);
         CrtResponseDataConsumerAdapter<ReturnT> adapter = new CrtResponseDataConsumerAdapter<>(asyncResponseTransformer);
 
         CompletableFuture<ReturnT> adapterFuture = adapter.transformerFuture();
@@ -115,5 +111,68 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
     private static RequestDataSupplier adaptToDataSupplier(AsyncRequestBody requestBody) {
         return new RequestDataSupplierAdapter(requestBody);
+    }
+
+    public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
+        private AwsCredentialsProvider credentialsProvider;
+        private Region region;
+        private Long partSizeBytes;
+        private Double targetThroughputGbps;
+        private Integer maxConcurrency;
+
+        public AwsCredentialsProvider credentialsProvider() {
+            return credentialsProvider;
+        }
+
+        public Region region() {
+            return region;
+        }
+
+        public Long partSizeBytes() {
+            return partSizeBytes;
+        }
+
+        public Double targetThroughputGbps() {
+            return targetThroughputGbps;
+        }
+
+        public Integer maxConcurrency() {
+            return maxConcurrency;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            this.credentialsProvider = credentialsProvider;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder region(Region region) {
+            this.region = region;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long partSizeBytes) {
+            this.partSizeBytes = partSizeBytes;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder targetThroughputGbps(Double targetThroughputGbps) {
+            this.targetThroughputGbps = targetThroughputGbps;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder maxConcurrency(Integer maxConcurrency) {
+            this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClient build() {
+            return new DefaultS3CrtAsyncClient(this);
+        }
     }
 }
