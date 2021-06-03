@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Amazon S3 Batch Operations now supports S3 Bucket Keys."
-}
