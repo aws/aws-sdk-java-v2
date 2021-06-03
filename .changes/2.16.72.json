@@ -1,0 +1,12 @@
+{
+    "version": "2.16.72",
+    "date": "2021-05-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release removes resource ids and tagging support for VPC security group rules."
+        }
+    ]
+}

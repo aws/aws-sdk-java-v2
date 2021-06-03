@@ -1,0 +1,24 @@
+{
+    "version": "2.16.70",
+    "date": "2021-05-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release includes support for a new feature: Job templates for AWS IoT Device Management Jobs. The release includes job templates as a new resource and APIs for managing job templates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "AWS Transfer Family customers can now use AWS Managed Active Directory or AD Connector to authenticate their end users, enabling seamless migration of file transfer workflows that rely on AD authentication, without changing end users' credentials or needing a custom authorizer."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Adds support for Linux device types in WorkspaceAccessProperties"
+        }
+    ]
+}

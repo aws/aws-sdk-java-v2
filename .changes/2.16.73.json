@@ -1,0 +1,66 @@
+{
+    "version": "2.16.73",
+    "date": "2021-05-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now suggests popular queries in order to help guide query typing and help overall accuracy."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "IoT SiteWise Monitor Portal API updates to add alarms feature configuration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Device Farm",
+            "contributor": "",
+            "description": "Introduces support for using our desktop testing service with applications hosted within your Virtual Private Cloud (VPC)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon SQS for General Availability of high throughput for FIFO queues."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "Documentation updates for Lightsail"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "contributor": "",
+            "description": "Releasing new APIs for AWS IoT Events Alarms"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events Data",
+            "contributor": "",
+            "description": "Releasing new APIs for AWS IoT Events Alarms"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "This release adds LZ4 data compression support to FSx for Lustre to reduce storage consumption of both file system storage and file system backups."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups",
+            "contributor": "",
+            "description": "Documentation updates for Resource Groups."
+        }
+    ]
+}

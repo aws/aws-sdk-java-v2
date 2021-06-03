@@ -247,7 +247,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceInUseException"}
       ],
-      "documentation":"<p>Deletes an entire resource tree. This operation will delete the parent resource and its child resources.</p> <p>Child resources are resources that were created from another resource. For example, when a forecast is generated from a predictor, the forecast is the child resource and the predictor is the parent resource.</p> <p>Amazon Forecast resources possess the following parent-child resource hierarchies:</p> <ul> <li> <p> <b>Dataset Group</b>: predictors, predictor backtest export jobs, forecasts, forecast export jobs</p> </li> <li> <p> <b>Dataset</b>: dataset import jobs</p> </li> <li> <p> <b>Predictor</b>: predictor backtest export jobs, forecasts, forecast export jobs</p> </li> <li> <p> <b>Forecast</b>: forecast export jobs</p> </li> </ul> <note> <p> <code>DeleteResourceTree</code> will only delete Amazon Forecast resources, and will not delete datasets or exported files stored in Amazon S3. </p> </note>",
+      "documentation":"<p>Deletes an entire resource tree. This operation will delete the parent resource and its child resources.</p> <p>Child resources are resources that were created from another resource. For example, when a forecast is generated from a predictor, the forecast is the child resource and the predictor is the parent resource.</p> <p>Amazon Forecast resources possess the following parent-child resource hierarchies:</p> <ul> <li> <p> <b>Dataset</b>: dataset import jobs</p> </li> <li> <p> <b>Dataset Group</b>: predictors, predictor backtest export jobs, forecasts, forecast export jobs</p> </li> <li> <p> <b>Predictor</b>: predictor backtest export jobs, forecasts, forecast export jobs</p> </li> <li> <p> <b>Forecast</b>: forecast export jobs</p> </li> </ul> <note> <p> <code>DeleteResourceTree</code> will only delete Amazon Forecast resources, and will not delete datasets or exported files stored in Amazon S3. </p> </note>",
       "idempotent":true
     },
     "DescribeDataset":{
@@ -569,6 +569,10 @@
         "geolocation"
       ]
     },
+    "AutoMLOverrideStrategy":{
+      "type":"string",
+      "enum":["LatencyOptimized"]
+    },
     "Boolean":{"type":"boolean"},
     "CategoricalParameterRange":{
       "type":"structure",
@@ -889,6 +893,10 @@
         "PerformAutoML":{
           "shape":"Boolean",
           "documentation":"<p>Whether to perform AutoML. When Amazon Forecast performs AutoML, it evaluates the algorithms it provides and chooses the best algorithm and configuration for your training dataset.</p> <p>The default value is <code>false</code>. In this case, you are required to specify an algorithm.</p> <p>Set <code>PerformAutoML</code> to <code>true</code> to have Amazon Forecast perform AutoML. This is a good option if you aren't sure which algorithm is suitable for your training data. In this case, <code>PerformHPO</code> must be false.</p>"
+        },
+        "AutoMLOverrideStrategy":{
+          "shape":"AutoMLOverrideStrategy",
+          "documentation":"<p>Used to overide the default AutoML strategy, which is to optimize predictor accuracy. To apply an AutoML strategy that minimizes training time, use <code>LatencyOptimized</code>.</p> <p>This parameter is only valid for predictors trained using AutoML.</p>"
         },
         "PerformHPO":{
           "shape":"Boolean",
@@ -1497,6 +1505,10 @@
           "shape":"Boolean",
           "documentation":"<p>Whether the predictor is set to perform AutoML.</p>"
         },
+        "AutoMLOverrideStrategy":{
+          "shape":"AutoMLOverrideStrategy",
+          "documentation":"<p>The AutoML strategy used to train the predictor. Unless <code>LatencyOptimized</code> is specified, the AutoML strategy optimizes predictor accuracy.</p> <p>This parameter is only valid for predictors trained using AutoML.</p>"
+        },
         "PerformHPO":{
           "shape":"Boolean",
           "documentation":"<p>Whether the predictor is set to perform hyperparameter optimization (HPO).</p>"
@@ -1880,6 +1892,10 @@
         "PredictorEvaluationResults":{
           "shape":"PredictorEvaluationResults",
           "documentation":"<p>An array of results from evaluating the predictor.</p>"
+        },
+        "AutoMLOverrideStrategy":{
+          "shape":"AutoMLOverrideStrategy",
+          "documentation":"<p>The AutoML strategy used to train the predictor. Unless <code>LatencyOptimized</code> is specified, the AutoML strategy optimizes predictor accuracy.</p> <p>This parameter is only valid for predictors trained using AutoML.</p>"
         }
       }
     },
@@ -2459,19 +2475,19 @@
       "members":{
         "Count":{
           "shape":"Integer",
-          "documentation":"<p>The number of values in the field.</p>"
+          "documentation":"<p>The number of values in the field. If the response value is -1, refer to <code>CountLong</code>.</p>"
         },
         "CountDistinct":{
           "shape":"Integer",
-          "documentation":"<p>The number of distinct values in the field.</p>"
+          "documentation":"<p>The number of distinct values in the field. If the response value is -1, refer to <code>CountDistinctLong</code>.</p>"
         },
         "CountNull":{
           "shape":"Integer",
-          "documentation":"<p>The number of null values in the field.</p>"
+          "documentation":"<p>The number of null values in the field. If the response value is -1, refer to <code>CountNullLong</code>.</p>"
         },
         "CountNan":{
           "shape":"Integer",
-          "documentation":"<p>The number of NAN (not a number) values in the field.</p>"
+          "documentation":"<p>The number of NAN (not a number) values in the field. If the response value is -1, refer to <code>CountNanLong</code>.</p>"
         },
         "Min":{
           "shape":"String",
@@ -2488,6 +2504,22 @@
         "Stddev":{
           "shape":"Double",
           "documentation":"<p>For a numeric field, the standard deviation.</p>"
+        },
+        "CountLong":{
+          "shape":"Long",
+          "documentation":"<p>The number of values in the field. <code>CountLong</code> is used instead of <code>Count</code> if the value is greater than 2,147,483,647.</p>"
+        },
+        "CountDistinctLong":{
+          "shape":"Long",
+          "documentation":"<p>The number of distinct values in the field. <code>CountDistinctLong</code> is used instead of <code>CountDistinct</code> if the value is greater than 2,147,483,647.</p>"
+        },
+        "CountNullLong":{
+          "shape":"Long",
+          "documentation":"<p>The number of null values in the field. <code>CountNullLong</code> is used instead of <code>CountNull</code> if the value is greater than 2,147,483,647.</p>"
+        },
+        "CountNanLong":{
+          "shape":"Long",
+          "documentation":"<p>The number of NAN (not a number) values in the field. <code>CountNanLong</code> is used instead of <code>CountNan</code> if the value is greater than 2,147,483,647.</p>"
         }
       },
       "documentation":"<p>Provides statistics for each data field imported into to an Amazon Forecast dataset with the <a>CreateDatasetImportJob</a> operation.</p>"
