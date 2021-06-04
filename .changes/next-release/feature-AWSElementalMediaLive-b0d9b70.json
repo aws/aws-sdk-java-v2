@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaLive",
+    "contributor": "",
+    "description": "Add support for automatically setting the H.264 adaptive quantization and GOP B-frame fields."
+}
