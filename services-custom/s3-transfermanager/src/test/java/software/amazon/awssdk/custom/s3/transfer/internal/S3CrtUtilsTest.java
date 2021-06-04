@@ -35,8 +35,10 @@ import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
+import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.metrics.LoggingMetricPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -85,6 +87,17 @@ public class S3CrtUtilsTest {
     }
 
     @Test
+    public void toCrtPutObjectRequest_shouldAddUserAgent() {
+
+        PutObjectRequest sdkRequest = PutObjectRequest.builder()
+                                                      .build();
+
+        com.amazonaws.s3.model.PutObjectRequest crtRequest = S3CrtUtils.toCrtPutObjectRequest(sdkRequest);
+        HttpHeader[] headers = crtRequest.customHeaders();
+        verifyUserAgent(headers);
+    }
+
+    @Test
     public void toCrtPutObjectRequest_withCustomHeaders_shouldAttach() {
 
         AwsRequestOverrideConfiguration requestOverrideConfiguration = requestOverrideConfigWithCustomHeaders();
@@ -94,11 +107,20 @@ public class S3CrtUtilsTest {
                                                       .build();
 
         com.amazonaws.s3.model.PutObjectRequest crtRequest = S3CrtUtils.toCrtPutObjectRequest(sdkRequest);
-
-        assertThat(crtRequest.customHeaders()).hasSize(1);
-        assertThat(crtRequest.customHeaders()[0].getName()).isEqualTo("foo");
-        assertThat(crtRequest.customHeaders()[0].getValue()).isEqualTo("bar");
+        HttpHeader[] headers = crtRequest.customHeaders();
+        verifyHeaders(headers);
         assertThat(crtRequest.customQueryParameters()).isEqualTo("?hello1=world1&hello2=world2");
+    }
+
+    @Test
+    public void toCrtGetObjectRequest_shouldAddUserAgent() {
+        GetObjectRequest sdkRequest = GetObjectRequest.builder()
+                                                      .build();
+
+        com.amazonaws.s3.model.GetObjectRequest crtRequest = S3CrtUtils.toCrtGetObjectRequest(sdkRequest);
+
+        HttpHeader[] headers = crtRequest.customHeaders();
+        verifyUserAgent(headers);
     }
 
     @Test
@@ -111,9 +133,8 @@ public class S3CrtUtilsTest {
 
         com.amazonaws.s3.model.GetObjectRequest crtRequest = S3CrtUtils.toCrtGetObjectRequest(sdkRequest);
 
-        assertThat(crtRequest.customHeaders()).hasSize(1);
-        assertThat(crtRequest.customHeaders()[0].getName()).isEqualTo("foo");
-        assertThat(crtRequest.customHeaders()[0].getValue()).isEqualTo("bar");
+        HttpHeader[] headers = crtRequest.customHeaders();
+        verifyHeaders(headers);
         assertThat(crtRequest.customQueryParameters()).isEqualTo("?hello1=world1&hello2=world2");
     }
 
@@ -176,5 +197,18 @@ public class S3CrtUtilsTest {
                                               .putRawQueryParameter("hello1", "world1")
                                               .putRawQueryParameter("hello2", "world2")
                                               .build();
+    }
+
+    private void verifyHeaders(HttpHeader[] headers) {
+        assertThat(headers).hasSize(2);
+        verifyUserAgent(headers);
+        assertThat(headers[1].getName()).isEqualTo("foo");
+        assertThat(headers[1].getValue()).isEqualTo("bar");
+    }
+
+    private void verifyUserAgent(HttpHeader[] headers) {
+        assertThat(headers[0].getName()).isEqualTo("User-Agent");
+        assertThat(headers[0].getValue()).contains("ft/s3-transfer");
+        assertThat(headers[0].getValue()).contains(UserAgentUtils.getUserAgent());
     }
 }
