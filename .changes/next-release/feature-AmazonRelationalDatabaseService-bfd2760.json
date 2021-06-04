@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "Documentation updates for RDS: fixing an outdated link to the RDS documentation in DBInstance$DBInstanceStatus"
+}
