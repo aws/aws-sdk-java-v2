@@ -105,7 +105,7 @@ public final class SimpleTypeJsonMarshaller {
         if (paramName != null) {
             jsonGenerator.writeFieldName(paramName);
         }
-        TimestampFormatTrait trait = sdkField.getTrait(TimestampFormatTrait.class);
+        TimestampFormatTrait trait = sdkField != null ? sdkField.getTrait(TimestampFormatTrait.class) : null;
         if (trait != null) {
             switch (trait.format()) {
                 case UNIX_TIMESTAMP:

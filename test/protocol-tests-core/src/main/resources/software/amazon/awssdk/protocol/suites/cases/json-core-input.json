@@ -474,5 +474,45 @@
         }
       }
     }
+  },
+  {
+    "description": "TimeStampMap member in the payload is marshalled as seconds with millisecond precision",
+    "given": {
+      "input": {
+        "MapOfTimeStamp": {
+          "key1": 1422172801123
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals":"{\"MapOfTimeStamp\": {\"key1\": 1422172801.123}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "TimestampList member in the payload is marshalled as seconds with millisecond precision",
+    "given": {
+      "input": {
+        "ListOfTimeStamp": [1422172801123]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"ListOfTimeStamp\": [1422172801.123]}"
+        }
+      }
+    }
   }
 ]
