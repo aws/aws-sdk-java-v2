@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Add SampleSize variable to S3Target to enable s3-sampling feature through API."
-}

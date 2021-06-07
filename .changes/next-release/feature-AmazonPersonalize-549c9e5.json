@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize",
-    "contributor": "",
-    "description": "Update regex validation in kmsKeyArn and s3 path API parameters for AWS Personalize APIs"
-}

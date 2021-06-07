@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Added updateConfig option that allows customers to control upgrade velocity in Managed Node Group."
-}
