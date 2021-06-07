@@ -33,12 +33,16 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final String scheme;
     private final String host;
     private final int port;
+    private final String username;
+    private final String password;
     private final Set<String> nonProxyHosts;
 
     private ProxyConfiguration(BuilderImpl builder) {
         this.scheme = builder.scheme;
         this.host = builder.host;
         this.port = builder.port;
+        this.username = builder.username;
+        this.password = builder.password;
         this.nonProxyHosts = Collections.unmodifiableSet(builder.nonProxyHosts);
     }
 
@@ -61,6 +65,14 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      */
     public int port() {
         return port;
+    }
+
+    public String username() {
+        return username;
+    }
+
+    public String password() {
+        return password;
     }
 
     /**
@@ -153,12 +165,18 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * @return This object for method chaining.
          */
         Builder nonProxyHosts(Set<String> nonProxyHosts);
+
+        Builder username(String username);
+
+        Builder password(String password);
     }
 
     private static final class BuilderImpl implements Builder {
         private String scheme;
         private String host;
         private int port;
+        private String username;
+        private String password;
         private Set<String> nonProxyHosts = Collections.emptySet();
 
         private BuilderImpl() {
@@ -189,6 +207,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return this;
         }
 
+
+
         @Override
         public Builder nonProxyHosts(Set<String> nonProxyHosts) {
             if (nonProxyHosts != null) {
@@ -196,6 +216,18 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             } else {
                 this.nonProxyHosts = Collections.emptySet();
             }
+            return this;
+        }
+
+        @Override
+        public Builder username(String username) {
+            this.username = username;
+            return this;
+        }
+
+        @Override
+        public Builder password(String password) {
+            this.password = password;
             return this;
         }
 

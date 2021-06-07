@@ -49,24 +49,38 @@ public class Http1TunnelConnectionPool implements ChannelPool {
     private final ChannelPool delegate;
     private final SslContext sslContext;
     private final URI proxyAddress;
+    private final String proxyUser;
+    private final String proxyPassword;
     private final URI remoteAddress;
     private final ChannelPoolHandler handler;
     private final InitHandlerSupplier initHandlerSupplier;
 
     public Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
+                                     URI proxyAddress, String proxyUsername, String proxyPassword,
+                                     URI remoteAddress, ChannelPoolHandler handler) {
+        this(eventLoop, delegate, sslContext,
+                proxyAddress, proxyUsername, proxyPassword, remoteAddress, handler,
+                ProxyTunnelInitHandler::new);
+    }
+
+    public Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
                                      URI proxyAddress, URI remoteAddress, ChannelPoolHandler handler) {
-        this(eventLoop, delegate, sslContext, proxyAddress, remoteAddress, handler, ProxyTunnelInitHandler::new);
+        this(eventLoop, delegate, sslContext,
+                proxyAddress, null, null, remoteAddress, handler,
+                ProxyTunnelInitHandler::new);
 
     }
 
     @SdkTestInternalApi
     Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
-                              URI proxyAddress, URI remoteAddress, ChannelPoolHandler handler,
-                              InitHandlerSupplier initHandlerSupplier) {
+                              URI proxyAddress, String proxyUser, String proxyPassword, URI remoteAddress,
+                              ChannelPoolHandler handler, InitHandlerSupplier initHandlerSupplier) {
         this.eventLoop = eventLoop;
         this.delegate = delegate;
         this.sslContext = sslContext;
         this.proxyAddress = proxyAddress;
+        this.proxyUser = proxyUser;
+        this.proxyPassword = proxyPassword;
         this.remoteAddress = remoteAddress;
         this.handler = handler;
         this.initHandlerSupplier = initHandlerSupplier;
@@ -120,7 +134,8 @@ public class Http1TunnelConnectionPool implements ChannelPool {
         if (sslHandler != null) {
             ch.pipeline().addLast(sslHandler);
         }
-        ch.pipeline().addLast(initHandlerSupplier.newInitHandler(delegate, remoteAddress, tunnelEstablishedPromise));
+        ch.pipeline().addLast(initHandlerSupplier.newInitHandler(delegate, this.proxyUser, this.proxyPassword, remoteAddress,
+                                                                    tunnelEstablishedPromise));
         tunnelEstablishedPromise.addListener((Future<Channel> f) -> {
             if (f.isSuccess()) {
                 Channel tunnel = f.getNow();
@@ -160,6 +175,7 @@ public class Http1TunnelConnectionPool implements ChannelPool {
     @SdkTestInternalApi
     @FunctionalInterface
     interface InitHandlerSupplier {
-        ChannelHandler newInitHandler(ChannelPool sourcePool, URI remoteAddress, Promise<Channel> tunnelInitFuture);
+        ChannelHandler newInitHandler(ChannelPool sourcePool, String proxyUsername, String proxyPassword, URI remoteAddress,
+                                      Promise<Channel> tunnelInitFuture);
     }
 }

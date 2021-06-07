@@ -92,7 +92,7 @@ public class ProxyTunnelInitHandlerTest {
         Supplier<HttpClientCodec> codecSupplier = () -> codec;
         when(mockCtx.name()).thenReturn("foo");
 
-        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, null, codecSupplier);
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, null, null, REMOTE_HOST, null, codecSupplier);
         handler.handlerAdded(mockCtx);
 
         verify(mockPipeline).addBefore(eq("foo"), eq(null), eq(codec));
