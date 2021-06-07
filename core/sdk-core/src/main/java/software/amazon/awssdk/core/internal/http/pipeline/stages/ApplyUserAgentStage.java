@@ -27,7 +27,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -67,7 +67,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
         StringBuilder userAgent = new StringBuilder(StringUtils.trimToEmpty(userDefinedPrefix));
 
-        String systemUserAgent = UserAgentUtils.getUserAgent();
+        String systemUserAgent = SdkUserAgent.create().userAgent();
         if (!systemUserAgent.equals(userDefinedPrefix)) {
             userAgent.append(COMMA).append(systemUserAgent);
         }

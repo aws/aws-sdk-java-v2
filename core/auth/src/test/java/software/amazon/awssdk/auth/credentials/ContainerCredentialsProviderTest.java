@@ -33,7 +33,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
@@ -122,7 +122,7 @@ public class ContainerCredentialsProviderTest {
 
     private void stubFor200Response(String body) {
         stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
-                        .withHeader("User-Agent", equalTo(UserAgentUtils.getUserAgent()))
+                        .withHeader("User-Agent", equalTo(SdkUserAgent.create().userAgent()))
                         .willReturn(aResponse()
                                             .withStatus(200)
                                             .withHeader("Content-Type", "application/json")

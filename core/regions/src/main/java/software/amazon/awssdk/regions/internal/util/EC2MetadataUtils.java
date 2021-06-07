@@ -39,7 +39,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
@@ -822,7 +822,7 @@ public final class EC2MetadataUtils {
         @Override
         public Map<String, String> headers() {
             Map<String, String> requestHeaders = new HashMap<>();
-            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
             requestHeaders.put("Accept", "*/*");
             requestHeaders.put("Connection", "keep-alive");
 

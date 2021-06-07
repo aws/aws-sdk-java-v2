@@ -22,7 +22,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
@@ -130,7 +130,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
         @Override
         public Map<String, String> headers() {
             Map<String, String> requestHeaders = new HashMap<>();
-            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
             requestHeaders.put("Accept", "*/*");
             requestHeaders.put("Connection", "keep-alive");
 
