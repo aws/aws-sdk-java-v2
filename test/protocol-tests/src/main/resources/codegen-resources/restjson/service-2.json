@@ -239,7 +239,9 @@
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
         "EnumMember":{"shape":"EnumType"},
         "ListOfEnums":{"shape":"ListOfEnums"},
-        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"}
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
+        "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
+        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"}
       }
     },
     "BaseType":{
@@ -753,6 +755,15 @@
       }
     },
     "Timestamp":{"type":"timestamp"},
+    "ListOfTimeStamp":{
+      "type":"list",
+      "member":{"shape":"Timestamp"}
+    },
+    "MapOfTimeStamp":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"Timestamp"}
+    },
     "EventStreamOperationRequest": {
       "type": "structure",
       "required": [

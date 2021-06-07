@@ -525,5 +525,43 @@
 	      ]
 	  }
       }
+  },
+  {
+    "description": "ListOfTimeStamp  with known values unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"ListOfTimeStamp\": [1398796238.123]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "ListOfTimeStamp": [1398796238123]
+      }
+    }
+  },
+  {
+    "description": "MapOfTimeStamp with known values unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MapOfTimeStamp\": { \"key1\": 1398796238.123}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MapOfTimeStamp": {
+          "key1": 1398796238123
+        }
+      }
+    }
   }
 ]
