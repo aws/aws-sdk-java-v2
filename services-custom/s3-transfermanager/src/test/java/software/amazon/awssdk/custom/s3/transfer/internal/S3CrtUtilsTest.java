@@ -22,9 +22,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.amazonaws.s3.model.GetObjectOutput;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -34,8 +31,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -44,7 +40,6 @@ import software.amazon.awssdk.metrics.LoggingMetricPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.testutils.smoketest.ReflectionUtils;
 
 public class S3CrtUtilsTest {
 
@@ -209,6 +204,6 @@ public class S3CrtUtilsTest {
     private void verifyUserAgent(HttpHeader[] headers) {
         assertThat(headers[0].getName()).isEqualTo("User-Agent");
         assertThat(headers[0].getValue()).contains("ft/s3-transfer");
-        assertThat(headers[0].getValue()).contains(UserAgentUtils.getUserAgent());
+        assertThat(headers[0].getValue()).contains(SdkUserAgent.create().userAgent());
     }
 }

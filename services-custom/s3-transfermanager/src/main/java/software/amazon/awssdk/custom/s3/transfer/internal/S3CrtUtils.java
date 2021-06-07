@@ -35,7 +35,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -50,7 +50,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class S3CrtUtils {
     private static final String HEADER_USER_AGENT = "User-Agent";
-    private static final String USER_AGENT_STRING = UserAgentUtils.getUserAgent() + " ft/s3-transfer";
+    private static final String USER_AGENT_STRING = SdkUserAgent.create().userAgent() + " ft/s3-transfer";
 
     private S3CrtUtils() {
     }

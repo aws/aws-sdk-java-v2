@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 
 @SdkInternalApi
@@ -41,7 +41,7 @@ public final class InstanceProviderTokenEndpointProvider implements ResourcesEnd
     @Override
     public Map<String, String> headers() {
         Map<String, String> requestHeaders = new HashMap<>();
-        requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+        requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
         requestHeaders.put("Accept", "*/*");
         requestHeaders.put("Connection", "keep-alive");
         requestHeaders.put(EC2_METADATA_TOKEN_TTL_HEADER, DEFAULT_TOKEN_TTL);

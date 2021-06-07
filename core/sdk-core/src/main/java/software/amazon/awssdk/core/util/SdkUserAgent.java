@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.util;
+package software.amazon.awssdk.core.util;
 
 import java.util.Optional;
 import java.util.jar.JarInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
@@ -29,8 +29,8 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
  * Utility class for accessing AWS SDK versioning information.
  */
 @ThreadSafe
-@SdkInternalApi
-public final class UserAgentUtils {
+@SdkProtectedApi
+public final class SdkUserAgent {
 
     private static final String UA_STRING = "aws-sdk-{platform}/{version} {os.name}/{os.version} {java.vm.name}/{java.vm"
                                             + ".version} Java/{java.version}{language.and.region}{additional.languages} "
@@ -40,12 +40,27 @@ public final class UserAgentUtils {
     private static final String UA_BLACKLIST_REGEX = "[() ,/:;<=>?@\\[\\]{}\\\\]";
 
     /** Shared logger for any issues while loading version information. */
-    private static final Logger log = LoggerFactory.getLogger(UserAgentUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(SdkUserAgent.class);
     private static final String UNKNOWN = "unknown";
-    /** User Agent info. */
-    private static volatile String userAgent;
+    private static volatile SdkUserAgent instance;
 
-    private UserAgentUtils() {
+    /** User Agent info. */
+    private String userAgent;
+
+    private SdkUserAgent() {
+        initializeUserAgent();
+    }
+
+    public static SdkUserAgent create() {
+        if (instance == null) {
+            synchronized (SdkUserAgent.class) {
+                if (instance == null) {
+                    instance = new SdkUserAgent();
+                }
+            }
+        }
+
+        return instance;
     }
 
     /**
@@ -53,14 +68,7 @@ public final class UserAgentUtils {
      *     the AWS services.  The User Agent encapsulates SDK, Java, OS and
      *     region information.
      */
-    public static String getUserAgent() {
-        if (userAgent == null) {
-            synchronized (UserAgentUtils.class) {
-                if (userAgent == null) {
-                    initializeUserAgent();
-                }
-            }
-        }
+    public String userAgent() {
         return userAgent;
     }
 
@@ -69,11 +77,12 @@ public final class UserAgentUtils {
      * {@code InternalConfig} and filling in the detected version/platform
      * info.
      */
-    private static void initializeUserAgent() {
-        userAgent = userAgent();
+    private void initializeUserAgent() {
+        userAgent = getUserAgent();
     }
 
-    static String userAgent() {
+    @SdkTestInternalApi
+    String getUserAgent() {
 
         String ua = UA_STRING;
 

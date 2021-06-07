@@ -20,7 +20,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 
 /**
  * <p>
@@ -57,7 +57,7 @@ public interface ResourcesEndpointProvider {
      */
     default Map<String, String> headers() {
         Map<String, String> requestHeaders = new HashMap<>();
-        requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+        requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
         requestHeaders.put("Accept", "*/*");
         requestHeaders.put("Connection", "keep-alive");
 

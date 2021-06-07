@@ -23,10 +23,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.hamcrest.Matchers.instanceOf;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.AfterClass;
@@ -36,7 +35,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.utils.DateUtils;
 
 public class InstanceProfileCredentialsProviderTest {
@@ -89,7 +88,7 @@ public class InstanceProfileCredentialsProviderTest {
         provider.resolveCredentials();
 
         String userAgentHeader = "User-Agent";
-        String userAgent = UserAgentUtils.getUserAgent();
+        String userAgent = SdkUserAgent.create().userAgent();
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
         WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
         WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(userAgentHeader, equalTo(userAgent)));
