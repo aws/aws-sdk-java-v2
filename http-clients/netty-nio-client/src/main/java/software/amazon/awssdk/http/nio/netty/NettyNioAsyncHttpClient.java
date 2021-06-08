@@ -26,6 +26,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslProvider;
+import java.net.SocketOptions;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -360,6 +361,14 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder protocol(Protocol protocol);
 
         /**
+         * Configure whether to enable support for TCP KeepAlive {@link SocketOptions#SO_KEEPALIVE}
+         *
+         * <p>
+         * By default, this is disabled.
+         */
+        Builder tcpKeepAlive(Boolean keepConnectionAlive);
+
+        /**
          * Configures additional {@link ChannelOption} which will be used to create Netty Http client. This allows custom
          * configuration for Netty.
          *
@@ -597,6 +606,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setProtocol(Protocol protocol) {
             protocol(protocol);
+        }
+
+        @Override
+        public Builder tcpKeepAlive(Boolean keepConnectionAlive) {
+            standardOptions.put(SdkHttpConfigurationOption.TCP_KEEPALIVE, keepConnectionAlive);
+            return this;
+        }
+
+        public void setTcpKeepAlive(Boolean keepConnectionAlive) {
+            tcpKeepAlive(keepConnectionAlive);
         }
 
         @Override

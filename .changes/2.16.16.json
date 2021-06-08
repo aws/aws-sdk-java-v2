@@ -1,0 +1,36 @@
+{
+    "version": "2.16.16",
+    "date": "2021-03-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Include the retry mode STANDARD or LEGACY in the user agents list."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "Added support for enabling continuous backups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Systems Manager support for tagging OpsMetadata."
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "contributor": "",
+            "description": "This release adds support to preview IAM Access Analyzer findings for a resource before deploying resource permission changes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Adding ID element to the CORSRule schema"
+        }
+    ]
+}

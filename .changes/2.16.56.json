@@ -1,0 +1,18 @@
+{
+    "version": "2.16.56",
+    "date": "2021-05-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "Documentation updates for FinSpaceData API."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Documentation updates for FinSpace API."
+        }
+    ]
+}

@@ -65,6 +65,13 @@ public final class SimpleTypeJsonMarshaller {
         }
     };
 
+    public static final JsonMarshaller<Short> SHORT = new BaseJsonMarshaller<Short>() {
+        @Override
+        public void marshall(Short val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+            jsonGenerator.writeValue(val);
+        }
+    };
+
     public static final JsonMarshaller<Float> FLOAT = new BaseJsonMarshaller<Float>() {
         @Override
         public void marshall(Float val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
@@ -98,7 +105,7 @@ public final class SimpleTypeJsonMarshaller {
         if (paramName != null) {
             jsonGenerator.writeFieldName(paramName);
         }
-        TimestampFormatTrait trait = sdkField.getTrait(TimestampFormatTrait.class);
+        TimestampFormatTrait trait = sdkField != null ? sdkField.getTrait(TimestampFormatTrait.class) : null;
         if (trait != null) {
             switch (trait.format()) {
                 case UNIX_TIMESTAMP:

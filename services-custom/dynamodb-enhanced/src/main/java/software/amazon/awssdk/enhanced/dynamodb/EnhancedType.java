@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -59,6 +60,7 @@ public class EnhancedType<T> {
     private final Class<T> rawClass;
     private final List<EnhancedType<?>> rawClassParameters;
     private final TableSchema<T> tableSchema;
+    private final EnhancedTypeDocumentConfiguration documentConfiguration;
 
     /**
      * Create a type token, capturing the generic type arguments of the token as {@link Class}es.
@@ -71,11 +73,10 @@ public class EnhancedType<T> {
         this(null);
     }
 
-    private EnhancedType(Type type) {
+    private EnhancedType(Type type, EnhancedTypeDocumentConfiguration documentConfiguration) {
         if (type == null) {
             type = captureGenericTypeArguments();
         }
-
 
         if (type instanceof WildcardType) {
             this.isWildcard = true;
@@ -88,14 +89,26 @@ public class EnhancedType<T> {
             this.rawClassParameters = loadTypeParameters(type);
             this.tableSchema = null;
         }
+        this.documentConfiguration = documentConfiguration;
+    }
+
+    private EnhancedType(Type type) {
+        this(type, null);
     }
 
     private EnhancedType(Class<?> rawClass, List<EnhancedType<?>> rawClassParameters, TableSchema<T> tableSchema) {
+        this(rawClass, rawClassParameters, tableSchema, null);
+    }
+
+    private EnhancedType(Class<?> rawClass, List<EnhancedType<?>> rawClassParameters,
+                         TableSchema<T> tableSchema,
+                         EnhancedTypeDocumentConfiguration documentConfiguration) {
         // This is only used internally, so we can make sure this cast is safe via testing.
         this.rawClass = (Class<T>) rawClass;
         this.isWildcard = false;
         this.rawClassParameters = rawClassParameters;
         this.tableSchema = tableSchema;
+        this.documentConfiguration = documentConfiguration;
     }
 
     /**
@@ -411,6 +424,21 @@ public class EnhancedType<T> {
         return new EnhancedType<>(documentClass, null, documentTableSchema);
     }
 
+    /**
+     * Create a type token that represents a document that is specified by the provided {@link TableSchema}.
+     *
+     * @param documentClass The Class representing the modeled document.
+     * @param documentTableSchema A TableSchema that describes the properties of the document.
+     * @param enhancedTypeConfiguration the configuration for this enhanced type
+     * @return a new {@link EnhancedType} representing the provided document.
+     */
+    public static <T> EnhancedType<T> documentOf(Class<T> documentClass, TableSchema<T> documentTableSchema,
+                                                 Consumer<EnhancedTypeDocumentConfiguration.Builder> enhancedTypeConfiguration) {
+        EnhancedTypeDocumentConfiguration.Builder builder = EnhancedTypeDocumentConfiguration.builder();
+        enhancedTypeConfiguration.accept(builder);
+        return new EnhancedType<>(documentClass, null, documentTableSchema, builder.build());
+    }
+
     private static Type validateIsSupportedType(Type type) {
         Validate.validState(type != null, "Type must not be null.");
         Validate.validState(!(type instanceof GenericArrayType),
@@ -466,6 +494,13 @@ public class EnhancedType<T> {
     public List<EnhancedType<?>> rawClassParameters() {
         Validate.isTrue(!isWildcard, "A wildcard type is not expected here.");
         return rawClassParameters;
+    }
+
+    /**
+     * Retrieve the optional {@link EnhancedTypeDocumentConfiguration} for this EnhancedType
+     */
+    public Optional<EnhancedTypeDocumentConfiguration> documentConfiguration() {
+        return Optional.ofNullable(documentConfiguration);
     }
 
     private Type captureGenericTypeArguments() {
@@ -539,6 +574,10 @@ public class EnhancedType<T> {
             return false;
         }
 
+        if (documentConfiguration != null ? !documentConfiguration.equals(enhancedType.documentConfiguration) :
+            enhancedType.documentConfiguration != null) {
+            return false;
+        }
         return tableSchema != null ? tableSchema.equals(enhancedType.tableSchema) : enhancedType.tableSchema == null;
     }
 
@@ -548,6 +587,7 @@ public class EnhancedType<T> {
         result = 31 * result + rawClass.hashCode();
         result = 31 * result + (rawClassParameters != null ? rawClassParameters.hashCode() : 0);
         result = 31 * result + (tableSchema != null ? tableSchema.hashCode() : 0);
+        result = 31 * result + (documentConfiguration != null ? documentConfiguration.hashCode() : 0);
         return result;
     }
 

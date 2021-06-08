@@ -26,7 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
-import software.amazon.awssdk.enhanced.dynamodb.internal.ProjectionExpressionConvertor;
+import software.amazon.awssdk.enhanced.dynamodb.internal.ProjectionExpression;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -62,13 +62,12 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
             expressionNames = this.request.filterExpression().expressionNames();
         }
 
-        ProjectionExpressionConvertor attributeToProject =
-                ProjectionExpressionConvertor.create(this.request.nestedAttributesToProject());
-        Map<String, String> projectionNameMap = attributeToProject.convertToExpressionMap();
-        if (!projectionNameMap.isEmpty()) {
-            expressionNames = Expression.joinNames(expressionNames, projectionNameMap);
+        String projectionExpressionAsString = null;
+        if (this.request.attributesToProject() != null) {
+            ProjectionExpression attributesToProject = ProjectionExpression.create(this.request.nestedAttributesToProject());
+            projectionExpressionAsString = attributesToProject.projectionExpressionAsString().orElse(null);
+            expressionNames = Expression.joinNames(expressionNames, attributesToProject.expressionAttributeNames());
         }
-        String projectionExpression = attributeToProject.convertToProjectionExpression().orElse(null);
 
         ScanRequest.Builder scanRequest = ScanRequest.builder()
             .tableName(operationContext.tableName())
@@ -77,7 +76,7 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
             .consistentRead(this.request.consistentRead())
             .expressionAttributeValues(expressionValues)
             .expressionAttributeNames(expressionNames)
-            .projectionExpression(projectionExpression);
+            .projectionExpression(projectionExpressionAsString);
 
         if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
             scanRequest = scanRequest.indexName(operationContext.indexName());

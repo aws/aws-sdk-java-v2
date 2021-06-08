@@ -23,11 +23,14 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverContext;
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverFactory;
+import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointResolverFactoryContext;
+import software.amazon.awssdk.services.s3.model.S3Request;
 
 @SdkInternalApi
 public final class EndpointAddressInterceptor implements ExecutionInterceptor {
@@ -43,6 +46,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
 
         S3Configuration serviceConfiguration =
             (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
+        boolean disableHostPrefixInjection = isDisableHostPrefixInjection(executionAttributes);
         S3EndpointResolverContext resolverContext =
             S3EndpointResolverContext.builder()
                                      .request(context.httpRequest())
@@ -50,10 +54,15 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
                                      .region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION))
                                      .endpointOverride(endpointOverride)
                                      .serviceConfiguration(serviceConfiguration)
+                                     .disableHostPrefixInjection(disableHostPrefixInjection)
                                      .build();
 
         String bucketName = context.request().getValueForField("Bucket", String.class).orElse(null);
-        ConfiguredS3SdkHttpRequest configuredRequest = S3EndpointResolverFactory.getEndpointResolver(bucketName)
+        S3EndpointResolverFactoryContext resolverFactoryContext = S3EndpointResolverFactoryContext.builder()
+                .bucketName(bucketName)
+                .originalRequest((S3Request) context.request())
+                .build();
+        ConfiguredS3SdkHttpRequest configuredRequest = S3EndpointResolverFactory.getEndpointResolver(resolverFactoryContext)
                                                                                 .applyEndpointConfiguration(resolverContext);
 
         configuredRequest.signingRegionModification().ifPresent(
@@ -65,4 +74,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
         return configuredRequest.sdkHttpRequest();
     }
 
+    private static boolean isDisableHostPrefixInjection(ExecutionAttributes executionAttributes) {
+        return Boolean.TRUE.equals(executionAttributes.getAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION));
+    }
 }

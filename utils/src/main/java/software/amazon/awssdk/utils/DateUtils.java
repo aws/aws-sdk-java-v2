@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 
 import java.math.BigDecimal;
@@ -27,6 +28,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
@@ -36,7 +39,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 @ThreadSafe
 @SdkProtectedApi
 public final class DateUtils {
-
     /**
      * Alternate ISO 8601 format without fractional seconds.
      */
@@ -45,6 +47,10 @@ public final class DateUtils {
             .appendPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
             .toFormatter()
             .withZone(UTC);
+
+    // ISO_INSTANT does not handle offsets in Java 12-. See https://bugs.openjdk.java.net/browse/JDK-8166138
+    private static final List<DateTimeFormatter> ALTERNATE_ISO_8601_FORMATTERS =
+        Arrays.asList(ISO_INSTANT, ALTERNATE_ISO_8601_DATE_FORMAT, ISO_OFFSET_DATE_TIME);
 
     private static final int MILLI_SECOND_PRECISION = 3;
 
@@ -68,11 +74,22 @@ public final class DateUtils {
                              .concat("Z");
         }
 
-        try {
-            return parseInstant(dateString, ISO_INSTANT);
-        } catch (DateTimeParseException e) {
-            return parseInstant(dateString, ALTERNATE_ISO_8601_DATE_FORMAT);
+        DateTimeParseException exception = null;
+
+        for (DateTimeFormatter formatter : ALTERNATE_ISO_8601_FORMATTERS) {
+            try {
+                return parseInstant(dateString, formatter);
+            } catch (DateTimeParseException e) {
+                exception = e;
+            }
         }
+
+        if (exception != null) {
+            throw exception;
+        }
+
+        // should never execute this
+        throw new RuntimeException("Failed to parse date " + dateString);
     }
 
     /**
@@ -122,6 +139,13 @@ public final class DateUtils {
     }
 
     private static Instant parseInstant(String dateString, DateTimeFormatter formatter) {
+
+        // Should not call formatter.withZone(ZoneOffset.UTC) because it will override the zone
+        // for timestamps with an offset. See https://bugs.openjdk.java.net/browse/JDK-8177021
+        if (formatter.equals(ISO_OFFSET_DATE_TIME)) {
+            return formatter.parse(dateString, Instant::from);
+        }
+
         return formatter.withZone(ZoneOffset.UTC).parse(dateString, Instant::from);
     }
 

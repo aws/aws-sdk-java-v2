@@ -9,7 +9,8 @@
         "FloatMember": 1.234,
         "DoubleMember": 5.678,
         "BigDecimalMember": 1177.61699999,
-        "LongMember": 2147483647
+        "LongMember": 2147483647,
+        "ShortMember": 5
       }
     },
     "when": {
@@ -19,7 +20,7 @@
     "then": {
       "serializedAs": {
         "body": {
-          "jsonEquals": "{\"StringMember\":\"someVal\",\"IntegerMember\":42,\"FloatMember\":1.234,\"DoubleMember\":5.678,\"BigDecimalMember\":\"1177.61699999\",\"LongMember\":2147483647}"
+          "jsonEquals": "{\"StringMember\":\"someVal\",\"IntegerMember\":42,\"FloatMember\":1.234,\"DoubleMember\":5.678,\"BigDecimalMember\":\"1177.61699999\",\"LongMember\":2147483647,\"ShortMember\":5}"
         }
       }
     }
@@ -470,6 +471,46 @@
       "serializedAs": {
         "body": {
           "equals": "{}"
+        }
+      }
+    }
+  },
+  {
+    "description": "TimeStampMap member in the payload is marshalled as seconds with millisecond precision",
+    "given": {
+      "input": {
+        "MapOfTimeStamp": {
+          "key1": 1422172801123
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals":"{\"MapOfTimeStamp\": {\"key1\": 1422172801.123}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "TimestampList member in the payload is marshalled as seconds with millisecond precision",
+    "given": {
+      "input": {
+        "ListOfTimeStamp": [1422172801123]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"ListOfTimeStamp\": [1422172801.123]}"
         }
       }
     }

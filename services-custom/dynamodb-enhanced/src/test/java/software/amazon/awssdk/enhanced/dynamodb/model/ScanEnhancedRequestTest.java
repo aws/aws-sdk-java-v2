@@ -16,11 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.assertFails;
-import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformTo;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
@@ -34,7 +33,6 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -151,16 +149,16 @@ public class ScanEnhancedRequestTest {
 
         String[] attributesToProjectArray = {"one", "two", null};
         String additionalElement = "three";
-        assertFails(() -> ScanEnhancedRequest.builder()
-                .attributesToProject(attributesToProjectArray)
-                .addAttributeToProject(additionalElement)
-                .addAttributeToProject(null)
-                .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"))
-                .build());
+        assertThatThrownBy(() -> ScanEnhancedRequest.builder()
+                                                    .attributesToProject(attributesToProjectArray)
+                                                    .addAttributeToProject(additionalElement)
+                                                    .addAttributeToProject(null)
+                                                    .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"))
+                                                    .build()).isInstanceOf(IllegalArgumentException.class);
 
-        assertFails(() -> ScanEnhancedRequest.builder()
-                .attributesToProject("foo", "bar", null)
-                .build());
+        assertThatThrownBy(() -> ScanEnhancedRequest.builder()
+                                                    .attributesToProject("foo", "bar", null)
+                                                    .build()).isInstanceOf(IllegalArgumentException.class);
 
     }
 
@@ -169,22 +167,20 @@ public class ScanEnhancedRequestTest {
         List<NestedAttributeName> attributeNames = new ArrayList<>();
         attributeNames.add(NestedAttributeName.create("foo"));
         attributeNames.add(null);
-        assertFails(() -> ScanEnhancedRequest.builder()
-                .addNestedAttributesToProject(attributeNames)
-                .build());
-        assertFails(() -> ScanEnhancedRequest.builder()
-                .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"), null)
-                .build());
+        assertThatThrownBy(() -> ScanEnhancedRequest.builder()
+                                                    .addNestedAttributesToProject(attributeNames)
+                                                    .build()).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ScanEnhancedRequest.builder()
+                                                    .addNestedAttributesToProject(NestedAttributeName.create("foo", "bar"), null)
+                                                    .build()).isInstanceOf(IllegalArgumentException.class);
         NestedAttributeName nestedAttributeName = null;
         ScanEnhancedRequest.builder()
-                .addNestedAttributeToProject(nestedAttributeName)
-                .build();
-        assertFails(() -> ScanEnhancedRequest.builder()
-                .addNestedAttributesToProject(nestedAttributeName)
-                .build());
+                           .addNestedAttributeToProject(nestedAttributeName)
+                           .build();
+        assertThatThrownBy(() -> ScanEnhancedRequest.builder()
+                                                    .addNestedAttributesToProject(nestedAttributeName)
+                                                    .build()).isInstanceOf(IllegalArgumentException.class);
     }
-
-
 
     @Test
     public void toBuilder() {

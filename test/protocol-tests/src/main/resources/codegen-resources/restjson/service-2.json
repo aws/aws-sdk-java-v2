@@ -219,6 +219,7 @@
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "BigDecimalMember":{"shape":"NumericValue"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
@@ -238,7 +239,9 @@
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
         "EnumMember":{"shape":"EnumType"},
         "ListOfEnums":{"shape":"ListOfEnums"},
-        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"}
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
+        "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
+        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"}
       }
     },
     "BaseType":{
@@ -285,6 +288,11 @@
           "shape":"Long",
           "location":"header",
           "locationName":"x-amz-long"
+        },
+        "ShortHeader":{
+          "shape":"Short",
+          "location":"header",
+          "locationName":"x-amz-short"
         },
         "DoubleHeader":{
           "shape":"Double",
@@ -354,6 +362,7 @@
         "StringMember":{"shape":"String"},
         "IntegerMember":{"shape":"Integer"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "DoubleMember":{"shape":"Double"},
         "FloatMember":{"shape":"Float"},
         "TimestampMember":{"shape":"Timestamp"},
@@ -439,6 +448,7 @@
       "member":{"shape":"String"}
     },
     "Long":{"type":"long"},
+    "Short":{"type":"short"},
     "MapOfEnumToEnum":{
       "type":"map",
       "key":{"shape":"EnumType"},
@@ -501,6 +511,11 @@
           "location":"header",
           "locationName":"x-amz-long"
         },
+        "ShortMember":{
+          "shape":"Short",
+          "location":"header",
+          "locationName":"x-amz-short"
+        },
         "FloatMember":{
           "shape":"Float",
           "location":"header",
@@ -545,6 +560,11 @@
           "shape":"Long",
           "location":"querystring",
           "locationName":"Long"
+        },
+        "ShortQueryParam":{
+          "shape":"Short",
+          "location":"querystring",
+          "locationName":"Short"
         },
         "FloatQueryParam":{
           "shape":"Float",
@@ -735,6 +755,15 @@
       }
     },
     "Timestamp":{"type":"timestamp"},
+    "ListOfTimeStamp":{
+      "type":"list",
+      "member":{"shape":"Timestamp"}
+    },
+    "MapOfTimeStamp":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"Timestamp"}
+    },
     "EventStreamOperationRequest": {
       "type": "structure",
       "required": [

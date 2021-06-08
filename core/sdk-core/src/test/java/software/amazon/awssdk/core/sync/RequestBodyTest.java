@@ -16,9 +16,11 @@
 package software.amazon.awssdk.core.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -102,6 +104,15 @@ public class RequestBodyTest {
     public void emptyBytesConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.empty();
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void contentProviderConstuctorWithNullContentLength_NoContentLength() {
+        byte[] bytes = new byte[0];
+        RequestBody requestBody = RequestBody.fromContentProvider(() -> new ByteArrayInputStream(bytes),
+                                                                  Mimetype.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.optionalContentLength().isPresent()).isFalse();
+        assertThatThrownBy(() -> requestBody.contentLength()).isInstanceOf(IllegalStateException.class);
     }
 
     @Test

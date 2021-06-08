@@ -1,0 +1,54 @@
+{
+    "version": "2.16.20",
+    "date": "2021-03-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "GameLift expands to six new AWS Regions, adds support for multi-location fleets to streamline management of hosting resources, and lets you customize more of the game session placement process."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "contributor": "",
+            "description": "This release adds support for the SRT-listener protocol on sources and outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "This release adds UPDATE_FAILED and UNAVAILABLE MWAA environment states."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "MediaTailor channel assembly is a new manifest-only service that allows you to assemble linear streams using your existing VOD content."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Allow empty list for function response types"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Documentation updates for AWS Identity and Access Management (IAM)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Change STANDARD mode retry count which was 2 for DynamoDB to match LEGACY retry count which is 8."
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "contributor": "",
+            "description": "This release adds support for the ValidatePolicy API. IAM Access Analyzer is adding over 100 policy checks and actionable recommendations that help you validate your policies during authoring."
+        }
+    ]
+}

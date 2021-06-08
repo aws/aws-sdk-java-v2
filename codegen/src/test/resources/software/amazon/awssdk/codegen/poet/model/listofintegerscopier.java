@@ -13,10 +13,16 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfIntegersCopier {
     static List<Integer> copy(Collection<Integer> listOfIntegersParam) {
+        List<Integer> list;
         if (listOfIntegersParam == null || listOfIntegersParam instanceof SdkAutoConstructList) {
-            return DefaultSdkAutoConstructList.getInstance();
+            list = DefaultSdkAutoConstructList.getInstance();
+        } else {
+            List<Integer> modifiableList = new ArrayList<>();
+            listOfIntegersParam.forEach(entry -> {
+                modifiableList.add(entry);
+            });
+            list = Collections.unmodifiableList(modifiableList);
         }
-        List<Integer> listOfIntegersParamCopy = new ArrayList<>(listOfIntegersParam);
-        return Collections.unmodifiableList(listOfIntegersParamCopy);
+        return list;
     }
 }

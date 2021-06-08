@@ -2883,6 +2883,16 @@
       },
       "documentation": "Ancillary Source Settings"
     },
+    "ArchiveCdnSettings": {
+      "type": "structure",
+      "members": {
+        "ArchiveS3Settings": {
+          "shape": "ArchiveS3Settings",
+          "locationName": "archiveS3Settings"
+        }
+      },
+      "documentation": "Archive Cdn Settings"
+    },
     "ArchiveContainerSettings": {
       "type": "structure",
       "members": {
@@ -2900,6 +2910,11 @@
     "ArchiveGroupSettings": {
       "type": "structure",
       "members": {
+        "ArchiveCdnSettings": {
+          "shape": "ArchiveCdnSettings",
+          "locationName": "archiveCdnSettings",
+          "documentation": "Parameters that control interactions with the CDN."
+        },
         "Destination": {
           "shape": "OutputLocationRef",
           "locationName": "destination",
@@ -2939,6 +2954,25 @@
       "required": [
         "ContainerSettings"
       ]
+    },
+    "ArchiveS3LogUploads": {
+      "type": "string",
+      "documentation": "Archive S3 Log Uploads",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "ArchiveS3Settings": {
+      "type": "structure",
+      "members": {
+        "CannedAcl": {
+          "shape": "S3CannedAcl",
+          "locationName": "cannedAcl",
+          "documentation": "Specify the canned ACL to apply to each S3 request. Defaults to none."
+        }
+      },
+      "documentation": "Archive S3 Settings"
     },
     "AribDestinationSettings": {
       "type": "structure",
@@ -4116,6 +4150,38 @@
         "CaptionChannel"
       ]
     },
+    "CaptionRectangle": {
+      "type": "structure",
+      "members": {
+        "Height": {
+          "shape": "__doubleMin0Max100",
+          "locationName": "height",
+          "documentation": "See the description in leftOffset.\nFor height, specify the entire height of the rectangle as a percentage of the underlying frame height. For example, \\\"80\\\" means the rectangle height is 80% of the underlying frame height. The topOffset and rectangleHeight must add up to 100% or less.\nThis field corresponds to tts:extent - Y in the TTML standard."
+        },
+        "LeftOffset": {
+          "shape": "__doubleMin0Max100",
+          "locationName": "leftOffset",
+          "documentation": "Applies only if you plan to convert these source captions to EBU-TT-D or TTML in an output. (Make sure to leave the default if you don't have either of these formats in the output.) You can define a display rectangle for the captions that is smaller than the underlying video frame. You define the rectangle by specifying the position of the left edge, top edge, bottom edge, and right edge of the rectangle, all within the underlying video frame. The units for the measurements are percentages.\nIf you specify a value for one of these fields, you must specify a value for all of them.\nFor leftOffset, specify the position of the left edge of the rectangle, as a percentage of the underlying frame width, and relative to the left edge of the frame. For example, \\\"10\\\" means the measurement is 10% of the underlying frame width. The rectangle left edge starts at that position from the left edge of the frame.\nThis field corresponds to tts:origin - X in the TTML standard."
+        },
+        "TopOffset": {
+          "shape": "__doubleMin0Max100",
+          "locationName": "topOffset",
+          "documentation": "See the description in leftOffset.\nFor topOffset, specify the position of the top edge of the rectangle, as a percentage of the underlying frame height, and relative to the top edge of the frame. For example, \\\"10\\\" means the measurement is 10% of the underlying frame height. The rectangle top edge starts at that position from the top edge of the frame.\nThis field corresponds to tts:origin - Y in the TTML standard."
+        },
+        "Width": {
+          "shape": "__doubleMin0Max100",
+          "locationName": "width",
+          "documentation": "See the description in leftOffset.\nFor width, specify the entire width of the rectangle as a percentage of the underlying frame width. For example, \\\"80\\\" means the rectangle width is 80% of the underlying frame width. The leftOffset and rectangleWidth must add up to 100% or less.\nThis field corresponds to tts:extent - X in the TTML standard."
+        }
+      },
+      "documentation": "Caption Rectangle",
+      "required": [
+        "TopOffset",
+        "Height",
+        "Width",
+        "LeftOffset"
+      ]
+    },
     "CaptionSelector": {
       "type": "structure",
       "members": {
@@ -4277,7 +4343,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -4408,7 +4474,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -5132,7 +5198,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -5555,7 +5621,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -6689,6 +6755,11 @@
     "EbuTtDDestinationSettings": {
       "type": "structure",
       "members": {
+        "CopyrightHolder": {
+          "shape": "__stringMax1000",
+          "locationName": "copyrightHolder",
+          "documentation": "Applies only if you plan to convert these source captions to EBU-TT-D or TTML in an output. Complete this field if you want to include the name of the copyright holder in the copyright metadata tag in the TTML"
+        },
         "FillLineGap": {
           "shape": "EbuTtDFillLineGapControl",
           "locationName": "fillLineGap",
@@ -6819,6 +6890,11 @@
           "shape": "GlobalConfiguration",
           "locationName": "globalConfiguration",
           "documentation": "Configuration settings that apply to the event as a whole."
+        },
+        "MotionGraphicsConfiguration": {
+          "shape": "MotionGraphicsConfiguration",
+          "locationName": "motionGraphicsConfiguration",
+          "documentation": "Settings for motion graphics."
         },
         "NielsenConfiguration": {
           "shape": "NielsenConfiguration",
@@ -7037,6 +7113,16 @@
       },
       "documentation": "Placeholder documentation for ForbiddenException"
     },
+    "FrameCaptureCdnSettings": {
+      "type": "structure",
+      "members": {
+        "FrameCaptureS3Settings": {
+          "shape": "FrameCaptureS3Settings",
+          "locationName": "frameCaptureS3Settings"
+        }
+      },
+      "documentation": "Frame Capture Cdn Settings"
+    },
     "FrameCaptureGroupSettings": {
       "type": "structure",
       "members": {
@@ -7044,6 +7130,11 @@
           "shape": "OutputLocationRef",
           "locationName": "destination",
           "documentation": "The destination for the frame capture files. Either the URI for an Amazon S3 bucket and object, plus a file name prefix (for example, s3ssl://sportsDelivery/highlights/20180820/curling-) or the URI for a MediaStore container, plus a file name prefix (for example, mediastoressl://sportsDelivery/20180820/curling-). The final file names consist of the prefix from the destination field (for example, \"curling-\") + name modifier + the counter (5 digits, starting from 00001) + extension (which is always .jpg).  For example, curling-low.00001.jpg"
+        },
+        "FrameCaptureCdnSettings": {
+          "shape": "FrameCaptureCdnSettings",
+          "locationName": "frameCaptureCdnSettings",
+          "documentation": "Parameters that control interactions with the CDN."
         }
       },
       "documentation": "Frame Capture Group Settings",
@@ -7075,6 +7166,25 @@
         }
       },
       "documentation": "Frame Capture Output Settings"
+    },
+    "FrameCaptureS3LogUploads": {
+      "type": "string",
+      "documentation": "Frame Capture S3 Log Uploads",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "FrameCaptureS3Settings": {
+      "type": "structure",
+      "members": {
+        "CannedAcl": {
+          "shape": "S3CannedAcl",
+          "locationName": "cannedAcl",
+          "documentation": "Specify the canned ACL to apply to each S3 request. Defaults to none."
+        }
+      },
+      "documentation": "Frame Capture S3 Settings"
     },
     "FrameCaptureSettings": {
       "type": "structure",
@@ -7178,6 +7288,7 @@
       "type": "string",
       "documentation": "H264 Adaptive Quantization",
       "enum": [
+        "AUTO",
         "HIGH",
         "HIGHER",
         "LOW",
@@ -7362,7 +7473,7 @@
         "AdaptiveQuantization": {
           "shape": "H264AdaptiveQuantization",
           "locationName": "adaptiveQuantization",
-          "documentation": "Adaptive quantization. Allows intra-frame quantizers to vary to improve visual quality."
+          "documentation": "Enables or disables adaptive quantization, which is a technique MediaLive can apply to video on a frame-by-frame basis to produce more compression without losing quality. There are three types of adaptive quantization: flicker, spatial, and temporal. Set the field in one of these ways: Set to Auto. Recommended. For each type of AQ, MediaLive will determine if AQ is needed, and if so, the appropriate strength. Set a strength (a value other than Auto or Disable). This strength will apply to any of the AQ fields that you choose to enable. Set to Disabled to disable all types of adaptive quantization."
         },
         "AfdSignaling": {
           "shape": "AfdSignaling",
@@ -7412,7 +7523,7 @@
         "FlickerAq": {
           "shape": "H264FlickerAq",
           "locationName": "flickerAq",
-          "documentation": "If set to enabled, adjust quantization within each frame to reduce flicker or 'pop' on I-frames."
+          "documentation": "Flicker AQ makes adjustments within each frame to reduce flicker or 'pop' on I-frames. The value to enter in this field depends on the value in the Adaptive quantization field: If you have set the Adaptive quantization field to Auto, MediaLive ignores any value in this field. MediaLive will determine if flicker AQ is appropriate and will apply the appropriate strength. If you have set the Adaptive quantization field to a strength, you can set this field to Enabled or Disabled. Enabled: MediaLive will apply flicker AQ using the specified strength. Disabled: MediaLive won't apply flicker AQ. If you have set the Adaptive quantization to Disabled, MediaLive ignores any value in this field and doesn't apply flicker AQ."
         },
         "ForceFieldPictures": {
           "shape": "H264ForceFieldPictures",
@@ -7512,7 +7623,7 @@
         "QvbrQualityLevel": {
           "shape": "__integerMin1Max10",
           "locationName": "qvbrQualityLevel",
-          "documentation": "Controls the target quality for the video encode. Applies only when the rate control mode is QVBR. Set values for the QVBR quality level field and Max bitrate field that suit your most important viewing devices. Recommended values are:\n- Primary screen: Quality level: 8 to 10. Max bitrate: 4M\n- PC or tablet: Quality level: 7. Max bitrate: 1.5M to 3M\n- Smartphone: Quality level: 6. Max bitrate: 1M to 1.5M"
+          "documentation": "Controls the target quality for the video encode. Applies only when the rate control mode is QVBR. You can set a target quality or you can let MediaLive determine the best quality. To set a target quality, enter values in the QVBR quality level field and the Max bitrate field. Enter values that suit your most important viewing devices. Recommended values are:\n- Primary screen: Quality level: 8 to 10. Max bitrate: 4M\n- PC or tablet: Quality level: 7. Max bitrate: 1.5M to 3M\n- Smartphone: Quality level: 6. Max bitrate: 1M to 1.5M\nTo let MediaLive decide, leave the QVBR quality level field empty, and in Max bitrate enter the maximum rate you want in the video. For more information, see the section called \"Video - rate control mode\" in the MediaLive user guide"
         },
         "RateControlMode": {
           "shape": "H264RateControlMode",
@@ -7537,12 +7648,12 @@
         "Softness": {
           "shape": "__integerMin0Max128",
           "locationName": "softness",
-          "documentation": "Softness. Selects quantizer matrix, larger values reduce high-frequency content in the encoded image."
+          "documentation": "Softness. Selects quantizer matrix, larger values reduce high-frequency content in the encoded image.  If not set to zero, must be greater than 15."
         },
         "SpatialAq": {
           "shape": "H264SpatialAq",
           "locationName": "spatialAq",
-          "documentation": "If set to enabled, adjust quantization within each frame based on spatial variation of content complexity."
+          "documentation": "Spatial AQ makes adjustments within each frame based on spatial variation of content complexity. The value to enter in this field depends on the value in the Adaptive quantization field: If you have set the Adaptive quantization field to Auto, MediaLive ignores any value in this field. MediaLive will determine if spatial AQ is appropriate and will apply the appropriate strength. If you have set the Adaptive quantization field to a strength, you can set this field to Enabled or Disabled. Enabled: MediaLive will apply spatial AQ using the specified strength. Disabled: MediaLive won't apply spatial AQ. If you have set the Adaptive quantization to Disabled, MediaLive ignores any value in this field and doesn't apply spatial AQ."
         },
         "SubgopLength": {
           "shape": "H264SubGopLength",
@@ -7557,7 +7668,7 @@
         "TemporalAq": {
           "shape": "H264TemporalAq",
           "locationName": "temporalAq",
-          "documentation": "If set to enabled, adjust quantization within each frame based on temporal variation of content complexity."
+          "documentation": "Temporal makes adjustments within each frame based on temporal variation of content complexity. The value to enter in this field depends on the value in the Adaptive quantization field: If you have set the Adaptive quantization field to Auto, MediaLive ignores any value in this field. MediaLive will determine if temporal AQ is appropriate and will apply the appropriate strength. If you have set the Adaptive quantization field to a strength, you can set this field to Enabled or Disabled. Enabled: MediaLive will apply temporal AQ using the specified strength. Disabled: MediaLive won't apply temporal AQ. If you have set the Adaptive quantization to Disabled, MediaLive ignores any value in this field and doesn't apply temporal AQ."
         },
         "TimecodeInsertion": {
           "shape": "H264TimecodeInsertionBehavior",
@@ -7611,6 +7722,7 @@
       "type": "string",
       "documentation": "H265 Adaptive Quantization",
       "enum": [
+        "AUTO",
         "HIGH",
         "HIGHER",
         "LOW",
@@ -8039,6 +8151,10 @@
         "HlsMediaStoreSettings": {
           "shape": "HlsMediaStoreSettings",
           "locationName": "hlsMediaStoreSettings"
+        },
+        "HlsS3Settings": {
+          "shape": "HlsS3Settings",
+          "locationName": "hlsS3Settings"
         },
         "HlsWebdavSettings": {
           "shape": "HlsWebdavSettings",
@@ -8502,6 +8618,25 @@
         "ENABLED"
       ]
     },
+    "HlsS3LogUploads": {
+      "type": "string",
+      "documentation": "Hls S3 Log Uploads",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "HlsS3Settings": {
+      "type": "structure",
+      "members": {
+        "CannedAcl": {
+          "shape": "S3CannedAcl",
+          "locationName": "cannedAcl",
+          "documentation": "Specify the canned ACL to apply to each S3 request. Defaults to none."
+        }
+      },
+      "documentation": "Hls S3 Settings"
+    },
     "HlsSegmentationMode": {
       "type": "string",
       "documentation": "Hls Segmentation Mode",
@@ -8609,6 +8744,12 @@
         }
       },
       "documentation": "Hls Webdav Settings"
+    },
+    "HtmlMotionGraphicsSettings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Html Motion Graphics Settings"
     },
     "IFrameOnlyPlaylistType": {
       "type": "string",
@@ -10922,6 +11063,74 @@
       },
       "documentation": "Media Package Output Settings"
     },
+    "MotionGraphicsActivateScheduleActionSettings": {
+      "type": "structure",
+      "members": {
+        "Duration": {
+          "shape": "__longMin0Max86400000",
+          "locationName": "duration",
+          "documentation": "Duration (in milliseconds) that motion graphics should render on to the video stream. Leaving out this property or setting to 0 will result in rendering continuing until a deactivate action is processed."
+        },
+        "PasswordParam": {
+          "shape": "__string",
+          "locationName": "passwordParam",
+          "documentation": "Key used to extract the password from EC2 Parameter store"
+        },
+        "Url": {
+          "shape": "__string",
+          "locationName": "url",
+          "documentation": "URI of the HTML5 content to be rendered into the live stream."
+        },
+        "Username": {
+          "shape": "__string",
+          "locationName": "username",
+          "documentation": "Documentation update needed"
+        }
+      },
+      "documentation": "Settings to specify the rendering of motion graphics into the video stream."
+    },
+    "MotionGraphicsConfiguration": {
+      "type": "structure",
+      "members": {
+        "MotionGraphicsInsertion": {
+          "shape": "MotionGraphicsInsertion",
+          "locationName": "motionGraphicsInsertion"
+        },
+        "MotionGraphicsSettings": {
+          "shape": "MotionGraphicsSettings",
+          "locationName": "motionGraphicsSettings",
+          "documentation": "Motion Graphics Settings"
+        }
+      },
+      "documentation": "Motion Graphics Configuration",
+      "required": [
+        "MotionGraphicsSettings"
+      ]
+    },
+    "MotionGraphicsDeactivateScheduleActionSettings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Settings to specify the ending of rendering motion graphics into the video stream."
+    },
+    "MotionGraphicsInsertion": {
+      "type": "string",
+      "documentation": "Motion Graphics Insertion",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "MotionGraphicsSettings": {
+      "type": "structure",
+      "members": {
+        "HtmlMotionGraphicsSettings": {
+          "shape": "HtmlMotionGraphicsSettings",
+          "locationName": "htmlMotionGraphicsSettings"
+        }
+      },
+      "documentation": "Motion Graphics Settings"
+    },
     "Mp2CodingMode": {
       "type": "string",
       "documentation": "Mp2 Coding Mode",
@@ -12052,6 +12261,16 @@
           "locationName": "activeInputSwitchActionName",
           "documentation": "The name of the input switch schedule action that occurred most recently and that resulted in the switch to the current input attachment for this pipeline."
         },
+        "ActiveMotionGraphicsActionName": {
+          "shape": "__string",
+          "locationName": "activeMotionGraphicsActionName",
+          "documentation": "The name of the motion graphics activate action that occurred most recently and that resulted in the current graphics URI for this pipeline."
+        },
+        "ActiveMotionGraphicsUri": {
+          "shape": "__string",
+          "locationName": "activeMotionGraphicsUri",
+          "documentation": "The current URI being used for HTML5 motion graphics for this pipeline."
+        },
         "PipelineId": {
           "shape": "__string",
           "locationName": "pipelineId",
@@ -12596,6 +12815,16 @@
         "Destination"
       ]
     },
+    "S3CannedAcl": {
+      "type": "string",
+      "documentation": "S3 Canned Acl",
+      "enum": [
+        "AUTHENTICATED_READ",
+        "BUCKET_OWNER_FULL_CONTROL",
+        "BUCKET_OWNER_READ",
+        "PUBLIC_READ"
+      ]
+    },
     "ScheduleAction": {
       "type": "structure",
       "members": {
@@ -12644,6 +12873,16 @@
           "shape": "InputSwitchScheduleActionSettings",
           "locationName": "inputSwitchSettings",
           "documentation": "Action to switch the input"
+        },
+        "MotionGraphicsImageActivateSettings": {
+          "shape": "MotionGraphicsActivateScheduleActionSettings",
+          "locationName": "motionGraphicsImageActivateSettings",
+          "documentation": "Action to activate a motion graphics image overlay"
+        },
+        "MotionGraphicsImageDeactivateSettings": {
+          "shape": "MotionGraphicsDeactivateScheduleActionSettings",
+          "locationName": "motionGraphicsImageDeactivateSettings",
+          "documentation": "Action to deactivate a motion graphics image overlay"
         },
         "PauseStateSettings": {
           "shape": "PauseStateScheduleActionSettings",
@@ -13254,7 +13493,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -13534,7 +13773,7 @@
           "documentation": "A collection of key-value pairs."
         },
         "Vpc": {
-          "shape": "VpcOutputSettings",
+          "shape": "VpcOutputSettingsDescription",
           "locationName": "vpc",
           "documentation": "Settings for VPC output"
         }
@@ -13657,6 +13896,11 @@
     "TeletextSourceSettings": {
       "type": "structure",
       "members": {
+        "OutputRectangle": {
+          "shape": "CaptionRectangle",
+          "locationName": "outputRectangle",
+          "documentation": "Optionally defines a region where TTML style captions will be displayed"
+        },
         "PageNumber": {
           "shape": "__string",
           "locationName": "pageNumber",
@@ -13774,6 +14018,11 @@
           "locationName": "targetCustomerId",
           "documentation": "The AWS account ID (12 digits) for the recipient of the device transfer."
         },
+        "TargetRegion": {
+          "shape": "__string",
+          "locationName": "targetRegion",
+          "documentation": "The target AWS region to transfer the device."
+        },
         "TransferMessage": {
           "shape": "__string",
           "locationName": "transferMessage",
@@ -13795,6 +14044,11 @@
           "shape": "__string",
           "locationName": "targetCustomerId",
           "documentation": "The AWS account ID (12 digits) for the recipient of the device transfer."
+        },
+        "TargetRegion": {
+          "shape": "__string",
+          "locationName": "targetRegion",
+          "documentation": "The target AWS region to transfer the device."
         },
         "TransferMessage": {
           "shape": "__string",
@@ -14691,6 +14945,11 @@
           "locationName": "colorSpace",
           "documentation": "Specifies the color space of an input. This setting works in tandem with colorSpaceUsage and a video description's colorSpaceSettingsChoice to determine if any conversion will be performed."
         },
+        "ColorSpaceSettings": {
+          "shape": "VideoSelectorColorSpaceSettings",
+          "locationName": "colorSpaceSettings",
+          "documentation": "Color space settings"
+        },
         "ColorSpaceUsage": {
           "shape": "VideoSelectorColorSpaceUsage",
           "locationName": "colorSpaceUsage",
@@ -14709,9 +14968,21 @@
       "documentation": "Video Selector Color Space",
       "enum": [
         "FOLLOW",
+        "HDR10",
+        "HLG_2020",
         "REC_601",
         "REC_709"
       ]
+    },
+    "VideoSelectorColorSpaceSettings": {
+      "type": "structure",
+      "members": {
+        "Hdr10Settings": {
+          "shape": "Hdr10Settings",
+          "locationName": "hdr10Settings"
+        }
+      },
+      "documentation": "Video Selector Color Space Settings"
     },
     "VideoSelectorColorSpaceUsage": {
       "type": "string",
@@ -14781,6 +15052,32 @@
         "SubnetIds"
       ]
     },
+    "VpcOutputSettingsDescription": {
+      "type": "structure",
+      "members": {
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "The Availability Zones where the vpc subnets are located.\nThe first Availability Zone applies to the first subnet in the list of subnets.\nThe second Availability Zone applies to the second subnet.\n"
+        },
+        "NetworkInterfaceIds": {
+          "shape": "__listOf__string",
+          "locationName": "networkInterfaceIds",
+          "documentation": "A list of Elastic Network Interfaces created by MediaLive in the customer's VPC\n"
+        },
+        "SecurityGroupIds": {
+          "shape": "__listOf__string",
+          "locationName": "securityGroupIds",
+          "documentation": "A list of up EC2 VPC security group IDs attached to the Output VPC network interfaces.\n"
+        },
+        "SubnetIds": {
+          "shape": "__listOf__string",
+          "locationName": "subnetIds",
+          "documentation": "A list of VPC subnet IDs from the same VPC.\nIf STANDARD channel, subnet IDs must be mapped to two unique availability zones (AZ).\n"
+        }
+      },
+      "documentation": "The properties for a private VPC Output\n"
+    },
     "WavCodingMode": {
       "type": "string",
       "documentation": "Wav Coding Mode",
@@ -14833,6 +15130,10 @@
     "__doubleMin0Max1": {
       "type": "double",
       "documentation": "Placeholder documentation for __doubleMin0Max1"
+    },
+    "__doubleMin0Max100": {
+      "type": "double",
+      "documentation": "Placeholder documentation for __doubleMin0Max100"
     },
     "__doubleMin1": {
       "type": "double",
@@ -15505,9 +15806,20 @@
       "max": 8589934591,
       "documentation": "Placeholder documentation for __longMin0Max8589934591"
     },
+    "__longMin0Max86400000": {
+      "type": "long",
+      "min": 0,
+      "max": 86400000,
+      "documentation": "Placeholder documentation for __longMin0Max86400000"
+    },
     "__string": {
       "type": "string",
       "documentation": "Placeholder documentation for __string"
+    },
+    "__stringMax1000": {
+      "type": "string",
+      "max": 1000,
+      "documentation": "Placeholder documentation for __stringMax1000"
     },
     "__stringMax256": {
       "type": "string",

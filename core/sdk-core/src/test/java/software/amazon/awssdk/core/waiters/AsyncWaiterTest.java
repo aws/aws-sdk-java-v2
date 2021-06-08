@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import org.junit.Test;
@@ -46,6 +47,17 @@ public class AsyncWaiterTest extends BaseWaiterTest {
                                                           .scheduledExecutorService(executorService)
                                                           .build()
                                                           .runAsync(new ThrowExceptionResource(count)).join();
+    }
+
+    @Test
+    public void matchException_exceptionIsWrapped_shouldReturnUnwrappedException() {
+        TestWaiterConfiguration waiterConfig = new TestWaiterConfiguration()
+            .overrideConfiguration(p -> p.maxAttempts(3).backoffStrategy(BackoffStrategy.none()))
+            .addAcceptor(WaiterAcceptor.successOnExceptionAcceptor(s -> s.getMessage().contains(SUCCESS_STATE_MESSAGE)));
+
+        WaiterResponse<String> response = successOnWrappedExceptionWaiterOperation().apply(1, waiterConfig);
+        assertThat(response.matched().exception().get()).isExactlyInstanceOf(RuntimeException.class);
+        assertThat(response.attemptsExecuted()).isEqualTo(1);
     }
 
     @Test
@@ -91,6 +103,15 @@ public class AsyncWaiterTest extends BaseWaiterTest {
                            .join()).hasMessageContaining("exceeded the max retry attempts: 1");
     }
 
+    private BiFunction<Integer, TestWaiterConfiguration, WaiterResponse<String>> successOnWrappedExceptionWaiterOperation() {
+        return (count, waiterConfiguration) -> AsyncWaiter.builder(String.class)
+                                                          .overrideConfiguration(waiterConfiguration.getPollingStrategy())
+                                                          .acceptors(waiterConfiguration.getWaiterAcceptors())
+                                                          .scheduledExecutorService(executorService)
+                                                          .build()
+                                                          .runAsync(new ThrowCompletionExceptionResource(count)).join();
+    }
+
     private static final class ReturnResponseResource implements Supplier<CompletableFuture<String>> {
         private final int successAttemptIndex;
         private int count;
@@ -125,6 +146,23 @@ public class AsyncWaiterTest extends BaseWaiterTest {
 
             return CompletableFutureUtils.failedFuture(new RuntimeException(SUCCESS_STATE_MESSAGE));
         }
+    }
 
+    private static final class ThrowCompletionExceptionResource implements Supplier<CompletableFuture<String>> {
+        private final int successAttemptIndex;
+        private int count;
+
+        public ThrowCompletionExceptionResource(int successAttemptIndex) {
+            this.successAttemptIndex = successAttemptIndex;
+        }
+
+        @Override
+        public CompletableFuture<String> get() {
+            if (++count < successAttemptIndex) {
+                return CompletableFutureUtils.failedFuture(new CompletionException(new RuntimeException(NON_SUCCESS_STATE_MESSAGE)));
+            }
+
+            return CompletableFutureUtils.failedFuture(new CompletionException(new RuntimeException(SUCCESS_STATE_MESSAGE)));
+        }
     }
 }

@@ -454,6 +454,26 @@
       ],
       "documentation":"<p>Creates a new DB proxy.</p>"
     },
+    "CreateDBProxyEndpoint":{
+      "name":"CreateDBProxyEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateDBProxyEndpointRequest"},
+      "output":{
+        "shape":"CreateDBProxyEndpointResponse",
+        "resultWrapper":"CreateDBProxyEndpointResult"
+      },
+      "errors":[
+        {"shape":"InvalidSubnet"},
+        {"shape":"DBProxyNotFoundFault"},
+        {"shape":"DBProxyEndpointAlreadyExistsFault"},
+        {"shape":"DBProxyEndpointQuotaExceededFault"},
+        {"shape":"InvalidDBProxyStateFault"}
+      ],
+      "documentation":"<p> Creates a <code>DBProxyEndpoint</code>. Only applies to proxies that are associated with Aurora DB clusters. You can use DB proxy endpoints to specify read/write or read-only access to the DB cluster. You can also use DB proxy endpoints to access a DB proxy through a different VPC than the proxy's default VPC. </p>"
+    },
     "CreateDBSecurityGroup":{
       "name":"CreateDBSecurityGroup",
       "http":{
@@ -720,7 +740,24 @@
         {"shape":"DBProxyNotFoundFault"},
         {"shape":"InvalidDBProxyStateFault"}
       ],
-      "documentation":"<p>Deletes an existing proxy.</p>"
+      "documentation":"<p>Deletes an existing DB proxy.</p>"
+    },
+    "DeleteDBProxyEndpoint":{
+      "name":"DeleteDBProxyEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteDBProxyEndpointRequest"},
+      "output":{
+        "shape":"DeleteDBProxyEndpointResponse",
+        "resultWrapper":"DeleteDBProxyEndpointResult"
+      },
+      "errors":[
+        {"shape":"DBProxyEndpointNotFoundFault"},
+        {"shape":"InvalidDBProxyEndpointStateFault"}
+      ],
+      "documentation":"<p>Deletes a <code>DBProxyEndpoint</code>. Doing so removes the ability to access the DB proxy using the endpoint that you defined. The endpoint that you delete might have provided capabilities such as read/write or read-only operations, or using a different VPC than the DB proxy's default VPC.</p>"
     },
     "DeleteDBSecurityGroup":{
       "name":"DeleteDBSecurityGroup",
@@ -1115,6 +1152,23 @@
       ],
       "documentation":"<p>Returns information about DB proxies.</p>"
     },
+    "DescribeDBProxyEndpoints":{
+      "name":"DescribeDBProxyEndpoints",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeDBProxyEndpointsRequest"},
+      "output":{
+        "shape":"DescribeDBProxyEndpointsResponse",
+        "resultWrapper":"DescribeDBProxyEndpointsResult"
+      },
+      "errors":[
+        {"shape":"DBProxyNotFoundFault"},
+        {"shape":"DBProxyEndpointNotFoundFault"}
+      ],
+      "documentation":"<p>Returns information about DB proxy endpoints.</p>"
+    },
     "DescribeDBProxyTargetGroups":{
       "name":"DescribeDBProxyTargetGroups",
       "http":{
@@ -1504,7 +1558,7 @@
         {"shape":"InvalidDBClusterStateFault"},
         {"shape":"DBClusterNotFoundFault"}
       ],
-      "documentation":"<p>Initiates the failover process for an Aurora global database (<a>GlobalCluster</a>).</p> <p>A failover for an Aurora global database promotes one of secondary read-only DB clusters to be the primary DB cluster and demotes the primary DB cluster to being a secondary (read-only) DB cluster. In other words, the role of the current primary DB cluster and the selected (target) DB cluster are switched. The selected secondary DB cluster assumes full read/write capabilities for the Aurora global database.</p> <p>For more information about failing over an Amazon Aurora global database, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.managed-failover\">Managed planned failover for Amazon Aurora global databases</a> in the <i>Amazon Aurora User Guide.</i> </p> <note> <p>This action applies to <a>GlobalCluster</a> (Aurora global databases) only. Use this action only on healthy Aurora global databases with running Aurora DB clusters and no Region-wide outages, to test disaster recovery scenarios or to reconfigure your Aurora global database topology. </p> </note>"
+      "documentation":"<p>Initiates the failover process for an Aurora global database (<a>GlobalCluster</a>).</p> <p>A failover for an Aurora global database promotes one of secondary read-only DB clusters to be the primary DB cluster and demotes the primary DB cluster to being a secondary (read-only) DB cluster. In other words, the role of the current primary DB cluster and the selected (target) DB cluster are switched. The selected secondary DB cluster assumes full read/write capabilities for the Aurora global database.</p> <p>For more information about failing over an Amazon Aurora global database, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html#aurora-global-database-disaster-recovery.managed-failover\">Managed planned failover for Amazon Aurora global databases</a> in the <i>Amazon Aurora User Guide.</i> </p> <note> <p>This action applies to <a>GlobalCluster</a> (Aurora global databases) only. Use this action only on healthy Aurora global databases with running Aurora DB clusters and no Region-wide outages, to test disaster recovery scenarios or to reconfigure your Aurora global database topology. </p> </note>"
     },
     "ImportInstallationMedia":{
       "name":"ImportInstallationMedia",
@@ -1639,7 +1693,7 @@
         {"shape":"DBParameterGroupNotFoundFault"},
         {"shape":"InvalidDBParameterGroupStateFault"}
       ],
-      "documentation":"<p> Modifies the parameters of a DB cluster parameter group. To modify more than one parameter, submit a list of the following: <code>ParameterName</code>, <code>ParameterValue</code>, and <code>ApplyMethod</code>. A maximum of 20 parameters can be modified in a single request. </p> <p>For more information on Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What Is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide.</i> </p> <note> <p>Changes to dynamic parameters are applied immediately. Changes to static parameters require a reboot without failover to the DB cluster associated with the parameter group before the change can take effect.</p> </note> <important> <p>After you create a DB cluster parameter group, you should wait at least 5 minutes before creating your first DB cluster that uses that DB cluster parameter group as the default parameter group. This allows Amazon RDS to fully complete the create action before the parameter group is used as the default for a new DB cluster. This is especially important for parameters that are critical when creating the default database for a DB cluster, such as the character set for the default database defined by the <code>character_set_database</code> parameter. You can use the <i>Parameter Groups</i> option of the <a href=\"https://console.aws.amazon.com/rds/\">Amazon RDS console</a> or the <code>DescribeDBClusterParameters</code> action to verify that your DB cluster parameter group has been created or modified.</p> <p>If the modified DB cluster parameter group is used by an Aurora Serverless cluster, Aurora applies the update immediately. The cluster restart might interrupt your workload. In that case, your application must reopen any connections and retry any transactions that were active when the parameter changes took effect.</p> </important> <note> <p>This action only applies to Aurora DB clusters.</p> </note>"
+      "documentation":"<p> Modifies the parameters of a DB cluster parameter group. To modify more than one parameter, submit a list of the following: <code>ParameterName</code>, <code>ParameterValue</code>, and <code>ApplyMethod</code>. A maximum of 20 parameters can be modified in a single request. </p> <p>For more information on Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What Is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide.</i> </p> <important> <p>After you create a DB cluster parameter group, you should wait at least 5 minutes before creating your first DB cluster that uses that DB cluster parameter group as the default parameter group. This allows Amazon RDS to fully complete the create action before the parameter group is used as the default for a new DB cluster. This is especially important for parameters that are critical when creating the default database for a DB cluster, such as the character set for the default database defined by the <code>character_set_database</code> parameter. You can use the <i>Parameter Groups</i> option of the <a href=\"https://console.aws.amazon.com/rds/\">Amazon RDS console</a> or the <code>DescribeDBClusterParameters</code> action to verify that your DB cluster parameter group has been created or modified.</p> <p>If the modified DB cluster parameter group is used by an Aurora Serverless cluster, Aurora applies the update immediately. The cluster restart might interrupt your workload. In that case, your application must reopen any connections and retry any transactions that were active when the parameter changes took effect.</p> </important> <note> <p>This action only applies to Aurora DB clusters.</p> </note>"
     },
     "ModifyDBClusterSnapshotAttribute":{
       "name":"ModifyDBClusterSnapshotAttribute",
@@ -1708,7 +1762,7 @@
         {"shape":"DBParameterGroupNotFoundFault"},
         {"shape":"InvalidDBParameterGroupStateFault"}
       ],
-      "documentation":"<p> Modifies the parameters of a DB parameter group. To modify more than one parameter, submit a list of the following: <code>ParameterName</code>, <code>ParameterValue</code>, and <code>ApplyMethod</code>. A maximum of 20 parameters can be modified in a single request. </p> <note> <p>Changes to dynamic parameters are applied immediately. Changes to static parameters require a reboot without failover to the DB instance associated with the parameter group before the change can take effect.</p> </note> <important> <p>After you modify a DB parameter group, you should wait at least 5 minutes before creating your first DB instance that uses that DB parameter group as the default parameter group. This allows Amazon RDS to fully complete the modify action before the parameter group is used as the default for a new DB instance. This is especially important for parameters that are critical when creating the default database for a DB instance, such as the character set for the default database defined by the <code>character_set_database</code> parameter. You can use the <i>Parameter Groups</i> option of the <a href=\"https://console.aws.amazon.com/rds/\">Amazon RDS console</a> or the <i>DescribeDBParameters</i> command to verify that your DB parameter group has been created or modified.</p> </important>"
+      "documentation":"<p> Modifies the parameters of a DB parameter group. To modify more than one parameter, submit a list of the following: <code>ParameterName</code>, <code>ParameterValue</code>, and <code>ApplyMethod</code>. A maximum of 20 parameters can be modified in a single request. </p> <important> <p>After you modify a DB parameter group, you should wait at least 5 minutes before creating your first DB instance that uses that DB parameter group as the default parameter group. This allows Amazon RDS to fully complete the modify action before the parameter group is used as the default for a new DB instance. This is especially important for parameters that are critical when creating the default database for a DB instance, such as the character set for the default database defined by the <code>character_set_database</code> parameter. You can use the <i>Parameter Groups</i> option of the <a href=\"https://console.aws.amazon.com/rds/\">Amazon RDS console</a> or the <i>DescribeDBParameters</i> command to verify that your DB parameter group has been created or modified.</p> </important>"
     },
     "ModifyDBProxy":{
       "name":"ModifyDBProxy",
@@ -1727,6 +1781,25 @@
         {"shape":"InvalidDBProxyStateFault"}
       ],
       "documentation":"<p>Changes the settings for an existing DB proxy.</p>"
+    },
+    "ModifyDBProxyEndpoint":{
+      "name":"ModifyDBProxyEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyDBProxyEndpointRequest"},
+      "output":{
+        "shape":"ModifyDBProxyEndpointResponse",
+        "resultWrapper":"ModifyDBProxyEndpointResult"
+      },
+      "errors":[
+        {"shape":"DBProxyEndpointNotFoundFault"},
+        {"shape":"DBProxyEndpointAlreadyExistsFault"},
+        {"shape":"InvalidDBProxyEndpointStateFault"},
+        {"shape":"InvalidDBProxyStateFault"}
+      ],
+      "documentation":"<p>Changes the settings for an existing DB proxy endpoint.</p>"
     },
     "ModifyDBProxyTargetGroup":{
       "name":"ModifyDBProxyTargetGroup",
@@ -2279,7 +2352,7 @@
         {"shape":"AuthorizationNotFoundFault"},
         {"shape":"InvalidDBSecurityGroupStateFault"}
       ],
-      "documentation":"<p>Revokes ingress from a DBSecurityGroup for previously authorized IP ranges or EC2 or VPC Security Groups. Required parameters for this API are one of CIDRIP, EC2SecurityGroupId for VPC, or (EC2SecurityGroupOwnerId and either EC2SecurityGroupName or EC2SecurityGroupId).</p>"
+      "documentation":"<p>Revokes ingress from a DBSecurityGroup for previously authorized IP ranges or EC2 or VPC security groups. Required parameters for this API are one of CIDRIP, EC2SecurityGroupId for VPC, or (EC2SecurityGroupOwnerId and either EC2SecurityGroupName or EC2SecurityGroupId).</p>"
     },
     "StartActivityStream":{
       "name":"StartActivityStream",
@@ -3301,7 +3374,7 @@
         },
         "PreferredBackupWindow":{
           "shape":"String",
-          "documentation":"<p>The daily time range during which automated backups are created if automated backups are enabled using the <code>BackupRetentionPeriod</code> parameter. </p> <p>The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. To see the time blocks available, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_UpgradeDBInstance.Maintenance.html#AdjustingTheMaintenanceWindow.Aurora\"> Adjusting the Preferred DB Cluster Maintenance Window</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
+          "documentation":"<p>The daily time range during which automated backups are created if automated backups are enabled using the <code>BackupRetentionPeriod</code> parameter. </p> <p>The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. To view the time blocks available, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Managing.Backups.html#Aurora.Managing.Backups.BackupWindow\"> Backup window</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
         },
         "PreferredMaintenanceWindow":{
           "shape":"String",
@@ -3392,7 +3465,7 @@
         },
         "DBParameterGroupFamily":{
           "shape":"String",
-          "documentation":"<p>The DB cluster parameter group family name. A DB cluster parameter group can be associated with one and only one DB cluster parameter group family, and can be applied only to a DB cluster running a database engine and engine version compatible with that DB cluster parameter group family.</p> <p> <b>Aurora MySQL</b> </p> <p>Example: <code>aurora5.6</code>, <code>aurora-mysql5.7</code> </p> <p> <b>Aurora PostgreSQL</b> </p> <p>Example: <code>aurora-postgresql9.6</code> </p>"
+          "documentation":"<p>The DB cluster parameter group family name. A DB cluster parameter group can be associated with one and only one DB cluster parameter group family, and can be applied only to a DB cluster running a database engine and engine version compatible with that DB cluster parameter group family.</p> <p> <b>Aurora MySQL</b> </p> <p>Example: <code>aurora5.6</code>, <code>aurora-mysql5.7</code> </p> <p> <b>Aurora PostgreSQL</b> </p> <p>Example: <code>aurora-postgresql9.6</code> </p> <p>To list all of the available parameter group families for a DB engine, use the following command:</p> <p> <code>aws rds describe-db-engine-versions --query \"DBEngineVersions[].DBParameterGroupFamily\" --engine &lt;engine&gt;</code> </p> <p>For example, to list all of the available parameter group families for the Aurora PostgreSQL DB engine, use the following command:</p> <p> <code>aws rds describe-db-engine-versions --query \"DBEngineVersions[].DBParameterGroupFamily\" --engine aurora-postgresql</code> </p> <note> <p>The output contains duplicates.</p> </note> <p>The following are the valid DB engine values:</p> <ul> <li> <p> <code>aurora</code> (for MySQL 5.6-compatible Aurora)</p> </li> <li> <p> <code>aurora-mysql</code> (for MySQL 5.7-compatible Aurora)</p> </li> <li> <p> <code>aurora-postgresql</code> </p> </li> </ul>"
         },
         "Description":{
           "shape":"String",
@@ -3511,7 +3584,7 @@
         },
         "PreferredBackupWindow":{
           "shape":"String",
-          "documentation":"<p> The daily time range during which automated backups are created if automated backups are enabled, using the <code>BackupRetentionPeriod</code> parameter. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html#USER_WorkingWithAutomatedBackups.BackupWindow\">The Backup Window</a> in the <i>Amazon RDS User Guide</i>. </p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The daily time range for creating automated backups is managed by the DB cluster.</p> <p> The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. To see the time blocks available, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Maintenance.html#AdjustingTheMaintenanceWindow\"> Adjusting the Preferred DB Instance Maintenance Window</a> in the <i>Amazon RDS User Guide</i>. </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
+          "documentation":"<p> The daily time range during which automated backups are created if automated backups are enabled, using the <code>BackupRetentionPeriod</code> parameter. The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html#USER_WorkingWithAutomatedBackups.BackupWindow\">Backup window</a> in the <i>Amazon RDS User Guide</i>. </p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The daily time range for creating automated backups is managed by the DB cluster.</p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
         },
         "Port":{
           "shape":"IntegerOptional",
@@ -3808,7 +3881,7 @@
         },
         "DBParameterGroupFamily":{
           "shape":"String",
-          "documentation":"<p>The DB parameter group family name. A DB parameter group can be associated with one and only one DB parameter group family, and can be applied only to a DB instance running a database engine and engine version compatible with that DB parameter group family.</p> <p>To list all of the available parameter group families, use the following command:</p> <p> <code>aws rds describe-db-engine-versions --query \"DBEngineVersions[].DBParameterGroupFamily\"</code> </p> <note> <p>The output contains duplicates.</p> </note>"
+          "documentation":"<p>The DB parameter group family name. A DB parameter group can be associated with one and only one DB parameter group family, and can be applied only to a DB instance running a database engine and engine version compatible with that DB parameter group family.</p> <p>To list all of the available parameter group families for a DB engine, use the following command:</p> <p> <code>aws rds describe-db-engine-versions --query \"DBEngineVersions[].DBParameterGroupFamily\" --engine &lt;engine&gt;</code> </p> <p>For example, to list all of the available parameter group families for the MySQL DB engine, use the following command:</p> <p> <code>aws rds describe-db-engine-versions --query \"DBEngineVersions[].DBParameterGroupFamily\" --engine mysql</code> </p> <note> <p>The output contains duplicates.</p> </note> <p>The following are the valid DB engine values:</p> <ul> <li> <p> <code>aurora</code> (for MySQL 5.6-compatible Aurora)</p> </li> <li> <p> <code>aurora-mysql</code> (for MySQL 5.7-compatible Aurora)</p> </li> <li> <p> <code>aurora-postgresql</code> </p> </li> <li> <p> <code>mariadb</code> </p> </li> <li> <p> <code>mysql</code> </p> </li> <li> <p> <code>oracle-ee</code> </p> </li> <li> <p> <code>oracle-se2</code> </p> </li> <li> <p> <code>oracle-se1</code> </p> </li> <li> <p> <code>oracle-se</code> </p> </li> <li> <p> <code>postgres</code> </p> </li> <li> <p> <code>sqlserver-ee</code> </p> </li> <li> <p> <code>sqlserver-se</code> </p> </li> <li> <p> <code>sqlserver-ex</code> </p> </li> <li> <p> <code>sqlserver-web</code> </p> </li> </ul>"
         },
         "Description":{
           "shape":"String",
@@ -3825,6 +3898,46 @@
       "type":"structure",
       "members":{
         "DBParameterGroup":{"shape":"DBParameterGroup"}
+      }
+    },
+    "CreateDBProxyEndpointRequest":{
+      "type":"structure",
+      "required":[
+        "DBProxyName",
+        "DBProxyEndpointName",
+        "VpcSubnetIds"
+      ],
+      "members":{
+        "DBProxyName":{
+          "shape":"DBProxyName",
+          "documentation":"<p>The name of the DB proxy associated with the DB proxy endpoint that you create.</p>"
+        },
+        "DBProxyEndpointName":{
+          "shape":"DBProxyEndpointName",
+          "documentation":"<p>The name of the DB proxy endpoint to create.</p>"
+        },
+        "VpcSubnetIds":{
+          "shape":"StringList",
+          "documentation":"<p>The VPC subnet IDs for the DB proxy endpoint that you create. You can specify a different set of subnet IDs than for the original DB proxy.</p>"
+        },
+        "VpcSecurityGroupIds":{
+          "shape":"StringList",
+          "documentation":"<p>The VPC security group IDs for the DB proxy endpoint that you create. You can specify a different set of security group IDs than for the original DB proxy. The default is the default security group for the VPC.</p>"
+        },
+        "TargetRole":{
+          "shape":"DBProxyEndpointTargetRole",
+          "documentation":"<p>A value that indicates whether the DB proxy endpoint can be used for read/write or read-only operations. The default is <code>READ_WRITE</code>.</p>"
+        },
+        "Tags":{"shape":"TagList"}
+      }
+    },
+    "CreateDBProxyEndpointResponse":{
+      "type":"structure",
+      "members":{
+        "DBProxyEndpoint":{
+          "shape":"DBProxyEndpoint",
+          "documentation":"<p>The <code>DBProxyEndpoint</code> object that is created by the API operation. The DB proxy endpoint that you create might provide capabilities such as read/write or read-only operations, or using a different VPC than the proxy's default VPC.</p>"
+        }
       }
     },
     "CreateDBProxyRequest":{
@@ -3999,7 +4112,7 @@
         },
         "SourceIds":{
           "shape":"SourceIdsList",
-          "documentation":"<p>The list of identifiers of the event sources for which events are returned. If not specified, then all sources are included in the response. An identifier must begin with a letter and must contain only ASCII letters, digits, and hyphens. It can't end with a hyphen or contain two consecutive hyphens.</p> <p>Constraints:</p> <ul> <li> <p>If a <code>SourceIds</code> value is supplied, <code>SourceType</code> must also be provided.</p> </li> <li> <p>If the source type is a DB instance, a <code>DBInstanceIdentifier</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB cluster, a <code>DBClusterIdentifier</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB parameter group, a <code>DBParameterGroupName</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB security group, a <code>DBSecurityGroupName</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB snapshot, a <code>DBSnapshotIdentifier</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB cluster snapshot, a <code>DBClusterSnapshotIdentifier</code> value must be supplied.</p> </li> </ul>"
+          "documentation":"<p>The list of identifiers of the event sources for which events are returned. If not specified, then all sources are included in the response. An identifier must begin with a letter and must contain only ASCII letters, digits, and hyphens. It can't end with a hyphen or contain two consecutive hyphens.</p> <p>Constraints:</p> <ul> <li> <p>If <code>SourceIds</code> are supplied, <code>SourceType</code> must also be provided.</p> </li> <li> <p>If the source type is a DB instance, a <code>DBInstanceIdentifier</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB cluster, a <code>DBClusterIdentifier</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB parameter group, a <code>DBParameterGroupName</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB security group, a <code>DBSecurityGroupName</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB snapshot, a <code>DBSnapshotIdentifier</code> value must be supplied.</p> </li> <li> <p>If the source type is a DB cluster snapshot, a <code>DBClusterSnapshotIdentifier</code> value must be supplied.</p> </li> </ul>"
         },
         "Enabled":{
           "shape":"BooleanOptional",
@@ -5130,7 +5243,7 @@
         },
         "DBInstanceStatus":{
           "shape":"String",
-          "documentation":"<p>Specifies the current state of this database.</p> <p>For information about DB instance statuses, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.DBInstance.Status.html\">DB Instance Status</a> in the <i>Amazon RDS User Guide.</i> </p>"
+          "documentation":"<p>Specifies the current state of this database.</p> <p>For information about DB instance statuses, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/accessing-monitoring.html#Overview.DBInstance.Status\">Viewing DB instance status</a> in the <i>Amazon RDS User Guide.</i> </p>"
         },
         "MasterUsername":{
           "shape":"String",
@@ -5837,6 +5950,10 @@
           "shape":"String",
           "documentation":"<p>The engine family applies to MySQL and PostgreSQL for both RDS and Aurora.</p>"
         },
+        "VpcId":{
+          "shape":"String",
+          "documentation":"<p>Provides the VPC ID of the DB proxy.</p>"
+        },
         "VpcSecurityGroupIds":{
           "shape":"StringList",
           "documentation":"<p>Provides a list of VPC security groups that the proxy belongs to.</p>"
@@ -5855,7 +5972,7 @@
         },
         "Endpoint":{
           "shape":"String",
-          "documentation":"<p>The endpoint that you can use to connect to the proxy. You include the endpoint value in the connection string for a database client application.</p>"
+          "documentation":"<p>The endpoint that you can use to connect to the DB proxy. You include the endpoint value in the connection string for a database client application.</p>"
         },
         "RequireTLS":{
           "shape":"Boolean",
@@ -5886,15 +6003,135 @@
       },
       "documentation":"<p>The specified proxy name must be unique for all proxies owned by your AWS account in the specified AWS Region.</p>",
       "error":{
-        "code":"DBProxyTargetExistsFault",
+        "code":"DBProxyAlreadyExistsFault",
         "httpStatusCode":400,
         "senderFault":true
       },
       "exception":true
     },
+    "DBProxyEndpoint":{
+      "type":"structure",
+      "members":{
+        "DBProxyEndpointName":{
+          "shape":"String",
+          "documentation":"<p>The name for the DB proxy endpoint. An identifier must begin with a letter and must contain only ASCII letters, digits, and hyphens; it can't end with a hyphen or contain two consecutive hyphens.</p>"
+        },
+        "DBProxyEndpointArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the DB proxy endpoint.</p>"
+        },
+        "DBProxyName":{
+          "shape":"String",
+          "documentation":"<p>The identifier for the DB proxy that is associated with this DB proxy endpoint.</p>"
+        },
+        "Status":{
+          "shape":"DBProxyEndpointStatus",
+          "documentation":"<p>The current status of this DB proxy endpoint. A status of <code>available</code> means the endpoint is ready to handle requests. Other values indicate that you must wait for the endpoint to be ready, or take some action to resolve an issue.</p>"
+        },
+        "VpcId":{
+          "shape":"String",
+          "documentation":"<p>Provides the VPC ID of the DB proxy endpoint.</p>"
+        },
+        "VpcSecurityGroupIds":{
+          "shape":"StringList",
+          "documentation":"<p>Provides a list of VPC security groups that the DB proxy endpoint belongs to.</p>"
+        },
+        "VpcSubnetIds":{
+          "shape":"StringList",
+          "documentation":"<p>The EC2 subnet IDs for the DB proxy endpoint.</p>"
+        },
+        "Endpoint":{
+          "shape":"String",
+          "documentation":"<p>The endpoint that you can use to connect to the DB proxy. You include the endpoint value in the connection string for a database client application.</p>"
+        },
+        "CreatedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date and time when the DB proxy endpoint was first created.</p>"
+        },
+        "TargetRole":{
+          "shape":"DBProxyEndpointTargetRole",
+          "documentation":"<p>A value that indicates whether the DB proxy endpoint can be used for read/write or read-only operations.</p>"
+        },
+        "IsDefault":{
+          "shape":"Boolean",
+          "documentation":"<p>A value that indicates whether this endpoint is the default endpoint for the associated DB proxy. Default DB proxy endpoints always have read/write capability. Other endpoints that you associate with the DB proxy can be either read/write or read-only.</p>"
+        }
+      },
+      "documentation":"<p>The data structure representing an endpoint associated with a DB proxy. RDS automatically creates one endpoint for each DB proxy. For Aurora DB clusters, you can associate additional endpoints with the same DB proxy. These endpoints can be read/write or read-only. They can also reside in different VPCs than the associated DB proxy.</p> <p>This data type is used as a response element in the <code>DescribeDBProxyEndpoints</code> operation.</p>"
+    },
+    "DBProxyEndpointAlreadyExistsFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The specified DB proxy endpoint name must be unique for all DB proxy endpoints owned by your AWS account in the specified AWS Region.</p>",
+      "error":{
+        "code":"DBProxyEndpointAlreadyExistsFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "DBProxyEndpointList":{
+      "type":"list",
+      "member":{"shape":"DBProxyEndpoint"}
+    },
+    "DBProxyEndpointName":{
+      "type":"string",
+      "max":63,
+      "min":1,
+      "pattern":"[a-zA-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"
+    },
+    "DBProxyEndpointNotFoundFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The DB proxy endpoint doesn't exist.</p>",
+      "error":{
+        "code":"DBProxyEndpointNotFoundFault",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "DBProxyEndpointQuotaExceededFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The DB proxy already has the maximum number of endpoints.</p>",
+      "error":{
+        "code":"DBProxyEndpointQuotaExceededFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "DBProxyEndpointStatus":{
+      "type":"string",
+      "enum":[
+        "available",
+        "modifying",
+        "incompatible-network",
+        "insufficient-resource-limits",
+        "creating",
+        "deleting"
+      ]
+    },
+    "DBProxyEndpointTargetRole":{
+      "type":"string",
+      "enum":[
+        "READ_WRITE",
+        "READ_ONLY"
+      ]
+    },
     "DBProxyList":{
       "type":"list",
       "member":{"shape":"DBProxy"}
+    },
+    "DBProxyName":{
+      "type":"string",
+      "max":63,
+      "min":1,
+      "pattern":"[a-zA-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"
     },
     "DBProxyNotFoundFault":{
       "type":"structure",
@@ -5960,6 +6197,10 @@
         "Type":{
           "shape":"TargetType",
           "documentation":"<p>Specifies the kind of database, such as an RDS DB instance or an Aurora DB cluster, that the target represents.</p>"
+        },
+        "Role":{
+          "shape":"TargetRole",
+          "documentation":"<p>A value that indicates whether the target of the proxy can be used for read/write or read-only operations.</p>"
         },
         "TargetHealth":{
           "shape":"TargetHealth",
@@ -6651,6 +6892,25 @@
       },
       "documentation":"<p/>"
     },
+    "DeleteDBProxyEndpointRequest":{
+      "type":"structure",
+      "required":["DBProxyEndpointName"],
+      "members":{
+        "DBProxyEndpointName":{
+          "shape":"DBProxyEndpointName",
+          "documentation":"<p>The name of the DB proxy endpoint to delete.</p>"
+        }
+      }
+    },
+    "DeleteDBProxyEndpointResponse":{
+      "type":"structure",
+      "members":{
+        "DBProxyEndpoint":{
+          "shape":"DBProxyEndpoint",
+          "documentation":"<p>The data structure representing the details of the DB proxy endpoint that you delete.</p>"
+        }
+      }
+    },
     "DeleteDBProxyRequest":{
       "type":"structure",
       "required":["DBProxyName"],
@@ -7245,7 +7505,7 @@
       "members":{
         "DBProxyName":{
           "shape":"String",
-          "documentation":"<p>The name of the DB proxy.</p>"
+          "documentation":"<p>The name of the DB proxy. If you omit this parameter, the output includes information about all DB proxies owned by your AWS account ID.</p>"
         },
         "Filters":{
           "shape":"FilterList",
@@ -7267,6 +7527,44 @@
         "DBProxies":{
           "shape":"DBProxyList",
           "documentation":"<p>A return value representing an arbitrary number of <code>DBProxy</code> data structures.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p> An optional pagination token provided by a previous request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>. </p>"
+        }
+      }
+    },
+    "DescribeDBProxyEndpointsRequest":{
+      "type":"structure",
+      "members":{
+        "DBProxyName":{
+          "shape":"DBProxyName",
+          "documentation":"<p>The name of the DB proxy whose endpoints you want to describe. If you omit this parameter, the output includes information about all DB proxy endpoints associated with all your DB proxies.</p>"
+        },
+        "DBProxyEndpointName":{
+          "shape":"DBProxyEndpointName",
+          "documentation":"<p>The name of a DB proxy endpoint to describe. If you omit this parameter, the output includes information about all DB proxy endpoints associated with the specified proxy.</p>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>This parameter is not currently supported.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p> An optional pagination token provided by a previous request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>. </p>"
+        },
+        "MaxRecords":{
+          "shape":"MaxRecords",
+          "documentation":"<p>The maximum number of records to include in the response. If more records exist than the specified <code>MaxRecords</code> value, a pagination token called a marker is included in the response so that the remaining results can be retrieved. </p> <p>Default: 100</p> <p>Constraints: Minimum 20, maximum 100.</p>"
+        }
+      }
+    },
+    "DescribeDBProxyEndpointsResponse":{
+      "type":"structure",
+      "members":{
+        "DBProxyEndpoints":{
+          "shape":"DBProxyEndpointList",
+          "documentation":"<p>The list of <code>ProxyEndpoint</code> objects returned by the API operation.</p>"
         },
         "Marker":{
           "shape":"String",
@@ -8949,6 +9247,18 @@
       },
       "exception":true
     },
+    "InvalidDBProxyEndpointStateFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>You can't perform this operation while the DB proxy endpoint is in a particular state.</p>",
+      "error":{
+        "code":"InvalidDBProxyEndpointStateFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "InvalidDBProxyStateFault":{
       "type":"structure",
       "members":{
@@ -9309,7 +9619,7 @@
         },
         "PreferredBackupWindow":{
           "shape":"String",
-          "documentation":"<p>The daily time range during which automated backups are created if automated backups are enabled, using the <code>BackupRetentionPeriod</code> parameter. </p> <p>The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. To see the time blocks available, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_UpgradeDBInstance.Maintenance.html#AdjustingTheMaintenanceWindow.Aurora\"> Adjusting the Preferred DB Cluster Maintenance Window</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
+          "documentation":"<p>The daily time range during which automated backups are created if automated backups are enabled, using the <code>BackupRetentionPeriod</code> parameter. </p> <p>The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. To view the time blocks available, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Managing.Backups.html#Aurora.Managing.Backups.BackupWindow\"> Backup window</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
         },
         "PreferredMaintenanceWindow":{
           "shape":"String",
@@ -9383,7 +9693,7 @@
         },
         "Parameters":{
           "shape":"ParametersList",
-          "documentation":"<p>A list of parameters in the DB cluster parameter group to modify.</p>"
+          "documentation":"<p>A list of parameters in the DB cluster parameter group to modify.</p> <p>Valid Values (for the application method): <code>immediate | pending-reboot</code> </p> <note> <p>You can use the <code>immediate</code> value with dynamic parameters only. You can use the <code>pending-reboot</code> value for both dynamic and static parameters.</p> <p>When the application method is <code>immediate</code>, changes to dynamic parameters are applied immediately to the DB clusters associated with the parameter group. When the application method is <code>pending-reboot</code>, changes to dynamic and static parameters are applied after a reboot without failover to the DB clusters associated with the parameter group.</p> </note>"
         }
       },
       "documentation":"<p/>"
@@ -9468,15 +9778,15 @@
         },
         "BackupRetentionPeriod":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The number of days to retain automated backups. Setting this parameter to a positive number enables backups. Setting this parameter to 0 disables automated backups.</p> <p>Changing this parameter can result in an outage if you change from 0 to a non-zero value or from a non-zero value to 0. These changes are applied during the next maintenance window unless the <code>ApplyImmediately</code> parameter is enabled for this request. If you change the parameter from one non-zero value to another non-zero value, the change is asynchronously applied as soon as possible.</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The retention period for automated backups is managed by the DB cluster. For more information, see <code>ModifyDBCluster</code>.</p> <p>Default: Uses existing setting</p> <p>Constraints:</p> <ul> <li> <p>Must be a value from 0 to 35</p> </li> <li> <p>Can be specified for a MySQL read replica only if the source is running MySQL 5.6 or later</p> </li> <li> <p>Can be specified for a PostgreSQL read replica only if the source is running PostgreSQL 9.3.5</p> </li> <li> <p>Can't be set to 0 if the DB instance is a source to read replicas</p> </li> </ul>"
+          "documentation":"<p>The number of days to retain automated backups. Setting this parameter to a positive number enables backups. Setting this parameter to 0 disables automated backups.</p> <note> <p>Enabling and disabling backups can result in a brief I/O suspension that lasts from a few seconds to a few minutes, depending on the size and class of your DB instance.</p> </note> <p>These changes are applied during the next maintenance window unless the <code>ApplyImmediately</code> parameter is enabled for this request. If you change the parameter from one non-zero value to another non-zero value, the change is asynchronously applied as soon as possible.</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The retention period for automated backups is managed by the DB cluster. For more information, see <code>ModifyDBCluster</code>.</p> <p>Default: Uses existing setting</p> <p>Constraints:</p> <ul> <li> <p>Must be a value from 0 to 35</p> </li> <li> <p>Can be specified for a MySQL read replica only if the source is running MySQL 5.6 or later</p> </li> <li> <p>Can be specified for a PostgreSQL read replica only if the source is running PostgreSQL 9.3.5</p> </li> <li> <p>Can't be set to 0 if the DB instance is a source to read replicas</p> </li> </ul>"
         },
         "PreferredBackupWindow":{
           "shape":"String",
-          "documentation":"<p> The daily time range during which automated backups are created if automated backups are enabled, as determined by the <code>BackupRetentionPeriod</code> parameter. Changing this parameter doesn't result in an outage and the change is asynchronously applied as soon as possible. </p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The daily time range for creating automated backups is managed by the DB cluster. For more information, see <code>ModifyDBCluster</code>.</p> <p>Constraints:</p> <ul> <li> <p>Must be in the format hh24:mi-hh24:mi</p> </li> <li> <p>Must be in Universal Time Coordinated (UTC)</p> </li> <li> <p>Must not conflict with the preferred maintenance window</p> </li> <li> <p>Must be at least 30 minutes</p> </li> </ul>"
+          "documentation":"<p> The daily time range during which automated backups are created if automated backups are enabled, as determined by the <code>BackupRetentionPeriod</code> parameter. Changing this parameter doesn't result in an outage and the change is asynchronously applied as soon as possible. The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html#USER_WorkingWithAutomatedBackups.BackupWindow\">Backup window</a> in the <i>Amazon RDS User Guide.</i> </p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The daily time range for creating automated backups is managed by the DB cluster. For more information, see <code>ModifyDBCluster</code>.</p> <p>Constraints:</p> <ul> <li> <p>Must be in the format hh24:mi-hh24:mi</p> </li> <li> <p>Must be in Universal Time Coordinated (UTC)</p> </li> <li> <p>Must not conflict with the preferred maintenance window</p> </li> <li> <p>Must be at least 30 minutes</p> </li> </ul>"
         },
         "PreferredMaintenanceWindow":{
           "shape":"String",
-          "documentation":"<p>The weekly time range (in UTC) during which system maintenance can occur, which might result in an outage. Changing this parameter doesn't result in an outage, except in the following situation, and the change is asynchronously applied as soon as possible. If there are pending actions that cause a reboot, and the maintenance window is changed to include the current time, then changing this parameter will cause a reboot of the DB instance. If moving this window to the current time, there must be at least 30 minutes between the current time and end of the window to ensure pending changes are applied.</p> <p>Default: Uses existing setting</p> <p>Format: ddd:hh24:mi-ddd:hh24:mi</p> <p>Valid Days: Mon | Tue | Wed | Thu | Fri | Sat | Sun</p> <p>Constraints: Must be at least 30 minutes</p>"
+          "documentation":"<p>The weekly time range (in UTC) during which system maintenance can occur, which might result in an outage. Changing this parameter doesn't result in an outage, except in the following situation, and the change is asynchronously applied as soon as possible. If there are pending actions that cause a reboot, and the maintenance window is changed to include the current time, then changing this parameter will cause a reboot of the DB instance. If moving this window to the current time, there must be at least 30 minutes between the current time and end of the window to ensure pending changes are applied.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Maintenance.html#Concepts.DBMaintenance\">Amazon RDS Maintenance Window</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Default: Uses existing setting</p> <p>Format: ddd:hh24:mi-ddd:hh24:mi</p> <p>Valid Days: Mon | Tue | Wed | Thu | Fri | Sat | Sun</p> <p>Constraints: Must be at least 30 minutes</p>"
         },
         "MultiAZ":{
           "shape":"BooleanOptional",
@@ -9632,10 +9942,37 @@
         },
         "Parameters":{
           "shape":"ParametersList",
-          "documentation":"<p>An array of parameter names, values, and the apply method for the parameter update. At least one parameter name, value, and apply method must be supplied; later arguments are optional. A maximum of 20 parameters can be modified in a single request.</p> <p>Valid Values (for the application method): <code>immediate | pending-reboot</code> </p> <note> <p>You can use the immediate value with dynamic parameters only. You can use the pending-reboot value for both dynamic and static parameters, and changes are applied when you reboot the DB instance without failover.</p> </note>"
+          "documentation":"<p>An array of parameter names, values, and the application methods for the parameter update. At least one parameter name, value, and application method method must be supplied; later arguments are optional. A maximum of 20 parameters can be modified in a single request.</p> <p>Valid Values (for the application method): <code>immediate | pending-reboot</code> </p> <note> <p>You can use the <code>immediate</code> value with dynamic parameters only. You can use the <code>pending-reboot</code> value for both dynamic and static parameters.</p> <p>When the application method is <code>immediate</code>, changes to dynamic parameters are applied immediately to the DB instances associated with the parameter group. When the application method is <code>pending-reboot</code>, changes to dynamic and static parameters are applied after a reboot without failover to the DB instances associated with the parameter group.</p> </note>"
         }
       },
       "documentation":"<p/>"
+    },
+    "ModifyDBProxyEndpointRequest":{
+      "type":"structure",
+      "required":["DBProxyEndpointName"],
+      "members":{
+        "DBProxyEndpointName":{
+          "shape":"DBProxyEndpointName",
+          "documentation":"<p>The name of the DB proxy sociated with the DB proxy endpoint that you want to modify.</p>"
+        },
+        "NewDBProxyEndpointName":{
+          "shape":"DBProxyEndpointName",
+          "documentation":"<p>The new identifier for the <code>DBProxyEndpoint</code>. An identifier must begin with a letter and must contain only ASCII letters, digits, and hyphens; it can't end with a hyphen or contain two consecutive hyphens.</p>"
+        },
+        "VpcSecurityGroupIds":{
+          "shape":"StringList",
+          "documentation":"<p>The VPC security group IDs for the DB proxy endpoint. When the DB proxy endpoint uses a different VPC than the original proxy, you also specify a different set of security group IDs than for the original proxy.</p>"
+        }
+      }
+    },
+    "ModifyDBProxyEndpointResponse":{
+      "type":"structure",
+      "members":{
+        "DBProxyEndpoint":{
+          "shape":"DBProxyEndpoint",
+          "documentation":"<p>The <code>DBProxyEndpoint</code> object representing the new settings for the DB proxy endpoint.</p>"
+        }
+      }
     },
     "ModifyDBProxyRequest":{
       "type":"structure",
@@ -11362,7 +11699,7 @@
         },
         "PreferredBackupWindow":{
           "shape":"String",
-          "documentation":"<p>The daily time range during which automated backups are created if automated backups are enabled using the <code>BackupRetentionPeriod</code> parameter. </p> <p>The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. To see the time blocks available, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_UpgradeDBInstance.Maintenance.html#AdjustingTheMaintenanceWindow.Aurora\"> Adjusting the Preferred Maintenance Window</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
+          "documentation":"<p>The daily time range during which automated backups are created if automated backups are enabled using the <code>BackupRetentionPeriod</code> parameter. </p> <p>The default is a 30-minute window selected at random from an 8-hour block of time for each AWS Region. To view the time blocks available, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Managing.Backups.html#Aurora.Managing.Backups.BackupWindow\"> Backup window</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
         },
         "PreferredMaintenanceWindow":{
           "shape":"String",
@@ -11826,7 +12163,7 @@
         },
         "PreferredBackupWindow":{
           "shape":"String",
-          "documentation":"<p>The time range each day during which automated backups are created if automated backups are enabled. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html#USER_WorkingWithAutomatedBackups.BackupWindow\">The Backup Window</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
+          "documentation":"<p>The time range each day during which automated backups are created if automated backups are enabled. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html#USER_WorkingWithAutomatedBackups.BackupWindow\">Backup window</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Must be in the format <code>hh24:mi-hh24:mi</code>.</p> </li> <li> <p>Must be in Universal Coordinated Time (UTC).</p> </li> <li> <p>Must not conflict with the preferred maintenance window.</p> </li> <li> <p>Must be at least 30 minutes.</p> </li> </ul>"
         },
         "Port":{
           "shape":"IntegerOptional",
@@ -12198,7 +12535,7 @@
         },
         "SecondsUntilAutoPause":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The time, in seconds, before an Aurora DB cluster in <code>serverless</code> mode is paused.</p>"
+          "documentation":"<p>The time, in seconds, before an Aurora DB cluster in <code>serverless</code> mode is paused.</p> <p>Specify a value between 300 and 86,400 seconds.</p>"
         },
         "TimeoutAction":{
           "shape":"String",
@@ -12753,12 +13090,21 @@
         "UNREACHABLE",
         "CONNECTION_FAILED",
         "AUTH_FAILURE",
-        "PENDING_PROXY_CAPACITY"
+        "PENDING_PROXY_CAPACITY",
+        "INVALID_REPLICATION_STATE"
       ]
     },
     "TargetList":{
       "type":"list",
       "member":{"shape":"DBProxyTarget"}
+    },
+    "TargetRole":{
+      "type":"string",
+      "enum":[
+        "READ_WRITE",
+        "READ_ONLY",
+        "UNKNOWN"
+      ]
     },
     "TargetState":{
       "type":"string",

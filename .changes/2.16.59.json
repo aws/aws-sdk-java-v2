@@ -1,0 +1,30 @@
+{
+    "version": "2.16.59",
+    "date": "2021-05-07",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue where an async waiter failed to match exception when the exception was wrapped with CompletionException. See [#2460](https://github.com/aws/aws-sdk-java-v2/issues/2460)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adds tagging support for Connect APIs CreateIntegrationAssociation and CreateUseCase."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "Enforcing UUID style for parameters that are already in UUID format today. Documentation specifying eventual consistency of lookoutmetrics resources."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "This release adds Tag Based Access Control to AWS Lake Formation service"
+        }
+    ]
+}

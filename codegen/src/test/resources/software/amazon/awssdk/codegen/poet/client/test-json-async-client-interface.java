@@ -5,6 +5,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -44,8 +46,16 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
+@SdkPublicApi
+@ThreadSafe
 public interface JsonAsyncClient extends SdkClient {
     String SERVICE_NAME = "json-service";
+
+    /**
+     * Value for looking up the service's metadata from the
+     * {@link software.amazon.awssdk.regions.ServiceMetadataProvider}.
+     */
+    String SERVICE_METADATA_ID = "json-service-endpoint";
 
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
@@ -83,7 +93,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.APostOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
      */
     default CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
@@ -116,7 +126,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.APostOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
      */
     default CompletableFuture<APostOperationResponse> aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
@@ -143,7 +153,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.APostOperationWithOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
@@ -178,7 +188,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.APostOperationWithOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
@@ -203,7 +213,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
@@ -233,7 +243,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperation(
@@ -260,7 +270,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperationWithOnlyInput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyInput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyInput"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
@@ -292,7 +302,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperationWithOnlyInput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyInput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyInput"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
@@ -320,7 +330,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperationWithOnlyOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyOutput"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
@@ -352,7 +362,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.EventStreamOperationWithOnlyOutput
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyOutput"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyOutput"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
@@ -383,7 +393,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.GetWithoutRequiredMembers
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
@@ -418,7 +428,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.GetWithoutRequiredMembers
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
@@ -444,7 +454,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.OperationWithChecksumRequired
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
@@ -475,7 +485,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.OperationWithChecksumRequired
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithChecksumRequired"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
@@ -501,7 +511,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
@@ -532,7 +542,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
@@ -557,7 +567,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey() {
@@ -632,7 +642,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator() {
@@ -708,7 +718,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
@@ -791,7 +801,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
@@ -817,7 +827,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
@@ -848,7 +858,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
@@ -926,7 +936,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
@@ -1009,7 +1019,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
@@ -1039,7 +1049,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
@@ -1074,7 +1084,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
@@ -1104,7 +1114,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
@@ -1139,7 +1149,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
@@ -1174,7 +1184,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
@@ -1215,7 +1225,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
@@ -1252,7 +1262,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOutputOperationResponse> streamingInputOutputOperation(
@@ -1292,7 +1302,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingInputOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOutputOperationResponse> streamingInputOutputOperation(
@@ -1324,7 +1334,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
@@ -1360,7 +1370,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
@@ -1390,7 +1400,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
@@ -1424,7 +1434,7 @@ public interface JsonAsyncClient extends SdkClient {
      *         of this type.</li>
      *         </ul>
      * @sample JsonAsyncClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(

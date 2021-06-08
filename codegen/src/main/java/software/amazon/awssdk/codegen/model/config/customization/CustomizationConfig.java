@@ -187,6 +187,8 @@ public class CustomizationConfig {
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
+    private String userAgent;
+
     private CustomizationConfig() {
     }
 
@@ -468,6 +470,19 @@ public class CustomizationConfig {
 
     public CustomizationConfig withUnderscoresInShapeNameBehavior(UnderscoresInNameBehavior behavior) {
         this.underscoresInNameBehavior = behavior;
+        return this;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public CustomizationConfig withUserAgent(String userAgent) {
+        this.userAgent = userAgent;
         return this;
     }
 }

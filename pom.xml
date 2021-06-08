@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.16.10-SNAPSHOT</version>
+    <version>2.16.80-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -86,61 +86,60 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.16.9</awsjavasdk.previous.version>
-        <jackson.version>2.12.1</jackson.version>
-        <jackson.databind.version>2.12.1</jackson.databind.version>
-        <jacksonjr.version>2.11.2</jacksonjr.version>
+        <awsjavasdk.previous.version>2.16.79</awsjavasdk.previous.version>
+        <jackson.version>2.12.3</jackson.version>
+        <jackson.databind.version>2.12.3</jackson.databind.version>
+        <jacksonjr.version>2.12.3</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <ion.java.version>1.2.0</ion.java.version>
-        <commons.lang.version>3.4</commons.lang.version>
+        <commons.lang.version>3.12.0</commons.lang.version>
         <wiremock.version>2.18.0</wiremock.version>
-        <slf4j.version>1.7.28</slf4j.version>
+        <slf4j.version>1.7.30</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <commons.io.version>2.5</commons.io.version>
         <equalsverifier.version>3.5</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml#L384 -->
-        <netty.version>4.1.59.Final</netty.version>
-        <unitils.version>3.3</unitils.version>
+        <netty.version>4.1.63.Final</netty.version>
+        <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spotbugs.version>4.1.4</spotbugs.version>
-        <netty-reactive-streams-http.version>2.0.4</netty-reactive-streams-http.version>
-        <freemarker.version>2.3.24-incubating</freemarker.version>
+        <netty-reactive-streams-http.version>2.0.5</netty-reactive-streams-http.version>
         <javapoet.verion>1.13.0</javapoet.verion>
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
         <org.eclipse.text.version>3.5.101</org.eclipse.text.version>
-        <rxjava.version>2.1.9</rxjava.version>
+        <rxjava.version>2.2.21</rxjava.version>
         <commons-codec.verion>1.10</commons-codec.verion>
-        <jmh.version>1.21</jmh.version>
+        <jmh.version>1.29</jmh.version>
         <awscrt.version>0.12.8</awscrt.version>
 
-        <!-- Test dependencies -->
-        <junit.version>4.12</junit.version>
-        <junit5.version>5.4.2</junit5.version>
+        <!--Test dependencies -->
+        <junit.version>4.13.1</junit.version>
+        <junit5.version>5.7.1</junit5.version>
         <hamcrest.version>1.3</hamcrest.version>
         <mockito.version>1.10.19</mockito.version>
         <mockito2.version>2.28.2</mockito2.version>
         <assertj.version>3.8.0</assertj.version>
-        <guava.version>28.2-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
         <jimfs.version>1.1</jimfs.version>
         <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
-        <commons-lang.verson>2.3</commons-lang.verson>
+        <commons-lang.verson>2.6</commons-lang.verson>
         <netty-open-ssl-version>2.0.34.Final</netty-open-ssl-version>
-        <dynamodb-local.version>1.11.477</dynamodb-local.version>
+        <dynamodb-local.version>1.16.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <checkstyle.version>8.38</checkstyle.version>
+        <checkstyle.version>8.42</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
@@ -159,9 +158,6 @@
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.11</httpcomponents.httpcore.version>
-
-        <!-- These properties are used by cucumber tests related code -->
-        <unitils.version>3.3</unitils.version>
 
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.3</reactive-streams.version>
@@ -514,6 +510,11 @@
                         <onlyModified>true</onlyModified>
                         <excludes>
                             <exclude>*.internal.*</exclude>
+                            <exclude>software.amazon.awssdk.core.client.handler.ClientExecutionParams</exclude>
+                            <exclude>software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute</exclude>
+                            <exclude>software.amazon.awssdk.awscore.eventstream.*</exclude>
+                            <exclude>software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory</exclude>
+                            <exclude>software.amazon.awssdk.services.ec2.*</exclude>
                         </excludes>
 
                         <excludeModules>
@@ -781,6 +782,9 @@
                             <use>false</use>
                             <notree>true</notree>
                             <nodeprecatedlist>true</nodeprecatedlist>
+                            <additionalJOptions>
+                                <additionalJOption>--allow-script-in-comments</additionalJOption>
+                            </additionalJOptions>
                             <windowtitle>AWS SDK for Java - ${awsjavasdk.version}</windowtitle>
                             <encoding>UTF-8</encoding>
                             <docencoding>UTF-8</docencoding>
@@ -1164,9 +1168,25 @@
                                     <packages>software.amazon.awssdk*</packages>
                                 </group>
                             </groups>
-                            <header><![CDATA[<h1>AWS SDK for Java API Reference - ${project.version}</h1>]]></header>
-                            <footer><![CDATA[&nbsp;]]></footer>
-                            <bottom><![CDATA[<h2 style="float:left;padding-left:8px;clear:both;">Copyright &#169; ${maven.build.timestamp} Amazon Web Services, Inc. All Rights Reserved.</h2>]]></bottom>
+                            <header><![CDATA[<h2>AWS SDK for Java API Reference - ${project.version}</h2>]]></header>
+                            <footer><![CDATA[
+                            <div style="margin:1.2em;"><a id="fdbk" target="_blank">Provide feedback</a></div>
+                            ]]>
+                            </footer>
+                            <bottom><![CDATA[
+                              <span id="awsdocs-legal-zone-copyright"></span>
+                              <script type="text/javascript">document.addEventListener("DOMContentLoaded",()=>{
+                                var a=document.createElement("meta"),b=document.createElement("meta"),c=document.createElement("script"),
+                                h=document.getElementsByTagName("head")[0],l=location.href,f=document.getElementById("fdbk");
+                                a.name="guide-name",a.content="API Reference";b.name="service-name",b.content="AWS SDK for Java";
+                                c.setAttribute("type","text/javascript"),c.setAttribute("src",
+                                "https://docs.aws.amazon.com/assets/js/awsdocs-boot.js");h.appendChild(a);h.appendChild(b);
+                                h.appendChild(c);f.setAttribute("href",
+                                "https://docs-feedback.aws.amazon.com/feedback.jsp?hidden_service_name="+
+                                encodeURI("AWS SDK for Java")+"&topic_url="+encodeURI(l))});
+                              </script>
+                              ]]>
+                            </bottom>
                         </configuration>
                     </plugin>
                 </plugins>

@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchem
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -131,11 +132,58 @@ public interface TableSchema<T> {
      * If attributes are missing from the map, that will not cause an error, however if attributes are found in the
      * map which the mapper does not know how to map, an exception will be thrown.
      *
+     * <p>
+     * If all attribute values in the attributeMap are null, null will be returned. Use {@link #mapToItem(Map, boolean)}
+     * instead if you need to preserve empty object.
+     *
+     * <p>
+     * API Implementors Note:
+     * <p>
+     * {@link #mapToItem(Map, boolean)} must be implemented if {@code preserveEmptyObject} behavior is desired.
+     *
      * @param attributeMap A map of String to {@link AttributeValue} that contains all the raw attributes to map.
      * @return A new instance of a Java object with all the attributes mapped onto it.
      * @throws IllegalArgumentException if any attributes in the map could not be mapped onto the new model object.
+     * @see #mapToItem(Map, boolean)
      */
     T mapToItem(Map<String, AttributeValue> attributeMap);
+
+    /**
+     * Takes a raw DynamoDb SDK representation of a record in a table and maps it to a Java object. A new object is
+     * created to fulfil this operation.
+     * <p>
+     * If attributes are missing from the map, that will not cause an error, however if attributes are found in the
+     * map which the mapper does not know how to map, an exception will be thrown.
+     *
+     * <p>
+     * In the scenario where all attribute values in the map are null, it will return null if {@code preserveEmptyObject}
+     * is true. If it's false, an empty object will be returned.
+     *
+     * <p>
+     * Note that {@code preserveEmptyObject} only applies to the top level Java object, if it has nested "empty" objects, they
+     * will be mapped as null. You can use {@link DynamoDbPreserveEmptyObject} to configure this behavior for nested objects.
+     *
+     * <p>
+     * API Implementors Note:
+     * <p>
+     * This method must be implemented if {@code preserveEmptyObject} behavior is to be supported
+     *
+     * @param attributeMap A map of String to {@link AttributeValue} that contains all the raw attributes to map.
+     * @param preserveEmptyObject whether to initialize this Java object as empty class if all fields are null
+     * @return A new instance of a Java object with all the attributes mapped onto it.
+     * @throws IllegalArgumentException if any attributes in the map could not be mapped onto the new model object.
+     * @throws UnsupportedOperationException if {@code preserveEmptyObject} is not supported in the implementation
+     * @see #mapToItem(Map)
+     */
+    default T mapToItem(Map<String, AttributeValue> attributeMap, boolean preserveEmptyObject) {
+        if (preserveEmptyObject) {
+            throw new UnsupportedOperationException("preserveEmptyObject is not supported. You can set preserveEmptyObject to "
+                                                    + "false to continue to call this operation. If you wish to enable "
+                                                    + "preserveEmptyObject, please reach out to the maintainers of the "
+                                                    + "implementation class for assistance.");
+        }
+        return mapToItem(attributeMap);
+    }
 
     /**
      * Takes a modelled object and converts it into a raw map of {@link AttributeValue} that the DynamoDb low-level

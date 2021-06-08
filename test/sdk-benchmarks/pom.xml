@@ -19,7 +19,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.16.10-SNAPSHOT</version>
+        <version>2.16.80-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -35,7 +35,7 @@
         <!--
             JMH version to use with this project.
           -->
-        <jmh.version>1.21</jmh.version>
+        <jmh.version>1.29</jmh.version>
 
         <!--
             Java source/target to use for compilation.
@@ -48,8 +48,8 @@
         <uberjar.name>benchmarks</uberjar.name>
 
         <sdk-v1.version>1.11.404</sdk-v1.version>
-        <jackson.version>2.10.5</jackson.version>
-        <jackson.databind.version>2.10.5.1</jackson.databind.version>
+        <jackson.version>2.12.3</jackson.version>
+        <jackson.databind.version>2.12.3</jackson.databind.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
 
@@ -219,7 +219,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>2.9.0</version>
+                <version>2.12.3</version>
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
@@ -266,7 +266,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>2.5</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>

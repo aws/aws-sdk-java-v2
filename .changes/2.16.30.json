@@ -1,0 +1,42 @@
+{
+    "version": "2.16.30",
+    "date": "2021-03-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "Added custom request handling and custom response support in rule actions and default action; Added the option to inspect the web request body as parsed and filtered JSON."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "This release adds support for Event Subscriptions to DocumentDB."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "Amazon Location added support for specifying pricing plan information on resources in alignment with our cost model."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "AWS Identity and Access Management GetAccessKeyLastUsed API will throw a custom error if customer public key is not found for access keys."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Allow Dots in Registry and Schema Names for CreateRegistry, CreateSchema; Fixed issue when duplicate keys are present and not returned as part of QuerySchemaVersionMetadata."
+        }
+    ]
+}

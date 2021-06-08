@@ -19,6 +19,7 @@ import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Arrays;
@@ -30,6 +31,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutab
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DocumentImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedImmutableIgnoreNulls;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class ImmutableTableSchemaTest {
@@ -233,12 +236,49 @@ public class ImmutableTableSchemaTest {
             new FlattenedImmutableImmutable.Builder().setId("id-value")
                                                      .setAttribute1("one")
                                                      .setAbstractImmutable(abstractImmutable)
-                                                .build();
+                                                     .build();
 
         Map<String, AttributeValue> itemMap = tableSchema.itemToMap(FlattenedImmutableImmutable, false);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+    }
+
+    @Test
+    public void dynamodbPreserveEmptyObject_shouldInitializeAsEmptyClass() {
+        ImmutableTableSchema<NestedImmutable> tableSchema =
+            ImmutableTableSchema.create(NestedImmutable.class);
+        AbstractImmutable abstractImmutable = AbstractImmutable.builder().build();
+
+        NestedImmutable nestedImmutable =
+            NestedImmutable.builder().integerAttribute(1)
+                           .innerBean(abstractImmutable)
+                           .build();
+
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(nestedImmutable, false);
+        assertThat(itemMap.size(), is(3));
+
+        NestedImmutable result = tableSchema.mapToItem(itemMap);
+        assertThat(result.innerBean(), is(abstractImmutable));
+    }
+
+    @Test
+    public void dynamoDbIgnoreNulls_shouldOmitNulls() {
+        ImmutableTableSchema<NestedImmutableIgnoreNulls> tableSchema =
+            ImmutableTableSchema.create(NestedImmutableIgnoreNulls.class);
+
+        NestedImmutableIgnoreNulls nestedImmutable =
+            NestedImmutableIgnoreNulls.builder()
+                                      .innerBean1(AbstractImmutable.builder().build())
+                                      .innerBean2(AbstractImmutable.builder().build())
+                                      .build();
+
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(nestedImmutable, true);
+        assertThat(itemMap.size(), is(2));
+        AttributeValue expectedMapForInnerBean1 = AttributeValue.builder().m(new HashMap<>()).build();
+
+        assertThat(itemMap, hasEntry("innerBean1", expectedMapForInnerBean1));
+        assertThat(itemMap.get("innerBean2").m(), hasEntry("attribute2", nullAttributeValue()));
     }
 }

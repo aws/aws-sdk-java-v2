@@ -451,6 +451,24 @@
       ],
       "documentation":"<p>Gets information about a device profile.</p>"
     },
+    "GetLogLevelsByResourceTypes":{
+      "name":"GetLogLevelsByResourceTypes",
+      "http":{
+        "method":"GET",
+        "requestUri":"/log-levels",
+        "responseCode":200
+      },
+      "input":{"shape":"GetLogLevelsByResourceTypesRequest"},
+      "output":{"shape":"GetLogLevelsByResourceTypesResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Returns current default log-levels, or log levels by resource types, could be for wireless device log options or wireless gateway log options.</p>"
+    },
     "GetPartnerAccount":{
       "name":"GetPartnerAccount",
       "http":{
@@ -466,6 +484,24 @@
         {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Gets information about a partner account. If <code>PartnerAccountId</code> and <code>PartnerType</code> are <code>null</code>, returns all partner accounts.</p>"
+    },
+    "GetResourceLogLevel":{
+      "name":"GetResourceLogLevel",
+      "http":{
+        "method":"GET",
+        "requestUri":"/log-levels/{ResourceIdentifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetResourceLogLevelRequest"},
+      "output":{"shape":"GetResourceLogLevelResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Fetches the log-level override if any for a given resource-ID and resource-type, coulde be a wireless device or a wireless gateway.</p>"
     },
     "GetServiceEndpoint":{
       "name":"GetServiceEndpoint",
@@ -767,6 +803,60 @@
       ],
       "documentation":"<p>Lists the wireless gateways registered to your AWS account.</p>"
     },
+    "PutResourceLogLevel":{
+      "name":"PutResourceLogLevel",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/log-levels/{ResourceIdentifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"PutResourceLogLevelRequest"},
+      "output":{"shape":"PutResourceLogLevelResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Sets the log-level override for a resource-ID and resource-type, could be a wireless gateway or a wireless device.</p>"
+    },
+    "ResetAllResourceLogLevels":{
+      "name":"ResetAllResourceLogLevels",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/log-levels",
+        "responseCode":204
+      },
+      "input":{"shape":"ResetAllResourceLogLevelsRequest"},
+      "output":{"shape":"ResetAllResourceLogLevelsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Remove log-level overrides if any for all resources (both wireless devices and wireless gateways).</p>"
+    },
+    "ResetResourceLogLevel":{
+      "name":"ResetResourceLogLevel",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/log-levels/{ResourceIdentifier}",
+        "responseCode":204
+      },
+      "input":{"shape":"ResetResourceLogLevelRequest"},
+      "output":{"shape":"ResetResourceLogLevelResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Remove log-level override if any for a specific resource-ID and resource-type, could be a wireless device or a wireless gateway.</p>"
+    },
     "SendDataToWirelessDevice":{
       "name":"SendDataToWirelessDevice",
       "http":{
@@ -855,6 +945,25 @@
         {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Updates properties of a destination.</p>"
+    },
+    "UpdateLogLevelsByResourceTypes":{
+      "name":"UpdateLogLevelsByResourceTypes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/log-levels",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateLogLevelsByResourceTypesRequest"},
+      "output":{"shape":"UpdateLogLevelsByResourceTypesResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Set default log level, or log levels by resource types, could be for wireless device log options or wireless gateways log options. This is to control the log messages that will be displayed in CloudWatch.</p>"
     },
     "UpdatePartnerAccount":{
       "name":"UpdatePartnerAccount",
@@ -990,6 +1099,10 @@
           "shape":"ClientRequestToken",
           "documentation":"<p>Each resource must have a unique client request token. If you try to create a new resource with the same token as a resource that already exists, an exception occurs. If you omit this value, AWS SDKs will automatically generate a unique client request. </p>",
           "idempotencyToken":true
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to attach to the specified resource. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -999,6 +1112,10 @@
         "Sidewalk":{
           "shape":"SidewalkAccountInfo",
           "documentation":"<p>The Sidewalk account credentials.</p>"
+        },
+        "Arn":{
+          "shape":"PartnerAccountArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       }
     },
@@ -1079,11 +1196,44 @@
       }
     },
     "AutoCreateTasks":{"type":"boolean"},
+    "BatteryLevel":{
+      "type":"string",
+      "documentation":"<p>Sidewalk device battery level.</p>",
+      "enum":[
+        "normal",
+        "low",
+        "critical"
+      ]
+    },
+    "CertificateList":{
+      "type":"structure",
+      "required":[
+        "SigningAlg",
+        "Value"
+      ],
+      "members":{
+        "SigningAlg":{
+          "shape":"SigningAlg",
+          "documentation":"<p>The certificate chain algorithm provided by sidewalk.</p>"
+        },
+        "Value":{
+          "shape":"CertificateValue",
+          "documentation":"<p>The value of the chosen sidewalk certificate.</p>"
+        }
+      },
+      "documentation":"<p>List of sidewalk certificates.</p>"
+    },
     "CertificatePEM":{
       "type":"string",
       "max":4096,
       "min":1,
       "pattern":"[^-A-Za-z0-9+/=]|=[^=]|={3,}${1,4096}"
+    },
+    "CertificateValue":{
+      "type":"string",
+      "documentation":"<p>Certificate value.</p>",
+      "max":2048,
+      "min":0
     },
     "ChannelMask":{
       "type":"string",
@@ -1109,12 +1259,25 @@
       "type":"structure",
       "members":{
         "Message":{"shape":"Message"},
-        "ResourceId":{"shape":"ResourceId"},
-        "ResourceType":{"shape":"ResourceType"}
+        "ResourceId":{
+          "shape":"ResourceId",
+          "documentation":"<p>Id of the resource in the conflicting operation.</p>"
+        },
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>Type of the resource in the conflicting operation.</p>"
+        }
       },
       "documentation":"<p>Adding, updating, or deleting the resource can cause an inconsistent state.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
+    },
+    "ConnectionStatus":{
+      "type":"string",
+      "enum":[
+        "Connected",
+        "Disconnected"
+      ]
     },
     "Crc":{
       "type":"long",
@@ -1152,7 +1315,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to attach to the new destination. Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>The tags to attach to the new destination. Tags are metadata that you can use to manage a resource.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1187,7 +1350,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to attach to the new device profile Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>The tags to attach to the new device profile. Tags are metadata that you can use to manage a resource.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1222,7 +1385,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to attach to the new service profile. Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>The tags to attach to the new service profile. Tags are metadata that you can use to manage a resource.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1275,6 +1438,10 @@
         "LoRaWAN":{
           "shape":"LoRaWANDevice",
           "documentation":"<p>The device configuration information to use to create the wireless device.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to attach to the new wireless device. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -1309,7 +1476,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags to attach to the new wireless gateway. Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>The tags to attach to the new wireless gateway. Tags are metadata that you can use to manage a resource.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestToken",
@@ -1351,6 +1518,10 @@
           "shape":"ClientRequestToken",
           "documentation":"<p>Each resource must have a unique client request token. If you try to create a new resource with the same token as a resource that already exists, an exception occurs. If you omit this value, AWS SDKs will automatically generate a unique client request. </p>",
           "idempotencyToken":true
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to attach to the specified resource. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -1360,6 +1531,10 @@
         "Id":{
           "shape":"WirelessGatewayTaskDefinitionId",
           "documentation":"<p>The ID of the new wireless gateway task definition.</p>"
+        },
+        "Arn":{
+          "shape":"WirelessGatewayTaskDefinitionArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       }
     },
@@ -1571,6 +1746,11 @@
       "max":2147483647,
       "min":0
     },
+    "DeviceCertificateList":{
+      "type":"list",
+      "member":{"shape":"CertificateList"},
+      "documentation":"<p>List of device certificate chain.</p>"
+    },
     "DeviceProfile":{
       "type":"structure",
       "members":{
@@ -1601,6 +1781,16 @@
     "DeviceProfileName":{
       "type":"string",
       "max":256
+    },
+    "DeviceState":{
+      "type":"string",
+      "documentation":"<p>Device state defines the device status of sidewalk device.</p>",
+      "enum":[
+        "Provisioned",
+        "RegisteredNotSeen",
+        "RegisteredReachable",
+        "RegisteredUnreachable"
+      ]
     },
     "DisassociateAwsAccountFromPartnerAccountRequest":{
       "type":"structure",
@@ -1708,6 +1898,17 @@
       "type":"string",
       "max":256,
       "min":1
+    },
+    "Event":{
+      "type":"string",
+      "documentation":"<p>Sidewalk device status notification.</p>",
+      "enum":[
+        "discovered",
+        "lost",
+        "ack",
+        "nack",
+        "passthrough"
+      ]
     },
     "Expression":{
       "type":"string",
@@ -1820,6 +2021,19 @@
         }
       }
     },
+    "GetLogLevelsByResourceTypesRequest":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "GetLogLevelsByResourceTypesResponse":{
+      "type":"structure",
+      "members":{
+        "DefaultLogLevel":{"shape":"LogLevel"},
+        "WirelessGatewayLogOptions":{"shape":"WirelessGatewayLogOptionList"},
+        "WirelessDeviceLogOptions":{"shape":"WirelessDeviceLogOptionList"}
+      }
+    },
     "GetPartnerAccountRequest":{
       "type":"structure",
       "required":[
@@ -1852,6 +2066,32 @@
           "shape":"AccountLinked",
           "documentation":"<p>Whether the partner account is linked to the AWS account.</p>"
         }
+      }
+    },
+    "GetResourceLogLevelRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceIdentifier",
+        "ResourceType"
+      ],
+      "members":{
+        "ResourceIdentifier":{
+          "shape":"ResourceIdentifier",
+          "location":"uri",
+          "locationName":"ResourceIdentifier"
+        },
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The type of the resource, currently support WirelessDevice and WirelessGateway.</p>",
+          "location":"querystring",
+          "locationName":"resourceType"
+        }
+      }
+    },
+    "GetResourceLogLevelResponse":{
+      "type":"structure",
+      "members":{
+        "LogLevel":{"shape":"LogLevel"}
       }
     },
     "GetServiceEndpointRequest":{
@@ -1974,6 +2214,10 @@
         "LoRaWAN":{
           "shape":"LoRaWANDevice",
           "documentation":"<p>Information about the wireless device.</p>"
+        },
+        "Sidewalk":{
+          "shape":"SidewalkDevice",
+          "documentation":"<p>Sidewalk device object.</p>"
         }
       }
     },
@@ -2003,6 +2247,10 @@
         "LoRaWAN":{
           "shape":"LoRaWANDeviceMetadata",
           "documentation":"<p>Information about the wireless device's operations.</p>"
+        },
+        "Sidewalk":{
+          "shape":"SidewalkDeviceMetadata",
+          "documentation":"<p>MetaData for Sidewalk device.</p>"
         }
       }
     },
@@ -2027,7 +2275,7 @@
         },
         "LoRaWANNetworkServerCertificateId":{
           "shape":"IotCertificateId",
-          "documentation":"<p>The ID of the certificate associated with the wireless gateway and used for LoRaWANNetworkServer endpoint.</p>"
+          "documentation":"<p>The ID of the certificate that is associated with the wireless gateway and used for the LoRaWANNetworkServer endpoint.</p>"
         }
       }
     },
@@ -2128,6 +2376,10 @@
         "LastUplinkReceivedAt":{
           "shape":"ISODateTimeString",
           "documentation":"<p>The date and time when the most recent uplink was received.</p>"
+        },
+        "ConnectionStatus":{
+          "shape":"ConnectionStatus",
+          "documentation":"<p>The connection status of the wireless gateway.</p>"
         }
       }
     },
@@ -2157,6 +2409,10 @@
         "Update":{
           "shape":"UpdateWirelessGatewayTaskCreate",
           "documentation":"<p>Information about the gateways to update.</p>"
+        },
+        "Arn":{
+          "shape":"WirelessGatewayTaskDefinitionArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       }
     },
@@ -2224,6 +2480,20 @@
     "JoinEui":{
       "type":"string",
       "pattern":"[a-fA-F0-9]{16}"
+    },
+    "JoinEuiFilters":{
+      "type":"list",
+      "member":{"shape":"JoinEuiRange"},
+      "documentation":"<p>A list of JoinEuiRange used by LoRa gateways to filter LoRa frames.</p>",
+      "max":3,
+      "min":0
+    },
+    "JoinEuiRange":{
+      "type":"list",
+      "member":{"shape":"JoinEui"},
+      "documentation":"<p>A pair of join EUI describing a range [BegEui, EndEui], both ends are inclusive.</p>",
+      "max":2,
+      "min":2
     },
     "ListDestinationsRequest":{
       "type":"structure",
@@ -2351,7 +2621,7 @@
       "members":{
         "ResourceArn":{
           "shape":"AmazonResourceName",
-          "documentation":"<p>The ARN of the resource for which to list tags.</p>",
+          "documentation":"<p>The ARN of the resource for which you want to list tags.</p>",
           "location":"querystring",
           "locationName":"resourceArn"
         }
@@ -2362,7 +2632,7 @@
       "members":{
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>The tags attached to the specified resource. Tags are metadata that can be used to manage a resource</p>"
+          "documentation":"<p>The tags to attach to the specified resource. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -2642,7 +2912,10 @@
         "RfRegion":{
           "shape":"RfRegion",
           "documentation":"<p>The frequency band (RFRegion) value.</p>"
-        }
+        },
+        "JoinEuiFilters":{"shape":"JoinEuiFilters"},
+        "NetIdFilters":{"shape":"NetIdFilters"},
+        "SubBands":{"shape":"SubBands"}
       },
       "documentation":"<p>LoRaWANGateway object.</p>"
     },
@@ -2858,6 +3131,15 @@
       },
       "documentation":"<p>LoRaWANUpdateGatewayTaskEntry object.</p>"
     },
+    "LogLevel":{
+      "type":"string",
+      "documentation":"<p>The log level for a log message.</p>",
+      "enum":[
+        "INFO",
+        "ERROR",
+        "DISABLED"
+      ]
+    },
     "MacVersion":{
       "type":"string",
       "max":64
@@ -2882,6 +3164,16 @@
       "max":2048
     },
     "MessageId":{"type":"string"},
+    "MessageType":{
+      "type":"string",
+      "documentation":"<p>Sidewalk device message type.</p>",
+      "enum":[
+        "CUSTOM_COMMAND_ID_NOTIFY",
+        "CUSTOM_COMMAND_ID_GET",
+        "CUSTOM_COMMAND_ID_SET",
+        "CUSTOM_COMMAND_ID_RESP"
+      ]
+    },
     "MinGwDiversity":{
       "type":"integer",
       "max":100,
@@ -2891,6 +3183,18 @@
       "type":"string",
       "max":4096,
       "min":1
+    },
+    "NetId":{
+      "type":"string",
+      "documentation":"<p>LoRaWAN network ID.</p>",
+      "pattern":"[a-fA-F0-9]{6}"
+    },
+    "NetIdFilters":{
+      "type":"list",
+      "member":{"shape":"NetId"},
+      "documentation":"<p>A list of NetId values that are used by LoRa gateways to filter the uplink frames.</p>",
+      "max":10,
+      "min":0
     },
     "NextToken":{
       "type":"string",
@@ -2946,6 +3250,7 @@
       "max":32,
       "min":1
     },
+    "PartnerAccountArn":{"type":"string"},
     "PartnerAccountId":{
       "type":"string",
       "max":256
@@ -2980,6 +3285,33 @@
       "max":16700000,
       "min":1000000
     },
+    "PutResourceLogLevelRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceIdentifier",
+        "ResourceType",
+        "LogLevel"
+      ],
+      "members":{
+        "ResourceIdentifier":{
+          "shape":"ResourceIdentifier",
+          "location":"uri",
+          "locationName":"ResourceIdentifier"
+        },
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The type of the resource, currently support WirelessDevice and WirelessGateway.</p>",
+          "location":"querystring",
+          "locationName":"resourceType"
+        },
+        "LogLevel":{"shape":"LogLevel"}
+      }
+    },
+    "PutResourceLogLevelResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "RaAllowed":{"type":"boolean"},
     "RegParamsRevision":{
       "type":"string",
@@ -2987,13 +3319,59 @@
     },
     "ReportDevStatusBattery":{"type":"boolean"},
     "ReportDevStatusMargin":{"type":"boolean"},
+    "ResetAllResourceLogLevelsRequest":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "ResetAllResourceLogLevelsResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "ResetResourceLogLevelRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceIdentifier",
+        "ResourceType"
+      ],
+      "members":{
+        "ResourceIdentifier":{
+          "shape":"ResourceIdentifier",
+          "location":"uri",
+          "locationName":"ResourceIdentifier"
+        },
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The type of the resource, currently support WirelessDevice and WirelessGateway.</p>",
+          "location":"querystring",
+          "locationName":"resourceType"
+        }
+      }
+    },
+    "ResetResourceLogLevelResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "ResourceId":{"type":"string"},
+    "ResourceIdentifier":{
+      "type":"string",
+      "documentation":"<p>The identifier of the resource. For a Wireless Device, it is the wireless device id. For a wireless gateway, it is the wireless gateway id.</p>",
+      "max":256
+    },
     "ResourceNotFoundException":{
       "type":"structure",
       "members":{
         "Message":{"shape":"Message"},
-        "ResourceId":{"shape":"ResourceId"},
-        "ResourceType":{"shape":"ResourceType"}
+        "ResourceId":{
+          "shape":"ResourceId",
+          "documentation":"<p>Id of the not found resource.</p>"
+        },
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>Type of the font found resource.</p>"
+        }
       },
       "documentation":"<p>Resource does not exist.</p>",
       "error":{"httpStatusCode":404},
@@ -3076,6 +3454,7 @@
     },
     "Seq":{
       "type":"integer",
+      "max":16383,
       "min":0
     },
     "ServiceProfile":{
@@ -3169,6 +3548,10 @@
         "Fingerprint":{
           "shape":"Fingerprint",
           "documentation":"<p>The fingerprint of the Sidewalk application server private key.</p>"
+        },
+        "Arn":{
+          "shape":"PartnerAccountArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       },
       "documentation":"<p>Information about a Sidewalk account.</p>"
@@ -3177,15 +3560,76 @@
       "type":"list",
       "member":{"shape":"SidewalkAccountInfoWithFingerprint"}
     },
+    "SidewalkDevice":{
+      "type":"structure",
+      "members":{
+        "SidewalkId":{
+          "shape":"SidewalkId",
+          "documentation":"<p>The sidewalk device identification.</p>"
+        },
+        "SidewalkManufacturingSn":{
+          "shape":"SidewalkManufacturingSn",
+          "documentation":"<p>The Sidewalk manufacturing series number.</p>"
+        },
+        "DeviceCertificates":{
+          "shape":"DeviceCertificateList",
+          "documentation":"<p>The sidewalk device certificates for Ed25519 and P256r1.</p>"
+        }
+      },
+      "documentation":"<p>Sidewalk device object.</p>"
+    },
+    "SidewalkDeviceMetadata":{
+      "type":"structure",
+      "members":{
+        "Rssi":{
+          "shape":"Integer",
+          "documentation":"<p>The RSSI value.</p>"
+        },
+        "BatteryLevel":{
+          "shape":"BatteryLevel",
+          "documentation":"<p>Sidewalk device battery level.</p>"
+        },
+        "Event":{
+          "shape":"Event",
+          "documentation":"<p>Sidewalk device status notification.</p>"
+        },
+        "DeviceState":{
+          "shape":"DeviceState",
+          "documentation":"<p>Device state defines the device status of sidewalk device.</p>"
+        }
+      },
+      "documentation":"<p>MetaData for Sidewalk device.</p>"
+    },
+    "SidewalkId":{
+      "type":"string",
+      "documentation":"<p>The sidewalk device identification.</p>",
+      "max":256
+    },
     "SidewalkListDevice":{
       "type":"structure",
       "members":{
         "AmazonId":{
           "shape":"AmazonId",
           "documentation":"<p>The Sidewalk Amazon ID.</p>"
+        },
+        "SidewalkId":{
+          "shape":"SidewalkId",
+          "documentation":"<p>The sidewalk device identification.</p>"
+        },
+        "SidewalkManufacturingSn":{
+          "shape":"SidewalkManufacturingSn",
+          "documentation":"<p>The Sidewalk manufacturing series number.</p>"
+        },
+        "DeviceCertificates":{
+          "shape":"DeviceCertificateList",
+          "documentation":"<p>The sidewalk device certificates for Ed25519 and P256r1.</p>"
         }
       },
       "documentation":"<p>Sidewalk object used by list functions.</p>"
+    },
+    "SidewalkManufacturingSn":{
+      "type":"string",
+      "max":64
     },
     "SidewalkSendDataToDevice":{
       "type":"structure",
@@ -3193,7 +3637,8 @@
         "Seq":{
           "shape":"Seq",
           "documentation":"<p>The sequence number.</p>"
-        }
+        },
+        "MessageType":{"shape":"MessageType"}
       },
       "documentation":"<p>Information about a Sidewalk router.</p>"
     },
@@ -3207,10 +3652,31 @@
       },
       "documentation":"<p>Sidewalk update.</p>"
     },
+    "SigningAlg":{
+      "type":"string",
+      "documentation":"<p>The certificate chain algorithm provided by sidewalk.</p>",
+      "enum":[
+        "Ed25519",
+        "P256r1"
+      ]
+    },
     "Station":{
       "type":"string",
       "max":4096,
       "min":1
+    },
+    "SubBand":{
+      "type":"integer",
+      "documentation":"<p>A subset of supported frequency channels in a certain RFRegion.</p>",
+      "max":8,
+      "min":1
+    },
+    "SubBands":{
+      "type":"list",
+      "member":{"shape":"SubBand"},
+      "documentation":"<p>A list of integer indicating which sub bands are supported by LoRa gateway.</p>",
+      "max":8,
+      "min":0
     },
     "Supports32BitFCnt":{"type":"boolean"},
     "SupportsClassB":{"type":"boolean"},
@@ -3266,7 +3732,7 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>Adds to or modifies the tags of the given resource. Tags are metadata that can be used to manage a resource.</p>"
+          "documentation":"<p>Adds to or modifies the tags of the given resource. Tags are metadata that you can use to manage a resource.</p>"
         }
       }
     },
@@ -3321,7 +3787,10 @@
       "type":"structure",
       "members":{
         "Message":{"shape":"Message"},
-        "ResourceName":{"shape":"AmazonResourceName"}
+        "ResourceName":{
+          "shape":"AmazonResourceName",
+          "documentation":"<p>Name of the resource that exceeds maximum number of tags allowed.</p>"
+        }
       },
       "documentation":"<p>The request was denied because the resource can't have any more tags.</p>",
       "error":{"httpStatusCode":400},
@@ -3406,6 +3875,19 @@
       }
     },
     "UpdateDestinationResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "UpdateLogLevelsByResourceTypesRequest":{
+      "type":"structure",
+      "members":{
+        "DefaultLogLevel":{"shape":"LogLevel"},
+        "WirelessDeviceLogOptions":{"shape":"WirelessDeviceLogOptionList"},
+        "WirelessGatewayLogOptions":{"shape":"WirelessGatewayLogOptionList"}
+      }
+    },
+    "UpdateLogLevelsByResourceTypesResponse":{
       "type":"structure",
       "members":{
       }
@@ -3496,7 +3978,9 @@
         "Description":{
           "shape":"Description",
           "documentation":"<p>A new description of the resource.</p>"
-        }
+        },
+        "JoinEuiFilters":{"shape":"JoinEuiFilters"},
+        "NetIdFilters":{"shape":"NetIdFilters"}
       }
     },
     "UpdateWirelessGatewayResponse":{
@@ -3532,6 +4016,10 @@
         "LoRaWAN":{
           "shape":"LoRaWANUpdateGatewayTaskEntry",
           "documentation":"<p>The properties that relate to the LoRaWAN wireless gateway.</p>"
+        },
+        "Arn":{
+          "shape":"WirelessGatewayTaskDefinitionArn",
+          "documentation":"<p>The Amazon Resource Name of the resource.</p>"
         }
       },
       "documentation":"<p>UpdateWirelessGatewayTaskEntry object.</p>"
@@ -3546,6 +4034,34 @@
       "exception":true
     },
     "WirelessDeviceArn":{"type":"string"},
+    "WirelessDeviceEvent":{
+      "type":"string",
+      "documentation":"<p>The event for a log message, if the log message is tied to a wireless device.</p>",
+      "enum":[
+        "Join",
+        "Rejoin",
+        "Uplink_Data",
+        "Downlink_Data",
+        "Registration"
+      ]
+    },
+    "WirelessDeviceEventLogOption":{
+      "type":"structure",
+      "required":[
+        "Event",
+        "LogLevel"
+      ],
+      "members":{
+        "Event":{"shape":"WirelessDeviceEvent"},
+        "LogLevel":{"shape":"LogLevel"}
+      },
+      "documentation":"<p>The log option for a wireless device event. Can be used to set log level for a specific wireless device event. For a LoRaWAN device, the possible events for a log messsage are: Join, Rejoin, Downlink_Data, Uplink_Data. For a Sidewalk device, the possible events for a log message are: Registration, Downlink_Data, Uplink_Data.</p>"
+    },
+    "WirelessDeviceEventLogOptionList":{
+      "type":"list",
+      "member":{"shape":"WirelessDeviceEventLogOption"},
+      "documentation":"<p>The list of wireless device event log options.</p>"
+    },
     "WirelessDeviceId":{
       "type":"string",
       "max":256
@@ -3557,6 +4073,27 @@
         "DevEui",
         "ThingName"
       ]
+    },
+    "WirelessDeviceLogOption":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "LogLevel"
+      ],
+      "members":{
+        "Type":{
+          "shape":"WirelessDeviceType",
+          "documentation":"<p>The wireless device type.</p>"
+        },
+        "LogLevel":{"shape":"LogLevel"},
+        "Events":{"shape":"WirelessDeviceEventLogOptionList"}
+      },
+      "documentation":"<p>The log option for wireless devices. Can be used to set log level for a specific type of wireless device.</p>"
+    },
+    "WirelessDeviceLogOptionList":{
+      "type":"list",
+      "member":{"shape":"WirelessDeviceLogOption"},
+      "documentation":"<p>The list of wireless device log options.</p>"
     },
     "WirelessDeviceName":{
       "type":"string",
@@ -3612,6 +4149,31 @@
       ]
     },
     "WirelessGatewayArn":{"type":"string"},
+    "WirelessGatewayEvent":{
+      "type":"string",
+      "documentation":"<p>The event for a log message, if the log message is tied to a wireless gateway.</p>",
+      "enum":[
+        "CUPS_Request",
+        "Certificate"
+      ]
+    },
+    "WirelessGatewayEventLogOption":{
+      "type":"structure",
+      "required":[
+        "Event",
+        "LogLevel"
+      ],
+      "members":{
+        "Event":{"shape":"WirelessGatewayEvent"},
+        "LogLevel":{"shape":"LogLevel"}
+      },
+      "documentation":"<p>The log option for a wireless gateway event. Can be used to set log level for a specific wireless gateway event. For a LoRaWAN gateway, the possible events for a log message are: CUPS_Request, Certificate.</p>"
+    },
+    "WirelessGatewayEventLogOptionList":{
+      "type":"list",
+      "member":{"shape":"WirelessGatewayEventLogOption"},
+      "documentation":"<p>The list of wireless gateway event log options.</p>"
+    },
     "WirelessGatewayId":{
       "type":"string",
       "max":256
@@ -3623,6 +4185,24 @@
         "WirelessGatewayId",
         "ThingName"
       ]
+    },
+    "WirelessGatewayLogOption":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "LogLevel"
+      ],
+      "members":{
+        "Type":{"shape":"WirelessGatewayType"},
+        "LogLevel":{"shape":"LogLevel"},
+        "Events":{"shape":"WirelessGatewayEventLogOptionList"}
+      },
+      "documentation":"<p>The log option for wireless gateways. Can be used to set log level for a specific type of wireless gateway.</p>"
+    },
+    "WirelessGatewayLogOptionList":{
+      "type":"list",
+      "member":{"shape":"WirelessGatewayLogOption"},
+      "documentation":"<p>The list of wireless gateway log options.</p>"
     },
     "WirelessGatewayName":{
       "type":"string",
@@ -3669,6 +4249,7 @@
       "type":"list",
       "member":{"shape":"WirelessGatewayStatistics"}
     },
+    "WirelessGatewayTaskDefinitionArn":{"type":"string"},
     "WirelessGatewayTaskDefinitionId":{
       "type":"string",
       "max":36,
@@ -3697,6 +4278,11 @@
         "COMPLETED",
         "FAILED"
       ]
+    },
+    "WirelessGatewayType":{
+      "type":"string",
+      "documentation":"<p>The wireless gateway type.</p>",
+      "enum":["LoRaWAN"]
     },
     "WirelessMetadata":{
       "type":"structure",

@@ -48,6 +48,8 @@ public final class SimpleTypeQueryMarshaller<T> implements QueryMarshaller<T> {
     public static final QueryMarshaller<Double> DOUBLE = new SimpleTypeQueryMarshaller<>(ValueToStringConverter.FROM_DOUBLE);
 
     public static final QueryMarshaller<Long> LONG = new SimpleTypeQueryMarshaller<>(ValueToStringConverter.FROM_LONG);
+    
+    public static final QueryMarshaller<Short> SHORT = new SimpleTypeQueryMarshaller<>(ValueToStringConverter.FROM_SHORT);
 
     public static final QueryMarshaller<Instant> INSTANT =
         new SimpleTypeQueryMarshaller<>(InstantToString.create(defaultTimestampFormats()));

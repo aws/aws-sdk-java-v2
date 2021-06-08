@@ -34,6 +34,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.docs.ClientType;
@@ -54,6 +56,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.regions.ServiceMetadataProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 public final class SyncClientInterface implements ClassSpec {
@@ -74,11 +77,20 @@ public final class SyncClientInterface implements ClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
 
+
         result.addSuperinterface(SdkClient.class)
+              .addAnnotation(SdkPublicApi.class)
+              .addAnnotation(ThreadSafe.class)
               .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                  .initializer("$S", model.getMetadata().getSigningName())
-                                 .build());
+                                 .build())
+               .addField(FieldSpec.builder(String.class, "SERVICE_METADATA_ID")
+                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                  .initializer("$S", model.getMetadata().getEndpointPrefix())
+                                  .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
+                                              ServiceMetadataProvider.class)
+                                  .build());
 
         PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
 
@@ -148,7 +160,7 @@ public final class SyncClientInterface implements ClassSpec {
         return MethodSpec.methodBuilder("serviceMetadata")
                          .returns(ServiceMetadata.class)
                          .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
-                         .addStatement("return $T.of($S)", ServiceMetadata.class, model.getMetadata().getEndpointPrefix())
+                         .addStatement("return $T.of(SERVICE_METADATA_ID)", ServiceMetadata.class)
                          .build();
     }
 

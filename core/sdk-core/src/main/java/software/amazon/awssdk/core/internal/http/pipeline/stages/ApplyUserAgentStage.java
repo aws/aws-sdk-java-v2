@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -42,6 +44,8 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
     private static final String IO = "io";
     private static final String HTTP = "http";
+    private static final String CONFIG = "cfg";
+    private static final String RETRY_MODE = "retry-mode";
 
     private static final String AWS_EXECUTION_ENV_PREFIX = "exec-env/";
 
@@ -72,6 +76,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             userAgent.append(COMMA).append(systemUserAgent);
         }
 
+        String internalUserAgent = StringUtils.trimToEmpty(clientConfig.option(INTERNAL_USER_AGENT));
+        if (!internalUserAgent.isEmpty()) {
+            userAgent.append(SPACE).append(internalUserAgent);
+        }
+
         if (!StringUtils.isEmpty(awsExecutionEnvironment)) {
             userAgent.append(SPACE).append(AWS_EXECUTION_ENV_PREFIX).append(awsExecutionEnvironment.trim());
         }
@@ -93,6 +102,15 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
                  .append(HTTP)
                  .append("/")
                  .append(SdkHttpUtils.urlEncode(clientName));
+
+        String retryMode = config.option(SdkClientOption.RETRY_POLICY).retryMode().toString();
+
+        userAgent.append(SPACE)
+                 .append(CONFIG)
+                 .append("/")
+                 .append(RETRY_MODE)
+                 .append("/")
+                 .append(StringUtils.lowerCase(retryMode));
 
         if (!requestApiNames.isEmpty()) {
             String requestUserAgent = requestApiNames.stream()

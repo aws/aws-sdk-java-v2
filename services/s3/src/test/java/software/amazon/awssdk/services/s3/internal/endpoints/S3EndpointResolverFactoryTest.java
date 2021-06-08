@@ -18,30 +18,49 @@ package software.amazon.awssdk.services.s3.internal.endpoints;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import software.amazon.awssdk.services.s3.model.S3Request;
+import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseRequest;
 
 public class S3EndpointResolverFactoryTest {
 
     @Test
     public void nullBucketName_returnsBucketEndpointResolver() {
-        assertThat(S3EndpointResolverFactory.getEndpointResolver(null)).isInstanceOf(S3BucketEndpointResolver.class);
+        assertThat(S3EndpointResolverFactory.getEndpointResolver(createContext(null, null)))
+                .isInstanceOf(S3BucketEndpointResolver.class);
     }
 
     @Test
     public void emptyBucketName_returnsBucketEndpointResolver() {
         String bucketName = "";
-        assertThat(S3EndpointResolverFactory.getEndpointResolver(bucketName)).isInstanceOf(S3BucketEndpointResolver.class);
+        assertThat(S3EndpointResolverFactory.getEndpointResolver(createContext(bucketName, null)))
+                .isInstanceOf(S3BucketEndpointResolver.class);
     }
 
     @Test
     public void nonAccessPointBucketName_returnsBucketEndpointResolver() {
         String bucketName = "test-bucket";
-        assertThat(S3EndpointResolverFactory.getEndpointResolver(bucketName)).isInstanceOf(S3BucketEndpointResolver.class);
+        assertThat(S3EndpointResolverFactory.getEndpointResolver(createContext(bucketName, null)))
+                .isInstanceOf(S3BucketEndpointResolver.class);
     }
 
     @Test
     public void accessPointBucketName_returnsAccessPointEndpointResolver() {
         String bucketName = "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar";
-        assertThat(S3EndpointResolverFactory.getEndpointResolver(bucketName)).isInstanceOf(S3AccessPointEndpointResolver.class);
+        assertThat(S3EndpointResolverFactory.getEndpointResolver(createContext(bucketName, null)))
+                .isInstanceOf(S3AccessPointEndpointResolver.class);
     }
 
+    @Test
+    public void objectLambdaOperation_returnsObjectLambdaOperationResolver() {
+        S3Request originalRequest = WriteGetObjectResponseRequest.builder().build();
+        assertThat(S3EndpointResolverFactory.getEndpointResolver(createContext(null, originalRequest)))
+                .isInstanceOf(S3ObjectLambdaOperationEndpointResolver.class);
+    }
+
+    private static S3EndpointResolverFactoryContext createContext(String bucketName, S3Request originalRequest) {
+        return S3EndpointResolverFactoryContext.builder()
+                                               .bucketName(bucketName)
+                                               .originalRequest(originalRequest)
+                                               .build();
+    }
 }

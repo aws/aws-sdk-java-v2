@@ -19,11 +19,11 @@ import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUt
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isArnRegionEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isDualstackEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isFipsRegion;
-import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isFipsRegionProvided;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isPathStyleAccessEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.removeFipsIfNeeded;
 
 import java.net.URI;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -34,11 +34,14 @@ import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointBuilder;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
+import software.amazon.awssdk.services.s3.internal.resource.S3ObjectLambdaEndpointBuilder;
+import software.amazon.awssdk.services.s3.internal.resource.S3ObjectLambdaResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostAccessPointBuilder;
 import software.amazon.awssdk.services.s3.internal.resource.S3OutpostResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ResourceType;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Returns a new configured HTTP request with a resolved access point endpoint and signing overrides.
@@ -47,6 +50,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
     private static final String S3_OUTPOSTS_NAME = "s3-outposts";
+    private static final String S3_OBJECT_LAMBDA_NAME = "s3-object-lambda";
 
     private S3AccessPointEndpointResolver() {
     }
@@ -84,8 +88,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                             .build();
 
         String signingServiceModification = s3EndpointResource.parentS3Resource()
-                                                              .filter(r -> r instanceof S3OutpostResource)
-                                                              .map(ignore -> S3_OUTPOSTS_NAME)
+                                                              .flatMap(S3AccessPointEndpointResolver::resolveSigningService)
                                                               .orElse(null);
 
         return ConfiguredS3SdkHttpRequest.builder()
@@ -107,7 +110,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
             if (pathBuilder.length() > 0) {
                 pathBuilder.append('/');
             }
-            pathBuilder.append(key);
+            pathBuilder.append(SdkHttpUtils.urlEncodeIgnoreSlashes(key));
         }
         return pathBuilder.length() > 0 ? pathBuilder.toString() : null;
     }
@@ -117,8 +120,10 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         String arnRegion = s3Resource.region().orElseThrow(() -> new IllegalArgumentException(
             "An S3 access point ARN must have a region"));
 
-
         S3Configuration serviceConfiguration = context.serviceConfiguration();
+
+        validateFipsRegionConfiguration(region, arnRegion);
+
         if (isAccelerateEnabled(serviceConfiguration)) {
             throw new IllegalArgumentException("An access point ARN cannot be passed as a bucket parameter to an S3 "
                                                + "operation if the S3 client has been configured with accelerate mode"
@@ -131,6 +136,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                                + "addressing enabled.");
         }
 
+
         if (!isArnRegionEnabled(serviceConfiguration) && clientRegionDiffersFromArnRegion(region, arnRegion)) {
             throw new IllegalArgumentException(
                 String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
@@ -139,6 +145,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                               + "configuration when building the S3 client. Provided region: '%s'; client region:"
                               + " '%s'.", arnRegion, region));
         }
+
 
         String clientPartition = PartitionMetadata.of(region).id();
 
@@ -152,8 +159,20 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         return arnRegion;
     }
 
+    private void validateFipsRegionConfiguration(Region region, String arnRegion) {
+        validateIsTrue(!isFipsRegion(arnRegion),
+                "Invalid ARN, FIPS region is not allowed in ARN."
+                        + " Provided arn region: '" + arnRegion + "'.");
+
+        validateIsTrue(!(isFipsRegion(region.id()) && clientRegionDiffersFromArnRegion(region, arnRegion)),
+                String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
+                        + "does not match the region the client was configured with. " +
+                        "Cross region access not allowed for fips region in client or arn."
+                        + " Provided region: '%s'; client region:'%s'.", arnRegion, region));
+    }
+
     private boolean clientRegionDiffersFromArnRegion(Region clientRegion, String arnRegion) {
-        return !removeFipsIfNeeded(clientRegion.id()).equals(removeFipsIfNeeded(arnRegion));
+        return !removeFipsIfNeeded(clientRegion.id()).equals(arnRegion);
     }
 
     private boolean illegalPartitionConfiguration(S3Resource s3Resource, String clientPartition) {
@@ -175,17 +194,18 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         if (isOutpostAccessPoint(s3EndpointResource)) {
             return getOutpostAccessPointUri(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
+        } else if (isObjectLambdaAccessPoint(s3EndpointResource)) {
+            return getObjectLambdaAccessPointUri(context, arnRegion, clientPartitionMetadata, s3EndpointResource);
         }
 
         boolean dualstackEnabled = isDualstackEnabled(context.serviceConfiguration());
-        boolean fipsRegionProvided = isFipsRegionProvided(context.region().toString(), arnRegion,
-                                                          isArnRegionEnabled(context.serviceConfiguration()));
+        boolean fipsRegionProvided = isFipsRegion(context.region().toString());
         return S3AccessPointBuilder.create()
                                    .endpointOverride(context.endpointOverride())
                                    .accessPointName(accessPointName)
                                    .accountId(accountId)
                                    .fipsEnabled(fipsRegionProvided)
-                                   .region(removeFipsIfNeeded(arnRegion))
+                                   .region(arnRegion)
                                    .protocol(context.request().protocol())
                                    .domain(clientPartitionMetadata.dnsSuffix())
                                    .dualstackEnabled(dualstackEnabled)
@@ -194,6 +214,10 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
     private boolean isOutpostAccessPoint(S3AccessPointResource s3EndpointResource) {
         return s3EndpointResource.parentS3Resource().filter(r -> r instanceof S3OutpostResource).isPresent();
+    }
+
+    private boolean isObjectLambdaAccessPoint(S3AccessPointResource s3EndpointResource) {
+        return s3EndpointResource.parentS3Resource().filter(r -> r instanceof S3ObjectLambdaResource).isPresent();
     }
 
     private URI getOutpostAccessPointUri(S3EndpointResolverContext context, String arnRegion,
@@ -221,4 +245,41 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                           .toUri();
     }
 
+    private URI getObjectLambdaAccessPointUri(S3EndpointResolverContext context, String arnRegion,
+                                              PartitionMetadata clientPartitionMetadata,
+                                              S3AccessPointResource s3EndpointResource) {
+        if (isDualstackEnabled(context.serviceConfiguration())) {
+            throw new IllegalArgumentException("An Object Lambda Access Point ARN cannot be passed as a bucket parameter to "
+                                               + "an S3 operation if the S3 client has been configured with dualstack.");
+        }
+
+        return S3ObjectLambdaEndpointBuilder.create()
+                                            .endpointOverride(context.endpointOverride())
+                                            .accountId(s3EndpointResource.accountId().get())
+                                            .region(arnRegion)
+                                            .accessPointName(s3EndpointResource.accessPointName())
+                                            .protocol(context.request().protocol())
+                                            .fipsEnabled(isFipsRegion(context.region().toString()))
+                                            .dualstackEnabled(isDualstackEnabled(context.serviceConfiguration()))
+                                            .domain(clientPartitionMetadata.dnsSuffix())
+                                            .toUri();
+    }
+
+    private static Optional<String> resolveSigningService(S3Resource resource) {
+        if (resource instanceof S3OutpostResource) {
+            return Optional.of(S3_OUTPOSTS_NAME);
+        }
+
+        if (resource instanceof S3ObjectLambdaResource) {
+            return Optional.of(S3_OBJECT_LAMBDA_NAME);
+        }
+
+        return Optional.empty();
+    }
+
+    private void validateIsTrue(boolean condition, String error, Object... params) {
+        if (!condition) {
+            throw new IllegalArgumentException(String.format(error, params));
+        }
+    }
 }

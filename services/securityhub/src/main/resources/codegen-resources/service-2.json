@@ -12,6 +12,23 @@
     "uid":"securityhub-2018-10-26"
   },
   "operations":{
+    "AcceptAdministratorInvitation":{
+      "name":"AcceptAdministratorInvitation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/administrator"
+      },
+      "input":{"shape":"AcceptAdministratorInvitationRequest"},
+      "output":{"shape":"AcceptAdministratorInvitationResponse"},
+      "errors":[
+        {"shape":"InternalException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidAccessException"}
+      ],
+      "documentation":"<p>Accepts the invitation to be a member account and be monitored by the Security Hub administrator account that the invitation was sent from.</p> <p>This operation is only used by member accounts that are not added through Organizations.</p> <p>When the member account accepts the invitation, permission is granted to the administrator account to view findings generated in the member account.</p>"
+    },
     "AcceptInvitation":{
       "name":"AcceptInvitation",
       "http":{
@@ -27,7 +44,9 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidAccessException"}
       ],
-      "documentation":"<p>Accepts the invitation to be a member account and be monitored by the Security Hub master account that the invitation was sent from.</p> <p>This operation is only used by member accounts that are not added through Organizations.</p> <p>When the member account accepts the invitation, permission is granted to the master account to view findings generated in the member account.</p>"
+      "documentation":"<p>This method is deprecated. Instead, use <code>AcceptAdministratorInvitation</code>.</p> <p>The Security Hub console continues to use <code>AcceptInvitation</code>. It will eventually change to use <code>AcceptAdministratorInvitation</code>. Any IAM policies that specifically control access to this function must continue to use <code>AcceptInvitation</code>. You should also add <code>AcceptAdministratorInvitation</code> to your policies to ensure that the correct permissions are in place after the console begins to use <code>AcceptAdministratorInvitation</code>.</p> <p>Accepts the invitation to be a member account and be monitored by the Security Hub administrator account that the invitation was sent from.</p> <p>This operation is only used by member accounts that are not added through Organizations.</p> <p>When the member account accepts the invitation, permission is granted to the administrator account to view findings generated in the member account.</p>",
+      "deprecated":true,
+      "deprecatedMessage":"This API has been deprecated, use AcceptAdministratorInvitation API instead."
     },
     "BatchDisableStandards":{
       "name":"BatchDisableStandards",
@@ -75,7 +94,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"InvalidAccessException"}
       ],
-      "documentation":"<p>Imports security findings generated from an integrated third-party product into Security Hub. This action is requested by the integrated product to import its findings into Security Hub.</p> <p>The maximum allowed size for a finding is 240 Kb. An error is returned for any finding larger than 240 Kb.</p> <p>After a finding is created, <code>BatchImportFindings</code> cannot be used to update the following finding fields and objects, which Security Hub customers use to manage their investigation workflow.</p> <ul> <li> <p> <code>Note</code> </p> </li> <li> <p> <code>UserDefinedFields</code> </p> </li> <li> <p> <code>VerificationState</code> </p> </li> <li> <p> <code>Workflow</code> </p> </li> </ul> <p> <code>BatchImportFindings</code> can be used to update the following finding fields and objects only if they have not been updated using <code>BatchUpdateFindings</code>. After they are updated using <code>BatchUpdateFindings</code>, these fields cannot be updated using <code>BatchImportFindings</code>.</p> <ul> <li> <p> <code>Confidence</code> </p> </li> <li> <p> <code>Criticality</code> </p> </li> <li> <p> <code>RelatedFindings</code> </p> </li> <li> <p> <code>Severity</code> </p> </li> <li> <p> <code>Types</code> </p> </li> </ul>"
+      "documentation":"<p>Imports security findings generated from an integrated product into Security Hub. This action is requested by the integrated product to import its findings into Security Hub.</p> <p>The maximum allowed size for a finding is 240 Kb. An error is returned for any finding larger than 240 Kb.</p> <p>After a finding is created, <code>BatchImportFindings</code> cannot be used to update the following finding fields and objects, which Security Hub customers use to manage their investigation workflow.</p> <ul> <li> <p> <code>Note</code> </p> </li> <li> <p> <code>UserDefinedFields</code> </p> </li> <li> <p> <code>VerificationState</code> </p> </li> <li> <p> <code>Workflow</code> </p> </li> </ul> <p>Finding providers also should not use <code>BatchImportFindings</code> to update the following attributes.</p> <ul> <li> <p> <code>Confidence</code> </p> </li> <li> <p> <code>Criticality</code> </p> </li> <li> <p> <code>RelatedFindings</code> </p> </li> <li> <p> <code>Severity</code> </p> </li> <li> <p> <code>Types</code> </p> </li> </ul> <p>Instead, finding providers use <code>FindingProviderFields</code> to provide values for these attributes.</p>"
     },
     "BatchUpdateFindings":{
       "name":"BatchUpdateFindings",
@@ -91,7 +110,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"InvalidAccessException"}
       ],
-      "documentation":"<p>Used by Security Hub customers to update information about their investigation into a finding. Requested by master accounts or member accounts. Master accounts can update findings for their account and their member accounts. Member accounts can update findings for their account.</p> <p>Updates from <code>BatchUpdateFindings</code> do not affect the value of <code>UpdatedAt</code> for a finding.</p> <p>Master and member accounts can use <code>BatchUpdateFindings</code> to update the following finding fields and objects.</p> <ul> <li> <p> <code>Confidence</code> </p> </li> <li> <p> <code>Criticality</code> </p> </li> <li> <p> <code>Note</code> </p> </li> <li> <p> <code>RelatedFindings</code> </p> </li> <li> <p> <code>Severity</code> </p> </li> <li> <p> <code>Types</code> </p> </li> <li> <p> <code>UserDefinedFields</code> </p> </li> <li> <p> <code>VerificationState</code> </p> </li> <li> <p> <code>Workflow</code> </p> </li> </ul> <p>You can configure IAM policies to restrict access to fields and field values. For example, you might not want member accounts to be able to suppress findings or change the finding severity. See <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/finding-update-batchupdatefindings.html#batchupdatefindings-configure-access\">Configuring access to BatchUpdateFindings</a> in the <i>AWS Security Hub User Guide</i>.</p>"
+      "documentation":"<p>Used by Security Hub customers to update information about their investigation into a finding. Requested by administrator accounts or member accounts. Administrator accounts can update findings for their account and their member accounts. Member accounts can update findings for their account.</p> <p>Updates from <code>BatchUpdateFindings</code> do not affect the value of <code>UpdatedAt</code> for a finding.</p> <p>Administrator and member accounts can use <code>BatchUpdateFindings</code> to update the following finding fields and objects.</p> <ul> <li> <p> <code>Confidence</code> </p> </li> <li> <p> <code>Criticality</code> </p> </li> <li> <p> <code>Note</code> </p> </li> <li> <p> <code>RelatedFindings</code> </p> </li> <li> <p> <code>Severity</code> </p> </li> <li> <p> <code>Types</code> </p> </li> <li> <p> <code>UserDefinedFields</code> </p> </li> <li> <p> <code>VerificationState</code> </p> </li> <li> <p> <code>Workflow</code> </p> </li> </ul> <p>You can configure IAM policies to restrict access to fields and field values. For example, you might not want member accounts to be able to suppress findings or change the finding severity. See <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/finding-update-batchupdatefindings.html#batchupdatefindings-configure-access\">Configuring access to BatchUpdateFindings</a> in the <i>AWS Security Hub User Guide</i>.</p>"
     },
     "CreateActionTarget":{
       "name":"CreateActionTarget",
@@ -142,7 +161,7 @@
         {"shape":"InvalidAccessException"},
         {"shape":"ResourceConflictException"}
       ],
-      "documentation":"<p>Creates a member association in Security Hub between the specified accounts and the account used to make the request, which is the master account. If you are integrated with Organizations, then the master account is the Security Hub administrator account that is designated by the organization management account.</p> <p> <code>CreateMembers</code> is always used to add accounts that are not organization members.</p> <p>For accounts that are part of an organization, <code>CreateMembers</code> is only used in the following cases:</p> <ul> <li> <p>Security Hub is not configured to automatically add new accounts in an organization.</p> </li> <li> <p>The account was disassociated or deleted in Security Hub.</p> </li> </ul> <p>This action can only be used by an account that has Security Hub enabled. To enable Security Hub, you can use the <code> <a>EnableSecurityHub</a> </code> operation.</p> <p>For accounts that are not organization members, you create the account association and then send an invitation to the member account. To send the invitation, you use the <code> <a>InviteMembers</a> </code> operation. If the account owner accepts the invitation, the account becomes a member account in Security Hub.</p> <p>Accounts that are part of an organization do not receive an invitation. They automatically become a member account in Security Hub.</p> <p>A permissions policy is added that permits the master account to view the findings generated in the member account. When Security Hub is enabled in a member account, findings are sent to both the member and master accounts. </p> <p>To remove the association between the master and member accounts, use the <code> <a>DisassociateFromMasterAccount</a> </code> or <code> <a>DisassociateMembers</a> </code> operation.</p>"
+      "documentation":"<p>Creates a member association in Security Hub between the specified accounts and the account used to make the request, which is the administrator account. If you are integrated with Organizations, then the administrator account is designated by the organization management account.</p> <p> <code>CreateMembers</code> is always used to add accounts that are not organization members.</p> <p>For accounts that are part of an organization, <code>CreateMembers</code> is only used in the following cases:</p> <ul> <li> <p>Security Hub is not configured to automatically add new accounts in an organization.</p> </li> <li> <p>The account was disassociated or deleted in Security Hub.</p> </li> </ul> <p>This action can only be used by an account that has Security Hub enabled. To enable Security Hub, you can use the <code> <a>EnableSecurityHub</a> </code> operation.</p> <p>For accounts that are not organization members, you create the account association and then send an invitation to the member account. To send the invitation, you use the <code> <a>InviteMembers</a> </code> operation. If the account owner accepts the invitation, the account becomes a member account in Security Hub.</p> <p>Accounts that are part of an organization do not receive an invitation. They automatically become a member account in Security Hub.</p> <p>A permissions policy is added that permits the administrator account to view the findings generated in the member account. When Security Hub is enabled in a member account, the member account findings are also visible to the administrator account. </p> <p>To remove the association between the administrator and member accounts, use the <code> <a>DisassociateFromMasterAccount</a> </code> or <code> <a>DisassociateMembers</a> </code> operation.</p>"
     },
     "DeclineInvitations":{
       "name":"DeclineInvitations",
@@ -370,7 +389,24 @@
         {"shape":"InvalidAccessException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Disables Security Hub in your account only in the current Region. To disable Security Hub in all Regions, you must submit one request per Region where you have enabled Security Hub.</p> <p>When you disable Security Hub for a master account, it doesn't disable Security Hub for any associated member accounts.</p> <p>When you disable Security Hub, your existing findings and insights and any Security Hub configuration settings are deleted after 90 days and cannot be recovered. Any standards that were enabled are disabled, and your master and member account associations are removed.</p> <p>If you want to save your existing findings, you must export them before you disable Security Hub.</p>"
+      "documentation":"<p>Disables Security Hub in your account only in the current Region. To disable Security Hub in all Regions, you must submit one request per Region where you have enabled Security Hub.</p> <p>When you disable Security Hub for an administrator account, it doesn't disable Security Hub for any associated member accounts.</p> <p>When you disable Security Hub, your existing findings and insights and any Security Hub configuration settings are deleted after 90 days and cannot be recovered. Any standards that were enabled are disabled, and your administrator and member account associations are removed.</p> <p>If you want to save your existing findings, you must export them before you disable Security Hub.</p>"
+    },
+    "DisassociateFromAdministratorAccount":{
+      "name":"DisassociateFromAdministratorAccount",
+      "http":{
+        "method":"POST",
+        "requestUri":"/administrator/disassociate"
+      },
+      "input":{"shape":"DisassociateFromAdministratorAccountRequest"},
+      "output":{"shape":"DisassociateFromAdministratorAccountResponse"},
+      "errors":[
+        {"shape":"InternalException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"InvalidAccessException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Disassociates the current Security Hub member account from the associated administrator account.</p> <p>This operation is only used by accounts that are not part of an organization. For organization accounts, only the administrator account can disassociate a member account.</p>"
     },
     "DisassociateFromMasterAccount":{
       "name":"DisassociateFromMasterAccount",
@@ -387,7 +423,9 @@
         {"shape":"LimitExceededException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Disassociates the current Security Hub member account from the associated master account.</p> <p>This operation is only used by accounts that are not part of an organization. For organization accounts, only the master account (the designated Security Hub administrator) can disassociate a member account.</p>"
+      "documentation":"<p>This method is deprecated. Instead, use <code>DisassociateFromAdministratorAccount</code>.</p> <p>The Security Hub console continues to use <code>DisassociateFromMasterAccount</code>. It will eventually change to use <code>DisassociateFromAdministratorAccount</code>. Any IAM policies that specifically control access to this function must continue to use <code>DisassociateFromMasterAccount</code>. You should also add <code>DisassociateFromAdministratorAccount</code> to your policies to ensure that the correct permissions are in place after the console begins to use <code>DisassociateFromAdministratorAccount</code>.</p> <p>Disassociates the current Security Hub member account from the associated administrator account.</p> <p>This operation is only used by accounts that are not part of an organization. For organization accounts, only the administrator account can disassociate a member account.</p>",
+      "deprecated":true,
+      "deprecatedMessage":"This API has been deprecated, use DisassociateFromAdministratorAccount API instead."
     },
     "DisassociateMembers":{
       "name":"DisassociateMembers",
@@ -404,7 +442,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Disassociates the specified member accounts from the associated master account.</p> <p>Can be used to disassociate both accounts that are in an organization and accounts that were invited manually.</p>"
+      "documentation":"<p>Disassociates the specified member accounts from the associated administrator account.</p> <p>Can be used to disassociate both accounts that are managed using Organizations and accounts that were invited manually.</p>"
     },
     "EnableImportFindingsForProduct":{
       "name":"EnableImportFindingsForProduct",
@@ -455,6 +493,23 @@
         {"shape":"AccessDeniedException"}
       ],
       "documentation":"<p>Enables Security Hub for your account in the current Region or the Region you specify in the request.</p> <p>When you enable Security Hub, you grant to Security Hub the permissions necessary to gather findings from other services that are integrated with Security Hub.</p> <p>When you use the <code>EnableSecurityHub</code> operation to enable Security Hub, you also automatically enable the following standards.</p> <ul> <li> <p>CIS AWS Foundations</p> </li> <li> <p>AWS Foundational Security Best Practices</p> </li> </ul> <p>You do not enable the Payment Card Industry Data Security Standard (PCI DSS) standard. </p> <p>To not enable the automatically enabled standards, set <code>EnableDefaultStandards</code> to <code>false</code>.</p> <p>After you enable Security Hub, to enable a standard, use the <code> <a>BatchEnableStandards</a> </code> operation. To disable a standard, use the <code> <a>BatchDisableStandards</a> </code> operation.</p> <p>To learn more, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-settingup.html\">Setting Up AWS Security Hub</a> in the <i>AWS Security Hub User Guide</i>.</p>"
+    },
+    "GetAdministratorAccount":{
+      "name":"GetAdministratorAccount",
+      "http":{
+        "method":"GET",
+        "requestUri":"/administrator"
+      },
+      "input":{"shape":"GetAdministratorAccountRequest"},
+      "output":{"shape":"GetAdministratorAccountResponse"},
+      "errors":[
+        {"shape":"InternalException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"InvalidAccessException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Provides the details for the Security Hub administrator account for the current member account.</p> <p>Can be used by both member accounts that are managed using Organizations and accounts that were invited manually.</p>"
     },
     "GetEnabledStandards":{
       "name":"GetEnabledStandards",
@@ -553,7 +608,9 @@
         {"shape":"LimitExceededException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Provides the details for the Security Hub master account for the current member account.</p> <p>Can be used by both member accounts that are in an organization and accounts that were invited manually.</p>"
+      "documentation":"<p>This method is deprecated. Instead, use <code>GetAdministratorAccount</code>.</p> <p>The Security Hub console continues to use <code>GetMasterAccount</code>. It will eventually change to use <code>GetAdministratorAccount</code>. Any IAM policies that specifically control access to this function must continue to use <code>GetMasterAccount</code>. You should also add <code>GetAdministratorAccount</code> to your policies to ensure that the correct permissions are in place after the console begins to use <code>GetAdministratorAccount</code>.</p> <p>Provides the details for the Security Hub administrator account for the current member account.</p> <p>Can be used by both member accounts that are managed using Organizations and accounts that were invited manually.</p>",
+      "deprecated":true,
+      "deprecatedMessage":"This API has been deprecated, use GetAdministratorAccount API instead."
     },
     "GetMembers":{
       "name":"GetMembers",
@@ -570,7 +627,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Returns the details for the Security Hub member accounts for the specified account IDs.</p> <p>A master account can be either a delegated Security Hub administrator account for an organization or a master account that enabled Security Hub manually.</p> <p>The results include both member accounts that are in an organization and accounts that were invited manually.</p>"
+      "documentation":"<p>Returns the details for the Security Hub member accounts for the specified account IDs.</p> <p>An administrator account can be either the delegated Security Hub administrator account for an organization or an administrator account that enabled Security Hub manually.</p> <p>The results include both member accounts that are managed using Organizations and accounts that were invited manually.</p>"
     },
     "InviteMembers":{
       "name":"InviteMembers",
@@ -587,7 +644,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Invites other AWS accounts to become member accounts for the Security Hub master account that the invitation is sent from.</p> <p>This operation is only used to invite accounts that do not belong to an organization. Organization accounts do not receive invitations.</p> <p>Before you can use this action to invite a member, you must first use the <code> <a>CreateMembers</a> </code> action to create the member account in Security Hub.</p> <p>When the account owner enables Security Hub and accepts the invitation to become a member account, the master account can view the findings generated from the member account.</p>"
+      "documentation":"<p>Invites other AWS accounts to become member accounts for the Security Hub administrator account that the invitation is sent from.</p> <p>This operation is only used to invite accounts that do not belong to an organization. Organization accounts do not receive invitations.</p> <p>Before you can use this action to invite a member, you must first use the <code> <a>CreateMembers</a> </code> action to create the member account in Security Hub.</p> <p>When the account owner enables Security Hub and accepts the invitation to become a member account, the administrator account can view the findings generated from the member account.</p>"
     },
     "ListEnabledProductsForImport":{
       "name":"ListEnabledProductsForImport",
@@ -618,7 +675,7 @@
         {"shape":"InvalidAccessException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Lists all Security Hub membership invitations that were sent to the current AWS account.</p> <p>This operation is only used by accounts that do not belong to an organization. Organization accounts do not receive invitations.</p>"
+      "documentation":"<p>Lists all Security Hub membership invitations that were sent to the current AWS account.</p> <p>This operation is only used by accounts that are managed by invitation. Accounts that are managed using the integration with AWS Organizations do not receive invitations.</p>"
     },
     "ListMembers":{
       "name":"ListMembers",
@@ -634,7 +691,7 @@
         {"shape":"InvalidAccessException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Lists details about all member accounts for the current Security Hub master account.</p> <p>The results include both member accounts that belong to an organization and member accounts that were invited manually.</p>"
+      "documentation":"<p>Lists details about all member accounts for the current Security Hub administrator account.</p> <p>The results include both member accounts that belong to an organization and member accounts that were invited manually.</p>"
     },
     "ListOrganizationAdminAccounts":{
       "name":"ListOrganizationAdminAccounts",
@@ -799,6 +856,28 @@
     }
   },
   "shapes":{
+    "AcceptAdministratorInvitationRequest":{
+      "type":"structure",
+      "required":[
+        "AdministratorId",
+        "InvitationId"
+      ],
+      "members":{
+        "AdministratorId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The account ID of the Security Hub administrator account that sent the invitation.</p>"
+        },
+        "InvitationId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the invitation sent from the Security Hub administrator account.</p>"
+        }
+      }
+    },
+    "AcceptAdministratorInvitationResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "AcceptInvitationRequest":{
       "type":"structure",
       "required":[
@@ -808,11 +887,11 @@
       "members":{
         "MasterId":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The account ID of the Security Hub master account that sent the invitation.</p>"
+          "documentation":"<p>The account ID of the Security Hub administrator account that sent the invitation.</p>"
         },
         "InvitationId":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The ID of the invitation sent from the Security Hub master account.</p>"
+          "documentation":"<p>The identifier of the invitation sent from the Security Hub administrator account.</p>"
         }
       }
     },
@@ -1216,7 +1295,7 @@
           "documentation":"<p>The endpoint configuration of the REST API.</p>"
         }
       },
-      "documentation":"<p>contains information about a REST API in version 1 of Amazon API Gateway.</p>"
+      "documentation":"<p>Contains information about a REST API in version 1 of Amazon API Gateway.</p>"
     },
     "AwsApiGatewayStageDetails":{
       "type":"structure",
@@ -2512,6 +2591,100 @@
       },
       "documentation":"<p>The details of an Amazon EC2 instance.</p>"
     },
+    "AwsEc2NetworkAclAssociation":{
+      "type":"structure",
+      "members":{
+        "NetworkAclAssociationId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the association between the network ACL and the subnet.</p>"
+        },
+        "NetworkAclId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the network ACL.</p>"
+        },
+        "SubnetId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the subnet that is associated with the network ACL.</p>"
+        }
+      },
+      "documentation":"<p>An association between the network ACL and a subnet.</p>"
+    },
+    "AwsEc2NetworkAclAssociationList":{
+      "type":"list",
+      "member":{"shape":"AwsEc2NetworkAclAssociation"}
+    },
+    "AwsEc2NetworkAclDetails":{
+      "type":"structure",
+      "members":{
+        "IsDefault":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether this is the default network ACL for the VPC.</p>"
+        },
+        "NetworkAclId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the network ACL.</p>"
+        },
+        "OwnerId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the AWS account that owns the network ACL.</p>"
+        },
+        "VpcId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the VPC for the network ACL.</p>"
+        },
+        "Associations":{
+          "shape":"AwsEc2NetworkAclAssociationList",
+          "documentation":"<p>Associations between the network ACL and subnets.</p>"
+        },
+        "Entries":{
+          "shape":"AwsEc2NetworkAclEntryList",
+          "documentation":"<p>The set of rules in the network ACL.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about an EC2 network access control list (ACL).</p>"
+    },
+    "AwsEc2NetworkAclEntry":{
+      "type":"structure",
+      "members":{
+        "CidrBlock":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The IPV4 network range for which to deny or allow access.</p>"
+        },
+        "Egress":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether the rule is an egress rule. An egress rule is a rule that applies to traffic that leaves the subnet.</p>"
+        },
+        "IcmpTypeCode":{
+          "shape":"IcmpTypeCode",
+          "documentation":"<p>The Internet Control Message Protocol (ICMP) type and code for which to deny or allow access.</p>"
+        },
+        "Ipv6CidrBlock":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The IPV6 network range for which to deny or allow access.</p>"
+        },
+        "PortRange":{
+          "shape":"PortRangeFromTo",
+          "documentation":"<p>For TCP or UDP protocols, the range of ports that the rule applies to.</p>"
+        },
+        "Protocol":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The protocol that the rule applies to. To deny or allow access to all protocols, use the value -1.</p>"
+        },
+        "RuleAction":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>Whether the rule is used to allow access or deny access.</p>"
+        },
+        "RuleNumber":{
+          "shape":"Integer",
+          "documentation":"<p>The rule number. The rules are processed in order by their number.</p>"
+        }
+      },
+      "documentation":"<p>A rule for the network ACL. Each rule allows or denies access based on the IP address, traffic direction, port, and protocol.</p>"
+    },
+    "AwsEc2NetworkAclEntryList":{
+      "type":"list",
+      "member":{"shape":"AwsEc2NetworkAclEntry"}
+    },
     "AwsEc2NetworkInterfaceAttachment":{
       "type":"structure",
       "members":{
@@ -2778,6 +2951,64 @@
       "type":"list",
       "member":{"shape":"AwsEc2SecurityGroupUserIdGroupPair"}
     },
+    "AwsEc2SubnetDetails":{
+      "type":"structure",
+      "members":{
+        "AssignIpv6AddressOnCreation":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to assign an IPV6 address to a network interface that is created in this subnet.</p>"
+        },
+        "AvailabilityZone":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Availability Zone for the subnet.</p>"
+        },
+        "AvailabilityZoneId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the Availability Zone for the subnet.</p>"
+        },
+        "AvailableIpAddressCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of available IPV4 addresses in the subnet. Does not include addresses for stopped instances.</p>"
+        },
+        "CidrBlock":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The IPV4 CIDR block that is assigned to the subnet.</p>"
+        },
+        "DefaultForAz":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether this subnet is the default subnet for the Availability Zone.</p>"
+        },
+        "MapPublicIpOnLaunch":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether instances in this subnet receive a public IP address.</p>"
+        },
+        "OwnerId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the AWS account that owns the subnet.</p>"
+        },
+        "State":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The current state of the subnet.</p>"
+        },
+        "SubnetArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ARN of the subnet.</p>"
+        },
+        "SubnetId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the subnet.</p>"
+        },
+        "VpcId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the VPC that contains the subnet.</p>"
+        },
+        "Ipv6CidrBlockAssociationSet":{
+          "shape":"Ipv6CidrBlockAssociationList",
+          "documentation":"<p>The IPV6 CIDR blocks that are associated with the subnet.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a subnet in EC2.</p>"
+    },
     "AwsEc2VolumeAttachment":{
       "type":"structure",
       "members":{
@@ -2859,6 +3090,138 @@
         }
       },
       "documentation":"<p>Details about an EC2 VPC.</p>"
+    },
+    "AwsElasticBeanstalkEnvironmentDetails":{
+      "type":"structure",
+      "members":{
+        "ApplicationName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the application that is associated with the environment.</p>"
+        },
+        "Cname":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The URL to the CNAME for this environment.</p>"
+        },
+        "DateCreated":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The creation date for this environment.</p>"
+        },
+        "DateUpdated":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The date when this environment was last modified.</p>"
+        },
+        "Description":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>A description of the environment.</p>"
+        },
+        "EndpointUrl":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>For load-balanced, autoscaling environments, the URL to the load balancer. For single-instance environments, the IP address of the instance.</p>"
+        },
+        "EnvironmentArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ARN of the environment.</p>"
+        },
+        "EnvironmentId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The identifier of the environment.</p>"
+        },
+        "EnvironmentLinks":{
+          "shape":"AwsElasticBeanstalkEnvironmentEnvironmentLinks",
+          "documentation":"<p>Links to other environments in the same group.</p>"
+        },
+        "EnvironmentName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the environment.</p>"
+        },
+        "OptionSettings":{
+          "shape":"AwsElasticBeanstalkEnvironmentOptionSettings",
+          "documentation":"<p>The configuration setting for the environment.</p>"
+        },
+        "PlatformArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ARN of the platform version for the environment.</p>"
+        },
+        "SolutionStackName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the solution stack that is deployed with the environment.</p>"
+        },
+        "Status":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The current operational status of the environment.</p>"
+        },
+        "Tier":{
+          "shape":"AwsElasticBeanstalkEnvironmentTier",
+          "documentation":"<p>The tier of the environment.</p>"
+        },
+        "VersionLabel":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The application version of the environment.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about an Elastic Beanstalk environment.</p>"
+    },
+    "AwsElasticBeanstalkEnvironmentEnvironmentLink":{
+      "type":"structure",
+      "members":{
+        "EnvironmentName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the linked environment.</p>"
+        },
+        "LinkName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the environment link.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a link to another environment that is in the same group.</p>"
+    },
+    "AwsElasticBeanstalkEnvironmentEnvironmentLinks":{
+      "type":"list",
+      "member":{"shape":"AwsElasticBeanstalkEnvironmentEnvironmentLink"}
+    },
+    "AwsElasticBeanstalkEnvironmentOptionSetting":{
+      "type":"structure",
+      "members":{
+        "Namespace":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The type of resource that the configuration option is associated with.</p>"
+        },
+        "OptionName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the option.</p>"
+        },
+        "ResourceName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the resource.</p>"
+        },
+        "Value":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The value of the configuration setting.</p>"
+        }
+      },
+      "documentation":"<p>A configuration option setting for the environment.</p>"
+    },
+    "AwsElasticBeanstalkEnvironmentOptionSettings":{
+      "type":"list",
+      "member":{"shape":"AwsElasticBeanstalkEnvironmentOptionSetting"}
+    },
+    "AwsElasticBeanstalkEnvironmentTier":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the environment tier.</p>"
+        },
+        "Type":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The type of environment tier.</p>"
+        },
+        "Version":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The version of the environment tier.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the tier of the environment.</p>"
     },
     "AwsElasticsearchDomainDetails":{
       "type":"structure",
@@ -5434,6 +5797,28 @@
       "type":"list",
       "member":{"shape":"AwsRedshiftClusterVpcSecurityGroup"}
     },
+    "AwsS3AccountPublicAccessBlockDetails":{
+      "type":"structure",
+      "members":{
+        "BlockPublicAcls":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether to reject calls to update an S3 bucket if the calls include a public access control list (ACL).</p>"
+        },
+        "BlockPublicPolicy":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether to reject calls to update the access policy for an S3 bucket or access point if the policy allows public access.</p>"
+        },
+        "IgnorePublicAcls":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether Amazon S3 ignores public ACLs that are associated with an S3 bucket.</p>"
+        },
+        "RestrictPublicBuckets":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether to restrict access to an access point or S3 bucket that has a public policy to only AWS service principals and authorized users within the S3 bucket owner's account.</p>"
+        }
+      },
+      "documentation":"<p>provides information about the Amazon S3 Public Access Block configuration for accounts.</p>"
+    },
     "AwsS3BucketDetails":{
       "type":"structure",
       "members":{
@@ -5452,6 +5837,10 @@
         "ServerSideEncryptionConfiguration":{
           "shape":"AwsS3BucketServerSideEncryptionConfiguration",
           "documentation":"<p>The encryption rules that are applied to the S3 bucket.</p>"
+        },
+        "PublicAccessBlockConfiguration":{
+          "shape":"AwsS3AccountPublicAccessBlockDetails",
+          "documentation":"<p>Provides information about the Amazon S3 Public Access Block configuration for the S3 bucket.</p>"
         }
       },
       "documentation":"<p>The details of an Amazon S3 bucket.</p>"
@@ -5580,10 +5969,8 @@
         "ProductArn",
         "GeneratorId",
         "AwsAccountId",
-        "Types",
         "CreatedAt",
         "UpdatedAt",
-        "Severity",
         "Title",
         "Description",
         "Resources"
@@ -5728,6 +6115,10 @@
         "Action":{
           "shape":"Action",
           "documentation":"<p>Provides details about an action that affects or that was taken on a resource.</p>"
+        },
+        "FindingProviderFields":{
+          "shape":"FindingProviderFields",
+          "documentation":"<p>In a <code>BatchImportFindings</code> request, finding providers use <code>FindingProviderFields</code> to provide and update their own values for confidence, criticality, related findings, severity, and types.</p>"
         }
       },
       "documentation":"<p>Provides consistent format for the contents of the Security Hub-aggregated findings. <code>AwsSecurityFinding</code> format enables you to share findings between AWS security services and third-party solutions, and security standards checks.</p> <note> <p>A finding is a potential security issue generated either by AWS services (Amazon GuardDuty, Amazon Inspector, and Amazon Macie) or by the integrated third-party solutions and standards checks.</p> </note>"
@@ -5773,11 +6164,15 @@
         },
         "SeverityProduct":{
           "shape":"NumberFilterList",
-          "documentation":"<p>The native severity as defined by the security-findings provider's solution that generated the finding.</p>"
+          "documentation":"<p>The native severity as defined by the security-findings provider's solution that generated the finding.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"This filter is deprecated, use FindingProviiltersSeverityOriginal instead."
         },
         "SeverityNormalized":{
           "shape":"NumberFilterList",
-          "documentation":"<p>The normalized severity of a finding.</p>"
+          "documentation":"<p>The normalized severity of a finding.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"This filter is deprecated, use SeverityLabel or FindingProviderFieldsSeverityLabel instead."
         },
         "SeverityLabel":{
           "shape":"StringFilterList",
@@ -6070,6 +6465,34 @@
         "Keyword":{
           "shape":"KeywordFilterList",
           "documentation":"<p>A keyword for a finding.</p>"
+        },
+        "FindingProviderFieldsConfidence":{
+          "shape":"NumberFilterList",
+          "documentation":"<p>The finding provider value for the finding confidence. Confidence is defined as the likelihood that a finding accurately identifies the behavior or issue that it was intended to identify.</p> <p>Confidence is scored on a 0-100 basis using a ratio scale, where 0 means zero percent confidence and 100 means 100 percent confidence.</p>"
+        },
+        "FindingProviderFieldsCriticality":{
+          "shape":"NumberFilterList",
+          "documentation":"<p>The finding provider value for the level of importance assigned to the resources associated with the findings.</p> <p>A score of 0 means that the underlying resources have no criticality, and a score of 100 is reserved for the most critical resources. </p>"
+        },
+        "FindingProviderFieldsRelatedFindingsId":{
+          "shape":"StringFilterList",
+          "documentation":"<p>The finding identifier of a related finding that is identified by the finding provider.</p>"
+        },
+        "FindingProviderFieldsRelatedFindingsProductArn":{
+          "shape":"StringFilterList",
+          "documentation":"<p>The ARN of the solution that generated a related finding that is identified by the finding provider.</p>"
+        },
+        "FindingProviderFieldsSeverityLabel":{
+          "shape":"StringFilterList",
+          "documentation":"<p>The finding provider value for the severity label.</p>"
+        },
+        "FindingProviderFieldsSeverityOriginal":{
+          "shape":"StringFilterList",
+          "documentation":"<p>The finding provider's original value for the severity.</p>"
+        },
+        "FindingProviderFieldsTypes":{
+          "shape":"StringFilterList",
+          "documentation":"<p>One or more finding types that the finding provider assigned to the finding. Uses the format of <code>namespace/category/classifier</code> that classify a finding.</p> <p>Valid namespace values are: Software and Configuration Checks | TTPs | Effects | Unusual Behaviors | Sensitive Data Identifications</p>"
         }
       },
       "documentation":"<p>A collection of attributes that are applied to all active Security Hub-aggregated findings and that result in a subset of findings that are included in this insight.</p> <p>You can filter by up to 10 finding attributes. For each attribute, you can provide up to 20 filter values.</p>"
@@ -6359,10 +6782,16 @@
       "required":["Findings"],
       "members":{
         "Findings":{
-          "shape":"AwsSecurityFindingList",
+          "shape":"BatchImportFindingsRequestFindingList",
           "documentation":"<p>A list of findings to import. To successfully import a finding, it must follow the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-findings-format.html\">AWS Security Finding Format</a>. Maximum of 100 findings per request.</p>"
         }
       }
+    },
+    "BatchImportFindingsRequestFindingList":{
+      "type":"list",
+      "member":{"shape":"AwsSecurityFinding"},
+      "max":100,
+      "min":1
     },
     "BatchImportFindingsResponse":{
       "type":"structure",
@@ -6477,6 +6906,32 @@
       "type":"list",
       "member":{"shape":"NonEmptyString"}
     },
+    "Cell":{
+      "type":"structure",
+      "members":{
+        "Column":{
+          "shape":"Long",
+          "documentation":"<p>The column number of the column that contains the data. For a Microsoft Excel workbook, the column number corresponds to the alphabetical column identifiers. For example, a value of 1 for Column corresponds to the A column in the workbook.</p>"
+        },
+        "Row":{
+          "shape":"Long",
+          "documentation":"<p>The row number of the row that contains the data.</p>"
+        },
+        "ColumnName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of the column that contains the data.</p>"
+        },
+        "CellReference":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>For a Microsoft Excel workbook, provides the location of the cell, as an absolute cell reference, that contains the data. For example, Sheet2!C5 for cell C5 on Sheet2.</p>"
+        }
+      },
+      "documentation":"<p>An occurrence of sensitive data detected in a Microsoft Excel workbook, comma-separated value (CSV) file, or tab-separated value (TSV) file.</p>"
+    },
+    "Cells":{
+      "type":"list",
+      "member":{"shape":"Cell"}
+    },
     "CidrBlockAssociation":{
       "type":"structure",
       "members":{
@@ -6508,6 +6963,50 @@
         }
       },
       "documentation":"<p>Information about a city.</p>"
+    },
+    "ClassificationResult":{
+      "type":"structure",
+      "members":{
+        "MimeType":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The type of content that the finding applies to.</p>"
+        },
+        "SizeClassified":{
+          "shape":"Long",
+          "documentation":"<p>The total size in bytes of the affected data.</p>"
+        },
+        "AdditionalOccurrences":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether there are additional occurrences of sensitive data that are not included in the finding. This occurs when the number of occurrences exceeds the maximum that can be included.</p>"
+        },
+        "Status":{
+          "shape":"ClassificationStatus",
+          "documentation":"<p>The current status of the sensitive data detection.</p>"
+        },
+        "SensitiveData":{
+          "shape":"SensitiveDataResultList",
+          "documentation":"<p>Provides details about sensitive data that was identified based on built-in configuration.</p>"
+        },
+        "CustomDataIdentifiers":{
+          "shape":"CustomDataIdentifiersResult",
+          "documentation":"<p>Provides details about sensitive data that was identified based on customer-defined configuration.</p>"
+        }
+      },
+      "documentation":"<p>Details about the sensitive data that was detected on the resource.</p>"
+    },
+    "ClassificationStatus":{
+      "type":"structure",
+      "members":{
+        "Code":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The code that represents the status of the sensitive data detection.</p>"
+        },
+        "Reason":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>A longer description of the current status of the sensitive data detection.</p>"
+        }
+      },
+      "documentation":"<p>Provides details about the current status of the sensitive data detection.</p>"
     },
     "Compliance":{
       "type":"structure",
@@ -6649,7 +7148,7 @@
       "members":{
         "AccountDetails":{
           "shape":"AccountDetailsList",
-          "documentation":"<p>The list of accounts to associate with the Security Hub master account. For each account, the list includes the account ID and optionally the email address.</p>"
+          "documentation":"<p>The list of accounts to associate with the Security Hub administrator account. For each account, the list includes the account ID and optionally the email address.</p>"
         }
       }
     },
@@ -6666,6 +7165,46 @@
       "type":"integer",
       "max":50,
       "min":1
+    },
+    "CustomDataIdentifiersDetections":{
+      "type":"structure",
+      "members":{
+        "Count":{
+          "shape":"Long",
+          "documentation":"<p>The total number of occurrences of sensitive data that were detected.</p>"
+        },
+        "Arn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ARN of the custom identifier that was used to detect the sensitive data.</p>"
+        },
+        "Name":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>he name of the custom identifier that detected the sensitive data.</p>"
+        },
+        "Occurrences":{
+          "shape":"Occurrences",
+          "documentation":"<p>Details about the sensitive data that was detected.</p>"
+        }
+      },
+      "documentation":"<p>The list of detected instances of sensitive data.</p>"
+    },
+    "CustomDataIdentifiersDetectionsList":{
+      "type":"list",
+      "member":{"shape":"CustomDataIdentifiersDetections"}
+    },
+    "CustomDataIdentifiersResult":{
+      "type":"structure",
+      "members":{
+        "Detections":{
+          "shape":"CustomDataIdentifiersDetectionsList",
+          "documentation":"<p>The list of detected instances of sensitive data.</p>"
+        },
+        "TotalCount":{
+          "shape":"Long",
+          "documentation":"<p>The total number of occurrences of sensitive data.</p>"
+        }
+      },
+      "documentation":"<p>Contains an instance of sensitive data that was detected by a customer-defined identifier.</p>"
     },
     "Cvss":{
       "type":"structure",
@@ -6688,6 +7227,20 @@
     "CvssList":{
       "type":"list",
       "member":{"shape":"Cvss"}
+    },
+    "DataClassificationDetails":{
+      "type":"structure",
+      "members":{
+        "DetailedResultsLocation":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The path to the folder or file that contains the sensitive data.</p>"
+        },
+        "Result":{
+          "shape":"ClassificationResult",
+          "documentation":"<p>The details about the sensitive data that was detected on the resource.</p>"
+        }
+      },
+      "documentation":"<p>Provides details about sensitive data that was detected on a resource.</p>"
     },
     "DateFilter":{
       "type":"structure",
@@ -7053,6 +7606,16 @@
       "members":{
       }
     },
+    "DisassociateFromAdministratorAccountRequest":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "DisassociateFromAdministratorAccountResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "DisassociateFromMasterAccountRequest":{
       "type":"structure",
       "members":{
@@ -7069,7 +7632,7 @@
       "members":{
         "AccountIds":{
           "shape":"AccountIdList",
-          "documentation":"<p>The account IDs of the member accounts to disassociate from the master account.</p>"
+          "documentation":"<p>The account IDs of the member accounts to disassociate from the administrator account.</p>"
         }
       }
     },
@@ -7154,6 +7717,46 @@
       "key":{"shape":"NonEmptyString"},
       "value":{"shape":"NonEmptyString"}
     },
+    "FindingProviderFields":{
+      "type":"structure",
+      "members":{
+        "Confidence":{
+          "shape":"RatioScale",
+          "documentation":"<p>A finding's confidence. Confidence is defined as the likelihood that a finding accurately identifies the behavior or issue that it was intended to identify.</p> <p>Confidence is scored on a 0-100 basis using a ratio scale, where 0 means zero percent confidence and 100 means 100 percent confidence.</p>"
+        },
+        "Criticality":{
+          "shape":"RatioScale",
+          "documentation":"<p>The level of importance assigned to the resources associated with the finding.</p> <p>A score of 0 means that the underlying resources have no criticality, and a score of 100 is reserved for the most critical resources.</p>"
+        },
+        "RelatedFindings":{
+          "shape":"RelatedFindingList",
+          "documentation":"<p>A list of findings that are related to the current finding.</p>"
+        },
+        "Severity":{
+          "shape":"FindingProviderSeverity",
+          "documentation":"<p>The severity of a finding.</p>"
+        },
+        "Types":{
+          "shape":"TypeList",
+          "documentation":"<p>One or more finding types in the format of <code>namespace/category/classifier</code> that classify a finding.</p> <p>Valid namespace values are: Software and Configuration Checks | TTPs | Effects | Unusual Behaviors | Sensitive Data Identifications</p>"
+        }
+      },
+      "documentation":"<p>In a <code>BatchImportFindings</code> request, finding providers use <code>FindingProviderFields</code> to provide and update values for confidence, criticality, related findings, severity, and types.</p>"
+    },
+    "FindingProviderSeverity":{
+      "type":"structure",
+      "members":{
+        "Label":{
+          "shape":"SeverityLabel",
+          "documentation":"<p>The severity label assigned to the finding by the finding provider.</p>"
+        },
+        "Original":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The finding provider's original value for the severity.</p>"
+        }
+      },
+      "documentation":"<p>The severity assigned to the finding by the finding provider.</p>"
+    },
     "GeoLocation":{
       "type":"structure",
       "members":{
@@ -7167,6 +7770,17 @@
         }
       },
       "documentation":"<p>Provides the latitude and longitude coordinates of a location.</p>"
+    },
+    "GetAdministratorAccountRequest":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "GetAdministratorAccountResponse":{
+      "type":"structure",
+      "members":{
+        "Administrator":{"shape":"Invitation"}
+      }
     },
     "GetEnabledStandardsRequest":{
       "type":"structure",
@@ -7310,7 +7924,7 @@
       "members":{
         "Master":{
           "shape":"Invitation",
-          "documentation":"<p>A list of details about the Security Hub master account for the current member account. </p>"
+          "documentation":"<p>A list of details about the Security Hub administrator account for the current member account. </p>"
         }
       }
     },
@@ -7336,6 +7950,20 @@
           "documentation":"<p>The list of AWS accounts that could not be processed. For each account, the list includes the account ID and the email address.</p>"
         }
       }
+    },
+    "IcmpTypeCode":{
+      "type":"structure",
+      "members":{
+        "Code":{
+          "shape":"Integer",
+          "documentation":"<p>The ICMP code for which to deny or allow access. To deny or allow all codes, use the value -1.</p>"
+        },
+        "Type":{
+          "shape":"Integer",
+          "documentation":"<p>The ICMP type for which to deny or allow access. To deny or allow all types, use the value -1.</p>"
+        }
+      },
+      "documentation":"<p>An Internet Control Message Protocol (ICMP) type and code.</p>"
     },
     "ImportFindingsError":{
       "type":"structure",
@@ -7446,7 +8074,8 @@
       "type":"string",
       "enum":[
         "SEND_FINDINGS_TO_SECURITY_HUB",
-        "RECEIVE_FINDINGS_FROM_SECURITY_HUB"
+        "RECEIVE_FINDINGS_FROM_SECURITY_HUB",
+        "UPDATE_FINDINGS_IN_SECURITY_HUB"
       ]
     },
     "IntegrationTypeList":{
@@ -7488,7 +8117,7 @@
       "members":{
         "AccountId":{
           "shape":"AccountId",
-          "documentation":"<p>The account ID of the Security Hub master account that the invitation was sent from.</p>"
+          "documentation":"<p>The account ID of the Security Hub administrator account that the invitation was sent from.</p>"
         },
         "InvitationId":{
           "shape":"NonEmptyString",
@@ -7500,7 +8129,7 @@
         },
         "MemberStatus":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The current status of the association between the member and master accounts.</p>"
+          "documentation":"<p>The current status of the association between the member and administrator accounts.</p>"
         }
       },
       "documentation":"<p>Details about an invitation.</p>"
@@ -7675,7 +8304,7 @@
       "members":{
         "OnlyAssociated":{
           "shape":"Boolean",
-          "documentation":"<p>Specifies which member accounts to include in the response based on their relationship status with the master account. The default value is <code>TRUE</code>.</p> <p>If <code>OnlyAssociated</code> is set to <code>TRUE</code>, the response includes member accounts whose relationship status with the master is set to <code>ENABLED</code>.</p> <p>If <code>OnlyAssociated</code> is set to <code>FALSE</code>, the response includes all existing member accounts. </p>",
+          "documentation":"<p>Specifies which member accounts to include in the response based on their relationship status with the administrator account. The default value is <code>TRUE</code>.</p> <p>If <code>OnlyAssociated</code> is set to <code>TRUE</code>, the response includes member accounts whose relationship status with the administrator account is set to <code>ENABLED</code>.</p> <p>If <code>OnlyAssociated</code> is set to <code>FALSE</code>, the response includes all existing member accounts. </p>",
           "location":"querystring",
           "locationName":"OnlyAssociated"
         },
@@ -7874,11 +8503,17 @@
         },
         "MasterId":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The AWS account ID of the Security Hub master account associated with this member account.</p>"
+          "documentation":"<p>This is replaced by <code>AdministratorID</code>.</p> <p>The AWS account ID of the Security Hub administrator account associated with this member account.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"This field is deprecated, use AdministratorId instead."
+        },
+        "AdministratorId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The AWS account ID of the Security Hub administrator account associated with this member account.</p>"
         },
         "MemberStatus":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The status of the relationship between the member account and its master account. </p> <p>The status can have one of the following values:</p> <ul> <li> <p> <code>CREATED</code> - Indicates that the master account added the member account, but has not yet invited the member account.</p> </li> <li> <p> <code>INVITED</code> - Indicates that the master account invited the member account. The member account has not yet responded to the invitation.</p> </li> <li> <p> <code>ENABLED</code> - Indicates that the member account is currently active. For manually invited member accounts, indicates that the member account accepted the invitation.</p> </li> <li> <p> <code>REMOVED</code> - Indicates that the master account disassociated the member account.</p> </li> <li> <p> <code>RESIGNED</code> - Indicates that the member account disassociated themselves from the master account.</p> </li> <li> <p> <code>DELETED</code> - Indicates that the master account deleted the member account.</p> </li> </ul>"
+          "documentation":"<p>The status of the relationship between the member account and its administrator account. </p> <p>The status can have one of the following values:</p> <ul> <li> <p> <code>CREATED</code> - Indicates that the administrator account added the member account, but has not yet invited the member account.</p> </li> <li> <p> <code>INVITED</code> - Indicates that the administrator account invited the member account. The member account has not yet responded to the invitation.</p> </li> <li> <p> <code>ENABLED</code> - Indicates that the member account is currently active. For manually invited member accounts, indicates that the member account accepted the invitation.</p> </li> <li> <p> <code>REMOVED</code> - Indicates that the administrator account disassociated the member account.</p> </li> <li> <p> <code>RESIGNED</code> - Indicates that the member account disassociated themselves from the administrator account.</p> </li> <li> <p> <code>DELETED</code> - Indicates that the administrator account deleted the member account.</p> </li> </ul>"
         },
         "InvitedAt":{
           "shape":"Timestamp",
@@ -8116,6 +8751,54 @@
       "type":"list",
       "member":{"shape":"NumberFilter"}
     },
+    "Occurrences":{
+      "type":"structure",
+      "members":{
+        "LineRanges":{
+          "shape":"Ranges",
+          "documentation":"<p>Occurrences of sensitive data detected in a non-binary text file or a Microsoft Word file. Non-binary text files include files such as HTML, XML, JSON, and TXT files.</p>"
+        },
+        "OffsetRanges":{
+          "shape":"Ranges",
+          "documentation":"<p>Occurrences of sensitive data detected in a binary text file.</p>"
+        },
+        "Pages":{
+          "shape":"Pages",
+          "documentation":"<p>Occurrences of sensitive data in an Adobe Portable Document Format (PDF) file.</p>"
+        },
+        "Records":{
+          "shape":"Records",
+          "documentation":"<p>Occurrences of sensitive data in an Apache Avro object container or an Apache Parquet file.</p>"
+        },
+        "Cells":{
+          "shape":"Cells",
+          "documentation":"<p>Occurrences of sensitive data detected in Microsoft Excel workbooks, comma-separated value (CSV) files, or tab-separated value (TSV) files.</p>"
+        }
+      },
+      "documentation":"<p>The detected occurrences of sensitive data.</p>"
+    },
+    "Page":{
+      "type":"structure",
+      "members":{
+        "PageNumber":{
+          "shape":"Long",
+          "documentation":"<p>The page number of the page that contains the sensitive data.</p>"
+        },
+        "LineRange":{
+          "shape":"Range",
+          "documentation":"<p>An occurrence of sensitive data detected in a non-binary text file or a Microsoft Word file. Non-binary text files include files such as HTML, XML, JSON, and TXT files.</p>"
+        },
+        "OffsetRange":{
+          "shape":"Range",
+          "documentation":"<p>An occurrence of sensitive data detected in a binary text file.</p>"
+        }
+      },
+      "documentation":"<p>An occurrence of sensitive data in an Adobe Portable Document Format (PDF) file.</p>"
+    },
+    "Pages":{
+      "type":"list",
+      "member":{"shape":"Page"}
+    },
     "Partition":{
       "type":"string",
       "enum":[
@@ -8225,6 +8908,20 @@
       },
       "documentation":"<p>A range of ports.</p>"
     },
+    "PortRangeFromTo":{
+      "type":"structure",
+      "members":{
+        "From":{
+          "shape":"Integer",
+          "documentation":"<p>The first port in the port range.</p>"
+        },
+        "To":{
+          "shape":"Integer",
+          "documentation":"<p>The last port in the port range.</p>"
+        }
+      },
+      "documentation":"<p>A range of ports.</p>"
+    },
     "PortRangeList":{
       "type":"list",
       "member":{"shape":"PortRange"}
@@ -8285,15 +8982,15 @@
         },
         "IntegrationTypes":{
           "shape":"IntegrationTypeList",
-          "documentation":"<p>The types of integration that the product supports. Available values are the following.</p> <ul> <li> <p> <code>SEND_FINDINGS_TO_SECURITY_HUB</code> - Indicates that the integration sends findings to Security Hub.</p> </li> <li> <p> <code>RECEIVE_FINDINGS_FROM_SECURITY_HUB</code> - Indicates that the integration receives findings from Security Hub.</p> </li> </ul>"
+          "documentation":"<p>The types of integration that the product supports. Available values are the following.</p> <ul> <li> <p> <code>SEND_FINDINGS_TO_SECURITY_HUB</code> - The integration sends findings to Security Hub.</p> </li> <li> <p> <code>RECEIVE_FINDINGS_FROM_SECURITY_HUB</code> - The integration receives findings from Security Hub.</p> </li> <li> <p> <code>UPDATE_FINDINGS_IN_SECURITY_HUB</code> - The integration does not send new findings to Security Hub, but does make updates to the findings that it receives from Security Hub.</p> </li> </ul>"
         },
         "MarketplaceUrl":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The URL for the page that contains more information about the product.</p>"
+          "documentation":"<p>For integrations with AWS services, the AWS Console URL from which to activate the service.</p> <p>For integrations with third-party products, the AWS Marketplace URL from which to subscribe to or purchase the product.</p>"
         },
         "ActivationUrl":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The URL used to activate the product.</p>"
+          "documentation":"<p>The URL to the service or product documentation about the integration with Security Hub, including how to activate the integration.</p>"
         },
         "ProductSubscriptionResourcePolicy":{
           "shape":"NonEmptyString",
@@ -8309,6 +9006,28 @@
     "ProductsList":{
       "type":"list",
       "member":{"shape":"Product"}
+    },
+    "Range":{
+      "type":"structure",
+      "members":{
+        "Start":{
+          "shape":"Long",
+          "documentation":"<p>The number of lines (for a line range) or characters (for an offset range) from the beginning of the file to the end of the sensitive data.</p>"
+        },
+        "End":{
+          "shape":"Long",
+          "documentation":"<p>The number of lines (for a line range) or characters (for an offset range) from the beginning of the file to the end of the sensitive data.</p>"
+        },
+        "StartColumn":{
+          "shape":"Long",
+          "documentation":"<p>In the line where the sensitive data starts, the column within the line where the sensitive data starts.</p>"
+        }
+      },
+      "documentation":"<p>Identifies where the sensitive data begins and ends.</p>"
+    },
+    "Ranges":{
+      "type":"list",
+      "member":{"shape":"Range"}
     },
     "RatioScale":{
       "type":"integer",
@@ -8329,12 +9048,30 @@
       },
       "documentation":"<p>A recommendation on how to remediate the issue identified in a finding.</p>"
     },
+    "Record":{
+      "type":"structure",
+      "members":{
+        "JsonPath":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The path, as a JSONPath expression, to the field in the record that contains the data. If the field name is longer than 20 characters, it is truncated. If the path is longer than 250 characters, it is truncated.</p>"
+        },
+        "RecordIndex":{
+          "shape":"Long",
+          "documentation":"<p>The record index, starting from 0, for the record that contains the data.</p>"
+        }
+      },
+      "documentation":"<p>An occurrence of sensitive data in an Apache Avro object container or an Apache Parquet file.</p>"
+    },
     "RecordState":{
       "type":"string",
       "enum":[
         "ACTIVE",
         "ARCHIVED"
       ]
+    },
+    "Records":{
+      "type":"list",
+      "member":{"shape":"Record"}
     },
     "RelatedFinding":{
       "type":"structure",
@@ -8403,6 +9140,10 @@
           "shape":"FieldMap",
           "documentation":"<p>A list of AWS tags associated with a resource at the time the finding was processed.</p>"
         },
+        "DataClassification":{
+          "shape":"DataClassificationDetails",
+          "documentation":"<p>Contains information about sensitive data that was detected on the resource.</p>"
+        },
         "Details":{
           "shape":"ResourceDetails",
           "documentation":"<p>Additional details about the resource related to a finding.</p>"
@@ -8463,9 +9204,21 @@
           "shape":"AwsEc2EipDetails",
           "documentation":"<p>Details about an Elastic IP address.</p>"
         },
+        "AwsEc2Subnet":{
+          "shape":"AwsEc2SubnetDetails",
+          "documentation":"<p>Details about a subnet in EC2.</p>"
+        },
+        "AwsEc2NetworkAcl":{
+          "shape":"AwsEc2NetworkAclDetails",
+          "documentation":"<p>Details about an EC2 network access control list (ACL).</p>"
+        },
         "AwsElbv2LoadBalancer":{
           "shape":"AwsElbv2LoadBalancerDetails",
           "documentation":"<p>Details about a load balancer.</p>"
+        },
+        "AwsElasticBeanstalkEnvironment":{
+          "shape":"AwsElasticBeanstalkEnvironmentDetails",
+          "documentation":"<p>Details about an Elastic Beanstalk environment.</p>"
         },
         "AwsElasticsearchDomain":{
           "shape":"AwsElasticsearchDomainDetails",
@@ -8474,6 +9227,10 @@
         "AwsS3Bucket":{
           "shape":"AwsS3BucketDetails",
           "documentation":"<p>Details about an Amazon S3 bucket related to a finding.</p>"
+        },
+        "AwsS3AccountPublicAccessBlock":{
+          "shape":"AwsS3AccountPublicAccessBlockDetails",
+          "documentation":"<p>Details about the Amazon S3 Public Access Block configuration for an account.</p>"
         },
         "AwsS3Object":{
           "shape":"AwsS3ObjectDetails",
@@ -8629,6 +9386,50 @@
     "SecurityGroups":{
       "type":"list",
       "member":{"shape":"NonEmptyString"}
+    },
+    "SensitiveDataDetections":{
+      "type":"structure",
+      "members":{
+        "Count":{
+          "shape":"Long",
+          "documentation":"<p>The total number of occurrences of sensitive data that were detected.</p>"
+        },
+        "Type":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The type of sensitive data that was detected. For example, the type might indicate that the data is an email address.</p>"
+        },
+        "Occurrences":{
+          "shape":"Occurrences",
+          "documentation":"<p>Details about the sensitive data that was detected.</p>"
+        }
+      },
+      "documentation":"<p>The list of detected instances of sensitive data.</p>"
+    },
+    "SensitiveDataDetectionsList":{
+      "type":"list",
+      "member":{"shape":"SensitiveDataDetections"}
+    },
+    "SensitiveDataResult":{
+      "type":"structure",
+      "members":{
+        "Category":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The category of sensitive data that was detected. For example, the category can indicate that the sensitive data involved credentials, financial information, or personal information.</p>"
+        },
+        "Detections":{
+          "shape":"SensitiveDataDetectionsList",
+          "documentation":"<p>The list of detected instances of sensitive data.</p>"
+        },
+        "TotalCount":{
+          "shape":"Long",
+          "documentation":"<p>The total number of occurrences of sensitive data.</p>"
+        }
+      },
+      "documentation":"<p>Contains a detected instance of sensitive data that are based on built-in identifiers.</p>"
+    },
+    "SensitiveDataResultList":{
+      "type":"list",
+      "member":{"shape":"SensitiveDataResult"}
     },
     "Severity":{
       "type":"structure",
@@ -8979,7 +9780,7 @@
         },
         "Tags":{
           "shape":"TagMap",
-          "documentation":"<p>The tags to add to the resource.</p>"
+          "documentation":"<p>The tags to add to the resource. You can add up to 50 tags at a time. The tag keys can be no longer than 128 characters. The tag values can be no longer than 256 characters.</p>"
         }
       }
     },
@@ -9076,7 +9877,7 @@
         },
         "TagKeys":{
           "shape":"TagKeyList",
-          "documentation":"<p>The tag keys associated with the tags to remove from the resource.</p>",
+          "documentation":"<p>The tag keys associated with the tags to remove from the resource. You can remove up to 50 tags at a time.</p>",
           "location":"querystring",
           "locationName":"tagKeys"
         }
@@ -9365,5 +10166,5 @@
       "documentation":"<p>Used to update information about the investigation into the finding.</p>"
     }
   },
-  "documentation":"<p>Security Hub provides you with a comprehensive view of the security state of your AWS environment and resources. It also provides you with the readiness status of your environment based on controls from supported security standards. Security Hub collects security data from AWS accounts, services, and integrated third-party products and helps you analyze security trends in your environment to identify the highest priority security issues. For more information about Security Hub, see the <i> <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html\">AWS Security Hub User Guide</a> </i>.</p> <p>When you use operations in the Security Hub API, the requests are executed only in the AWS Region that is currently active or in the specific AWS Region that you specify in your request. Any configuration or settings change that results from the operation is applied only to that Region. To make the same change in other Regions, execute the same command for each Region to apply the change to.</p> <p>For example, if your Region is set to <code>us-west-2</code>, when you use <code> <a>CreateMembers</a> </code> to add a member account to Security Hub, the association of the member account with the master account is created only in the <code>us-west-2</code> Region. Security Hub must be enabled for the member account in the same Region that the invitation was sent from.</p> <p>The following throttling limits apply to using Security Hub API operations.</p> <ul> <li> <p> <code> <a>BatchEnableStandards</a> </code> - <code>RateLimit</code> of 1 request per second, <code>BurstLimit</code> of 1 request per second.</p> </li> <li> <p> <code> <a>GetFindings</a> </code> - <code>RateLimit</code> of 3 requests per second. <code>BurstLimit</code> of 6 requests per second.</p> </li> <li> <p> <code> <a>UpdateFindings</a> </code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p> <code> <a>UpdateStandardsControl</a> </code> - <code>RateLimit</code> of 1 request per second, <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p>All other operations - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> </ul>"
+  "documentation":"<p>Security Hub provides you with a comprehensive view of the security state of your AWS environment and resources. It also provides you with the readiness status of your environment based on controls from supported security standards. Security Hub collects security data from AWS accounts, services, and integrated third-party products and helps you analyze security trends in your environment to identify the highest priority security issues. For more information about Security Hub, see the <i> <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html\">AWS Security Hub User Guide</a> </i>.</p> <p>When you use operations in the Security Hub API, the requests are executed only in the AWS Region that is currently active or in the specific AWS Region that you specify in your request. Any configuration or settings change that results from the operation is applied only to that Region. To make the same change in other Regions, execute the same command for each Region to apply the change to.</p> <p>For example, if your Region is set to <code>us-west-2</code>, when you use <code> <a>CreateMembers</a> </code> to add a member account to Security Hub, the association of the member account with the administrator account is created only in the <code>us-west-2</code> Region. Security Hub must be enabled for the member account in the same Region that the invitation was sent from.</p> <p>The following throttling limits apply to using Security Hub API operations.</p> <ul> <li> <p> <code> <a>BatchEnableStandards</a> </code> - <code>RateLimit</code> of 1 request per second, <code>BurstLimit</code> of 1 request per second.</p> </li> <li> <p> <code> <a>GetFindings</a> </code> - <code>RateLimit</code> of 3 requests per second. <code>BurstLimit</code> of 6 requests per second.</p> </li> <li> <p> <code> <a>UpdateFindings</a> </code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p> <code> <a>UpdateStandardsControl</a> </code> - <code>RateLimit</code> of 1 request per second, <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p>All other operations - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> </ul>"
 }

@@ -1,0 +1,42 @@
+{
+    "version": "2.16.26",
+    "date": "2021-03-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Documentation updates for route53"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "This release allows SSM Explorer customers to enable OpsData sources across their organization when creating a resource data sync."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Greengrass",
+            "contributor": "",
+            "description": "Updated the parameters to make name required for CreateGroup API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon S3"
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Documentation updates for s3-control"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "maximumEfaInterfaces added to DescribeInstanceTypes API"
+        }
+    ]
+}

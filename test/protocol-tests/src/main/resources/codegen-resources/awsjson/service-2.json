@@ -72,6 +72,7 @@
         "DoubleMember":{"shape":"Double"},
         "BigDecimalMember":{"shape":"NumericValue"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
@@ -90,7 +91,9 @@
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
         "EnumMember":{"shape":"EnumType"},
         "ListOfEnums":{"shape":"ListOfEnums"},
-        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"}
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
+        "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
+        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"}
       }
     },
     "BaseType":{
@@ -121,6 +124,7 @@
       ]
     },
     "Float":{"type":"float"},
+    "Short":{"type":"short"},
     "FurtherNestedContainersStructure":{
       "type":"structure",
       "members":{
@@ -142,6 +146,7 @@
         "StringMember":{"shape":"String"},
         "IntegerMember":{"shape":"Integer"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "DoubleMember":{"shape":"Double"},
         "FloatMember":{"shape":"Float"},
         "TimestampMember":{"shape":"Timestamp"},
@@ -291,6 +296,15 @@
         "SubTypeOneMember":{"shape":"String"}
       }
     },
-    "Timestamp":{"type":"timestamp"}
+    "Timestamp":{"type":"timestamp"},
+    "ListOfTimeStamp":{
+      "type":"list",
+      "member":{"shape":"Timestamp"}
+    },
+    "MapOfTimeStamp":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"Timestamp"}
+    }
   }
 }
