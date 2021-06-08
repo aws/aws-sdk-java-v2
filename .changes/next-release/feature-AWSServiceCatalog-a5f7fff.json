@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog",
+    "contributor": "",
+    "description": "increase max pagesize for List/Search apis"
+}
