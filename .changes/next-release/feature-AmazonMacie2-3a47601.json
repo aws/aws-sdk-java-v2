@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Macie 2",
-    "contributor": "",
-    "description": "This release of the Amazon Macie API introduces stricter validation of S3 object criteria for classification jobs."
-}
