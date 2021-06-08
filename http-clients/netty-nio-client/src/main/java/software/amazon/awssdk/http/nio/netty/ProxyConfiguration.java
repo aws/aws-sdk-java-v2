@@ -166,8 +166,18 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          */
         Builder nonProxyHosts(Set<String> nonProxyHosts);
 
+        /**
+         * Set the username used to authenticate with the proxy server.
+         * @param username The proxy username.
+         * @return This object for method chaining.
+         */
         Builder username(String username);
 
+        /**
+         * Set the password used to authenticate with the proxy server.
+         * @param password The proxy username.
+         * @return This object for method chaining.
+         */
         Builder password(String password);
     }
 
