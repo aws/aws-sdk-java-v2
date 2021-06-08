@@ -15,14 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -30,20 +22,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.DefaultChannelPromise;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Promise;
-import java.io.IOException;
-import java.net.URI;
-import java.util.function.Supplier;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +34,15 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Base64;
+import java.util.function.Supplier;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for {@link ProxyTunnelInitHandler}.
@@ -60,6 +52,8 @@ public class ProxyTunnelInitHandlerTest {
     private static final NioEventLoopGroup GROUP = new NioEventLoopGroup(1);
 
     private static final URI REMOTE_HOST = URI.create("https://s3.amazonaws.com:1234");
+    private static final String PROXY_USER = "myuser";
+    private static final String PROXY_PASSWORD = "mypassword";
 
     @Mock
     private ChannelHandlerContext mockCtx;
@@ -197,7 +191,7 @@ public class ProxyTunnelInitHandlerTest {
     }
 
     @Test
-    public void handledAdded_writesRequest() {
+    public void handledAdded_writesRequest_withoutAuth() {
         Promise<Channel> promise = GROUP.next().newPromise();
         ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, promise);
         handler.handlerAdded(mockCtx);
@@ -209,6 +203,26 @@ public class ProxyTunnelInitHandlerTest {
         HttpRequest expectedRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
                                                                  Unpooled.EMPTY_BUFFER, false);
         expectedRequest.headers().add(HttpHeaderNames.HOST, uri);
+
+        assertThat(requestCaptor.getValue()).isEqualTo(expectedRequest);
+    }
+
+    @Test
+    public void handledAdded_writesRequest_withAuth() {
+        Promise<Channel> promise = GROUP.next().newPromise();
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, PROXY_USER, PROXY_PASSWORD, REMOTE_HOST, promise);
+        handler.handlerAdded(mockCtx);
+
+        ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(mockChannel).writeAndFlush(requestCaptor.capture());
+
+        String uri = REMOTE_HOST.getHost() + ":" + REMOTE_HOST.getPort();
+        HttpRequest expectedRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
+                Unpooled.EMPTY_BUFFER, false);
+        expectedRequest.headers().add(HttpHeaderNames.HOST, uri);
+
+        String authB64 = Base64.getEncoder().encodeToString(String.format("%s:%s", PROXY_USER, PROXY_PASSWORD).getBytes(CharsetUtil.UTF_8));
+        expectedRequest.headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, String.format("Basic %s", authB64));
 
         assertThat(requestCaptor.getValue()).isEqualTo(expectedRequest);
     }
