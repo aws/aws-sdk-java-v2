@@ -25,10 +25,12 @@ public final class AwsJsonProtocolMetadata {
 
     private final AwsJsonProtocol protocol;
     private final String protocolVersion;
+    private final String contentType;
 
     private AwsJsonProtocolMetadata(Builder builder) {
         this.protocol = builder.protocol;
         this.protocolVersion = builder.protocolVersion;
+        this.contentType = builder.contentType;
     }
 
     /**
@@ -49,9 +51,18 @@ public final class AwsJsonProtocolMetadata {
         return new AwsJsonProtocolMetadata.Builder();
     }
 
+    /**
+     *
+     * @return the content Type.
+     */
+    public String contentType() {
+        return contentType;
+    }
+
     public static final class Builder {
         private AwsJsonProtocol protocol;
         private String protocolVersion;
+        private String contentType;
 
         private Builder() {
         }
@@ -63,6 +74,11 @@ public final class AwsJsonProtocolMetadata {
 
         public Builder protocolVersion(String protocolVersion) {
             this.protocolVersion = protocolVersion;
+            return this;
+        }
+
+        public Builder contentType(String contentType) {
+            this.contentType = contentType;
             return this;
         }
 

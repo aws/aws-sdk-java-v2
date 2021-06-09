@@ -147,7 +147,8 @@ public abstract class BaseAwsJsonProtocolFactory {
 
     @SdkTestInternalApi
     protected final String getContentType() {
-        return getContentTypeResolver().resolveContentType(protocolMetadata);
+        return protocolMetadata.contentType() != null ? protocolMetadata.contentType()
+                : getContentTypeResolver().resolveContentType(protocolMetadata);
     }
 
     /**
@@ -239,6 +240,18 @@ public abstract class BaseAwsJsonProtocolFactory {
          */
         public final SubclassT protocolVersion(String protocolVersion) {
             protocolMetadata.protocolVersion(protocolVersion);
+            return getSubclass();
+        }
+
+        /**
+         * ContentType  of the client (By default it is used from {@link #AWS_JSON} ).
+         * Used to determine content type.
+         *
+         * @param contentType JSON protocol contentType.
+         * @return This builder for method chaining.
+         */
+        public final SubclassT contentType(String contentType) {
+            protocolMetadata.contentType(contentType);
             return getSubclass();
         }
 
