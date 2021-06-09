@@ -67,10 +67,16 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         return port;
     }
 
+    /**
+     * @return The proxy username.
+     */
     public String username() {
         return username;
     }
 
+    /**
+     * @return The proxy password.
+     */
     public String password() {
         return password;
     }
