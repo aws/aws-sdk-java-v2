@@ -22,8 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.custom.s3.transfer.Download;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.utils.Logger;
 
 public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchmark {

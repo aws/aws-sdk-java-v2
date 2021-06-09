@@ -17,7 +17,7 @@ package software.amazon.awssdk.stability.tests.s3;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import software.amazon.awssdk.custom.s3.transfer.internal.S3CrtAsyncClient;
+import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;

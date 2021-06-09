@@ -217,7 +217,7 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>s3-transfermanager</artifactId>
+            <artifactId>s3-transfer-manager</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}-PREVIEW</version>
         </dependency>
