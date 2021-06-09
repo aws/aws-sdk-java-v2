@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.16.80</version>
+        <version>2.16.81</version>
     </parent>
 
     <artifactId>aws-core</artifactId>
