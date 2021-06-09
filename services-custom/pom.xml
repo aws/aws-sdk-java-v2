@@ -29,7 +29,7 @@
 
     <modules>
         <module>dynamodb-enhanced</module>
-        <module>s3-transfermanager</module>
+        <module>s3-transfer-manager</module>
     </modules>
 
     <dependencyManagement>

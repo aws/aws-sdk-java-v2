@@ -26,13 +26,13 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.custom.s3.transfer.S3TransferManager;
-import software.amazon.awssdk.custom.s3.transfer.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.utils.Logger;
 
 public abstract class BaseTransferManagerBenchmark implements TransferManagerBenchmark {
