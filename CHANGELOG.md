@@ -1,3 +1,20 @@
+# __2.16.81__ __2021-06-09__
+## __AWS Proton__
+  - ### Features
+    - This is the initial SDK release for AWS Proton
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for the AWS Transfer Family service.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - AWS Kendra now supports checking document status.
+
+## __Amazon Personalize Events__
+  - ### Features
+    - Support for unstructured text inputs in the items dataset to to automatically extract key information from product/content description as an input when creating solution versions.
+
 # __2.16.80__ __2021-06-08__
 ## __AWS SDK for Java v2__
   - ### Bugfixes

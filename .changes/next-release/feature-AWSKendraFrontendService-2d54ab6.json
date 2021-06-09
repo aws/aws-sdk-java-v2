@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSKendraFrontendService",
-    "contributor": "",
-    "description": "AWS Kendra now supports checking document status."
-}
