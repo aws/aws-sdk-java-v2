@@ -16,10 +16,8 @@
 package software.amazon.awssdk.services.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -30,7 +28,6 @@ import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
-import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
@@ -70,10 +67,10 @@ public class WaitersIntegrationTest extends DynamoDBTestBase {
 
     @AfterClass
     public static void cleanUp() {
-        dynamo.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
+        dynamoAsync.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
 
         WaiterResponse<DescribeTableResponse> waiterResponse =
-            dynamo.waiter().waitUntilTableNotExists(b -> b.tableName(TABLE_NAME));
+            dynamoAsync.waiter().waitUntilTableNotExists(b -> b.tableName(TABLE_NAME)).join();
 
         assertThat(waiterResponse.matched().response()).isEmpty();
         assertThat(waiterResponse.matched().exception()).hasValueSatisfying(

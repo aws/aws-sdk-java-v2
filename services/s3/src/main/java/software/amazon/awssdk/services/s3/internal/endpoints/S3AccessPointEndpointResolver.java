@@ -19,7 +19,6 @@ import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUt
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isArnRegionEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isDualstackEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isFipsRegion;
-import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isFipsRegionProvided;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.isPathStyleAccessEnabled;
 import static software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils.removeFipsIfNeeded;
 
@@ -122,13 +121,13 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         Validate.isTrue(s3Resource.accountId().isPresent(), "An S3 access point ARN must have an account ID");
 
         Region clientRegion = context.region();
-        validatePartition(s3Resource, clientRegion);
-
+        
         if (s3Resource.region().isPresent()) {
             validateRegion(s3Resource, serviceConfig, clientRegion);
         } else {
             validateGlobalConfiguration(serviceConfig, clientRegion);
         }
+        validatePartition(s3Resource, clientRegion);
     }
 
     private void validatePartition(S3AccessPointResource s3Resource, Region clientRegion) {
@@ -147,6 +146,15 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
     private void validateRegion(S3AccessPointResource s3Resource, S3Configuration serviceConfig, Region clientRegion) {
         String arnRegion = s3Resource.region().get();
+        Validate.isFalse(isFipsRegion(arnRegion), "Invalid ARN, FIPS region is not allowed in ARN."
+                                                 + " Provided arn region: '" + arnRegion + "'.");
+
+        Validate.isFalse(isFipsRegion(clientRegion.id()) && clientRegionDiffersFromArnRegion(clientRegion, arnRegion),
+                        String.format("The region field of the ARN being passed as a bucket parameter to an S3 operation "
+                                      + "does not match the region the client was configured with. " +
+                                      "Cross region access not allowed for fips region in client or arn."
+                                      + " Provided region: '%s'; client region:'%s'.", arnRegion, clientRegion));
+
         Validate.isFalse(!isArnRegionEnabled(serviceConfig) && clientRegionDiffersFromArnRegion(clientRegion, arnRegion),
                          "The region field of the ARN being passed as a bucket parameter to an S3 operation "
                          + "does not match the region the client was configured with. To enable this "
@@ -155,8 +163,9 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                          + " '%s'.", arnRegion, clientRegion);
     }
 
+
     private boolean clientRegionDiffersFromArnRegion(Region clientRegion, String arnRegion) {
-        return !removeFipsIfNeeded(clientRegion.id()).equals(removeFipsIfNeeded(arnRegion));
+        return !removeFipsIfNeeded(clientRegion.id()).equals(arnRegion);
     }
 
     private void validateGlobalConfiguration(S3Configuration serviceConfiguration, Region region) {
@@ -180,18 +189,6 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                              PartitionMetadata clientPartitionMetadata,
                                              S3AccessPointResource s3EndpointResource) {
 
-        boolean dualstackEnabled = isDualstackEnabled(context.serviceConfiguration());
-        boolean fipsRegionProvided = false;
-        String finalArnRegion = null;
-
-        if (s3EndpointResource.region().isPresent()) {
-            String arnRegion = s3EndpointResource.region().get();
-            fipsRegionProvided = isFipsRegionProvided(context.region().toString(),
-                                                      arnRegion,
-                                                      isArnRegionEnabled(context.serviceConfiguration()));
-            finalArnRegion = removeFipsIfNeeded(arnRegion);
-        }
-
         if (isOutpostAccessPoint(s3EndpointResource)) {
             return getOutpostAccessPointUri(context, clientPartitionMetadata, s3EndpointResource);
         } else if (isObjectLambdaAccessPoint(s3EndpointResource)) {
@@ -202,11 +199,11 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
                                    .endpointOverride(context.endpointOverride())
                                    .accessPointName(s3EndpointResource.accessPointName())
                                    .accountId(s3EndpointResource.accountId().get())
-                                   .fipsEnabled(fipsRegionProvided)
-                                   .region(finalArnRegion)
+                                   .fipsEnabled(isFipsRegion(context.region().toString()))
+                                   .region(s3EndpointResource.region().orElse(null))
                                    .protocol(context.request().protocol())
                                    .domain(clientPartitionMetadata.dnsSuffix())
-                                   .dualstackEnabled(dualstackEnabled)
+                                   .dualstackEnabled(isDualstackEnabled(context.serviceConfiguration()))
                                    .toUri();
     }
 
@@ -275,4 +272,5 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         return Optional.empty();
     }
+
 }

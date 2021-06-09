@@ -139,11 +139,11 @@ public class S3AccessPointBuilder {
         if (isGlobal()) {
             uri = String.format("%s://%s.accesspoint.s3-global.%s", protocol, urlEncode(accessPointName), domain);
         } else {
-            String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "fips-" : "";
+            String fipsSegment = Boolean.TRUE.equals(fipsEnabled) ? "-fips" : "";
             String dualStackSegment = Boolean.TRUE.equals(dualstackEnabled) ? ".dualstack" : "";
 
-            uri = String.format("%s://%s-%s.s3-accesspoint%s.%s%s.%s", protocol, urlEncode(accessPointName),
-                                accountId, dualStackSegment, fipsSegment, region, domain);
+            uri = String.format("%s://%s-%s.s3-accesspoint%s%s.%s.%s", protocol, urlEncode(accessPointName),
+                                accountId, fipsSegment, dualStackSegment, region, domain);
         }
         return uri;
     }

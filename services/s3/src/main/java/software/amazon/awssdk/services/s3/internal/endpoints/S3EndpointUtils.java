@@ -51,15 +51,6 @@ public final class S3EndpointUtils {
         return region;
     }
 
-    /**
-     * Returns whether a FIPS pseudo region is provided.
-     */
-    public static boolean isFipsRegionProvided(String clientRegion, String arnRegion, boolean useArnRegion) {
-        if (useArnRegion) {
-            return isFipsRegion(arnRegion);
-        }
-        return isFipsRegion(clientRegion);
-    }
 
     public static boolean isFipsRegion(String region) {
         return !StringUtils.isEmpty(region) && (region.startsWith("fips-") || region.endsWith("-fips"));

@@ -19,7 +19,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.16.54</version>
+        <version>2.16.79</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -35,7 +35,7 @@
         <!--
             JMH version to use with this project.
           -->
-        <jmh.version>1.21</jmh.version>
+        <jmh.version>1.29</jmh.version>
 
         <!--
             Java source/target to use for compilation.
@@ -49,7 +49,7 @@
 
         <sdk-v1.version>1.11.404</sdk-v1.version>
         <jackson.version>2.12.3</jackson.version>
-        <jackson.databind.version>2.10.5.1</jackson.databind.version>
+        <jackson.databind.version>2.12.3</jackson.databind.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
 

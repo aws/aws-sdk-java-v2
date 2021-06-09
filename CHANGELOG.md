@@ -1,3 +1,571 @@
+# __2.16.79__ __2021-06-07__
+## __AWS Glue__
+  - ### Features
+    - Add SampleSize variable to S3Target to enable s3-sampling feature through API.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added updateConfig option that allows customers to control upgrade velocity in Managed Node Group.
+
+## __Amazon Personalize__
+  - ### Features
+    - Update regex validation in kmsKeyArn and s3 path API parameters for AWS Personalize APIs
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - AWS SageMaker - Releasing new APIs related to Callback steps in model building pipelines. Adds experiment integration to model building pipelines.
+
+# __2.16.78__ __2021-06-04__
+## __AWS CloudTrail__
+  - ### Features
+    - AWS CloudTrail supports data events on new service resources, including Amazon DynamoDB tables and S3 Object Lambda access points.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Add support for automatically setting the H.264 adaptive quantization and GOP B-frame fields.
+
+## __AWS Performance Insights__
+  - ### Features
+    - The new GetDimensionKeyDetails action retrieves the attributes of the specified dimension group for a DB instance or data source.
+
+## __Amazon QLDB__
+  - ### Features
+    - Documentation updates for Amazon QLDB
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for RDS: fixing an outdated link to the RDS documentation in DBInstance$DBInstanceStatus
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling
+
+# __2.16.77__ __2021-06-03__
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 Batch Operations now supports S3 Bucket Keys.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Added optional field AutoMLOverrideStrategy to CreatePredictor API that allows users to customize AutoML strategy. If provided in CreatePredictor request, this field is visible in DescribePredictor and GetAccuracyMetrics responses.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Documentation updates for Route 53 Resolver
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - S3 Inventory now supports Bucket Key Status
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Documentation updates for ssm to fix customer reported issue
+
+# __2.16.76__ __2021-06-02__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This SDK release adds support for DocDB global clusters.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates for Amazon ECS.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Lightsail
+
+## __Auto Scaling__
+  - ### Features
+    - You can now launch EC2 instances with GP3 volumes when using Auto Scaling groups with Launch Configurations
+
+## __Braket__
+  - ### Features
+    - Introduction of a RETIRED status for devices.
+
+# __2.16.75__ __2021-06-01__
+## __AWS Cloud Map__
+  - ### Features
+    - Bugfixes - The DiscoverInstances API operation now provides an option to return all instances for health-checked services when there are no healthy instances available.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Added six new public customer logging APIs to allow customers to set/get/reset log levels at resource type and resource id level. The log level set from the APIs will be used to filter log messages that can be emitted to CloudWatch in customer accounts.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added idempotency to CreateNetworkInterface using the ClientToken parameter.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new Canadian French voice - Gabrielle. Gabrielle is available as Neural voice only.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds SMS sandbox in Amazon SNS and the ability to view all configured origination numbers. The SMS sandbox provides a safe environment for sending SMS messages, without risking your reputation as an SMS sender.
+
+# __2.16.74__ __2021-05-28__
+## __AWS DataSync__
+  - ### Features
+    - Added SecurityDescriptorCopyFlags option that allows for control of which components of SMB security descriptors are copied from source to destination objects.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Fixed the issue where the SDK failed to parse timestamps with offsets. See [#2477](https://github.com/aws/aws-sdk-java-v2/issues/2477)
+
+## __Amazon Location Service__
+  - ### Features
+    - Adds support for calculation of routes, resource tagging and customer provided KMS keys.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Allowing dot(.) character in table name for RDS and Redshift as source connector.
+
+# __2.16.73__ __2021-05-27__
+## __AWS Device Farm__
+  - ### Features
+    - Introduces support for using our desktop testing service with applications hosted within your Virtual Private Cloud (VPC).
+
+## __AWS IoT Events__
+  - ### Features
+    - Releasing new APIs for AWS IoT Events Alarms
+
+## __AWS IoT Events Data__
+  - ### Features
+    - Releasing new APIs for AWS IoT Events Alarms
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - IoT SiteWise Monitor Portal API updates to add alarms feature configuration.
+
+## __AWS Resource Groups__
+  - ### Features
+    - Documentation updates for Resource Groups.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now suggests popular queries in order to help guide query typing and help overall accuracy.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds LZ4 data compression support to FSx for Lustre to reduce storage consumption of both file system storage and file system backups.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Lightsail
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation updates for Amazon SQS for General Availability of high throughput for FIFO queues.
+
+# __2.16.72__ __2021-05-26__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release removes resource ids and tagging support for VPC security group rules.
+
+# __2.16.71__ __2021-05-26__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - This release enables customers to store CRLs in S3 buckets with Block Public Access enabled. The release adds the S3ObjectAcl parameter to the CreateCertificateAuthority and UpdateCertificateAuthority APIs to allow customers to choose whether their CRL will be publicly available.
+
+## __AWS Outposts__
+  - ### Features
+    - Add ConflictException to DeleteOutpost, CreateOutpost
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation fix for CloudFront
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - The release adds support for registering External instances to your Amazon ECS clusters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds resource ids and tagging support for VPC security group rules.
+
+## __Amazon QLDB__
+  - ### Features
+    - Support STANDARD permissions mode in CreateLedger and DescribeLedger. Add UpdateLedgerPermissionsMode to update permissions mode on existing ledgers.
+
+## __AmazonMWAA__
+  - ### Features
+    - Adds scheduler count selection for Environments using Airflow version 2.0.2 or later.
+
+# __2.16.70__ __2021-05-25__
+## __AWS IoT__
+  - ### Features
+    - This release includes support for a new feature: Job templates for AWS IoT Device Management Jobs. The release includes job templates as a new resource and APIs for managing job templates.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family customers can now use AWS Managed Active Directory or AD Connector to authenticate their end users, enabling seamless migration of file transfer workflows that rely on AD authentication, without changing end users' credentials or needing a custom authorizer.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Adds support for Linux device types in WorkspaceAccessProperties
+
+# __2.16.69__ __2021-05-24__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for 1) additional instance types, 2) additional instance metrics, 3) finding reasons for instance recommendations, and 4) platform differences between a current instance and a recommended instance type.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Introduced FindingReasonCodes, PlatformDifferences, DiskResourceUtilization and NetworkResourceUtilization to GetRightsizingRecommendation action
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release provides dimensions and unit support for metric filters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for creating and managing EC2 On-Demand Capacity Reservations on Outposts.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add new parameters on RegisterUser and UpdateUser APIs to assign or update external ID associated to QuickSight users federated through web identity.
+
+# __2.16.68__ __2021-05-21__
+## __AWS OpsWorks CM__
+  - ### Features
+    - New PUPPET_API_CRL attribute returned by DescribeServers API; new EngineVersion of 2019 available for Puppet Enterprise servers.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - EFS now supports account preferences. Utilizing the new capability, users can customize some aspects of their experience using EFS APIs and the EFS Console. The first preference clients are able to set is whether to start using longer File System and Mount Target IDs before EFS migrates to such IDs.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Updated attribute statistics in DescribeDatasetImportJob response to support Long values
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3
+
+# __2.16.67__ __2021-05-20__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Customers can now use resource-based policies to control access to their Lex V2 bots. This release adds APIs to attach and manage permissions for a bot or a bot alias. For details, see: https://docs.aws.amazon.com/lexv2/latest/dg/security_iam_service-with-iam.html
+
+## __Amazon Personalize__
+  - ### Features
+    - Added new API to stop a solution version creation that is pending or in progress for Amazon Personalize
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add ARN based Row Level Security support to CreateDataSet/UpdateDataSet APIs.
+
+# __2.16.66__ __2021-05-19__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Add pagination to ListUserTags operation
+
+## __AWS S3__
+  - ### Bugfixes
+    - Do not allow cross-region requests for S3 client with Fips Region.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Update the EKS AddonActive waiter.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Kinesis Data Analytics now allows rapid iteration on Apache Flink stream processing through the Kinesis Data Analytics Studio feature.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Amazon Lightsail.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Amazon Rekognition Custom Labels adds support for customer managed encryption, using AWS Key Management Service, of image files copied into the service and files written back to the customer.
+
+## __Auto Scaling__
+  - ### Features
+    - With this release, customers can easily use Predictive Scaling as a policy directly through Amazon EC2 Auto Scaling configurations to proactively scale their applications ahead of predicted demand.
+
+# __2.16.65__ __2021-05-18__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner is a service that provides a fast, simple, and cost-effective way to deploy from source code or a container image directly to a scalable and secure web application in the AWS Cloud.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables compute optimizer to support exporting recommendations to Amazon S3 for EBS volumes and Lambda Functions.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Documentation updates for AWS IoT SiteWise.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now supports periodic report generation.
+
+## __AWS Support__
+  - ### Features
+    - Documentation updates for support
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for exporting and importing Lex V2 bots and bot locales. It also adds validations to enforce minimum number of tags on Lex V2 resources. For details, see https://docs.aws.amazon.com/lexv2/latest/dg/importing-exporting.html
+
+## __Amazon Personalize__
+  - ### Features
+    - Amazon Personalize now supports the ability to optimize a solution for a custom objective in addition to maximizing relevance.
+
+# __2.16.64__ __2021-05-17__
+## __AWS Application Cost Profiler__
+  - ### Features
+    - APIs for AWS Application Cost Profiler.
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - AWS IoT Core Device Advisor is fully managed test capability for IoT devices. Device manufacturers can use Device Advisor to test their IoT devices for reliable and secure connectivity with AWS IoT.
+
+## __AWS MediaConnect__
+  - ### Features
+    - MediaConnect now supports JPEG XS for AWS Cloud Digital Interface (AWS CDI) uncompressed workflows, allowing you to establish a bridge between your on-premises live video network and the AWS Cloud.
+
+## __Amazon Augmented AI Runtime__
+  - ### Features
+    - Documentation updates for Amazon A2I Runtime model
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation updates for elasticache
+
+## __Amazon Neptune__
+  - ### Features
+    - Neptune support for CopyTagsToSnapshots
+
+# __2.16.63__ __2021-05-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Updated descriptions to add notes on array lengths.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Update InputTransformer variable limit from 10 to 100 variables.
+
+## __Amazon Detective__
+  - ### Features
+    - Updated descriptions of array parameters to add the restrictions on the array and value lengths.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adds support for cold storage.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Update InputTransformer variable limit from 10 to 100 variables.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release of the Amazon Macie API adds support for defining run-time, S3 bucket criteria for classification jobs. It also adds resources for querying data about AWS resources that Macie monitors.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Transcribe Medical now supports identification of PHI entities within transcripts
+
+## __EC2 Image Builder__
+  - ### Features
+    - Text-only updates for bundled documentation feedback tickets - spring 2021.
+
+# __2.16.62__ __2021-05-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - High Memory virtual instances are powered by Intel Sky Lake CPUs and offer up to 12TB of memory.
+
+## __Netty NIO Async HTTP Client__
+  - ### Features
+    - Add `tcpKeepAlive` configuration.
+
+# __2.16.61__ __2021-05-11__
+## __AWS S3 Control__
+  - ### Features
+    - Documentation updates for Amazon S3-control
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - AWS Systems Manager Incident Manager enables faster resolution of critical application availability and performance issues, management of contacts and post-incident analysis
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - AWS Systems Manager Incident Manager enables faster resolution of critical application availability and performance issues, management of contacts and post incident analysis
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Amazon Transcribe supports partial results stabilization for streaming transcription.
+
+# __2.16.60__ __2021-05-10__
+## __AWS Config__
+  - ### Features
+    - Adds paginator to multiple APIs: By default, the paginator allows user to iterate over the results and allows the CLI to return up to 1000 results.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for Kantar SNAP File Audio Watermarking with a Kantar Watermarking account, and Display Definition Segment(DDS) segment data controls for DVB-Sub caption outputs.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add three new optional fields to support filtering and configurable sub-band in WirelessGateway APIs. The filtering is for all the RF region supported. The sub-band configuration is only applicable to LoRa gateways of US915 or AU915 RF region.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Support delete-table operation in DDBEnhanced.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release contains updates for Amazon ECS.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release updates create-nodegroup and update-nodegroup-config APIs for adding/updating taints on managed nodegroups.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Amazon Kinesis Analytics now supports ListApplicationVersions and DescribeApplicationVersion API for Apache Flink applications
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds new APIs to associate, disassociate and list related items in SSM OpsCenter; and this release adds DisplayName as a version-level attribute for SSM Documents and introduces two new document types: ProblemAnalysis, ProblemAnalysisTemplate.
+
+## __CodeArtifact__
+  - ### Features
+    - Documentation updates for CodeArtifact
+
+# __2.16.59__ __2021-05-07__
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds Tag Based Access Control to AWS Lake Formation service
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where an async waiter failed to match exception when the exception was wrapped with CompletionException. See [#2460](https://github.com/aws/aws-sdk-java-v2/issues/2460)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds tagging support for Connect APIs CreateIntegrationAssociation and CreateUseCase.
+
+## __Amazon Lookout for Metrics__
+  - ### Features
+    - Enforcing UUID style for parameters that are already in UUID format today. Documentation specifying eventual consistency of lookoutmetrics resources.
+
+# __2.16.58__ __2021-05-06__
+## __AWS Cloud Map__
+  - ### Features
+    - Bugfix: Improved input validation for RegisterInstance action, InstanceId field
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - AWS Snow Family adds APIs for ordering and managing Snow jobs with long term pricing
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - SSM feature release - ChangeCalendar integration with StateManager.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - IAM Access Control for Amazon MSK enables you to create clusters that use IAM to authenticate clients and to allow or deny Apache Kafka actions for those clients.
+
+# __2.16.57__ __2021-05-05__
+## __AWS Audit Manager__
+  - ### Features
+    - This release updates the CreateAssessmentFrameworkControlSet and UpdateAssessmentFrameworkControlSet API data types. For both of these data types, the control set name is now a required attribute.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Amazon Kinesis Analytics now supports RollbackApplication for Apache Flink applications to revert the application to the previous running version
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot now provides the ability to automatically deploy the best model to an endpoint
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Documentation Updates for Amazon Nimble Studio.
+
+# __2.16.56__ __2021-05-04__
+## __FinSpace Public API__
+  - ### Features
+    - Documentation updates for FinSpaceData API.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Documentation updates for FinSpace API.
+
+# __2.16.55__ __2021-05-04__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - This release adds the KeyStorageSecurityStandard parameter to the CreateCertificateAuthority API to allow customers to mandate a security standard to which the CA key will be stored within.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Documentation updates for health
+
+## __Amazon Chime__
+  - ### Features
+    - This release adds the ability to search for and order international phone numbers for Amazon Chime SIP media applications.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Added GetCostEstimation and StartCostEstimation to get the monthly resource usage cost and added ability to view resource health by AWS service name and to search insights be AWS service name.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable retrying Training and Tuning Jobs that fail with InternalServerError by setting RetryStrategy.
+
 # __2.16.54__ __2021-05-03__
 ## __FinSpace Public API__
   - ### Features
@@ -19,6 +587,14 @@
 ## __Amazon Mechanical Turk__
   - ### Features
     - Documentation updates for Amazon Mechanical Turk, GetAccountBalanceOperation operation
+
+## __FinSpace Public API__
+  - ### Features
+    - This is the initial SDK release for the data APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics application for the financial services industry (FSI).
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - This is the initial SDK release for the management APIs for Amazon FinSpace. Amazon FinSpace is a data management and analytics service for the financial services industry (FSI).
 
 # __2.16.52__ __2021-04-30__
 ## __AWS Marketplace Catalog Service__
