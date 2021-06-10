@@ -29,19 +29,22 @@ import software.amazon.awssdk.stability.tests.utils.RetryableTest;
  */
 public class S3CrtAsyncClientStabilityTest extends S3BaseStabilityTest {
     private static final String BUCKET_NAME = "s3crtasyncclinetstabilitytests" + System.currentTimeMillis();
+    private static S3CrtAsyncClient s3CrtAsyncClient;
 
-    @Override
-    protected S3AsyncClient getTestClient() {
-        return S3CrtAsyncClient.builder()
-                               .region(Region.US_WEST_2)
-                               .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                               .build();
+    static {
+        s3CrtAsyncClient = S3CrtAsyncClient.builder()
+                                           .region(Region.US_WEST_2)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                           .build();
+    }
+
+    public S3CrtAsyncClientStabilityTest() {
+        super(s3CrtAsyncClient);
     }
 
     @BeforeAll
     public static void setup() {
         s3ApacheClient.createBucket(b -> b.bucket(BUCKET_NAME));
-
     }
 
     @AfterAll
@@ -53,8 +56,9 @@ public class S3CrtAsyncClientStabilityTest extends S3BaseStabilityTest {
                                      .build()) {
             deleteBucketAndAllContents(s3NettyClient, BUCKET_NAME);
         }
+        s3CrtAsyncClient.close();
+        s3ApacheClient.close();
     }
-
 
     @Override
     protected String getTestBucketName() {
