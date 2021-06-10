@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Redshift",
+    "contributor": "",
+    "description": "Added InvalidClusterStateFault to the ModifyAquaConfiguration API, thrown when calling the API on a non available cluster."
+}
