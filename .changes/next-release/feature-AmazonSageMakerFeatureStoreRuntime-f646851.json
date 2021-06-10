@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Feature Store Runtime",
+    "contributor": "",
+    "description": "Release BatchGetRecord API for AWS SageMaker Feature Store Runtime."
+}
