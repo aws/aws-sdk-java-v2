@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS App Mesh",
-    "contributor": "",
-    "description": "AppMesh now supports additional routing capabilities in match and rewrites for Gateway Routes and Routes. Additionally, App Mesh also supports specifying DNS Response Types in Virtual Nodes."
-}

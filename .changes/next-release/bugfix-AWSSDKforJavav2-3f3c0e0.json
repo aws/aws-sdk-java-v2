@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fix for PR [#2510](https://github.com/aws/aws-sdk-java-v2/issues/2510) by adding Support for customization of contentType for Header ContentType for services like aws WellArchitected service."
-}

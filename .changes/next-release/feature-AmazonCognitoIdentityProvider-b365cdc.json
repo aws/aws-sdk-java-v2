@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "contributor": "",
-    "description": "Amazon Cognito now supports targeted sign out through refresh token revocation"
-}
