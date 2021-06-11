@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Moved Jackson from being an external SDK dependency to an internal dependency.\n\nCustomers will see a change in artifact sizes. Customers which do not use Jackson-databind outside of the SDK today will see a ~1 MB artifact size decrease. Customers which do use Jackson-databind outside of the SDK will see a ~0.5 MB artifact size increase.\n\nThis change required breaking inter-module (protected) APIs, so customers will not be able to use older client versions with this version of the core libraries."
+}

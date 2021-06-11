@@ -41,13 +41,13 @@ import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
-import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
 import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonErrorMessageParser;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonProtocolErrorUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponseHandler;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
+import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
@@ -72,7 +72,9 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.clientConfiguration = builder.clientConfiguration;
         this.protocolUnmarshaller = JsonProtocolUnmarshaller
             .builder()
-            .parser(JsonDomParser.create(getSdkFactory().getJsonFactory()))
+            .parser(JsonNodeParser.builder()
+                                  .jsonFactory(getSdkFactory().getJsonFactory())
+                                  .build())
             .defaultTimestampFormats(getDefaultTimestampFormats())
             .build();
     }

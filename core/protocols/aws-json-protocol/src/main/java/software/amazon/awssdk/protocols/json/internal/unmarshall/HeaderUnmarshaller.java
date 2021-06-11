@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.JsonValueTrait;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -78,7 +78,7 @@ final class HeaderUnmarshaller {
 
         @Override
         public T unmarshall(JsonUnmarshallerContext context,
-                            SdkJsonNode jsonContent,
+                            JsonNode jsonContent,
                             SdkField<T> field) {
             return context.response().firstMatchingHeader(field.locationName())
                           .map(s -> stringToValue.convert(s, field))

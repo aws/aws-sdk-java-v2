@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.protocols.json;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 
 /**
  * Common interface for creating generators (writers) and protocol handlers for JSON like protocols.

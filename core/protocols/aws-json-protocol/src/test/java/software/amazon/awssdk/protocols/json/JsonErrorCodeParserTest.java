@@ -18,14 +18,11 @@ package software.amazon.awssdk.protocols.json;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import java.io.IOException;
 import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkObjectNode;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonErrorCodeParser;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class JsonErrorCodeParserTest {
@@ -45,7 +42,7 @@ public class JsonErrorCodeParserTest {
     private final JsonErrorCodeParser parser = new JsonErrorCodeParser(ERROR_FIELD_NAME);
 
     private static JsonContent toJsonContent(String errorType) throws IOException {
-        SdkJsonNode node = JsonDomParser.create(new JsonFactory()).parse(new StringInputStream(
+        JsonNode node = JsonNode.parser().parse(new StringInputStream(
             String.format("{\"%s\": \"%s\"}", ERROR_FIELD_NAME, errorType)));
         return new JsonContent(null, node);
     }
@@ -103,6 +100,6 @@ public class JsonErrorCodeParserTest {
     @Test
     public void parseErrorType_NotPresentInHeadersAndEmptyContent_ReturnsNull() {
         assertNull(parser.parseErrorCode(httpResponseWithoutHeaders(),
-                                         new JsonContent(null, SdkObjectNode.emptyObject())));
+                                         new JsonContent(null, JsonNode.emptyObjectNode())));
     }
 }

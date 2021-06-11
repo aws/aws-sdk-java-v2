@@ -42,6 +42,7 @@
         <module>regions</module>
         <module>protocols</module>
         <module>metrics-spi</module>
+        <module>json-utils</module>
     </modules>
 
     <dependencyManagement>

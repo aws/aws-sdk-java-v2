@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.protocols.json;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonErrorCodeParser;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 
 /**
  * Generic implementation of a structured JSON factory that is pluggable for different variants of

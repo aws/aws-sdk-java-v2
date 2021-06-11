@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.protocols.cbor.internal;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.json.BaseAwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 
 /**
  * Creates generators and protocol handlers for CBOR wire format.
