@@ -53,7 +53,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     @Override
     public Upload upload(UploadRequest uploadRequest) {
-        PutObjectRequest putObjectRequest = uploadRequest.toPutObjectRequest();
+        PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
         AsyncRequestBody requestBody = requestBodyFor(uploadRequest);
 
         CompletableFuture<PutObjectResponse> putObjFuture = s3CrtAsyncClient.putObject(putObjectRequest, requestBody);
@@ -66,7 +66,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     @Override
     public Download download(DownloadRequest downloadRequest) {
         CompletableFuture<GetObjectResponse> future =
-            s3CrtAsyncClient.getObject(downloadRequest.toGetObjectRequest(),
+            s3CrtAsyncClient.getObject(downloadRequest.getObjectRequest(),
                                        AsyncResponseTransformer.toFile(downloadRequest.destination()));
         return new DefaultDownload(future.thenApply(r -> DefaultCompletedDownload.builder().response(r).build()));
     }

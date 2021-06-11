@@ -75,7 +75,9 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
     private void downloadOnceToFile(List<Double> latencies) {
         Path downloadPath = new File(this.path).toPath();
         long start = System.currentTimeMillis();
-        Download download = transferManager.download(b -> b.bucket(bucket).key(key).destination(downloadPath));
+        Download download =
+            transferManager.download(b -> b.getObjectRequest(r -> r.bucket(bucket).key(key))
+                                           .destination(downloadPath));
         download.completionFuture().join();
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);

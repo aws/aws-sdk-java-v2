@@ -163,8 +163,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <!-- TODO is this a good name? -->
-                            <Automatic-Module-Name>software.amazon.awssdk.custom.s3.transfer</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.transfer.s3</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

@@ -58,7 +58,8 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     @Test
     public void download_shouldWork() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
-        Download download = transferManager.download(b -> b.bucket(BUCKET).key(KEY).destination(path));
+        Download download = transferManager.download(b -> b.getObjectRequest(r -> r.bucket(BUCKET).key(KEY))
+                                                           .destination(path));
         CompletedDownload completedDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(completedDownload.response().responseMetadata().requestId()).isNotNull();

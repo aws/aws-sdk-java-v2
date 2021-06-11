@@ -23,35 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public interface TransferRequest {
 
-    /**
-     * The bucket name containing the object.
-     *
-     * @return the bucket name
-     */
-    String bucket();
-
-    /**
-     * The Key of the object.
-     *
-     * @return the key of the object
-     */
-    String key();
-
     interface Builder<TypeToBuildT, BuilderT extends Builder> {
-
-        /**
-         * The bucket name containing the object.
-         *
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        BuilderT bucket(String bucket);
-
-        /**
-         * The Key of the object to transfer.
-         *
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        BuilderT key(String key);
 
         TypeToBuildT build();
     }
