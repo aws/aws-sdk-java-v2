@@ -61,10 +61,9 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     @Test
     public void upload_fileSentCorrectly() throws IOException {
         Upload upload = tm.upload(UploadRequest.builder()
-                .bucket(TEST_BUCKET)
-                .key(TEST_KEY)
-                .source(testFile.toPath())
-                .build());
+                                               .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
+                                               .source(testFile.toPath())
+                                               .build());
 
         upload.completionFuture().join();
 

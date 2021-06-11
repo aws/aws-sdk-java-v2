@@ -21,54 +21,52 @@ import java.nio.file.Paths;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-public class DownloadRequestTest {
-
+public class UploadRequestTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void noGetObjectRequest_throws() {
+    public void upload_noRequestParamsProvided_throws() {
         thrown.expect(NullPointerException.class);
-        thrown.expectMessage("getObjectRequest");
+        thrown.expectMessage("putObjectRequest");
 
-        DownloadRequest.builder()
-                       .destination(Paths.get("."))
-                       .build();
+        UploadRequest.builder()
+                     .source(Paths.get("."))
+                     .build();
     }
 
     @Test
-    public void pathMissing_throws() {
+    public void pathMissing_shouldThrow() {
         thrown.expect(NullPointerException.class);
-        thrown.expectMessage("destination");
-
-        DownloadRequest.builder()
-                       .getObjectRequest(b -> b.bucket("bucket").key("key"))
-                       .build();
+        thrown.expectMessage("source");
+        UploadRequest.builder()
+                     .putObjectRequest(PutObjectRequest.builder().build())
+                     .build();
     }
 
     @Test
     public void equals_hashcode() {
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        PutObjectRequest getObjectRequest = PutObjectRequest.builder()
                                                             .bucket("bucket")
                                                             .key("key")
                                                             .build();
 
-        DownloadRequest request1 = DownloadRequest.builder()
-                                                 .getObjectRequest(b -> b.bucket("bucket").key("key"))
-                                                 .destination(Paths.get("."))
-                                                 .build();
+        UploadRequest request1 = UploadRequest.builder()
+                                              .putObjectRequest(b -> b.bucket("bucket").key("key"))
+                                              .source(Paths.get("."))
+                                              .build();
 
-        DownloadRequest request2 = DownloadRequest.builder()
-                                                  .getObjectRequest(getObjectRequest)
-                                                  .destination(Paths.get("."))
-                                                  .build();
+        UploadRequest request2 = UploadRequest.builder()
+                                              .putObjectRequest(getObjectRequest)
+                                              .source(Paths.get("."))
+                                              .build();
 
-        DownloadRequest request3 = DownloadRequest.builder()
-                                                  .getObjectRequest(b -> b.bucket("bucket1").key("key1"))
-                                                  .destination(Paths.get("."))
-                                                  .build();
+        UploadRequest request3 = UploadRequest.builder()
+                                              .putObjectRequest(b -> b.bucket("bucket1").key("key1"))
+                                              .source(Paths.get("."))
+                                              .build();
 
         assertThat(request1).isEqualTo(request2);
         assertThat(request1.hashCode()).isEqualTo(request2.hashCode());
@@ -76,4 +74,5 @@ public class DownloadRequestTest {
         assertThat(request1.hashCode()).isNotEqualTo(request3.hashCode());
         assertThat(request1).isNotEqualTo(request3);
     }
+
 }

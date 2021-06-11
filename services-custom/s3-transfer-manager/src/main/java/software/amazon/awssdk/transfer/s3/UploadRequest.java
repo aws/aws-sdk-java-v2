@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import static software.amazon.awssdk.utils.Validate.paramNotNull;
+
 import java.nio.file.Path;
+import java.util.Objects;
+import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -31,31 +35,14 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
     private final Path source;
 
     private UploadRequest(BuilderImpl builder) {
-        Validate.isTrue(bucketKeyPairProvided(builder) ^ apiRequestProvided(builder),
-                "Exactly one of a bucket, key pair or API request must be provided.");
-
-        if (bucketKeyPairProvided(builder)) {
-            this.putObjectRequest = PutObjectRequest.builder()
-                                                    .bucket(builder.bucket)
-                                                    .key(builder.key)
-                                                    .build();
-        } else {
-            putObjectRequest = builder.putObjectRequest;
-        }
-        this.source = builder.source;
+        this.putObjectRequest = paramNotNull(builder.putObjectRequest, "putObjectRequest");
+        this.source = paramNotNull(builder.source, "source");
     }
 
-    @Override
-    public String bucket() {
-        return putObjectRequest.bucket();
-    }
-
-    @Override
-    public String key() {
-        return putObjectRequest.key();
-    }
-
-    public PutObjectRequest toPutObjectRequest() {
+    /**
+     * @return The {@link PutObjectRequest} request that should be used for the upload
+     */
+    public PutObjectRequest putObjectRequest() {
         return putObjectRequest;
     }
 
@@ -68,16 +55,13 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         return source;
     }
 
+    /**
+     * Create a builder that can be used to create a {@link UploadRequest}.
+     *
+     * @see S3TransferManager#upload(UploadRequest)
+     */
     public static Builder builder() {
         return new BuilderImpl();
-    }
-
-    private static boolean bucketKeyPairProvided(BuilderImpl builder) {
-        return builder.bucket != null && builder.key != null;
-    }
-
-    private static boolean apiRequestProvided(BuilderImpl builder) {
-        return builder.putObjectRequest != null;
     }
 
     @Override
@@ -85,7 +69,35 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         return new BuilderImpl();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
+        UploadRequest that = (UploadRequest) o;
+
+        if (!Objects.equals(putObjectRequest, that.putObjectRequest)) {
+            return false;
+        }
+        return Objects.equals(source, that.source);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = putObjectRequest != null ? putObjectRequest.hashCode() : 0;
+        result = 31 * result + (source != null ? source.hashCode() : 0);
+        return result;
+    }
+
+    /**
+     * A builder for a {@link UploadRequest}, created with {@link #builder()}
+     */
+    @SdkPublicApi
+    @NotThreadSafe
     public interface Builder extends TransferRequest.Builder<UploadRequest, Builder>, CopyableBuilder<Builder, UploadRequest> {
 
         /**
@@ -107,32 +119,31 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         Builder putObjectRequest(PutObjectRequest putObjectRequest);
 
         /**
+         * Configure the {@link PutObjectRequest} that should be used for the upload
+         *
+         * @param putObjectRequestBuilder the putObjectRequest consumer builder
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        default Builder putObjectRequest(Consumer<PutObjectRequest.Builder> putObjectRequestBuilder) {
+            return putObjectRequest(PutObjectRequest.builder()
+                                                    .applyMutation(putObjectRequestBuilder)
+                                                    .build());
+        }
+
+        /**
          * @return The built request.
          */
+        @Override
         UploadRequest build();
     }
 
     private static class BuilderImpl implements Builder {
-        private String bucket;
-        private String key;
         private PutObjectRequest putObjectRequest;
         private Path source;
 
         @Override
         public Builder source(Path source) {
             this.source = source;
-            return this;
-        }
-
-        @Override
-        public Builder bucket(String bucket) {
-            this.bucket = bucket;
-            return this;
-        }
-
-        @Override
-        public Builder key(String key) {
-            this.key = key;
             return this;
         }
 

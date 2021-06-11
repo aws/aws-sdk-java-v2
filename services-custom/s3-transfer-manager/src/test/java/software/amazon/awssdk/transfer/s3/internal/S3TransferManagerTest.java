@@ -63,8 +63,8 @@ public class S3TransferManagerTest {
                 .thenReturn(CompletableFuture.completedFuture(response));
 
         CompletedUpload completedUpload = tm.upload(UploadRequest.builder()
-                                                                 .bucket("bucket")
-                                                                 .key("key")
+                                                                 .putObjectRequest(r -> r.bucket("bucket")
+                                                                                         .key("key"))
                                                                  .source(Paths.get("."))
                                                                  .build())
                                             .completionFuture()
@@ -80,8 +80,8 @@ public class S3TransferManagerTest {
             .thenReturn(CompletableFuture.completedFuture(response));
 
         CompletedDownload completedDownload = tm.download(DownloadRequest.builder()
-                                                                         .bucket("bucket")
-                                                                         .key("key")
+                                                                         .getObjectRequest(r -> r.bucket("bucket")
+                                                                                                 .key("key"))
                                                                          .destination(Paths.get("."))
                                                                          .build())
                                                 .completionFuture()

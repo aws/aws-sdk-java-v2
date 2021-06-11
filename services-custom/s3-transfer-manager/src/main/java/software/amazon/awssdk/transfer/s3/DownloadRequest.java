@@ -16,6 +16,9 @@
 package software.amazon.awssdk.transfer.s3;
 
 import java.nio.file.Path;
+import java.util.Objects;
+import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -31,17 +34,14 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
     private final GetObjectRequest getObjectRequest;
 
     private DownloadRequest(BuilderImpl builder) {
-        Validate.isTrue((builder.bucket != null && builder.key != null) ^ builder.getObjectRequest != null,
-                        "Exactly one of a bucket, key pair or API request must be provided.");
         this.destination = Validate.paramNotNull(builder.destination, "destination");
-        this.getObjectRequest = builder.getObjectRequest == null ? GetObjectRequest.builder()
-                                                                                   .bucket(builder.bucket)
-                                                                                   .key(builder.key)
-                                                                                   .build() : builder.getObjectRequest;
+        this.getObjectRequest = Validate.paramNotNull(builder.getObjectRequest, "getObjectRequest");
     }
 
     /**
-     * @return A builder for this request.
+     * Create a builder that can be used to create a {@link DownloadRequest}.
+     *
+     * @see S3TransferManager#download(DownloadRequest)
      */
     public static Builder builder() {
         return new BuilderImpl();
@@ -50,16 +50,6 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
     @Override
     public Builder toBuilder() {
         return new BuilderImpl();
-    }
-
-    @Override
-    public String bucket() {
-        return getObjectRequest.bucket();
-    }
-
-    @Override
-    public String key() {
-        return getObjectRequest.key();
     }
 
     /**
@@ -72,10 +62,42 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         return destination;
     }
 
-    public GetObjectRequest toGetObjectRequest() {
+    /**
+     * @return The {@link GetObjectRequest} request that should be used for the download
+     */
+    public GetObjectRequest getObjectRequest() {
         return getObjectRequest;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DownloadRequest that = (DownloadRequest) o;
+
+        if (!Objects.equals(destination, that.destination)) {
+            return false;
+        }
+        return Objects.equals(getObjectRequest, that.getObjectRequest);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = destination != null ? destination.hashCode() : 0;
+        result = 31 * result + (getObjectRequest != null ? getObjectRequest.hashCode() : 0);
+        return result;
+    }
+
+    /**
+     * A builder for a {@link DownloadRequest}, created with {@link #builder()}
+     */
+    @SdkPublicApi
+    @NotThreadSafe
     public interface Builder extends TransferRequest.Builder<DownloadRequest, Builder>, CopyableBuilder<Builder,
         DownloadRequest> {
 
@@ -97,14 +119,27 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         Builder getObjectRequest(GetObjectRequest getObjectRequest);
 
         /**
+         * The {@link GetObjectRequest} request that should be used for the download
+         *
+         * @param getObjectRequestBuilder the getObject request
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        default Builder getObjectRequest(Consumer<GetObjectRequest.Builder> getObjectRequestBuilder) {
+            GetObjectRequest request = GetObjectRequest.builder()
+                                                       .applyMutation(getObjectRequestBuilder)
+                                                       .build();
+            getObjectRequest(request);
+            return this;
+        }
+
+
+        /**
          * @return The built request.
          */
         DownloadRequest build();
     }
 
     private static final class BuilderImpl implements Builder {
-        private String bucket;
-        private String key;
         private Path destination;
         private GetObjectRequest getObjectRequest;
 
@@ -114,18 +149,6 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         @Override
         public Builder destination(Path destination) {
             this.destination = destination;
-            return this;
-        }
-
-        @Override
-        public Builder bucket(String bucket) {
-            this.bucket = bucket;
-            return this;
-        }
-
-        @Override
-        public Builder key(String key) {
-            this.key = key;
             return this;
         }
 
