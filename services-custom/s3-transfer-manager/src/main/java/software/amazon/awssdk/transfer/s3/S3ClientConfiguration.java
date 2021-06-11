@@ -34,14 +34,14 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
     private final AwsCredentialsProvider credentialsProvider;
     private final Region region;
     private final Long partSizeBytes;
-    private final Double targetThroughputGbps;
+    private final Double targetThroughputInGbps;
     private final Integer maxConcurrency;
 
     private S3ClientConfiguration(DefaultBuilder builder) {
         this.credentialsProvider = builder.credentialsProvider;
         this.region = builder.region;
         this.partSizeBytes = builder.partSizeBytes;
-        this.targetThroughputGbps = builder.targetThroughputGbps;
+        this.targetThroughputInGbps = builder.targetThroughputInGbps;
         this.maxConcurrency = builder.maxConcurrency;
     }
 
@@ -69,8 +69,8 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
     /**
      * @return the optional target throughput
      */
-    public Optional<Double> targetThroughputGbps() {
-        return Optional.ofNullable(targetThroughputGbps);
+    public Optional<Double> targetThroughputInGbps() {
+        return Optional.ofNullable(targetThroughputInGbps);
     }
 
     /**
@@ -135,10 +135,10 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
          * <p>
          * By default, it is 5Gbps
          *
-         * @param targetThroughputGbps the target throughput Gbps
+         * @param targetThroughputInGbps the target throughput in Gbps
          * @return this builder for method chaining.
          */
-        Builder targetThroughputGbps(Double targetThroughputGbps);
+        Builder targetThroughputInGbps(Double targetThroughputInGbps);
 
         /**
          * Specifies the maximum number of concurrent Amazon S3 transfer requests that can run at the same time.
@@ -153,7 +153,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         private AwsCredentialsProvider credentialsProvider;
         private Region region;
         private Long partSizeBytes;
-        private Double targetThroughputGbps;
+        private Double targetThroughputInGbps;
         private Integer maxConcurrency;
 
         private DefaultBuilder() {
@@ -163,7 +163,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
             this.credentialsProvider = configuration.credentialsProvider;
             this.region = configuration.region;
             this.partSizeBytes = configuration.partSizeBytes;
-            this.targetThroughputGbps = configuration.targetThroughputGbps;
+            this.targetThroughputInGbps = configuration.targetThroughputInGbps;
             this.maxConcurrency = configuration.maxConcurrency;
         }
 
@@ -186,8 +186,8 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         }
 
         @Override
-        public Builder targetThroughputGbps(Double targetThroughputGbps) {
-            this.targetThroughputGbps = targetThroughputGbps;
+        public Builder targetThroughputInGbps(Double targetThroughputInGbps) {
+            this.targetThroughputInGbps = targetThroughputInGbps;
             return this;
         }
 

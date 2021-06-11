@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 public final class UploadRequest implements TransferRequest, ToCopyableBuilder<UploadRequest.Builder, UploadRequest> {
-    private final PutObjectRequest apiRequest;
+    private final PutObjectRequest putObjectRequest;
     private final Path source;
 
     private UploadRequest(BuilderImpl builder) {
@@ -35,28 +35,28 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
                 "Exactly one of a bucket, key pair or API request must be provided.");
 
         if (bucketKeyPairProvided(builder)) {
-            this.apiRequest = PutObjectRequest.builder()
-                    .bucket(builder.bucket)
-                    .key(builder.key)
-                    .build();
+            this.putObjectRequest = PutObjectRequest.builder()
+                                                    .bucket(builder.bucket)
+                                                    .key(builder.key)
+                                                    .build();
         } else {
-            apiRequest = builder.apiRequest;
+            putObjectRequest = builder.putObjectRequest;
         }
         this.source = builder.source;
     }
 
     @Override
     public String bucket() {
-        return apiRequest.bucket();
+        return putObjectRequest.bucket();
     }
 
     @Override
     public String key() {
-        return apiRequest.key();
+        return putObjectRequest.key();
     }
 
-    public PutObjectRequest toApiRequest() {
-        return apiRequest;
+    public PutObjectRequest toPutObjectRequest() {
+        return putObjectRequest;
     }
 
     /**
@@ -72,13 +72,12 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         return new BuilderImpl();
     }
 
-
     private static boolean bucketKeyPairProvided(BuilderImpl builder) {
         return builder.bucket != null && builder.key != null;
     }
 
     private static boolean apiRequestProvided(BuilderImpl builder) {
-        return builder.apiRequest != null;
+        return builder.putObjectRequest != null;
     }
 
     @Override
@@ -99,7 +98,13 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
          */
         Builder source(Path source);
 
-        Builder apiRequest(PutObjectRequest apiRequest);
+        /**
+         * Configure the {@link PutObjectRequest} that should be used for the upload
+         *
+         * @param putObjectRequest the putObjectRequest
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder putObjectRequest(PutObjectRequest putObjectRequest);
 
         /**
          * @return The built request.
@@ -110,7 +115,7 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
     private static class BuilderImpl implements Builder {
         private String bucket;
         private String key;
-        private PutObjectRequest apiRequest;
+        private PutObjectRequest putObjectRequest;
         private Path source;
 
         @Override
@@ -132,8 +137,8 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
         }
 
         @Override
-        public Builder apiRequest(PutObjectRequest apiRequest) {
-            this.apiRequest = apiRequest;
+        public Builder putObjectRequest(PutObjectRequest putObjectRequest) {
+            this.putObjectRequest = putObjectRequest;
             return this;
         }
 

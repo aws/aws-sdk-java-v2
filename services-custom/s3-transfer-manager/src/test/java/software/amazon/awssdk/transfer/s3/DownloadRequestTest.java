@@ -59,7 +59,7 @@ public class DownloadRequestTest {
         DownloadRequest.builder()
                        .bucket("bucket")
                        .key("key")
-                       .apiRequest(GetObjectRequest.builder().build())
+                       .getObjectRequest(GetObjectRequest.builder().build())
                        .build();
     }
 

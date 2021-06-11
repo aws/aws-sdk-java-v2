@@ -72,7 +72,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         return destination;
     }
 
-    public GetObjectRequest toApiRequest() {
+    public GetObjectRequest toGetObjectRequest() {
         return getObjectRequest;
     }
 
@@ -88,14 +88,13 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
          */
         Builder destination(Path destination);
 
-
         /**
-         * The {@link GetObjectRequest} request
+         * The {@link GetObjectRequest} request that should be used for the download
          *
          * @param getObjectRequest the getObject request
          * @return a reference to this object so that method calls can be chained together.
          */
-        Builder apiRequest(GetObjectRequest getObjectRequest);
+        Builder getObjectRequest(GetObjectRequest getObjectRequest);
 
         /**
          * @return The built request.
@@ -131,7 +130,7 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
         }
 
         @Override
-        public Builder apiRequest(GetObjectRequest getObjectRequest) {
+        public Builder getObjectRequest(GetObjectRequest getObjectRequest) {
             this.getObjectRequest = getObjectRequest;
             return this;
         }
