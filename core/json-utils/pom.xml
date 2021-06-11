@@ -53,7 +53,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>jackson-core</artifactId>
+            <artifactId>third-party-jackson-core</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

@@ -24,7 +24,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jackson-dataformat-cbor</artifactId>
+    <artifactId>third-party-jackson-dataformat-cbor</artifactId>
     <name>AWS Java SDK :: Third Party :: Jackson-dataformat-cbor</name>
     <url>https://aws.amazon.com/sdkforjava</url>
 
@@ -43,7 +43,7 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>jackson-core</artifactId>
+            <artifactId>third-party-jackson-core</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
 
@@ -120,7 +120,7 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${basedir}/target/aws-sdk-java-jackson-dataformat-cbor-${project.version}.jar</file>
+                                    <file>${basedir}/target/aws-sdk-java-third-party-jackson-dataformat-cbor-${project.version}.jar</file>
                                     <type>jar</type>
                                     <classifier>optional</classifier>
                                 </artifact>

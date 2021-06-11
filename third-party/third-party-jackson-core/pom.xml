@@ -24,7 +24,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jackson-core</artifactId>
+    <artifactId>third-party-jackson-core</artifactId>
     <name>AWS Java SDK :: Third Party :: Jackson-core</name>
     <url>https://aws.amazon.com/sdkforjava</url>
 
@@ -101,7 +101,7 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${basedir}/target/aws-sdk-java-jackson-core-${awsjavasdk.version}.jar</file>
+                                    <file>${basedir}/target/aws-sdk-java-third-party-jackson-core-${awsjavasdk.version}.jar</file>
                                     <type>jar</type>
                                     <classifier>optional</classifier>
                                 </artifact>
