@@ -35,7 +35,7 @@ public interface S3CrtAsyncClient extends S3AsyncClient {
 
         S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long uploadPartSize);
 
-        S3CrtAsyncClientBuilder targetThroughputGbps(Double targetThroughputGbps);
+        S3CrtAsyncClientBuilder targetThroughputInGbps(Double targetThroughputInGbps);
 
         S3CrtAsyncClientBuilder maxConcurrency(Integer maxConcurrency);
 

@@ -38,8 +38,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         S3NativeClientConfiguration.Builder configBuilder =
             S3NativeClientConfiguration.builder()
-                                       .targetThroughputGbps(builder.targetThroughputGbps())
-                                       .partSizeBytes(builder.partSizeBytes());
+                                       .targetThroughputInGbps(builder.targetThroughputInGbps())
+                                       .partSizeInBytes(builder.partSizeBytes());
         if (builder.region() != null) {
             configBuilder.signingRegion(builder.region().id());
         }
@@ -53,7 +53,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                  configuration.clientBootstrap(),
                                                  configuration.credentialsProvider(),
                                                  configuration.partSizeBytes(),
-                                                 configuration.targetThroughputGbps(),
+                                                 configuration.targetThroughputInGbps(),
                                                  configuration.maxConcurrency());
     }
 
@@ -115,7 +115,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         private AwsCredentialsProvider credentialsProvider;
         private Region region;
         private Long partSizeBytes;
-        private Double targetThroughputGbps;
+        private Double targetThroughputInGbps;
         private Integer maxConcurrency;
 
         public AwsCredentialsProvider credentialsProvider() {
@@ -130,8 +130,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
             return partSizeBytes;
         }
 
-        public Double targetThroughputGbps() {
-            return targetThroughputGbps;
+        public Double targetThroughputInGbps() {
+            return targetThroughputInGbps;
         }
 
         public Integer maxConcurrency() {
@@ -157,8 +157,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         }
 
         @Override
-        public S3CrtAsyncClientBuilder targetThroughputGbps(Double targetThroughputGbps) {
-            this.targetThroughputGbps = targetThroughputGbps;
+        public S3CrtAsyncClientBuilder targetThroughputInGbps(Double targetThroughputInGbps) {
+            this.targetThroughputInGbps = targetThroughputInGbps;
             return this;
         }
 

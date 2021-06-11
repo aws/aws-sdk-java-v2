@@ -41,7 +41,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         builder.s3ClientConfiguration.maxConcurrency().ifPresent(clientBuilder::maxConcurrency);
         builder.s3ClientConfiguration.minimumPartSizeInBytes().ifPresent(clientBuilder::minimumPartSizeInBytes);
         builder.s3ClientConfiguration.region().ifPresent(clientBuilder::region);
-        builder.s3ClientConfiguration.targetThroughputGbps().ifPresent(clientBuilder::targetThroughputGbps);
+        builder.s3ClientConfiguration.targetThroughputInGbps().ifPresent(clientBuilder::targetThroughputInGbps);
 
         s3CrtAsyncClient = clientBuilder.build();
     }
@@ -53,7 +53,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     @Override
     public Upload upload(UploadRequest uploadRequest) {
-        PutObjectRequest putObjectRequest = uploadRequest.toApiRequest();
+        PutObjectRequest putObjectRequest = uploadRequest.toPutObjectRequest();
         AsyncRequestBody requestBody = requestBodyFor(uploadRequest);
 
         CompletableFuture<PutObjectResponse> putObjFuture = s3CrtAsyncClient.putObject(putObjectRequest, requestBody);
@@ -66,7 +66,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     @Override
     public Download download(DownloadRequest downloadRequest) {
         CompletableFuture<GetObjectResponse> future =
-            s3CrtAsyncClient.getObject(downloadRequest.toApiRequest(),
+            s3CrtAsyncClient.getObject(downloadRequest.toGetObjectRequest(),
                                        AsyncResponseTransformer.toFile(downloadRequest.destination()));
         return new DefaultDownload(future.thenApply(r -> DefaultCompletedDownload.builder().response(r).build()));
     }

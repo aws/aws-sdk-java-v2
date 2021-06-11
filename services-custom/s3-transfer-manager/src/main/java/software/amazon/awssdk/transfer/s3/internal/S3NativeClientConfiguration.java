@@ -29,13 +29,13 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @SdkInternalApi
 public final class S3NativeClientConfiguration implements SdkAutoCloseable {
-    private static final long DEFAULT_PART_SIZE_BYTES = 8L * SizeConstant.MB;
-    private static final long DEFAULT_TARGET_THROUGHPUT_GBPS = 5;
+    private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * SizeConstant.MB;
+    private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
     private final CredentialsProvider credentialsProvider;
-    private final long partSizeBytes;
-    private final double targetThroughputGbps;
+    private final long partSizeInBytes;
+    private final double targetThroughputInGbps;
     private final int maxConcurrency;
 
     public S3NativeClientConfiguration(Builder builder) {
@@ -47,10 +47,10 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
                                        .withClientBootstrap(clientBootstrap)
                                        .build() :
                                    builder.credentialsProvider;
-        this.partSizeBytes = builder.partSizeBytes == null ? DEFAULT_PART_SIZE_BYTES :
-                             builder.partSizeBytes;
-        this.targetThroughputGbps = builder.targetThroughputGbps == null ?
-                                    DEFAULT_TARGET_THROUGHPUT_GBPS : builder.targetThroughputGbps;
+        this.partSizeInBytes = builder.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
+                               builder.partSizeInBytes;
+        this.targetThroughputInGbps = builder.targetThroughputInGbps == null ?
+                                      DEFAULT_TARGET_THROUGHPUT_IN_GBPS : builder.targetThroughputInGbps;
 
         // Using 0 so that CRT will calculate it based on targetThroughputGbps
         this.maxConcurrency = builder.maxConcurrency == null ? 0 : builder.maxConcurrency;
@@ -73,11 +73,11 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
     }
 
     public long partSizeBytes() {
-        return partSizeBytes;
+        return partSizeInBytes;
     }
 
-    public double targetThroughputGbps() {
-        return targetThroughputGbps;
+    public double targetThroughputInGbps() {
+        return targetThroughputInGbps;
     }
 
     public int maxConcurrency() {
@@ -93,8 +93,8 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
     public static final class Builder {
         private String signingRegion;
         private CredentialsProvider credentialsProvider;
-        private Long partSizeBytes;
-        private Double targetThroughputGbps;
+        private Long partSizeInBytes;
+        private Double targetThroughputInGbps;
         private Integer maxConcurrency;
 
         private Builder() {
@@ -110,13 +110,13 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
             return this;
         }
 
-        public Builder partSizeBytes(Long partSizeBytes) {
-            this.partSizeBytes = partSizeBytes;
+        public Builder partSizeInBytes(Long partSizeInBytes) {
+            this.partSizeInBytes = partSizeInBytes;
             return this;
         }
 
-        public Builder targetThroughputGbps(Double targetThroughputGbps) {
-            this.targetThroughputGbps = targetThroughputGbps;
+        public Builder targetThroughputInGbps(Double targetThroughputInGbps) {
+            this.targetThroughputInGbps = targetThroughputInGbps;
             return this;
         }
 

@@ -55,7 +55,7 @@ public class DefaultUploadRequestTest {
         UploadRequest.builder()
                 .bucket("bucket")
                 .key("key")
-                .apiRequest(PutObjectRequest.builder().build())
+                .putObjectRequest(PutObjectRequest.builder().build())
                 .build();
     }
 
