@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Analytics",
+    "contributor": "",
+    "description": "Adds support for data store partitions."
+}
