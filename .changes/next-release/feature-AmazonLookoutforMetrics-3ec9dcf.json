@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lookout for Metrics",
+    "contributor": "",
+    "description": "Added \"LEARNING\" status for anomaly detector and updated description for \"Offset\" parameter in MetricSet APIs."
+}
