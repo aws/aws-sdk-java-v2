@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.16.83</version>
+        <version>2.16.84</version>
     </parent>
     <artifactId>emrcontainers</artifactId>
     <name>AWS Java SDK :: Services :: EMR Containers</name>
