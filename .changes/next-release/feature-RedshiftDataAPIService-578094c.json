@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Data API Service",
+    "contributor": "",
+    "description": "Redshift Data API service now supports SQL parameterization."
+}
