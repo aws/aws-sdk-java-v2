@@ -261,7 +261,7 @@ DynamoDbAsyncClient client =
 | Cache Response Metadata | `clientConfig.setCacheResponseMetadata(...)`<br />`clientConfig.withCacheResponseMetadata(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 | Response Metadata Cache Size | `clientConfig.setResponseMetadataCacheSize(...)`<br />`clientConfig.withResponseMetadataCacheSize(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 | DNS Resolver | `clientConfig.setDnsResolver(...)`<br />`clientConfig.withDnsResolver(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
-| TCP Keepalive | `clientConfig.setUseTcpKeepAlive(...)`<br />`clientConfig.withTcpKeepAlive(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| TCP Keepalive | `clientConfig.setUseTcpKeepAlive(...)`<br />`clientConfig.withTcpKeepAlive(...)` | ~~Not Supported~~ <br />This option is now in the HTTP Client configuration: <br />`- ApacheHttpClient.builder().tcpKeepAlive(true)`<br /> `- NettyNioAsyncHttpClient.builder().tcpKeepAlive(true)`  |
 | Secure Random | `clientConfig.setSecureRandom(...)`<br />`clientConfig.withSecureRandom(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 | | `AmazonDynamoDBClientBuilder.standard()`<br />`.withClientConfiguration(clientConfiguration)`<br />`.build()` | `DynamoDbClient.builder()`<br />`.httpClientBuilder(httpClientBuilder)`<br />`.build()` |
 
@@ -378,7 +378,7 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `doesBucketExistV2` | `headBucket` |
 | `doesObjectExist` | `headObject` |
 | `enableRequesterPays` | `putBucketRequestPayment` |
-| `generatePresignedUrl` | [~~Not Supported~~](https://github.com/aws/aws-sdk-java-v2/issues/849) [S3Presigner](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html) |
+| `generatePresignedUrl` | ~~Not Supported~~ [S3Presigner](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html) |
 | `getBucketAccelerateConfiguration` | `getBucketAccelerateConfiguration` |
 | `getBucketAcl` | `getBucketAcl` |
 | `getBucketAnalyticsConfiguration` | `getBucketAnalyticsConfiguration` |
