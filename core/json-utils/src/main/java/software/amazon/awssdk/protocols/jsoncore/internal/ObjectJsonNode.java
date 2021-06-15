@@ -73,7 +73,7 @@ public final class ObjectJsonNode implements JsonNode {
     }
 
     @Override
-    public Optional<JsonNode> get(String child) {
+    public Optional<JsonNode> field(String child) {
         return Optional.ofNullable(value.get(child));
     }
 
@@ -89,5 +89,24 @@ public final class ObjectJsonNode implements JsonNode {
                                       .append(v.toString()).append(","));
         output.setCharAt(output.length() - 1, '}');
         return output.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ObjectJsonNode that = (ObjectJsonNode) o;
+
+        return value.equals(that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
     }
 }

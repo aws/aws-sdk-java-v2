@@ -119,7 +119,7 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
         if (jsonContents == null) {
             return null;
         }
-        JsonNode errorCodeField = jsonContents.get(errorCodeFieldName).orElse(null);
+        JsonNode errorCodeField = jsonContents.field(errorCodeFieldName).orElse(null);
         if (errorCodeField == null) {
             return null;
         }

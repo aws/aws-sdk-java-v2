@@ -215,23 +215,23 @@ public class JsonNodeTest {
 
     @Test
     public void getString_returnsContent() {
-        assertThat(PARSER.parse("null").get("")).isEmpty();
-        assertThat(PARSER.parse("0").get("")).isEmpty();
-        assertThat(PARSER.parse("\"foo\"").get("")).isEmpty();
-        assertThat(PARSER.parse("true").get("")).isEmpty();
-        assertThat(PARSER.parse("[]").get("")).isEmpty();
-        assertThat(PARSER.parse("{\"\":0}").get("")).map(JsonNode::asNumber).hasValue("0");
+        assertThat(PARSER.parse("null").field("")).isEmpty();
+        assertThat(PARSER.parse("0").field("")).isEmpty();
+        assertThat(PARSER.parse("\"foo\"").field("")).isEmpty();
+        assertThat(PARSER.parse("true").field("")).isEmpty();
+        assertThat(PARSER.parse("[]").field("")).isEmpty();
+        assertThat(PARSER.parse("{\"\":0}").field("")).map(JsonNode::asNumber).hasValue("0");
     }
 
     @Test
     public void getArray_returnsContent() {
-        assertThat(PARSER.parse("null").get(0)).isEmpty();
-        assertThat(PARSER.parse("0").get(0)).isEmpty();
-        assertThat(PARSER.parse("\"foo\"").get(0)).isEmpty();
-        assertThat(PARSER.parse("true").get(0)).isEmpty();
-        assertThat(PARSER.parse("[]").get(0)).isEmpty();
-        assertThat(PARSER.parse("[null]").get(0)).map(JsonNode::isNull).hasValue(true);
-        assertThat(PARSER.parse("{}").get("")).isEmpty();
+        assertThat(PARSER.parse("null").index(0)).isEmpty();
+        assertThat(PARSER.parse("0").index(0)).isEmpty();
+        assertThat(PARSER.parse("\"foo\"").index(0)).isEmpty();
+        assertThat(PARSER.parse("true").index(0)).isEmpty();
+        assertThat(PARSER.parse("[]").index(0)).isEmpty();
+        assertThat(PARSER.parse("[null]").index(0)).map(JsonNode::isNull).hasValue(true);
+        assertThat(PARSER.parse("{}").field("")).isEmpty();
     }
 
     @Test

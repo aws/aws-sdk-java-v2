@@ -135,7 +135,7 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
             throw new IllegalStateException("Process did not return a JSON object.");
         }
 
-        JsonNode version = credentialsJson.get("Version").orElse(null);
+        JsonNode version = credentialsJson.field("Version").orElse(null);
         if (version == null || !version.isNumber() || !version.asNumber().equals("1")) {
             throw new IllegalStateException("Unsupported credential version: " + version);
         }
@@ -177,7 +177,7 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
      * Get a textual value from a json object.
      */
     private String getText(JsonNode jsonObject, String nodeName) {
-        return jsonObject.get(nodeName).map(JsonNode::text).orElse(null);
+        return jsonObject.field(nodeName).map(JsonNode::text).orElse(null);
     }
 
     /**

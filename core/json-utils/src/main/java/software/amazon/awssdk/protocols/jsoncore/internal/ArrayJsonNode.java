@@ -73,7 +73,7 @@ public final class ArrayJsonNode implements JsonNode {
     }
 
     @Override
-    public Optional<JsonNode> get(int child) {
+    public Optional<JsonNode> index(int child) {
         if (child < 0 || child >= value.size()) {
             return Optional.empty();
         }
@@ -83,5 +83,24 @@ public final class ArrayJsonNode implements JsonNode {
     @Override
     public String toString() {
         return value.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ArrayJsonNode that = (ArrayJsonNode) o;
+
+        return value.equals(that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
     }
 }

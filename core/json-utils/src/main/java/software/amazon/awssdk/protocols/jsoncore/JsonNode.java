@@ -171,7 +171,7 @@ public interface JsonNode {
      * When {@link #isObject()} is true, this will return the result of {@code Optional.ofNullable(asObject().get(child))}. If
      * this is any other type, this will return {@link Optional#empty()}.
      */
-    default Optional<JsonNode> get(String child) {
+    default Optional<JsonNode> field(String child) {
         return Optional.empty();
     }
 
@@ -179,7 +179,7 @@ public interface JsonNode {
      * When {@link #isArray()} is true, this will return the result of {@code asArray().get(child)} if child is within bounds. If
      * this is any other type or the child is out of bounds, this will return {@link Optional#empty()}.
      */
-    default Optional<JsonNode> get(int child) {
+    default Optional<JsonNode> index(int child) {
         return Optional.empty();
     }
 }

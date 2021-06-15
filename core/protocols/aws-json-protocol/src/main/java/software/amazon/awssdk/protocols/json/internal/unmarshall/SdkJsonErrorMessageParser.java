@@ -52,7 +52,7 @@ public class SdkJsonErrorMessageParser implements ErrorMessageParser {
     @Override
     public String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode) {
         for (String field : errorMessageJsonLocations) {
-            String value = jsonNode.get(field).map(JsonNode::text).orElse(null);
+            String value = jsonNode.field(field).map(JsonNode::text).orElse(null);
             if (value != null) {
                 return value;
             }

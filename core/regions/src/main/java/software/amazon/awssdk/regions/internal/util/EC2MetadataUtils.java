@@ -230,7 +230,7 @@ public final class EC2MetadataUtils {
         if (null != json) {
             try {
                 return JSON_PARSER.parse(json)
-                                  .get(REGION)
+                                  .field(REGION)
                                   .map(JsonNode::text)
                                   .orElseThrow(() -> new IllegalStateException("Region not included in metadata."));
             } catch (Exception e) {

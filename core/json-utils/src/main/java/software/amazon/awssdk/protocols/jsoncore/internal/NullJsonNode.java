@@ -78,4 +78,14 @@ public final class NullJsonNode implements JsonNode {
     public String toString() {
         return "null";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj;
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
+    }
 }

@@ -156,7 +156,7 @@ public final class HttpResourcesUtils {
             String errorResponse = IoUtils.toUtf8String(errorStream);
 
             try {
-                Optional<JsonNode> message = JSON_PARSER.parse(errorResponse).get("message");
+                Optional<JsonNode> message = JSON_PARSER.parse(errorResponse).field("message");
                 if (message.isPresent()) {
                     responseMessage = message.get().text();
                 }

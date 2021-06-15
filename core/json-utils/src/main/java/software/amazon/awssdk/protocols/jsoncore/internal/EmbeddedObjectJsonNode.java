@@ -29,7 +29,6 @@ public final class EmbeddedObjectJsonNode implements JsonNode {
     private final Object embeddedObject;
 
     public EmbeddedObjectJsonNode(Object embeddedObject) {
-        Validate.paramNotNull(embeddedObject, "embeddedObject");
         this.embeddedObject = embeddedObject;
     }
 
@@ -76,5 +75,24 @@ public final class EmbeddedObjectJsonNode implements JsonNode {
     @Override
     public String toString() {
         return "<<Embedded Object (" + embeddedObject.getClass().getSimpleName() + ")>>";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        EmbeddedObjectJsonNode that = (EmbeddedObjectJsonNode) o;
+
+        return embeddedObject.equals(that.embeddedObject);
+    }
+
+    @Override
+    public int hashCode() {
+        return embeddedObject.hashCode();
     }
 }

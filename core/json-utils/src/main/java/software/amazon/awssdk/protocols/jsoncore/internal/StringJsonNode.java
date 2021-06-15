@@ -81,4 +81,23 @@ public final class StringJsonNode implements JsonNode {
                     .replace("\"", "\\\"")
                + "\"";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        StringJsonNode that = (StringJsonNode) o;
+
+        return value.equals(that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
 }

@@ -56,7 +56,7 @@ public final class SsoAccessTokenProvider {
 
     private String getTokenFromJson(String json) {
         JsonNode jsonNode = PARSER.parse(json);
-        String expiration = jsonNode.get("expiresAt").map(JsonNode::text).orElse(null);
+        String expiration = jsonNode.field("expiresAt").map(JsonNode::text).orElse(null);
 
         Validate.notNull(expiration,
                          "The SSO session's expiration time could not be determined. Please refresh your SSO session.");

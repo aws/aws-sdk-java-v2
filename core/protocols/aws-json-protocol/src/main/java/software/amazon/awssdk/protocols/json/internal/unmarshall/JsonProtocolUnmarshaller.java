@@ -221,7 +221,7 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null) {
             return null;
         }
-        return isExplicitPayloadMember(field) ? jsonContent : jsonContent.get(field.locationName())
+        return isExplicitPayloadMember(field) ? jsonContent : jsonContent.field(field.locationName())
                                                                          .orElse(null);
     }
 
