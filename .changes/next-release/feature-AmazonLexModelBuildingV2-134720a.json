@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Model Building V2",
-    "contributor": "",
-    "description": "This release adds support for Multi Valued slots in Amazon Lex V2 APIs for model building"
-}
