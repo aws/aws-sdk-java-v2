@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaTailor",
-    "contributor": "",
-    "description": "Adds AWS Secrets Manager Access Token Authentication for Source Locations"
-}
