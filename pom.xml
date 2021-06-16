@@ -479,6 +479,14 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>software/amazon/awssdk/modulepath/tests/**/*.class</exclude>
+                        <exclude>software/amazon/awssdk/nativeimagetest/**/*.class</exclude>
+                        <exclude>software/amazon/awssdk/testutils/service/**/*.class</exclude>
+                        <exclude>**/*Benchmark.class</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
 
             <plugin>

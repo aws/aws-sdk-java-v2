@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -33,16 +35,17 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientConfiguration.Builder, S3ClientConfiguration> {
     private final AwsCredentialsProvider credentialsProvider;
     private final Region region;
-    private final Long partSizeBytes;
+    private final Long minimumPartSizeInBytes;
     private final Double targetThroughputInGbps;
     private final Integer maxConcurrency;
 
     private S3ClientConfiguration(DefaultBuilder builder) {
         this.credentialsProvider = builder.credentialsProvider;
         this.region = builder.region;
-        this.partSizeBytes = builder.partSizeBytes;
-        this.targetThroughputInGbps = builder.targetThroughputInGbps;
-        this.maxConcurrency = builder.maxConcurrency;
+        this.minimumPartSizeInBytes = Validate.isPositiveOrNull(builder.minimumPartSizeInBytes, "minimumPartSizeInBytes");
+        this.targetThroughputInGbps = Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
+        this.maxConcurrency = Validate.isPositiveOrNull(builder.maxConcurrency,
+                                                        "maxConcurrency");
     }
 
     /**
@@ -63,7 +66,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
      * @return the optional minimum part size for transfer parts.
      */
     public Optional<Long> minimumPartSizeInBytes() {
-        return Optional.ofNullable(partSizeBytes);
+        return Optional.ofNullable(minimumPartSizeInBytes);
     }
 
     /**
@@ -83,6 +86,42 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
     @Override
     public Builder toBuilder() {
         return new DefaultBuilder(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        S3ClientConfiguration that = (S3ClientConfiguration) o;
+
+        if (!Objects.equals(credentialsProvider, that.credentialsProvider)) {
+            return false;
+        }
+        if (!Objects.equals(region, that.region)) {
+            return false;
+        }
+        if (!Objects.equals(minimumPartSizeInBytes, that.minimumPartSizeInBytes)) {
+            return false;
+        }
+        if (!Objects.equals(targetThroughputInGbps, that.targetThroughputInGbps)) {
+            return false;
+        }
+        return Objects.equals(maxConcurrency, that.maxConcurrency);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = credentialsProvider != null ? credentialsProvider.hashCode() : 0;
+        result = 31 * result + (region != null ? region.hashCode() : 0);
+        result = 31 * result + (minimumPartSizeInBytes != null ? minimumPartSizeInBytes.hashCode() : 0);
+        result = 31 * result + (targetThroughputInGbps != null ? targetThroughputInGbps.hashCode() : 0);
+        result = 31 * result + (maxConcurrency != null ? maxConcurrency.hashCode() : 0);
+        return result;
     }
 
     public static Builder builder() {
@@ -152,7 +191,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
     private static final class DefaultBuilder implements Builder {
         private AwsCredentialsProvider credentialsProvider;
         private Region region;
-        private Long partSizeBytes;
+        private Long minimumPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
 
@@ -162,7 +201,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
         private DefaultBuilder(S3ClientConfiguration configuration) {
             this.credentialsProvider = configuration.credentialsProvider;
             this.region = configuration.region;
-            this.partSizeBytes = configuration.partSizeBytes;
+            this.minimumPartSizeInBytes = configuration.minimumPartSizeInBytes;
             this.targetThroughputInGbps = configuration.targetThroughputInGbps;
             this.maxConcurrency = configuration.maxConcurrency;
         }
@@ -181,7 +220,7 @@ public final class S3ClientConfiguration implements ToCopyableBuilder<S3ClientCo
 
         @Override
         public Builder minimumPartSizeInBytes(Long partSizeBytes) {
-            this.partSizeBytes = partSizeBytes;
+            this.minimumPartSizeInBytes = partSizeBytes;
             return this;
         }
 
