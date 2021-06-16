@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.stability.tests.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -33,10 +35,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
+import software.amazon.awssdk.stability.tests.utils.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Md5Utils;
 
 public abstract class S3BaseStabilityTest extends AwsTestBase {
     private static final Logger log = Logger.loggerFor(S3BaseStabilityTest.class);
@@ -60,6 +65,19 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
         this.testClient = testClient;
     }
 
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void largeObject_put_get_usingFile() {
+        String md5Upload = uploadLargeObjectFromFile();
+        String md5Download = downloadLargeObjectToFile();
+        assertThat(md5Upload).isEqualTo(md5Download);
+    }
+
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void putObject_getObject_highConcurrency() {
+        putObject();
+        getObject();
+    }
+
     protected String computeKeyName(int i) {
         return "key_" + i;
     }
@@ -79,25 +97,35 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
     }
 
 
-    protected void downloadLargeObjectToFile() {
+    protected String downloadLargeObjectToFile() {
         File randomTempFile = RandomTempFile.randomUncreatedFile();
         StabilityTestRunner.newRunner()
                 .testName("S3AsyncStabilityTest.downloadLargeObjectToFile")
                 .futures(testClient.getObject(b -> b.bucket(getTestBucketName()).key(LARGE_KEY_NAME),
                         AsyncResponseTransformer.toFile(randomTempFile)))
                 .run();
-        randomTempFile.delete();
+
+
+        try {
+            return Md5Utils.md5AsBase64(randomTempFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            randomTempFile.delete();
+        }
     }
 
-    protected void uploadLargeObjectFromFile() {
+    protected String uploadLargeObjectFromFile() {
         RandomTempFile file = null;
         try {
             file = new RandomTempFile((long) 2e+9);
+            String md5 = Md5Utils.md5AsBase64(file);
             StabilityTestRunner.newRunner()
                     .testName("S3AsyncStabilityTest.uploadLargeObjectFromFile")
                     .futures(testClient.putObject(b -> b.bucket(getTestBucketName()).key(LARGE_KEY_NAME),
                             AsyncRequestBody.fromFile(file)))
                     .run();
+            return md5;
         } catch (IOException e) {
             throw new RuntimeException("fail to create test file", e);
         } finally {

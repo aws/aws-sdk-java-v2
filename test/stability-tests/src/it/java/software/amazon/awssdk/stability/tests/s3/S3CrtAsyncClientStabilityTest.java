@@ -17,12 +17,10 @@ package software.amazon.awssdk.stability.tests.s3;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
-import software.amazon.awssdk.stability.tests.utils.RetryableTest;
+import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
 
 /**
  * Stability tests for {@link S3CrtAsyncClient}
@@ -63,17 +61,5 @@ public class S3CrtAsyncClientStabilityTest extends S3BaseStabilityTest {
     @Override
     protected String getTestBucketName() {
         return BUCKET_NAME;
-    }
-
-    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
-    public void largeObject_put_get_usingFile() {
-        uploadLargeObjectFromFile();
-        downloadLargeObjectToFile();
-    }
-
-    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
-    public void putObject_getObject_highConcurrency() {
-        putObject();
-        getObject();
     }
 }
