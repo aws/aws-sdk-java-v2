@@ -619,6 +619,13 @@ public final class Validate {
         return num;
     }
 
+    public static double isPositive(double num, String fieldName) {
+        if (num <= 0) {
+            throw new IllegalArgumentException(String.format("%s must be positive", fieldName));
+        }
+        return num;
+    }
+
     public static int isNotNegative(int num, String fieldName) {
 
         if (num < 0) {
@@ -678,6 +685,21 @@ public final class Validate {
      * @return Duration if positive or null.
      */
     public static Integer isPositiveOrNull(Integer num, String fieldName) {
+        if (num == null) {
+            return null;
+        }
+
+        return isPositive(num, fieldName);
+    }
+
+    /**
+     * Asserts that the given boxed double is positive (non-negative and non-zero) or null.
+     *
+     * @param num Boxed double to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if double or null.
+     */
+    public static Double isPositiveOrNull(Double num, String fieldName) {
         if (num == null) {
             return null;
         }
