@@ -516,7 +516,7 @@
                             <exclude>software.amazon.awssdk.services.macie2.model.*</exclude>
 
                             <!-- in-amazon-1 removal -->
-                            <exclude>software.amazon.awssdk.regions.Region</exclude>
+                            <exclude>software.amazon.awssdk.regions.*</exclude>
                         </excludes>
 
                         <excludeModules>
