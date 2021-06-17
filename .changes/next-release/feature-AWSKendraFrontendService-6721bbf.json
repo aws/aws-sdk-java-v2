@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSKendraFrontendService",
+    "contributor": "",
+    "description": "Amazon Kendra now supports the indexing of web documents for search through the web crawler."
+}
