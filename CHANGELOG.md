@@ -1,3 +1,24 @@
+# __2.16.87__ __2021-06-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports the indexing of web documents for search through the web crawler.
+
+## __Amazon Chime__
+  - ### Features
+    - This release adds a new API UpdateSipMediaApplicationCall, to update an in-progress call for SipMediaApplication.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release enables Database Activity Streams for RDS Oracle
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable ml.g4dn instance types for SageMaker Batch Transform and SageMaker Processing
+
 # __2.16.86__ __2021-06-16__
 ## __AWS Key Management Service__
   - ### Features
