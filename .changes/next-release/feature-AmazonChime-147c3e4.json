@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "contributor": "",
+    "description": "This release adds a new API UpdateSipMediaApplicationCall, to update an in-progress call for SipMediaApplication."
+}
