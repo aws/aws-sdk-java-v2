@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Enable ml.g4dn instance types for SageMaker Batch Transform and SageMaker Processing"
+}
