@@ -45,7 +45,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         }
 
         if (builder.credentialsProvider() != null) {
-            configBuilder.credentialsProvider(S3CrtUtils.createCrtCredentialsProvider(builder.credentialsProvider()));
+            configBuilder.credentialsProvider(S3CrtPojoConversion.createCrtCredentialsProvider(builder.credentialsProvider()));
         }
         configuration = configBuilder.build();
 
@@ -62,7 +62,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
 
         CompletableFuture<ReturnT> future = new CompletableFuture<>();
-        com.amazonaws.s3.model.GetObjectRequest crtGetObjectRequest = S3CrtUtils.toCrtGetObjectRequest(getObjectRequest);
+        com.amazonaws.s3.model.GetObjectRequest crtGetObjectRequest = S3CrtPojoConversion.toCrtGetObjectRequest(getObjectRequest);
         CrtResponseDataConsumerAdapter<ReturnT> adapter = new CrtResponseDataConsumerAdapter<>(asyncResponseTransformer);
 
         CompletableFuture<ReturnT> adapterFuture = adapter.transformerFuture();
@@ -83,7 +83,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
-        com.amazonaws.s3.model.PutObjectRequest adaptedRequest = S3CrtUtils.toCrtPutObjectRequest(putObjectRequest);
+        com.amazonaws.s3.model.PutObjectRequest adaptedRequest = S3CrtPojoConversion.toCrtPutObjectRequest(putObjectRequest);
 
         if (adaptedRequest.contentLength() == null && requestBody.contentLength().isPresent()) {
             adaptedRequest = adaptedRequest.toBuilder().contentLength(requestBody.contentLength().get())
@@ -93,7 +93,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         CompletableFuture<PutObjectOutput> putObjectOutputCompletableFuture = s3NativeClient.putObject(adaptedRequest,
                 adaptToDataSupplier(requestBody));
 
-        return putObjectOutputCompletableFuture.thenApply(S3CrtUtils::fromCrtPutObjectOutput);
+        return putObjectOutputCompletableFuture.thenApply(S3CrtPojoConversion::fromCrtPutObjectOutput);
     }
 
     @Override
