@@ -73,8 +73,8 @@ public class CrtResponseDataConsumerAdapter<ReturnT> implements ResponseDataCons
             return;
         }
 
-        GetObjectResponse response = S3CrtUtils.adaptGetObjectOutput(output,
-                                                                     headerHandler.sdkHttpResponseFuture().join());
+        GetObjectResponse response = S3CrtPojoConversion.fromCrtGetObjectOutput(output,
+                                                                                headerHandler.sdkHttpResponseFuture().join());
         transformer.onResponse(response);
         transformer.onStream(publisher);
     }

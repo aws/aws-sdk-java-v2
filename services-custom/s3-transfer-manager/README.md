@@ -45,7 +45,8 @@ S3TransferManager transferManager =
 To download an object, you just need to provide the destion file path and the `GetObjectRequest` that should be used for the download.
 
 ```java
-Download download = transferManager.download(b -> b.destination(path)
+Download download = 
+    transferManager.download(b -> b.destination(path)
                                    .getObjectRequest(r -> r.bucket("bucket")
                                                            .key("key")));
 download.completionFuture().join();

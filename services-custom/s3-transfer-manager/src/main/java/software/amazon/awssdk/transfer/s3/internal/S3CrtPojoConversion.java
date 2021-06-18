@@ -47,16 +47,19 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3ResponseMetadata;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
+/**
+ * Helper class to convert CRT POJOs to SDK POJOs and vice versa
+ */
+//TODO: codegen this class in the future
 @SdkInternalApi
-public final class S3CrtUtils {
+public final class S3CrtPojoConversion {
     private static final String HEADER_USER_AGENT = "User-Agent";
     private static final String USER_AGENT_STRING = SdkUserAgent.create().userAgent() + " ft/s3-transfer";
 
-    private S3CrtUtils() {
+    private S3CrtPojoConversion() {
     }
 
-    // TODO: Add more adapters if there are any new crt credentials providers.
-
+    // TODO: Move this method out of this util class and change to use DelegateCredentialsProvider
     /**
      * Adapter between the sdk credentials provider and the crt credentials provider.
      */
@@ -74,16 +77,29 @@ public final class S3CrtUtils {
                       .build();
     }
 
-    // TODO: codegen and add tests
     public static com.amazonaws.s3.model.GetObjectRequest toCrtGetObjectRequest(GetObjectRequest request) {
         com.amazonaws.s3.model.GetObjectRequest.Builder getObjectBuilder =
             com.amazonaws.s3.model.GetObjectRequest.builder()
-                                                   .key(request.key())
                                                    .bucket(request.bucket())
-                                                   .expectedBucketOwner(request.expectedBucketOwner())
                                                    .ifMatch(request.ifMatch())
                                                    .ifModifiedSince(request.ifModifiedSince())
-                                                   .ifNoneMatch(request.ifNoneMatch());
+                                                   .ifNoneMatch(request.ifNoneMatch())
+                                                   .ifUnmodifiedSince(request.ifUnmodifiedSince())
+                                                   .key(request.key())
+                                                   .range(request.range())
+                                                   .responseCacheControl(request.responseCacheControl())
+                                                   .responseContentDisposition(request.responseContentDisposition())
+                                                   .responseContentEncoding(request.responseContentEncoding())
+                                                   .responseContentLanguage(request.responseContentLanguage())
+                                                   .responseContentType(request.responseContentType())
+                                                   .responseExpires(request.responseExpires())
+                                                   .versionId(request.versionId())
+                                                   .sSECustomerAlgorithm(request.sseCustomerAlgorithm())
+                                                   .sSECustomerKey(request.sseCustomerKey())
+                                                   .sSECustomerKeyMD5(request.sseCustomerKeyMD5())
+                                                   .requestPayer(RequestPayer.fromValue(request.requestPayerAsString()))
+                                                   .partNumber(request.partNumber())
+                                                   .expectedBucketOwner(request.expectedBucketOwner());
 
         processRequestOverrideConfiguration(request.overrideConfiguration().orElse(null),
                                             getObjectBuilder::customQueryParameters);
@@ -95,36 +111,70 @@ public final class S3CrtUtils {
     }
 
     // TODO: codegen and add tests
-    public static GetObjectResponse adaptGetObjectOutput(GetObjectOutput response, SdkHttpResponse sdkHttpResponse) {
+    public static GetObjectResponse fromCrtGetObjectOutput(GetObjectOutput response, SdkHttpResponse sdkHttpResponse) {
         S3ResponseMetadata s3ResponseMetadata = createS3ResponseMetadata(sdkHttpResponse);
 
-        return (GetObjectResponse) GetObjectResponse.builder()
-                                                    .bucketKeyEnabled(response.bucketKeyEnabled())
-                                                    .acceptRanges(response.acceptRanges())
-                                                    .contentDisposition(response.contentDisposition())
-                                                    .cacheControl(response.cacheControl())
-                                                    .contentEncoding(response.contentEncoding())
-                                                    .contentLanguage(response.contentLanguage())
-                                                    .contentRange(response.contentRange())
-                                                    .contentLength(response.contentLength())
-                                                    .contentType(response.contentType())
-                                                    .deleteMarker(response.deleteMarker())
-                                                    .eTag(response.eTag())
-                                                    .expiration(response.expiration())
-                                                    .expires(response.expires())
-                                                    .lastModified(response.lastModified())
-                                                    .metadata(response.metadata())
-                                                    .responseMetadata(s3ResponseMetadata)
-                                                    .sdkHttpResponse(sdkHttpResponse)
-                                                    .build();
+        GetObjectResponse.Builder builder = GetObjectResponse.builder()
+                                                             .deleteMarker(response.deleteMarker())
+                                                             .acceptRanges(response.acceptRanges())
+                                                             .expiration(response.expiration())
+                                                             .restore(response.restore())
+                                                             .lastModified(response.lastModified())
+                                                             .contentLength(response.contentLength())
+                                                             .eTag(response.eTag())
+                                                             .missingMeta(response.missingMeta())
+                                                             .versionId(response.versionId())
+                                                             .cacheControl(response.cacheControl())
+                                                             .contentDisposition(response.contentDisposition())
+                                                             .contentEncoding(response.contentEncoding())
+                                                             .contentLanguage(response.contentLanguage())
+                                                             .contentRange(response.contentRange())
+                                                             .contentType(response.contentType())
+                                                             .expires(response.expires())
+                                                             .websiteRedirectLocation(response.websiteRedirectLocation())
+                                                             .metadata(response.metadata())
+                                                             .sseCustomerAlgorithm(response.sSECustomerAlgorithm())
+                                                             .sseCustomerKeyMD5(response.sSECustomerKeyMD5())
+                                                             .ssekmsKeyId(response.sSEKMSKeyId())
+                                                             .bucketKeyEnabled(response.bucketKeyEnabled())
+                                                             .partsCount(response.partsCount())
+                                                             .tagCount(response.tagCount())
+                                                             .objectLockRetainUntilDate(response.objectLockRetainUntilDate());
+
+        if (response.serverSideEncryption() != null) {
+            builder.serverSideEncryption(response.serverSideEncryption().name());
+        }
+
+        if (response.storageClass() != null) {
+            builder.storageClass(response.storageClass().name());
+        }
+
+        if (response.requestCharged() != null) {
+            builder.requestCharged(response.requestCharged().name());
+        }
+
+        if (response.replicationStatus() != null) {
+            builder.replicationStatus(response.replicationStatus().name());
+        }
+
+        if (response.objectLockMode() != null) {
+            builder.objectLockMode(response.objectLockMode().name());
+        }
+
+        if (response.objectLockLegalHoldStatus() != null) {
+            builder.objectLockLegalHoldStatus(response.objectLockLegalHoldStatus().name());
+        }
+
+        return (GetObjectResponse) builder.responseMetadata(s3ResponseMetadata)
+                                          .sdkHttpResponse(sdkHttpResponse)
+                                          .build();
+
     }
 
-    // TODO: codegen and add tests
     public static com.amazonaws.s3.model.PutObjectRequest toCrtPutObjectRequest(PutObjectRequest sdkPutObject) {
         com.amazonaws.s3.model.PutObjectRequest.Builder putObjectBuilder =
             com.amazonaws.s3.model.PutObjectRequest.builder()
                                                    .contentLength(sdkPutObject.contentLength())
-                                                   .aCL(ObjectCannedACL.fromValue(sdkPutObject.aclAsString()))
                                                    .bucket(sdkPutObject.bucket())
                                                    .key(sdkPutObject.key())
                                                    .bucketKeyEnabled(sdkPutObject.bucketKeyEnabled())
@@ -141,23 +191,42 @@ public final class S3CrtUtils {
                                                    .grantReadACP(sdkPutObject.grantReadACP())
                                                    .grantWriteACP(sdkPutObject.grantWriteACP())
                                                    .metadata(sdkPutObject.metadata())
-                                                   .objectLockLegalHoldStatus(ObjectLockLegalHoldStatus.fromValue(
-                                                       sdkPutObject.objectLockLegalHoldStatusAsString()))
-                                                   .objectLockMode(ObjectLockMode.fromValue(
-                                                       sdkPutObject.objectLockModeAsString()))
                                                    .objectLockRetainUntilDate(sdkPutObject.objectLockRetainUntilDate())
-                                                   .requestPayer(RequestPayer.fromValue(sdkPutObject.requestPayerAsString()))
-                                                   .serverSideEncryption(ServerSideEncryption.fromValue(
-                                                       sdkPutObject.requestPayerAsString()))
                                                    .sSECustomerAlgorithm(sdkPutObject.sseCustomerAlgorithm())
                                                    .sSECustomerKey(sdkPutObject.sseCustomerKey())
                                                    .sSECustomerKeyMD5(sdkPutObject.sseCustomerKeyMD5())
                                                    .sSEKMSEncryptionContext(sdkPutObject.ssekmsEncryptionContext())
                                                    .sSEKMSKeyId(sdkPutObject.ssekmsKeyId())
-                                                   .storageClass(StorageClass.fromValue(sdkPutObject.storageClassAsString()))
                                                    .tagging(sdkPutObject.tagging())
                                                    .websiteRedirectLocation(sdkPutObject.websiteRedirectLocation());
 
+        if (sdkPutObject.acl() != null) {
+            putObjectBuilder.aCL(ObjectCannedACL.fromValue(sdkPutObject.acl().name()));
+        }
+
+        if (sdkPutObject.objectLockLegalHoldStatus() != null) {
+            putObjectBuilder.objectLockLegalHoldStatus(ObjectLockLegalHoldStatus.fromValue(
+                sdkPutObject.objectLockLegalHoldStatus().name()));
+        }
+
+        if (sdkPutObject.objectLockMode() != null) {
+            putObjectBuilder.objectLockMode(ObjectLockMode.fromValue(
+                sdkPutObject.objectLockMode().name()));
+        }
+
+        if (sdkPutObject.requestPayer() != null) {
+            putObjectBuilder.requestPayer(RequestPayer.fromValue(sdkPutObject.requestPayer().name()));
+        }
+
+        if (sdkPutObject.serverSideEncryption() != null) {
+            putObjectBuilder.serverSideEncryption(ServerSideEncryption.fromValue(
+                sdkPutObject.serverSideEncryption().name()));
+        }
+
+        if (sdkPutObject.storageClass() != null) {
+            putObjectBuilder.storageClass(StorageClass.fromValue(
+                sdkPutObject.storageClass().name()));
+        }
 
         processRequestOverrideConfiguration(sdkPutObject.overrideConfiguration().orElse(null),
                                             putObjectBuilder::customQueryParameters);
@@ -182,11 +251,11 @@ public final class S3CrtUtils {
                                                              .versionId(crtPutObjectOutput.versionId());
 
         if (crtPutObjectOutput.requestCharged() != null) {
-            builder.requestCharged(crtPutObjectOutput.requestCharged().value());
+            builder.requestCharged(crtPutObjectOutput.requestCharged().name());
         }
 
         if (crtPutObjectOutput.serverSideEncryption() != null) {
-            builder.serverSideEncryption(crtPutObjectOutput.serverSideEncryption().value());
+            builder.serverSideEncryption(crtPutObjectOutput.serverSideEncryption().name());
         }
 
         return builder.build();
@@ -204,11 +273,11 @@ public final class S3CrtUtils {
         }
 
         if (overrideConfiguration.signer().isPresent()) {
-            throw new UnsupportedOperationException("signer are not supported");
+            throw new UnsupportedOperationException("signer is not supported");
         }
 
         if (!overrideConfiguration.apiNames().isEmpty()) {
-            throw new UnsupportedOperationException("apiNames are not supported");
+            throw new UnsupportedOperationException("apiNames is not supported");
         }
 
         if (overrideConfiguration.apiCallAttemptTimeout().isPresent()) {
