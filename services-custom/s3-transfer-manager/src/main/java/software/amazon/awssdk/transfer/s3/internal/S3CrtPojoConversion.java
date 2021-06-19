@@ -23,21 +23,15 @@ import com.amazonaws.s3.model.PutObjectOutput;
 import com.amazonaws.s3.model.RequestPayer;
 import com.amazonaws.s3.model.ServerSideEncryption;
 import com.amazonaws.s3.model.StorageClass;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.core.util.SdkUserAgent;
-import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
-import software.amazon.awssdk.crt.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -57,24 +51,6 @@ public final class S3CrtPojoConversion {
     private static final String USER_AGENT_STRING = SdkUserAgent.create().userAgent() + " ft/s3-transfer";
 
     private S3CrtPojoConversion() {
-    }
-
-    // TODO: Move this method out of this util class and change to use DelegateCredentialsProvider
-    /**
-     * Adapter between the sdk credentials provider and the crt credentials provider.
-     */
-    public static CredentialsProvider createCrtCredentialsProvider(AwsCredentialsProvider awsCredentialsProvider) {
-        AwsCredentials sdkCredentials = awsCredentialsProvider.resolveCredentials();
-        StaticCredentialsProvider.StaticCredentialsProviderBuilder builder =
-            new StaticCredentialsProvider.StaticCredentialsProviderBuilder();
-
-        if (sdkCredentials instanceof AwsSessionCredentials) {
-            builder.withSessionToken(((AwsSessionCredentials) sdkCredentials).sessionToken().getBytes(StandardCharsets.UTF_8));
-        }
-
-        return builder.withAccessKeyId(sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8))
-                      .withSecretAccessKey(sdkCredentials.secretAccessKey().getBytes(StandardCharsets.UTF_8))
-                      .build();
     }
 
     public static com.amazonaws.s3.model.GetObjectRequest toCrtGetObjectRequest(GetObjectRequest request) {
@@ -110,7 +86,6 @@ public final class S3CrtPojoConversion {
 
     }
 
-    // TODO: codegen and add tests
     public static GetObjectResponse fromCrtGetObjectOutput(GetObjectOutput response, SdkHttpResponse sdkHttpResponse) {
         S3ResponseMetadata s3ResponseMetadata = createS3ResponseMetadata(sdkHttpResponse);
 
@@ -236,7 +211,6 @@ public final class S3CrtPojoConversion {
         return putObjectBuilder.build();
     }
 
-    // TODO: codegen and add tests
     public static PutObjectResponse fromCrtPutObjectOutput(PutObjectOutput crtPutObjectOutput) {
         // TODO: Provide the HTTP request-level data (e.g. response metadata, HTTP response)
         PutObjectResponse.Builder builder = PutObjectResponse.builder()

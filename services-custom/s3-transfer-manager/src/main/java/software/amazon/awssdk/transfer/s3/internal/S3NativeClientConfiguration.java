@@ -17,8 +17,9 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
-import software.amazon.awssdk.crt.auth.credentials.DefaultChainCredentialsProvider;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.transfer.s3.SizeConstant;
@@ -33,6 +34,7 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
+    private final CrtCredentialsProviderAdapter credentialProviderAdapter;
     private final CredentialsProvider credentialsProvider;
     private final long partSizeInBytes;
     private final double targetThroughputInGbps;
@@ -42,11 +44,12 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
                              builder.signingRegion;
         this.clientBootstrap = new ClientBootstrap(null, null);
-        this.credentialsProvider = builder.credentialsProvider == null ?
-                                   new DefaultChainCredentialsProvider.DefaultChainCredentialsProviderBuilder()
-                                       .withClientBootstrap(clientBootstrap)
-                                       .build() :
-                                   builder.credentialsProvider;
+        this.credentialProviderAdapter =
+            builder.credentialsProvider == null ?
+            new CrtCredentialsProviderAdapter(DefaultCredentialsProvider.create()) :
+            new CrtCredentialsProviderAdapter(builder.credentialsProvider);
+        this.credentialsProvider = credentialProviderAdapter.crtCredentials();
+
         this.partSizeInBytes = builder.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
                                builder.partSizeInBytes;
         this.targetThroughputInGbps = builder.targetThroughputInGbps == null ?
@@ -87,12 +90,13 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
     @Override
     public void close() {
         clientBootstrap.close();
+        credentialProviderAdapter.close();
         credentialsProvider.close();
     }
 
     public static final class Builder {
         private String signingRegion;
-        private CredentialsProvider credentialsProvider;
+        private AwsCredentialsProvider credentialsProvider;
         private Long partSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
@@ -105,7 +109,7 @@ public final class S3NativeClientConfiguration implements SdkAutoCloseable {
             return this;
         }
 
-        public Builder credentialsProvider(CredentialsProvider credentialsProvider) {
+        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }

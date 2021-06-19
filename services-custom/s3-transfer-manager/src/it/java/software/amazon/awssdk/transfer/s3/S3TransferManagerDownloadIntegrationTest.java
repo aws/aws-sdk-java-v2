@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
