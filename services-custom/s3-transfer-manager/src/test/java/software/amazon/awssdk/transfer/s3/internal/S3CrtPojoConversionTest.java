@@ -23,7 +23,6 @@ import com.amazonaws.s3.model.GetObjectOutput;
 import com.amazonaws.s3.model.PutObjectOutput;
 import com.amazonaws.s3.model.ReplicationStatus;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -31,20 +30,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.util.SdkUserAgent;
-import software.amazon.awssdk.crt.auth.credentials.Credentials;
-import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.metrics.LoggingMetricPublisher;
@@ -66,19 +59,6 @@ public class S3CrtPojoConversionTest {
     private static final String ACCESS_KEY = "accessKey";
     private static final String SECRET_ACCESS_KEY = "secretAccessKey";
     private static final String SESSION_TOKEN = "sessionToken";
-
-    @Test
-    public void createCrtCredentialsProviderTest() throws ExecutionException, InterruptedException {
-        AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider
-            .create(AwsSessionCredentials.create(ACCESS_KEY, SECRET_ACCESS_KEY, SESSION_TOKEN));
-        CredentialsProvider crtCredentialsProvider = S3CrtPojoConversion.createCrtCredentialsProvider(awsCredentialsProvider);
-
-        Credentials credentials = crtCredentialsProvider.getCredentials().get();
-
-        assertThat(ACCESS_KEY.getBytes(StandardCharsets.UTF_8)).isEqualTo(credentials.getAccessKeyId());
-        assertThat(SECRET_ACCESS_KEY.getBytes(StandardCharsets.UTF_8)).isEqualTo(credentials.getSecretAccessKey());
-        assertThat(SESSION_TOKEN.getBytes(StandardCharsets.UTF_8)).isEqualTo(credentials.getSessionToken());
-    }
 
     @Test
     public void fromCrtPutObjectOutputAllFields_shouldConvert() throws IllegalAccessException {

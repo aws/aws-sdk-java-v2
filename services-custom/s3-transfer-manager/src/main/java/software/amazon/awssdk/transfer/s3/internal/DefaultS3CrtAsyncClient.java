@@ -39,14 +39,13 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         S3NativeClientConfiguration.Builder configBuilder =
             S3NativeClientConfiguration.builder()
                                        .targetThroughputInGbps(builder.targetThroughputInGbps())
-                                       .partSizeInBytes(builder.partSizeBytes());
+                                       .partSizeInBytes(builder.minimumPartSizeInBytes())
+                                       .maxConcurrency(builder.maxConcurrency)
+                                       .credentialsProvider(builder.credentialsProvider);
         if (builder.region() != null) {
             configBuilder.signingRegion(builder.region().id());
         }
 
-        if (builder.credentialsProvider() != null) {
-            configBuilder.credentialsProvider(S3CrtPojoConversion.createCrtCredentialsProvider(builder.credentialsProvider()));
-        }
         configuration = configBuilder.build();
 
         this.s3NativeClient = new S3NativeClient(configuration.signingRegion(),
@@ -114,7 +113,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
         private AwsCredentialsProvider credentialsProvider;
         private Region region;
-        private Long partSizeBytes;
+        private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
 
@@ -126,8 +125,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
             return region;
         }
 
-        public Long partSizeBytes() {
-            return partSizeBytes;
+        public Long minimumPartSizeInBytes() {
+            return minimalPartSizeInBytes;
         }
 
         public Double targetThroughputInGbps() {
@@ -152,7 +151,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
         @Override
         public S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long partSizeBytes) {
-            this.partSizeBytes = partSizeBytes;
+            this.minimalPartSizeInBytes = partSizeBytes;
             return this;
         }
 
