@@ -1,3 +1,12 @@
+# __2.16.88__ __2021-06-21__
+## __AWS CloudFormation__
+  - ### Features
+    - CloudFormation registry service now supports 3rd party public type sharing
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
 # __2.16.87__ __2021-06-17__
 ## __AWS SDK for Java v2__
   - ### Features
