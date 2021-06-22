@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.Deque;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +31,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -60,6 +62,10 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
         this.bodyPublisher = bodyPublisher;
         this.subscriber = createSubscriber();
         this.headersHandler = new ResponseHeadersHandler();
+    }
+
+    public CompletableFuture<SdkHttpResponse> sdkHttpResponseFuture() {
+        return headersHandler.sdkHttpResponseFuture();
     }
 
     @Override

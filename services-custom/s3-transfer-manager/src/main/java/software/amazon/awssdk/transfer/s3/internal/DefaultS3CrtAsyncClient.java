@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-
-import com.amazonaws.s3.RequestDataSupplier;
 import com.amazonaws.s3.S3NativeClient;
 import com.amazonaws.s3.model.PutObjectOutput;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -85,14 +84,19 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         com.amazonaws.s3.model.PutObjectRequest adaptedRequest = S3CrtPojoConversion.toCrtPutObjectRequest(putObjectRequest);
 
         if (adaptedRequest.contentLength() == null && requestBody.contentLength().isPresent()) {
-            adaptedRequest = adaptedRequest.toBuilder().contentLength(requestBody.contentLength().get())
-                    .build();
+            adaptedRequest = adaptedRequest.toBuilder()
+                                           .contentLength(requestBody.contentLength().get())
+                                           .build();
         }
 
+        RequestDataSupplierAdapter requestDataSupplier = new RequestDataSupplierAdapter(requestBody);
         CompletableFuture<PutObjectOutput> putObjectOutputCompletableFuture = s3NativeClient.putObject(adaptedRequest,
-                adaptToDataSupplier(requestBody));
+                                                                                                       requestDataSupplier);
 
-        return putObjectOutputCompletableFuture.thenApply(S3CrtPojoConversion::fromCrtPutObjectOutput);
+        CompletableFuture<SdkHttpResponse> httpResponseFuture = requestDataSupplier.sdkHttpResponseFuture();
+        return httpResponseFuture.thenCombine(putObjectOutputCompletableFuture,
+                                              (header, putObjectOutput) ->
+                                                  S3CrtPojoConversion.fromCrtPutObjectOutput(putObjectOutput, header));
     }
 
     @Override
@@ -104,10 +108,6 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     public void close() {
         s3NativeClient.close();
         configuration.close();
-    }
-
-    private static RequestDataSupplier adaptToDataSupplier(AsyncRequestBody requestBody) {
-        return new RequestDataSupplierAdapter(requestBody);
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
