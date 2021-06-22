@@ -56,15 +56,14 @@ import software.amazon.awssdk.utils.Logger;
 public class S3CrtPojoConversionTest {
     private static final Logger log = Logger.loggerFor(S3CrtPojoConversionTest.class);
     private static final Random RNG = new Random();
-    private static final String ACCESS_KEY = "accessKey";
-    private static final String SECRET_ACCESS_KEY = "secretAccessKey";
-    private static final String SESSION_TOKEN = "sessionToken";
 
     @Test
     public void fromCrtPutObjectOutputAllFields_shouldConvert() throws IllegalAccessException {
 
         PutObjectOutput crtResponse = randomCrtPutObjectOutput();
-        PutObjectResponse sdkResponse = S3CrtPojoConversion.fromCrtPutObjectOutput(crtResponse);
+        SdkHttpResponse sdkHttpResponse = SdkHttpResponse.builder()
+                                                         .build();
+        PutObjectResponse sdkResponse = S3CrtPojoConversion.fromCrtPutObjectOutput(crtResponse, sdkHttpResponse);
 
         // ignoring fields with different casings and enum fields.
         assertThat(sdkResponse).isEqualToIgnoringGivenFields(crtResponse,
@@ -84,6 +83,30 @@ public class S3CrtPojoConversionTest {
 
         // TODO: CRT enums dont' have valid values. Uncomment this once it's fixed in CRT.
         //assertThat(sdkResponse.requestCharged().name()).isEqualTo(crtResponse.requestCharged().name());
+    }
+
+    @Test
+    public void fromCrtPutObjectOutputAllFields_shouldAddSdkHttpResponse() throws IllegalAccessException {
+        String expectedRequestId = "123456";
+        PutObjectOutput crtResponse = PutObjectOutput.builder().build();
+        SdkHttpResponse sdkHttpResponse = SdkHttpResponse.builder()
+                                                  .statusCode(200)
+                                                  .appendHeader("x-amz-request-id", expectedRequestId)
+                                                  .build();
+        PutObjectResponse sdkResponse = S3CrtPojoConversion.fromCrtPutObjectOutput(crtResponse, sdkHttpResponse);
+
+        // ignoring fields with different casing and enum fields.
+        assertThat(sdkResponse).isEqualToIgnoringGivenFields(crtResponse,
+                                                             "sseCustomerAlgorithm",
+                                                             "sseCustomerKeyMD5",
+                                                             "ssekmsKeyId",
+                                                             "ssekmsEncryptionContext",
+                                                             "serverSideEncryption",
+                                                             "requestCharged",
+                                                             "responseMetadata",
+                                                             "sdkHttpResponse");
+        assertThat(sdkResponse.sdkHttpResponse()).isEqualTo(sdkHttpResponse);
+        assertThat(sdkResponse.responseMetadata().requestId()).isEqualTo(expectedRequestId);
     }
 
     @Test

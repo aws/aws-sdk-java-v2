@@ -211,8 +211,9 @@ public final class S3CrtPojoConversion {
         return putObjectBuilder.build();
     }
 
-    public static PutObjectResponse fromCrtPutObjectOutput(PutObjectOutput crtPutObjectOutput) {
-        // TODO: Provide the HTTP request-level data (e.g. response metadata, HTTP response)
+    public static PutObjectResponse fromCrtPutObjectOutput(PutObjectOutput crtPutObjectOutput,
+                                                           SdkHttpResponse sdkHttpResponse) {
+        S3ResponseMetadata s3ResponseMetadata = createS3ResponseMetadata(sdkHttpResponse);
         PutObjectResponse.Builder builder = PutObjectResponse.builder()
                                                              .bucketKeyEnabled(crtPutObjectOutput.bucketKeyEnabled())
                                                              .eTag(crtPutObjectOutput.eTag())
@@ -232,7 +233,9 @@ public final class S3CrtPojoConversion {
             builder.serverSideEncryption(crtPutObjectOutput.serverSideEncryption().name());
         }
 
-        return builder.build();
+        return (PutObjectResponse) builder.responseMetadata(s3ResponseMetadata)
+                                          .sdkHttpResponse(sdkHttpResponse)
+                                          .build();
     }
 
     private static S3ResponseMetadata createS3ResponseMetadata(SdkHttpResponse sdkHttpResponse) {

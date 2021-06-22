@@ -65,7 +65,9 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
                                                .source(testFile.toPath())
                                                .build());
 
-        upload.completionFuture().join();
+        CompletedUpload completedUpload = upload.completionFuture().join();
+        assertThat(completedUpload.response().responseMetadata().requestId()).isNotNull();
+        assertThat(completedUpload.response().sdkHttpResponse()).isNotNull();
 
         ResponseInputStream<GetObjectResponse> obj = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
                 ResponseTransformer.toInputStream());
