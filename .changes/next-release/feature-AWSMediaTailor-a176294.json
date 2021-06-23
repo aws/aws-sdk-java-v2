@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaTailor",
-    "contributor": "",
-    "description": "Update GetChannelSchedule to return information on ad breaks."
-}
