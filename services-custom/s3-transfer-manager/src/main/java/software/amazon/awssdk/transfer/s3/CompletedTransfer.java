@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A completed transfer.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface CompletedTransfer {
 }

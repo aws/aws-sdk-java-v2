@@ -32,7 +32,20 @@ public final class DefaultCompletedUpload implements CompletedUpload {
         return response;
     }
 
-    public static class BuilderImpl implements Builder {
+    /**
+     * Creates a default builder for {@link CompletedUpload}.
+     */
+    public static Builder builder() {
+        return new DefaultCompletedUpload.BuilderImpl();
+    }
+
+    interface Builder {
+        Builder response(PutObjectResponse response);
+
+        CompletedUpload build();
+    }
+
+    private static class BuilderImpl implements Builder {
         private PutObjectResponse response;
 
         @Override

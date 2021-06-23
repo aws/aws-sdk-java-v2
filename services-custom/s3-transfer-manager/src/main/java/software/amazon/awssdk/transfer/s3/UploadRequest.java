@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Upload an object to S3 using {@link S3TransferManager}.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class UploadRequest implements TransferRequest, ToCopyableBuilder<UploadRequest.Builder, UploadRequest> {
     private final PutObjectRequest putObjectRequest;
     private final Path source;
@@ -115,14 +117,20 @@ public final class UploadRequest implements TransferRequest, ToCopyableBuilder<U
          *
          * @param putObjectRequest the putObjectRequest
          * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #putObjectRequest(Consumer)
          */
         Builder putObjectRequest(PutObjectRequest putObjectRequest);
 
         /**
          * Configure the {@link PutObjectRequest} that should be used for the upload
          *
+         * <p>
+         * This is a convenience method that creates an instance of the {@link PutObjectRequest} builder avoiding the
+         * need to create one manually via {@link PutObjectRequest#builder()}.
+         *
          * @param putObjectRequestBuilder the putObjectRequest consumer builder
          * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #putObjectRequest(PutObjectRequest)
          */
         default Builder putObjectRequest(Consumer<PutObjectRequest.Builder> putObjectRequestBuilder) {
             return putObjectRequest(PutObjectRequest.builder()

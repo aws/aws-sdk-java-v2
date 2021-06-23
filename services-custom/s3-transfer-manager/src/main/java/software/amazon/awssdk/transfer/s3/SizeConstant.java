@@ -16,12 +16,14 @@
 package software.amazon.awssdk.transfer.s3;
 
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Helpful constants for common size units.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class SizeConstant {
 
     /**

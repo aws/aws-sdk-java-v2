@@ -15,18 +15,19 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
 
 /**
  * A completed download transfer.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface CompletedDownload extends CompletedTransfer {
 
     /**
-     * Returns the API response from the {@link S3CrtAsyncClient#getObject}
+     * Returns the API response from the {@link S3TransferManager#download(DownloadRequest)}
      * @return the response
      */
     GetObjectResponse response();

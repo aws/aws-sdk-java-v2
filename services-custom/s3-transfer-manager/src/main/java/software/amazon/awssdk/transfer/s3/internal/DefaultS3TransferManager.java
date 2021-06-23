@@ -23,7 +23,6 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.transfer.s3.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.S3ClientConfiguration;
@@ -58,9 +57,9 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         CompletableFuture<PutObjectResponse> putObjFuture = s3CrtAsyncClient.putObject(putObjectRequest, requestBody);
 
-        return new DefaultUpload(putObjFuture.thenApply(r -> CompletedUpload.builder()
-                                                                            .response(r)
-                                                                            .build()));
+        return new DefaultUpload(putObjFuture.thenApply(r -> DefaultCompletedUpload.builder()
+                                                                                   .response(r)
+                                                                                   .build()));
     }
 
     @Override

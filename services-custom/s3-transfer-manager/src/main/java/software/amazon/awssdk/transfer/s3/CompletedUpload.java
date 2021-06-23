@@ -15,24 +15,20 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.internal.DefaultCompletedUpload;
 
 /**
  * A completed upload transfer.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface CompletedUpload extends CompletedTransfer {
+
+    /**
+     * Returns the API response from the {@link S3TransferManager#upload(UploadRequest)}
+     * @return the response
+     */
     PutObjectResponse response();
-
-    static Builder builder() {
-        return new DefaultCompletedUpload.BuilderImpl();
-    }
-
-    interface Builder {
-        Builder response(PutObjectResponse response);
-
-        CompletedUpload build();
-    }
 }
