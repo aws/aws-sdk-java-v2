@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * Internal client configuration resolver
  */
 @SdkInternalApi
-public final class S3NativeClientConfiguration implements SdkAutoCloseable {
+public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * SizeConstant.MB;
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
     private final String signingRegion;

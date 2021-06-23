@@ -16,9 +16,11 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import com.amazonaws.s3.S3NativeClient;
+import com.amazonaws.s3.model.GetObjectOutput;
 import com.amazonaws.s3.model.PutObjectOutput;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -28,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
@@ -55,6 +58,13 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                  configuration.maxConcurrency());
     }
 
+    @SdkTestInternalApi
+    DefaultS3CrtAsyncClient(S3NativeClientConfiguration configuration,
+                            S3NativeClient nativeClient) {
+        this.configuration = configuration;
+        this.s3NativeClient = nativeClient;
+    }
+
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
@@ -65,7 +75,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
 
         CompletableFuture<ReturnT> adapterFuture = adapter.transformerFuture();
 
-        s3NativeClient.getObject(crtGetObjectRequest, adapter);
+        CompletableFuture<GetObjectOutput> crtFuture = s3NativeClient.getObject(crtGetObjectRequest, adapter);
+        CompletableFutureUtils.forwardExceptionTo(future, crtFuture);
 
         adapterFuture.whenComplete((r, t) -> {
             if (t == null) {
@@ -76,7 +87,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
             // TODO: Offload to future completion thread
         });
 
-        return future;
+        return CompletableFutureUtils.forwardExceptionTo(future, adapterFuture);
     }
 
     @Override
@@ -94,9 +105,12 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                                                                        requestDataSupplier);
 
         CompletableFuture<SdkHttpResponse> httpResponseFuture = requestDataSupplier.sdkHttpResponseFuture();
-        return httpResponseFuture.thenCombine(putObjectOutputCompletableFuture,
-                                              (header, putObjectOutput) ->
-                                                  S3CrtPojoConversion.fromCrtPutObjectOutput(putObjectOutput, header));
+        CompletableFuture<PutObjectResponse> executeFuture =
+            httpResponseFuture.thenCombine(putObjectOutputCompletableFuture,
+                                           (header, putObjectOutput) -> S3CrtPojoConversion.fromCrtPutObjectOutput(
+                                               putObjectOutput, header));
+
+        return CompletableFutureUtils.forwardExceptionTo(executeFuture, putObjectOutputCompletableFuture);
     }
 
     @Override

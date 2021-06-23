@@ -23,12 +23,15 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.transfer.s3.CompletedDownload;
+import software.amazon.awssdk.transfer.s3.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.transfer.s3.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.S3ClientConfiguration;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.Upload;
 import software.amazon.awssdk.transfer.s3.UploadRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkInternalApi
 public final class DefaultS3TransferManager implements S3TransferManager {
@@ -57,17 +60,21 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         CompletableFuture<PutObjectResponse> putObjFuture = s3CrtAsyncClient.putObject(putObjectRequest, requestBody);
 
-        return new DefaultUpload(putObjFuture.thenApply(r -> DefaultCompletedUpload.builder()
-                                                                                   .response(r)
-                                                                                   .build()));
+        CompletableFuture<CompletedUpload> future = putObjFuture.thenApply(r -> DefaultCompletedUpload.builder()
+                                                                                                      .response(r)
+                                                                                                      .build());
+        return new DefaultUpload(CompletableFutureUtils.forwardExceptionTo(future, putObjFuture));
     }
 
     @Override
     public Download download(DownloadRequest downloadRequest) {
-        CompletableFuture<GetObjectResponse> future =
+        CompletableFuture<GetObjectResponse> getObjectFuture =
             s3CrtAsyncClient.getObject(downloadRequest.getObjectRequest(),
                                        AsyncResponseTransformer.toFile(downloadRequest.destination()));
-        return new DefaultDownload(future.thenApply(r -> DefaultCompletedDownload.builder().response(r).build()));
+        CompletableFuture<CompletedDownload> future =
+            getObjectFuture.thenApply(r -> DefaultCompletedDownload.builder().response(r).build());
+
+        return new DefaultDownload(CompletableFutureUtils.forwardExceptionTo(future, getObjectFuture));
     }
 
     @Override

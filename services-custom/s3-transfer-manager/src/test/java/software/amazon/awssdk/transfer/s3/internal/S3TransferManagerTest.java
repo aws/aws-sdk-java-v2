@@ -74,6 +74,23 @@ public class S3TransferManagerTest {
     }
 
     @Test
+    public void upload_cancel_shouldForwardCancellation() {
+        CompletableFuture<PutObjectResponse> s3CrtFuture = new CompletableFuture<>();
+        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+            .thenReturn(s3CrtFuture);
+
+        CompletableFuture<CompletedUpload> future = tm.upload(UploadRequest.builder()
+                                                                                    .putObjectRequest(r -> r.bucket("bucket")
+                                                                                         .key("key"))
+                                                                                    .source(Paths.get("."))
+                                                                                    .build())
+                                                               .completionFuture();
+
+        future.cancel(true);
+        assertThat(s3CrtFuture).isCancelled();
+    }
+
+    @Test
     public void download_returnsResponse() {
         GetObjectResponse response = GetObjectResponse.builder().build();
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
@@ -88,5 +105,22 @@ public class S3TransferManagerTest {
                                                 .join();
         assertThat(completedDownload.response()).isEqualTo(response);
     }
+
+    @Test
+    public void download_cancel_shouldForwardCancellation() {
+        CompletableFuture<GetObjectResponse> s3CrtFuture = new CompletableFuture<>();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(s3CrtFuture);
+
+        CompletableFuture<CompletedDownload> future = tm.download(DownloadRequest.builder()
+                                                                                 .getObjectRequest(r -> r.bucket("bucket")
+                                                                                                         .key("key"))
+                                                                                 .destination(Paths.get("."))
+                                                                                 .build())
+                                                        .completionFuture();
+        future.cancel(true);
+        assertThat(s3CrtFuture).isCancelled();
+    }
+
 
 }
