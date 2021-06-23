@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront",
+    "contributor": "",
+    "description": "Amazon CloudFront adds support for a new security policy, TLSv1.2_2021."
+}
