@@ -20,7 +20,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.Download;
 
-//TODO: should we flatten it?
 @SdkInternalApi
 public final class DefaultDownload implements Download {
     private final CompletableFuture<CompletedDownload> completionFuture;

@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Request object to download an object from S3 using the Transfer Manager.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DownloadRequest implements TransferRequest, ToCopyableBuilder<DownloadRequest.Builder, DownloadRequest> {
     private final Path destination;
     private final GetObjectRequest getObjectRequest;
@@ -115,14 +117,20 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
          *
          * @param getObjectRequest the getObject request
          * @return a reference to this object so that method calls can be chained together.
+         * @see #getObjectRequest(Consumer)
          */
         Builder getObjectRequest(GetObjectRequest getObjectRequest);
 
         /**
          * The {@link GetObjectRequest} request that should be used for the download
          *
+         * <p>
+         * This is a convenience method that creates an instance of the {@link GetObjectRequest} builder avoiding the
+         * need to create one manually via {@link GetObjectRequest#builder()}.
+         *
          * @param getObjectRequestBuilder the getObject request
          * @return a reference to this object so that method calls can be chained together.
+         * @see #getObjectRequest(GetObjectRequest)
          */
         default Builder getObjectRequest(Consumer<GetObjectRequest.Builder> getObjectRequestBuilder) {
             GetObjectRequest request = GetObjectRequest.builder()
@@ -131,7 +139,6 @@ public final class DownloadRequest implements TransferRequest, ToCopyableBuilder
             getObjectRequest(request);
             return this;
         }
-
 
         /**
          * @return The built request.

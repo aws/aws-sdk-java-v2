@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3;
 
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -23,26 +24,41 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 /**
  * The S3 Transfer Manager is a library that allows users to easily and
  * optimally upload and downloads to and from S3.
- * <p>
- * The list of features includes:
- * <ul>
- * <li>Parallel uploads and downloads</li>
- * </ul>
- * <p>
+ *
  * <b>Usage Example:</b>
  *
  * <pre>
  * {@code
  * // Create using all default configuration values
- * S3TransferManager tm = S3TranferManager.create();
+ * S3TransferManager transferManager = S3TransferManager.create();
  *
- * // TODO: update javadocs once we have more configuration
- * S3TransferManager tm = S3TransferManager.builder()
- *         .build();
+ * // If you wish to configure settings, we recommend using the builder instead:
+ * S3TransferManager transferManager =
+ *                  S3TransferManager.builder()
+ *                                   .s3ClientConfiguration(b -> b.credentialsProvider(credentialProvider)
+ *                                   .region(Region.US_WEST_2)
+ *                                   .targetThroughputInGbps(20.0)
+ *                                   .minimumPartSizeInBytes(10 * MB))
+ *                                   .build();
+ *
+ * // Download an S3 object to a file
+ * Download download =
+ *     transferManager.download(b -> b.destination(Paths.get("myFile.txt"))
+ *                                    .getObjectRequest(r -> r.bucket("bucket")
+ *                                                            .key("key")));
+ * download.completionFuture().join();
+ *
+ * // Upload a file to S3
+ * Upload upload = transferManager.upload(b -> b.source(Paths.get("myFile.txt"))
+ *                                              .putObjectRequest(r -> r.bucket("bucket")
+ *                                                                      .key("key")));
+ *
+ * upload.completionFuture().join();
  * }
  * </pre>
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface S3TransferManager extends SdkAutoCloseable {
     /**
      * Download an object identified by the bucket and key from S3 to the given
@@ -52,35 +68,46 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <pre>
      * {@code
      * // Initiate the transfer
-     * Download myDownload = tm.download(DownloadRequest.builder()
-     *                                                  .bucket("mybucket")
-     *                                                  .key("mykey")
-     *                                                  .destination(Path.get("myFile.txt"))
-     *                                                  .build());
+     * Download download =
+     *     transferManager.download(DownloadRequest.builder()
+     *                                             .destination(Paths.get("myFile.txt"))
+     *                                             .getObjectRequest(GetObjectRequest.builder()
+     *                                                                               .bucket("bucket")
+     *                                                                               .key("key")
+     *                                                                               .build())
+     *                                             .build());
      * // Wait for the transfer to complete
-     * myDownload.completionFuture().join();
+     * download.completionFuture().join();
      * }
      * </pre>
+     * @see #download(Consumer)
      */
     default Download download(DownloadRequest downloadRequest) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Download an object in S3 to the given file.
+     * Download an object identified by the bucket and key from S3 to the given
+     * file.
+     *
+     * <p>
+     * This is a convenience method that creates an instance of the {@link DownloadRequest} builder avoiding the
+     * need to create one manually via {@link DownloadRequest#builder()}.
      *
      * <p>
      * <b>Usage Example:</b>
      * <pre>
      * {@code
      * // Initiate the transfer
-     * Download myDownload = tm.download(b -> b.bucket("mybucket")
-     *                                         .key("mykey")
-     *                                         .destination(Paths.get("myFile.txt")));
+     * Download download =
+     *     transferManager.download(b -> b.destination(Paths.get("myFile.txt"))
+     *                                    .getObjectRequest(r -> r.bucket("bucket")
+     *                                                            .key("key")));
      * // Wait for the transfer to complete
-     * myDownload.completionFuture().join();
+     * download.completionFuture().join();
      * }
      * </pre>
+     * @see #download(DownloadRequest)
      */
     default Download download(Consumer<DownloadRequest.Builder> request) {
         return download(DownloadRequest.builder().applyMutation(request).build());
@@ -92,10 +119,16 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <b>Usage Example:</b>
      * <pre>
      * {@code
-     * Upload myUpload = tm.upload(UploadRequest.bucket(myBucket)
-     *                                          .key(myKey)
-     *                                          .source(Paths.get("myFile.txt")));
-     * myUpload.completionFuture().join();
+     * Upload upload =
+     *     transferManager.upload(UploadRequest.builder()
+     *                                        .source(Paths.get("myFile.txt"))
+     *                                        .putObjectRequest(PutObjectRequest.builder()
+     *                                                                          .bucket("bucket")
+     *                                                                          .key("key")
+     *                                                                          .build())
+     *                                        .build());
+     * // Wait for the transfer to complete
+     * upload.completionFuture().join();
      * }
      * </pre>
      */
@@ -105,14 +138,21 @@ public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
      * Upload a file to S3.
+     *
+     * <p>
+     * This is a convenience method that creates an instance of the {@link UploadRequest} builder avoiding the
+     * need to create one manually via {@link UploadRequest#builder()}.
+     *
      * <p>
      * <b>Usage Example:</b>
      * <pre>
      * {@code
-     * Upload myUpload = tm.upload(b -> b.bucket(myBucket)
-     *                                   .key(myKey)
-     *                                   .source(Paths.get("myFile.txt")));
-     * myUpload.completionFuture().join();
+     * Upload upload =
+     *       transferManager.upload(b -> b.putObjectRequest(req -> req.bucket("bucket")
+     *                                                                .key("key"))
+     *                                    .source(Paths.get("myFile.txt")));
+     * // Wait for the transfer to complete
+     * upload.completionFuture().join();
      * }
      * </pre>
      */
@@ -127,17 +167,43 @@ public interface S3TransferManager extends SdkAutoCloseable {
         return builder().build();
     }
 
+    /**
+     * Creates a default builder for {@link S3TransferManager}.
+     */
     static S3TransferManager.Builder builder() {
         return DefaultS3TransferManager.builder();
     }
 
+    /**
+     * The builder definition for a {@link S3TransferManager}.
+     */
     interface Builder {
 
+        /**
+         * Configuration values for the low level S3 client. The {@link S3TransferManager} already provides sensible
+         * defaults. All values are optional.
+         *
+         * @param configuration the configuration to use
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #s3ClientConfiguration(Consumer)
+         */
         Builder s3ClientConfiguration(S3ClientConfiguration configuration);
 
-        default Builder s3ClientConfiguration(Consumer<S3ClientConfiguration.Builder> builderConsumer) {
+        /**
+         * Configuration values for the low level S3 client. The {@link S3TransferManager} already provides sensible
+         * defaults. All values are optional.
+         *
+         * <p>
+         * This is a convenience method that creates an instance of the {@link S3ClientConfiguration} builder avoiding the
+         * need to create one manually via {@link S3ClientConfiguration#builder()}.
+         *
+         * @param configuration the configuration to use
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #s3ClientConfiguration(S3ClientConfiguration)
+         */
+        default Builder s3ClientConfiguration(Consumer<S3ClientConfiguration.Builder> configuration) {
             S3ClientConfiguration.Builder builder = S3ClientConfiguration.builder();
-            builderConsumer.accept(builder);
+            configuration.accept(builder);
             s3ClientConfiguration(builder.build());
             return this;
         }

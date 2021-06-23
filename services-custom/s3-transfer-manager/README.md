@@ -26,7 +26,7 @@ You can instantiate the transfer manager easily using the default settings
 
 ```java
 
-S3TranfserManager tranferManager = S3TransferManager.create();
+S3TransferManager transferManager = S3TransferManager.create();
     
 ```
 

@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Base class for all transfer requests.
+ * Interface for all transfer requests.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface TransferRequest {
 
     interface Builder<TypeToBuildT, BuilderT extends Builder> {
