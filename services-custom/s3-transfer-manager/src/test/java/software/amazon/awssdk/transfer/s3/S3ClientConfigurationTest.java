@@ -23,6 +23,7 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.regions.Region;
 
 public class S3ClientConfigurationTest {
@@ -119,6 +120,8 @@ public class S3ClientConfigurationTest {
                                                              .credentialsProvider(AnonymousCredentialsProvider.create())
                                                              .maxConcurrency(50)
                                                              .targetThroughputInGbps(1.0)
+                                                             .asyncConfiguration(c -> c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+                                                                                                       Runnable::run))
                                                              .build();
 
         assertThat(configuration1).isEqualTo(configuration2);

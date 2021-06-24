@@ -297,6 +297,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Finalize which async executor service will be used for the created client. The default async executor
      * service has at least 8 core threads and can scale up to at least 64 threads when needed depending
      * on the number of processors available.
+     *
+     * This uses the same default executor in S3NativeClientConfiguration#resolveAsyncFutureCompletionExecutor.
+     * Make sure you update that method if you update the defaults here.
      */
     private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
         Supplier<Executor> defaultExecutor = () -> {

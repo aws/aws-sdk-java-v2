@@ -24,17 +24,20 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
+import software.amazon.awssdk.transfer.s3.internal.S3CrtAsyncClient;
 import software.amazon.awssdk.utils.Md5Utils;
 
 public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
@@ -42,6 +45,7 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String KEY = "key";
     private static S3CrtAsyncClient crtClient;
     private static File file;
+    private static ExecutorService executorService;
 
     @BeforeClass
     public static void setup() throws IOException {
@@ -55,11 +59,13 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
                                                            .bucket(BUCKET)
                                                            .key(KEY)
                                                            .build(), file.toPath());
+        executorService = Executors.newFixedThreadPool(2);
     }
 
     @AfterClass
     public static void cleanup() {
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
+        executorService.shutdown();
     }
 
     @Test
@@ -84,6 +90,24 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
         crtClient.getObject(b -> b.bucket(BUCKET).key(KEY),
                             new TestResponseTransformer()).join();
 
+    }
+
+    @Test
+    public void getObject_customExecutors_fileDownloadCorrectly() throws IOException {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+
+        try (S3CrtAsyncClient s3Client =
+                 S3CrtAsyncClient.builder()
+                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                 .region(DEFAULT_REGION)
+                                 .asyncConfiguration(b -> b.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+                                                                           executorService))
+                                 .build()) {
+            GetObjectResponse response =
+                s3Client.getObject(b -> b.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toFile(path)).join();
+
+            assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
+        }
     }
 
     private static final class TestResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, Void> {

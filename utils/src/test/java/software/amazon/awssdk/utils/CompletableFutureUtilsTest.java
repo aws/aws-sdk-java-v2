@@ -15,14 +15,30 @@
 
 package software.amazon.awssdk.utils;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
 public class CompletableFutureUtilsTest {
+    private static ExecutorService executors;
+
+    @BeforeClass
+    public static void setup() {
+        executors = Executors.newFixedThreadPool(2);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        executors.shutdown();
+    }
 
     @Test(timeout = 1000)
     public void testForwardException() {
@@ -41,5 +57,29 @@ public class CompletableFutureUtilsTest {
         } catch (Throwable t) {
             assertThat(t.getCause()).isEqualTo(e);
         }
+    }
+
+    @Test(timeout = 1000)
+    public void forwardResultTo_srcCompletesSuccessfully_shouldCompleteDstFuture() {
+        CompletableFuture<String> src = new CompletableFuture<>();
+        CompletableFuture<String> dst = new CompletableFuture<>();
+
+        CompletableFuture<String> returnedFuture = CompletableFutureUtils.forwardResultTo(src, dst, executors);
+        assertThat(returnedFuture).isEqualTo(src);
+
+        src.complete("foobar");
+        assertThat(dst.join()).isEqualTo("foobar");
+    }
+
+    @Test(timeout = 1000)
+    public void forwardResultTo_srcCompletesExceptionally_shouldCompleteDstFuture() {
+        CompletableFuture<String> src = new CompletableFuture<>();
+        CompletableFuture<String> dst = new CompletableFuture<>();
+
+        RuntimeException exception = new RuntimeException("foobar");
+        CompletableFutureUtils.forwardResultTo(src, dst, executors);
+
+        src.completeExceptionally(exception);
+        assertThatThrownBy(dst::join).hasCause(exception);
     }
 }

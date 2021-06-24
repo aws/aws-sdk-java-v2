@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -74,6 +75,29 @@ public final class CompletableFutureUtils {
                 dst.completeExceptionally(e);
             }
         });
+        return src;
+    }
+
+    /**
+     * Completes the {@code dst} future based on the result of the {@code src} future asynchronously on
+     * the provided {@link Executor} and return the {@code src} future.
+     *
+     * @param src The source {@link CompletableFuture}
+     * @param dst The destination where the {@code Throwable} or response will be forwarded to.
+     * @param executor the executor to complete the des future
+     * @return the {@code src} future.
+     */
+    public static <T> CompletableFuture<T> forwardResultTo(CompletableFuture<T> src,
+                                                           CompletableFuture<T> dst,
+                                                           Executor executor) {
+        src.whenCompleteAsync((r, e) -> {
+            if (e != null) {
+                dst.completeExceptionally(e);
+            } else {
+                dst.complete(r);
+            }
+        }, executor);
+
         return src;
     }
 }
