@@ -515,8 +515,8 @@
                             <exclude>software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory</exclude>
                             <exclude>software.amazon.awssdk.services.macie2.model.*</exclude>
 
-                            <!-- in-amazon-1 removal -->
-                            <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <!-- codebuild update -->
+                            <exclude>software.amazon.awssdk.services.codebuild.*</exclude>
                         </excludes>
 
                         <excludeModules>
