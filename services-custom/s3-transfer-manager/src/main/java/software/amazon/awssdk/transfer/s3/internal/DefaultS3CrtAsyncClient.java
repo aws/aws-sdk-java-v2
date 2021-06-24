@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -43,7 +44,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                        .targetThroughputInGbps(builder.targetThroughputInGbps())
                                        .partSizeInBytes(builder.minimumPartSizeInBytes())
                                        .maxConcurrency(builder.maxConcurrency)
-                                       .credentialsProvider(builder.credentialsProvider);
+                                       .credentialsProvider(builder.credentialsProvider)
+                                       .asyncConfiguration(builder.asyncConfiguration);
         if (builder.region() != null) {
             configBuilder.signingRegion(builder.region().id());
         }
@@ -80,24 +82,19 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         // Forward the cancellation to crtFuture to cancel the request
         CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
 
-        // Forward th exception from the CRT returnFuture to the return future in case
+        // Forward the exception from the CRT future to the return future in case
         // the adapter callback didn't get it
         CompletableFutureUtils.forwardExceptionTo(crtFuture, returnFuture);
 
-        adapterFuture.whenComplete((r, t) -> {
-            if (t == null) {
-                returnFuture.complete(r);
-            } else {
-                returnFuture.completeExceptionally(t);
-            }
-            // TODO: Offload to returnFuture completion thread
-        });
+        CompletableFutureUtils.forwardResultTo(adapterFuture, returnFuture, configuration.futureCompletionExecutor());
 
         return CompletableFutureUtils.forwardExceptionTo(returnFuture, adapterFuture);
     }
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
+        CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
+
         com.amazonaws.s3.model.PutObjectRequest adaptedRequest = S3CrtPojoConversion.toCrtPutObjectRequest(putObjectRequest);
 
         if (adaptedRequest.contentLength() == null && requestBody.contentLength().isPresent()) {
@@ -109,6 +106,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         RequestDataSupplierAdapter requestDataSupplier = new RequestDataSupplierAdapter(requestBody);
         CompletableFuture<PutObjectOutput> crtFuture = s3NativeClient.putObject(adaptedRequest,
                                                                                 requestDataSupplier);
+        // Forward the cancellation to crtFuture to cancel the request
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
 
         CompletableFuture<SdkHttpResponse> httpResponseFuture = requestDataSupplier.sdkHttpResponseFuture();
         CompletableFuture<PutObjectResponse> executeFuture =
@@ -116,7 +115,9 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
             crtFuture.thenApply(putObjectOutput -> S3CrtPojoConversion.fromCrtPutObjectOutput(
                 putObjectOutput, httpResponseFuture.getNow(SdkHttpResponse.builder().build())));
 
-        return CompletableFutureUtils.forwardExceptionTo(executeFuture, crtFuture);
+        CompletableFutureUtils.forwardResultTo(executeFuture, returnFuture, configuration.futureCompletionExecutor());
+
+        return CompletableFutureUtils.forwardExceptionTo(returnFuture, executeFuture);
     }
 
     @Override
@@ -136,6 +137,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
+        private ClientAsyncConfiguration asyncConfiguration;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -184,6 +186,12 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         @Override
         public S3CrtAsyncClientBuilder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder asyncConfiguration(ClientAsyncConfiguration configuration) {
+            this.asyncConfiguration = configuration;
             return this;
         }
 

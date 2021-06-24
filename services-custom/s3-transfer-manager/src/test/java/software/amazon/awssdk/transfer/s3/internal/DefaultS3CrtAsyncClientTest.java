@@ -29,7 +29,11 @@ import com.amazonaws.s3.model.GetObjectRequest;
 import com.amazonaws.s3.model.PutObjectOutput;
 import com.amazonaws.s3.model.PutObjectRequest;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -50,10 +54,23 @@ public class DefaultS3CrtAsyncClientTest {
 
     private S3CrtAsyncClient s3CrtAsyncClient;
 
+    private static ExecutorService executor;
+
+    @BeforeClass
+    public static void setUp() {
+        executor = Executors.newSingleThreadExecutor();
+    }
+
     @Before
     public void methodSetup() {
         s3CrtAsyncClient = new DefaultS3CrtAsyncClient(mockConfiguration,
                                                        mockS3NativeClient);
+        when(mockConfiguration.futureCompletionExecutor()).thenReturn(executor);
+    }
+
+    @AfterClass
+    public static void cleanUp() {
+        executor.shutdown();
     }
 
     @Test

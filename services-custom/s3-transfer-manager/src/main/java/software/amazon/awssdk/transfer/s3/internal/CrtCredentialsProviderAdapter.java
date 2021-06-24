@@ -32,13 +32,11 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @SdkInternalApi
 public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
     private final AwsCredentialsProvider credentialsProvider;
+    private final CredentialsProvider crtCredentials;
 
     public CrtCredentialsProviderAdapter(AwsCredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
-    }
-
-    public CredentialsProvider crtCredentials() {
-        return new DelegateCredentialsProvider.DelegateCredentialsProviderBuilder()
+        this.crtCredentials = new DelegateCredentialsProvider.DelegateCredentialsProviderBuilder()
             .withHandler(() -> {
                 AwsCredentials sdkCredentials = credentialsProvider.resolveCredentials();
                 byte[] accessKey = sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8);
@@ -57,10 +55,15 @@ public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
             }).build();
     }
 
+    public CredentialsProvider crtCredentials() {
+        return crtCredentials;
+    }
+
     @Override
     public void close() {
         if (credentialsProvider instanceof SdkAutoCloseable) {
             ((SdkAutoCloseable) credentialsProvider).close();
         }
+        crtCredentials.close();
     }
 }
