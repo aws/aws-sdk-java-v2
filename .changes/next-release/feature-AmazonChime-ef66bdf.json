@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "contributor": "",
+    "description": "Adds EventIngestionUrl field to MediaPlacement"
+}
