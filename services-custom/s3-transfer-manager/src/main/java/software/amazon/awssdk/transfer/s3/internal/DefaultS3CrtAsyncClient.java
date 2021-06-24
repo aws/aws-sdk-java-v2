@@ -69,25 +69,31 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
 
-        CompletableFuture<ReturnT> future = new CompletableFuture<>();
+        CompletableFuture<ReturnT> returnFuture = new CompletableFuture<>();
         com.amazonaws.s3.model.GetObjectRequest crtGetObjectRequest = S3CrtPojoConversion.toCrtGetObjectRequest(getObjectRequest);
         CrtResponseDataConsumerAdapter<ReturnT> adapter = new CrtResponseDataConsumerAdapter<>(asyncResponseTransformer);
 
         CompletableFuture<ReturnT> adapterFuture = adapter.transformerFuture();
 
         CompletableFuture<GetObjectOutput> crtFuture = s3NativeClient.getObject(crtGetObjectRequest, adapter);
-        CompletableFutureUtils.forwardExceptionTo(future, crtFuture);
+
+        // Forward the cancellation to crtFuture to cancel the request
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
+
+        // Forward th exception from the CRT returnFuture to the return future in case
+        // the adapter callback didn't get it
+        CompletableFutureUtils.forwardExceptionTo(crtFuture, returnFuture);
 
         adapterFuture.whenComplete((r, t) -> {
             if (t == null) {
-                future.complete(r);
+                returnFuture.complete(r);
             } else {
-                future.completeExceptionally(t);
+                returnFuture.completeExceptionally(t);
             }
-            // TODO: Offload to future completion thread
+            // TODO: Offload to returnFuture completion thread
         });
 
-        return CompletableFutureUtils.forwardExceptionTo(future, adapterFuture);
+        return CompletableFutureUtils.forwardExceptionTo(returnFuture, adapterFuture);
     }
 
     @Override
@@ -101,16 +107,16 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         }
 
         RequestDataSupplierAdapter requestDataSupplier = new RequestDataSupplierAdapter(requestBody);
-        CompletableFuture<PutObjectOutput> putObjectOutputCompletableFuture = s3NativeClient.putObject(adaptedRequest,
-                                                                                                       requestDataSupplier);
+        CompletableFuture<PutObjectOutput> crtFuture = s3NativeClient.putObject(adaptedRequest,
+                                                                                requestDataSupplier);
 
         CompletableFuture<SdkHttpResponse> httpResponseFuture = requestDataSupplier.sdkHttpResponseFuture();
         CompletableFuture<PutObjectResponse> executeFuture =
-            httpResponseFuture.thenCombine(putObjectOutputCompletableFuture,
-                                           (header, putObjectOutput) -> S3CrtPojoConversion.fromCrtPutObjectOutput(
-                                               putObjectOutput, header));
+            // If the header is not available, passing empty SDK HTTP response
+            crtFuture.thenApply(putObjectOutput -> S3CrtPojoConversion.fromCrtPutObjectOutput(
+                putObjectOutput, httpResponseFuture.getNow(SdkHttpResponse.builder().build())));
 
-        return CompletableFutureUtils.forwardExceptionTo(executeFuture, putObjectOutputCompletableFuture);
+        return CompletableFutureUtils.forwardExceptionTo(executeFuture, crtFuture);
     }
 
     @Override

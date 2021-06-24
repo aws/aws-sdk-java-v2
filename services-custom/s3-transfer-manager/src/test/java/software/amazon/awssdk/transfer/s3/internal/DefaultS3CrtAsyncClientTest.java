@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,6 +84,53 @@ public class DefaultS3CrtAsyncClientTest {
 
         future.cancel(true);
         assertThat(crtFuture).isCancelled();
+    }
+
+    @Test
+    public void putObject_crtFutureCompletedExceptionally_shouldFail() {
+        RuntimeException runtimeException = new RuntimeException("test");
+        CompletableFuture<PutObjectOutput> crtFuture = new CompletableFuture<>();
+        crtFuture.completeExceptionally(runtimeException);
+        when(mockS3NativeClient.putObject(any(PutObjectRequest.class),
+                                          any(RequestDataSupplier.class)))
+            .thenReturn(crtFuture);
+
+        CompletableFuture<PutObjectResponse> future =
+            s3CrtAsyncClient.putObject(b -> b.bucket("bucket").key("key"),
+                                       AsyncRequestBody.empty());
+
+        assertThatThrownBy(() -> future.join()).hasCause(runtimeException);
+    }
+
+    @Test
+    public void getObject_crtFutureCompletedExceptionally_shouldFail() {
+        RuntimeException runtimeException = new RuntimeException("test");
+        CompletableFuture<GetObjectOutput> crtFuture = new CompletableFuture<>();
+        crtFuture.completeExceptionally(runtimeException);
+        when(mockS3NativeClient.getObject(any(GetObjectRequest.class),
+                                          any(ResponseDataConsumer.class)))
+            .thenReturn(crtFuture);
+
+        CompletableFuture<ResponseBytes<GetObjectResponse>> future =
+            s3CrtAsyncClient.getObject(b -> b.bucket("bucket").key("key"),
+                                       AsyncResponseTransformer.toBytes());
+
+        assertThatThrownBy(() -> future.join()).hasCause(runtimeException);
+    }
+
+    @Test
+    public void putObject_crtFutureCompletedSuccessfully_shouldSucceed() {
+        CompletableFuture<PutObjectOutput> crtFuture = new CompletableFuture<>();
+        crtFuture.complete(PutObjectOutput.builder().build());
+        when(mockS3NativeClient.putObject(any(PutObjectRequest.class),
+                                          any(RequestDataSupplier.class)))
+            .thenReturn(crtFuture);
+
+        CompletableFuture<PutObjectResponse> future =
+            s3CrtAsyncClient.putObject(b -> b.bucket("bucket").key("key"),
+                                       AsyncRequestBody.empty());
+
+        assertThat(future.join().sdkHttpResponse().statusText()).isEmpty();
     }
 
     @Test
