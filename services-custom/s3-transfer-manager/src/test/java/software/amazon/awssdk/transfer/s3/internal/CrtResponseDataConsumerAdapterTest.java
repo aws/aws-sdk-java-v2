@@ -28,7 +28,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -48,10 +47,12 @@ public class CrtResponseDataConsumerAdapterTest {
     }
 
     @Test
-    public void onResponse_noSdkHttpResponse_shouldCallExceptionOccurred() {
+    public void onResponse_noSdkHttpResponse_shouldCreateEmptySdkHttpResponse() {
         adapter.onResponse(GetObjectOutput.builder().build());
-        ArgumentCaptor<SdkClientException> captor = ArgumentCaptor.forClass(SdkClientException.class);
-        verify(transformer).exceptionOccurred(captor.capture());
+        ArgumentCaptor<GetObjectResponse> captor = ArgumentCaptor.forClass(GetObjectResponse.class);
+        verify(transformer).onResponse(captor.capture());
+        assertThat(captor.getValue().responseMetadata().requestId()).isEqualTo("UNKNOWN");
+        assertThat(captor.getValue().sdkHttpResponse()).isNotNull();
     }
 
     @Test

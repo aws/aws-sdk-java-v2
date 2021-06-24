@@ -21,9 +21,9 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -65,16 +65,12 @@ public class CrtResponseDataConsumerAdapter<ReturnT> implements ResponseDataCons
 
     @Override
     public void onResponse(GetObjectOutput output) {
-
-        if (!headerHandler.sdkHttpResponseFuture().isDone()) {
-            // Should never happen, but just in case
-            transformer.exceptionOccurred(SdkClientException.create("Response headers are not ready yet; onResponseHeaders has "
-                                                                    + "not been invoked"));
-            return;
-        }
+        // Passing empty SdkHttpResponse if it's not available
+        SdkHttpResponse sdkHttpResponse = headerHandler.sdkHttpResponseFuture()
+                                                       .getNow(SdkHttpResponse.builder().build());
 
         GetObjectResponse response = S3CrtPojoConversion.fromCrtGetObjectOutput(output,
-                                                                                headerHandler.sdkHttpResponseFuture().join());
+                                                                                sdkHttpResponse);
         transformer.onResponse(response);
         transformer.onStream(publisher);
     }
