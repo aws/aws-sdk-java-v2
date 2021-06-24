@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud9",
+    "contributor": "",
+    "description": "Minor update to AWS Cloud9 documentation to allow correct parsing of outputted text"
+}
