@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Accelerator (DAX)",
+    "contributor": "",
+    "description": "Add support for encryption in transit to DAX clusters."
+}
