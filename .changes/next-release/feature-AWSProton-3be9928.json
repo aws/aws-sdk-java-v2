@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Proton",
+    "contributor": "",
+    "description": "Added waiters for template registration, service operations, and environment deployments."
+}
