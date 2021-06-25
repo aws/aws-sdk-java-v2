@@ -1,3 +1,20 @@
+# __2.16.91__ __2021-06-25__
+## __AWS Proton__
+  - ### Features
+    - Added waiters for template registration, service operations, and environment deployments.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - AWS Snow Family customers can remotely monitor and operate their connected AWS Snowcone devices. AWS Snowball Edge Storage Optimized customers can now import and export their data using NFS.
+
+## __AmplifyBackend__
+  - ### Features
+    - Imports an existing backend authentication resource.
+
 # __2.16.90__ __2021-06-24__
 ## __AWS Cloud9__
   - ### Features
