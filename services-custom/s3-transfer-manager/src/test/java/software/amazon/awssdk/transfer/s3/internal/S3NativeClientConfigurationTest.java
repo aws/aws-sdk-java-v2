@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
 import java.util.concurrent.ExecutorService;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
+import software.amazon.awssdk.crt.CrtResource;
 
 @RunWith(MockitoJUnitRunner.class)
 public class S3NativeClientConfigurationTest {
@@ -38,7 +40,10 @@ public class S3NativeClientConfigurationTest {
         System.setProperty("aws.crt.debugnative", "true");
     }
 
-    // TODO: verify CRT resources are closed appropriately
+    @AfterClass
+    public static void tearDown() {
+        CrtResource.waitForNoResources();
+    }
 
     @Test
     public void defaultConfiguration_close_shouldShutdownDefaultExecutor() {

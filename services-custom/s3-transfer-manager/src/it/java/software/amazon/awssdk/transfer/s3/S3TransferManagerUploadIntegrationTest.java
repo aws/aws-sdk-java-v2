@@ -56,6 +56,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         tm.close();
         Files.delete(testFile.toPath());
         deleteBucketAndAllContents(TEST_BUCKET);
+        S3IntegrationTestBase.cleanUp();
     }
 
     @Test
