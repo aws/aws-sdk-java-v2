@@ -17,6 +17,7 @@ package software.amazon.awssdk.stability.tests.s3;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -42,6 +43,7 @@ public class S3CrtAsyncClientStabilityTest extends S3BaseStabilityTest {
 
     @BeforeAll
     public static void setup() {
+        System.setProperty("aws.crt.debugnative", "true");
         s3ApacheClient.createBucket(b -> b.bucket(BUCKET_NAME));
     }
 
@@ -56,6 +58,7 @@ public class S3CrtAsyncClientStabilityTest extends S3BaseStabilityTest {
         }
         s3CrtAsyncClient.close();
         s3ApacheClient.close();
+        CrtResource.waitForNoResources();
     }
 
     @Override

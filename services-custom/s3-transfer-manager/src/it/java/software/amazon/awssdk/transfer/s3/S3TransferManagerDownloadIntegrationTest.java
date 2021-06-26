@@ -52,6 +52,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
         transferManager.close();
+        S3IntegrationTestBase.cleanUp();
     }
 
     @Test
