@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Sagemaker Neo now supports running compilation jobs using customer's Amazon VPC"
-}
