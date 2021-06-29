@@ -37,6 +37,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     private final S3NativeClient s3NativeClient;
     private final S3NativeClientConfiguration configuration;
+    private final CrtErrorHandler crtErrorHandler;
 
     public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         S3NativeClientConfiguration.Builder configBuilder =
@@ -58,6 +59,7 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                  configuration.partSizeBytes(),
                                                  configuration.targetThroughputInGbps(),
                                                  configuration.maxConcurrency());
+        this.crtErrorHandler = new CrtErrorHandler();
     }
 
     @SdkTestInternalApi
@@ -65,6 +67,8 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                             S3NativeClient nativeClient) {
         this.configuration = configuration;
         this.s3NativeClient = nativeClient;
+        this.crtErrorHandler = new CrtErrorHandler();
+
     }
 
     @Override
@@ -82,9 +86,20 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         // Forward the cancellation to crtFuture to cancel the request
         CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
 
+
         // Forward the exception from the CRT future to the return future in case
         // the adapter callback didn't get it
-        CompletableFutureUtils.forwardExceptionTo(crtFuture, returnFuture);
+        CompletableFutureUtils.forwardTransformedExceptionTo(crtFuture, returnFuture,
+                t -> t instanceof Exception ? crtErrorHandler.transformException((Exception) t) :  t);
+
+        returnFuture.whenComplete((r, t) -> {
+            if (t == null) {
+                returnFuture.complete(r);
+            } else {
+                returnFuture.completeExceptionally(t instanceof Exception
+                        ? crtErrorHandler.transformException((Exception) t) : t);
+            }
+        });
 
         CompletableFutureUtils.forwardResultTo(adapterFuture, returnFuture, configuration.futureCompletionExecutor());
 
@@ -114,6 +129,15 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
             // If the header is not available, passing empty SDK HTTP response
             crtFuture.thenApply(putObjectOutput -> S3CrtPojoConversion.fromCrtPutObjectOutput(
                 putObjectOutput, httpResponseFuture.getNow(SdkHttpResponse.builder().build())));
+
+        executeFuture.whenComplete((r, t) -> {
+            if (t == null) {
+                returnFuture.complete(r);
+            } else {
+                returnFuture.completeExceptionally(t instanceof Exception
+                        ? crtErrorHandler.transformException((Exception) t) : t);
+            }
+        });
 
         CompletableFutureUtils.forwardResultTo(executeFuture, returnFuture, configuration.futureCompletionExecutor());
 
