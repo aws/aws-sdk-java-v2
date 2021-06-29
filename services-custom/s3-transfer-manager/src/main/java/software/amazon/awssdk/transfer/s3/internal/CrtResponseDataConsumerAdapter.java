@@ -39,7 +39,6 @@ public class CrtResponseDataConsumerAdapter<ReturnT> implements ResponseDataCons
     private final CompletableFuture<ReturnT> future;
     private final S3CrtDataPublisher publisher;
     private final ResponseHeadersHandler headerHandler;
-    private final CrtErrorHandler errorHandler;
 
     public CrtResponseDataConsumerAdapter(AsyncResponseTransformer<GetObjectResponse, ReturnT> transformer) {
         this(transformer, new S3CrtDataPublisher(), new ResponseHeadersHandler());
@@ -53,7 +52,6 @@ public class CrtResponseDataConsumerAdapter<ReturnT> implements ResponseDataCons
         this.future = transformer.prepare();
         this.publisher = s3CrtDataPublisher;
         this.headerHandler = headersHandler;
-        this.errorHandler = new CrtErrorHandler();
     }
 
     public CompletableFuture<ReturnT> transformerFuture() {
@@ -89,9 +87,8 @@ public class CrtResponseDataConsumerAdapter<ReturnT> implements ResponseDataCons
     @Override
     public void onException(CrtRuntimeException e) {
         log.debug(() -> "An error occurred ", e);
-        Exception transformException = errorHandler.transformException(e);
-        transformer.exceptionOccurred(transformException);
-        publisher.notifyError(transformException);
+        transformer.exceptionOccurred(e);
+        publisher.notifyError(e);
     }
 
     @Override

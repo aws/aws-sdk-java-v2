@@ -41,7 +41,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
@@ -117,8 +116,7 @@ public class DefaultS3CrtAsyncClientTest {
             s3CrtAsyncClient.putObject(b -> b.bucket("bucket").key("key"),
                                        AsyncRequestBody.empty());
 
-        assertThatThrownBy(() -> future.join())
-                .hasCause(SdkClientException.create("java.lang.RuntimeException: test", runtimeException));
+        assertThatThrownBy(() -> future.join()).hasCause(runtimeException);
     }
 
     @Test
