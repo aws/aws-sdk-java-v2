@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -73,6 +74,27 @@ public final class CompletableFutureUtils {
         src.whenComplete((r, e) -> {
             if (e != null) {
                 dst.completeExceptionally(e);
+            }
+        });
+        return src;
+    }
+
+
+    /**
+     * Forward the {@code Throwable} that can be transformed as per the transformationFunction
+     * from {@code src} to {@code dst}.
+     * @param src The source of the {@code Throwable}.
+     * @param dst The destination where the {@code Throwable} will be forwarded to
+     * @param transformationFunction Transformation function taht will be applied on to the forwarded exception.
+     * @return
+     */
+    public static <T> CompletableFuture<T> forwardTransformedExceptionTo(CompletableFuture<T> src,
+                                                                         CompletableFuture<?> dst,
+                                                                         Function<Throwable, Throwable>
+                                                                                 transformationFunction) {
+        src.whenComplete((r, e) -> {
+            if (e != null) {
+                dst.completeExceptionally(transformationFunction.apply(e));
             }
         });
         return src;
