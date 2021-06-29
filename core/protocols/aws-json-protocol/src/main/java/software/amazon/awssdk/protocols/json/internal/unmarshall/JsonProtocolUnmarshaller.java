@@ -28,6 +28,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.protocols.core.StringToValueConverter;
 import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
 import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
@@ -92,7 +94,8 @@ public final class JsonProtocolUnmarshaller {
             .payloadUnmarshaller(MarshallingType.SDK_POJO, JsonProtocolUnmarshaller::unmarshallStructured)
             .payloadUnmarshaller(MarshallingType.LIST, JsonProtocolUnmarshaller::unmarshallList)
             .payloadUnmarshaller(MarshallingType.MAP, JsonProtocolUnmarshaller::unmarshallMap)
-            .build();
+            .payloadUnmarshaller(MarshallingType.DOCUMENT, JsonProtocolUnmarshaller::unmarshallDocument)
+                .build();
     }
 
     private static SdkBytes unmarshallSdkBytes(JsonUnmarshallerContext context,
@@ -116,6 +119,16 @@ public final class JsonProtocolUnmarshaller {
         } else {
             return unmarshallStructured(f.constructor().get(), jsonContent, context);
         }
+    }
+
+    private static Document unmarshallDocument(JsonUnmarshallerContext context,
+                                               SdkJsonNode jsonContent,
+                                               SdkField<Document> field) {
+        return jsonContent != null && !jsonContent.isNull() ? getDocumentFromJsonContent(jsonContent) : null;
+    }
+
+    private static Document getDocumentFromJsonContent(SdkJsonNode jsonContent) {
+        return new DocumentUnmarshaller().visit(jsonContent);
     }
 
     private static Map<String, ?> unmarshallMap(JsonUnmarshallerContext context,
