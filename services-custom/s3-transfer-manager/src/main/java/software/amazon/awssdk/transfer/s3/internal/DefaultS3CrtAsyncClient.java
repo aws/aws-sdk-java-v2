@@ -37,7 +37,6 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
     private final S3NativeClient s3NativeClient;
     private final S3NativeClientConfiguration configuration;
-    private final CrtErrorHandler crtErrorHandler;
 
     public DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         S3NativeClientConfiguration.Builder configBuilder =
@@ -59,7 +58,6 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                                                  configuration.partSizeBytes(),
                                                  configuration.targetThroughputInGbps(),
                                                  configuration.maxConcurrency());
-        crtErrorHandler = new CrtErrorHandler();
     }
 
     @SdkTestInternalApi
@@ -67,7 +65,6 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
                             S3NativeClient nativeClient) {
         this.configuration = configuration;
         this.s3NativeClient = nativeClient;
-        crtErrorHandler = new CrtErrorHandler();
     }
 
     @Override
@@ -99,7 +96,6 @@ public final class DefaultS3CrtAsyncClient implements S3CrtAsyncClient {
         CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
 
         com.amazonaws.s3.model.PutObjectRequest adaptedRequest = S3CrtPojoConversion.toCrtPutObjectRequest(putObjectRequest);
-        CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
 
         if (adaptedRequest.contentLength() == null && requestBody.contentLength().isPresent()) {
             adaptedRequest = adaptedRequest.toBuilder()
