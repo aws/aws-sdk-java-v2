@@ -229,6 +229,9 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
          * {@link NullPointerException}s for reasons that still require further investigation, but are assumed to be due to a
          * bug in the JDK. Propagating such NPEs is confusing for users and are not subject to being retried on by the default 
          * retry policy configuration, so instead we bias towards propagating these as {@link IOException}s.
+         * <p>
+         * TODO: Determine precise root cause of intermittent NPEs, submit JDK bug report if applicable, and consider applying
+         * this behavior only on unpatched JVM runtime versions.
          */
         private static int getResponseCodeSafely(HttpURLConnection connection) throws IOException {
             Validate.paramNotNull(connection, "connection");
