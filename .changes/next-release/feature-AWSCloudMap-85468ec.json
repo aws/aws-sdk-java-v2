@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Map",
+    "contributor": "",
+    "description": "AWS Cloud Map now allows configuring the TTL of the SOA record for a hosted zone to control the negative caching for new services."
+}
