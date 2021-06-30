@@ -207,7 +207,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             request.contentStreamProvider().ifPresent(provider ->
                     invokeSafely(() -> IoUtils.copy(provider.newStream(), connection.getOutputStream())));
 
-            int responseCode = connection.getResponseCode();
+            int responseCode = getResponseCodeSafely(connection);
             boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);
             InputStream content = !isErrorResponse ? connection.getInputStream() : connection.getErrorStream();
             AbortableInputStream responseBody = content != null ?
@@ -222,6 +222,21 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                                                            .build())
                                       .responseBody(responseBody)
                                       .build();
+        }
+
+        /**
+         * {@link sun.net.www.protocol.http.HttpURLConnection#getInputStream0()} has been observed to intermittently throw
+         * {@link NullPointerException}s for reasons that still require further investigation, but are assumed to be due to a
+         * bug in the JDK. Propagating such NPEs is confusing for users and are not subject to being retried on by the default 
+         * retry policy configuration, so instead we bias towards propagating these as {@link IOException}s.
+         */
+        private static int getResponseCodeSafely(HttpURLConnection connection) throws IOException {
+            Validate.paramNotNull(connection, "connection");
+            try {
+                return connection.getResponseCode();
+            } catch (NullPointerException e) {
+                throw new IOException("Unexpected NullPointerException when trying to read response from HttpURLConnection", e);
+            }
         }
 
         private Map<String, List<String>> extractHeaders(HttpURLConnection response) {

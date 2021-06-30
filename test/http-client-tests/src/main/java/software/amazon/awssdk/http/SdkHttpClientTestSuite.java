@@ -152,7 +152,7 @@ public abstract class SdkHttpClientTestSuite {
         assertThatThrownBy(() -> createSdkHttpClient(httpClientOptions)).isInstanceOf(IllegalArgumentException.class);
     }
 
-    private void testForResponseCode(int returnCode) throws Exception {
+    protected void testForResponseCode(int returnCode) throws Exception {
         testForResponseCode(returnCode, SdkHttpMethod.POST);
     }
 
