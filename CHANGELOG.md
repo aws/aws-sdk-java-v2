@@ -1,3 +1,20 @@
+# __2.16.94__ __2021-07-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding a new reserved field to support future infrastructure improvements for Amazon EC2 Fleet.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker model registry now supports up to 5 containers and associated environment variables.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation updates for Amazon SQS.
+
 # __2.16.93__ __2021-06-30__
 ## __AWS Cloud Map__
   - ### Features

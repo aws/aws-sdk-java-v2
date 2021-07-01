@@ -563,5 +563,143 @@
         }
       }
     }
+  },
+  {
+    "description": "Document Type Unmarshalling Simple Document map",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MyDocument\": {\"greeting\": \"hello\"}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MyDocument": {
+          "greeting": "hello"
+        }
+      }
+    }
+  },
+  {
+    "description": "Document Type with String",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MyDocument\":\"JustAString\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MyDocument": "JustAString"
+      }
+    }
+  },
+  {
+    "description": "Document Type with Array, Maps and Scalar",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MyDocument\":[false,\"One\",2,{\"key\":\"Three\"}]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MyDocument": [ false, "One", 2 , {"key" :  "Three"} ]
+      }
+    }
+  },
+  {
+    "description": "Document Type Unmarshalling Simple Document map",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MyDocument\": {\"greeting\": \"hello\"}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MyDocument": {
+          "greeting": "hello"
+        }
+      }
+    }
+  },
+  {
+    "description": "Document Type with String",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MyDocument\":\"JustAString\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MyDocument": "JustAString"
+      }
+    }
+  },
+  {
+    "description": "Document Type with Array, Maps and Scalar",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MyDocument\":[false,\"One\",2,{\"key\":\"Three\"}]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MyDocument": [
+          false,
+          "One",
+          2,
+          {
+            "key": "Three"
+          }
+        ]
+      }
+    }
+  }
+,
+  {
+    "description": "Document Type with Null",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MyDocument\": null }"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MyDocument": null
+      }
+    }
   }
 ]

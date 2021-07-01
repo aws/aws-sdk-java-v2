@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.document.Document;
 
 /**
  * Used to determine the Java types for the service model.
@@ -68,6 +69,7 @@ public class TypeUtils {
         DATA_TYPE_MAPPINGS.put("biginteger", BigInteger.class.getName());
         DATA_TYPE_MAPPINGS.put("list", List.class.getSimpleName());
         DATA_TYPE_MAPPINGS.put("map", Map.class.getSimpleName());
+        DATA_TYPE_MAPPINGS.put("document", Document.class.getName());
         DATA_TYPE_MAPPINGS.put(TypeKey.LIST_INTERFACE, List.class.getName());
         DATA_TYPE_MAPPINGS.put(TypeKey.LIST_DEFAULT_IMPL, ArrayList.class.getName());
         DATA_TYPE_MAPPINGS.put(TypeKey.MAP_INTERFACE, Map.class.getName());
@@ -85,6 +87,7 @@ public class TypeUtils {
         MARSHALLING_TYPE_MAPPINGS.put("InputStream", "STREAM");
         MARSHALLING_TYPE_MAPPINGS.put("Short", "SHORT");
         MARSHALLING_TYPE_MAPPINGS.put(null, "NULL");
+        MARSHALLING_TYPE_MAPPINGS.put("Document", "DOCUMENT");
     }
 
     private final NamingStrategy namingStrategy;
@@ -132,6 +135,10 @@ public class TypeUtils {
         }
 
         String shapeType = shape.getType();
+
+        if (shape.isDocument()) {
+            return DATA_TYPE_MAPPINGS.get("document");
+        }
 
         if (Structure.getName().equals(shapeType)) {
             return namingStrategy.getShapeClassName(shapeName);

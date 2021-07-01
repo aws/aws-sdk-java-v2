@@ -68,6 +68,8 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     private XmlNamespace xmlNamespace;
 
+    private boolean document;
+
     public ShapeModel() {
     }
 
@@ -581,5 +583,14 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void setXmlNamespace(XmlNamespace xmlNamespace) {
         this.xmlNamespace = xmlNamespace;
+    }
+
+    public boolean isDocument() {
+        return document;
+    }
+
+    public ShapeModel withIsDocument(boolean document) {
+        this.document = document;
+        return this;
     }
 }
