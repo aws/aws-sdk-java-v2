@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Adding a new reserved field to support future infrastructure improvements for Amazon EC2 Fleet."
+}
