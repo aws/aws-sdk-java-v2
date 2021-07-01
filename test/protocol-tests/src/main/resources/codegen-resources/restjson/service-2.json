@@ -207,6 +207,14 @@
       "output": {
         "shape": "EventStreamOutput"
       }
+    },
+    "DocumentInputOperation":{
+      "name":"DocumentInputOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/documentInputOperation"
+      },
+      "input":{"shape":"StructureWithDocumentMember"}
     }
   },
   "shapes":{
@@ -241,7 +249,8 @@
         "ListOfEnums":{"shape":"ListOfEnums"},
         "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
         "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
-        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"}
+        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"},
+        "MyDocument":{"shape":"MyDocument"}
       }
     },
     "BaseType":{
@@ -840,6 +849,16 @@
         }
       },
       "event": true
+    },
+    "MyDocument": {
+      "type": "structure",
+      "document": true
+    },
+    "StructureWithDocumentMember":{
+      "type":"structure",
+      "members":{
+        "DocumentMember":{"shape":"MyDocument"}
+      }
     }
   }
 }

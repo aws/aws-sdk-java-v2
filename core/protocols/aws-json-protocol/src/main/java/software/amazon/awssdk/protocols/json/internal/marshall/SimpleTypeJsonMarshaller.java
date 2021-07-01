@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
@@ -182,6 +183,16 @@ public final class SimpleTypeJsonMarshaller {
         @Override
         protected boolean shouldEmit(Map<String, ?> map) {
             return !map.isEmpty() || !(map instanceof SdkAutoConstructMap);
+        }
+    };
+
+    /**
+     * Marshalls Document type members by visiting the document using DocumentTypeJsonMarshaller.
+     */
+    public static final JsonMarshaller<Document> DOCUMENT = new BaseJsonMarshaller<Document>() {
+        @Override
+        public void marshall(Document document, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+            document.accept(new DocumentTypeJsonMarshaller(jsonGenerator));
         }
     };
 

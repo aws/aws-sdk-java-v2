@@ -33,6 +33,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.protocol.reflect.document.JsonNodeToDocumentConvertor;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -155,6 +156,7 @@ public class ShapeModelReflector {
                 case "Instant":
                 case "SdkBytes":
                 case "InputStream":
+                case "Document":
                     return memberModel.getSetterModel().getVariableSetterType();
                 case "BigDecimal":
                     return "java.math.BigDecimal";
@@ -181,6 +183,10 @@ public class ShapeModelReflector {
         // Streaming members are not in the POJO
         if (currentNode.isNull()) {
             return null;
+        }
+        String simpleType = memberModel.getVariable().getSimpleType();
+        if (simpleType.equals("Document")) {
+            return new JsonNodeToDocumentConvertor().visit(currentNode);
         }
         if (memberModel.isSimple()) {
             return getSimpleMemberValue(currentNode, memberModel);

@@ -514,5 +514,130 @@
         }
       }
     }
+  },
+  {
+    "description": "Document Type with Simple Map",
+    "given": {
+      "input": {
+        "MyDocument": {
+          "greeting" : "hello"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"MyDocument\": {\"greeting\": \"hello\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Document Type with String",
+    "given": {
+      "input": {
+        "MyDocument": "JustAString"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"MyDocument\":\"JustAString\"}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Document Type marshall with Array of Numbers and String",
+    "given": {
+      "input": {
+        "MyDocument": [ false, "One", 2 , {"key" :  "Three"}, null ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"MyDocument\":[false,\"One\",2,{\"key\":\"Three\"}, null]}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Document Type with Simple Map",
+    "given": {
+      "input": {
+        "MyDocument": {
+          "greeting" : "hello"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"MyDocument\": {\"greeting\": \"hello\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Document Type with String",
+    "given": {
+      "input": {
+        "MyDocument": "JustAString"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"MyDocument\":\"JustAString\"}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Document Type with Array of Numbers and String",
+    "given": {
+      "input": {
+        "MyDocument": [
+          false,
+          "One",
+          2,
+          {
+            "key": "Three"
+          }
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"MyDocument\":[false,\"One\",2,{\"key\":\"Three\"}]}"
+        }
+      }
+    }
   }
 ]

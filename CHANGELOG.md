@@ -1,3 +1,62 @@
+# __2.16.94__ __2021-07-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding a new reserved field to support future infrastructure improvements for Amazon EC2 Fleet.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker model registry now supports up to 5 containers and associated environment variables.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation updates for Amazon SQS.
+
+# __2.16.93__ __2021-06-30__
+## __AWS Cloud Map__
+  - ### Features
+    - AWS Cloud Map now allows configuring the TTL of the SOA record for a hosted zone to control the negative caching for new services.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - Add support for Widevine DRM on CMAF packaging configurations. Both Widevine and FairPlay DRMs can now be used simultaneously, with CBCS encryption.
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - Adds support for the output of job results to the AWS Glue Data Catalog.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Fixes the tag key length range to 128 chars, tag value length to 256 chars; Adds support for UTF-8 chars for contact and channel names, Allows users to unset name in UpdateContact API; Adds throttling exception to StopEngagement API, validation exception to APIs UntagResource, ListTagsForResource
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra Enterprise Edition now offered in smaller more granular units to enable customers with smaller workloads. Virtual Storage Capacity units now offer scaling in increments of 100,000 documents (up to 30GB) per unit and Virtual Query Units offer scaling increments of 8,000 queries per day.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling infrastructure improvements and optimizations.
+
+# __2.16.92__ __2021-06-28__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - MediaConvert adds support for HDR10+, ProRes 4444, and XAVC outputs, ADM/DAMF support for Dolby Atmos ingest, and alternative audio and WebVTT caption ingest via HLS inputs. MediaConvert also now supports creating trickplay outputs for Roku devices for HLS, CMAF, and DASH output groups.
+
+## __AWS Glue__
+  - ### Features
+    - Add JSON Support for Glue Schema Registry
+
+## __Amazon Redshift__
+  - ### Features
+    - Added InvalidClusterStateFault to the DisableLogging API, thrown when calling the API on a non available cluster.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Sagemaker Neo now supports running compilation jobs using customer's Amazon VPC
+
 # __2.16.91__ __2021-06-25__
 ## __AWS Proton__
   - ### Features
