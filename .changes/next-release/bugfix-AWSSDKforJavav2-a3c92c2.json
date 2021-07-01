@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "Bennett-Lynch", 
+    "type": "bugfix", 
+    "description": "[UrlConnectionHttpClient] Wrap erroneous NPE from HttpURLConnection as IOException"
+}
