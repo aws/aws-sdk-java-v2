@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "SageMaker model registry now supports up to 5 containers and associated environment variables."
-}
