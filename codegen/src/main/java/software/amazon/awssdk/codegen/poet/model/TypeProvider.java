@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.document.Document;
 
 /**
  * Helper class for resolving Poet {@link TypeName}s for use in model classes.
@@ -94,7 +95,8 @@ public class TypeProvider {
                 BigDecimal.class,
                 SdkBytes.class,
                 InputStream.class,
-                Instant.class)
+                Instant.class,
+                Document.class)
                 .filter(cls -> cls.getName().equals(simpleType) || cls.getSimpleName().equals(simpleType))
                 .map(ClassName::get)
                 .findFirst()

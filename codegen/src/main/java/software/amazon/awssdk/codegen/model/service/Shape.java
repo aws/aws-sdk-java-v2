@@ -70,6 +70,8 @@ public class Shape {
 
     private XmlNamespace xmlNamespace;
 
+    private boolean document;
+
     public boolean isFault() {
         return fault;
     }
@@ -296,6 +298,14 @@ public class Shape {
 
     public void setXmlNamespace(XmlNamespace xmlNamespace) {
         this.xmlNamespace = xmlNamespace;
+    }
+
+    public boolean isDocument() {
+        return document;
+    }
+
+    public void setDocument(boolean document) {
+        this.document = document;
     }
 
 }

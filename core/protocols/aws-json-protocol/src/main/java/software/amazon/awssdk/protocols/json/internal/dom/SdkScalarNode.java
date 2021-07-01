@@ -26,9 +26,16 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public final class SdkScalarNode implements SdkJsonNode {
 
     private final String value;
+    private final SdkScalarNodeType nodeType;
 
-    private SdkScalarNode(String value) {
+
+    private SdkScalarNode(String value, SdkScalarNodeType nodeType) {
         this.value = value;
+        this.nodeType = nodeType;
+    }
+
+    public SdkScalarNodeType getNodeType() {
+        return nodeType;
     }
 
     public String value() {
@@ -57,6 +64,18 @@ public final class SdkScalarNode implements SdkJsonNode {
         return Objects.hashCode(value);
     }
 
+    static SdkScalarNode create(String value) {
+        return new SdkScalarNode(value, SdkScalarNodeType.STRING);
+    }
+
+    static SdkScalarNode createNumber(Number value) {
+        return new SdkScalarNode(String.valueOf(value), SdkScalarNodeType.NUMBER);
+    }
+
+    static SdkScalarNode createBoolean(boolean value) {
+        return new SdkScalarNode(String.valueOf(value), SdkScalarNodeType.BOOLEAN);
+    }
+
     /**
      * This does not preserve the type of the original node. For example a JSON number will be printed out
      * as a JSON string here. As such this should be used for debugging and tests only.
@@ -66,7 +85,4 @@ public final class SdkScalarNode implements SdkJsonNode {
         return "\"" + value + "\"";
     }
 
-    static SdkScalarNode create(String value) {
-        return new SdkScalarNode(value);
-    }
 }
