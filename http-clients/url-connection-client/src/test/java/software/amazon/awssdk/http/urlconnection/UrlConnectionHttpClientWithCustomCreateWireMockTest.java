@@ -14,17 +14,30 @@
  */
 package software.amazon.awssdk.http.urlconnection;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.function.Function;
 import org.junit.Ignore;
+import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 
 public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends SdkHttpClientTestSuite {
+
+    private Function<HttpURLConnection, HttpURLConnection> connectionInterceptor = Function.identity();
+
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
-        return UrlConnectionHttpClient.create((uri) -> invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection()));
+        return UrlConnectionHttpClient.create(uri -> invokeSafely(() -> {
+            HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
+            return connectionInterceptor.apply(connection);
+        }));
     }
 
     @Ignore // Not supported when using custom factory
@@ -40,5 +53,19 @@ public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends S
     @Ignore // Not supported when using custom factory
     @Override
     public void testCustomTlsTrustManagerAndTrustAllFails() {
+    }
+
+    @Test
+    public void testGetResponseCodeNpeIsWrappedAsIo() throws Exception {
+        connectionInterceptor = safeFunction(connection -> {
+            connection = spy(connection);
+            doThrow(new NullPointerException()).when(connection).getResponseCode();
+            return connection;
+        });
+
+        assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK))
+            .isInstanceOf(IOException.class)
+            .hasMessage("Unexpected NullPointerException when trying to read response from HttpURLConnection")
+            .hasCauseInstanceOf(NullPointerException.class);
     }
 }
