@@ -15,43 +15,47 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.utils.Logger;
 
-public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark {
-    private static final Logger logger = Logger.loggerFor("TransferManagerUploadBenchmark");
+public class V1TransferManagerUploadBenchmark extends V1BaseTransferManagerBenchmark {
+    private static final Logger logger = Logger.loggerFor("V1TransferManagerUploadBenchmark");
+    private final File sourceFile;
 
-    public TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
+    V1TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
+        sourceFile = new File(sourcePath);
     }
 
     @Override
     protected void doRunBenchmark() {
-        try {
-            uploadFromFile();
-        } catch (Exception exception) {
-            logger.error(() -> "Request failed: ", exception);
-        }
+        uploadFile();
     }
 
-    private void uploadFromFile() {
+    private void uploadFile() {
         List<Double> metrics = new ArrayList<>();
-        logger.info(() -> "Starting to upload from file");
-        for (int i = 0; i < BenchmarkUtils.BENCHMARK_ITERATIONS; i++) {
-            uploadOnceFromFile(metrics);
+        logger.info(() -> "Starting to upload");
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
+            uploadOnce(metrics);
         }
-        printOutResult(metrics, "Upload from File", new File(path).length());
+        long contentLength = sourceFile.length();
+        printOutResult(metrics, "V1 Upload File", contentLength);
     }
 
-    private void uploadOnceFromFile(List<Double> latencies) {
-        File sourceFile = new File(path);
+    private void uploadOnce(List<Double> latencies) {
         long start = System.currentTimeMillis();
-        s3.putObject(b -> b.bucket(bucket).key(key), AsyncRequestBody.fromFile(sourceFile)).join();
+
+        try {
+            transferManager.upload(bucket, key, sourceFile).waitForCompletion();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn(() -> "Thread interrupted when waiting for completion", e);
+        }
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }

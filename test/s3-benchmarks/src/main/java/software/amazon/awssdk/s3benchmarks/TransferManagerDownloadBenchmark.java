@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.File;
@@ -22,22 +24,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.transfer.s3.Download;
 import software.amazon.awssdk.utils.Logger;
 
 public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("TransferManagerDownloadBenchmark");
+    private final long contentLength;
 
     public TransferManagerDownloadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
+        this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
     }
 
     @Override
     protected void doRunBenchmark() {
         try {
-            downloadToFile(BENCHMARK_ITERATIONS, true);
-            downloadToMemory(BENCHMARK_ITERATIONS, true);
+            downloadToFile();
+            downloadToMemory();
         } catch (Exception exception) {
             logger.error(() -> "Request failed: ", exception);
         }
@@ -45,40 +50,44 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
 
     @Override
     protected void additionalWarmup() {
-        downloadToMemory(3, false);
-        downloadToFile(3, false);
+        concurrentDownloadToMemory();
     }
 
-    private void downloadToMemory(int count, boolean printoutResult) {
+    private void concurrentDownloadToMemory() {
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        logger.info(() -> "Sending " + warmupConcurrency + " concurrent requests");
+        for (int i = 0; i < warmupConcurrency; i++) {
+            futures.add(s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key).build(),
+                                   new NoOpResponseTransformer()));
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
+
+    private void downloadToMemory() {
         List<Double> metrics = new ArrayList<>();
         logger.info(() -> "Starting to download to memory");
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
             downloadOnceToMemory(metrics);
         }
 
-        if (printoutResult) {
-            printOutResult(metrics, "Download to Memory");
-        }
+        printOutResult(metrics, "Download to Memory", contentLength);
     }
 
-    private void downloadToFile(int count, boolean printoutResult) {
+    private void downloadToFile() {
         List<Double> metrics = new ArrayList<>();
         logger.info(() -> "Starting to download to file");
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < BENCHMARK_ITERATIONS; i++) {
             downloadOnceToFile(metrics);
         }
-        if (printoutResult) {
-            printOutResult(metrics, "Download to File");
-        }
+        printOutResult(metrics, "Download to File", contentLength);
     }
 
     private void downloadOnceToFile(List<Double> latencies) {
         Path downloadPath = new File(this.path).toPath();
         long start = System.currentTimeMillis();
-        Download download =
-            transferManager.download(b -> b.getObjectRequest(r -> r.bucket(bucket).key(key))
-                                           .destination(downloadPath));
-        download.completionFuture().join();
+
+        s3.getObject(b -> b.bucket(bucket).key(key), AsyncResponseTransformer.toFile(downloadPath)).join();
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
         runAndLogError(logger.logger(),
