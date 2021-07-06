@@ -1,0 +1,48 @@
+{
+    "version": "2.16.96",
+    "date": "2021-07-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Adds support for specifying parameters to customize components for recipes. Expands configuration of the Amazon EC2 instances that are used for building and testing images, including the ability to specify commands to run on launch, and more control over installation and removal of the SSM agent."
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "Bug fix: Remove not supported EBS encryption type \"NONE\""
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "Sensitive data findings in Amazon Macie now include enhanced location data for JSON and JSON Lines files"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Notification Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon SNS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adding new error code UnsupportedAddonModification for Addons in EKS"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Added support for AmazonMQRabbitMQ as an event source. Added support for VIRTUAL_HOST as SourceAccessType for streams event source mappings."
+        }
+    ]
+}

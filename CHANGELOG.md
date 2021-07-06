@@ -1,3 +1,32 @@
+# __2.16.96__ __2021-07-06__
+## __AWS Lambda__
+  - ### Features
+    - Added support for AmazonMQRabbitMQ as an event source. Added support for VIRTUAL_HOST as SourceAccessType for streams event source mappings.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding new error code UnsupportedAddonModification for Addons in EKS
+
+## __Amazon Macie 2__
+  - ### Features
+    - Sensitive data findings in Amazon Macie now include enhanced location data for JSON and JSON Lines files
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Documentation updates for Amazon SNS.
+
+## __Application Migration Service__
+  - ### Features
+    - Bug fix: Remove not supported EBS encryption type "NONE"
+
+## __EC2 Image Builder__
+  - ### Features
+    - Adds support for specifying parameters to customize components for recipes. Expands configuration of the Amazon EC2 instances that are used for building and testing images, including the ability to specify commands to run on launch, and more control over installation and removal of the SSM agent.
+
 # __2.16.95__ __2021-07-02__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
