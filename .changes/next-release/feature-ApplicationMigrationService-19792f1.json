@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Application Migration Service",
-    "contributor": "",
-    "description": "Bug fix: Remove not supported EBS encryption type \"NONE\""
-}
