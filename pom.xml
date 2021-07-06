@@ -79,6 +79,7 @@
         <module>test/tests-coverage-reporting</module>
         <module>test/stability-tests</module>
         <module>test/sdk-native-image-test</module>
+        <module>test/auth-sts-testing</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>

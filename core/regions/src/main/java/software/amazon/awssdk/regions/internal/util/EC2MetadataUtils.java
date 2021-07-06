@@ -87,6 +87,9 @@ public final class EC2MetadataUtils {
     private static final InstanceProviderTokenEndpointProvider TOKEN_ENDPOINT_PROVIDER =
             new InstanceProviderTokenEndpointProvider();
 
+    private static final Ec2MetadataConfigProvider EC2_METADATA_CONFIG_PROVIDER = Ec2MetadataConfigProvider.builder()
+            .build();
+
     private EC2MetadataUtils() {
     }
 
@@ -409,7 +412,7 @@ public final class EC2MetadataUtils {
         String token = getToken();
 
         try {
-            String hostAddress = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
+            String hostAddress = EC2_METADATA_CONFIG_PROVIDER.getEndpoint();
             String response = doReadResource(new URI(hostAddress + path), token);
             if (slurp) {
                 items = Collections.singletonList(response);
