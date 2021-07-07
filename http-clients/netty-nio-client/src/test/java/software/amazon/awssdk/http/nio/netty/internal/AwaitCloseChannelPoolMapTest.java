@@ -23,26 +23,25 @@ import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.netty.channel.Channel;
+import io.netty.channel.pool.ChannelPool;
+import io.netty.handler.ssl.SslProvider;
+import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.Future;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-
-import io.netty.util.CharsetUtil;
-import org.apache.commons.lang3.CharSetUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import io.netty.channel.Channel;
-import io.netty.channel.pool.ChannelPool;
-import io.netty.handler.ssl.SslProvider;
-import io.netty.util.concurrent.Future;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
@@ -58,8 +57,8 @@ public class AwaitCloseChannelPoolMapTest {
 
     @Rule
     public WireMockRule mockProxy = new WireMockRule(wireMockConfig()
-            .dynamicPort()
-            .networkTrafficListener(recorder));
+                                                         .dynamicPort()
+                                                         .networkTrafficListener(recorder));
 
     @After
     public void methodTeardown() {
@@ -74,20 +73,20 @@ public class AwaitCloseChannelPoolMapTest {
     @Test
     public void close_underlyingPoolsShouldBeClosed() {
         channelPoolMap = AwaitCloseChannelPoolMap.builder()
-                .sdkChannelOptions(new SdkChannelOptions())
-                .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
-                .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
-                .protocol(Protocol.HTTP1_1)
-                .maxStreams(100)
-                .sslProvider(SslProvider.OPENSSL)
-                .build();
+                                                 .sdkChannelOptions(new SdkChannelOptions())
+                                                 .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                                 .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
+                                                 .protocol(Protocol.HTTP1_1)
+                                                 .maxStreams(100)
+                                                 .sslProvider(SslProvider.OPENSSL)
+                                                 .build();
 
         int numberOfChannelPools = 5;
         List<SimpleChannelPoolAwareChannelPool> channelPools = new ArrayList<>();
 
         for (int i = 0; i < numberOfChannelPools; i++) {
             channelPools.add(
-                    channelPoolMap.get(URI.create("http://" + RandomStringUtils.randomAlphabetic(2) + i + "localhost:" + numberOfChannelPools)));
+                channelPoolMap.get(URI.create("http://" + RandomStringUtils.randomAlphabetic(2) + i + "localhost:" + numberOfChannelPools)));
         }
 
         assertThat(channelPoolMap.pools().size()).isEqualTo(numberOfChannelPools);
@@ -130,7 +129,7 @@ public class AwaitCloseChannelPoolMapTest {
                                   new SdkChannelOptions()));
 
         URI targetUri = URI.create("https://some-awesome-service-1234.amazonaws.com:8080");
-        Map<URI, Boolean> shouldProxyCache =  new HashMap<>();
+        Map<URI, Boolean> shouldProxyCache = new HashMap<>();
         shouldProxyCache.put(targetUri, true);
 
         ProxyConfiguration proxyConfiguration =
@@ -159,24 +158,25 @@ public class AwaitCloseChannelPoolMapTest {
     public void usingProxy_usesCachedValueWhenPresent() {
         URI targetUri = URI.create("https://some-awesome-service-1234.amazonaws.com");
 
-        Map<URI, Boolean> shouldProxyCache =  new HashMap<>();
+        Map<URI, Boolean> shouldProxyCache = new HashMap<>();
         shouldProxyCache.put(targetUri, true);
 
         ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder()
-                .host("localhost")
-                .port(mockProxy.port())
-                // Deliberately set the target host as a non-proxy host to see if it will check the cache first
-                .nonProxyHosts(Stream.of(targetUri.getHost()).collect(Collectors.toSet()))
-                .build();
+                                                                  .host("localhost")
+                                                                  .port(mockProxy.port())
+                                                                  // Deliberately set the target host as a non-proxy host to
+                                                                  // see if it will check the cache first
+                                                                  .nonProxyHosts(Stream.of(targetUri.getHost()).collect(Collectors.toSet()))
+                                                                  .build();
 
         AwaitCloseChannelPoolMap.Builder builder = AwaitCloseChannelPoolMap.builder()
-                .proxyConfiguration(proxyConfiguration)
-                .sdkChannelOptions(new SdkChannelOptions())
-                .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
-                .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
-                .protocol(Protocol.HTTP1_1)
-                .maxStreams(100)
-                .sslProvider(SslProvider.OPENSSL);
+                                                                           .proxyConfiguration(proxyConfiguration)
+                                                                           .sdkChannelOptions(new SdkChannelOptions())
+                                                                           .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                                                           .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
+                                                                           .protocol(Protocol.HTTP1_1)
+                                                                           .maxStreams(100)
+                                                                           .sslProvider(SslProvider.OPENSSL);
 
         channelPoolMap = new AwaitCloseChannelPoolMap(builder, shouldProxyCache, null);
 
@@ -191,22 +191,22 @@ public class AwaitCloseChannelPoolMapTest {
     @Test
     public void usingProxy_noSchemeGiven_defaultsToHttp() {
         ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder()
-                .host("localhost")
-                .port(mockProxy.port())
-                .build();
+                                                                  .host("localhost")
+                                                                  .port(mockProxy.port())
+                                                                  .build();
 
         channelPoolMap = AwaitCloseChannelPoolMap.builder()
-                .proxyConfiguration(proxyConfiguration)
-                .sdkChannelOptions(new SdkChannelOptions())
-                .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
-                .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
-                .protocol(Protocol.HTTP1_1)
-                .maxStreams(100)
-                .sslProvider(SslProvider.OPENSSL)
-                .build();
+                                                 .proxyConfiguration(proxyConfiguration)
+                                                 .sdkChannelOptions(new SdkChannelOptions())
+                                                 .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                                 .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
+                                                 .protocol(Protocol.HTTP1_1)
+                                                 .maxStreams(100)
+                                                 .sslProvider(SslProvider.OPENSSL)
+                                                 .build();
 
         SimpleChannelPoolAwareChannelPool simpleChannelPoolAwareChannelPool = channelPoolMap.newPool(
-                URI.create("https://some-awesome-service:443"));
+            URI.create("https://some-awesome-service:443"));
 
         simpleChannelPoolAwareChannelPool.acquire().awaitUninterruptibly();
 
@@ -218,24 +218,24 @@ public class AwaitCloseChannelPoolMapTest {
     @Test
     public void usingProxy_withAuth() {
         ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder()
-                .host("localhost")
-                .port(mockProxy.port())
-                .username("myuser")
-                .password("mypassword")
-                .build();
+                                                                  .host("localhost")
+                                                                  .port(mockProxy.port())
+                                                                  .username("myuser")
+                                                                  .password("mypassword")
+                                                                  .build();
 
         channelPoolMap = AwaitCloseChannelPoolMap.builder()
-                .proxyConfiguration(proxyConfiguration)
-                .sdkChannelOptions(new SdkChannelOptions())
-                .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
-                .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
-                .protocol(Protocol.HTTP1_1)
-                .maxStreams(100)
-                .sslProvider(SslProvider.OPENSSL)
-                .build();
+                                                 .proxyConfiguration(proxyConfiguration)
+                                                 .sdkChannelOptions(new SdkChannelOptions())
+                                                 .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                                 .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
+                                                 .protocol(Protocol.HTTP1_1)
+                                                 .maxStreams(100)
+                                                 .sslProvider(SslProvider.OPENSSL)
+                                                 .build();
 
         SimpleChannelPoolAwareChannelPool simpleChannelPoolAwareChannelPool = channelPoolMap.newPool(
-                URI.create("https://some-awesome-service:443"));
+            URI.create("https://some-awesome-service:443"));
 
         simpleChannelPoolAwareChannelPool.acquire().awaitUninterruptibly();
 
@@ -253,8 +253,8 @@ public class AwaitCloseChannelPoolMapTest {
         TlsKeyManagersProvider provider = mock(TlsKeyManagersProvider.class);
 
         AttributeMap config = AttributeMap.builder()
-                .put(TLS_KEY_MANAGERS_PROVIDER, provider)
-                .build();
+                                          .put(TLS_KEY_MANAGERS_PROVIDER, provider)
+                                          .build();
 
         channelPoolMap = AwaitCloseChannelPoolMap.builder()
                                                  .sdkChannelOptions(new SdkChannelOptions())
