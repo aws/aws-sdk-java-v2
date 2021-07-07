@@ -19,6 +19,7 @@ import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SD
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +62,9 @@ public final class JsonProtocolUnmarshaller {
 
     private JsonProtocolUnmarshaller(Builder builder) {
         this.parser = builder.parser;
-        this.instantStringToValue = StringToInstant.create(new HashMap<>(builder.defaultTimestampFormats));
+        this.instantStringToValue = StringToInstant.create(builder.defaultTimestampFormats.isEmpty() ?
+                                                           new EnumMap<>(MarshallLocation.class) :
+                                                           new EnumMap<>(builder.defaultTimestampFormats));
         this.registry = createUnmarshallerRegistry(instantStringToValue);
     }
 
