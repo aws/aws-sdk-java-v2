@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "contributor": "",
-    "description": "This release add storage configuration APIs for AWS IoT SiteWise."
-}
