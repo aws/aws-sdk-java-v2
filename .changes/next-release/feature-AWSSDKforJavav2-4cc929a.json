@@ -1,6 +1,6 @@
 {
     "category": "AWS SDK for Java v2", 
     "contributor": "Bennett-Lynch", 
-    "type": "bugfix", 
+    "type": "feature", 
     "description": "Use EnumMap where possible."
 }
