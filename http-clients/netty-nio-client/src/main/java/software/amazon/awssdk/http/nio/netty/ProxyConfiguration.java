@@ -46,6 +46,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.nonProxyHosts = Collections.unmodifiableSet(builder.nonProxyHosts);
     }
 
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
     /**
      * @return The proxy scheme.
      */
@@ -112,6 +116,14 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return false;
         }
 
+        if (username != null ? !username.equals(that.host) : that.username != null) {
+            return false;
+        }
+
+        if (password != null ? !password.equals(that.host) : that.password != null) {
+            return false;
+        }
+
         return nonProxyHosts.equals(that.nonProxyHosts);
 
     }
@@ -122,16 +134,14 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         result = 31 * result + (host != null ? host.hashCode() : 0);
         result = 31 * result + port;
         result = 31 * result + nonProxyHosts.hashCode();
+        result = 31 * result + (username != null ? username.hashCode() : 0);
+        result = 31 * result + (password != null ? password.hashCode() : 0);
         return result;
     }
 
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
-    }
-
-    public static Builder builder() {
-        return new BuilderImpl();
     }
 
     /**
@@ -141,6 +151,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         /**
          * Set the hostname of the proxy.
+         *
          * @param host The proxy host.
          * @return This object for method chaining.
          */
@@ -148,6 +159,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         /**
          * Set the port that the proxy expects connections on.
+         *
          * @param port The proxy port.
          * @return This object for method chaining.
          */
@@ -173,14 +185,16 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         Builder nonProxyHosts(Set<String> nonProxyHosts);
 
         /**
-         * Set the username used to authenticate with the proxy server.
+         * Set the username used to authenticate with the proxy username.
+         *
          * @param username The proxy username.
          * @return This object for method chaining.
          */
         Builder username(String username);
 
         /**
-         * Set the password used to authenticate with the proxy server.
+         * Set the password used to authenticate with the proxy password.
+         *
          * @param password The proxy username.
          * @return This object for method chaining.
          */
@@ -203,6 +217,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             this.host = proxyConfiguration.host;
             this.port = proxyConfiguration.port;
             this.nonProxyHosts = new HashSet<>(proxyConfiguration.nonProxyHosts);
+            this.username = proxyConfiguration.username;
+            this.password = proxyConfiguration.password;
         }
 
         @Override
@@ -222,7 +238,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             this.port = port;
             return this;
         }
-
 
 
         @Override
