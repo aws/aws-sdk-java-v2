@@ -52,14 +52,14 @@ public final class JsonDomParser {
             case VALUE_STRING:
                 return SdkScalarNode.create(parser.getText());
             case VALUE_FALSE:
-                return SdkScalarNode.create("false");
+                return SdkScalarNode.createBoolean(false);
             case VALUE_TRUE:
-                return SdkScalarNode.create("true");
+                return SdkScalarNode.createBoolean(true);
             case VALUE_NULL:
                 return SdkNullNode.instance();
             case VALUE_NUMBER_FLOAT:
             case VALUE_NUMBER_INT:
-                return SdkScalarNode.create(parser.getNumberValue().toString());
+                return SdkScalarNode.createNumber(parser.getNumberValue());
             case START_OBJECT:
                 return parseObject(parser);
             case START_ARRAY:
