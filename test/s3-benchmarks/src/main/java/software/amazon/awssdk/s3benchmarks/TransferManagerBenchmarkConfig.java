@@ -21,6 +21,7 @@ public class TransferManagerBenchmarkConfig {
     private final String key;
     private final Double targetThroughput;
     private final Long partSizeInMb;
+    private final Integer warmupConcurrency;
 
     private TransferManagerBenchmarkConfig(Builder builder) {
         this.filePath = builder.filePath;
@@ -28,6 +29,7 @@ public class TransferManagerBenchmarkConfig {
         this.key = builder.key;
         this.targetThroughput = builder.targetThroughput;
         this.partSizeInMb = builder.partSizeInMb;
+        this.warmupConcurrency = builder.warmupConcurrency;
     }
 
     public String filePath() {
@@ -50,6 +52,10 @@ public class TransferManagerBenchmarkConfig {
         return partSizeInMb;
     }
 
+    public Integer warmupConcurrency() {
+        return warmupConcurrency;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -61,7 +67,8 @@ public class TransferManagerBenchmarkConfig {
                ", bucket: '" + bucket + '\'' +
                ", key: '" + key + '\'' +
                ", targetThroughput: " + targetThroughput +
-               ", partSizeInMB: " + partSizeInMb +
+               ", partSizeInMb: " + partSizeInMb +
+               ", warmupConcurrency: " + warmupConcurrency +
                '}';
     }
 
@@ -71,6 +78,7 @@ public class TransferManagerBenchmarkConfig {
         private String key;
         private Double targetThroughput;
         private Long partSizeInMb;
+        private Integer warmupConcurrency;
 
         public Builder filePath(String filePath) {
             this.filePath = filePath;
@@ -94,6 +102,11 @@ public class TransferManagerBenchmarkConfig {
 
         public Builder partSizeInMb(Long partSizeInMb) {
             this.partSizeInMb = partSizeInMb;
+            return this;
+        }
+
+        public Builder warmupConcurrency(Integer warmupConcurrency) {
+            this.warmupConcurrency = warmupConcurrency;
             return this;
         }
 

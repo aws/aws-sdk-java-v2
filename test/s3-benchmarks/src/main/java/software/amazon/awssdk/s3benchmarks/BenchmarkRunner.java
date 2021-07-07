@@ -29,6 +29,8 @@ public class BenchmarkRunner {
     private static final String MAX_THROUGHPUT = "maxThroughput";
     private static final String KEY = "key";
     private static final String OPERATION = "operation";
+    private static final String WARMUP_CONCURRENCY = "warmupConcurrency";
+    private static final String VERSION = "version";
 
     private BenchmarkRunner() {
     }
@@ -42,20 +44,35 @@ public class BenchmarkRunner {
                                                     + "uploaded");
         options.addRequiredOption(null, BUCKET, true, "The s3 bucket");
         options.addRequiredOption(null, KEY, true, "The s3 key");
-        options.addRequiredOption(null, OPERATION, true, "The operation to benchmark against");
+        options.addRequiredOption(null, OPERATION, true, "The operation to run tests: download | upload");
         options.addOption(null, PART_SIZE_IN_MB, true, "Part size in MB");
         options.addOption(null, MAX_THROUGHPUT, true, "The max throughput");
+        options.addOption(null, WARMUP_CONCURRENCY, true, "The number of concurrent requests to send during warmup, default: "
+                                                          + "100");
+        options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: v1 | v2, default: v2");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
         TransferManagerOperation operation = TransferManagerOperation.valueOf(cmd.getOptionValue(OPERATION)
                                                                                  .toUpperCase(Locale.ENGLISH));
+
+        SdkVersion version = SdkVersion.valueOf(cmd.getOptionValue(VERSION, "V2")
+                                                   .toUpperCase(Locale.ENGLISH));
+
         switch (operation) {
             case DOWNLOAD:
-                TransferManagerBenchmark.download(config).run();
+                if (version.equals(SdkVersion.V2)) {
+                    TransferManagerBenchmark.download(config).run();
+                } else {
+                    TransferManagerBenchmark.v1Download(config).run();
+                }
                 break;
             case UPLOAD:
-                TransferManagerBenchmark.upload(config).run();
+                if (version.equals(SdkVersion.V2)) {
+                    TransferManagerBenchmark.upload(config).run();
+                } else {
+                    TransferManagerBenchmark.v1Upload(config).run();
+                }
                 break;
             default:
                 throw new UnsupportedOperationException();
@@ -72,9 +89,13 @@ public class BenchmarkRunner {
         Double maxThroughput = cmd.getOptionValue(MAX_THROUGHPUT) == null ? null :
                                Double.parseDouble(cmd.getOptionValue(MAX_THROUGHPUT));
 
+        Integer warmupConcurrency = cmd.getOptionValue(WARMUP_CONCURRENCY) == null ? null :
+                                    Integer.parseInt(cmd.getOptionValue(WARMUP_CONCURRENCY));
+
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
                                              .bucket(bucket)
+                                             .warmupConcurrency(warmupConcurrency)
                                              .partSizeInMb(partSize)
                                              .targetThroughput(maxThroughput)
                                              .filePath(filePath)
@@ -84,5 +105,10 @@ public class BenchmarkRunner {
     private enum TransferManagerOperation {
         DOWNLOAD,
         UPLOAD
+    }
+
+    private enum SdkVersion {
+        V1,
+        V2
     }
 }
