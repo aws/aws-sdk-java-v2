@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonMQ",
+    "contributor": "",
+    "description": "adds support for modifying the maintenance window for brokers."
+}
