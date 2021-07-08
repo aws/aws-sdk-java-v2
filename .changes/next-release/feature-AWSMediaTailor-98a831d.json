@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "contributor": "",
+    "description": "Add ListAlerts for Channel, Program, Source Location, and VOD Source to return alerts for resources."
+}
