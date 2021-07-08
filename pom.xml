@@ -515,8 +515,8 @@
                             <exclude>software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory</exclude>
                             <exclude>software.amazon.awssdk.services.macie2.model.*</exclude>
 
-                            <!-- mgn update -->
-                            <exclude>software.amazon.awssdk.services.mgn.*</exclude>
+                            <!-- devopsguru update -->
+                            <exclude>software.amazon.awssdk.services.devopsguru.*</exclude>
                         </excludes>
 
                         <excludeModules>
