@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Outposts",
-    "contributor": "",
-    "description": "Added property filters for listOutposts"
-}

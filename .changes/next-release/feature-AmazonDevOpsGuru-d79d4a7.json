@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DevOps Guru",
-    "contributor": "",
-    "description": "Add AnomalyReportedTimeRange field to include open and close time of anomalies."
-}
