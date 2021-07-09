@@ -1,3 +1,65 @@
+# __2.16.98__ __2021-07-08__
+## __AWS MediaTailor__
+  - ### Features
+    - Add ListAlerts for Channel, Program, Source Location, and VOD Source to return alerts for resources.
+
+## __AWS Outposts__
+  - ### Features
+    - Added property filters for listOutposts
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Updated description for CreateContactChannel contactId.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Add AnomalyReportedTimeRange field to include open and close time of anomalies.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added waiters for EKS FargateProfiles.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports route table monitoring, and provides remediation action recommendations to security administrators for AWS Network Firewall policies with misconfigured routes.
+
+# __2.16.97__ __2021-07-07__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release add storage configuration APIs for AWS IoT SiteWise.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for oplocks for SMB file shares, S3 Access Point and S3 Private Link for all file shares and IP address support for file system associations
+
+## __Amazon Chime__
+  - ### Features
+    - Releasing new APIs for AWS Chime MediaCapturePipeline
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront now provides two new APIs, ListConflictingAliases and AssociateAlias, that help locate and move Alternate Domain Names (CNAMEs) if you encounter the CNAMEAlreadyExists error code.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds resource ids and tagging support for VPC security group rules.
+
+## __AmazonMQ__
+  - ### Features
+    - adds support for modifying the maintenance window for brokers.
+
 # __2.16.96__ __2021-07-06__
 ## __AWS Lambda__
   - ### Features
