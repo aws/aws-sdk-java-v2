@@ -19,7 +19,7 @@ import static java.util.Collections.unmodifiableList;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -170,7 +170,7 @@ public abstract class BaseAwsJsonProtocolFactory {
      * can be overridden by subclasses to customize behavior.
      */
     protected Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
         formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
         return Collections.unmodifiableMap(formats);
