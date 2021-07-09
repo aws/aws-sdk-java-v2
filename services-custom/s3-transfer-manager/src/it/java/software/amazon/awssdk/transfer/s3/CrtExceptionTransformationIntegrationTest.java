@@ -41,33 +41,35 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
 
     private static final int OBJ_SIZE = 8 * 1024;
     private static RandomTempFile testFile;
-    private S3TransferManager transferManager;
-    private S3CrtAsyncClient s3Crt;
+    private static S3TransferManager transferManager;
+    private static S3CrtAsyncClient s3Crt;
 
     @BeforeClass
     public static void setupFixture() {
         createBucket(BUCKET);
+        s3Crt = S3CrtAsyncClient.builder()
+                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                .build();
+        transferManager =
+            S3TransferManager.builder()
+                             .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                          .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                                          .targetThroughputInGbps(20.0)
+                                                          .minimumPartSizeInBytes(1000L))
+                             .build();
     }
 
     @AfterClass
     public static void tearDownFixture() {
         deleteBucketAndAllContents(BUCKET);
+        s3Crt.close();
+        transferManager.close();
     }
 
     @Before
     public void methodSetup() throws IOException {
         testFile = new RandomTempFile(BUCKET, OBJ_SIZE);
-        s3Crt = S3CrtAsyncClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .region(S3IntegrationTestBase.DEFAULT_REGION)
-                .build();
-        transferManager =
-                S3TransferManager.builder()
-                        .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                .region(S3IntegrationTestBase.DEFAULT_REGION)
-                                .targetThroughputInGbps(20.0)
-                                .minimumPartSizeInBytes(1000L))
-                        .build();
     }
 
     @Test

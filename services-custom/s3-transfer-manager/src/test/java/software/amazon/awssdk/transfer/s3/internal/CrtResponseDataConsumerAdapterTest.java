@@ -54,17 +54,4 @@ public class CrtResponseDataConsumerAdapterTest {
         assertThat(captor.getValue().responseMetadata().requestId()).isEqualTo("UNKNOWN");
         assertThat(captor.getValue().sdkHttpResponse()).isNotNull();
     }
-
-    @Test
-    public void onResponseData_shouldCopyByteBuffer() {
-        ArgumentCaptor<ByteBuffer> captor = ArgumentCaptor.forClass(ByteBuffer.class);
-        byte[] expectedBytes = "helloworld".getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.wrap(expectedBytes);
-        adapter.onResponseData(byteBuffer);
-
-        verify(publisher).deliverData(captor.capture());
-        ByteBuffer actualByteBuffer = captor.getValue();
-        assertThat(actualByteBuffer).isNotSameAs(byteBuffer);
-        assertThat(actualByteBuffer.array()).isEqualTo(expectedBytes);
-    }
 }
