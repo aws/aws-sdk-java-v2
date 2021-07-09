@@ -116,11 +116,11 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return false;
         }
 
-        if (username != null ? !username.equals(that.host) : that.username != null) {
+        if (username != null ? !username.equals(that.username) : that.username != null) {
             return false;
         }
 
-        if (password != null ? !password.equals(that.host) : that.password != null) {
+        if (password != null ? !password.equals(that.password) : that.password != null) {
             return false;
         }
 
@@ -195,7 +195,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         /**
          * Set the password used to authenticate with the proxy password.
          *
-         * @param password The proxy username.
+         * @param password The proxy password.
          * @return This object for method chaining.
          */
         Builder password(String password);
