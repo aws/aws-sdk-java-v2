@@ -17,7 +17,7 @@ package software.amazon.awssdk.protocols.query.internal.marshall;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -75,7 +75,7 @@ public final class SimpleTypeQueryMarshaller<T> implements QueryMarshaller<T> {
      * @return Default timestamp formats for each location supported by the Query protocol.
      */
     public static Map<MarshallLocation, TimestampFormatTrait.Format> defaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         // Query doesn't support location traits
         formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.ISO_8601);
         return Collections.unmodifiableMap(formats);
