@@ -1,3 +1,159 @@
+# __2.16.97__ __2021-07-07__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release add storage configuration APIs for AWS IoT SiteWise.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for oplocks for SMB file shares, S3 Access Point and S3 Private Link for all file shares and IP address support for file system associations
+
+## __Amazon Chime__
+  - ### Features
+    - Releasing new APIs for AWS Chime MediaCapturePipeline
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront now provides two new APIs, ListConflictingAliases and AssociateAlias, that help locate and move Alternate Domain Names (CNAMEs) if you encounter the CNAMEAlreadyExists error code.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds resource ids and tagging support for VPC security group rules.
+
+## __AmazonMQ__
+  - ### Features
+    - adds support for modifying the maintenance window for brokers.
+
+# __2.16.96__ __2021-07-06__
+## __AWS Lambda__
+  - ### Features
+    - Added support for AmazonMQRabbitMQ as an event source. Added support for VIRTUAL_HOST as SourceAccessType for streams event source mappings.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding new error code UnsupportedAddonModification for Addons in EKS
+
+## __Amazon Macie 2__
+  - ### Features
+    - Sensitive data findings in Amazon Macie now include enhanced location data for JSON and JSON Lines files
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Documentation updates for Amazon SNS.
+
+## __Application Migration Service__
+  - ### Features
+    - Bug fix: Remove not supported EBS encryption type "NONE"
+
+## __EC2 Image Builder__
+  - ### Features
+    - Adds support for specifying parameters to customize components for recipes. Expands configuration of the Amazon EC2 instances that are used for building and testing images, including the ability to specify commands to run on launch, and more control over installation and removal of the SSM agent.
+
+# __2.16.95__ __2021-07-02__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - [UrlConnectionHttpClient] Wrap erroneous NPE from HttpURLConnection as IOException
+        - Contributed by: [@Bennett-Lynch](https://github.com/Bennett-Lynch)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release removes network-insights-boundary
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Documentation updates for elasticloadbalancingv2
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Bennett-Lynch](https://github.com/Bennett-Lynch)
+# __2.16.94__ __2021-07-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding a new reserved field to support future infrastructure improvements for Amazon EC2 Fleet.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker model registry now supports up to 5 containers and associated environment variables.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation updates for Amazon SQS.
+
+# __2.16.93__ __2021-06-30__
+## __AWS Cloud Map__
+  - ### Features
+    - AWS Cloud Map now allows configuring the TTL of the SOA record for a hosted zone to control the negative caching for new services.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - Add support for Widevine DRM on CMAF packaging configurations. Both Widevine and FairPlay DRMs can now be used simultaneously, with CBCS encryption.
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - Adds support for the output of job results to the AWS Glue Data Catalog.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Fixes the tag key length range to 128 chars, tag value length to 256 chars; Adds support for UTF-8 chars for contact and channel names, Allows users to unset name in UpdateContact API; Adds throttling exception to StopEngagement API, validation exception to APIs UntagResource, ListTagsForResource
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra Enterprise Edition now offered in smaller more granular units to enable customers with smaller workloads. Virtual Storage Capacity units now offer scaling in increments of 100,000 documents (up to 30GB) per unit and Virtual Query Units offer scaling increments of 8,000 queries per day.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling infrastructure improvements and optimizations.
+
+# __2.16.92__ __2021-06-28__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - MediaConvert adds support for HDR10+, ProRes 4444, and XAVC outputs, ADM/DAMF support for Dolby Atmos ingest, and alternative audio and WebVTT caption ingest via HLS inputs. MediaConvert also now supports creating trickplay outputs for Roku devices for HLS, CMAF, and DASH output groups.
+
+## __AWS Glue__
+  - ### Features
+    - Add JSON Support for Glue Schema Registry
+
+## __Amazon Redshift__
+  - ### Features
+    - Added InvalidClusterStateFault to the DisableLogging API, thrown when calling the API on a non available cluster.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Sagemaker Neo now supports running compilation jobs using customer's Amazon VPC
+
+# __2.16.91__ __2021-06-25__
+## __AWS Proton__
+  - ### Features
+    - Added waiters for template registration, service operations, and environment deployments.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - AWS Snow Family customers can remotely monitor and operate their connected AWS Snowcone devices. AWS Snowball Edge Storage Optimized customers can now import and export their data using NFS.
+
+## __AmplifyBackend__
+  - ### Features
+    - Imports an existing backend authentication resource.
+
 # __2.16.90__ __2021-06-24__
 ## __AWS Cloud9__
   - ### Features

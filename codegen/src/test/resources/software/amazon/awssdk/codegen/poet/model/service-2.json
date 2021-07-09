@@ -101,6 +101,14 @@
       },
       "output": {
         "shape": "ExistenceCheckNamingResponse"
+      },
+      "DocumentInputOperation":{
+        "name":"DocumentInputOperation",
+        "http":{
+          "method":"POST",
+          "requestUri":"/2016-03-11/documentInputOperation"
+        },
+        "input":{"shape":"StructureWithDocumentMember"}
       }
     }
   },
@@ -140,7 +148,8 @@
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
         "EnumType":{"shape":"EnumType"},
-        "Underscore_Name_Type":{"shape":"Underscore_Name_Type"}
+        "Underscore_Name_Type":{"shape":"Underscore_Name_Type"},
+        "MyDocument":{"shape":"MyDocument"}
       }
     },
     "BaseType":{
@@ -488,6 +497,17 @@
     "ImplicitPayloadMemberOne":{"type":"blob"},
     "Underscore_Name_Type": {
       "type": "structure"
+    },
+    "MyDocument": {
+      "type": "structure",
+      "document": true
+    },
+    "StructureWithDocumentMember":{
+      "type":"structure",
+      "members":{
+        "DocumentMember":{"shape":"MyDocument"}
+      },
+      "payload":"DocumentMember"
     }
   }
 }

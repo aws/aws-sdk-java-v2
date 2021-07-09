@@ -93,7 +93,8 @@
         "ListOfEnums":{"shape":"ListOfEnums"},
         "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
         "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
-        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"}
+        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"},
+        "MyDocument":{"shape":"MyDocument"}
       }
     },
     "BaseType":{
@@ -305,6 +306,10 @@
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"Timestamp"}
+    },
+    "MyDocument": {
+      "type": "structure",
+      "document": true
     }
   }
 }

@@ -100,6 +100,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .payloadMarshaller(MarshallingType.LIST, SimpleTypeJsonMarshaller.LIST)
             .payloadMarshaller(MarshallingType.MAP, SimpleTypeJsonMarshaller.MAP)
             .payloadMarshaller(MarshallingType.NULL, SimpleTypeJsonMarshaller.NULL)
+            .payloadMarshaller(MarshallingType.DOCUMENT, SimpleTypeJsonMarshaller.DOCUMENT)
 
             .headerMarshaller(MarshallingType.STRING, HeaderMarshaller.STRING)
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
