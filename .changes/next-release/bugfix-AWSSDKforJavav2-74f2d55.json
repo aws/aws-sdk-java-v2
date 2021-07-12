@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "skrueger", 
+    "type": "bugfix", 
+    "description": "Fix bug in SigV4 canonical request creation to handle multiple header values and leading & trailing whitespace in header values correctly."
+}

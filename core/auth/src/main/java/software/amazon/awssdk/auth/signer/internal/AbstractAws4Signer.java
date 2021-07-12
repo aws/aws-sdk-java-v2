@@ -304,7 +304,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
     }
 
-    private Map<String, List<String>> canonicalizeSigningHeaders(Map<String, List<String>> headers) {
+    static Map<String, List<String>> canonicalizeSigningHeaders(Map<String, List<String>> headers) {
         Map<String, List<String>> result = new TreeMap<>();
 
         for (Map.Entry<String, List<String>> header : headers.entrySet()) {
@@ -319,17 +319,33 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         return result;
     }
 
-    private String getCanonicalizedHeaderString(Map<String, List<String>> canonicalizedHeaders) {
+    /**
+     * Step 4 of the AWS Signature version 4 calculation.
+     * Refer to
+     * https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
+     */
+    static String getCanonicalizedHeaderString(Map<String, List<String>> canonicalizedHeaders) {
         StringBuilder buffer = new StringBuilder();
 
         canonicalizedHeaders.forEach((headerName, headerValues) -> {
-            for (String headerValue : headerValues) {
+            if (headerValues.size() > 0) {
                 appendCompactedString(buffer, headerName);
-                buffer.append(":");
-                if (headerValue != null) {
-                    appendCompactedString(buffer, headerValue);
+                buffer.append(':');
+                boolean headerValueAppended = false;
+                // Append a comma-separated list of values for that header.
+                // Do not sort the values in headers that have multiple values.
+                for (int i = 0; i < headerValues.size(); i++) {
+                    String headerValue = headerValues.get(i);
+                    if (headerValue != null) {
+                        if (headerValueAppended) {
+                            buffer.append(',');
+                        }
+                        appendCompactedString(buffer, headerValue);
+                        headerValueAppended = true;
+                    }
                 }
-                buffer.append("\n");
+
+                buffer.append('\n');
             }
         });
 
@@ -337,30 +353,39 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     }
 
     /**
-     * This method appends a string to a string builder and collapses contiguous
-     * white space is a single space.
+     * This method appends a modified version of the source string to the destination string builder.
+     * The source string's leading and trailing whitespace is removed and
+     * and all contiguous white space not at the beginning or end is collapsed into a single space.
+     *
+     * e.g.,
+     * Given a source String of "   a    b    c   ",
+     * "a b c" is appended to the destination StringBuilder.
      *
      * This is equivalent to:
-     *      destination.append(source.replaceAll("\\s+", " "))
+     * <code>
+     *      destination.append(source.replaceAll("(^\\s*|\\s*$)", "").replaceAll("\\s+", " "))
+     * </code>
      * but does not create a Pattern object that needs to compile the match
      * string; it also prevents us from having to make a Matcher object as well.
-     *
      */
-    private void appendCompactedString(final StringBuilder destination, final String source) {
+    static void appendCompactedString(final StringBuilder destination, final String source) {
+        boolean appendedNonWhitespaceChar = false;
         boolean previousIsWhiteSpace = false;
         int length = source.length();
 
         for (int i = 0; i < length; i++) {
             char ch = source.charAt(i);
             if (isWhiteSpace(ch)) {
-                if (previousIsWhiteSpace) {
-                    continue;
+                if (appendedNonWhitespaceChar) {
+                    previousIsWhiteSpace = true;
                 }
-                destination.append(' ');
-                previousIsWhiteSpace = true;
             } else {
+                if (previousIsWhiteSpace) {
+                    destination.append(' ');
+                    previousIsWhiteSpace = false;
+                }
                 destination.append(ch);
-                previousIsWhiteSpace = false;
+                appendedNonWhitespaceChar = true;
             }
         }
     }
@@ -373,7 +398,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * @param ch the character to be tested
      * @return true if the character is white  space, false otherwise.
      */
-    private boolean isWhiteSpace(final char ch) {
+    private static boolean isWhiteSpace(final char ch) {
         return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
     }
 
