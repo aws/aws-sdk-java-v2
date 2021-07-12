@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 @SdkInternalApi
 public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
-    private final byte[] bytes;
+    public final byte[] bytes;
 
     private final String mimetype;
 
@@ -41,6 +41,8 @@ public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
         this.bytes = bytes.clone();
         this.mimetype = mimetype;
     }
+    
+    // public byte[] getBytes() { return bytes; }
 
     @Override
     public Optional<Long> contentLength() {
