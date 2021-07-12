@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Documentation updates for Wesley to support the parallel node upgrade feature."
+}
