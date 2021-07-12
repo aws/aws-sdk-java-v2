@@ -1,0 +1,66 @@
+{
+    "version": "2.16.90",
+    "date": "2021-06-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "Added support for 15 new text transformation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Released Amazon Connect quick connects management API for general availability (GA). For more information, see https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Added new resource details for ECS clusters and ECS task definitions. Added additional information for S3 buckets, Elasticsearch domains, and API Gateway V2 stages."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Customers can successfully use legacy clients with Transfer Family endpoints enabled for FTPS and FTP behind routers, firewalls, and load balancers by providing a Custom IP address used for data channel communication."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Accelerator (DAX)",
+            "contributor": "",
+            "description": "Add support for encryption in transit to DAX clusters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "contributor": "",
+            "description": "Adds EventIngestionUrl field to MediaPlacement"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud9",
+            "contributor": "",
+            "description": "Minor update to AWS Cloud9 documentation to allow correct parsing of outputted text"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "BucketOwnerAccess is currently not supported"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now supports SharePoint 2013 and SharePoint 2016 when using a SharePoint data source."
+        }
+    ]
+}

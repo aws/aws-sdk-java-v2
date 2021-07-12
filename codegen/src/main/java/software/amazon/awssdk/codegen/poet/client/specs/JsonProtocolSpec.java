@@ -33,6 +33,7 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransf
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.codegen.model.config.customization.MetadataConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -94,8 +95,13 @@ public class JsonProtocolSpec implements ProtocolSpec {
                       .addCode(".protocolVersion($S)\n", metadata.getJsonVersion())
                       .addCode("$L", customErrorCodeFieldName());
 
-        if (metadata.getContentType() != null) {
-            methodSpec.addCode(".withContentTypeOverride($S)", metadata.getContentType());
+
+        String contentType = Optional.ofNullable(model.getCustomizationConfig().getCustomServiceMetadata())
+                .map(MetadataConfig::getContentType)
+                .orElse(metadata.getContentType());
+
+        if (contentType != null) {
+            methodSpec.addCode(".contentType($S)", contentType);
         }
 
         registerModeledExceptions(model, poetExtensions).forEach(methodSpec::addCode);

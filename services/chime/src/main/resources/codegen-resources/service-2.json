@@ -212,7 +212,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p>Removes the suspension from up to 50 previously suspended users for the specified Amazon Chime <code>EnterpriseLWA</code> account. Only users on <code>EnterpriseLWA</code> accounts can be unsuspended using this action. For more information about different account types, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/manage-chime-account.html\">Managing Your Amazon Chime Accounts</a> in the <i>Amazon Chime Administration Guide</i>.</p> <p> Previously suspended users who are unsuspended using this action are returned to <code>Registered</code> status. Users who are not previously suspended are ignored. </p>"
+      "documentation":"<p>Removes the suspension from up to 50 previously suspended users for the specified Amazon Chime <code>EnterpriseLWA</code> account. Only users on <code>EnterpriseLWA</code> accounts can be unsuspended using this action. For more information about different account types, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/manage-chime-account.html\"> Managing Your Amazon Chime Accounts </a> in the account types, in the <i>Amazon Chime Administration Guide</i>. </p> <p> Previously suspended users who are unsuspended using this action are returned to <code>Registered</code> status. Users who are not previously suspended are ignored. </p>"
     },
     "BatchUpdatePhoneNumber":{
       "name":"BatchUpdatePhoneNumber",
@@ -232,7 +232,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p>Updates phone number product types or calling names. You can update one attribute at a time for each <code>UpdatePhoneNumberRequestItem</code>. For example, you can update the product type or the calling name.</p> <p>For toll-free numbers, you cannot use the Amazon Chime Business Calling product type. For numbers outside the US, you must use the Amazon Chime SIP Media Application Dial-In product type.</p> <p>Updates to outbound calling names can take 72 hours to complete. Pending updates to outbound calling names must be complete before you can request another update.</p>"
+      "documentation":"<p>Updates phone number product types or calling names. You can update one attribute at a time for each <code>UpdatePhoneNumberRequestItem</code>. For example, you can update the product type or the calling name.</p> <p>For toll-free numbers, you cannot use the Amazon Chime Business Calling product type. For numbers outside the U.S., you must use the Amazon Chime SIP Media Application Dial-In product type.</p> <p>Updates to outbound calling names can take up to 72 hours to complete. Pending updates to outbound calling names must be complete before you can request another update.</p>"
     },
     "BatchUpdateUser":{
       "name":"BatchUpdateUser",
@@ -252,7 +252,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p> Updates user details within the <a>UpdateUserRequestItem</a> object for up to 20 users for the specified Amazon Chime account. Currently, only <code>LicenseType</code> updates are supported for this action. </p>"
+      "documentation":"<p>Updates user details within the <a>UpdateUserRequestItem</a> object for up to 20 users for the specified Amazon Chime account. Currently, only <code>LicenseType</code> updates are supported for this action.</p>"
     },
     "CreateAccount":{
       "name":"CreateAccount",
@@ -470,6 +470,26 @@
       "documentation":"<p>Creates a new <code>ChannelModerator</code>. A channel moderator can:</p> <ul> <li> <p>Add and remove other members of the channel.</p> </li> <li> <p>Add and remove other moderators of the channel.</p> </li> <li> <p>Add and remove user bans for the channel.</p> </li> <li> <p>Redact messages in the channel.</p> </li> <li> <p>List messages in the channel.</p> </li> </ul> <note> <p>The <code>x-amz-chime-bearer</code> request header is mandatory. Use the <code>AppInstanceUserArn</code> of the user that makes the API call as the value in the header.</p> </note>",
       "endpoint":{"hostPrefix":"messaging-"}
     },
+    "CreateMediaCapturePipeline":{
+      "name":"CreateMediaCapturePipeline",
+      "http":{
+        "method":"POST",
+        "requestUri":"/media-capture-pipelines",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateMediaCapturePipelineRequest"},
+      "output":{"shape":"CreateMediaCapturePipelineResponse"},
+      "errors":[
+        {"shape":"ResourceLimitExceededException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"BadRequestException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Creates a media capture pipeline.</p>"
+    },
     "CreateMeeting":{
       "name":"CreateMeeting",
       "http":{
@@ -549,7 +569,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p>Creates an order for phone numbers to be provisioned. For toll-free numbers, you cannot use the Amazon Chime Business Calling product type. For numbers outside the US, you must use the Amazon Chime SIP Media Application Dial-In product type.</p>"
+      "documentation":"<p>Creates an order for phone numbers to be provisioned. For toll-free numbers, you cannot use the Amazon Chime Business Calling product type. For numbers outside the U.S., you must use the Amazon Chime SIP Media Application Dial-In product type.</p>"
     },
     "CreateProxySession":{
       "name":"CreateProxySession",
@@ -971,6 +991,25 @@
         {"shape":"ResourceLimitExceededException"}
       ],
       "documentation":"<p>Deletes the events configuration that allows a bot to receive outgoing events.</p>"
+    },
+    "DeleteMediaCapturePipeline":{
+      "name":"DeleteMediaCapturePipeline",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/media-capture-pipelines/{mediaPipelineId}",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteMediaCapturePipelineRequest"},
+      "errors":[
+        {"shape":"ForbiddenException"},
+        {"shape":"NotFoundException"},
+        {"shape":"BadRequestException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Deletes the media capture pipeline.</p>"
     },
     "DeleteMeeting":{
       "name":"DeleteMeeting",
@@ -1560,7 +1599,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p>Retrieves account settings for the specified Amazon Chime account ID, such as remote control and dialout settings. For more information about these settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/policies.html\">Use the Policies Page</a> in the <i>Amazon Chime Administration Guide</i>.</p>"
+      "documentation":"<p>Retrieves account settings for the specified Amazon Chime account ID, such as remote control and dialout settings. For more information about these settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/policies.html\">Use the Policies Page</a> in the <i>Amazon Chime Administration Guide</i>. </p>"
     },
     "GetAppInstanceRetentionSettings":{
       "name":"GetAppInstanceRetentionSettings",
@@ -1702,6 +1741,26 @@
       ],
       "documentation":"<p>Retrieves global settings for the administrator's AWS account, such as Amazon Chime Business Calling and Amazon Chime Voice Connector settings.</p>"
     },
+    "GetMediaCapturePipeline":{
+      "name":"GetMediaCapturePipeline",
+      "http":{
+        "method":"GET",
+        "requestUri":"/media-capture-pipelines/{mediaPipelineId}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetMediaCapturePipelineRequest"},
+      "output":{"shape":"GetMediaCapturePipelineResponse"},
+      "errors":[
+        {"shape":"NotFoundException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"BadRequestException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Gets an existing media capture pipeline.</p>"
+    },
     "GetMeeting":{
       "name":"GetMeeting",
       "http":{
@@ -1835,7 +1894,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p> Gets the retention settings for the specified Amazon Chime Enterprise account. For more information about retention settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/chat-retention.html\">Managing Chat Retention Policies</a> in the <i>Amazon Chime Administration Guide</i> . </p>"
+      "documentation":"<p> Gets the retention settings for the specified Amazon Chime Enterprise account. For more information about retention settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/chat-retention.html\">Managing Chat Retention Policies</a> in the <i>Amazon Chime Administration Guide</i>. </p>"
     },
     "GetRoom":{
       "name":"GetRoom",
@@ -2015,7 +2074,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p> Retrieves details for the specified Amazon Chime Voice Connector group, such as timestamps,name, and associated <code>VoiceConnectorItems</code> . </p>"
+      "documentation":"<p> Retrieves details for the specified Amazon Chime Voice Connector group, such as timestamps,name, and associated <code>VoiceConnectorItems</code>.</p>"
     },
     "GetVoiceConnectorLoggingConfiguration":{
       "name":"GetVoiceConnectorLoggingConfiguration",
@@ -2274,7 +2333,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p> Lists the attendees for the specified Amazon Chime SDK meeting. For more information about the Amazon Chime SDK, see <a href=\"https://docs.aws.amazon.com/chime/latest/dg/meetings-sdk.html\">Using the Amazon Chime SDK</a> in the <i>Amazon Chime Developer Guide</i> . </p>"
+      "documentation":"<p> Lists the attendees for the specified Amazon Chime SDK meeting. For more information about the Amazon Chime SDK, see <a href=\"https://docs.aws.amazon.com/chime/latest/dg/meetings-sdk.html\">Using the Amazon Chime SDK</a> in the <i>Amazon Chime Developer Guide</i>. </p>"
     },
     "ListBots":{
       "name":"ListBots",
@@ -2436,6 +2495,25 @@
       "documentation":"<p>A list of the channels moderated by an <code>AppInstanceUser</code>.</p> <note> <p>The <code>x-amz-chime-bearer</code> request header is mandatory. Use the <code>AppInstanceUserArn</code> of the user that makes the API call as the value in the header.</p> </note>",
       "endpoint":{"hostPrefix":"messaging-"}
     },
+    "ListMediaCapturePipelines":{
+      "name":"ListMediaCapturePipelines",
+      "http":{
+        "method":"GET",
+        "requestUri":"/media-capture-pipelines",
+        "responseCode":200
+      },
+      "input":{"shape":"ListMediaCapturePipelinesRequest"},
+      "output":{"shape":"ListMediaCapturePipelinesResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Returns a list of media capture pipelines.</p>"
+    },
     "ListMeetingTags":{
       "name":"ListMeetingTags",
       "http":{
@@ -2473,7 +2551,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p> Lists up to 100 active Amazon Chime SDK meetings. For more information about the Amazon Chime SDK, see <a href=\"https://docs.aws.amazon.com/chime/latest/dg/meetings-sdk.html\">Using the Amazon Chime SDK</a> in the <i>Amazon Chime Developer Guide</i> . </p>"
+      "documentation":"<p> Lists up to 100 active Amazon Chime SDK meetings. For more information about the Amazon Chime SDK, see <a href=\"https://docs.aws.amazon.com/chime/latest/dg/meetings-sdk.html\">Using the Amazon Chime SDK</a> in the <i>Amazon Chime Developer Guide</i>.</p>"
     },
     "ListPhoneNumberOrders":{
       "name":"ListPhoneNumberOrders",
@@ -2828,7 +2906,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p> Puts retention settings for the specified Amazon Chime Enterprise account. We recommend using AWS CloudTrail to monitor usage of this API for your account. For more information, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/cloudtrail.html\">Logging Amazon Chime API Calls with AWS CloudTrail</a> in the <i>Amazon Chime Administration Guide</i> . </p> <p> To turn off existing retention settings, remove the number of days from the corresponding <b>RetentionDays</b> field in the <b>RetentionSettings</b> object. For more information about retention settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/chat-retention.html\">Managing Chat Retention Policies</a> in the <i>Amazon Chime Administration Guide</i> . </p>"
+      "documentation":"<p> Puts retention settings for the specified Amazon Chime Enterprise account. We recommend using AWS CloudTrail to monitor usage of this API for your account. For more information, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/cloudtrail.html\">Logging Amazon Chime API Calls with AWS CloudTrail</a> in the <i>Amazon Chime Administration Guide</i>.</p> <p> To turn off existing retention settings, remove the number of days from the corresponding <b>RetentionDays</b> field in the <b>RetentionSettings</b> object. For more information about retention settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/chat-retention.html\">Managing Chat Retention Policies</a> in the <i>Amazon Chime Administration Guide</i>.</p>"
     },
     "PutSipMediaApplicationLoggingConfiguration":{
       "name":"PutSipMediaApplicationLoggingConfiguration",
@@ -3283,7 +3361,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p>Updates account details for the specified Amazon Chime account. Currently, only account name updates are supported for this action.</p>"
+      "documentation":"<p>Updates account details for the specified Amazon Chime account. Currently, only account name and default license updates are supported for this action.</p>"
     },
     "UpdateAccountSettings":{
       "name":"UpdateAccountSettings",
@@ -3568,6 +3646,27 @@
       ],
       "documentation":"<p>Updates the details of the specified SIP media application.</p>"
     },
+    "UpdateSipMediaApplicationCall":{
+      "name":"UpdateSipMediaApplicationCall",
+      "http":{
+        "method":"POST",
+        "requestUri":"/sip-media-applications/{sipMediaApplicationId}/calls/{transactionId}",
+        "responseCode":202
+      },
+      "input":{"shape":"UpdateSipMediaApplicationCallRequest"},
+      "output":{"shape":"UpdateSipMediaApplicationCallResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"NotFoundException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ResourceLimitExceededException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Allows you to trigger a Lambda function at any time while a call is active, and replace the current actions with new actions returned by the invocation.</p>"
+    },
     "UpdateSipRule":{
       "name":"UpdateSipRule",
       "http":{
@@ -3608,7 +3707,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p> Updates user details for a specified user ID. Currently, only <code>LicenseType</code> updates are supported for this action. </p>"
+      "documentation":"<p>Updates user details for a specified user ID. Currently, only <code>LicenseType</code> updates are supported for this action.</p>"
     },
     "UpdateUserSettings":{
       "name":"UpdateUserSettings",
@@ -4201,7 +4300,7 @@
         },
         "ErrorMessage":{
           "shape":"String",
-          "documentation":"<p>The error message. </p>"
+          "documentation":"<p>The error message.</p>"
         }
       },
       "documentation":"<p>A list of failed member ARNs, error codes, and error messages.</p>"
@@ -4233,7 +4332,7 @@
         },
         "ChimeBearer":{
           "shape":"ChimeArn",
-          "documentation":"<p>The <code>AppInstanceUserArn</code> of the user that makes the API call.</p> <p/>",
+          "documentation":"<p>The <code>AppInstanceUserArn</code> of the user that makes the API call.</p>",
           "location":"header",
           "locationName":"x-amz-chime-bearer"
         }
@@ -5319,6 +5418,47 @@
         }
       }
     },
+    "CreateMediaCapturePipelineRequest":{
+      "type":"structure",
+      "required":[
+        "SourceType",
+        "SourceArn",
+        "SinkType",
+        "SinkArn"
+      ],
+      "members":{
+        "SourceType":{
+          "shape":"MediaPipelineSourceType",
+          "documentation":"<p>Source type from which the media artifacts will be captured. A Chime SDK Meeting is the only supported source.</p>"
+        },
+        "SourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>ARN of the source from which the media artifacts are captured.</p>"
+        },
+        "SinkType":{
+          "shape":"MediaPipelineSinkType",
+          "documentation":"<p>Destination type to which the media artifacts are saved. You must use an S3 bucket. </p>"
+        },
+        "SinkArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the sink type.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>The token assigned to the client making the pipeline request.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "CreateMediaCapturePipelineResponse":{
+      "type":"structure",
+      "members":{
+        "MediaCapturePipeline":{
+          "shape":"MediaCapturePipeline",
+          "documentation":"<p>A media capture pipeline object, the ID, source type, source ARN, sink type, and sink ARN of a media capture pipeline object.</p>"
+        }
+      }
+    },
     "CreateMeetingDialOutRequest":{
       "type":"structure",
       "required":[
@@ -6074,6 +6214,18 @@
           "documentation":"<p>The bot ID.</p>",
           "location":"uri",
           "locationName":"botId"
+        }
+      }
+    },
+    "DeleteMediaCapturePipelineRequest":{
+      "type":"structure",
+      "required":["MediaPipelineId"],
+      "members":{
+        "MediaPipelineId":{
+          "shape":"GuidString",
+          "documentation":"<p>The ID of the media capture pipeline being deleted. </p>",
+          "location":"uri",
+          "locationName":"mediaPipelineId"
         }
       }
     },
@@ -7030,6 +7182,27 @@
         "VoiceConnector":{
           "shape":"VoiceConnectorSettings",
           "documentation":"<p>The Amazon Chime Voice Connector settings.</p>"
+        }
+      }
+    },
+    "GetMediaCapturePipelineRequest":{
+      "type":"structure",
+      "required":["MediaPipelineId"],
+      "members":{
+        "MediaPipelineId":{
+          "shape":"GuidString",
+          "documentation":"<p>The ID of the pipeline that you want to get.</p>",
+          "location":"uri",
+          "locationName":"mediaPipelineId"
+        }
+      }
+    },
+    "GetMediaCapturePipelineResponse":{
+      "type":"structure",
+      "members":{
+        "MediaCapturePipeline":{
+          "shape":"MediaCapturePipeline",
+          "documentation":"<p>The media capture pipeline object.</p>"
         }
       }
     },
@@ -8232,6 +8405,36 @@
         }
       }
     },
+    "ListMediaCapturePipelinesRequest":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token used to retrieve the next page of results.</p>",
+          "location":"querystring",
+          "locationName":"next-token"
+        },
+        "MaxResults":{
+          "shape":"ResultMax",
+          "documentation":"<p>The maximum number of results to return in a single call. Valid Range: 1 - 99.</p>",
+          "location":"querystring",
+          "locationName":"max-results"
+        }
+      }
+    },
+    "ListMediaCapturePipelinesResponse":{
+      "type":"structure",
+      "members":{
+        "MediaCapturePipelines":{
+          "shape":"MediaCapturePipelineList",
+          "documentation":"<p>The media capture pipeline objects in the list.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token used to retrieve the next page of results. </p>"
+        }
+      }
+    },
     "ListMeetingTagsRequest":{
       "type":"structure",
       "required":["MeetingId"],
@@ -8778,6 +8981,66 @@
       "max":50,
       "min":1
     },
+    "MediaCapturePipeline":{
+      "type":"structure",
+      "members":{
+        "MediaPipelineId":{
+          "shape":"GuidString",
+          "documentation":"<p>The ID of a media capture pipeline.</p>"
+        },
+        "SourceType":{
+          "shape":"MediaPipelineSourceType",
+          "documentation":"<p>Source type from which media artifacts are saved. You must use <code>ChimeMeeting</code>.</p>"
+        },
+        "SourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>ARN of the source from which the media artifacts will be saved.</p>"
+        },
+        "Status":{
+          "shape":"MediaPipelineStatus",
+          "documentation":"<p>The status of the media capture pipeline.</p>"
+        },
+        "SinkType":{
+          "shape":"MediaPipelineSinkType",
+          "documentation":"<p>Destination type to which the media artifacts are saved. You must use an S3 Bucket.</p>"
+        },
+        "SinkArn":{
+          "shape":"Arn",
+          "documentation":"<p>ARN of the destination to which the media artifacts are saved.</p>"
+        },
+        "CreatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which the capture pipeline was created, in ISO 8601 format.</p>"
+        },
+        "UpdatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which the capture pipeline was updated, in ISO 8601 format.</p>"
+        }
+      },
+      "documentation":"<p>A media capture pipeline object. A string consisting of an ID, source type, a source ARN, a sink type, and a sink ARN.</p>"
+    },
+    "MediaCapturePipelineList":{
+      "type":"list",
+      "member":{"shape":"MediaCapturePipeline"}
+    },
+    "MediaPipelineSinkType":{
+      "type":"string",
+      "enum":["S3Bucket"]
+    },
+    "MediaPipelineSourceType":{
+      "type":"string",
+      "enum":["ChimeSdkMeeting"]
+    },
+    "MediaPipelineStatus":{
+      "type":"string",
+      "enum":[
+        "Initializing",
+        "InProgress",
+        "Failed",
+        "Stopping",
+        "Stopped"
+      ]
+    },
     "MediaPlacement":{
       "type":"structure",
       "members":{
@@ -8808,6 +9071,10 @@
         "TurnControlUrl":{
           "shape":"UriType",
           "documentation":"<p>The turn control URL.</p>"
+        },
+        "EventIngestionUrl":{
+          "shape":"UriType",
+          "documentation":"<p>The event ingestion URL.</p>"
         }
       },
       "documentation":"<p>A set of endpoints used by clients to connect to the media service group for a Amazon Chime SDK meeting.</p>"
@@ -10161,6 +10428,13 @@
       },
       "documentation":"<p>The retention settings that determine how long to retain chat-room messages for an Amazon Chime Enterprise account.</p>"
     },
+    "SMAUpdateCallArgumentsMap":{
+      "type":"map",
+      "key":{"shape":"SensitiveString"},
+      "value":{"shape":"SensitiveString"},
+      "max":20,
+      "min":0
+    },
     "SearchAvailablePhoneNumbersRequest":{
       "type":"structure",
       "members":{
@@ -10817,6 +11091,10 @@
         "Name":{
           "shape":"AccountName",
           "documentation":"<p>The new name for the specified Amazon Chime account.</p>"
+        },
+        "DefaultLicense":{
+          "shape":"License",
+          "documentation":"<p>The default license applied when you add users to an Amazon Chime account.</p>"
         }
       }
     },
@@ -11260,6 +11538,38 @@
           "shape":"Room",
           "documentation":"<p>The room details.</p>"
         }
+      }
+    },
+    "UpdateSipMediaApplicationCallRequest":{
+      "type":"structure",
+      "required":[
+        "SipMediaApplicationId",
+        "TransactionId",
+        "Arguments"
+      ],
+      "members":{
+        "SipMediaApplicationId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ID of the SIP media application handling the call.</p>",
+          "location":"uri",
+          "locationName":"sipMediaApplicationId"
+        },
+        "TransactionId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ID of the call transaction.</p>",
+          "location":"uri",
+          "locationName":"transactionId"
+        },
+        "Arguments":{
+          "shape":"SMAUpdateCallArgumentsMap",
+          "documentation":"<p>Arguments made available to the Lambda function as part of the <code>CALL_UPDATE_REQUESTED</code> event. Can contain 0-20 key-value pairs.</p>"
+        }
+      }
+    },
+    "UpdateSipMediaApplicationCallResponse":{
+      "type":"structure",
+      "members":{
+        "SipMediaApplicationCall":{"shape":"SipMediaApplicationCall"}
       }
     },
     "UpdateSipMediaApplicationRequest":{

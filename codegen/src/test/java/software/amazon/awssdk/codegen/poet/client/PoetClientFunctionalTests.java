@@ -104,4 +104,17 @@ public class PoetClientFunctionalTests {
                 GeneratorTaskParams.create(ClientTestModels.endpointDiscoveryModels(), "sources/", "tests/"));
         assertThat(asyncClientEndpointDiscovery, generatesTo("test-endpoint-discovery-async.java"));
     }
+
+    @Test
+    public void asyncClientCustomServiceMetaData() throws Exception {
+        ClassSpec asyncClientCustomServiceMetaData = new AsyncClientClass(
+                GeneratorTaskParams.create(ClientTestModels.customContentTypeModels(), "sources/", "tests/"));
+        assertThat(asyncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-async.java"));
+    }
+
+    @Test
+    public void syncClientCustomServiceMetaData() throws Exception {
+        ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(ClientTestModels.customContentTypeModels());
+        assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
+    }
 }

@@ -19,6 +19,7 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.ListTrait;
@@ -422,6 +423,11 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Underscore_Name_Type").build())
         .build();
 
+    private static final SdkField<Document> MY_DOCUMENT_FIELD = SdkField.<Document> builder(MarshallingType.DOCUMENT)
+            .memberName("MyDocument").getter(getter(AllTypesRequest::myDocument)).setter(setter(Builder::myDocument))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MyDocument").build()).build();
+
+
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
                                                                                                    INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
                                                                                                    SHORT_MEMBER_FIELD, SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
@@ -431,7 +437,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                                                                                                    MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD, MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD, TIMESTAMP_MEMBER_FIELD,
                                                                                                    STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD, BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD,
                                                                                                    LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
-                                                                                                   POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD));
+                                                                                                   POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD));
 
     private final String stringMember;
 
@@ -499,6 +505,9 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private final Underscore_Name_Type underscore_Name_Type;
 
+    private final Document myDocument;
+
+
     private AllTypesRequest(BuilderImpl builder) {
         super(builder);
         this.stringMember = builder.stringMember;
@@ -534,6 +543,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         this.polymorphicTypeWithoutSubTypes = builder.polymorphicTypeWithoutSubTypes;
         this.enumType = builder.enumType;
         this.underscore_Name_Type = builder.underscore_Name_Type;
+        this.myDocument = builder.myDocument;
     }
 
     /**
@@ -1223,6 +1233,15 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         return underscore_Name_Type;
     }
 
+    /**
+     * Returns the value of the MyDocument property for this object.
+     *
+     * @return The value of the MyDocument property for this object.
+     */
+    public final Document myDocument() {
+        return myDocument;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -1274,6 +1293,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         hashCode = 31 * hashCode + Objects.hashCode(polymorphicTypeWithoutSubTypes());
         hashCode = 31 * hashCode + Objects.hashCode(enumTypeAsString());
         hashCode = 31 * hashCode + Objects.hashCode(underscore_Name_Type());
+        hashCode = 31 * hashCode + Objects.hashCode(myDocument());
         return hashCode;
     }
 
@@ -1334,7 +1354,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
                && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
                && Objects.equals(enumTypeAsString(), other.enumTypeAsString())
-               && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type());
+               && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type())
+               && Objects.equals(myDocument(), other.myDocument());
     }
 
     /**
@@ -1372,9 +1393,9 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             .add("StructWithNestedTimestampMember", structWithNestedTimestampMember()).add("BlobArg", blobArg())
             .add("StructWithNestedBlob", structWithNestedBlob()).add("BlobMap", hasBlobMap() ? blobMap() : null)
             .add("ListOfBlobs", hasListOfBlobs() ? listOfBlobs() : null).add("RecursiveStruct", recursiveStruct())
-            .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
-            .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
-            .add("Underscore_Name_Type", underscore_Name_Type()).build();
+                .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
+                .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
+                .add("Underscore_Name_Type", underscore_Name_Type()).add("MyDocument", myDocument()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -1445,6 +1466,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                 return Optional.ofNullable(clazz.cast(enumTypeAsString()));
             case "Underscore_Name_Type":
                 return Optional.ofNullable(clazz.cast(underscore_Name_Type()));
+            case "MyDocument":
+                return Optional.ofNullable(clazz.cast(myDocument()));
             default:
                 return Optional.empty();
         }
@@ -2034,6 +2057,15 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             return underscore_Name_Type(Underscore_Name_Type.builder().applyMutation(underscore_Name_Type).build());
         }
 
+        /**
+         * Sets the value of the MyDocument property for this object.
+         *
+         * @param myDocument
+         *        The new value for the MyDocument property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder myDocument(Document myDocument);
+
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
@@ -2108,6 +2140,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         private Underscore_Name_Type underscore_Name_Type;
 
+        private Document myDocument;
+
         private BuilderImpl() {
         }
 
@@ -2146,6 +2180,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             polymorphicTypeWithoutSubTypes(model.polymorphicTypeWithoutSubTypes);
             enumType(model.enumType);
             underscore_Name_Type(model.underscore_Name_Type);
+            myDocument(model.myDocument);
         }
 
         public final String getStringMember() {
@@ -2785,6 +2820,20 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setUnderscore_Name_Type(Underscore_Name_Type.BuilderImpl underscore_Name_Type) {
             this.underscore_Name_Type = underscore_Name_Type != null ? underscore_Name_Type.build() : null;
+        }
+
+        public final Document getMyDocument() {
+            return myDocument;
+        }
+
+        @Override
+        public final Builder myDocument(Document myDocument) {
+            this.myDocument = myDocument;
+            return this;
+        }
+
+        public final void setMyDocument(Document myDocument) {
+            this.myDocument = myDocument;
         }
 
         @Override
