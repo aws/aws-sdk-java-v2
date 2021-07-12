@@ -1,3 +1,16 @@
+# __2.16.100__ __2021-07-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports Principal Store
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Documentation updates for Wesley to support the parallel node upgrade feature.
+
 # __2.16.99__ __2021-07-09__
 ## __AWS Elemental MediaConvert__
   - ### Features
