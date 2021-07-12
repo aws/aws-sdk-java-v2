@@ -18,7 +18,6 @@ package software.amazon.awssdk.arns;
 import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -78,38 +77,64 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
     /**
      * Parses a string containing either a resource, resource type and resource or
      * resource type, resource and qualifier into an {@link ArnResource}.
-     *
      * <p>
-     * Supports fields separated by either ":" or "/".
-     *
-     * <p>
-     * For legacy AWS Arns not following the resourceType:resource:qualifier pattern,
-     * the qualifier field will contain everything after the first two sections separated
-     * by either ":" or "/".
+     * Matches:
+     * <p><pre>
+     * resource-id
+     * resource-type:resource-id
+     * resource-type/resource-id
+     * resource-type:resource-id:qualifier
+     * resource-type/resource-id:qualifier
+     * </pre><p>
+     * resource-id can be a resource name or a resource path.
      *
      * @param resource - The resource string to parse.
      * @return {@link ArnResource}
      */
     public static ArnResource fromString(String resource) {
-        Character splitter = StringUtils.findFirstOccurrence(resource, ':', '/');
+        Integer resourceTypeBoundary = null;
+        Integer resourceIdBoundary = null;
 
-        if (splitter == null) {
+        for (int i = 0; i < resource.length(); ++i) {
+            char ch = resource.charAt(i);
+
+            if (ch == ':' || ch == '/') {
+                resourceTypeBoundary = i;
+                break;
+            }
+        }
+
+        if (resourceTypeBoundary != null) {
+            for (int i = resource.length() - 1; i > resourceTypeBoundary; --i) {
+                char ch = resource.charAt(i);
+
+                if (ch == ':') {
+                    resourceIdBoundary = i;
+                    break;
+                }
+            }
+        }
+
+        if (resourceTypeBoundary == null) {
+            // 'resource-id'
             return ArnResource.builder().resource(resource).build();
-        }
-
-        int resourceTypeColonIndex = resource.indexOf(splitter);
-
-        ArnResource.Builder builder = ArnResource.builder().resourceType(resource.substring(0, resourceTypeColonIndex));
-        int resourceColonIndex = resource.indexOf(splitter, resourceTypeColonIndex);
-        int qualifierColonIndex = resource.indexOf(splitter, resourceColonIndex + 1);
-        if (qualifierColonIndex < 0) {
-            builder.resource(resource.substring(resourceTypeColonIndex + 1));
+        } else if (resourceIdBoundary == null) {
+            // 'resource-type:resource-id'
+            String resourceType = resource.substring(0, resourceTypeBoundary);
+            String resourceId = resource.substring(resourceTypeBoundary + 1);
+            return ArnResource.builder().resourceType(resourceType).resource(resourceId).build();
         } else {
-            builder.resource(resource.substring(resourceTypeColonIndex + 1, qualifierColonIndex));
-            builder.qualifier(resource.substring(qualifierColonIndex + 1));
-        }
+            // 'resource-type:resource-id:qualifier'
+            String resourceType = resource.substring(0, resourceTypeBoundary);
+            String resourceId = resource.substring(resourceTypeBoundary + 1, resourceIdBoundary);
+            String qualifier = resource.substring(resourceIdBoundary + 1);
+            return ArnResource.builder()
+                              .resourceType(resourceType)
+                              .resource(resourceId)
+                              .qualifier(qualifier)
+                              .build();
 
-        return builder.build();
+        }
     }
 
     @Override

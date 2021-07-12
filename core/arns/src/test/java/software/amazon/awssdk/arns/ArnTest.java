@@ -105,12 +105,12 @@ public class ArnTest {
 
     @Test
     public void arnWithResourceTypeAndResourceAndQualifier_SlashSplitter_ParsesCorrectly() {
-        String arnString = "arn:aws:s3:us-east-1:12345678910:bucket/foobar/1";
+        String arnString = "arn:aws:s3:us-east-1:12345678910:bucket/foobar:1";
         Arn arn = Arn.fromString(arnString);
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("s3");
         assertThat(arn.region()).isEqualTo(Optional.of("us-east-1"));
-        assertThat(arn.resourceAsString()).isEqualTo("bucket/foobar/1");
+        assertThat(arn.resourceAsString()).isEqualTo("bucket/foobar:1");
         verifyArnResource(arn.resource());
         assertThat(arn.resource().qualifier().get()).isEqualTo("1");
     }
