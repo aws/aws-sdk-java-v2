@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmplifyBackend",
+    "contributor": "",
+    "description": "Added Sign in with Apple OAuth provider."
+}
