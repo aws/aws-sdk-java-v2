@@ -1,0 +1,6 @@
+{
+    "category": "Amazon STS",
+    "contributor": "", 
+    "type": "feature", 
+    "description": "New StsWebIdentityTokenFileCredentialsProvider that accepts StsClient in its create method and Builder args."
+}
