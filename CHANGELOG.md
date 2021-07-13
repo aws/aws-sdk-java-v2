@@ -1,3 +1,36 @@
+# __2.16.101__ __2021-07-13__
+## __AWS Direct Connect__
+  - ### Features
+    - This release adds a new filed named awsLogicalDeviceId that it displays the AWS Direct Connect endpoint which terminates a physical connection's BGP Sessions.
+
+## __AWS Price List Service__
+  - ### Features
+    - Documentation updates for api.pricing
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Add paginator for GetCostEstimation
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Customers can now migrate bots built with Lex V1 APIs to V2 APIs. This release adds APIs to initiate and manage the migration of a bot.
+
+## __Amazon Redshift__
+  - ### Features
+    - Release new APIs to support new Redshift feature - Authentication Profile
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Changes to OpsCenter APIs to support a new feature, operational insights.
+
+## __AmplifyBackend__
+  - ### Features
+    - Added Sign in with Apple OAuth provider.
+
 # __2.16.100__ __2021-07-12__
 ## __AWS SDK for Java v2__
   - ### Features
