@@ -42,8 +42,7 @@ public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
                 byte[] accessKey = sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8);
                 byte[] secreteKey = sdkCredentials.secretAccessKey().getBytes(StandardCharsets.UTF_8);
 
-                // TODO: confirm with CRT if set empty means null. Currently setting null causes the crash
-                byte[] sessionTokens = new byte[0];
+                byte[] sessionTokens = null;
                 if (sdkCredentials instanceof AwsSessionCredentials) {
                     sessionTokens =
                         ((AwsSessionCredentials) sdkCredentials).sessionToken().getBytes(StandardCharsets.UTF_8);
