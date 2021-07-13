@@ -1,0 +1,48 @@
+{
+    "version": "2.16.98",
+    "date": "2021-07-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Added waiters for EKS FargateProfiles."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DevOps Guru",
+            "contributor": "",
+            "description": "Add AnomalyReportedTimeRange field to include open and close time of anomalies."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "Added property filters for listOutposts"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager Contacts",
+            "contributor": "",
+            "description": "Updated description for CreateContactChannel contactId."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Add ListAlerts for Channel, Program, Source Location, and VOD Source to return alerts for resources."
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "contributor": "",
+            "description": "AWS Firewall Manager now supports route table monitoring, and provides remediation action recommendations to security administrators for AWS Network Firewall policies with misconfigured routes."
+        }
+    ]
+}
