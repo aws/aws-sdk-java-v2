@@ -79,6 +79,7 @@ public final class JsonProtocolUnmarshaller {
             .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
             .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.createInstantHeaderUnmarshaller(instantStringToValue))
             .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
+            .headerUnmarshaller(MarshallingType.LIST, HeaderUnmarshaller.LIST)
 
             .payloadUnmarshaller(MarshallingType.STRING, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_STRING))
             .payloadUnmarshaller(MarshallingType.INTEGER, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_INTEGER))

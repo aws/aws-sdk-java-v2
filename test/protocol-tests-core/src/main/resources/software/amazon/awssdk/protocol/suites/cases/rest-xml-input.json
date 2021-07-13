@@ -388,6 +388,36 @@
         "uri": "/2016-03-11/operationWithGreedyLabel/pathParamValue//foo/bar/baz"
       }
     }
+  },
+  {
+    "description": "ListOfStrings in header is serialized as multi-valued header",
+    "given": {
+      "input": {
+        "StringMember": "singleValue",
+        "ListOfStringsMember": [
+          "listValueOne",
+          "listValueTwo"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/membersInHeaders",
+        "headers": {
+          "contains": {
+            "x-amz-string": "singleValue",
+            "x-amz-string-list": [
+              "listValueOne",
+              "listValueTwo"
+            ]
+          }
+        }
+      }
+    }
   }
   //  TODO this is not possible, payloads can only be structures or blobs. Only S3 utilizes this
   //  {

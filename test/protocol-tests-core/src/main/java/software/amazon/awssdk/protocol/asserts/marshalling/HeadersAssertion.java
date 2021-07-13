@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocol.asserts.marshalling;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
@@ -28,11 +29,11 @@ import java.util.Map;
  */
 public class HeadersAssertion extends MarshallingAssertion {
 
-    private Map<String, String> contains;
+    private Map<String, List<String>> contains;
 
     private List<String> doesNotContain;
 
-    public void setContains(Map<String, String> contains) {
+    public void setContains(Map<String, List<String>> contains) {
         this.contains = contains;
     }
 
@@ -51,8 +52,11 @@ public class HeadersAssertion extends MarshallingAssertion {
     }
 
     private void assertHeadersContains(HttpHeaders actual) {
-        contains.entrySet().forEach(e -> {
-            assertEquals(e.getValue(), actual.getHeader(e.getKey()).firstValue());
+        contains.forEach((expectedKey, expectedValues) -> {
+            assertTrue(String.format("Header '%s' was expected to be present. Actual headers: %s", expectedKey, actual),
+                       actual.getHeader(expectedKey).isPresent());
+            List<String> actualValues = actual.getHeader(expectedKey).values();
+            assertEquals(expectedValues, actualValues);
         });
     }
 

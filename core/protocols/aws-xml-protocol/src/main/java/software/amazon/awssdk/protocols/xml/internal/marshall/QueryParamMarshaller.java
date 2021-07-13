@@ -60,8 +60,7 @@ public final class QueryParamMarshaller {
             return;
         }
 
-        MapTrait mapTrait = sdkField.getOptionalTrait(MapTrait.class)
-                                    .orElseThrow(() -> new IllegalStateException("SdkField of list type is missing List trait"));
+        MapTrait mapTrait = sdkField.getRequiredTrait(MapTrait.class);
         SdkField valueField = mapTrait.valueFieldInfo();
 
         for (Map.Entry<String, ?> entry : map.entrySet()) {

@@ -268,6 +268,11 @@
           "location":"header",
           "locationName":"x-amz-string"
         },
+        "ListOfStringsMember":{
+          "shape":"ListOfStrings",
+          "location":"header",
+          "locationName":"x-amz-string-list"
+        },
         "BooleanMember":{
           "shape":"Boolean",
           "location":"header",
