@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.protocols.xml.internal.marshall;
 
+import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +66,7 @@ public final class HeaderMarshaller {
 
         @Override
         protected boolean shouldEmit(Map map) {
-            return map != null && !map.isEmpty();
+            return !isNullOrEmpty(map);
         }
     };
 
@@ -83,7 +85,7 @@ public final class HeaderMarshaller {
 
         @Override
         protected boolean shouldEmit(List list) {
-            return list != null && !list.isEmpty();
+            return !isNullOrEmpty(list);
         }
     };
 

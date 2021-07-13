@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
+import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
@@ -49,7 +51,7 @@ public final class HeaderMarshaller {
         = new SimpleHeaderMarshaller<>(JsonProtocolMarshaller.INSTANT_VALUE_TO_STRING);
 
     public static final JsonMarshaller<List<?>> LIST = (list, context, paramName, sdkField) -> {
-        if (list.isEmpty()) {
+        if (isNullOrEmpty(list)) {
             return;
         }
         SdkField memberFieldInfo = sdkField.getRequiredTrait(ListTrait.class).memberFieldInfo();
