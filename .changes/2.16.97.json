@@ -1,0 +1,54 @@
+{
+    "version": "2.16.97",
+    "date": "2021-07-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Documentation updates for AWS Identity and Access Management (IAM)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "contributor": "",
+            "description": "Releasing new APIs for AWS Chime MediaCapturePipeline"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Amazon CloudFront now provides two new APIs, ListConflictingAliases and AssociateAlias, that help locate and move Alternate Domain Names (CNAMEs) if you encounter the CNAMEAlreadyExists error code."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "contributor": "",
+            "description": "Adding support for oplocks for SMB file shares, S3 Access Point and S3 Private Link for all file shares and IP address support for file system associations"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMQ",
+            "contributor": "",
+            "description": "adds support for modifying the maintenance window for brokers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds resource ids and tagging support for VPC security group rules."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "Documentation updates for AWS Security Token Service."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "This release add storage configuration APIs for AWS IoT SiteWise."
+        }
+    ]
+}

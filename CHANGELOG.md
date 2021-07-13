@@ -1,3 +1,130 @@
+# __2.16.100__ __2021-07-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports Principal Store
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Documentation updates for Wesley to support the parallel node upgrade feature.
+
+# __2.16.99__ __2021-07-09__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - MediaConvert now supports color, style and position information passthrough from 608 and Teletext to SRT and WebVTT subtitles. MediaConvert now also supports Automatic QVBR quality levels for QVBR RateControlMode.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+    - Use EnumMap where possible.
+        - Contributed by: [@Bennett-Lynch](https://github.com/Bennett-Lynch)
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - This release adds support for ML Explainability to display model variable importance value in Amazon Fraud Detector.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Releasing new APIs related to Tuning steps in model building pipelines.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Bennett-Lynch](https://github.com/Bennett-Lynch)
+# __2.16.98__ __2021-07-08__
+## __AWS MediaTailor__
+  - ### Features
+    - Add ListAlerts for Channel, Program, Source Location, and VOD Source to return alerts for resources.
+
+## __AWS Outposts__
+  - ### Features
+    - Added property filters for listOutposts
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Updated description for CreateContactChannel contactId.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Add AnomalyReportedTimeRange field to include open and close time of anomalies.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added waiters for EKS FargateProfiles.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports route table monitoring, and provides remediation action recommendations to security administrators for AWS Network Firewall policies with misconfigured routes.
+
+# __2.16.97__ __2021-07-07__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release add storage configuration APIs for AWS IoT SiteWise.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding support for oplocks for SMB file shares, S3 Access Point and S3 Private Link for all file shares and IP address support for file system associations
+
+## __Amazon Chime__
+  - ### Features
+    - Releasing new APIs for AWS Chime MediaCapturePipeline
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront now provides two new APIs, ListConflictingAliases and AssociateAlias, that help locate and move Alternate Domain Names (CNAMEs) if you encounter the CNAMEAlreadyExists error code.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds resource ids and tagging support for VPC security group rules.
+
+## __AmazonMQ__
+  - ### Features
+    - adds support for modifying the maintenance window for brokers.
+
+# __2.16.96__ __2021-07-06__
+## __AWS Lambda__
+  - ### Features
+    - Added support for AmazonMQRabbitMQ as an event source. Added support for VIRTUAL_HOST as SourceAccessType for streams event source mappings.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding new error code UnsupportedAddonModification for Addons in EKS
+
+## __Amazon Macie 2__
+  - ### Features
+    - Sensitive data findings in Amazon Macie now include enhanced location data for JSON and JSON Lines files
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Documentation updates for Amazon SNS.
+
+## __Application Migration Service__
+  - ### Features
+    - Bug fix: Remove not supported EBS encryption type "NONE"
+
+## __EC2 Image Builder__
+  - ### Features
+    - Adds support for specifying parameters to customize components for recipes. Expands configuration of the Amazon EC2 instances that are used for building and testing images, including the ability to specify commands to run on launch, and more control over installation and removal of the SSM agent.
+
 # __2.16.95__ __2021-07-02__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
