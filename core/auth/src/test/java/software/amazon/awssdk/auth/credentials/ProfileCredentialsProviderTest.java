@@ -18,7 +18,12 @@ package software.amazon.awssdk.auth.credentials;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
@@ -28,6 +33,10 @@ import software.amazon.awssdk.utils.StringInputStream;
  * Verify functionality of {@link ProfileCredentialsProvider}.
  */
 public class ProfileCredentialsProviderTest {
+
+    @Rule
+    public TemporaryFolder tempDir = new TemporaryFolder();
+
     @Test
     public void missingCredentialsFileThrowsExceptionInGetCredentials() {
         ProfileCredentialsProvider provider =
@@ -98,6 +107,29 @@ public class ProfileCredentialsProviderTest {
                                        + "web_identity_token_file = " + token);
 
         assertThat(file.profile("default").get().property(ProfileProperty.WEB_IDENTITY_TOKEN_FILE).get()).isEqualTo(token);
+    }
+
+    @Test
+    public void profileReloaded() throws IOException, InterruptedException {
+        File file = tempDir.newFile();
+        Files.write(file.toPath(), ("[foo]\n"
+                                    + "aws_access_key_id = key_1\n"
+                                    + "aws_secret_access_key = secret_1").getBytes());
+        ProfileFile profileFile = ProfileFile.builder().content(file.toPath()).type(ProfileFile.Type.CREDENTIALS).build();
+
+        ProfileCredentialsProvider provider =
+            ProfileCredentialsProvider.builder().profileFile(profileFile).profileName("foo").build();
+
+        assertThat(provider.resolveCredentials()).isEqualTo(AwsBasicCredentials.create("key_1", "secret_1"));
+
+        Files.write(file.toPath(), ("[foo]\n"
+                                    + "aws_access_key_id = key_2\n"
+                                    + "aws_secret_access_key = secret_2").getBytes());
+        // Manually bump the last modified version because file writing is not enough
+        // if it happens within a very small amount of time on some platforms
+        file.setLastModified(file.lastModified() + 60_000);
+
+        assertThat(provider.resolveCredentials()).isEqualTo(AwsBasicCredentials.create("key_2", "secret_2"));
     }
 
     private ProfileFile profileFile(String string) {

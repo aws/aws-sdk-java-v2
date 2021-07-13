@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.profiles;
 
+import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +28,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileReader;
 import software.amazon.awssdk.utils.FunctionalUtils;
@@ -52,14 +55,22 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 public final class ProfileFile {
     private final Map<String, Profile> profiles;
+    private final BooleanSupplier profileFileChanged;
+    private final UnaryOperator<ProfileFile> reloadProfile;
 
     /**
      * @see #builder()
      */
-    private ProfileFile(Map<String, Map<String, String>> rawProfiles) {
+    private ProfileFile(Map<String, Map<String, String>> rawProfiles,
+                        BooleanSupplier profileFileChanged,
+                        UnaryOperator<ProfileFile> reloadProfile) {
         Validate.paramNotNull(rawProfiles, "rawProfiles");
+        Validate.paramNotNull(profileFileChanged, "profileFileChanged");
+        Validate.paramNotNull(reloadProfile, "reloadProfile");
 
         this.profiles = Collections.unmodifiableMap(convertToProfilesMap(rawProfiles));
+        this.profileFileChanged = profileFileChanged;
+        this.reloadProfile = reloadProfile;
     }
 
     /**
@@ -108,6 +119,28 @@ public final class ProfileFile {
      */
     public Map<String, Profile> profiles() {
         return profiles;
+    }
+
+    /**
+     * Checks if the current profile file was changed on disk.
+     * This method will always return {@link Boolean#FALSE} if you built the {@link ProfileFile}
+     * using {@link Builder#content(InputStream)} since we cannot re-run a stream
+     * or check if it's actually updated.
+     * @return True if the profile file changed
+     */
+    public boolean profileFileChanged() {
+        return profileFileChanged.getAsBoolean();
+    }
+
+    /**
+     * Reload the profile file from the file(s) on disk.
+     * This method will always return the same object if you built the {@link ProfileFile}
+     * using {@link Builder#content(InputStream)} since we cannot re-run a stream
+     * and expected updated content
+     * @return A new and reloaded {@link ProfileFile}
+     */
+    public ProfileFile reloadProfile() {
+        return reloadProfile.apply(this);
     }
 
     @Override
@@ -261,8 +294,24 @@ public final class ProfileFile {
             Validate.paramNotNull(type, "type");
             Validate.paramNotNull(stream, "content");
 
+            File contentFile = contentLocation != null ? contentLocation.toFile() : null;
+            long contentFileLastModified = contentFile != null ? contentFile.lastModified() : Long.MIN_VALUE;
+            BooleanSupplier profileFileChanged = () -> {
+                if (contentFile == null) {
+                    return false;
+                }
+                return contentFile.lastModified() > contentFileLastModified;
+            };
+            UnaryOperator<ProfileFile> reloadProfile = currentProfile -> {
+                if (contentFile == null) {
+                    return currentProfile;
+                }
+
+                return this.build();
+            };
+
             try {
-                return new ProfileFile(ProfileFileReader.parseFile(stream, type));
+                return new ProfileFile(ProfileFileReader.parseFile(stream, type), profileFileChanged, reloadProfile);
             } finally {
                 IoUtils.closeQuietly(stream, null);
             }
@@ -291,7 +340,14 @@ public final class ProfileFile {
             for (int i = files.size() - 1; i >= 0; --i) {
                 addToAggregate(aggregateRawProfiles, files.get(i));
             }
-            return new ProfileFile(aggregateRawProfiles);
+            BooleanSupplier profileFileChanged = () -> files.stream().anyMatch(ProfileFile::profileFileChanged);
+            UnaryOperator<ProfileFile> reloadProfile = currentProfile -> {
+                for (int i = 0; i < files.size(); i++) {
+                    files.set(i, files.get(i).reloadProfile());
+                }
+                return this.build();
+            };
+            return new ProfileFile(aggregateRawProfiles, profileFileChanged, reloadProfile);
         }
 
         private void addToAggregate(Map<String, Map<String, String>> aggregateRawProfiles, ProfileFile file) {
