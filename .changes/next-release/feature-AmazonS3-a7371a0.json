@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "contributor": "mina-asham",
+    "description": "Add option to download to and overwrite existing files"
+}

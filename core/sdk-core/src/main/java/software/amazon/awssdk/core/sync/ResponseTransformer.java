@@ -24,6 +24,7 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -93,17 +94,22 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
     /**
      * Creates a response transformer that writes all response content to the specified file. If the file already exists
-     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     * and overwrite parameter is set to false then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
      *
      * @param path        Path to file to write to.
+     * @param overwrite   Overwrite existing files.
      * @param <ResponseT> Type of unmarshalled response POJO.
      * @return ResponseTransformer instance.
      */
-    static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path, boolean overwrite) {
         return (resp, in) -> {
             try {
                 InterruptMonitor.checkInterrupted();
-                Files.copy(in, path);
+                if (overwrite) {
+                    Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
+                } else {
+                    Files.copy(in, path);
+                }
                 return resp;
             } catch (IOException copyException) {
                 String copyError = "Failed to read response into file: " + path;
@@ -131,6 +137,18 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                 throw RetryableException.builder().message(copyError).cause(copyException).build();
             }
         };
+    }
+
+    /**
+     * Creates a response transformer that writes all response content to the specified file. If the file already exists
+     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     *
+     * @param path        Path to file to write to.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
+        return toFile(path, false);
     }
 
     /**

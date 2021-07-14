@@ -113,6 +113,18 @@ public class ResponseTransformerTest {
     }
 
     @Test
+    public void downloadToExistingFileWithOverwriteSucceeds() throws IOException {
+        stubForSuccess();
+
+        Path tmpFile = Files.createTempFile("overwrite-test.", ".tmp");
+        tmpFile.toFile().deleteOnExit();
+
+        testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(), ResponseTransformer.toFile(tmpFile, true));
+
+        assertThat(Files.readAllLines(tmpFile)).containsExactly("test \uD83D\uDE02");
+    }
+
+    @Test
     public void downloadToOutputStreamDoesNotRetry() throws IOException {
         stubForRetriesTimeoutReadingFromStreams();
 
