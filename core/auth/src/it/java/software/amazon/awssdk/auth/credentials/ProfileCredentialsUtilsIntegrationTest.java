@@ -54,13 +54,9 @@ public class ProfileCredentialsUtilsIntegrationTest {
 
             Optional<AwsCredentialsProvider> awsCredentialsProvider = credentialsUtils.credentialsProvider();
 
-            awsCredentialsProvider.get().resolveCredentials();
-
-            // all requests should have gone to the second server, and none to the other one
-//            mockMetadataEndpoint.verify(0, RequestPatternBuilder.allRequests());
-
+        awsCredentialsProvider.get().resolveCredentials();
         } catch (Throwable e) {
-            e.printStackTrace();
+            // ignored
         }
 
         String userAgentHeader = "User-Agent";

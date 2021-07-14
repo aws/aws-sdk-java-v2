@@ -26,6 +26,11 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 
 @SdkInternalApi
+// TODO: Remove or consolidate this class with the one from the regions module.
+// There's currently no good way for both auth and regions to share the same
+// class since there's no suitable common dependency between the two where this
+// can live. Ideally, we can do this when the EC2MetadataUtils is replaced with
+// the IMDS client.
 public final class Ec2MetadataConfigProvider {
     /** Default IPv4 endpoint for the Amazon EC2 Instance Metadata Service. */
     private static final String EC2_METADATA_SERVICE_URL_IPV4 = "http://169.254.169.254";
@@ -47,6 +52,10 @@ public final class Ec2MetadataConfigProvider {
         ;
 
         public static EndpointMode fromValue(String s) {
+            if (s == null) {
+                return null;
+            }
+
             for (EndpointMode value : EndpointMode.values()) {
                 if (value.name().equalsIgnoreCase(s)) {
                     return value;
