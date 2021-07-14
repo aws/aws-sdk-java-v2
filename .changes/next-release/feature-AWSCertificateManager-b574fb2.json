@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Certificate Manager",
+    "contributor": "",
+    "description": "Added support for RSA 3072 SSL certificate import"
+}
