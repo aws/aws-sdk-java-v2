@@ -80,8 +80,27 @@ public class BatchBufferSqsTest {
     }
 
     @Test
-    public void sendMessageTest() {
+    public void sendTenMessageTest() {
         SendMessageRequest[] requests = new SendMessageRequest[10];
+        for (int i = 0; i < requests.length; i++) {
+            requests[i] = SendMessageRequest.builder()
+                                            .messageBody(Integer.toString(i))
+                                            .queueUrl(queueUrl)
+                                            .build();
+        }
+        List<CompletableFuture<SendMessageResponse>> responses = new ArrayList<>();
+        for (SendMessageRequest request : requests) {
+            responses.add(buffer.sendRequest(request, queueUrl));
+        }
+        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        for (CompletableFuture<SendMessageResponse> response : responses) {
+            System.out.println("message ID:" + response.join().messageId());
+        }
+    }
+
+    @Test
+    public void sendTwentyMessageTest() {
+        SendMessageRequest[] requests = new SendMessageRequest[20];
         for (int i = 0; i < requests.length; i++) {
             requests[i] = SendMessageRequest.builder()
                                             .messageBody(Integer.toString(i))
