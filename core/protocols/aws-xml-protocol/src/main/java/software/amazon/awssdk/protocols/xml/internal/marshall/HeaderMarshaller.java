@@ -85,6 +85,8 @@ public final class HeaderMarshaller {
 
         @Override
         protected boolean shouldEmit(List list) {
+            // Null or empty lists cannot be meaningfully (or safely) represented in an HTTP header message since header-fields
+            // must typically have a non-empty field-value. https://datatracker.ietf.org/doc/html/rfc7230#section-3.2
             return !isNullOrEmpty(list);
         }
     };

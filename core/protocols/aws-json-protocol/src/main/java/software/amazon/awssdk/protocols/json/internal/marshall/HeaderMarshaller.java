@@ -51,6 +51,8 @@ public final class HeaderMarshaller {
         = new SimpleHeaderMarshaller<>(JsonProtocolMarshaller.INSTANT_VALUE_TO_STRING);
 
     public static final JsonMarshaller<List<?>> LIST = (list, context, paramName, sdkField) -> {
+        // Null or empty lists cannot be meaningfully (or safely) represented in an HTTP header message since header-fields must 
+        // typically have a non-empty field-value. https://datatracker.ietf.org/doc/html/rfc7230#section-3.2
         if (isNullOrEmpty(list)) {
             return;
         }
