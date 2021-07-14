@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -47,8 +48,8 @@ public class ProxyConfigurationTest {
     @Test
     public void setNonProxyHostsToNull_createsEmptySet() {
         ProxyConfiguration cfg = ProxyConfiguration.builder()
-                .nonProxyHosts(null)
-                .build();
+                                                   .nonProxyHosts(null)
+                                                   .build();
 
         assertThat(cfg.nonProxyHosts()).isEmpty();
     }
@@ -68,15 +69,15 @@ public class ProxyConfigurationTest {
 
     private ProxyConfiguration.Builder setAllPropertiesToRandomValues(ProxyConfiguration.Builder builder) {
         Stream.of(builder.getClass().getDeclaredMethods())
-                .filter(m -> m.getParameterCount() == 1 && m.getReturnType().equals(ProxyConfiguration.Builder.class))
-                .forEach(m -> {
-                    try {
-                        m.setAccessible(true);
-                        setRandomValue(builder, m);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Could not create random proxy config", e);
-                    }
-                });
+              .filter(m -> m.getParameterCount() == 1 && m.getReturnType().equals(ProxyConfiguration.Builder.class))
+              .forEach(m -> {
+                  try {
+                      m.setAccessible(true);
+                      setRandomValue(builder, m);
+                  } catch (Exception e) {
+                      throw new RuntimeException("Could not create random proxy config", e);
+                  }
+              });
         return builder;
     }
 
@@ -96,15 +97,15 @@ public class ProxyConfigurationTest {
 
     private void verifyAllPropertiesSet(ProxyConfiguration cfg) {
         boolean hasNullProperty = Stream.of(cfg.getClass().getDeclaredMethods())
-                .filter(m -> !m.getReturnType().equals(Void.class) && m.getParameterCount() == 0)
-                .anyMatch(m -> {
-                    m.setAccessible(true);
-                    try {
-                        return m.invoke(cfg) == null;
-                    } catch (Exception e) {
-                        return true;
-                    }
-                });
+                                        .filter(m -> !m.getReturnType().equals(Void.class) && m.getParameterCount() == 0)
+                                        .anyMatch(m -> {
+                                            m.setAccessible(true);
+                                            try {
+                                                return m.invoke(cfg) == null;
+                                            } catch (Exception e) {
+                                                return true;
+                                            }
+                                        });
 
         if (hasNullProperty) {
             throw new RuntimeException("Given configuration has unset property");

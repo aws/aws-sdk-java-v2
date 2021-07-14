@@ -43,6 +43,7 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
@@ -54,6 +55,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.testng.collections.Maps;
 
 /**
  * Unit tests for {@link Http1TunnelConnectionPool}.
@@ -67,6 +69,10 @@ public class Http1TunnelConnectionPoolTest {
     private static final URI HTTPS_PROXY_ADDRESS = URI.create("https://localhost:5678");
 
     private static final URI REMOTE_ADDRESS = URI.create("https://s3.amazonaws.com:5678");
+
+    private static final String PROXY_USER = "myuser";
+
+    private static final String PROXY_PASSWORD = "mypassword";
 
     @Mock
     private ChannelPool delegatePool;
@@ -138,13 +144,13 @@ public class Http1TunnelConnectionPoolTest {
 
     @Test
     public void tunnelInitFails_acquireFutureFails() {
-        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, remoteAddr, initFuture) -> {
+        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, proxyUser, proxyPassword, remoteAddr, initFuture) -> {
             initFuture.setFailure(new IOException("boom"));
             return mock(ChannelHandler.class);
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTP_PROXY_ADDRESS,null, null, REMOTE_ADDRESS, mockHandler, supplier);
 
         Future<Channel> acquireFuture = tunnelPool.acquire();
 
@@ -153,13 +159,13 @@ public class Http1TunnelConnectionPoolTest {
 
     @Test
     public void tunnelInitSucceeds_acquireFutureSucceeds() {
-        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, remoteAddr, initFuture) -> {
+        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, proxyUser, proxyPassword, remoteAddr, initFuture) -> {
             initFuture.setSuccess(mockChannel);
             return mock(ChannelHandler.class);
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTP_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier);
 
         Future<Channel> acquireFuture = tunnelPool.acquire();
 
@@ -186,13 +192,13 @@ public class Http1TunnelConnectionPoolTest {
         when(mockSslEngine.getSSLParameters()).thenReturn(mock(SSLParameters.class));
         TestSslContext mockSslCtx = new TestSslContext(mockSslHandler);
 
-        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, remoteAddr, initFuture) -> {
+        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, proxyUser, proxyPassword, remoteAddr, initFuture) -> {
             initFuture.setSuccess(mockChannel);
             return mock(ChannelHandler.class);
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, mockSslCtx,
-                HTTPS_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTPS_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier);
 
         tunnelPool.acquire().awaitUninterruptibly();
 
@@ -207,13 +213,13 @@ public class Http1TunnelConnectionPoolTest {
         SslHandler mockSslHandler = mock(SslHandler.class);
         TestSslContext mockSslCtx = new TestSslContext(mockSslHandler);
 
-        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, remoteAddr, initFuture) -> {
+        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, proxyUser, proxyPassword, remoteAddr, initFuture) -> {
             initFuture.setSuccess(mockChannel);
             return mock(ChannelHandler.class);
         };
 
         Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, mockSslCtx,
-                HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler, supplier);
+                HTTP_PROXY_ADDRESS, null, null, REMOTE_ADDRESS, mockHandler, supplier);
 
         tunnelPool.acquire().awaitUninterruptibly();
 
@@ -246,6 +252,50 @@ public class Http1TunnelConnectionPoolTest {
                 HTTP_PROXY_ADDRESS, REMOTE_ADDRESS, mockHandler);
         tunnelPool.close();
         verify(delegatePool).close();
+    }
+
+    @Test
+    public void proxyAuthProvided_addInitHandler_withAuth(){
+        TestInitHandlerData data = new TestInitHandlerData();
+
+        Http1TunnelConnectionPool.InitHandlerSupplier supplier = (srcPool, proxyUser, proxyPassword, remoteAddr, initFuture) -> {
+            initFuture.setSuccess(mockChannel);
+            data.proxyUser(proxyUser);
+            data.proxyPassword(proxyPassword);
+            return mock(ChannelHandler.class);
+        };
+
+        Http1TunnelConnectionPool tunnelPool = new Http1TunnelConnectionPool(GROUP.next(), delegatePool, null,
+                HTTP_PROXY_ADDRESS, PROXY_USER, PROXY_PASSWORD, REMOTE_ADDRESS, mockHandler, supplier);
+
+        tunnelPool.acquire().awaitUninterruptibly();
+
+        assertThat(data.proxyUser()).isEqualTo(PROXY_USER);
+        assertThat(data.proxyPassword()).isEqualTo(PROXY_PASSWORD);
+
+    }
+
+    private static class TestInitHandlerData {
+
+        private String proxyUser;
+        private String proxyPassword;
+
+        public void proxyUser(String proxyUser) {
+            this.proxyUser = proxyUser;
+        }
+
+        public String proxyUser() {
+            return this.proxyUser;
+        }
+
+        public void proxyPassword(String proxyPassword) {
+            this.proxyPassword = proxyPassword;
+        }
+
+        public String proxyPassword(){
+            return this.proxyPassword;
+        }
+
     }
 
     private static class TestSslContext extends SslContext {
