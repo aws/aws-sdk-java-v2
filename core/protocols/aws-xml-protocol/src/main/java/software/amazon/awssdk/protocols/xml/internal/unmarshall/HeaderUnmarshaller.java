@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
+import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.utils.StringUtils.replacePrefixIgnoreCase;
 import static software.amazon.awssdk.utils.StringUtils.startsWithIgnoreCase;
 
@@ -26,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class HeaderUnmarshaller {
@@ -39,6 +41,7 @@ public final class HeaderUnmarshaller {
     public static final XmlUnmarshaller<Instant> INSTANT =
         new SimpleHeaderUnmarshaller<>(XmlProtocolUnmarshaller.INSTANT_STRING_TO_VALUE);
 
+    // Only supports string value type
     public static final XmlUnmarshaller<Map<String, ?>> MAP = ((context, content, field) -> {
         Map<String, String> result = new HashMap<>();
         context.response().headers().entrySet().stream()
@@ -47,6 +50,11 @@ public final class HeaderUnmarshaller {
                                         String.join(",", e.getValue())));
         return result;
     });
+
+    // Only supports string value type
+    public static final XmlUnmarshaller<List<?>> LIST = (context, content, field) -> {
+        return SdkHttpUtils.allMatchingHeaders(context.response().headers(), field.locationName()).collect(toList());
+    };
 
     private HeaderUnmarshaller() {
     }
