@@ -21,15 +21,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
@@ -53,18 +50,12 @@ public class BatchBuffer<T, U, V> {
     private int currentId;
     private boolean scheduled = false;
     private ScheduledFlush scheduledFlushTask = null;
-
-    // Takes a map of ids to requests as well as a destination and batches the requests into a batch request with the respective
-    // ids. It then sends the batch request and returns a CompletableFuture of the response.
-    private final BiFunction<Map<String, T>, String, CompletableFuture<V>> batchingFunction;
-
-    // Unpacks the batch response, then transforms individual entries to the appropriate response type. Each entry's batch ID
-    // is mapped to the individual response entry.
-    private final Function<V, Map<String, U>> unpackResponseFunction;
+    private final BatchAndSendFunction<T, V> batchingFunction;
+    private final UnpackBatchResponseFunction<V, U> unpackResponseFunction;
 
     public BatchBuffer(int maxBatchItems, Duration maxBatchOpenInMs,
-                       BiFunction<Map<String, T>, String, CompletableFuture<V>> batchingFunction,
-                       Function<V, Map<String, U>> unpackResponseFunction) {
+                       BatchAndSendFunction<T, V> batchingFunction,
+                       UnpackBatchResponseFunction<V, U> unpackResponseFunction) {
         this.destinationRequestMap = new HashMap<>();
         this.destinationResponseMap = new HashMap<>();
         this.currentId = Integer.MIN_VALUE;
@@ -108,26 +99,29 @@ public class BatchBuffer<T, U, V> {
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
     private void flushBuffer(String destination) {
         List<T> requestBuffer = destinationRequestMap.get(destination);
-        Map<String, T> requestEntryMap = new LinkedHashMap<>();
+        List<IdentifiedRequest<T>> requestEntryMap = new ArrayList<>();
         int batchId = currentId - requestBuffer.size();
         for (int i = 0; i < requestBuffer.size(); i++) {
             T request = requestBuffer.get(i);
-            requestEntryMap.put(Integer.toString(batchId + i), request);
+            requestEntryMap.add(new IdentifiedRequest<T>(Integer.toString(batchId + i), request));
         }
 
         // Map returned responses back to the destinationResponseMap.
-        batchingFunction.apply(requestEntryMap, destination)
+        batchingFunction.batchAndSend(requestEntryMap, destination)
                         .whenComplete((result, ex) -> {
                             if (ex != null) {
                                 // Complete all futures exceptionally
                             } else {
-                                Map<String, U> mappedResponses = unpackResponseFunction.apply(result);
-                                mappedResponses.forEach((key, value) -> {
+                                List<IdentifiedResponse<U>> identifiedResponses = unpackResponseFunction
+                                                                                    .unpackBatchResponse(result);
+                                identifiedResponses.forEach(identifiedResponse -> {
+                                    String id = identifiedResponse.getId();
+                                    U response = identifiedResponse.getResponse();
                                     destinationResponseMap.get(destination)
-                                                          .get(key)
-                                                          .complete(value);
+                                                          .get(id)
+                                                          .complete(response);
                                     destinationResponseMap.get(destination)
-                                                          .remove(key);
+                                                          .remove(id);
                                 });
                             }
                         });

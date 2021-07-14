@@ -33,10 +33,14 @@ public class BatchBufferTest {
     private String destination;
     private int currentId;
 
-    BiFunction<Map<String, String>, String, CompletableFuture<List<RequestWithId>>> batchingFunction =
-        (requestEntryMap, destination) -> {
-            List<RequestWithId> entries = new ArrayList<>(requestEntryMap.size());
-            requestEntryMap.forEach((key, value) -> entries.add(new RequestWithId(Integer.parseInt(key), value)));
+    BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
+        (identifiedRequests, destination) -> {
+            List<RequestWithId> entries = new ArrayList<>(identifiedRequests.size());
+            identifiedRequests.forEach(identifiedRequest -> {
+                String id = identifiedRequest.getId();
+                String request = identifiedRequest.getRequest();
+                entries.add(new RequestWithId(Integer.parseInt(id), request));
+            });
             return CompletableFuture.supplyAsync(() -> {
                 try {
                     Thread.sleep(150);
@@ -47,11 +51,12 @@ public class BatchBufferTest {
             });
         };
 
-    Function<List<RequestWithId>, Map<String, String>> unpackResponseFunction =
+//    Function<List<RequestWithId>, List<IdentifiedResponse<String>>> unpackResponseFunction =
+    UnpackBatchResponseFunction<List<RequestWithId>, String> unpackResponseFunction =
         requestBatchResponse -> {
-            Map<String, String> mappedResponses = new HashMap<>();
+            List<IdentifiedResponse<String>> mappedResponses = new ArrayList<>();
             for (RequestWithId requestWithId : requestBatchResponse) {
-                mappedResponses.put(Integer.toString(currentId++), requestWithId.getMessage());
+                mappedResponses.add(new IdentifiedResponse<>(Integer.toString(currentId++), requestWithId.getMessage()));
             }
             return mappedResponses;
         };
@@ -109,8 +114,14 @@ public class BatchBufferTest {
         for (String request : requests) {
             responses.add(buffer.sendRequest(request, destination));
         }
+        // Sometimes responses are returned out of order which seems to indicate it is not properly correlated.
+        // Not entirely sure why it happens sometimes but not other times.
+        // Could be how I use assertions or create the objects or even construct the response array? Not entirely sure.
+        // Seems to be the first batch response is spliced together with second batch response.
         for (int i = 0; i < requests.length; i++) {
-            Assert.assertEquals(responses.get(i).join(), "Message " + i);
+            String response = responses.get(i).join();
+            System.out.println(response);
+            Assert.assertEquals(response, "Message " + i);
         }
     }
 }

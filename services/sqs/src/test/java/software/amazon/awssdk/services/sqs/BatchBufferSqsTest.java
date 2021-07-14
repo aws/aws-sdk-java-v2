@@ -21,12 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.internal.batchutilities.BatchAndSendFunction;
 import software.amazon.awssdk.core.internal.batchutilities.BatchBuffer;
+import software.amazon.awssdk.core.internal.batchutilities.IdentifiedResponse;
+import software.amazon.awssdk.core.internal.batchutilities.UnpackBatchResponseFunction;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
@@ -42,10 +43,14 @@ public class BatchBufferSqsTest {
     private BatchBuffer<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> buffer;
     private String queueUrl;
 
-    BiFunction<Map<String, SendMessageRequest>, String, CompletableFuture<SendMessageBatchResponse>> batchingFunction =
-        (requestEntryMap, queueUrl) -> {
-                List<SendMessageBatchRequestEntry> entries = new ArrayList<>(requestEntryMap.size());
-                requestEntryMap.forEach((key, value) -> entries.add(createMessageBatchRequestEntry(key, value)));
+    BatchAndSendFunction<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
+        (identifiedRequests, queueUrl) -> {
+                List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
+                identifiedRequests.forEach(identifiedRequest -> {
+                    String id = identifiedRequest.getId();
+                    SendMessageRequest request = identifiedRequest.getRequest();
+                    entries.add(createMessageBatchRequestEntry(id, request));
+                });
                 SendMessageBatchRequest batchRequest = SendMessageBatchRequest.builder()
                                                                               .queueUrl(queueUrl)
                                                                               .entries(entries)
@@ -53,15 +58,15 @@ public class BatchBufferSqsTest {
                 return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
         };
 
-    Function<SendMessageBatchResponse, Map<String, SendMessageResponse>> unpackResponseFunction =
+//    Function<SendMessageBatchResponse, List<IdentifiedResponse<SendMessageResponse>>> unpackResponseFunction =
+    UnpackBatchResponseFunction<SendMessageBatchResponse, SendMessageResponse> unpackResponseFunction =
         sendMessageBatchResponse -> {
-            Map<String, SendMessageResponse> mappedResponses = new HashMap<>();
+            List<IdentifiedResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
-                                    .stream()
                                     .forEach(batchResponseEntry -> {
                                         String key = batchResponseEntry.id();
-                                        SendMessageResponse response = createSendMessageResponse(key, batchResponseEntry);
-                                        mappedResponses.put(key, response);
+                                        SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
+                                        mappedResponses.add(new IdentifiedResponse<>(key, response));
                                     });
             // Add failed responses once I figure out how to crate sendMessageResponse items.
             return mappedResponses;
@@ -130,7 +135,7 @@ public class BatchBufferSqsTest {
                                            .build();
     }
 
-    private SendMessageResponse createSendMessageResponse(String id, SendMessageBatchResultEntry successfulEntry) {
+    private SendMessageResponse createSendMessageResponse(SendMessageBatchResultEntry successfulEntry) {
         return SendMessageResponse.builder()
                                   .md5OfMessageAttributes(successfulEntry.md5OfMessageAttributes())
                                   .md5OfMessageBody(successfulEntry.md5OfMessageBody())
