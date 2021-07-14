@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Well-Architected Tool",
+    "contributor": "",
+    "description": "This update provides support for Well-Architected API users to mark answer choices as not applicable."
+}
