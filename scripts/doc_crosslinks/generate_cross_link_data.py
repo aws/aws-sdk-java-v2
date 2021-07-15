@@ -13,9 +13,9 @@ from re import split
 sdks = {}
 clientClass = {}
 
-def generateDocsMap(apiDefinitionsPath, apiDefinitionsRelativeFilePath):
+def generateDocsMap(apiDefinitionsPath):
 
-    rootPath = pathlib.Path(r'./services')
+    rootPath = pathlib.Path(apiDefinitionsPath)
     for serviceModelPaths in rootPath.rglob('service-2.json'):
         tokenizePath = str(Path(serviceModelPaths).parent).split("/")
         getServiceName = tokenizePath[len(tokenizePath)-1]
@@ -85,8 +85,8 @@ def removeTrailing(str, toRemove) :
         return str.replace(toRemove, "")
     return str
 
-def insertDocsMapToRedirect(apiDefinitionsBasePath, apiDefinitionsRelativeFilePath, templateFilePath, outputFilePath):
-    generateDocsMap(apiDefinitionsBasePath, apiDefinitionsRelativeFilePath)
+def insertDocsMapToRedirect(apiDefinitionsBasePath, templateFilePath, outputFilePath):
+    generateDocsMap(apiDefinitionsBasePath)
     output = ""
     with codecs.open(templateFilePath, 'rb', 'utf-8') as redirect_template:
         current_template = redirect_template.read();
@@ -98,18 +98,16 @@ def insertDocsMapToRedirect(apiDefinitionsBasePath, apiDefinitionsRelativeFilePa
 def Main():
     parser = argparse.ArgumentParser(description="Generates a Cross-link redirect file.")
     parser.add_argument("--apiDefinitionsBasePath", action="store")
-    parser.add_argument("--apiDefinitionsRelativeFilePath", action="store")
     parser.add_argument("--templateFilePath", action="store")
     parser.add_argument("--outputFilePath", action="store")
     
     args = vars( parser.parse_args() )
     argMap = {}
-    argMap[ "apiDefinitionsBasePath" ] = args[ "apiDefinitionsBasePath" ] or "./../services/"
-    argMap[ "apiDefinitionsRelativeFilePath" ] = args[ "apiDefinitionsRelativeFilePath" ] or "/src/main/resources/codegen-resources/service-2.json"
+    argMap[ "apiDefinitionsBasePath" ] = args[ "apiDefinitionsBasePath" ] or "./services/"
     argMap[ "templateFilePath" ] = args[ "templateFilePath" ] or "./scripts/doc_crosslinks/crosslink_redirect.html"
-    argMap[ "outputFilePath" ] = args[ "outputFilePath" ] or "./crosslink_redirect.html"
+    argMap[ "outputFilePath" ] = args[ "outputFilePath" ] or "./scripts/crosslink_redirect.html"
     
-    insertDocsMapToRedirect(argMap["apiDefinitionsBasePath"], argMap["apiDefinitionsRelativeFilePath"], argMap["templateFilePath"], argMap["outputFilePath"])
+    insertDocsMapToRedirect(argMap["apiDefinitionsBasePath"], argMap["templateFilePath"], argMap["outputFilePath"])
     print("Generated Cross link at " + argMap["outputFilePath"])
     
 Main()
