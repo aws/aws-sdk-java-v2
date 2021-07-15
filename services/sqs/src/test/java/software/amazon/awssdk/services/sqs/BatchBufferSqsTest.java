@@ -62,7 +62,6 @@ public class BatchBufferSqsTest {
             return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
         };
 
-//    Function<SendMessageBatchResponse, List<IdentifiedResponse<SendMessageResponse>>> unpackResponseFunction =
     UnpackBatchResponseFunction<SendMessageBatchResponse, SendMessageResponse> unpackResponseFunction =
         sendMessageBatchResponse -> {
             List<IdentifiedResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
