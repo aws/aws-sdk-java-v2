@@ -334,5 +334,33 @@
         }
       }
     }
+  },
+  {
+    "description": "ListOfStrings in multi-valued header is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "x-amz-string": "singleValue",
+          "x-amz-string-list": [
+            "listValueOne",
+            "listValueTwo"
+          ]
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+        "StringMember": "singleValue",
+        "ListOfStringsMember": [
+          "listValueOne",
+          "listValueTwo"
+        ]
+      }
+    }
   }
 ]

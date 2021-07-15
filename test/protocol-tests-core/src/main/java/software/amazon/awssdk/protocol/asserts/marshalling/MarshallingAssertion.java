@@ -29,9 +29,11 @@ public abstract class MarshallingAssertion {
      * @throws AssertionError If any assertions fail
      */
     public final void assertMatches(LoggedRequest actual) throws AssertionError {
-        // Catches the exception to play nicer with lambda's
+        // Wrap checked exceptions to play nicer with lambda's
         try {
             doAssert(actual);
+        } catch (Error | RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

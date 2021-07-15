@@ -123,6 +123,23 @@ public final class SdkField<TypeT> {
     }
 
     /**
+     * Gets the trait of the specified class, or throw {@link IllegalStateException} if not available.
+     *
+     * @param clzz Trait class to get.
+     * @param <T> Type of trait.
+     * @return Trait instance.
+     * @throws IllegalStateException if trait is not present.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Trait> T getRequiredTrait(Class<T> clzz) throws IllegalStateException {
+        T trait = (T) traits.get(clzz);
+        if (trait == null) {
+            throw new IllegalStateException(memberName + " member is missing " + clzz.getSimpleName());
+        }
+        return trait;
+    }
+
+    /**
      * Checks if a given {@link Trait} is present on the field.
      *
      * @param clzz Trait class to check.

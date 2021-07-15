@@ -1,3 +1,108 @@
+# __2.16.103__ __2021-07-15__
+## __AWS IoT SiteWise__
+  - ### Features
+    - Update the default endpoint for the APIs used to manage asset models, assets, gateways, tags, and account configurations. If you have firewalls with strict egress rules, configure the rules to grant you access to api.iotsitewise.[region].amazonaws.com or api.iotsitewise.[cn-region].amazonaws.com.cn.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for marshalling lists of strings in HTTP headers
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Documentation updates for cognito-idp
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates for support of awsvpc mode on Windows.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This feature enables customers to specify weekly recurring time window(s) for scheduled events that reboot, stop or terminate EC2 instances.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Lex now supports the en-IN locale
+
+# __2.16.102__ __2021-07-14__
+## __AWS Certificate Manager__
+  - ### Features
+    - Added support for RSA 3072 SSL certificate import
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Release of feature needed for ECA-Endpoint settings. This allows customer to delete a field in endpoint settings by using --exact-settings flag in modify-endpoint api. This also displays default values for certain required fields of endpoint settings in describe-endpoint-settings api.
+
+## __AWS Glue__
+  - ### Features
+    - Add support for Event Driven Workflows
+
+## __AWS SDK for Java v2__
+  - ### Documentations
+    - Update pull request template to place motivation before description
+        - Contributed by: [@Bennett-Lynch](https://github.com/Bennett-Lynch)
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This update provides support for Well-Architected API users to mark answer choices as not applicable.
+
+## __Amazon HealthLake__
+  - ### Features
+    - General availability for Amazon HealthLake. StartFHIRImportJob and StartFHIRExportJob APIs now require AWS KMS parameter. For more information, see the Amazon HealthLake Documentation https://docs.aws.amazon.com/healthlake/index.html.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for the Amazon Lightsail object storage service, which allows you to create buckets and store objects.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Bennett-Lynch](https://github.com/Bennett-Lynch)
+# __2.16.101__ __2021-07-13__
+## __AWS Direct Connect__
+  - ### Features
+    - This release adds a new filed named awsLogicalDeviceId that it displays the AWS Direct Connect endpoint which terminates a physical connection's BGP Sessions.
+
+## __AWS Price List Service__
+  - ### Features
+    - Documentation updates for api.pricing
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Add paginator for GetCostEstimation
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Customers can now migrate bots built with Lex V1 APIs to V2 APIs. This release adds APIs to initiate and manage the migration of a bot.
+
+## __Amazon Redshift__
+  - ### Features
+    - Release new APIs to support new Redshift feature - Authentication Profile
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Changes to OpsCenter APIs to support a new feature, operational insights.
+
+## __AmplifyBackend__
+  - ### Features
+    - Added Sign in with Apple OAuth provider.
+
+# __2.16.100__ __2021-07-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports Principal Store
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Documentation updates for Wesley to support the parallel node upgrade feature.
+
 # __2.16.99__ __2021-07-09__
 ## __AWS Elemental MediaConvert__
   - ### Features
