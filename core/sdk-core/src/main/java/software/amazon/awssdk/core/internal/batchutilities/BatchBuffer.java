@@ -134,7 +134,10 @@ public class BatchBuffer<T, U, V> {
 
     private ScheduledFuture<?> scheduleBufferFlush(String destination, long timeOutInMs,
                                                ScheduledExecutorService scheduledExecutor) {
-        return scheduledExecutor.schedule(() -> flushBuffer(destination), timeOutInMs, TimeUnit.MILLISECONDS);
+        return scheduledExecutor.scheduleAtFixedRate(() -> flushBuffer(destination),
+                                                     timeOutInMs,
+                                                     timeOutInMs,
+                                                     TimeUnit.MILLISECONDS);
     }
 
 }

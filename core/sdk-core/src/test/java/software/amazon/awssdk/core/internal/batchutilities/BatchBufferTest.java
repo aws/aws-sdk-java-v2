@@ -19,6 +19,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.testng.Assert;
@@ -27,6 +29,7 @@ public class BatchBufferTest {
 
     private BatchBuffer<String, String, List<RequestWithId>> buffer;
     private String destination;
+    private final CountDownLatch waiter = new CountDownLatch(1);;
 
     BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
         (identifiedRequests, destination) -> {
@@ -37,11 +40,7 @@ public class BatchBufferTest {
                 entries.add(new RequestWithId(Integer.parseInt(id), request));
             });
             return CompletableFuture.supplyAsync(() -> {
-                try {
-                    Thread.sleep(150);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                waitForTime(150);
                 return entries;
             });
         };
@@ -84,33 +83,88 @@ public class BatchBufferTest {
 
     @Test
     public void sendTenRequestsTest() {
-        String[] requests = new String[10];
-        for (int i = 0; i < requests.length; i++) {
-            requests[i] = "Message " + i;
-        }
-        List<CompletableFuture<String>> responses = new ArrayList<>();
-        for (String request : requests) {
-            responses.add(buffer.sendRequest(request, destination));
-        }
+        String[] requests = createRequestsOfSize(10);
+        List<CompletableFuture<String>> responses = createAndSendResponses(requests);
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
-        for (int i = 0; i < requests.length; i++) {
-            Assert.assertEquals(responses.get(i).join(), "Message " + i);
-        }
+        checkAllResponses(responses);
     }
 
     @Test
     public void sendTwentyRequestsTest() {
-        String[] requests = new String[20];
-        for (int i = 0; i < requests.length; i++) {
-            requests[i] = "Message " + i;
+        String[] requests = createRequestsOfSize(20);
+        List<CompletableFuture<String>> responses = createAndSendResponses(requests);
+        checkAllResponses(responses);
+    }
+
+    @Test
+    public void scheduleSendFiveRequestsTest() {
+        String[] requests = createRequestsOfSize(5);
+        long startTime = System.nanoTime();
+        List<CompletableFuture<String>> responses = createAndSendResponses(requests);
+        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        long endTime = System.nanoTime();
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 200);
+        checkAllResponses(responses);
+    }
+
+    @Test
+    public void cancelScheduledBatchTest() {
+        String[] requestsBatch1 = createRequestsOfSize(5);
+        String[] requestsBatch2 = createRequestsOfSize(5, 5);
+        long startTime = System.nanoTime();
+        List<CompletableFuture<String>> responses = createAndSendResponses(requestsBatch1);
+        responses.addAll(createAndSendResponses(requestsBatch2));
+        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        long endTime = System.nanoTime();
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < 400);
+        checkAllResponses(responses);
+    }
+
+    @Test
+    public void scheduleTwoBatchTests() {
+        String[] requestsBatch1 = createRequestsOfSize(5);
+        String[] requestsBatch2 = createRequestsOfSize(5, 5);
+        long startTime = System.nanoTime();
+        List<CompletableFuture<String>> responses = createAndSendResponses(requestsBatch1);
+        waitForTime(200);
+        responses.addAll(createAndSendResponses(requestsBatch2));
+        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        long endTime = System.nanoTime();
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 500);
+        checkAllResponses(responses);
+    }
+
+    private void waitForTime(int msToWait) {
+        try {
+            waiter.await(msToWait, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void checkAllResponses(List<CompletableFuture<String>> responses) {
+        for (int i = 0; i < responses.size(); i++) {
+            Assert.assertEquals(responses.get(i).join(), "Message " + i);
+        }
+    }
+
+    private String[] createRequestsOfSize(int size) {
+        return createRequestsOfSize(0, size);
+    }
+
+    private String[] createRequestsOfSize(int startingId, int size) {
+        String[] requests = new String[size];
+        for (int i = 0; i < size; i++) {
+            requests[i] = "Message " + (i + startingId);
+        }
+        return requests;
+    }
+
+    private List<CompletableFuture<String>> createAndSendResponses(String[] requests) {
         List<CompletableFuture<String>> responses = new ArrayList<>();
         for (String request : requests) {
             responses.add(buffer.sendRequest(request, destination));
         }
-        for (int i = 0; i < requests.length; i++) {
-            String response = responses.get(i).join();
-            Assert.assertEquals(response, "Message " + i);
-        }
+        return responses;
     }
 }
