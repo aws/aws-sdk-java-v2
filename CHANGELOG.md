@@ -1,3 +1,28 @@
+# __2.16.103__ __2021-07-15__
+## __AWS IoT SiteWise__
+  - ### Features
+    - Update the default endpoint for the APIs used to manage asset models, assets, gateways, tags, and account configurations. If you have firewalls with strict egress rules, configure the rules to grant you access to api.iotsitewise.[region].amazonaws.com or api.iotsitewise.[cn-region].amazonaws.com.cn.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for marshalling lists of strings in HTTP headers
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Documentation updates for cognito-idp
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates for support of awsvpc mode on Windows.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This feature enables customers to specify weekly recurring time window(s) for scheduled events that reboot, stop or terminate EC2 instances.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Lex now supports the en-IN locale
+
 # __2.16.102__ __2021-07-14__
 ## __AWS Certificate Manager__
   - ### Features
