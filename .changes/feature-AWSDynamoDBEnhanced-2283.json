@@ -1,0 +1,6 @@
+{
+  "category": "DynamoDB Enhanced Client",
+  "contributor": "marcdejonge",
+  "type": "feature",
+  "description": "Adds the option to change the ReturnValue for PutItemEnhancedRequest and UpdateItemEnhancedRequest."
+}

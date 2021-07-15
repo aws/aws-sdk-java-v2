@@ -460,9 +460,10 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *
      * @param request A {@link PutItemEnhancedRequest} that includes the item to enter into
      * the table, its class and optional directives.
-     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
+     * @return a {@link CompletableFuture} that returns the old return value if requested so (or null of not),
+     *         which will complete when the operation is done.
      */
-    default CompletableFuture<Void> putItem(PutItemEnhancedRequest<T> request) {
+    default CompletableFuture<T> putItem(PutItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
     }
 
@@ -486,9 +487,10 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *
      * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
      * to enter into the table, its class and optional directives.
-     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
+     * @return a {@link CompletableFuture} that returns the old return value if requested so (or null of not),
+     *         which will complete when the operation is done.
      */
-    default CompletableFuture<Void> putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    default CompletableFuture<T> putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -508,9 +510,10 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * </pre>
      *
      * @param item the modelled item to be inserted into or overwritten in the database table.
-     * @return a {@link CompletableFuture} that returns no results which will complete when the operation is done.
+     * @return a {@link CompletableFuture} that returns the old return value if requested so (or null of not),
+     *         which will complete when the operation is done.
      */
-    default CompletableFuture<Void> putItem(T item) {
+    default CompletableFuture<T> putItem(T item) {
         throw new UnsupportedOperationException();
     }
 

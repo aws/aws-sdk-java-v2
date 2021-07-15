@@ -175,22 +175,22 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
-    public void putItem(PutItemEnhancedRequest<T> request) {
-        TableOperation<T, ?, ?, Void> operation = PutItemOperation.create(request);
-        operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    public T putItem(PutItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, T> operation = PutItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
-    public void putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+    public T putItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
         PutItemEnhancedRequest.Builder<T> builder =
             PutItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
         requestConsumer.accept(builder);
-        putItem(builder.build());
+        return putItem(builder.build());
     }
 
     @Override
-    public void putItem(T item) {
-        putItem(r -> r.item(item));
+    public T putItem(T item) {
+        return putItem(r -> r.item(item));
     }
 
     @Override

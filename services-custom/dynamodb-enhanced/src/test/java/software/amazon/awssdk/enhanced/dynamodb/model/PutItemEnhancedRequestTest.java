@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PutItemEnhancedRequestTest {
@@ -53,10 +54,12 @@ public class PutItemEnhancedRequestTest {
         PutItemEnhancedRequest<FakeItem> builtObject = PutItemEnhancedRequest.builder(FakeItem.class)
                                                                              .item(fakeItem)
                                                                              .conditionExpression(conditionExpression)
+                                                                             .returnValue(ReturnValue.NONE)
                                                                              .build();
 
         assertThat(builtObject.item(), is(fakeItem));
         assertThat(builtObject.conditionExpression(), is(conditionExpression));
+        assertThat(builtObject.returnValue(), is(ReturnValue.NONE));
     }
 
     @Test

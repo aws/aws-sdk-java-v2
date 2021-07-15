@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 
 /**
  * Defines parameters used to write an item to a DynamoDb table using the putItem() operation (such as
@@ -32,10 +33,12 @@ public final class PutItemEnhancedRequest<T> {
 
     private final T item;
     private final Expression conditionExpression;
+    private final ReturnValue returnValue;
 
     private PutItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
         this.conditionExpression = builder.conditionExpression;
+        this.returnValue = builder.returnValue;
     }
 
     /**
@@ -53,7 +56,7 @@ public final class PutItemEnhancedRequest<T> {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder<T> toBuilder() {
-        return new Builder<T>().item(item).conditionExpression(conditionExpression);
+        return new Builder<T>().item(item).conditionExpression(conditionExpression).returnValue(returnValue);
     }
 
     /**
@@ -61,6 +64,13 @@ public final class PutItemEnhancedRequest<T> {
      */
     public T item() {
         return item;
+    }
+
+    /**
+     * Returns if the put operation should return the data before the update or after the update.
+     */
+    public ReturnValue returnValue() {
+        return returnValue;
     }
 
     /**
@@ -81,12 +91,17 @@ public final class PutItemEnhancedRequest<T> {
 
         PutItemEnhancedRequest<?> putItem = (PutItemEnhancedRequest<?>) o;
 
+        if (returnValue != null ? ! returnValue.equals(putItem.returnValue) : putItem.returnValue != null) {
+            return false;
+        }
         return item != null ? item.equals(putItem.item) : putItem.item == null;
     }
 
     @Override
     public int hashCode() {
-        return item != null ? item.hashCode() : 0;
+        int result = item != null ? item.hashCode() : 0;
+        result = 31 * result + (returnValue != null ? returnValue.hashCode() : 0);
+        return result;
     }
 
     /**
@@ -97,6 +112,7 @@ public final class PutItemEnhancedRequest<T> {
     public static final class Builder<T> {
         private T item;
         private Expression conditionExpression;
+        private ReturnValue returnValue;
 
         private Builder() {
         }
@@ -123,6 +139,20 @@ public final class PutItemEnhancedRequest<T> {
          */
         public Builder<T> conditionExpression(Expression conditionExpression) {
             this.conditionExpression = conditionExpression;
+            return this;
+        }
+
+        /**
+         *  Sets what the update operation should return. When set to null (which is also the default), this value will
+         *  not be added in the request.
+         *  <p>
+         *  See {@link ReturnValue} for the types that are possible.
+         *
+         * @param returnValue the return value
+         * @return a builder of this type
+         */
+        public Builder<T> returnValue(ReturnValue returnValue) {
+            this.returnValue = returnValue;
             return this;
         }
 

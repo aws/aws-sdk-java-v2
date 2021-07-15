@@ -359,6 +359,41 @@ public class UpdateItemOperationTest {
     }
 
     @Test
+    public void generateRequest_canSetReturnValue() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+                UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItemWithSort.class)
+                        .item(item)
+                        .returnValue(ReturnValue.NONE)
+                        .build());
+        Map<String, AttributeValue> expectedKey = new HashMap<>();
+        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
+        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
+        Map<String, AttributeValue> expectedValues =
+                singletonMap(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
+        Map<String, String> expectedNames = new HashMap<>();
+        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
+        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
+        UpdateItemRequest expectedRequest = UpdateItemRequest.builder()
+                .tableName(TABLE_NAME)
+                .updateExpression("SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
+                                  " REMOVE " + OTHER_ATTRIBUTE_2_NAME)
+                .expressionAttributeValues(expectedValues)
+                .expressionAttributeNames(expectedNames)
+                .key(expectedKey)
+                .returnValues(ReturnValue.NONE)
+                .build();
+
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                PRIMARY_CONTEXT,
+                null);
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
     public void generateRequest_keyOnlyItem() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         UpdateItemOperation<FakeItemWithSort> updateItemOperation =
