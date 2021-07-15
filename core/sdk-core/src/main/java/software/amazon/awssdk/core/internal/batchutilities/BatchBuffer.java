@@ -17,10 +17,10 @@ package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -41,9 +41,8 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 public class BatchBuffer<T, U, V> {
 
     // Maps destination (ex. queueUrl) to list of individual requests
-    private final Map<String, ConcurrentLinkedQueue<T>> destinationToRequestMap;
-    // Outer map maps destination to nested map. Inner map maps batch id to future response.
-    private final Map<String, Map<String, CompletableFuture<U>>> destinationToIdToResponseMap;
+    private final Map<String, ConcurrentLinkedQueue<T>> batchGroupIdToRequest;
+    private final ResponseMap<U> batchGroupIdToIdToResponse;
     private final Map<String, ScheduledFuture<?>> scheduledFlushTasks;
     private final BatchAndSendFunction<T, V> batchingFunction;
     private final UnpackBatchResponseFunction<V, U> unpackResponseFunction;
@@ -55,9 +54,9 @@ public class BatchBuffer<T, U, V> {
     public BatchBuffer(int maxBatchItems, Duration maxBatchOpenInMs,
                        BatchAndSendFunction<T, V> batchingFunction,
                        UnpackBatchResponseFunction<V, U> unpackResponseFunction) {
-        this.destinationToRequestMap = new HashMap<>();
-        this.destinationToIdToResponseMap = new HashMap<>();
-        this.scheduledFlushTasks = new HashMap<>();
+        this.batchGroupIdToRequest = new ConcurrentHashMap<>();
+        this.batchGroupIdToIdToResponse = new ResponseMap<>();
+        this.scheduledFlushTasks = new ConcurrentHashMap<>();
         this.currentId = new AtomicInteger(Integer.MIN_VALUE);
         this.maxBatchItems = maxBatchItems;
         this.maxBatchOpenInMs = maxBatchOpenInMs;
@@ -68,13 +67,13 @@ public class BatchBuffer<T, U, V> {
     }
 
     public CompletableFuture<U> sendRequest(T request, String destination) {
-        destinationToRequestMap.computeIfAbsent(destination, k -> new ConcurrentLinkedQueue<>())
+        batchGroupIdToRequest.computeIfAbsent(destination, k -> new ConcurrentLinkedQueue<>())
                              .add(request);
         CompletableFuture<U> response = new CompletableFuture<>();
-        destinationToIdToResponseMap.computeIfAbsent(destination, k -> new HashMap<>())
-                              .put(Integer.toString(currentId.getAndIncrement()), response);
+        batchGroupIdToIdToResponse.getResponseMap(destination)
+                                  .put(Integer.toString(currentId.getAndIncrement()), response);
 
-        if (destinationToRequestMap.get(destination).size() < maxBatchItems) {
+        if (batchGroupIdToRequest.get(destination).size() < maxBatchItems) {
             if (!scheduledFlushTasks.containsKey(destination)) {
                 scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
                                                                          scheduledExecutor));
@@ -98,7 +97,7 @@ public class BatchBuffer<T, U, V> {
     // Flushes the buffer for the given destination and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
     private void flushBuffer(String destination) {
-        ConcurrentLinkedQueue<T> requestBuffer = destinationToRequestMap.get(destination);
+        ConcurrentLinkedQueue<T> requestBuffer = batchGroupIdToRequest.get(destination);
         if (requestBuffer.isEmpty()) {
             return;
         }
@@ -115,19 +114,19 @@ public class BatchBuffer<T, U, V> {
 
     private void handleAndCompleteResponses(String destination, V batchResult, Throwable exception) {
         if (exception != null) {
-            destinationToIdToResponseMap.get(destination)
-                                        .values()
-                                        .forEach(responseFuture -> responseFuture.completeExceptionally(exception));
+            batchGroupIdToIdToResponse.getResponseMap(destination)
+                                      .values()
+                                      .forEach(responseFuture -> responseFuture.completeExceptionally(exception));
         } else {
             List<IdentifiedResponse<U>> identifiedResponses = unpackResponseFunction.unpackBatchResponse(batchResult);
             for (IdentifiedResponse<U> identifiedResponse : identifiedResponses) {
                 String id = identifiedResponse.getId();
                 U response = identifiedResponse.getResponse();
-                destinationToIdToResponseMap.get(destination)
-                                            .get(id)
-                                            .complete(response);
-                destinationToIdToResponseMap.get(destination)
-                                            .remove(id);
+                batchGroupIdToIdToResponse.getResponseMap(destination)
+                                          .get(id)
+                                          .complete(response);
+                batchGroupIdToIdToResponse.getResponseMap(destination)
+                                          .remove(id);
             }
         }
     }
