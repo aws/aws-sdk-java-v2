@@ -50,7 +50,7 @@
         <sdk-v1.version>1.11.404</sdk-v1.version>
         <jackson.version>2.12.3</jackson.version>
         <jackson.databind.version>2.12.3</jackson.databind.version>
-        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     </properties>
 
     <dependencies>
