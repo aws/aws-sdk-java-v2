@@ -18,15 +18,18 @@ package software.amazon.awssdk.core.internal.batchutilities;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
@@ -41,13 +44,13 @@ import software.amazon.awssdk.utils.Validate;
 public class BatchBuffer<T, U, V> {
 
     // Maps destination (ex. queueUrl) to list of individual requests
-    private final Map<String, List<T>> destinationRequestMap;
+    private final Map<String, ConcurrentLinkedQueue<T>> destinationRequestMap;
     // Outer map maps destination to nested map. Inner map maps batch id to future response.
     private final Map<String, Map<String, CompletableFuture<U>>> destinationResponseMap;
     private final ScheduledExecutorService scheduledExecutor;
     private final Duration maxBatchOpenInMs;
     private final int maxBatchItems;
-    private int currentId;
+    private AtomicInteger currentId;
     private boolean scheduled = false;
     private ScheduledFlush scheduledFlushTask = null;
     private final BatchAndSendFunction<T, V> batchingFunction;
@@ -58,7 +61,7 @@ public class BatchBuffer<T, U, V> {
                        UnpackBatchResponseFunction<V, U> unpackResponseFunction) {
         this.destinationRequestMap = new HashMap<>();
         this.destinationResponseMap = new HashMap<>();
-        this.currentId = Integer.MIN_VALUE;
+        this.currentId = new AtomicInteger(Integer.MIN_VALUE);
         this.maxBatchItems = maxBatchItems;
         this.maxBatchOpenInMs = maxBatchOpenInMs;
         this.batchingFunction = batchingFunction;
@@ -68,11 +71,11 @@ public class BatchBuffer<T, U, V> {
     }
 
     public CompletableFuture<U> sendRequest(T request, String destination) {
-        destinationRequestMap.computeIfAbsent(destination, k -> new ArrayList<>())
+        destinationRequestMap.computeIfAbsent(destination, k -> new ConcurrentLinkedQueue<>())
                              .add(request);
         CompletableFuture<U> response = new CompletableFuture<>();
         destinationResponseMap.computeIfAbsent(destination, k -> new HashMap<>())
-                              .put(Integer.toString(currentId++), response);
+                              .put(Integer.toString(currentId.getAndIncrement()), response);
 
         if (destinationRequestMap.get(destination).size() < maxBatchItems) {
             if (!scheduled) {
@@ -98,19 +101,22 @@ public class BatchBuffer<T, U, V> {
     // Flushes the buffer for the given destination and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
     private void flushBuffer(String destination) {
-        List<T> requestBuffer = destinationRequestMap.get(destination);
+        ConcurrentLinkedQueue<T> requestBuffer = destinationRequestMap.get(destination);
         List<IdentifiedRequest<T>> requestEntryMap = new ArrayList<>();
-        int batchId = currentId - requestBuffer.size();
-        for (int i = 0; i < requestBuffer.size(); i++) {
-            T request = requestBuffer.get(i);
-            requestEntryMap.add(new IdentifiedRequest<T>(Integer.toString(batchId + i), request));
+        int batchId = currentId.get() - requestBuffer.size();
+        Iterator<T> iterator = requestBuffer.iterator();
+        for (int i = 0; iterator.hasNext() && i < maxBatchItems; i++) {
+            T request = iterator.next();
+            requestEntryMap.add(new IdentifiedRequest<>(Integer.toString(batchId + i), request));
         }
 
         // Map returned responses back to the destinationResponseMap.
         batchingFunction.batchAndSend(requestEntryMap, destination)
                         .whenComplete((result, ex) -> {
                             if (ex != null) {
-                                // Complete all futures exceptionally
+                                destinationResponseMap.get(destination)
+                                                      .values()
+                                                      .forEach(responseFuture -> responseFuture.completeExceptionally(ex));
                             } else {
                                 List<IdentifiedResponse<U>> identifiedResponses = unpackResponseFunction
                                                                                     .unpackBatchResponse(result);
@@ -171,7 +177,7 @@ public class BatchBuffer<T, U, V> {
         @Override
         public void run() {
             synchronized (this.lock) {
-                List<T> destinationBuffer = destinationRequestMap.get(destination);
+                ConcurrentLinkedQueue<T> destinationBuffer = destinationRequestMap.get(destination);
                 // Might need to modify this. flushBuffer() still completes the futures. Instead, we should only complete the
                 // futures if the flushBuffer was not cancelled.
                 flushBuffer(destination);

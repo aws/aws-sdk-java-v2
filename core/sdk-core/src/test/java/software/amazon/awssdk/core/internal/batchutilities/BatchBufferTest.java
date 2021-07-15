@@ -17,12 +17,8 @@ package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Test;
 import org.testng.Assert;
@@ -31,7 +27,6 @@ public class BatchBufferTest {
 
     private BatchBuffer<String, String, List<RequestWithId>> buffer;
     private String destination;
-    private int currentId;
 
     BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
         (identifiedRequests, destination) -> {
@@ -51,12 +46,12 @@ public class BatchBufferTest {
             });
         };
 
-//    Function<List<RequestWithId>, List<IdentifiedResponse<String>>> unpackResponseFunction =
     UnpackBatchResponseFunction<List<RequestWithId>, String> unpackResponseFunction =
         requestBatchResponse -> {
             List<IdentifiedResponse<String>> mappedResponses = new ArrayList<>();
             for (RequestWithId requestWithId : requestBatchResponse) {
-                mappedResponses.add(new IdentifiedResponse<>(Integer.toString(currentId++), requestWithId.getMessage()));
+                mappedResponses.add(new IdentifiedResponse<>(Integer.toString(requestWithId.getId()),
+                                                                   requestWithId.getMessage()));
             }
             return mappedResponses;
         };
@@ -85,7 +80,6 @@ public class BatchBufferTest {
     public void beforeEachBufferTest() {
         buffer = new BatchBuffer<>(10, Duration.ofMillis(200), batchingFunction, unpackResponseFunction);
         destination = "testDestination";
-        currentId = Integer.MIN_VALUE;
     }
 
     @Test
@@ -114,13 +108,8 @@ public class BatchBufferTest {
         for (String request : requests) {
             responses.add(buffer.sendRequest(request, destination));
         }
-        // Sometimes responses are returned out of order which seems to indicate it is not properly correlated.
-        // Not entirely sure why it happens sometimes but not other times.
-        // Could be how I use assertions or create the objects or even construct the response array? Not entirely sure.
-        // Seems to be the first batch response is spliced together with second batch response.
         for (int i = 0; i < requests.length; i++) {
             String response = responses.get(i).join();
-            System.out.println(response);
             Assert.assertEquals(response, "Message " + i);
         }
     }

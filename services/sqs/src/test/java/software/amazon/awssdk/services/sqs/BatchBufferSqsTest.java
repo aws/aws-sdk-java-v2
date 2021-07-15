@@ -15,13 +15,17 @@
 
 package software.amazon.awssdk.services.sqs;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import javax.xml.bind.DatatypeConverter;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.internal.batchutilities.BatchAndSendFunction;
@@ -45,17 +49,17 @@ public class BatchBufferSqsTest {
 
     BatchAndSendFunction<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
         (identifiedRequests, queueUrl) -> {
-                List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
-                identifiedRequests.forEach(identifiedRequest -> {
-                    String id = identifiedRequest.getId();
-                    SendMessageRequest request = identifiedRequest.getRequest();
-                    entries.add(createMessageBatchRequestEntry(id, request));
-                });
-                SendMessageBatchRequest batchRequest = SendMessageBatchRequest.builder()
-                                                                              .queueUrl(queueUrl)
-                                                                              .entries(entries)
-                                                                              .build();
-                return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
+            List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
+            identifiedRequests.forEach(identifiedRequest -> {
+                String id = identifiedRequest.getId();
+                SendMessageRequest request = identifiedRequest.getRequest();
+                entries.add(createMessageBatchRequestEntry(id, request));
+            });
+            SendMessageBatchRequest batchRequest = SendMessageBatchRequest.builder()
+                                                                          .queueUrl(queueUrl)
+                                                                          .entries(entries)
+                                                                          .build();
+            return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
         };
 
 //    Function<SendMessageBatchResponse, List<IdentifiedResponse<SendMessageResponse>>> unpackResponseFunction =
@@ -98,8 +102,17 @@ public class BatchBufferSqsTest {
             responses.add(buffer.sendRequest(request, queueUrl));
         }
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
-        for (CompletableFuture<SendMessageResponse> response : responses) {
-            System.out.println("message ID:" + response.join().messageId());
+        for (int i = 0; i < requests.length; i++) {
+            String requestBody = requests[i].messageBody();
+            try {
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                md.update(requestBody.getBytes());
+                byte[] digest = md.digest();
+                String myHash = DatatypeConverter.printHexBinary(digest).toLowerCase();
+                Assert.assertEquals(myHash, responses.get(i).join().md5OfMessageBody());
+            } catch (NoSuchAlgorithmException e) {
+                System.out.println("No MD5 algorithm.");
+            }
         }
     }
 
@@ -117,8 +130,17 @@ public class BatchBufferSqsTest {
             responses.add(buffer.sendRequest(request, queueUrl));
         }
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
-        for (CompletableFuture<SendMessageResponse> response: responses) {
-            System.out.println("message ID:" + response.join().messageId());
+        for (int i = 0; i < requests.length; i++) {
+            String requestBody = requests[i].messageBody();
+            try {
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                md.update(requestBody.getBytes());
+                byte[] digest = md.digest();
+                String myHash = DatatypeConverter.printHexBinary(digest).toLowerCase();
+                Assert.assertEquals(myHash, responses.get(i).join().md5OfMessageBody());
+            } catch (NoSuchAlgorithmException e) {
+                System.out.println("No MD5 algorithm.");
+            }
         }
     }
 
