@@ -47,40 +47,40 @@ public class Ec2MetadataConfigProviderEndpointModeTest {
     @Parameterized.Parameters(name = "{0}")
     public static Iterable<Object> testCases() {
         return Arrays.asList(
-                new TestCase().expectedEndpointMode(null).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv4),
+                new TestCase().expectedEndpointMode(null).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
 
-                new TestCase().envEndpointMode("ipv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv4),
-                new TestCase().envEndpointMode("IPv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv4),
-                new TestCase().envEndpointMode("ipv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
-                new TestCase().envEndpointMode("IPv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
+                new TestCase().envEndpointMode("ipv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
+                new TestCase().envEndpointMode("IPv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
+                new TestCase().envEndpointMode("ipv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().envEndpointMode("IPv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
                 new TestCase().envEndpointMode("Ipv99").expectedException(IllegalArgumentException.class),
 
-                new TestCase().systemPropertyEndpointMode("ipv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv4),
-                new TestCase().systemPropertyEndpointMode("IPv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv4),
-                new TestCase().systemPropertyEndpointMode("ipv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
-                new TestCase().systemPropertyEndpointMode("IPv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
+                new TestCase().systemPropertyEndpointMode("ipv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
+                new TestCase().systemPropertyEndpointMode("IPv4").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV4),
+                new TestCase().systemPropertyEndpointMode("ipv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
+                new TestCase().systemPropertyEndpointMode("IPv6").expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
                 new TestCase().systemPropertyEndpointMode("Ipv99").expectedException(IllegalArgumentException.class),
 
                 new TestCase().sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv6")
-                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
+                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
                 new TestCase().sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_invalidValue")
                         .expectedException(IllegalArgumentException.class),
 
                 // System property takes highest precedence
                 new TestCase().systemPropertyEndpointMode("ipv6").envEndpointMode("ipv4")
-                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
+                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
                 new TestCase().systemPropertyEndpointMode("ipv6").sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv4")
-                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
+                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
 
                 // env var has higher precedence than shared config
                 new TestCase().envEndpointMode("ipv6").sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv4")
-                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
+                        .expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
 
                 // Test custom profile supplier and custom profile name
                 new TestCase().sharedConfigFile(TEST_PROFILES_PATH_PREFIX + "endpoint_mode_ipv6_custom_profile")
-                        .customProfileName(CUSTOM_PROFILE).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6),
+                        .customProfileName(CUSTOM_PROFILE).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6),
                 new TestCase().customProfileFile(Ec2MetadataConfigProviderEndpointModeTest::customProfileFile)
-                        .customProfileName(CUSTOM_PROFILE).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPv6)
+                        .customProfileName(CUSTOM_PROFILE).expectedEndpointMode(Ec2MetadataConfigProvider.EndpointMode.IPV6)
         );
     }
 

@@ -47,8 +47,8 @@ public final class Ec2MetadataConfigProvider {
     }
 
     public enum EndpointMode {
-        IPv4,
-        IPv6,
+        IPV4,
+        IPV6,
         ;
 
         public static EndpointMode fromValue(String s) {
@@ -74,9 +74,9 @@ public final class Ec2MetadataConfigProvider {
 
         EndpointMode endpointMode = getEndpointMode();
         switch (endpointMode) {
-            case IPv4:
+            case IPV4:
                 return EC2_METADATA_SERVICE_URL_IPV4;
-            case IPv6:
+            case IPV6:
                 return EC2_METADATA_SERVICE_URL_IPV6;
             default:
                 throw SdkClientException.create("Unknown endpoint mode: " + endpointMode);
@@ -118,10 +118,10 @@ public final class Ec2MetadataConfigProvider {
     }
 
     private Optional<Profile> resolveProfile() {
-        ProfileFile profileFile = resolveProfileFile();
-        String profileName = resolveProfileName();
+        ProfileFile profileFileToUse = resolveProfileFile();
+        String profileNameToUse = resolveProfileName();
 
-        return profileFile.profile(profileName);
+        return profileFileToUse.profile(profileNameToUse);
     }
 
     private ProfileFile resolveProfileFile() {

@@ -17,15 +17,15 @@ package software.amazon.awssdk.auth.credentials.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider.EndpointMode.IPv4;
-import static software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider.EndpointMode.IPv6;
+import static software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider.EndpointMode.IPV4;
+import static software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider.EndpointMode.IPV6;
 import org.junit.Test;
 
 public class EndpointModeTest {
     @Test
     public void fromString_caseInsensitive() {
-        assertThat(Ec2MetadataConfigProvider.EndpointMode.fromValue("iPv6")).isEqualTo(IPv6);
-        assertThat(Ec2MetadataConfigProvider.EndpointMode.fromValue("iPv4")).isEqualTo(IPv4);
+        assertThat(Ec2MetadataConfigProvider.EndpointMode.fromValue("iPv6")).isEqualTo(IPV6);
+        assertThat(Ec2MetadataConfigProvider.EndpointMode.fromValue("iPv4")).isEqualTo(IPV4);
     }
 
     @Test
