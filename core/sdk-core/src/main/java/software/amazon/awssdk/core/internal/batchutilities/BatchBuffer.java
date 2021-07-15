@@ -44,20 +44,20 @@ public class BatchBuffer<T, U, V> {
     private final Map<String, ConcurrentLinkedQueue<T>> destinationToRequestMap;
     // Outer map maps destination to nested map. Inner map maps batch id to future response.
     private final Map<String, Map<String, CompletableFuture<U>>> destinationToIdToResponseMap;
+    private final Map<String, ScheduledFuture<?>> scheduledFlushTasks;
     private final BatchAndSendFunction<T, V> batchingFunction;
     private final UnpackBatchResponseFunction<V, U> unpackResponseFunction;
     private final ScheduledExecutorService scheduledExecutor;
     private final Duration maxBatchOpenInMs;
     private final int maxBatchItems;
     private final AtomicInteger currentId;
-    private boolean scheduled = false;
-    private ScheduledFuture<?> scheduledFlushTask = null;
 
     public BatchBuffer(int maxBatchItems, Duration maxBatchOpenInMs,
                        BatchAndSendFunction<T, V> batchingFunction,
                        UnpackBatchResponseFunction<V, U> unpackResponseFunction) {
         this.destinationToRequestMap = new HashMap<>();
         this.destinationToIdToResponseMap = new HashMap<>();
+        this.scheduledFlushTasks = new HashMap<>();
         this.currentId = new AtomicInteger(Integer.MIN_VALUE);
         this.maxBatchItems = maxBatchItems;
         this.maxBatchOpenInMs = maxBatchOpenInMs;
@@ -75,17 +75,20 @@ public class BatchBuffer<T, U, V> {
                               .put(Integer.toString(currentId.getAndIncrement()), response);
 
         if (destinationToRequestMap.get(destination).size() < maxBatchItems) {
-            if (!scheduled) {
-                scheduledFlushTask = scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(), scheduledExecutor);
-                scheduled = true;
+            if (!scheduledFlushTasks.containsKey(destination)) {
+                scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
+                                                                         scheduledExecutor));
             }
         } else {
-            if (scheduled) {
-                scheduledFlushTask.cancel(false);
-                scheduled = false;
-            }
-            if (!scheduledFlushTask.isCancelled()) {
-                return response;
+            if (scheduledFlushTasks.containsKey(destination)) {
+                // "reset" the flush task timer by cancelling scheduled task then restarting it.
+                ScheduledFuture<?> scheduledFuture = scheduledFlushTasks.get(destination);
+                scheduledFuture.cancel(false);
+                if (!scheduledFuture.isCancelled()) {
+                    return response;
+                }
+                scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
+                                                                         scheduledExecutor));
             }
             flushBuffer(destination);
         }
@@ -96,6 +99,10 @@ public class BatchBuffer<T, U, V> {
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
     private void flushBuffer(String destination) {
         ConcurrentLinkedQueue<T> requestBuffer = destinationToRequestMap.get(destination);
+        if (requestBuffer.isEmpty()) {
+            return;
+        }
+
         int startingBatchId = currentId.get() - requestBuffer.size();
         List<IdentifiedRequest<T>> requestEntryList = new ArrayList<>();
         for (int i = 0; !requestBuffer.isEmpty() && i < maxBatchItems; i++) {
@@ -127,7 +134,7 @@ public class BatchBuffer<T, U, V> {
 
     private ScheduledFuture<?> scheduleBufferFlush(String destination, long timeOutInMs,
                                                ScheduledExecutorService scheduledExecutor) {
-       return scheduledExecutor.schedule(() -> flushBuffer(destination), timeOutInMs, TimeUnit.MILLISECONDS);
+        return scheduledExecutor.schedule(() -> flushBuffer(destination), timeOutInMs, TimeUnit.MILLISECONDS);
     }
 
 }
