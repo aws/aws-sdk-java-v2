@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Supplier;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -105,6 +106,12 @@ public class Ec2MetadataConfigProviderEndpointModeTest {
         if (testCase.expectedException != null) {
             thrown.expect(testCase.expectedException);
         }
+    }
+
+    @After
+    public void teardown() {
+        ENVIRONMENT_VARIABLE_HELPER.reset();
+        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.property());
     }
 
     @Test

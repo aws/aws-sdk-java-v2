@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.credentials.internal;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import java.util.Arrays;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,9 +67,6 @@ public class Ec2MetadataConfigProviderEndpointOverrideTest {
 
     @Before
     public void setup() {
-        ENVIRONMENT_VARIABLE_HELPER.reset();
-        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
-
         if (testCase.envEndpointOverride != null) {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.environmentVariable(),
                     testCase.envEndpointOverride);
@@ -87,6 +85,12 @@ public class Ec2MetadataConfigProviderEndpointOverrideTest {
         if (testCase.expectedException != null) {
             thrown.expect(testCase.expectedException);
         }
+    }
+
+    @After
+    public void teardown() {
+        ENVIRONMENT_VARIABLE_HELPER.reset();
+        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
     }
 
     @Test
