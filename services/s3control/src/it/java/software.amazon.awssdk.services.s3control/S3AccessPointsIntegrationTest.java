@@ -76,8 +76,8 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase 
 
     @AfterClass
     public static void tearDown() {
-        deleteBucketAndAllContents(BUCKET);
         s3control.deleteAccessPoint(b -> b.accountId(accountId).name(AP_NAME));
+        deleteBucketAndAllContents(BUCKET);
     }
 
     @Test
