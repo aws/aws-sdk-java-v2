@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "contributor": "",
+    "description": "This SDK release adds Account Status as one of the attributes in Account API response"
+}
