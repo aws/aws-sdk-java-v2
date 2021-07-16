@@ -1,3 +1,25 @@
+# __2.16.104__ __2021-07-16__
+## __AWS Audit Manager__
+  - ### Features
+    - This release relaxes the S3 URL character restrictions in AWS Audit Manager. Regex patterns have been updated for the following attributes: s3RelativePath, destination, and s3ResourcePath. 'AWS' terms have also been replaced with entities to align with China Rebrand documentation efforts.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This changes implements support for the `AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE` environment variable and
+      `ec2_metadata_service_endpoint` profile file property.
+
+      When no endpoint override is set using `AWS_EC2_METADATA_SERVICE_ENDPOINT`, this configuration controls which of the default
+      IMDS endpoints the client will use.  Valid values are `IPv4` or `IPv6`
+    - Updated service endpoint metadata.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - Documentation update for AppIntegrations Service
+
+## __Amazon Chime__
+  - ### Features
+    - This SDK release adds Account Status as one of the attributes in Account API response
+
 # __2.16.103__ __2021-07-15__
 ## __AWS IoT SiteWise__
   - ### Features

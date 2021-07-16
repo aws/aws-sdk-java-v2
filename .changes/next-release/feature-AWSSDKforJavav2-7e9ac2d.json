@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "This changes implements support for the `AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE` environment variable and\n`ec2_metadata_service_endpoint` profile file property.\n\nWhen no endpoint override is set using `AWS_EC2_METADATA_SERVICE_ENDPOINT`, this configuration controls which of the default\nIMDS endpoints the client will use.  Valid values are `IPv4` or `IPv6`"
-}
