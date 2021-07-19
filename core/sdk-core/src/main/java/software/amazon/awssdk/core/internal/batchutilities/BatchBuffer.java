@@ -46,12 +46,12 @@ public class BatchBuffer<T, U, V> {
     private final BatchingMap<T> batchGroupIdToIdToRequest;
     private final BatchingMap<CompletableFuture<U>> batchGroupIdToIdToResponse;
     private final Map<String, ScheduledFuture<?>> scheduledFlushTasks;
+    private final Map<String, AtomicInteger> currentIds;
     private final BatchAndSendFunction<T, V> batchingFunction;
     private final UnpackBatchResponseFunction<V, U> unpackResponseFunction;
     private final ScheduledExecutorService scheduledExecutor;
     private final Duration maxBatchOpenInMs;
     private final int maxBatchItems;
-    private final AtomicInteger currentId;
 
     public BatchBuffer(int maxBatchItems, Duration maxBatchOpenInMs,
                        BatchAndSendFunction<T, V> batchingFunction,
@@ -59,7 +59,7 @@ public class BatchBuffer<T, U, V> {
         this.batchGroupIdToIdToRequest = new BatchingMap<>();
         this.batchGroupIdToIdToResponse = new BatchingMap<>();
         this.scheduledFlushTasks = new ConcurrentHashMap<>();
-        this.currentId = new AtomicInteger(Integer.MIN_VALUE);
+        this.currentIds = new ConcurrentHashMap<>();
         this.maxBatchItems = maxBatchItems;
         this.maxBatchOpenInMs = maxBatchOpenInMs;
         this.batchingFunction = batchingFunction;
@@ -70,6 +70,7 @@ public class BatchBuffer<T, U, V> {
 
     public CompletableFuture<U> sendRequest(T request, String destination) {
         CompletableFuture<U> response = new CompletableFuture<>();
+        AtomicInteger currentId = currentIds.computeIfAbsent(destination, k -> new AtomicInteger(Integer.MIN_VALUE));
         String id = Integer.toString(currentId.getAndIncrement());
         batchGroupIdToIdToResponse.getNestedMap(destination)
                                   .put(id, response);
