@@ -1,0 +1,36 @@
+{
+    "version": "2.16.99",
+    "date": "2021-07-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "MediaConvert now supports color, style and position information passthrough from 608 and Teletext to SRT and WebVTT subtitles. MediaConvert now also supports Automatic QVBR quality levels for QVBR RateControlMode."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Releasing new APIs related to Tuning steps in model building pipelines."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "Bennett-Lynch",
+            "description": "Use EnumMap where possible."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "This release adds support for ML Explainability to display model variable importance value in Amazon Fraud Detector."
+        }
+    ]
+}

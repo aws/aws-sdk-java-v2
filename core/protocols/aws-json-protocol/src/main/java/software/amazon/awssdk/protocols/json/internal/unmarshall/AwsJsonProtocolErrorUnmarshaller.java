@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +32,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**

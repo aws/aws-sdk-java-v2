@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocols.core;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -98,7 +99,7 @@ public abstract class AbstractMarshallingRegistry {
      */
     public abstract static class Builder {
 
-        private final Map<MarshallLocation, Map<MarshallingType, Object>> registry = new HashMap<>();
+        private final Map<MarshallLocation, Map<MarshallingType, Object>> registry = new EnumMap<>(MarshallLocation.class);
         private final Set<MarshallingType<?>> marshallingTypes = new HashSet<>();
 
         protected Builder() {
