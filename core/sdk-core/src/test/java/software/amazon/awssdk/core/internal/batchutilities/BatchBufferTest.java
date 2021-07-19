@@ -19,8 +19,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.testng.Assert;
@@ -29,7 +28,6 @@ public class BatchBufferTest {
 
     private BatchBuffer<String, String, List<RequestWithId>> buffer;
     private String destination;
-    private final CountDownLatch waiter = new CountDownLatch(1);;
 
     BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
         (identifiedRequests, destination) -> {
@@ -37,7 +35,7 @@ public class BatchBufferTest {
             identifiedRequests.forEach(identifiedRequest -> {
                 String id = identifiedRequest.getId();
                 String request = identifiedRequest.getRequest();
-                entries.add(new RequestWithId(Integer.parseInt(id), request));
+                entries.add(new RequestWithId(id, request));
             });
             return CompletableFuture.supplyAsync(() -> {
                 waitForTime(150);
@@ -47,26 +45,25 @@ public class BatchBufferTest {
 
     UnpackBatchResponseFunction<List<RequestWithId>, String> unpackResponseFunction =
         requestBatchResponse -> {
-            List<IdentifiedResponse<String>> mappedResponses = new ArrayList<>();
+            List<IdentifiedResponse<String>> identifiedResponses = new ArrayList<>();
             for (RequestWithId requestWithId : requestBatchResponse) {
-                mappedResponses.add(new IdentifiedResponse<>(Integer.toString(requestWithId.getId()),
-                                                                   requestWithId.getMessage()));
+                identifiedResponses.add(new IdentifiedResponse<>(requestWithId.getId(), requestWithId.getMessage()));
             }
-            return mappedResponses;
+            return identifiedResponses;
         };
 
     //Object to mimic a batch request entry
     private static class RequestWithId {
 
-        private final int id;
+        private final String id;
         private final String message;
 
-        public RequestWithId(int id, String message) {
+        public RequestWithId(String id, String message) {
             this.id = id;
             this.message = message;
         }
 
-        public int getId() {
+        public String getId() {
             return id;
         }
 
@@ -79,6 +76,11 @@ public class BatchBufferTest {
     public void beforeEachBufferTest() {
         buffer = new BatchBuffer<>(10, Duration.ofMillis(200), batchingFunction, unpackResponseFunction);
         destination = "testDestination";
+    }
+
+    @After
+    public void afterEachBufferTest() {
+        buffer.close();
     }
 
     @Test
@@ -124,19 +126,22 @@ public class BatchBufferTest {
     public void scheduleTwoBatchTests() {
         String[] requestsBatch1 = createRequestsOfSize(5);
         String[] requestsBatch2 = createRequestsOfSize(5, 5);
+
         long startTime = System.nanoTime();
         List<CompletableFuture<String>> responses = createAndSendResponses(requestsBatch1);
         waitForTime(200);
         responses.addAll(createAndSendResponses(requestsBatch2));
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 500);
+
+        Assert.assertEquals(responses.size(), 10);
+//        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 400);
         checkAllResponses(responses);
     }
 
     private void waitForTime(int msToWait) {
         try {
-            waiter.await(msToWait, TimeUnit.MILLISECONDS);
+            Thread.sleep(msToWait);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

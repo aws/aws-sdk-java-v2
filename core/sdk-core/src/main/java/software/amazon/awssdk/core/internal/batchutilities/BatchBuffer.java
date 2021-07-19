@@ -17,16 +17,18 @@ package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -41,8 +43,8 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 public class BatchBuffer<T, U, V> {
 
     // Maps destination (ex. queueUrl) to list of individual requests
-    private final Map<String, ConcurrentLinkedQueue<T>> batchGroupIdToRequest;
-    private final ResponseMap<U> batchGroupIdToIdToResponse;
+    private final BatchingMap<T> batchGroupIdToIdToRequest;
+    private final BatchingMap<CompletableFuture<U>> batchGroupIdToIdToResponse;
     private final Map<String, ScheduledFuture<?>> scheduledFlushTasks;
     private final BatchAndSendFunction<T, V> batchingFunction;
     private final UnpackBatchResponseFunction<V, U> unpackResponseFunction;
@@ -54,8 +56,8 @@ public class BatchBuffer<T, U, V> {
     public BatchBuffer(int maxBatchItems, Duration maxBatchOpenInMs,
                        BatchAndSendFunction<T, V> batchingFunction,
                        UnpackBatchResponseFunction<V, U> unpackResponseFunction) {
-        this.batchGroupIdToRequest = new ConcurrentHashMap<>();
-        this.batchGroupIdToIdToResponse = new ResponseMap<>();
+        this.batchGroupIdToIdToRequest = new BatchingMap<>();
+        this.batchGroupIdToIdToResponse = new BatchingMap<>();
         this.scheduledFlushTasks = new ConcurrentHashMap<>();
         this.currentId = new AtomicInteger(Integer.MIN_VALUE);
         this.maxBatchItems = maxBatchItems;
@@ -67,13 +69,14 @@ public class BatchBuffer<T, U, V> {
     }
 
     public CompletableFuture<U> sendRequest(T request, String destination) {
-        batchGroupIdToRequest.computeIfAbsent(destination, k -> new ConcurrentLinkedQueue<>())
-                             .add(request);
         CompletableFuture<U> response = new CompletableFuture<>();
-        batchGroupIdToIdToResponse.getResponseMap(destination)
-                                  .put(Integer.toString(currentId.getAndIncrement()), response);
+        String id = Integer.toString(currentId.getAndIncrement());
+        batchGroupIdToIdToResponse.getNestedMap(destination)
+                                  .put(id, response);
+        batchGroupIdToIdToRequest.getNestedMap(destination)
+                                 .put(id, request);
 
-        if (batchGroupIdToRequest.get(destination).size() < maxBatchItems) {
+        if (batchGroupIdToIdToRequest.getNestedMap(destination).size() < maxBatchItems) {
             if (!scheduledFlushTasks.containsKey(destination)) {
                 scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
                                                                          scheduledExecutor));
@@ -82,8 +85,10 @@ public class BatchBuffer<T, U, V> {
             if (scheduledFlushTasks.containsKey(destination)) {
                 // "reset" the flush task timer by cancelling scheduled task then restarting it.
                 ScheduledFuture<?> scheduledFuture = scheduledFlushTasks.get(destination);
-                scheduledFuture.cancel(false);
-                if (!scheduledFuture.isCancelled()) {
+                scheduledFuture.cancel(true);
+                if (scheduledFuture.getDelay(TimeUnit.MILLISECONDS) <= 0) {
+                    scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
+                                                                             scheduledExecutor));
                     return response;
                 }
                 scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
@@ -97,36 +102,34 @@ public class BatchBuffer<T, U, V> {
     // Flushes the buffer for the given destination and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
     private void flushBuffer(String destination) {
-        ConcurrentLinkedQueue<T> requestBuffer = batchGroupIdToRequest.get(destination);
+        HashMap<String, T> requestBuffer = new HashMap<>(batchGroupIdToIdToRequest.getNestedMap(destination));
         if (requestBuffer.isEmpty()) {
             return;
         }
 
-        int startingBatchId = currentId.get() - requestBuffer.size();
         List<IdentifiedRequest<T>> requestEntryList = new ArrayList<>();
-        for (int i = 0; !requestBuffer.isEmpty() && i < maxBatchItems; i++) {
-            requestEntryList.add(new IdentifiedRequest<>(Integer.toString(startingBatchId + i), requestBuffer.poll()));
-        }
-
+        requestBuffer.forEach((key, value) -> requestEntryList.add(new IdentifiedRequest<>(key, value)));
         batchingFunction.batchAndSend(requestEntryList, destination)
                         .whenComplete((result, ex) -> handleAndCompleteResponses(destination, result, ex));
     }
 
     private void handleAndCompleteResponses(String destination, V batchResult, Throwable exception) {
         if (exception != null) {
-            batchGroupIdToIdToResponse.getResponseMap(destination)
+            batchGroupIdToIdToResponse.getNestedMap(destination)
                                       .values()
                                       .forEach(responseFuture -> responseFuture.completeExceptionally(exception));
         } else {
             List<IdentifiedResponse<U>> identifiedResponses = unpackResponseFunction.unpackBatchResponse(batchResult);
+            Map<String, T> requestQueue = batchGroupIdToIdToRequest.getNestedMap(destination);
             for (IdentifiedResponse<U> identifiedResponse : identifiedResponses) {
                 String id = identifiedResponse.getId();
                 U response = identifiedResponse.getResponse();
-                batchGroupIdToIdToResponse.getResponseMap(destination)
+                batchGroupIdToIdToResponse.getNestedMap(destination)
                                           .get(id)
                                           .complete(response);
-                batchGroupIdToIdToResponse.getResponseMap(destination)
+                batchGroupIdToIdToResponse.getNestedMap(destination)
                                           .remove(id);
+                requestQueue.remove(id);
             }
         }
     }
@@ -137,6 +140,27 @@ public class BatchBuffer<T, U, V> {
                                                      timeOutInMs,
                                                      timeOutInMs,
                                                      TimeUnit.MILLISECONDS);
+    }
+
+    public void close() {
+        try {
+            scheduledExecutor.shutdownNow();
+            scheduledFlushTasks.forEach((key, value) -> value.cancel(false));
+            batchGroupIdToIdToRequest.forEach((key, value) -> flushBuffer(key));
+            for (Map<String, CompletableFuture<U>> idToResponse : batchGroupIdToIdToResponse.values()) {
+                CompletableFuture.allOf(idToResponse.values().toArray(new CompletableFuture[0]))
+                                 .get(60, TimeUnit.SECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Interrupted during BatchBuffer shutdown" + e);
+        } catch (ExecutionException e) {
+            System.err.println("Failed during graceful metric publisher shutdown." + e);
+        } catch (TimeoutException e) {
+            System.err.println("Timed out during graceful metric publisher shutdown." + e);
+        } finally {
+            scheduledExecutor.shutdownNow();
+        }
     }
 
 }
