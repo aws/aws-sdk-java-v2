@@ -17,16 +17,21 @@ package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
-public class CancellableFlush implements Runnable {
+public class CancellableFlush<T> implements Runnable {
 
     private final Object lock = new Object();
-    private final Callable<CompletableFuture<?>> flushBuffer;
+    private final BiFunction<String, Runnable, Future<CompletableFuture<T>>> flushBuffer;
+    private final String destination;
     private boolean hasExecuted = false;
     private boolean isCancelled = false;
 
-    public CancellableFlush(Callable<CompletableFuture<?>> flushBuffer) {
+    public CancellableFlush(BiFunction<String, Runnable, Future<CompletableFuture<T>>> flushBuffer, String destination) {
         this.flushBuffer = flushBuffer;
+        this.destination = destination;
     }
 
     @Override
@@ -37,7 +42,7 @@ public class CancellableFlush implements Runnable {
             }
             hasExecuted = true;
             try {
-                flushBuffer.call().whenComplete((k, v) -> {
+                flushBuffer.apply(destination, () -> {
                     hasExecuted = false;
                     isCancelled = false;
                 });
