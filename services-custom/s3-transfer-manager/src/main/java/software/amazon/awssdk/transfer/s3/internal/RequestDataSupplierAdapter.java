@@ -76,6 +76,8 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
     @Override
     public boolean getRequestBytes(ByteBuffer outBuffer) {
         LOG.trace(() -> "Getting data to fill buffer of size " + outBuffer.remaining());
+        System.out.println("Getting data to fill buffer of size " + outBuffer.remaining());
+
 
         // Per the spec, onSubscribe is always called before any other
         // signal, so we expect a subscription to always be provided; we just
@@ -136,6 +138,7 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
                     // gets call after the stream is already done, we pop it off again.
                     eventBuffer.push(ev);
                     pending = 0;
+                    System.out.println("complete event");
                     return true;
 
                 case ERROR:
@@ -239,6 +242,7 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
 
         @Override
         public void onComplete() {
+            System.out.println("complete event");
             eventBuffer.add(new CompleteEvent(this));
         }
     }

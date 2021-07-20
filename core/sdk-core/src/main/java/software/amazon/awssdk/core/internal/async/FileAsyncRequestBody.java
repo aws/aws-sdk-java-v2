@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
@@ -32,6 +34,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -80,17 +83,23 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
+        AsynchronousFileChannel channel = null;
         try {
-            AsynchronousFileChannel channel = openInputChannel(this.path);
+            channel = openInputChannel(this.path);
 
             // We need to synchronize here because the subscriber could call
             // request() from within onSubscribe which would potentially
             // trigger onNext before onSubscribe is finished.
-            Subscription subscription = new FileSubscription(channel, s, chunkSizeInBytes);
+            //
+            // Note: size() can throw IOE here
+            Subscription subscription = new FileSubscription(channel, channel.size(), s, chunkSizeInBytes);
             synchronized (subscription) {
                 s.onSubscribe(subscription);
             }
         } catch (IOException e) {
+            if (channel != null) {
+                runAndLogError(log.logger(), "Unable to close file channel", channel::close);
+            }
             // subscribe() must return normally, so we need to signal the
             // failure to open via onError() once onSubscribe() is signaled.
             s.onSubscribe(new NoopSubscription(s));
@@ -172,15 +181,20 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private final int chunkSize;
 
         private final AtomicLong position = new AtomicLong(0);
+        private final AtomicLong remainingBytes = new AtomicLong(0);
         private long outstandingDemand = 0;
         private boolean readInProgress = false;
         private volatile boolean done = false;
         private final Object lock = new Object();
 
-        private FileSubscription(AsynchronousFileChannel inputChannel, Subscriber<? super ByteBuffer> subscriber, int chunkSize) {
+        private FileSubscription(AsynchronousFileChannel inputChannel,
+                                 long size,
+                                 Subscriber<? super ByteBuffer> subscriber,
+                                 int chunkSize) {
             this.inputChannel = inputChannel;
             this.subscriber = subscriber;
             this.chunkSize = chunkSize;
+            this.remainingBytes.set(Validate.isNotNegative(size, "size"));
         }
 
         @Override
@@ -239,11 +253,19 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             inputChannel.read(buffer, position.get(), buffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {
-
                     if (result > 0) {
                         attachment.flip();
-                        position.addAndGet(attachment.remaining());
+
+                        int readBytes = attachment.remaining();
+                        position.addAndGet(readBytes);
+                        remainingBytes.addAndGet(-readBytes);
+
                         signalOnNext(attachment);
+
+                        if (remainingBytes.get() == 0) {
+                            closeFile();
+                            signalOnComplete();
+                        }
 
                         synchronized (lock) {
                             // If we have more permits, queue up another read.
@@ -254,9 +276,8 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                             }
                         }
                     } else {
-                        // Reached the end of the file, notify the subscriber and cleanup
-                        signalOnComplete();
                         closeFile();
+                        signalOnComplete();
                     }
                 }
 
