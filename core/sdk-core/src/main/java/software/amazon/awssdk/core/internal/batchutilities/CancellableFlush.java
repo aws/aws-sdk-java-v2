@@ -15,14 +15,17 @@
 
 package software.amazon.awssdk.core.internal.batchutilities;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+
 public class CancellableFlush implements Runnable {
 
     private final Object lock = new Object();
-    private final Runnable flushBuffer;
+    private final Callable<CompletableFuture<?>> flushBuffer;
     private boolean hasExecuted = false;
     private boolean isCancelled = false;
 
-    public CancellableFlush(Runnable flushBuffer) {
+    public CancellableFlush(Callable<CompletableFuture<?>> flushBuffer) {
         this.flushBuffer = flushBuffer;
     }
 
@@ -33,7 +36,14 @@ public class CancellableFlush implements Runnable {
                 return;
             }
             hasExecuted = true;
-            flushBuffer.run();
+            try {
+                flushBuffer.call().whenComplete((k, v) -> {
+                    hasExecuted = false;
+                    isCancelled = false;
+                });
+            } catch (Exception e) {
+                System.err.println("Exception: " + e);
+            }
         }
     }
 
