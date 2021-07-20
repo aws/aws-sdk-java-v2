@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Added idempotency to the CreateVolume API using the ClientToken request parameter"
+}
