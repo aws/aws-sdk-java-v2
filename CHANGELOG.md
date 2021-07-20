@@ -1,3 +1,12 @@
+# __2.17.1__ __2021-07-20__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Documentation updates for Compute Optimizer
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added idempotency to the CreateVolume API using the ClientToken request parameter
+
 # __2.17.0__ __2021-07-19__
 ## __AWS Direct Connect__
   - ### Features
