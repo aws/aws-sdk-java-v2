@@ -30,7 +30,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +55,6 @@ public class BatchBuffer<T, U, V> {
     private final Map<String, AtomicInteger> currentIds;
     private final BatchAndSendFunction<T, V> batchingFunction;
     private final UnpackBatchResponseFunction<V, U> unpackResponseFunction;
-//    private final ScheduledExecutorService scheduledExecutor;
     private final Map<String, ScheduledExecutorService> scheduledExecutors;
     private final ThreadFactory threadFactory;
     private final ExecutorService executor;
@@ -75,7 +73,6 @@ public class BatchBuffer<T, U, V> {
         this.batchingFunction = batchingFunction;
         this.unpackResponseFunction = unpackResponseFunction;
         this.threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
-//        this.scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         this.scheduledExecutors = new ConcurrentHashMap<>();
         this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                                                new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE),
@@ -83,7 +80,6 @@ public class BatchBuffer<T, U, V> {
     }
 
     public CompletableFuture<U> sendRequest(T request, String destination) {
-        System.err.println("Sending request: " + request);
         CompletableFuture<U> response = new CompletableFuture<>();
         AtomicInteger currentId = currentIds.computeIfAbsent(destination, k -> new AtomicInteger(0));
         String id = Integer.toString(getCurrentIdAndIncrement(currentId));
@@ -91,8 +87,10 @@ public class BatchBuffer<T, U, V> {
                                   .put(id, response);
         batchGroupIdToIdToRequest.getNestedMap(destination)
                                  .put(id, request);
+
         ScheduledExecutorService scheduledExecutor = scheduledExecutors.computeIfAbsent(destination, k ->
-            Executors.newSingleThreadScheduledExecutor(threadFactory));
+                                                                    Executors.newSingleThreadScheduledExecutor(threadFactory));
+
         if (batchGroupIdToIdToRequest.get(destination).size() < maxBatchItems || checkIfScheduledFlush(destination)) {
             if (!scheduledFlushTasks.containsKey(destination)) {
                 scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
@@ -115,16 +113,15 @@ public class BatchBuffer<T, U, V> {
         return response;
     }
 
-    private Future<CompletableFuture<V>> flushBuffer(String destination, Runnable callback) {
-        return executor.submit(() -> internalFlushBuffer(destination, callback));
+    private Future<CompletableFuture<V>> flushBuffer(String destination) {
+        return executor.submit(() -> internalFlushBuffer(destination));
     }
 
     // Flushes the buffer for the given destination and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
-    private CompletableFuture<V> internalFlushBuffer(String destination, Runnable callback) {
+    private CompletableFuture<V> internalFlushBuffer(String destination) {
         Map<String, T> requestBuffer = batchGroupIdToIdToRequest.get(destination);
         Map<String, T> requestBufferCopy = new HashMap<>(requestBuffer);
-        System.err.println("Flushing buffer of size: " + requestBufferCopy.size() + ". Buffer: " + requestBufferCopy);
         if (requestBufferCopy.isEmpty()) {
             return null;
         }
@@ -167,8 +164,11 @@ public class BatchBuffer<T, U, V> {
 
     private ScheduledFlush scheduleBufferFlush(String destination, long initialDelay, long timeOutInMs,
                                                ScheduledExecutorService scheduledExecutor) {
-        CancellableFlush<V> flushTask = new CancellableFlush<>(this::flushBuffer, destination);
-        ScheduledFuture<?> scheduledFuture = scheduledExecutor.scheduleAtFixedRate(flushTask,
+        CancellableFlush<V> flushTask = new CancellableFlush<>(() -> flushBuffer(destination));
+        ScheduledFuture<?> scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
+                                                                                        flushTask.reset();
+                                                                                        flushTask.run();
+                                                                                   },
                                                                                    initialDelay,
                                                                                    timeOutInMs,
                                                                                    TimeUnit.MILLISECONDS);
@@ -187,7 +187,7 @@ public class BatchBuffer<T, U, V> {
         try {
             scheduledExecutors.forEach((key, value) -> value.shutdownNow());
             scheduledFlushTasks.forEach((key, value) -> value.cancel());
-            batchGroupIdToIdToRequest.forEach((key, value) -> flushBuffer(key, null));
+            batchGroupIdToIdToRequest.forEach((key, value) -> flushBuffer(key));
             for (Map<String, CompletableFuture<U>> idToResponse : batchGroupIdToIdToResponse.values()) {
                 CompletableFuture.allOf(idToResponse.values().toArray(new CompletableFuture[0]))
                                  .get(60, TimeUnit.SECONDS);

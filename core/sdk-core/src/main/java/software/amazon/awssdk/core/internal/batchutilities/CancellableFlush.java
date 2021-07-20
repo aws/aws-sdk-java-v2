@@ -24,14 +24,12 @@ import java.util.function.Function;
 public class CancellableFlush<T> implements Runnable {
 
     private final Object lock = new Object();
-    private final BiFunction<String, Runnable, Future<CompletableFuture<T>>> flushBuffer;
-    private final String destination;
+    private final Runnable flushBuffer;
     private boolean hasExecuted = false;
     private boolean isCancelled = false;
 
-    public CancellableFlush(BiFunction<String, Runnable, Future<CompletableFuture<T>>> flushBuffer, String destination) {
+    public CancellableFlush(Runnable flushBuffer) {
         this.flushBuffer = flushBuffer;
-        this.destination = destination;
     }
 
     @Override
@@ -41,14 +39,7 @@ public class CancellableFlush<T> implements Runnable {
                 return;
             }
             hasExecuted = true;
-            try {
-                flushBuffer.apply(destination, () -> {
-                    hasExecuted = false;
-                    isCancelled = false;
-                });
-            } catch (Exception e) {
-                System.err.println("Exception: " + e);
-            }
+            flushBuffer.run();
         }
     }
 
@@ -61,6 +52,13 @@ public class CancellableFlush<T> implements Runnable {
     public boolean hasExecuted() {
         synchronized (this.lock) {
             return hasExecuted;
+        }
+    }
+
+    public void reset() {
+        synchronized (this.lock) {
+            hasExecuted = false;
+            isCancelled = false;
         }
     }
 }
