@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add support for more user-friendly CopyObject source parameters"
+}
