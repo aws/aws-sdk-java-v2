@@ -17,17 +17,19 @@ package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Outer map maps a batch group ID (ex. queueUrl, overrideconfig etc.) to a nested map.
+ * Outer map maps a batch group ID (ex. queueUrl, overrideConfig etc.) to a nested map.
  * Inner map maps batch id to a request/CompletableFuture response.
  * @param <T> the type of an outgoing response
  */
-public class BatchingMap<T> implements Map<String, Map<String, T>>{
+@SdkInternalApi
+public class BatchingMap<T> {
 
-    private final Map<String, Map<String,T>> batchGroupIdToIdToMessage;
+    private final Map<String, Map<String, T>> batchGroupIdToIdToMessage;
 
     public BatchingMap() {
         this.batchGroupIdToIdToMessage = new ConcurrentHashMap<>();
@@ -37,7 +39,6 @@ public class BatchingMap<T> implements Map<String, Map<String, T>>{
         return batchGroupIdToIdToMessage.computeIfAbsent(destination, k -> new ConcurrentHashMap<>());
     }
 
-    @Override
     public int size() {
         return batchGroupIdToIdToMessage.size();
     }
@@ -46,7 +47,6 @@ public class BatchingMap<T> implements Map<String, Map<String, T>>{
      * Only empty if every batchGroupId has an empty map since it is possible for a batchGroupId to exist but point to an empty
      * map.
      */
-    @Override
     public boolean isEmpty() {
         for (Map<String, T> idToMessage : batchGroupIdToIdToMessage.values()) {
             if (!idToMessage.isEmpty()) {
@@ -56,37 +56,26 @@ public class BatchingMap<T> implements Map<String, Map<String, T>>{
         return true;
     }
 
-    @Override
-    public boolean containsKey(Object key) {
+    public boolean containsKey(String key) {
         return batchGroupIdToIdToMessage.containsKey(key);
     }
 
-    @Override
-    public boolean containsValue(Object value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<String, T> get(Object key) {
+    public Map<String, T> get(String key) {
         return batchGroupIdToIdToMessage.get(key);
     }
 
-    @Override
     public Map<String, T> put(String key, Map<String, T> value) {
         return batchGroupIdToIdToMessage.put(key, value);
     }
 
-    @Override
-    public Map<String, T> remove(Object key) {
+    public Map<String, T> remove(String key) {
         return batchGroupIdToIdToMessage.remove(key);
     }
 
-    @Override
-    public void putAll(Map<? extends String, ? extends Map<String, T>> m) {
-        throw new UnsupportedOperationException();
+    public Collection<Map<String, T>> values() {
+        return batchGroupIdToIdToMessage.values();
     }
 
-    @Override
     public void clear() {
         for (Map<String, T> idToMessage : batchGroupIdToIdToMessage.values()) {
             idToMessage.clear();
@@ -94,18 +83,7 @@ public class BatchingMap<T> implements Map<String, Map<String, T>>{
         batchGroupIdToIdToMessage.clear();
     }
 
-    @Override
-    public Set<String> keySet() {
-        return batchGroupIdToIdToMessage.keySet();
-    }
-
-    @Override
-    public Collection<Map<String, T>> values() {
-        return batchGroupIdToIdToMessage.values();
-    }
-
-    @Override
-    public Set<Entry<String, Map<String, T>>> entrySet() {
-        return batchGroupIdToIdToMessage.entrySet();
+    public void forEach(BiConsumer<String, Map<String, T>> action) {
+        batchGroupIdToIdToMessage.forEach(action);
     }
 }

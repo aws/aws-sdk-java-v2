@@ -16,8 +16,10 @@
 package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.util.concurrent.ScheduledFuture;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
+@SdkInternalApi
 public class ScheduledFlush {
     private final ScheduledFuture<?> future;
     private final CancellableFlush cancellableFlush;

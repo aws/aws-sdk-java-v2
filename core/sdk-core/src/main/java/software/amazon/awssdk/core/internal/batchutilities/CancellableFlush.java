@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.internal.batchutilities;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
+@SdkInternalApi
 public class CancellableFlush implements Runnable {
 
     private final Object lock = new Object();

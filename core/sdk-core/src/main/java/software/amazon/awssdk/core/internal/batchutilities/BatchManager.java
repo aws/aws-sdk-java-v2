@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 /**
@@ -49,6 +50,7 @@ public class BatchManager<T, U, V> {
     // Just a number from the cloudwatch metric publisher for now. Not sure if I should choose a different max task queue size?
     private static final int MAXIMUM_TASK_QUEUE_SIZE = 128;
 
+    private static final Logger log = Logger.loggerFor(BatchManager.class);
     private final BatchingMap<T> batchGroupIdToIdToRequest;
     private final BatchingMap<CompletableFuture<U>> batchGroupIdToIdToResponse;
     private final Map<String, ScheduledFlush> scheduledFlushTasks;
@@ -89,10 +91,8 @@ public class BatchManager<T, U, V> {
                                  .put(id, request);
 
         if (batchGroupIdToIdToRequest.get(batchGroupId).size() < maxBatchItems || checkIfScheduledFlush(batchGroupId)) {
-            if (!scheduledFlushTasks.containsKey(batchGroupId)) {
-                scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
-                                                                         scheduledExecutor));
-            }
+            scheduledFlushTasks.computeIfAbsent(batchGroupId, k -> scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
+                                                                     scheduledExecutor));
         } else {
             if (scheduledFlushTasks.containsKey(batchGroupId)) {
                 // "reset" the flush task timer by cancelling scheduled task then restarting it.
@@ -110,8 +110,8 @@ public class BatchManager<T, U, V> {
         return response;
     }
 
-    private void flushBuffer(String batchGroupId) {
-        executor.submit(() -> internalFlushBuffer(batchGroupId));
+    private Future<?> flushBuffer(String batchGroupId) {
+        return executor.submit(() -> internalFlushBuffer(batchGroupId));
     }
 
     // Flushes the buffer for the given batchGroupId and fills in the response map with the returned responses.
@@ -130,7 +130,6 @@ public class BatchManager<T, U, V> {
             requestEntryList.add(new IdentifiedRequest<>(entry.getKey(), entry.getValue()));
             requestBuffer.remove(entry.getKey());
         }
-
         batchingFunction.batchAndSend(requestEntryList, batchGroupId)
                                .whenComplete((result, ex) -> handleAndCompleteResponses(batchGroupId, result, ex));
     }
@@ -163,12 +162,9 @@ public class BatchManager<T, U, V> {
                                                ScheduledExecutorService scheduledExecutor) {
         CancellableFlush flushTask = new CancellableFlush(() -> flushBuffer(batchGroupId));
         ScheduledFuture<?> scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
-                                                                                        flushTask.reset();
-                                                                                        flushTask.run();
-                                                                                   },
-                                                                                   initialDelay,
-                                                                                   timeOutInMs,
-                                                                                   TimeUnit.MILLISECONDS);
+            flushTask.reset();
+            flushTask.run();
+        }, initialDelay, timeOutInMs, TimeUnit.MILLISECONDS);
         return new ScheduledFlush(flushTask, scheduledFuture);
     }
 
@@ -191,11 +187,11 @@ public class BatchManager<T, U, V> {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            System.err.println("Interrupted during BatchBuffer shutdown" + e);
+            log.warn(() -> "Interrupted during BatchBuffer shutdown" + e);
         } catch (ExecutionException e) {
-            System.err.println("Failed during graceful metric publisher shutdown." + e);
+            log.warn(() -> "Failed during graceful metric publisher shutdown." + e);
         } catch (TimeoutException e) {
-            System.err.println("Timed out during graceful metric publisher shutdown." + e);
+            log.warn(() -> "Timed out during graceful metric publisher shutdown." + e);
         } finally {
             scheduledExecutor.shutdownNow();
         }

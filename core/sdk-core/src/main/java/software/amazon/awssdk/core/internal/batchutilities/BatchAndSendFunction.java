@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Takes a list of identified requests in addition to a destination and batches the requests into a batch request.
@@ -25,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
  * @param <U> the type of an outgoing batch response.
  */
 @FunctionalInterface
+@SdkInternalApi
 public interface BatchAndSendFunction<T, U> {
     CompletableFuture<U> batchAndSend(List<IdentifiedRequest<T>> identifiedRequests, String destination);
 }
