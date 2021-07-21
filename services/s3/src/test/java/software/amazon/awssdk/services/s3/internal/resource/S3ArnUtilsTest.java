@@ -136,23 +136,18 @@ public class S3ArnUtilsTest {
     @Test
     public void getArnType_shouldRecognizeAccessPointArn() {
         String arnString = "arn:aws:s3:us-west-2:123456789012:accesspoint/my-access-point";
-        Optional<S3ResourceType> arnType = S3ArnUtils.getArnType(arnString);
-        assertThat(arnType.isPresent(), is(true));
-        assertThat(arnType.get(), is(S3ResourceType.ACCESS_POINT));
+        assertThat(S3ArnUtils.getArnType(arnString), is(Optional.of(S3ResourceType.ACCESS_POINT)));
     }
 
     @Test
     public void getArnType_shouldRecognizeOutpostArn() {
         String arnString = "arn:aws:s3-outposts:us-west-2:123456789012:outpost/my-outpost/bucket/my-bucket";
-        Optional<S3ResourceType> arnType = S3ArnUtils.getArnType(arnString);
-        assertThat(arnType.isPresent(), is(true));
-        assertThat(arnType.get(), is(S3ResourceType.OUTPOST));
+        assertThat(S3ArnUtils.getArnType(arnString), is(Optional.of(S3ResourceType.OUTPOST)));
     }
 
     @Test
     public void getArnType_shouldNotThrow_onRandomInput() {
         String arnString = UUID.randomUUID().toString();
-        Optional<S3ResourceType> arnType = S3ArnUtils.getArnType(arnString);
-        assertThat(arnType.isPresent(), is(false));
+        assertThat(S3ArnUtils.getArnType(arnString), is(Optional.empty()));
     }
 }
