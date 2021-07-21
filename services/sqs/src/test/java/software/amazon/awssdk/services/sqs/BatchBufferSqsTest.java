@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sqs;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +32,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,6 +47,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Md5Utils;
 
 public class BatchBufferSqsTest {
 
@@ -266,11 +268,13 @@ public class BatchBufferSqsTest {
     private void checkAllResponses(SendMessageRequest[] requests, Collection<CompletableFuture<SendMessageResponse>> responses) {
 
         Assert.assertEquals(responses.size(), requests.length);
+        byte[] expectedMd5;
         Iterator<CompletableFuture<SendMessageResponse>> responsesIterator = responses.iterator();
         for (int i = 0; responsesIterator.hasNext(); i++) {
             String requestBody = requests[i].messageBody();
-            String myHash = DigestUtils.md5Hex(requestBody);
-            Assert.assertEquals(myHash, responsesIterator.next().join().md5OfMessageBody());
+            expectedMd5 = Md5Utils.computeMD5Hash(requestBody.getBytes(StandardCharsets.UTF_8));
+            String expectedHash = BinaryUtils.toHex(expectedMd5);
+            Assert.assertEquals(expectedHash, responsesIterator.next().join().md5OfMessageBody());
         }
     }
 
