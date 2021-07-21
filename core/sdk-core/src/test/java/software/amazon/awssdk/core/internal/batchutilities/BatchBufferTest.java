@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.After;
@@ -36,7 +36,7 @@ import org.testng.Assert;
 
 public class BatchBufferTest {
 
-    private BatchBuffer<String, String, List<RequestWithId>> buffer;
+    private BatchManager<String, String, List<RequestWithId>> buffer;
     private String destination;
 
     BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
@@ -84,7 +84,7 @@ public class BatchBufferTest {
 
     @Before
     public void beforeEachBufferTest() {
-        buffer = new BatchBuffer<>(10, Duration.ofMillis(200), batchingFunction, unpackResponseFunction);
+        buffer = new BatchManager<>(10, Duration.ofMillis(200), batchingFunction, unpackResponseFunction);
         destination = "testDestination";
     }
 
@@ -128,7 +128,7 @@ public class BatchBufferTest {
 
         long startTime = System.nanoTime();
         List<CompletableFuture<String>> responses = createAndSendResponses(requestsBatch1);
-        waitForTime(197);
+        waitForTime(195);
         responses.addAll(createAndSendResponses(requestsBatch2));
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
@@ -158,52 +158,45 @@ public class BatchBufferTest {
     public void sendTenMessagesWithEachThread() {
         int numThreads = 10;
         ConcurrentLinkedQueue<CompletableFuture<String>> responses = new ConcurrentLinkedQueue<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-        CompletionService<List<CompletableFuture<String>>> completionService = new ExecutorCompletionService<>(executorService);
-
-        for (int i = 0; i < numThreads; i++) {
-            String[] requests = createRequestsOfSize(i*10, 10);
-            completionService.submit(() -> {
-                List<CompletableFuture<String>> newResponses = createAndSendResponses(requests);
-                responses.addAll(newResponses);
-                return newResponses;
-            });
-        }
-        for (int i = 0; i < numThreads; i++) {
-            try {
-                CompletableFuture.allOf(completionService.take()
-                                                         .get(1, TimeUnit.SECONDS)
-                                                         .toArray(new CompletableFuture[0]))
-                                 .join();
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                System.err.println(e);
-            }
-        }
-
-        Iterator<CompletableFuture<String>> responsesIterator = responses.iterator();
-        for (int i = 0; responsesIterator.hasNext(); i++) {
-            // Can't properly check messages like in previous tests since messages aren't inserted in order.
-            System.err.println(responsesIterator.next().join());
-        }
-        Assert.assertEquals(responses.size(), numThreads*10);
+        createThreadsAndSendMessages(numThreads, 10, destination, responses);
+        checkThreadedResponses(numThreads, 10, responses);
     }
 
     @Test
     public void scheduleFiveMessagesWithEachThread() {
         int numThreads = 10;
         ConcurrentLinkedQueue<CompletableFuture<String>> responses = new ConcurrentLinkedQueue<>();
+        createThreadsAndSendMessages(numThreads, 5, null, responses);
+        checkThreadedResponses(numThreads, 5, responses);
+    }
+
+    private void checkThreadedResponses(int numThreads, int numMessages,
+                                        ConcurrentLinkedQueue<CompletableFuture<String>> responses) {
+        Iterator<CompletableFuture<String>> responsesIterator = responses.iterator();
+        for (int i = 0; responsesIterator.hasNext(); i++) {
+            System.err.println(responsesIterator.next().join());
+        }
+        Assert.assertEquals(responses.size(), numThreads*numMessages);
+    }
+
+    private void createThreadsAndSendMessages(int numThreads, int numMessages, String destination,
+                                              ConcurrentLinkedQueue<CompletableFuture<String>> responses) {
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
         CompletionService<List<CompletableFuture<String>>> completionService = new ExecutorCompletionService<>(executorService);
 
         for (int i = 0; i < numThreads; i++) {
-            String[] requests = createRequestsOfSize(i*5, 5);
-            int finalI = i;
+            String[] requests = createRequestsOfSize(i*numMessages, numMessages);
+            if (destination == null) {
+                destination = Integer.toString(i);
+            }
+            String finalDestination = destination;
             completionService.submit(() -> {
-                List<CompletableFuture<String>> newResponses = createAndSendResponses(requests, Integer.toString(finalI));
+                List<CompletableFuture<String>> newResponses = createAndSendResponses(requests, finalDestination);
                 responses.addAll(newResponses);
                 return newResponses;
             });
         }
+
         for (int i = 0; i < numThreads; i++) {
             try {
                 CompletableFuture.allOf(completionService.take()
@@ -214,12 +207,6 @@ public class BatchBufferTest {
                 System.err.println(e);
             }
         }
-        Iterator<CompletableFuture<String>> responsesIterator = responses.iterator();
-        for (int i = 0; responsesIterator.hasNext(); i++) {
-            // Can't properly check messages like in previous tests since messages aren't inserted in order.
-            System.err.println(responsesIterator.next().join());
-        }
-        Assert.assertEquals(responses.size(), numThreads*5);
     }
 
     private void waitForTime(int msToWait) {
@@ -258,7 +245,7 @@ public class BatchBufferTest {
         for (String request : requests) {
             try {
                 responses.add(buffer.sendRequest(request, destination));
-            } catch (Exception e) {
+            } catch (RejectedExecutionException e) {
                 System.err.println("Error" + e);
             }
         }
