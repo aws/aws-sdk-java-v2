@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -97,7 +98,6 @@ public class BatchBufferTest {
     public void sendTenRequestsTest() {
         String[] requests = createRequestsOfSize(10);
         List<CompletableFuture<String>> responses = createAndSendResponses(requests);
-        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
         checkAllResponses(responses);
     }
 
@@ -155,48 +155,30 @@ public class BatchBufferTest {
     }
 
     @Test
-    public void sendTenMessagesWithEachThread() {
+    public void sendTenMessagesWithEachThreadToSameDestination() {
         int numThreads = 10;
         ConcurrentLinkedQueue<CompletableFuture<String>> responses = new ConcurrentLinkedQueue<>();
-        createThreadsAndSendMessages(numThreads, 10, destination, responses);
-        checkThreadedResponses(numThreads, 10, responses);
-    }
-
-    @Test
-    public void scheduleFiveMessagesWithEachThread() {
-        int numThreads = 10;
-        ConcurrentLinkedQueue<CompletableFuture<String>> responses = new ConcurrentLinkedQueue<>();
-        createThreadsAndSendMessages(numThreads, 5, null, responses);
-        checkThreadedResponses(numThreads, 5, responses);
-    }
-
-    private void checkThreadedResponses(int numThreads, int numMessages,
-                                        ConcurrentLinkedQueue<CompletableFuture<String>> responses) {
-        Iterator<CompletableFuture<String>> responsesIterator = responses.iterator();
-        for (int i = 0; responsesIterator.hasNext(); i++) {
-            System.err.println(responsesIterator.next().join());
-        }
-        Assert.assertEquals(responses.size(), numThreads*numMessages);
-    }
-
-    private void createThreadsAndSendMessages(int numThreads, int numMessages, String destination,
-                                              ConcurrentLinkedQueue<CompletableFuture<String>> responses) {
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
         CompletionService<List<CompletableFuture<String>>> completionService = new ExecutorCompletionService<>(executorService);
 
-        for (int i = 0; i < numThreads; i++) {
-            String[] requests = createRequestsOfSize(i*numMessages, numMessages);
-            if (destination == null) {
-                destination = Integer.toString(i);
-            }
-            String finalDestination = destination;
-            completionService.submit(() -> {
-                List<CompletableFuture<String>> newResponses = createAndSendResponses(requests, finalDestination);
-                responses.addAll(newResponses);
-                return newResponses;
-            });
-        }
+        createThreadsAndSendMessages(numThreads, 10, destination, responses, completionService);
+        checkThreadedResponses(numThreads, 10, responses, completionService);
+    }
 
+    @Test
+    public void scheduleFiveMessagesWithEachThreadToDifferentDestinations() {
+        int numThreads = 10;
+        ConcurrentLinkedQueue<CompletableFuture<String>> responses = new ConcurrentLinkedQueue<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+        CompletionService<List<CompletableFuture<String>>> completionService = new ExecutorCompletionService<>(executorService);
+
+        createThreadsAndSendMessages(numThreads, 5, null, responses, completionService);
+        checkThreadedResponses(numThreads, 5, responses, completionService);
+    }
+
+    private void checkThreadedResponses(int numThreads, int numMessages,
+                                        ConcurrentLinkedQueue<CompletableFuture<String>> responses,
+                                        CompletionService<List<CompletableFuture<String>>> completionService) {
         for (int i = 0; i < numThreads; i++) {
             try {
                 CompletableFuture.allOf(completionService.take()
@@ -207,14 +189,47 @@ public class BatchBufferTest {
                 System.err.println(e);
             }
         }
+
+        Iterator<CompletableFuture<String>> responsesIterator = responses.iterator();
+        for (int i = 0; responsesIterator.hasNext(); i++) {
+            System.err.println(responsesIterator.next().join());
+        }
+        Assert.assertEquals(responses.size(), numThreads*numMessages);
     }
 
-    private void waitForTime(int msToWait) {
+    private void createThreadsAndSendMessages(int numThreads, int numMessages, String destination,
+                                              ConcurrentLinkedQueue<CompletableFuture<String>> responses,
+                                              CompletionService<List<CompletableFuture<String>>> completionService) {
+        String newDestination;
+        for (int i = 0; i < numThreads; i++) {
+            if (destination == null) {
+                newDestination = Integer.toString(i);
+            } else {
+                newDestination = destination;
+            }
+            sendRequestToDestination(i*numMessages, numMessages, newDestination, responses, completionService);
+        }
+    }
+
+    private void sendRequestToDestination(int startingId, int numMessages, String destination,
+                                          ConcurrentLinkedQueue<CompletableFuture<String>> responses,
+                                          CompletionService<List<CompletableFuture<String>>> completionService) {
+        String[] requests = createRequestsOfSize(startingId, numMessages);
+        completionService.submit(() -> {
+            List<CompletableFuture<String>> newResponses = createAndSendResponses(requests, destination);
+            responses.addAll(newResponses);
+            return newResponses;
+        });
+    }
+
+    private boolean waitForTime(int msToWait) {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
-            Thread.sleep(msToWait);
+            return countDownLatch.await(msToWait, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     private void checkAllResponses(List<CompletableFuture<String>> responses) {
