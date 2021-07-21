@@ -1,3 +1,40 @@
+# __2.17.2__ __2021-07-21__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now allows you to set the access permissions for build artifacts, project artifacts, and log files that are uploaded to an Amazon S3 bucket that is owned by another account.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS Lambda__
+  - ### Features
+    - New ResourceConflictException error code for PutFunctionEventInvokeConfig, UpdateFunctionEventInvokeConfig, and DeleteFunctionEventInvokeConfig operations.
+
+## __AWS Proton__
+  - ### Features
+    - Documentation updates for AWS Proton
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for Amazon WorkDocs. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-workdocs.html
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - EMR now supports new DescribeReleaseLabel and ListReleaseLabel APIs. They can provide Amazon EMR release label details. You can programmatically list available releases and applications for a specific Amazon EMR release label.
+
+## __Amazon Personalize__
+  - ### Features
+    - My AWS Service (placeholder) - Making minProvisionedTPS an optional parameter when creating a campaign. If not provided, it defaults to 1.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds the OriginalSnapshotCreateTime field to the DBSnapshot response object. This field timestamps the underlying data of a snapshot and doesn't change when the snapshot is copied.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds support for enabling TLS protocol version and cipher suite headers to be sent to backend targets for Application Load Balancers.
+
 # __2.17.1__ __2021-07-20__
 ## __AWS Compute Optimizer__
   - ### Features

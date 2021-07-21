@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic MapReduce",
-    "contributor": "",
-    "description": "EMR now supports new DescribeReleaseLabel and ListReleaseLabel APIs. They can provide Amazon EMR release label details. You can programmatically list available releases and applications for a specific Amazon EMR release label."
-}

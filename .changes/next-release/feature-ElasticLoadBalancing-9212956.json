@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "contributor": "",
-    "description": "Adds support for enabling TLS protocol version and cipher suite headers to be sent to backend targets for Application Load Balancers."
-}
