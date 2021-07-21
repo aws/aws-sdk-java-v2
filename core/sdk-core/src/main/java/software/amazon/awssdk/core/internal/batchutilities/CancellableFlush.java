@@ -15,13 +15,7 @@
 
 package software.amazon.awssdk.core.internal.batchutilities;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-public class CancellableFlush<T> implements Runnable {
+public class CancellableFlush implements Runnable {
 
     private final Object lock = new Object();
     private final Runnable flushBuffer;

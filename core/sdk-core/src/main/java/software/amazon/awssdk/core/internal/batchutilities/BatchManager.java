@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
  * @param <V> the type of an outgoing batch response.
  */
 @SdkInternalApi
-public class BatchBuffer<T, U, V> {
+public class BatchManager<T, U, V> {
     // Just a number from the cloudwatch metric publisher for now. Not sure if I should choose a different max task queue size?
     private static final int MAXIMUM_TASK_QUEUE_SIZE = 128;
 
@@ -55,13 +55,13 @@ public class BatchBuffer<T, U, V> {
     private final Map<String, AtomicInteger> currentIds;
     private final BatchAndSendFunction<T, V> batchingFunction;
     private final UnpackBatchResponseFunction<V, U> unpackResponseFunction;
-    private final Map<String, ScheduledExecutorService> scheduledExecutors;
+    private final ScheduledExecutorService scheduledExecutor;
     private final ThreadFactory threadFactory;
     private final ExecutorService executor;
     private final Duration maxBatchOpenInMs;
     private final int maxBatchItems;
 
-    public BatchBuffer(int maxBatchItems, Duration maxBatchOpenInMs,
+    public BatchManager(int maxBatchItems, Duration maxBatchOpenInMs,
                        BatchAndSendFunction<T, V> batchingFunction,
                        UnpackBatchResponseFunction<V, U> unpackResponseFunction) {
         this.batchGroupIdToIdToRequest = new BatchingMap<>();
@@ -73,57 +73,54 @@ public class BatchBuffer<T, U, V> {
         this.batchingFunction = batchingFunction;
         this.unpackResponseFunction = unpackResponseFunction;
         this.threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
-        this.scheduledExecutors = new ConcurrentHashMap<>();
+        this.scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                                                new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE),
                                                threadFactory);
     }
 
-    public CompletableFuture<U> sendRequest(T request, String destination) {
+    public CompletableFuture<U> sendRequest(T request, String batchGroupId) {
         CompletableFuture<U> response = new CompletableFuture<>();
-        AtomicInteger currentId = currentIds.computeIfAbsent(destination, k -> new AtomicInteger(0));
+        AtomicInteger currentId = currentIds.computeIfAbsent(batchGroupId, k -> new AtomicInteger(0));
         String id = Integer.toString(getCurrentIdAndIncrement(currentId));
-        batchGroupIdToIdToResponse.getNestedMap(destination)
+        batchGroupIdToIdToResponse.getNestedMap(batchGroupId)
                                   .put(id, response);
-        batchGroupIdToIdToRequest.getNestedMap(destination)
+        batchGroupIdToIdToRequest.getNestedMap(batchGroupId)
                                  .put(id, request);
 
-        ScheduledExecutorService scheduledExecutor = scheduledExecutors.computeIfAbsent(destination, k ->
-                                                                    Executors.newSingleThreadScheduledExecutor(threadFactory));
-
-        if (batchGroupIdToIdToRequest.get(destination).size() < maxBatchItems || checkIfScheduledFlush(destination)) {
-            if (!scheduledFlushTasks.containsKey(destination)) {
-                scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
+        if (batchGroupIdToIdToRequest.get(batchGroupId).size() < maxBatchItems || checkIfScheduledFlush(batchGroupId)) {
+            if (!scheduledFlushTasks.containsKey(batchGroupId)) {
+                scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
                                                                          scheduledExecutor));
             }
         } else {
-            if (scheduledFlushTasks.containsKey(destination)) {
+            if (scheduledFlushTasks.containsKey(batchGroupId)) {
                 // "reset" the flush task timer by cancelling scheduled task then restarting it.
-                ScheduledFlush scheduledFuture = scheduledFlushTasks.get(destination);
+                ScheduledFlush scheduledFuture = scheduledFlushTasks.get(batchGroupId);
                 scheduledFuture.cancel();
                 if (scheduledFuture.hasExecuted()) {
-                    scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, maxBatchOpenInMs.toMillis(),
+                    scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
                                                                              scheduledExecutor));
                     return response;
                 }
             }
-            scheduledFlushTasks.put(destination, scheduleBufferFlush(destination, 0, maxBatchOpenInMs.toMillis(),
+            scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, 0, maxBatchOpenInMs.toMillis(),
                                                                      scheduledExecutor));
         }
         return response;
     }
 
-    private Future<CompletableFuture<V>> flushBuffer(String destination) {
-        return executor.submit(() -> internalFlushBuffer(destination));
+    private void flushBuffer(String batchGroupId) {
+        executor.submit(() -> internalFlushBuffer(batchGroupId));
     }
 
-    // Flushes the buffer for the given destination and fills in the response map with the returned responses.
+    // Flushes the buffer for the given batchGroupId and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
-    private CompletableFuture<V> internalFlushBuffer(String destination) {
-        Map<String, T> requestBuffer = batchGroupIdToIdToRequest.get(destination);
+    private void internalFlushBuffer(String batchGroupId) {
+        Map<String, T> requestBuffer = batchGroupIdToIdToRequest.get(batchGroupId);
         Map<String, T> requestBufferCopy = new HashMap<>(requestBuffer);
         if (requestBufferCopy.isEmpty()) {
-            return null;
+            return;
         }
 
         List<IdentifiedRequest<T>> requestEntryList = new ArrayList<>();
@@ -134,13 +131,13 @@ public class BatchBuffer<T, U, V> {
             requestBuffer.remove(entry.getKey());
         }
 
-        return batchingFunction.batchAndSend(requestEntryList, destination)
-                               .whenComplete((result, ex) -> handleAndCompleteResponses(destination, result, ex));
+        batchingFunction.batchAndSend(requestEntryList, batchGroupId)
+                               .whenComplete((result, ex) -> handleAndCompleteResponses(batchGroupId, result, ex));
     }
 
-    private void handleAndCompleteResponses(String destination, V batchResult, Throwable exception) {
+    private void handleAndCompleteResponses(String batchGroupId, V batchResult, Throwable exception) {
         if (exception != null) {
-            batchGroupIdToIdToResponse.get(destination)
+            batchGroupIdToIdToResponse.get(batchGroupId)
                                       .values()
                                       .forEach(responseFuture -> responseFuture.completeExceptionally(exception));
         } else {
@@ -148,23 +145,23 @@ public class BatchBuffer<T, U, V> {
             for (IdentifiedResponse<U> identifiedResponse : identifiedResponses) {
                 String id = identifiedResponse.getId();
                 U response = identifiedResponse.getResponse();
-                batchGroupIdToIdToResponse.get(destination)
+                batchGroupIdToIdToResponse.get(batchGroupId)
                                           .get(id)
                                           .complete(response);
-                batchGroupIdToIdToResponse.get(destination)
+                batchGroupIdToIdToResponse.get(batchGroupId)
                                           .remove(id);
             }
         }
     }
 
-    private ScheduledFlush scheduleBufferFlush(String destination, long timeOutInMs,
+    private ScheduledFlush scheduleBufferFlush(String batchGroupId, long timeOutInMs,
                                                ScheduledExecutorService scheduledExecutor) {
-        return scheduleBufferFlush(destination, timeOutInMs, timeOutInMs, scheduledExecutor);
+        return scheduleBufferFlush(batchGroupId, timeOutInMs, timeOutInMs, scheduledExecutor);
     }
 
-    private ScheduledFlush scheduleBufferFlush(String destination, long initialDelay, long timeOutInMs,
+    private ScheduledFlush scheduleBufferFlush(String batchGroupId, long initialDelay, long timeOutInMs,
                                                ScheduledExecutorService scheduledExecutor) {
-        CancellableFlush<V> flushTask = new CancellableFlush<>(() -> flushBuffer(destination));
+        CancellableFlush flushTask = new CancellableFlush(() -> flushBuffer(batchGroupId));
         ScheduledFuture<?> scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
                                                                                         flushTask.reset();
                                                                                         flushTask.run();
@@ -176,16 +173,16 @@ public class BatchBuffer<T, U, V> {
     }
 
     // Returns true if a flush is currently being executed.
-    private boolean checkIfScheduledFlush(String destination) {
-        if (scheduledFlushTasks.containsKey(destination)) {
-            return scheduledFlushTasks.get(destination).hasExecuted();
+    private boolean checkIfScheduledFlush(String batchGroupId) {
+        if (scheduledFlushTasks.containsKey(batchGroupId)) {
+            return scheduledFlushTasks.get(batchGroupId).hasExecuted();
         }
         return false;
     }
 
     public void close() {
         try {
-            scheduledExecutors.forEach((key, value) -> value.shutdownNow());
+            scheduledExecutor.shutdownNow();
             scheduledFlushTasks.forEach((key, value) -> value.cancel());
             batchGroupIdToIdToRequest.forEach((key, value) -> flushBuffer(key));
             for (Map<String, CompletableFuture<U>> idToResponse : batchGroupIdToIdToResponse.values()) {
@@ -200,7 +197,7 @@ public class BatchBuffer<T, U, V> {
         } catch (TimeoutException e) {
             System.err.println("Timed out during graceful metric publisher shutdown." + e);
         } finally {
-            scheduledExecutors.forEach((key, value) -> value.shutdownNow());
+            scheduledExecutor.shutdownNow();
         }
     }
 
