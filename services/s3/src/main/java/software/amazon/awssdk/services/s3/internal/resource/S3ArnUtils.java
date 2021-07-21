@@ -72,4 +72,14 @@ public class S3ArnUtils {
                                           .outpostSubresource(ArnResource.fromString(subresource))
                                           .build();
     }
+
+    public static boolean isArnFor(S3ResourceType s3ResourceType, String arnString) {
+        try {
+            Arn arn = Arn.fromString(arnString);
+            String parsedResourceType = arn.resource().resourceType().get();
+            return S3ResourceType.fromValue(parsedResourceType) == s3ResourceType;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
 }
