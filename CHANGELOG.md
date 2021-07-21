@@ -1,3 +1,125 @@
+# __2.17.2__ __2021-07-21__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now allows you to set the access permissions for build artifacts, project artifacts, and log files that are uploaded to an Amazon S3 bucket that is owned by another account.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS Lambda__
+  - ### Features
+    - New ResourceConflictException error code for PutFunctionEventInvokeConfig, UpdateFunctionEventInvokeConfig, and DeleteFunctionEventInvokeConfig operations.
+
+## __AWS Proton__
+  - ### Features
+    - Documentation updates for AWS Proton
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for Amazon WorkDocs. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-workdocs.html
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - EMR now supports new DescribeReleaseLabel and ListReleaseLabel APIs. They can provide Amazon EMR release label details. You can programmatically list available releases and applications for a specific Amazon EMR release label.
+
+## __Amazon Personalize__
+  - ### Features
+    - My AWS Service (placeholder) - Making minProvisionedTPS an optional parameter when creating a campaign. If not provided, it defaults to 1.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds the OriginalSnapshotCreateTime field to the DBSnapshot response object. This field timestamps the underlying data of a snapshot and doesn't change when the snapshot is copied.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds support for enabling TLS protocol version and cipher suite headers to be sent to backend targets for Application Load Balancers.
+
+# __2.17.1__ __2021-07-20__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Documentation updates for Compute Optimizer
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added idempotency to the CreateVolume API using the ClientToken request parameter
+
+# __2.17.0__ __2021-07-19__
+## __AWS Direct Connect__
+  - ### Features
+    - Documentation updates for directconnect
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - In the Health API, the maximum number of entities for the EventFilter and EntityFilter data types has changed from 100 to 99. This change is related to an internal optimization of the AWS Health service.
+
+## __AWS RoboMaker__
+  - ### Features
+    - This release allows customers to create a new version of WorldTemplates with support for Doors.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Moved Jackson from an external SDK dependency to an internal dependency: https://aws.amazon.com/blogs/developer/the-aws-sdk-for-java-2-17-removes-its-external-dependency-on-jackson/
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Updated DescribeManagedEndpoint and ListManagedEndpoints to return failureReason and stateDetails in API response.
+
+## __Amazon Location Service__
+  - ### Features
+    - Add five new API operations: UpdateGeofenceCollection, UpdateMap, UpdatePlaceIndex, UpdateRouteCalculator, UpdateTracker.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Documentation updates for reversal of default value for additional instance configuration SSM switch, plus improved descriptions for semantic versioning.
+
+# __2.16.104__ __2021-07-16__
+## __AWS Audit Manager__
+  - ### Features
+    - This release relaxes the S3 URL character restrictions in AWS Audit Manager. Regex patterns have been updated for the following attributes: s3RelativePath, destination, and s3ResourcePath. 'AWS' terms have also been replaced with entities to align with China Rebrand documentation efforts.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This changes implements support for the `AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE` environment variable and
+      `ec2_metadata_service_endpoint` profile file property.
+
+      When no endpoint override is set using `AWS_EC2_METADATA_SERVICE_ENDPOINT`, this configuration controls which of the default
+      IMDS endpoints the client will use.  Valid values are `IPv4` or `IPv6`
+    - Updated service endpoint metadata.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - Documentation update for AppIntegrations Service
+
+## __Amazon Chime__
+  - ### Features
+    - This SDK release adds Account Status as one of the attributes in Account API response
+
+# __2.16.103__ __2021-07-15__
+## __AWS IoT SiteWise__
+  - ### Features
+    - Update the default endpoint for the APIs used to manage asset models, assets, gateways, tags, and account configurations. If you have firewalls with strict egress rules, configure the rules to grant you access to api.iotsitewise.[region].amazonaws.com or api.iotsitewise.[cn-region].amazonaws.com.cn.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for marshalling lists of strings in HTTP headers
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Documentation updates for cognito-idp
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates for support of awsvpc mode on Windows.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This feature enables customers to specify weekly recurring time window(s) for scheduled events that reboot, stop or terminate EC2 instances.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Lex now supports the en-IN locale
+
 # __2.16.102__ __2021-07-14__
 ## __AWS Certificate Manager__
   - ### Features
