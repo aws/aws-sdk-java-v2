@@ -25,8 +25,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -50,18 +50,24 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 @RunWith(Parameterized.class)
 public class CopySourceIntegrationTest extends S3IntegrationTestBase {
 
-    private static final String SOURCE_BUCKET_NAME = temporaryBucketName("copy-source-integ-test-src");
+    private static final String SOURCE_UNVERSIONED_BUCKET_NAME = temporaryBucketName("copy-source-integ-test-src");
+    private static final String SOURCE_VERSIONED_BUCKET_NAME = temporaryBucketName("copy-source-integ-test-versioned-src");
     private static final String DESTINATION_BUCKET_NAME = temporaryBucketName("copy-source-integ-test-dest");
 
-    @Before
-    public void initializeTestData() throws Exception {
-        createBucket(SOURCE_BUCKET_NAME);
+    @BeforeClass
+    public static void initializeTestData() throws Exception {
+        createBucket(SOURCE_UNVERSIONED_BUCKET_NAME);
+        createBucket(SOURCE_VERSIONED_BUCKET_NAME);
+        s3.putBucketVersioning(r -> r
+            .bucket(SOURCE_VERSIONED_BUCKET_NAME)
+            .versioningConfiguration(v -> v.status(BucketVersioningStatus.ENABLED)));
         createBucket(DESTINATION_BUCKET_NAME);
     }
 
-    @After
-    public void tearDown() {
-        deleteBucketAndAllContents(SOURCE_BUCKET_NAME);
+    @AfterClass
+    public static void tearDown() {
+        deleteBucketAndAllContents(SOURCE_UNVERSIONED_BUCKET_NAME);
+        deleteBucketAndAllContents(SOURCE_VERSIONED_BUCKET_NAME);
         deleteBucketAndAllContents(DESTINATION_BUCKET_NAME);
     }
 
@@ -87,12 +93,12 @@ public class CopySourceIntegrationTest extends S3IntegrationTestBase {
         String originalContent = UUID.randomUUID().toString();
 
         s3.putObject(PutObjectRequest.builder()
-                                     .bucket(SOURCE_BUCKET_NAME)
+                                     .bucket(SOURCE_UNVERSIONED_BUCKET_NAME)
                                      .key(key)
                                      .build(), RequestBody.fromString(originalContent, StandardCharsets.UTF_8));
 
         s3.copyObject(CopyObjectRequest.builder()
-                                       .sourceBucket(SOURCE_BUCKET_NAME)
+                                       .sourceBucket(SOURCE_UNVERSIONED_BUCKET_NAME)
                                        .sourceKey(key)
                                        .destinationBucket(DESTINATION_BUCKET_NAME)
                                        .destinationKey(key)
@@ -113,16 +119,12 @@ public class CopySourceIntegrationTest extends S3IntegrationTestBase {
      */
     @Test
     public void copyObject_WithVersion_AcceptsSameKeyAsPut() throws Exception {
-        s3.putBucketVersioning(r -> r
-            .bucket(SOURCE_BUCKET_NAME)
-            .versioningConfiguration(v -> v.status(BucketVersioningStatus.ENABLED)));
-
         Map<String, String> versionToContentMap = new HashMap<>();
         int numVersionsToCreate = 3;
         for (int i = 0; i < numVersionsToCreate; i++) {
             String originalContent = UUID.randomUUID().toString();
             PutObjectResponse response = s3.putObject(PutObjectRequest.builder()
-                                                                      .bucket(SOURCE_BUCKET_NAME)
+                                                                      .bucket(SOURCE_VERSIONED_BUCKET_NAME)
                                                                       .key(key)
                                                                       .build(),
                                                       RequestBody.fromString(originalContent, StandardCharsets.UTF_8));
@@ -131,7 +133,7 @@ public class CopySourceIntegrationTest extends S3IntegrationTestBase {
 
         versionToContentMap.forEach((versionId, originalContent) -> {
             s3.copyObject(CopyObjectRequest.builder()
-                                           .sourceBucket(SOURCE_BUCKET_NAME)
+                                           .sourceBucket(SOURCE_VERSIONED_BUCKET_NAME)
                                            .sourceKey(key)
                                            .sourceVersionId(versionId)
                                            .destinationBucket(DESTINATION_BUCKET_NAME)
