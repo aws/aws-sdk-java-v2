@@ -33,7 +33,7 @@ public class CopySourceInterceptorTest {
     private final CopySourceInterceptor interceptor = new CopySourceInterceptor();
 
     @Parameters
-    public static Collection parameters() throws Exception {
+    public static Collection<String[]> parameters() throws Exception {
         return Arrays.asList(new String[][] {
             {"bucket", "simpleKey", null,
              "/bucket/simpleKey"},

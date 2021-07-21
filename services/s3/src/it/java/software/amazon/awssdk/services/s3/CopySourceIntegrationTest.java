@@ -66,7 +66,7 @@ public class CopySourceIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Parameters
-    public static Collection parameters() throws Exception {
+    public static Collection<String> parameters() throws Exception {
         return Arrays.asList(
             "simpleKey",
             "key/with/slashes",
@@ -83,7 +83,7 @@ public class CopySourceIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void copyObject_WithoutExplicitVersion_AcceptsSameKeyAsPut() throws Exception {
+    public void copyObject_WithoutVersion_AcceptsSameKeyAsPut() throws Exception {
         String originalContent = UUID.randomUUID().toString();
 
         s3.putObject(PutObjectRequest.builder()
@@ -112,7 +112,7 @@ public class CopySourceIntegrationTest extends S3IntegrationTestBase {
      * Motivated by: https://github.com/aws/aws-sdk-js/issues/727
      */
     @Test
-    public void copyObject_WithVersioning_AcceptsSameKeyAsPut() throws Exception {
+    public void copyObject_WithVersion_AcceptsSameKeyAsPut() throws Exception {
         s3.putBucketVersioning(r -> r
             .bucket(SOURCE_BUCKET_NAME)
             .versioningConfiguration(v -> v.status(BucketVersioningStatus.ENABLED)));

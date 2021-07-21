@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
-import static software.amazon.awssdk.services.s3.internal.resource.S3ArnUtils.isArnFor;
 import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncodeIgnoreSlashes;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -23,10 +22,12 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context.ModifyRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.services.s3.internal.resource.S3ArnUtils;
 import software.amazon.awssdk.services.s3.internal.resource.S3ResourceType;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * This interceptor transforms the {@code sourceBucket}, {@code sourceKey}, and {@code sourceVersionId} parameters for
@@ -98,9 +99,11 @@ public final class CopySourceInterceptor implements ExecutionInterceptor {
         StringBuilder copySource = new StringBuilder();
         copySource.append("/");
         copySource.append(urlEncodeIgnoreSlashes(sourceBucket));
-        if (isArnFor(S3ResourceType.ACCESS_POINT, sourceBucket) || isArnFor(S3ResourceType.OUTPOST, sourceBucket)) {
-            copySource.append("/object");
-        }
+        S3ArnUtils.getArnType(sourceBucket).ifPresent(arnType -> {
+            if (arnType == S3ResourceType.ACCESS_POINT || arnType == S3ResourceType.OUTPOST) {
+                copySource.append("/object");
+            }
+        });
         copySource.append("/");
         copySource.append(urlEncodeIgnoreSlashes(sourceKey));
         if (sourceVersionId != null) {
@@ -111,17 +114,13 @@ public final class CopySourceInterceptor implements ExecutionInterceptor {
     }
 
     private static void requireNotSet(Object value, String paramName) {
-        if (value != null) {
-            throw new IllegalArgumentException(String.format("Parameter 'copySource' must not be used in conjunction with '%s'",
-                                                             paramName));
-        }
+        Validate.isTrue(value == null, "Parameter 'copySource' must not be used in conjunction with '%s'",
+                        paramName);
     }
 
     private static <T> T requireSet(T value, String paramName) {
-        if (value == null) {
-            throw new IllegalArgumentException(String.format("Parameter '%s' must not be null",
-                                                             paramName));
-        }
+        Validate.isTrue(value != null, "Parameter '%s' must not be null",
+                        paramName);
         return value;
     }
 }
