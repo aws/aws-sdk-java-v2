@@ -18,13 +18,12 @@ package software.amazon.awssdk.services.sqs;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionService;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -60,7 +59,7 @@ public class BatchBufferSqsTest {
     private SqsClient client;
     private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> buffer;
     private ScheduledExecutorService scheduledExecutor;
-    private String queueUrl;
+    private String defaultQueueUrl;
 
     BatchAndSendFunction<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
         (identifiedRequests, destination) -> {
@@ -95,7 +94,7 @@ public class BatchBufferSqsTest {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         client = SqsClient.create();
-        queueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue").build()).queueUrl();
+        defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue").build()).queueUrl();
         buffer = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
                                     batchingFunction, unpackResponseFunction);
     }
@@ -108,25 +107,25 @@ public class BatchBufferSqsTest {
 
     @Test
     public void sendTenMessage() {
-        SendMessageRequest[] requests = createRequestsOfSize(10);
-        List<CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requests);
+        Map<String, SendMessageRequest> requests = createRequestsOfSize(10);
+        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requests);
         checkAllResponses(requests, responses);
     }
 
     @Test
     public void sendTwentyMessage() {
-        SendMessageRequest[] requests = createRequestsOfSize(20);
-        List<CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requests);
+        Map<String, SendMessageRequest> requests = createRequestsOfSize(20);
+        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requests);
         checkAllResponses(requests, responses);
     }
 
     @Test
     public void scheduleSendFiveRequests() {
-        SendMessageRequest[] requests = createRequestsOfSize(5);
+        Map<String, SendMessageRequest> requests = createRequestsOfSize(5);
 
         long startTime = System.nanoTime();
-        List<CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requests);
-        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requests);
+        CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
         Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 200);
@@ -135,15 +134,14 @@ public class BatchBufferSqsTest {
 
     @Test
     public void cancelScheduledBatch() {
-        SendMessageRequest[] requests = createRequestsOfSize(10);
-        SendMessageRequest[] requestsBatch1 = Arrays.copyOfRange(requests, 0, 5);
-        SendMessageRequest[] requestsBatch2 = Arrays.copyOfRange(requests, 5, 10);
+        Map<String, SendMessageRequest> requests = createRequestsOfSize(10);
 
         long startTime = System.nanoTime();
-        List<CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requestsBatch1);
+        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(0, 5,
+                                                                                               requests, defaultQueueUrl);
         waitForTime(195);
-        responses.addAll(createAndSendResponses(requestsBatch2));
-        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        responses.putAll(createAndSendResponses(5, 5, requests, defaultQueueUrl));
+        CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
         Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < 400);
@@ -152,15 +150,14 @@ public class BatchBufferSqsTest {
 
     @Test
     public void scheduleTwoBatches() {
-        SendMessageRequest[] requests = createRequestsOfSize(10);
-        SendMessageRequest[] requestsBatch1 = Arrays.copyOfRange(requests, 0, 5);
-        SendMessageRequest[] requestsBatch2 = Arrays.copyOfRange(requests, 5, 10);
+        Map<String, SendMessageRequest> requests = createRequestsOfSize(10);
 
         long startTime = System.nanoTime();
-        List<CompletableFuture<SendMessageResponse>>  responses = createAndSendResponses(requestsBatch1);
+        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(0, 5,
+                                                                                               requests, defaultQueueUrl);
         waitForTime(250);
-        responses.addAll(createAndSendResponses(requestsBatch2));
-        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        responses.putAll(createAndSendResponses(5, 5, requests, defaultQueueUrl));
+        CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
         Assert.assertEquals(10, responses.size());
@@ -171,74 +168,71 @@ public class BatchBufferSqsTest {
     @Test
     public void sendTenMessagesWithEachThread() {
         int numThreads = 10;
-        SendMessageRequest[] requests = createRequestsOfSize(numThreads*10);
-        ConcurrentLinkedQueue<CompletableFuture<SendMessageResponse>> responses = new ConcurrentLinkedQueue<>();
+        Map<String, SendMessageRequest> requests = createRequestsOfSize(numThreads*10);
+        ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-        CompletionService<List<CompletableFuture<SendMessageResponse>>> completionService =
+        CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService =
             new ExecutorCompletionService<>(executorService);
 
-        createThreadsAndSendMessages(numThreads, 10, queueUrl, requests, responses, completionService);
-        checkThreadedResponses(numThreads, 10, responses, completionService);
+        createThreadsAndSendMessages(numThreads, 10, defaultQueueUrl, requests, responses, completionService);
+        checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
     @Test
     public void scheduleFiveMessagesWithEachThreadToDifferentLocations() {
         int numThreads = 10;
-        SendMessageRequest[] requests = createRequestsOfSize(numThreads*5);
-        ConcurrentLinkedQueue<CompletableFuture<SendMessageResponse>> responses = new ConcurrentLinkedQueue<>();
+        Map<String, SendMessageRequest> requests = createRequestsOfSize(numThreads*5);
+        ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-        CompletionService<List<CompletableFuture<SendMessageResponse>>> completionService =
+        CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService =
             new ExecutorCompletionService<>(executorService);
 
         createThreadsAndSendMessages(numThreads, 5, null, requests, responses, completionService);
-        checkThreadedResponses(numThreads, 5, responses, completionService);
+        checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
     private void createThreadsAndSendMessages(int numThreads, int numMessages, String destination,
-                                              SendMessageRequest[] requests,
-                                              ConcurrentLinkedQueue<CompletableFuture<SendMessageResponse>> responses,
-                                              CompletionService<List<CompletableFuture<SendMessageResponse>>> completionService) {
+                                              Map<String, SendMessageRequest> requests,
+                                              ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses,
+                                              CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService) {
         String newDestination;
         for (int i = 0; i < numThreads; i++) {
-            SendMessageRequest[] requestsCopy = Arrays.copyOfRange(requests, i*numMessages, i*numMessages + numMessages);
             if (destination == null) {
                 newDestination = client.createQueue(CreateQueueRequest.builder().queueName(Integer.toString(i)).build()).queueUrl();
             } else {
                 newDestination = destination;
             }
-            sendRequestToDestination(newDestination, requestsCopy, responses, completionService);
+            sendRequestToDestination(i*numMessages, numMessages, newDestination, requests, responses, completionService);
         }
     }
 
-    private void sendRequestToDestination(String destination, SendMessageRequest[] requests,
-                                          ConcurrentLinkedQueue<CompletableFuture<SendMessageResponse>> responses,
-                                          CompletionService<List<CompletableFuture<SendMessageResponse>>> completionService) {
+    private void sendRequestToDestination(int startingId, int numMessages, String destination,
+                                          Map<String, SendMessageRequest> requests,
+                                          ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses,
+                                          CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService) {
         completionService.submit(() -> {
-            List<CompletableFuture<SendMessageResponse>> newResponses = createAndSendResponses(requests, destination);
-            responses.addAll(newResponses);
+            Map<String, CompletableFuture<SendMessageResponse>> newResponses = createAndSendResponses(startingId, numMessages,
+                                                                                                      requests, destination);
+            responses.putAll(newResponses);
             return newResponses;
         });
     }
 
-    private void checkThreadedResponses(int numThreads, int numMessages,
-                                        ConcurrentLinkedQueue<CompletableFuture<SendMessageResponse>> responses,
-                                        CompletionService<List<CompletableFuture<SendMessageResponse>>> completionService) {
+    private void checkThreadedResponses(int numThreads, Map<String, SendMessageRequest> requests,
+                                        ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses,
+                                        CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService) {
         for (int i = 0; i < numThreads; i++) {
             try {
                 CompletableFuture.allOf(completionService.take()
                                                          .get(300, TimeUnit.MILLISECONDS)
+                                                         .values()
                                                          .toArray(new CompletableFuture[0]))
                                  .join();
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error(() -> String.valueOf(e));
             }
         }
-
-        Iterator<CompletableFuture<SendMessageResponse>> responsesIterator = responses.iterator();
-        for (int i = 0; responsesIterator.hasNext(); i++) {
-            log.debug(() -> String.valueOf(responsesIterator.next().join()));
-        }
-        Assert.assertEquals(responses.size(), numThreads*numMessages);
+        checkAllResponses(requests, responses);
     }
 
     private boolean waitForTime(int msToWait) {
@@ -251,39 +245,48 @@ public class BatchBufferSqsTest {
         return false;
     }
 
-    private SendMessageRequest[] createRequestsOfSize(int size) {
-        SendMessageRequest[] requests = new SendMessageRequest[size];
+    private Map<String, SendMessageRequest> createRequestsOfSize(int size) {
+        Map<String, SendMessageRequest> requests = new HashMap<>();
         for (int i = 0; i < size; i++) {
-            requests[i] = SendMessageRequest.builder()
-                                            .messageBody(Integer.toString(i))
-                                            .build();
+            requests.put(Integer.toString(i), SendMessageRequest.builder()
+                                                                .messageBody(Integer.toString(i))
+                                                                .build());
         }
         return requests;
     }
 
-    private List<CompletableFuture<SendMessageResponse>> createAndSendResponses(SendMessageRequest[] requests) {
-        return createAndSendResponses(requests, queueUrl);
+    private Map<String, CompletableFuture<SendMessageResponse>> createAndSendResponses(Map<String, SendMessageRequest>  requests) {
+        return createAndSendResponses(requests, defaultQueueUrl);
     }
 
-    private List<CompletableFuture<SendMessageResponse>> createAndSendResponses(SendMessageRequest[] requests,
+    private Map<String, CompletableFuture<SendMessageResponse>> createAndSendResponses(Map<String, SendMessageRequest> requests,
+                                                                                       String destination) {
+        return createAndSendResponses(0, requests.size(), requests, destination);
+    }
+
+    private Map<String, CompletableFuture<SendMessageResponse>> createAndSendResponses(int startingId, int size,
+                                                                                Map<String, SendMessageRequest>  requests,
                                                                                 String destination) {
-        List<CompletableFuture<SendMessageResponse>> responses = new ArrayList<>();
-        for (SendMessageRequest request : requests) {
-            responses.add(buffer.sendRequest(request, destination));
+        Map<String, CompletableFuture<SendMessageResponse>> responses = new HashMap<>();
+        for (int i = startingId; i < startingId + size; i++) {
+            String key = Integer.toString(i);
+            SendMessageRequest request = requests.get(key);
+            responses.put(key, buffer.sendRequest(request, destination));
         }
         return responses;
     }
 
-    private void checkAllResponses(SendMessageRequest[] requests, Collection<CompletableFuture<SendMessageResponse>> responses) {
+    private void checkAllResponses(Map<String, SendMessageRequest> requests,
+                                   Map<String, CompletableFuture<SendMessageResponse>> responses) {
 
-        Assert.assertEquals(responses.size(), requests.length);
+        Assert.assertEquals(responses.size(), requests.size());
         byte[] expectedMd5;
-        Iterator<CompletableFuture<SendMessageResponse>> responsesIterator = responses.iterator();
-        for (int i = 0; responsesIterator.hasNext(); i++) {
-            String requestBody = requests[i].messageBody();
+        for (int i = 0; i < responses.size(); i++) {
+            String key = Integer.toString(i);
+            String requestBody = requests.get(key).messageBody();
             expectedMd5 = Md5Utils.computeMD5Hash(requestBody.getBytes(StandardCharsets.UTF_8));
             String expectedHash = BinaryUtils.toHex(expectedMd5);
-            Assert.assertEquals(expectedHash, responsesIterator.next().join().md5OfMessageBody());
+            Assert.assertEquals(expectedHash, responses.get(key).join().md5OfMessageBody());
         }
     }
 
