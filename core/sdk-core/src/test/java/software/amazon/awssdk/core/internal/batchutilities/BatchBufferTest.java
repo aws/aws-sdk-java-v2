@@ -17,21 +17,17 @@ package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -49,49 +45,6 @@ public class BatchBufferTest {
     private BatchManager<String, String, List<RequestWithId>> buffer;
     private ScheduledExecutorService scheduledExecutor;
     private String destination;
-
-    BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
-        (identifiedRequests, destination) -> {
-            List<RequestWithId> entries = new ArrayList<>(identifiedRequests.size());
-            identifiedRequests.forEach(identifiedRequest -> {
-                String id = identifiedRequest.getId();
-                String request = identifiedRequest.getRequest();
-                entries.add(new RequestWithId(id, request));
-            });
-            return CompletableFuture.supplyAsync(() -> {
-                waitForTime(150);
-                return entries;
-            });
-        };
-
-    UnpackBatchResponseFunction<List<RequestWithId>, String> unpackResponseFunction =
-        requestBatchResponse -> {
-            List<IdentifiedResponse<String>> identifiedResponses = new ArrayList<>();
-            for (RequestWithId requestWithId : requestBatchResponse) {
-                identifiedResponses.add(new IdentifiedResponse<>(requestWithId.getId(), requestWithId.getMessage()));
-            }
-            return identifiedResponses;
-        };
-
-    //Object to mimic a batch request entry
-    private static class RequestWithId {
-
-        private final String id;
-        private final String message;
-
-        public RequestWithId(String id, String message) {
-            this.id = id;
-            this.message = message;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-    }
 
     @Before
     public void setUp() {
@@ -143,7 +96,6 @@ public class BatchBufferTest {
         Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests, destination);
         waitForTime(195);
         responses.putAll(createAndSendResponses(5, 5, requests, destination));
-        System.err.println(responses);
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
@@ -193,6 +145,49 @@ public class BatchBufferTest {
         checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
+    private static final BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
+        (identifiableRequests, destination) -> {
+            List<RequestWithId> entries = new ArrayList<>(identifiableRequests.size());
+            identifiableRequests.forEach(identifiableRequest -> {
+                String id = identifiableRequest.id();
+                String request = identifiableRequest.request();
+                entries.add(new RequestWithId(id, request));
+            });
+            return CompletableFuture.supplyAsync(() -> {
+                waitForTime(150);
+                return entries;
+            });
+        };
+
+    private static final BatchResponseMapperFunction<List<RequestWithId>, String> unpackResponseFunction =
+        requestBatchResponse -> {
+            List<IdentifiableResponse<String>> identifiableResponses = new ArrayList<>();
+            for (RequestWithId requestWithId : requestBatchResponse) {
+                identifiableResponses.add(new IdentifiableResponse<>(requestWithId.getId(), requestWithId.getMessage()));
+            }
+            return identifiableResponses;
+        };
+
+    //Object to mimic a batch request entry
+    private static class RequestWithId {
+
+        private final String id;
+        private final String message;
+
+        public RequestWithId(String id, String message) {
+            this.id = id;
+            this.message = message;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
     private void checkThreadedResponses(int numThreads, Map<String, String> requests,
                                         ConcurrentHashMap<String, CompletableFuture<String>> responses,
                                         CompletionService<Map<String, CompletableFuture<String>>> completionService) {
@@ -235,7 +230,7 @@ public class BatchBufferTest {
         });
     }
 
-    private boolean waitForTime(int msToWait) {
+    private static boolean waitForTime(int msToWait) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             return countDownLatch.await(msToWait, TimeUnit.MILLISECONDS);

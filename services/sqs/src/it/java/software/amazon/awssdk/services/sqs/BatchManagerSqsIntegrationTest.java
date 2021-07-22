@@ -39,8 +39,8 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.internal.batchutilities.BatchAndSendFunction;
 import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
+import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapperFunction;
 import software.amazon.awssdk.core.internal.batchutilities.IdentifiedResponse;
-import software.amazon.awssdk.core.internal.batchutilities.UnpackBatchResponseFunction;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
@@ -53,11 +53,11 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
-public class BatchBufferSqsTest {
+public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
 
-    private static final Logger log = Logger.loggerFor(BatchBufferSqsTest.class);
+    private static final Logger log = Logger.loggerFor(BatchManagerSqsIntegrationTest.class);
     private SqsClient client;
-    private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> buffer;
+    private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> batchManager;
     private ScheduledExecutorService scheduledExecutor;
     private String defaultQueueUrl;
 
@@ -65,8 +65,8 @@ public class BatchBufferSqsTest {
         (identifiedRequests, destination) -> {
             List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
             identifiedRequests.forEach(identifiedRequest -> {
-                String id = identifiedRequest.getId();
-                SendMessageRequest request = identifiedRequest.getRequest();
+                String id = identifiedRequest.id();
+                SendMessageRequest request = identifiedRequest.request();
                 entries.add(createMessageBatchRequestEntry(id, request));
             });
             SendMessageBatchRequest batchRequest = SendMessageBatchRequest.builder()
@@ -76,7 +76,7 @@ public class BatchBufferSqsTest {
             return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
         };
 
-    UnpackBatchResponseFunction<SendMessageBatchResponse, SendMessageResponse> unpackResponseFunction =
+    BatchResponseMapperFunction<SendMessageBatchResponse, SendMessageResponse> unpackResponseFunction =
         sendMessageBatchResponse -> {
             List<IdentifiedResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
@@ -85,7 +85,7 @@ public class BatchBufferSqsTest {
                                         SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
                                         mappedResponses.add(new IdentifiedResponse<>(key, response));
                                     });
-            // Add failed responses once I figure out how to crate sendMessageResponse items.
+            // Add failed responses once I figure out how to create sendMessageResponse items.
             return mappedResponses;
         };
 
@@ -95,13 +95,13 @@ public class BatchBufferSqsTest {
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         client = SqsClient.create();
         defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue").build()).queueUrl();
-        buffer = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
+        batchManager = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
                                     batchingFunction, unpackResponseFunction);
     }
 
     @After
     public void tearDown() {
-        buffer.close();
+        batchManager.close();
         client.close();
     }
 
@@ -271,7 +271,7 @@ public class BatchBufferSqsTest {
         for (int i = startingId; i < startingId + size; i++) {
             String key = Integer.toString(i);
             SendMessageRequest request = requests.get(key);
-            responses.put(key, buffer.sendRequest(request, destination));
+            responses.put(key, batchManager.sendRequest(request, destination));
         }
         return responses;
     }

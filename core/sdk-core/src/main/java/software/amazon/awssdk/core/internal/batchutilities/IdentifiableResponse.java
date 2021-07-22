@@ -22,21 +22,21 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <T> the response
  */
 @SdkProtectedApi
-public class IdentifiedResponse<T> {
+public class IdentifiableResponse<T> {
 
     private final String id;
     private final T response;
 
-    public IdentifiedResponse(String id, T response) {
+    public IdentifiableResponse(String id, T response) {
         this.id = id;
         this.response = response;
     }
 
-    public String getId() {
+    public String id() {
         return id;
     }
 
-    public T getResponse() {
+    public T response() {
         return response;
     }
 }

@@ -21,11 +21,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 /**
  * Unpacks the batch response, then transforms individual entries to the appropriate response type. Each entry's batch ID
  * is mapped to the individual response entry.
- * @param <T> the type of an outgoing batch response.
- * @param <U> the type of an outgoing response.
+ * @param <BatchResponseT> the type of an outgoing batch response.
+ * @param <ResponseT> the type of an outgoing response.
  */
 @FunctionalInterface
 @SdkProtectedApi
-public interface UnpackBatchResponseFunction<T, U> {
-    List<IdentifiedResponse<U>> unpackBatchResponse(T batchResponse);
+public interface BatchResponseMapperFunction<BatchResponseT, ResponseT> {
+    List<IdentifiableResponse<ResponseT>> mapBatchResponse(BatchResponseT batchResponse);
 }

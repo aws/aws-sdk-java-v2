@@ -22,21 +22,21 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <T> The request
  */
 @SdkProtectedApi
-public class IdentifiedRequest<T> {
+public class IdentifiableRequest<T> {
 
     private final String id;
     private final T request;
 
-    public IdentifiedRequest(String id, T request) {
+    public IdentifiableRequest(String id, T request) {
         this.id = id;
         this.request = request;
     }
 
-    public String getId() {
+    public String id() {
         return id;
     }
 
-    public T getRequest() {
+    public T request() {
         return request;
     }
 }

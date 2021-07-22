@@ -36,6 +36,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 /**
@@ -45,33 +46,43 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
  * @param <BatchResponseT> the type of an outgoing batch response.
  */
 @SdkInternalApi
-public class BatchManager<RequestT, ResponseT, BatchResponseT> {
-    // Just a number from the cloudwatch metric publisher for now. Not sure if I should choose a different max task queue size?
+public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAutoCloseable {
+    // TODO: Just a number from the CloudwatchMetricPublisher for now. Should I choose a different max task queue size?
     private static final int MAXIMUM_TASK_QUEUE_SIZE = 128;
 
     private static final Logger log = Logger.loggerFor(BatchManager.class);
-    private final BatchingMap<RequestT> batchGroupIdToIdToRequest;
-    private final BatchingMap<CompletableFuture<ResponseT>> batchGroupIdToIdToResponse;
+    private final int maxBatchItems;
+    private final Duration maxBatchOpenInMs;
+    private final BatchingMap<RequestT> requestMaps;
+    private final BatchingMap<CompletableFuture<ResponseT>> responseMaps;
     private final Map<String, ScheduledFlush> scheduledFlushTasks;
     private final Map<String, AtomicInteger> currentIds;
     private final BatchAndSendFunction<RequestT, BatchResponseT> batchingFunction;
-    private final UnpackBatchResponseFunction<BatchResponseT, ResponseT> unpackResponseFunction;
-    private final ScheduledExecutorService scheduledExecutor;
+    private final BatchResponseMapperFunction<BatchResponseT, ResponseT> mapResponsesFunction;
+
+    /**
+     * The executor that executes {@link #flushBuffer}
+     */
     private final ExecutorService executor;
-    private final Duration maxBatchOpenInMs;
-    private final int maxBatchItems;
+
+    /**
+     * A scheduled executor that periodically schedules {@link #flushBuffer} on the {@link #executor} thread. Note: The scheduled
+     * executor should never execute the flush task itself because that would modify the request and response maps which should
+     * only ever be modified from the {@link #executor} thread.
+     */
+    private final ScheduledExecutorService scheduledExecutor;
 
     public BatchManager(int maxBatchItems, Duration maxBatchOpenInMs, ScheduledExecutorService scheduledExecutor,
                        BatchAndSendFunction<RequestT, BatchResponseT> batchingFunction,
-                       UnpackBatchResponseFunction<BatchResponseT, ResponseT> unpackResponseFunction) {
-        this.batchGroupIdToIdToRequest = new BatchingMap<>();
-        this.batchGroupIdToIdToResponse = new BatchingMap<>();
+                        BatchResponseMapperFunction<BatchResponseT, ResponseT> mapResponsesFunction) {
+        this.requestMaps = new BatchingMap<>();
+        this.responseMaps = new BatchingMap<>();
         this.scheduledFlushTasks = new ConcurrentHashMap<>();
         this.currentIds = new ConcurrentHashMap<>();
         this.maxBatchItems = maxBatchItems;
         this.maxBatchOpenInMs = maxBatchOpenInMs;
         this.batchingFunction = batchingFunction;
-        this.unpackResponseFunction = unpackResponseFunction;
+        this.mapResponsesFunction = mapResponsesFunction;
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
         this.scheduledExecutor = scheduledExecutor;
         this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
@@ -83,29 +94,39 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> {
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         AtomicInteger currentId = currentIds.computeIfAbsent(batchGroupId, k -> new AtomicInteger(0));
         String id = Integer.toString(getCurrentIdAndIncrement(currentId));
-        batchGroupIdToIdToResponse.getNestedMap(batchGroupId)
+        responseMaps.getNestedMap(batchGroupId)
                                   .put(id, response);
-        batchGroupIdToIdToRequest.getNestedMap(batchGroupId)
+        requestMaps.getNestedMap(batchGroupId)
                                  .put(id, request);
 
-        if (batchGroupIdToIdToRequest.get(batchGroupId).size() < maxBatchItems || checkIfScheduledFlush(batchGroupId)) {
+        if (requestMaps.get(batchGroupId).size() < maxBatchItems) {
             scheduledFlushTasks.computeIfAbsent(batchGroupId, k -> scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
                                                                      scheduledExecutor));
         } else {
-            if (scheduledFlushTasks.containsKey(batchGroupId)) {
-                // "reset" the flush task timer by cancelling scheduled task then restarting it.
-                ScheduledFlush scheduledFuture = scheduledFlushTasks.get(batchGroupId);
-                scheduledFuture.cancel();
-                if (scheduledFuture.hasExecuted()) {
-                    scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
-                                                                             scheduledExecutor));
-                    return response;
-                }
+            CompletableFuture<ResponseT> cancelledResponse = cancelScheduledFlushIfNeeded(response, batchGroupId);
+            if (cancelledResponse != null) {
+                return cancelledResponse;
             }
-            scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, 0, maxBatchOpenInMs.toMillis(),
-                                                                     scheduledExecutor));
         }
         return response;
+    }
+
+    private CompletableFuture<ResponseT> cancelScheduledFlushIfNeeded(CompletableFuture<ResponseT> response,
+                                                                      String batchGroupId) {
+        if (scheduledFlushTasks.containsKey(batchGroupId)) {
+            // "reset" the flush task timer by cancelling scheduled task then restarting it.
+            ScheduledFlush scheduledFuture = scheduledFlushTasks.get(batchGroupId);
+            scheduledFuture.cancel();
+            // If scheduledFuture hasExecuted, do not perform a manual flush (initialDelay == 0), just return the response.
+            if (scheduledFuture.hasExecuted()) {
+                scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
+                                                                          scheduledExecutor));
+                return response;
+            }
+        }
+        scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, 0, maxBatchOpenInMs.toMillis(),
+                                                                  scheduledExecutor));
+        return null;
     }
 
     private Future<?> flushBuffer(String batchGroupId) {
@@ -115,37 +136,37 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> {
     // Flushes the buffer for the given batchGroupId and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
     private void internalFlushBuffer(String batchGroupId) {
-        Map<String, RequestT> requestBuffer = batchGroupIdToIdToRequest.get(batchGroupId);
+        Map<String, RequestT> requestBuffer = requestMaps.get(batchGroupId);
         Map<String, RequestT> requestBufferCopy = new HashMap<>(requestBuffer);
         if (requestBufferCopy.isEmpty()) {
             return;
         }
 
-        List<IdentifiedRequest<RequestT>> requestEntryList = new ArrayList<>();
+        List<IdentifiableRequest<RequestT>> requestEntryList = new ArrayList<>();
         Iterator<Map.Entry<String, RequestT>> requestIterator = requestBufferCopy.entrySet().iterator();
         for (int i = 0; i < maxBatchItems && requestIterator.hasNext(); i++) {
             Map.Entry<String, RequestT> entry = requestIterator.next();
-            requestEntryList.add(new IdentifiedRequest<>(entry.getKey(), entry.getValue()));
+            requestEntryList.add(new IdentifiableRequest<>(entry.getKey(), entry.getValue()));
             requestBuffer.remove(entry.getKey());
         }
         batchingFunction.batchAndSend(requestEntryList, batchGroupId)
-                               .whenComplete((result, ex) -> handleAndCompleteResponses(batchGroupId, result, ex));
+                        .whenComplete((result, ex) -> handleAndCompleteResponses(batchGroupId, result, ex));
     }
 
     private void handleAndCompleteResponses(String batchGroupId, BatchResponseT batchResult, Throwable exception) {
         if (exception != null) {
-            batchGroupIdToIdToResponse.get(batchGroupId)
+            responseMaps.get(batchGroupId)
                                       .values()
                                       .forEach(responseFuture -> responseFuture.completeExceptionally(exception));
         } else {
-            List<IdentifiedResponse<ResponseT>> identifiedResponses = unpackResponseFunction.unpackBatchResponse(batchResult);
-            for (IdentifiedResponse<ResponseT> identifiedResponse : identifiedResponses) {
-                String id = identifiedResponse.getId();
-                ResponseT response = identifiedResponse.getResponse();
-                batchGroupIdToIdToResponse.get(batchGroupId)
+            List<IdentifiableResponse<ResponseT>> identifiedResponses = mapResponsesFunction.mapBatchResponse(batchResult);
+            for (IdentifiableResponse<ResponseT> identifiedResponse : identifiedResponses) {
+                String id = identifiedResponse.id();
+                ResponseT response = identifiedResponse.response();
+                responseMaps.get(batchGroupId)
                                           .get(id)
                                           .complete(response);
-                batchGroupIdToIdToResponse.get(batchGroupId)
+                responseMaps.get(batchGroupId)
                                           .remove(id);
             }
         }
@@ -178,8 +199,8 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> {
         try {
             scheduledExecutor.shutdownNow();
             scheduledFlushTasks.forEach((key, value) -> value.cancel());
-            batchGroupIdToIdToRequest.forEach((key, value) -> flushBuffer(key));
-            for (Map<String, CompletableFuture<ResponseT>> idToResponse : batchGroupIdToIdToResponse.values()) {
+            requestMaps.forEach((key, value) -> flushBuffer(key));
+            for (Map<String, CompletableFuture<ResponseT>> idToResponse : responseMaps.values()) {
                 CompletableFuture.allOf(idToResponse.values().toArray(new CompletableFuture[0]))
                                  .get(60, TimeUnit.SECONDS);
             }

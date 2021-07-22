@@ -28,5 +28,5 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @FunctionalInterface
 @SdkProtectedApi
 public interface BatchAndSendFunction<T, U> {
-    CompletableFuture<U> batchAndSend(List<IdentifiedRequest<T>> identifiedRequests, String destination);
+    CompletableFuture<U> batchAndSend(List<IdentifiableRequest<T>> identifiedRequests, String batchGroupId);
 }
