@@ -163,53 +163,6 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     }
 
     /**
-     * Test uploading and retrieving log events.
-     */
-    @Test
-    public void testEventsLogging() {
-        // No log event is expected in the newly created log stream
-        GetLogEventsResponse getResult = awsLogs.getLogEvents(GetLogEventsRequest.builder().logGroupName(logGroupName).logStreamName(logStreamName).build());
-        Assert.assertTrue(getResult.events().isEmpty());
-
-        // Insert a new log event
-        PutLogEventsRequest request = PutLogEventsRequest.builder()
-                                                         .logGroupName(logGroupName)
-                                                         .logStreamName(logStreamName)
-                                                         .logEvents(InputLogEvent.builder()
-                                                                                 .message(LOG_MESSAGE)
-                                                                                 .timestamp(LOG_MESSAGE_TIMESTAMP)
-                                                                                 .build())
-                                                         .build();
-        PutLogEventsResponse putResult = awsLogs.putLogEvents(request);
-
-        Assert.assertNotNull(putResult.nextSequenceToken());
-
-        // The new log event is not instantly available in GetLogEvents operation.
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException ignored) {
-            // Ignored or expected.
-        }
-
-        // Pull the event from the log stream
-        getResult = awsLogs.getLogEvents(GetLogEventsRequest.builder().logGroupName(logGroupName).logStreamName(logStreamName).build());
-        Assert.assertEquals(1, getResult.events().size());
-        Assert.assertNotNull(getResult.nextBackwardToken());
-        Assert.assertNotNull(getResult.nextForwardToken());
-
-        OutputLogEvent event = getResult.events().get(0);
-        Assert.assertEquals(LOG_MESSAGE, event.message());
-        Assert.assertEquals(LOG_MESSAGE_TIMESTAMP, event.timestamp().longValue());
-
-        // Use DescribeLogStreams API to verify that the new log event has
-        // updated the following parameters of the log stream.
-        final LogStream stream = findLogStreamByName(awsLogs, logGroupName, logStreamName);
-        Assert.assertEquals(LOG_MESSAGE_TIMESTAMP, stream.firstEventTimestamp().longValue());
-        Assert.assertEquals(LOG_MESSAGE_TIMESTAMP, stream.lastEventTimestamp().longValue());
-        Assert.assertNotNull(stream.lastIngestionTime());
-    }
-
-    /**
      * Use the TestMetricFilter API to verify the correctness of the metric filter pattern we have
      * been using in this integration test.
      */
