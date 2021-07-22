@@ -17,18 +17,24 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 
 public class RequestDataSupplierAdapterTest {
 
@@ -155,5 +161,57 @@ public class RequestDataSupplierAdapterTest {
 
             assertThat(readBuffer).isEqualTo(expectedBufferContent);
         }
+    }
+
+    @Test
+    public void onException_cancelsSubscription() {
+        Subscription subscription = mock(Subscription.class);
+
+        AsyncRequestBody requestBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.empty();
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                subscriber.onSubscribe(subscription);
+            }
+        };
+
+        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
+
+        // getRequestBytes() triggers a subscribe() on the publisher
+        adapter.getRequestBytes(ByteBuffer.allocate(0));
+
+        adapter.onException(new CrtRuntimeException("error"));
+
+        verify(subscription).cancel();
+    }
+
+    @Test
+    public void onFinished_cancelsSubscription() {
+        Subscription subscription = mock(Subscription.class);
+
+        AsyncRequestBody requestBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.empty();
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                subscriber.onSubscribe(subscription);
+            }
+        };
+
+        RequestDataSupplierAdapter adapter = new RequestDataSupplierAdapter(requestBody);
+
+        // getRequestBytes() triggers a subscribe() on the publisher
+        adapter.getRequestBytes(ByteBuffer.allocate(0));
+
+        adapter.onFinished();
+
+        verify(subscription).cancel();
     }
 }
