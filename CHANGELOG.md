@@ -1,3 +1,32 @@
+# __2.17.3__ __2021-07-22__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports passing through style data on WebVTT caption outputs.
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - This SDK release adds two new features: 1) Output to Native JDBC destinations and 2) Adding configurations to profile jobs
+
+## __AWS S3 Control__
+  - ### Features
+    - Documentation updates for Amazon S3-control
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows customers to assign prefixes to their elastic network interface and to reserve IP blocks in their subnet CIDRs. These reserved blocks can be used to assign prefixes to elastic network interfaces or be excluded from auto-assignment.
+
+## __Amazon QLDB__
+  - ### Features
+    - Amazon QLDB now supports ledgers encrypted with customer managed KMS keys. Changes in CreateLedger, UpdateLedger and DescribeLedger APIs to support the changes.
+
+## __Amazon S3__
+  - ### Features
+    - Add support for more user-friendly CopyObject source parameters
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds support for enabling TLS protocol version and cipher suite headers to be sent to backend targets for Application Load Balancers.
+
 # __2.17.2__ __2021-07-21__
 ## __AWS CodeBuild__
   - ### Features
