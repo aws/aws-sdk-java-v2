@@ -28,16 +28,22 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.testng.Assert;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 public class BatchBufferTest {
 
+    private static final Logger log = Logger.loggerFor(BatchBufferTest.class);
     private BatchManager<String, String, List<RequestWithId>> buffer;
+    private ScheduledExecutorService scheduledExecutor;
     private String destination;
 
     BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
@@ -84,32 +90,36 @@ public class BatchBufferTest {
     }
 
     @Before
-    public void beforeEachBufferTest() {
-        buffer = new BatchManager<>(10, Duration.ofMillis(200), batchingFunction, unpackResponseFunction);
+    public void setUp() {
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
+        buffer = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
+                                    batchingFunction, unpackResponseFunction);
         destination = "testDestination";
     }
 
     @After
-    public void afterEachBufferTest() {
+    public void tearDown() {
         buffer.close();
+        scheduledExecutor.shutdownNow();
     }
 
     @Test
-    public void sendTenRequestsTest() {
+    public void sendTenRequests() {
         String[] requests = createRequestsOfSize(10);
         List<CompletableFuture<String>> responses = createAndSendResponses(requests);
         checkAllResponses(responses);
     }
 
     @Test
-    public void sendTwentyRequestsTest() {
+    public void sendTwentyRequests() {
         String[] requests = createRequestsOfSize(20);
         List<CompletableFuture<String>> responses = createAndSendResponses(requests);
         checkAllResponses(responses);
     }
 
     @Test
-    public void scheduleSendFiveRequestsTest() {
+    public void scheduleSendFiveRequests() {
         String[] requests = createRequestsOfSize(5);
 
         long startTime = System.nanoTime();
@@ -122,7 +132,7 @@ public class BatchBufferTest {
     }
 
     @Test
-    public void cancelScheduledBatchTest() {
+    public void cancelScheduledBatch() {
         String[] requestsBatch1 = createRequestsOfSize(5);
         String[] requestsBatch2 = createRequestsOfSize(5, 5);
 
@@ -138,7 +148,7 @@ public class BatchBufferTest {
     }
 
     @Test
-    public void scheduleTwoBatchTests() {
+    public void scheduleTwoBatches() {
         String[] requestsBatch1 = createRequestsOfSize(5);
         String[] requestsBatch2 = createRequestsOfSize(5, 5);
 
@@ -186,13 +196,13 @@ public class BatchBufferTest {
                                                          .toArray(new CompletableFuture[0]))
                                  .join();
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                System.err.println(e);
+                log.warn(() -> String.valueOf(e));
             }
         }
 
         Iterator<CompletableFuture<String>> responsesIterator = responses.iterator();
         for (int i = 0; responsesIterator.hasNext(); i++) {
-            System.err.println(responsesIterator.next().join());
+            log.debug(() -> responsesIterator.next().join());
         }
         Assert.assertEquals(responses.size(), numThreads*numMessages);
     }
@@ -261,7 +271,7 @@ public class BatchBufferTest {
             try {
                 responses.add(buffer.sendRequest(request, destination));
             } catch (RejectedExecutionException e) {
-                System.err.println("Error" + e);
+                log.warn(() -> "Error" + e);
             }
         }
         return responses;

@@ -30,6 +30,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.After;
@@ -48,12 +50,16 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 public class BatchBufferSqsTest {
 
+    private static final Logger log = Logger.loggerFor(BatchBufferSqsTest.class);
     private SqsClient client;
     private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> buffer;
+    private ScheduledExecutorService scheduledExecutor;
     private String queueUrl;
 
     BatchAndSendFunction<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
@@ -85,34 +91,37 @@ public class BatchBufferSqsTest {
         };
 
     @Before
-    public void beforeEachBufferTest() {
+    public void setUp() {
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         client = SqsClient.create();
         queueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue").build()).queueUrl();
-        buffer = new BatchManager<>(10, Duration.ofMillis(200), batchingFunction, unpackResponseFunction);
+        buffer = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
+                                    batchingFunction, unpackResponseFunction);
     }
 
     @After
-    public void afterEachBufferTest() {
+    public void tearDown() {
         buffer.close();
         client.close();
     }
 
     @Test
-    public void sendTenMessageTest() {
+    public void sendTenMessage() {
         SendMessageRequest[] requests = createRequestsOfSize(10);
         List<CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requests);
         checkAllResponses(requests, responses);
     }
 
     @Test
-    public void sendTwentyMessageTest() {
+    public void sendTwentyMessage() {
         SendMessageRequest[] requests = createRequestsOfSize(20);
         List<CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(requests);
         checkAllResponses(requests, responses);
     }
 
     @Test
-    public void scheduleSendFiveRequestsTest() {
+    public void scheduleSendFiveRequests() {
         SendMessageRequest[] requests = createRequestsOfSize(5);
 
         long startTime = System.nanoTime();
@@ -125,7 +134,7 @@ public class BatchBufferSqsTest {
     }
 
     @Test
-    public void cancelScheduledBatchTest() {
+    public void cancelScheduledBatch() {
         SendMessageRequest[] requests = createRequestsOfSize(10);
         SendMessageRequest[] requestsBatch1 = Arrays.copyOfRange(requests, 0, 5);
         SendMessageRequest[] requestsBatch2 = Arrays.copyOfRange(requests, 5, 10);
@@ -142,7 +151,7 @@ public class BatchBufferSqsTest {
     }
 
     @Test
-    public void scheduleTwoBatchTests() {
+    public void scheduleTwoBatches() {
         SendMessageRequest[] requests = createRequestsOfSize(10);
         SendMessageRequest[] requestsBatch1 = Arrays.copyOfRange(requests, 0, 5);
         SendMessageRequest[] requestsBatch2 = Arrays.copyOfRange(requests, 5, 10);
@@ -221,13 +230,13 @@ public class BatchBufferSqsTest {
                                                          .toArray(new CompletableFuture[0]))
                                  .join();
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                System.err.println(e);
+                log.error(() -> String.valueOf(e));
             }
         }
 
         Iterator<CompletableFuture<SendMessageResponse>> responsesIterator = responses.iterator();
         for (int i = 0; responsesIterator.hasNext(); i++) {
-            System.err.println(responsesIterator.next().join());
+            log.debug(() -> String.valueOf(responsesIterator.next().join()));
         }
         Assert.assertEquals(responses.size(), numThreads*numMessages);
     }

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.util.List;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Unpacks the batch response, then transforms individual entries to the appropriate response type. Each entry's batch ID
@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * @param <U> the type of an outgoing response.
  */
 @FunctionalInterface
-@SdkInternalApi
+@SdkProtectedApi
 public interface UnpackBatchResponseFunction<T, U> {
     List<IdentifiedResponse<U>> unpackBatchResponse(T batchResponse);
 }

@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.core.internal.batchutilities;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Wrapper class for a response and its associated batch id.
  * @param <T> the response
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class IdentifiedResponse<T> {
 
     private final String id;
