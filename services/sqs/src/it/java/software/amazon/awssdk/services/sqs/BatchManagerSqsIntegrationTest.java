@@ -40,7 +40,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.internal.batchutilities.BatchAndSendFunction;
 import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
 import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapperFunction;
-import software.amazon.awssdk.core.internal.batchutilities.IdentifiedResponse;
+import software.amazon.awssdk.core.internal.batchutilities.IdentifiableResponse;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
@@ -78,12 +78,12 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
 
     BatchResponseMapperFunction<SendMessageBatchResponse, SendMessageResponse> unpackResponseFunction =
         sendMessageBatchResponse -> {
-            List<IdentifiedResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
+            List<IdentifiableResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
                                     .forEach(batchResponseEntry -> {
                                         String key = batchResponseEntry.id();
                                         SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
-                                        mappedResponses.add(new IdentifiedResponse<>(key, response));
+                                        mappedResponses.add(new IdentifiableResponse<>(key, response));
                                     });
             // Add failed responses once I figure out how to create sendMessageResponse items.
             return mappedResponses;
