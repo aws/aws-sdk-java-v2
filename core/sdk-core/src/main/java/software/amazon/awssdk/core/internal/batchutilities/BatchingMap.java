@@ -24,66 +24,38 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 /**
  * Outer map maps a batch group ID (ex. queueUrl, overrideConfig etc.) to a nested map.
  * Inner map maps batch id to a request/CompletableFuture response.
- * @param <T> the type of an outgoing response
+ * @param <RequestT> the type of an outgoing response
  */
 @SdkInternalApi
-public class BatchingMap<T> {
+public class BatchingMap<RequestT, ResponseT> {
 
-    private final Map<String, Map<String, T>> batchGroupIdToIdToMessage;
+    private final Map<String, BatchingGroupMap<RequestT, ResponseT>> batchContextMap;
 
     public BatchingMap() {
-        this.batchGroupIdToIdToMessage = new ConcurrentHashMap<>();
+        this.batchContextMap = new ConcurrentHashMap<>();
     }
 
-    public Map<String, T> getNestedMap(String destination) {
-        return batchGroupIdToIdToMessage.computeIfAbsent(destination, k -> new ConcurrentHashMap<>());
-    }
-
-    public int size() {
-        return batchGroupIdToIdToMessage.size();
-    }
-
-    /**
-     * Only empty if every batchGroupId has an empty map since it is possible for a batchGroupId to exist but point to an empty
-     * map.
-     */
-    public boolean isEmpty() {
-        for (Map<String, T> idToMessage : batchGroupIdToIdToMessage.values()) {
-            if (!idToMessage.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+    public BatchingGroupMap<RequestT, ResponseT> getNestedMap(String destination) {
+        return batchContextMap.computeIfAbsent(destination, k -> new BatchingGroupMap<>());
     }
 
     public boolean containsKey(String key) {
-        return batchGroupIdToIdToMessage.containsKey(key);
+        return batchContextMap.containsKey(key);
     }
 
-    public Map<String, T> get(String key) {
-        return batchGroupIdToIdToMessage.get(key);
+    public BatchingGroupMap<RequestT, ResponseT> get(String key) {
+        return batchContextMap.get(key);
     }
 
-    public Map<String, T> put(String key, Map<String, T> value) {
-        return batchGroupIdToIdToMessage.put(key, value);
+    public BatchingGroupMap<RequestT, ResponseT> remove(String key) {
+        return batchContextMap.remove(key);
     }
 
-    public Map<String, T> remove(String key) {
-        return batchGroupIdToIdToMessage.remove(key);
+    public Collection<BatchingGroupMap<RequestT, ResponseT>> values() {
+        return batchContextMap.values();
     }
 
-    public Collection<Map<String, T>> values() {
-        return batchGroupIdToIdToMessage.values();
-    }
-
-    public void clear() {
-        for (Map<String, T> idToMessage : batchGroupIdToIdToMessage.values()) {
-            idToMessage.clear();
-        }
-        batchGroupIdToIdToMessage.clear();
-    }
-
-    public void forEach(BiConsumer<String, Map<String, T>> action) {
-        batchGroupIdToIdToMessage.forEach(action);
+    public void forEach(BiConsumer<String, BatchingGroupMap<RequestT, ResponseT>> action) {
+        batchContextMap.forEach(action);
     }
 }
