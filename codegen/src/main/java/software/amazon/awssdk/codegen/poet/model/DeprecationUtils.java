@@ -28,6 +28,9 @@ public final class DeprecationUtils {
 
     private static final AnnotationSpec DEPRECATED = AnnotationSpec.builder(Deprecated.class).build();
 
+    private DeprecationUtils() {
+    }
+
     /**
      * If a given member is modeled as deprecated, add the {@link Deprecated} annotation to the method and, if the method
      * already has existing Javadoc, append a section with the {@code @deprecated} tag.
