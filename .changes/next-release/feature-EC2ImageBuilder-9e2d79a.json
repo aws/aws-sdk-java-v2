@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "Update to documentation to reapply missing change to SSM uninstall switch default value and improve description."
-}
