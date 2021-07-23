@@ -22,11 +22,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 /**
  * Takes a list of identified requests in addition to a destination and batches the requests into a batch request.
  * It then sends the batch request and returns a CompletableFuture of the response.
- * @param <T> the type of an outgoing request.
- * @param <U> the type of an outgoing batch response.
+ * @param <RequestT> the type of an outgoing request.
+ * @param <ResponseT> the type of an outgoing batch response.
  */
 @FunctionalInterface
 @SdkProtectedApi
-public interface BatchAndSendFunction<T, U> {
-    CompletableFuture<U> batchAndSend(List<IdentifiableRequest<T>> identifiedRequests, String batchGroupId);
+public interface BatchAndSendFunction<RequestT, ResponseT> {
+    CompletableFuture<ResponseT> batchAndSend(List<IdentifiableRequest<RequestT>> identifiedRequests, String batchGroupId);
 }

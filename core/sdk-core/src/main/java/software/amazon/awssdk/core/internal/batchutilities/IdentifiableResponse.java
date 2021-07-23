@@ -19,15 +19,15 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Wrapper class for a response and its associated batch id.
- * @param <T> the response
+ * @param <ResponseT> the response
  */
 @SdkProtectedApi
-public class IdentifiableResponse<T> {
+public class IdentifiableResponse<ResponseT> {
 
     private final String id;
-    private final T response;
+    private final ResponseT response;
 
-    public IdentifiableResponse(String id, T response) {
+    public IdentifiableResponse(String id, ResponseT response) {
         this.id = id;
         this.response = response;
     }
@@ -36,7 +36,7 @@ public class IdentifiableResponse<T> {
         return id;
     }
 
-    public T response() {
+    public ResponseT response() {
         return response;
     }
 }

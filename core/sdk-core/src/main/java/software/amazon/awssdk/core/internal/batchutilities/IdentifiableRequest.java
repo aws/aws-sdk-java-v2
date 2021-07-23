@@ -19,15 +19,15 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Wrapper class for a request and its associated batch id.
- * @param <T> The request
+ * @param <RequestT> The request
  */
 @SdkProtectedApi
-public class IdentifiableRequest<T> {
+public class IdentifiableRequest<RequestT> {
 
     private final String id;
-    private final T request;
+    private final RequestT request;
 
-    public IdentifiableRequest(String id, T request) {
+    public IdentifiableRequest(String id, RequestT request) {
         this.id = id;
         this.request = request;
     }
@@ -36,7 +36,7 @@ public class IdentifiableRequest<T> {
         return id;
     }
 
-    public T request() {
+    public RequestT request() {
         return request;
     }
 }
