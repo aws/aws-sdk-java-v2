@@ -1,3 +1,16 @@
+# __2.17.4__ __2021-07-23__
+## __AWS SecurityHub__
+  - ### Features
+    - Added product name, company name, and Region fields for security findings. Added details objects for RDS event subscriptions and AWS ECS services. Added fields to the details for AWS Elasticsearch domains.
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - Add on-premise access type support for endpoints
+
+## __EC2 Image Builder__
+  - ### Features
+    - Update to documentation to reapply missing change to SSM uninstall switch default value and improve description.
+
 # __2.17.3__ __2021-07-22__
 ## __AWS Elemental MediaLive__
   - ### Features
