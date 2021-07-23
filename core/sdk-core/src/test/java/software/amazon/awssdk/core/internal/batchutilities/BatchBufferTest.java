@@ -44,15 +44,15 @@ public class BatchBufferTest {
     private static final Logger log = Logger.loggerFor(BatchBufferTest.class);
     private BatchManager<String, String, List<RequestWithId>> buffer;
     private ScheduledExecutorService scheduledExecutor;
-    private String destination;
+    private String defaultDestination;
 
     @Before
     public void setUp() {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         buffer = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
-                                    batchingFunction, unpackResponseFunction);
-        destination = "testDestination";
+                                    batchingFunction, unpackResponseFunction, getBatchGroupIdFunction);
+        defaultDestination = "dest0";
     }
 
     @After
@@ -93,9 +93,9 @@ public class BatchBufferTest {
         Map<String, String> requests = createRequestsOfSize(10);
 
         long startTime = System.nanoTime();
-        Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests, destination);
-        waitForTime(195);
-        responses.putAll(createAndSendResponses(5, 5, requests, destination));
+        Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests);
+        waitForTime(190);
+        responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
@@ -104,44 +104,61 @@ public class BatchBufferTest {
     }
 
     @Test
-    public void scheduleTwoBatches() {
+    public void scheduleTwoBatchesToSameDestination() {
         Map<String, String> requests = createRequestsOfSize(10);
 
         long startTime = System.nanoTime();
-        Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests, destination);
-        waitForTime(250);
-        responses.putAll(createAndSendResponses(5, 5, requests, destination));
+        Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests);
+        waitForTime(210);
+        responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
         Assert.assertEquals(responses.size(), 10);
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 400);
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 300);
+        checkAllResponses(requests, responses);
+    }
+
+    @Test
+    public void scheduleTwoBatchesToDiffDestination() {
+        Map<String, String> requests = createRequestsOfSize(10);
+
+        long startTime = System.nanoTime();
+        Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 4, requests);
+        responses.putAll(createAndSendResponses(4, 6, requests));
+        CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
+        long endTime = System.nanoTime();
+
+        Assert.assertEquals(responses.size(), 10);
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < 200);
         checkAllResponses(requests, responses);
     }
 
     @Test
     public void sendTenMessagesWithEachThreadToSameDestination() {
         int numThreads = 10;
-        Map<String, String> requests = createRequestsOfSize(10*numThreads);
+        int numMessages = 10;
+        Map<String, String> requests = createRequestsOfSize(numMessages*numThreads);
         ConcurrentHashMap<String, CompletableFuture<String>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
         CompletionService<Map<String, CompletableFuture<String>>> completionService =
             new ExecutorCompletionService<>(executorService);
 
-        createThreadsAndSendMessages(numThreads, 10, destination, requests, responses, completionService);
+        createThreadsAndSendMessages(numThreads, numMessages, requests, responses, completionService);
         checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
     @Test
     public void scheduleFiveMessagesWithEachThreadToDifferentDestinations() {
         int numThreads = 10;
-        Map<String, String> requests = createRequestsOfSize(5*numThreads);
+        int numMessages = 5;
+        Map<String, String> requests = createRequestsOfSizeToDiffDestinations(numThreads, numMessages);
         ConcurrentHashMap<String, CompletableFuture<String>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
         CompletionService<Map<String, CompletableFuture<String>>> completionService =
             new ExecutorCompletionService<>(executorService);
 
-        createThreadsAndSendMessages(numThreads, 5, null, requests, responses, completionService);
+        createThreadsAndSendMessages(numThreads, numMessages, requests, responses, completionService);
         checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
@@ -168,24 +185,24 @@ public class BatchBufferTest {
             return identifiableResponses;
         };
 
-    //Object to mimic a batch request entry
-    private static class RequestWithId {
+    private static final GetBatchGroupIdFunction<String> getBatchGroupIdFunction = request -> request.substring(0, 5);
 
-        private final String id;
-        private final String message;
-
-        public RequestWithId(String id, String message) {
-            this.id = id;
-            this.message = message;
+    private void createThreadsAndSendMessages(int numThreads, int numMessages, Map<String, String> requests,
+                                              ConcurrentHashMap<String, CompletableFuture<String>> responses,
+                                              CompletionService<Map<String, CompletableFuture<String>>> completionService) {
+        for (int i = 0; i < numThreads; i++) {
+            sendRequestToDestination(i*numMessages, numMessages, requests, responses, completionService);
         }
+    }
 
-        public String getId() {
-            return id;
-        }
-
-        public String getMessage() {
-            return message;
-        }
+    private void sendRequestToDestination(int startingId, int numMessages, Map<String, String> requests,
+                                          ConcurrentHashMap<String, CompletableFuture<String>> responses,
+                                          CompletionService<Map<String, CompletableFuture<String>>> completionService) {
+        completionService.submit(() -> {
+            Map<String, CompletableFuture<String>> newResponses = createAndSendResponses(startingId, numMessages, requests);
+            responses.putAll(newResponses);
+            return newResponses;
+        });
     }
 
     private void checkThreadedResponses(int numThreads, Map<String, String> requests,
@@ -199,35 +216,10 @@ public class BatchBufferTest {
                                                          .toArray(new CompletableFuture[0]))
                                  .join();
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.warn(() -> String.valueOf(e));
+                log.warn(() -> "Error with threaded response: " + e);
             }
         }
         checkAllResponses(requests, responses);
-    }
-
-    private void createThreadsAndSendMessages(int numThreads, int numMessages, String destination, Map<String, String> requests,
-                                              ConcurrentHashMap<String, CompletableFuture<String>> responses,
-                                              CompletionService<Map<String, CompletableFuture<String>>> completionService) {
-        String newDestination;
-        for (int i = 0; i < numThreads; i++) {
-            if (destination == null) {
-                newDestination = Integer.toString(i);
-            } else {
-                newDestination = destination;
-            }
-            sendRequestToDestination(i*numMessages, numMessages, newDestination, requests, responses, completionService);
-        }
-    }
-
-    private void sendRequestToDestination(int startingId, int numMessages, String destination, Map<String, String> requests,
-                                          ConcurrentHashMap<String, CompletableFuture<String>> responses,
-                                          CompletionService<Map<String, CompletableFuture<String>>> completionService) {
-        completionService.submit(() -> {
-            Map<String, CompletableFuture<String>> newResponses = createAndSendResponses(startingId, numMessages,
-                                                                                         requests, destination);
-            responses.putAll(newResponses);
-            return newResponses;
-        });
     }
 
     private static boolean waitForTime(int msToWait) {
@@ -251,27 +243,55 @@ public class BatchBufferTest {
     private Map<String, String> createRequestsOfSize(int size) {
         Map<String, String> requests = new HashMap<>();
         for (int i = 0; i < size; i++) {
-            requests.put(Integer.toString(i), "Message " + (i));
+            requests.put(Integer.toString(i), defaultDestination + " " + i);
+        }
+        return requests;
+    }
+
+    private Map<String, String> createRequestsOfSizeToDiffDestinations(int numDestinations, int destinationSize) {
+        String destPrefix = "dest";
+        Map<String, String> requests = new HashMap<>();
+        for (int i = 0; i < numDestinations; i++) {
+            for (int j = 0; j < destinationSize; j++) {
+                String key = Integer.toString(i*destinationSize + j);
+                requests.put(key, destPrefix + i + " " + j);
+            }
         }
         return requests;
     }
 
     private Map<String, CompletableFuture<String>> createAndSendResponses(Map<String, String> requests) {
-        return createAndSendResponses(requests, destination);
-    }
-
-    private Map<String, CompletableFuture<String>> createAndSendResponses(Map<String, String> requests, String destination) {
-        return createAndSendResponses(0, requests.size(), requests, destination);
+        return createAndSendResponses(0, requests.size(), requests);
     }
 
     private Map<String, CompletableFuture<String>> createAndSendResponses(int startingId, int size,
-                                                                   Map<String, String> requests, String destination) {
+                                                                          Map<String, String> requests) {
         Map<String, CompletableFuture<String>> responses = new HashMap<>();
         for (int i = startingId; i < startingId + size; i++) {
             String key = Integer.toString(i);
             String request = requests.get(key);
-            responses.put(key, buffer.sendRequest(request, destination));
+            responses.put(key, buffer.sendRequest(request));
         }
         return responses;
+    }
+
+    //Object to mimic a batch request entry
+    private static class RequestWithId {
+
+        private final String id;
+        private final String message;
+
+        public RequestWithId(String id, String message) {
+            this.id = id;
+            this.message = message;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getMessage() {
+            return message;
+        }
     }
 }

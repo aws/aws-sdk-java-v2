@@ -40,6 +40,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.internal.batchutilities.BatchAndSendFunction;
 import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
 import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapperFunction;
+import software.amazon.awssdk.core.internal.batchutilities.GetBatchGroupIdFunction;
 import software.amazon.awssdk.core.internal.batchutilities.IdentifiableResponse;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
@@ -61,42 +62,14 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     private ScheduledExecutorService scheduledExecutor;
     private String defaultQueueUrl;
 
-    BatchAndSendFunction<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
-        (identifiedRequests, destination) -> {
-            List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
-            identifiedRequests.forEach(identifiedRequest -> {
-                String id = identifiedRequest.id();
-                SendMessageRequest request = identifiedRequest.request();
-                entries.add(createMessageBatchRequestEntry(id, request));
-            });
-            SendMessageBatchRequest batchRequest = SendMessageBatchRequest.builder()
-                                                                          .queueUrl(destination)
-                                                                          .entries(entries)
-                                                                          .build();
-            return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
-        };
-
-    BatchResponseMapperFunction<SendMessageBatchResponse, SendMessageResponse> unpackResponseFunction =
-        sendMessageBatchResponse -> {
-            List<IdentifiableResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
-            sendMessageBatchResponse.successful()
-                                    .forEach(batchResponseEntry -> {
-                                        String key = batchResponseEntry.id();
-                                        SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
-                                        mappedResponses.add(new IdentifiableResponse<>(key, response));
-                                    });
-            // Add failed responses once I figure out how to create sendMessageResponse items.
-            return mappedResponses;
-        };
-
     @Before
     public void setUp() {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         client = SqsClient.create();
-        defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue").build()).queueUrl();
+        defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue0").build()).queueUrl();
         batchManager = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
-                                    batchingFunction, unpackResponseFunction);
+                                          batchingFunction, unpackResponseFunction, getBatchGroupIdFunction);
     }
 
     @After
@@ -137,10 +110,9 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         Map<String, SendMessageRequest> requests = createRequestsOfSize(10);
 
         long startTime = System.nanoTime();
-        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(0, 5,
-                                                                                               requests, defaultQueueUrl);
+        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(0, 5, requests);
         waitForTime(195);
-        responses.putAll(createAndSendResponses(5, 5, requests, defaultQueueUrl));
+        responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
@@ -153,66 +125,98 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         Map<String, SendMessageRequest> requests = createRequestsOfSize(10);
 
         long startTime = System.nanoTime();
-        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(0, 5,
-                                                                                               requests, defaultQueueUrl);
-        waitForTime(250);
-        responses.putAll(createAndSendResponses(5, 5, requests, defaultQueueUrl));
+        Map<String, CompletableFuture<SendMessageResponse>> responses = createAndSendResponses(0, 5, requests);
+        waitForTime(210);
+        responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
         Assert.assertEquals(10, responses.size());
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 400);
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 300);
         checkAllResponses(requests, responses);
     }
 
     @Test
     public void sendTenMessagesWithEachThread() {
         int numThreads = 10;
-        Map<String, SendMessageRequest> requests = createRequestsOfSize(numThreads*10);
+        int numMessages = 10;
+        Map<String, SendMessageRequest> requests = createRequestsOfSize(numThreads*numMessages);
         ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
         CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService =
             new ExecutorCompletionService<>(executorService);
 
-        createThreadsAndSendMessages(numThreads, 10, defaultQueueUrl, requests, responses, completionService);
+        createThreadsAndSendMessages(numThreads, numMessages, requests, responses, completionService);
         checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
     @Test
     public void scheduleFiveMessagesWithEachThreadToDifferentLocations() {
         int numThreads = 10;
-        Map<String, SendMessageRequest> requests = createRequestsOfSize(numThreads*5);
+        int numMessages = 5;
+        Map<String, SendMessageRequest> requests = createRequestsOfSizeToDiffDestinations(numThreads,numMessages);
         ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
         CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService =
             new ExecutorCompletionService<>(executorService);
 
-        createThreadsAndSendMessages(numThreads, 5, null, requests, responses, completionService);
+        createThreadsAndSendMessages(numThreads, numMessages, requests, responses, completionService);
         checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
-    private void createThreadsAndSendMessages(int numThreads, int numMessages, String destination,
+    // Sometimes it passes a null identifiedRequests;
+    BatchAndSendFunction<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
+        (identifiedRequests, destination) -> {
+            List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
+            identifiedRequests.forEach(identifiedRequest -> {
+                String id = identifiedRequest.id();
+                SendMessageRequest request = identifiedRequest.request();
+                entries.add(createMessageBatchRequestEntry(id, request));
+            });
+            SendMessageBatchRequest batchRequest = SendMessageBatchRequest.builder()
+                                                                          .queueUrl(destination)
+                                                                          .entries(entries)
+                                                                          .build();
+            return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
+        };
+
+    BatchResponseMapperFunction<SendMessageBatchResponse, SendMessageResponse> unpackResponseFunction =
+        sendMessageBatchResponse -> {
+            List<IdentifiableResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
+            sendMessageBatchResponse.successful()
+                                    .forEach(batchResponseEntry -> {
+                                        String key = batchResponseEntry.id();
+                                        SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
+                                        mappedResponses.add(new IdentifiableResponse<>(key, response));
+                                    });
+            // Add failed responses once I figure out how to create sendMessageResponse items.
+            return mappedResponses;
+        };
+
+    private static final GetBatchGroupIdFunction<SendMessageRequest> getBatchGroupIdFunction =
+        request -> {
+            if (request.overrideConfiguration().isPresent()) {
+                return request.queueUrl() + request.overrideConfiguration().get();
+            } else {
+                return request.queueUrl();
+            }
+        };
+
+    private void createThreadsAndSendMessages(int numThreads, int numMessages,
                                               Map<String, SendMessageRequest> requests,
                                               ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses,
                                               CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService) {
-        String newDestination;
         for (int i = 0; i < numThreads; i++) {
-            if (destination == null) {
-                newDestination = client.createQueue(CreateQueueRequest.builder().queueName(Integer.toString(i)).build()).queueUrl();
-            } else {
-                newDestination = destination;
-            }
-            sendRequestToDestination(i*numMessages, numMessages, newDestination, requests, responses, completionService);
+            sendRequestToDestination(i*numMessages, numMessages, requests, responses, completionService);
         }
     }
 
-    private void sendRequestToDestination(int startingId, int numMessages, String destination,
-                                          Map<String, SendMessageRequest> requests,
+    private void sendRequestToDestination(int startingId, int numMessages, Map<String, SendMessageRequest> requests,
                                           ConcurrentHashMap<String, CompletableFuture<SendMessageResponse>> responses,
                                           CompletionService<Map<String, CompletableFuture<SendMessageResponse>>> completionService) {
         completionService.submit(() -> {
             Map<String, CompletableFuture<SendMessageResponse>> newResponses = createAndSendResponses(startingId, numMessages,
-                                                                                                      requests, destination);
+                                                                                                      requests);
             responses.putAll(newResponses);
             return newResponses;
         });
@@ -245,37 +249,6 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         return false;
     }
 
-    private Map<String, SendMessageRequest> createRequestsOfSize(int size) {
-        Map<String, SendMessageRequest> requests = new HashMap<>();
-        for (int i = 0; i < size; i++) {
-            requests.put(Integer.toString(i), SendMessageRequest.builder()
-                                                                .messageBody(Integer.toString(i))
-                                                                .build());
-        }
-        return requests;
-    }
-
-    private Map<String, CompletableFuture<SendMessageResponse>> createAndSendResponses(Map<String, SendMessageRequest>  requests) {
-        return createAndSendResponses(requests, defaultQueueUrl);
-    }
-
-    private Map<String, CompletableFuture<SendMessageResponse>> createAndSendResponses(Map<String, SendMessageRequest> requests,
-                                                                                       String destination) {
-        return createAndSendResponses(0, requests.size(), requests, destination);
-    }
-
-    private Map<String, CompletableFuture<SendMessageResponse>> createAndSendResponses(int startingId, int size,
-                                                                                Map<String, SendMessageRequest>  requests,
-                                                                                String destination) {
-        Map<String, CompletableFuture<SendMessageResponse>> responses = new HashMap<>();
-        for (int i = startingId; i < startingId + size; i++) {
-            String key = Integer.toString(i);
-            SendMessageRequest request = requests.get(key);
-            responses.put(key, batchManager.sendRequest(request, destination));
-        }
-        return responses;
-    }
-
     private void checkAllResponses(Map<String, SendMessageRequest> requests,
                                    Map<String, CompletableFuture<SendMessageResponse>> responses) {
 
@@ -288,6 +261,47 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             String expectedHash = BinaryUtils.toHex(expectedMd5);
             Assert.assertEquals(expectedHash, responses.get(key).join().md5OfMessageBody());
         }
+    }
+
+    private Map<String, SendMessageRequest> createRequestsOfSize(int size) {
+        Map<String, SendMessageRequest> requests = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            requests.put(Integer.toString(i), SendMessageRequest.builder()
+                                                                .messageBody(Integer.toString(i))
+                                                                .queueUrl(defaultQueueUrl)
+                                                                .build());
+        }
+        return requests;
+    }
+
+    private Map<String, SendMessageRequest> createRequestsOfSizeToDiffDestinations(int numDestinations, int destinationSize) {
+        String myQueueUrl;
+        Map<String, SendMessageRequest> requests = new HashMap<>();
+        for (int i = 0; i < numDestinations; i++) {
+            for (int j = 0; j < destinationSize; j++) {
+                myQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue" + i).build()).queueUrl();
+                requests.put(Integer.toString(i), SendMessageRequest.builder()
+                                                                    .messageBody(Integer.toString(i))
+                                                                    .queueUrl(myQueueUrl)
+                                                                    .build());
+            }
+        }
+        return requests;
+    }
+
+    private Map<String, CompletableFuture<SendMessageResponse>> createAndSendResponses(Map<String, SendMessageRequest> requests) {
+        return createAndSendResponses(0, requests.size(), requests);
+    }
+
+    private Map<String, CompletableFuture<SendMessageResponse>> createAndSendResponses(int startingId, int size,
+                                                                                Map<String, SendMessageRequest>  requests) {
+        Map<String, CompletableFuture<SendMessageResponse>> responses = new HashMap<>();
+        for (int i = startingId; i < startingId + size; i++) {
+            String key = Integer.toString(i);
+            SendMessageRequest request = requests.get(key);
+            responses.put(key, batchManager.sendRequest(request));
+        }
+        return responses;
     }
 
     private SendMessageBatchRequestEntry createMessageBatchRequestEntry(String id, SendMessageRequest request) {
