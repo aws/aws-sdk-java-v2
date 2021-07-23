@@ -30,6 +30,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Logger;
@@ -49,8 +50,7 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
 
     private final Publisher<ByteBuffer> bodyPublisher;
 
-    // Not volatile, we synchronize on the subscriptionQueue
-    private Subscription subscription;
+    private volatile Subscription subscription;
 
     // TODO: not volatile since it's read and written only by CRT thread(s). Need to
     // ensure that CRT actually ensures consistency across their threads...
@@ -173,6 +173,20 @@ public final class RequestDataSupplierAdapter implements RequestDataSupplier {
         pending = 0;
 
         return true;
+    }
+
+    @Override
+    public void onException(CrtRuntimeException e) {
+        if (subscription != null) {
+            subscription.cancel();
+        }
+    }
+
+    @Override
+    public void onFinished() {
+        if (subscription != null) {
+            subscription.cancel();
+        }
     }
 
     private Event takeFirstEvent() {
