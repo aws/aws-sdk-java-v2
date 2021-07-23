@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3 on Outposts",
+    "contributor": "",
+    "description": "Add on-premise access type support for endpoints"
+}
