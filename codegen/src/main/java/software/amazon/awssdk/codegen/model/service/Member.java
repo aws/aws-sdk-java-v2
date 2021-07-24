@@ -41,6 +41,8 @@ public class Member {
 
     private boolean deprecated;
 
+    private String deprecatedMessage;
+
     private boolean jsonvalue;
 
     private String timestampFormat;
@@ -151,6 +153,14 @@ public class Member {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
     }
 
     public boolean getJsonvalue() {

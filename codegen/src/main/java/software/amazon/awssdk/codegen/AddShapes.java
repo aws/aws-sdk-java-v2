@@ -79,6 +79,7 @@ abstract class AddShapes {
         // contains the list of c2j member names that are required for this shape.
         shapeModel.setRequired(shape.getRequired());
         shapeModel.setDeprecated(shape.isDeprecated());
+        shapeModel.setDeprecatedMessage(shape.getDeprecatedMessage());
         shapeModel.setWrapper(shape.isWrapper());
         shapeModel.withIsEventStream(shape.isEventstream());
         shapeModel.withIsEvent(shape.isEvent());
@@ -172,6 +173,7 @@ abstract class AddShapes {
                    .withJsonValue(c2jMemberDefinition.getJsonvalue());
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
+        memberModel.setDeprecatedMessage(c2jMemberDefinition.getDeprecatedMessage());
         memberModel.setSensitive(isSensitiveShapeOrContainer(c2jMemberDefinition, allC2jShapes));
         memberModel
                 .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, parentShape, shape))
