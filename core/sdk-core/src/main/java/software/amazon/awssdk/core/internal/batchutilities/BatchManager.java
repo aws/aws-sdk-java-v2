@@ -103,24 +103,19 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
         String batchKey = batchKeyMapperFunction.getBatchKey(request);
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
-        AtomicInteger currentId = currentIds.computeIfAbsent(batchKey, k -> new AtomicInteger(0));
-        String id = Integer.toString(getCurrentIdAndIncrement(currentId));
         requestsAndResponsesMaps.batchBufferByKey(batchKey)
-                                .put(id, request, response);
+                                .put(getCurrentId(batchKey), request, response);
 
         if (requestsAndResponsesMaps.get(batchKey).requestSize() < maxBatchItems) {
             scheduledFlushTasks.computeIfAbsent(batchKey, k -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
                                                                                    scheduledExecutor));
         } else {
-            CompletableFuture<ResponseT> cancelledResponse = cancelScheduledFlushIfNeeded(response, batchKey);
-            if (cancelledResponse != null) {
-                return cancelledResponse;
-            }
+            cancelScheduledFlushIfNeeded(response, batchKey);
         }
         return response;
     }
 
-    private CompletableFuture<ResponseT> cancelScheduledFlushIfNeeded(CompletableFuture<ResponseT> response,
+    private void cancelScheduledFlushIfNeeded(CompletableFuture<ResponseT> response,
                                                                       String batchKey) {
         if (scheduledFlushTasks.containsKey(batchKey)) {
             // "reset" the flush task timer by cancelling scheduled task then restarting it.
@@ -130,12 +125,10 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
             if (scheduledFuture.hasExecuted()) {
                 scheduledFlushTasks.put(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
                                                                           scheduledExecutor));
-                return response;
             }
         }
         scheduledFlushTasks.put(batchKey, scheduleBufferFlush(batchKey, 0, maxBatchOpenInMs.toMillis(),
                                                                   scheduledExecutor));
-        return null;
     }
 
     // Flushes the buffer for the given batchKey and fills in the response map with the returned responses.
@@ -200,6 +193,11 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         return new ScheduledFlush(flushTask, scheduledFuture);
     }
 
+    private String getCurrentId(String batchKey) {
+        AtomicInteger currentId = currentIds.computeIfAbsent(batchKey, k -> new AtomicInteger(0));
+        return BatchUtils.getCurrentId(currentId);
+    }
+
     public void close() {
         try {
             scheduledFlushTasks.forEach((key, value) -> value.cancel());
@@ -216,15 +214,6 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         } catch (TimeoutException e) {
             log.warn(() -> "Timed out during graceful metric publisher shutdown." + e);
         }
-    }
-
-    private synchronized int getCurrentIdAndIncrement(AtomicInteger currentId) {
-        int id = currentId.getAndIncrement();
-        if (id < 0) {
-            currentId.set(1);
-            id = 0;
-        }
-        return id;
     }
 
     public static final class Builder<RequestT, ResponseT, BatchResponseT> {
