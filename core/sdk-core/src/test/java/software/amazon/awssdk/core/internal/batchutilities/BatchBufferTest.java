@@ -42,7 +42,7 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 public class BatchBufferTest {
 
     private static final Logger log = Logger.loggerFor(BatchBufferTest.class);
-    private BatchManager<String, String, List<RequestWithId>> buffer;
+    private BatchManager<String, String, BatchResponse> batchManager;
     private ScheduledExecutorService scheduledExecutor;
     private String defaultDestination;
 
@@ -50,14 +50,27 @@ public class BatchBufferTest {
     public void setUp() {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
-        buffer = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
-                                    batchingFunction, unpackResponseFunction, getBatchGroupIdFunction);
+        BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
+                                                                                     .maxBatchItems(10)
+                                                                                     .maxBatchOpenInMs(Duration.ofMillis(200))
+                                                                                     .scheduledExecutor(scheduledExecutor)
+                                                                                     .build();
+
+        // TODO: read that it is bad practice to write down an explicit type argument like here, but not sure how else I can
+        //  pass the types? It is only necessary since I need to provide the types for the functions.
+        batchManager = BatchManager.<String, String, BatchResponse> builder()
+                             .overrideConfiguration(overrideConfiguration)
+                             .batchingFunction(batchingFunction)
+                             .mapResponsesFunction(mapResponsesFunction)
+                             .batchGroupIdFunction(getBatchGroupIdFunction)
+                             .build();
+
         defaultDestination = "dest0";
     }
 
     @After
     public void tearDown() {
-        buffer.close();
+        batchManager.close();
         scheduledExecutor.shutdownNow();
     }
 
@@ -162,13 +175,13 @@ public class BatchBufferTest {
         checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
-    private static final BatchAndSendFunction<String, List<RequestWithId>> batchingFunction =
+    private static final BatchAndSendFunction<String, BatchResponse> batchingFunction =
         (identifiableRequests, destination) -> {
-            List<RequestWithId> entries = new ArrayList<>(identifiableRequests.size());
+            BatchResponse entries = new BatchResponse();
             identifiableRequests.forEach(identifiableRequest -> {
                 String id = identifiableRequest.id();
                 String request = identifiableRequest.request();
-                entries.add(new RequestWithId(id, request));
+                entries.add(new MessageWithId(id, request));
             });
             return CompletableFuture.supplyAsync(() -> {
                 waitForTime(150);
@@ -176,10 +189,10 @@ public class BatchBufferTest {
             });
         };
 
-    private static final BatchResponseMapperFunction<List<RequestWithId>, String> unpackResponseFunction =
+    private static final BatchResponseMapperFunction<BatchResponse, String> mapResponsesFunction =
         requestBatchResponse -> {
             List<IdentifiableResponse<String>> identifiableResponses = new ArrayList<>();
-            for (RequestWithId requestWithId : requestBatchResponse) {
+            for (MessageWithId requestWithId : requestBatchResponse.getResponses()) {
                 identifiableResponses.add(new IdentifiableResponse<>(requestWithId.getId(), requestWithId.getMessage()));
             }
             return identifiableResponses;
@@ -270,18 +283,18 @@ public class BatchBufferTest {
         for (int i = startingId; i < startingId + size; i++) {
             String key = Integer.toString(i);
             String request = requests.get(key);
-            responses.put(key, buffer.sendRequest(request));
+            responses.put(key, batchManager.sendRequest(request));
         }
         return responses;
     }
 
-    //Object to mimic a batch request entry
-    private static class RequestWithId {
+    //Object to mimic a both a batch request and batch response entry
+    private static class MessageWithId {
 
         private final String id;
         private final String message;
 
-        public RequestWithId(String id, String message) {
+        public MessageWithId(String id, String message) {
             this.id = id;
             this.message = message;
         }
@@ -293,5 +306,21 @@ public class BatchBufferTest {
         public String getMessage() {
             return message;
         }
+    }
+
+    private static class BatchResponse {
+        private final List<MessageWithId> responses;
+
+        public BatchResponse() {
+            responses = new ArrayList<>();
+        }
+
+        public void add(MessageWithId response) {
+            responses.add(response);
+        }
+
+        public List<MessageWithId> getResponses() {
+            return responses;
+        };
     }
 }

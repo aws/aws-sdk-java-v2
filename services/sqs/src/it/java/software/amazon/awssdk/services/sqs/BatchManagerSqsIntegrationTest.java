@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.internal.batchutilities.BatchAndSendFunction;
 import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
+import software.amazon.awssdk.core.internal.batchutilities.BatchOverrideConfiguration;
 import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapperFunction;
 import software.amazon.awssdk.core.internal.batchutilities.GetBatchGroupIdFunction;
 import software.amazon.awssdk.core.internal.batchutilities.IdentifiableResponse;
@@ -68,8 +69,20 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         client = SqsClient.create();
         defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue0").build()).queueUrl();
-        batchManager = new BatchManager<>(10, Duration.ofMillis(200), scheduledExecutor,
-                                          batchingFunction, unpackResponseFunction, getBatchGroupIdFunction);
+        BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
+                                                                                     .maxBatchItems(10)
+                                                                                     .maxBatchOpenInMs(Duration.ofMillis(200))
+                                                                                     .scheduledExecutor(scheduledExecutor)
+                                                                                     .build();
+
+        // TODO: read that it is bad practice to write down an explicit type argument like here, but not sure how else I can
+        //  pass the types? It is only necessary since I need to provide the types for the functions.
+        batchManager = BatchManager.<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> builder()
+                                   .overrideConfiguration(overrideConfiguration)
+                                   .batchingFunction(batchingFunction)
+                                   .mapResponsesFunction(mapResponsesFunction)
+                                   .batchGroupIdFunction(getBatchGroupIdFunction)
+                                   .build();
     }
 
     @After
@@ -180,7 +193,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
         };
 
-    BatchResponseMapperFunction<SendMessageBatchResponse, SendMessageResponse> unpackResponseFunction =
+    BatchResponseMapperFunction<SendMessageBatchResponse, SendMessageResponse> mapResponsesFunction =
         sendMessageBatchResponse -> {
             List<IdentifiableResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()

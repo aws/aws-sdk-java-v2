@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Implementation of a generic buffer for automatic request batching.
@@ -71,23 +73,28 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
      */
     private final ScheduledExecutorService scheduledExecutor;
 
-    public BatchManager(int maxBatchItems, Duration maxBatchOpenInMs, ScheduledExecutorService scheduledExecutor,
-                        BatchAndSendFunction<RequestT, BatchResponseT> batchingFunction,
-                        BatchResponseMapperFunction<BatchResponseT, ResponseT> mapResponsesFunction,
-                        GetBatchGroupIdFunction<RequestT> batchGroupIdFunction) {
+    private BatchManager(Builder<RequestT, ResponseT, BatchResponseT> builder) {
+        BatchOverrideConfiguration overrideConfiguration = Validate.notNull(builder.overrideConfiguration, "Null override"
+                                                                                                             + "Configuration");
         this.requestsAndResponsesMaps = new BatchingMap<>();
         this.scheduledFlushTasks = new ConcurrentHashMap<>();
         this.currentIds = new ConcurrentHashMap<>();
-        this.maxBatchItems = maxBatchItems;
-        this.maxBatchOpenInMs = maxBatchOpenInMs;
-        this.batchingFunction = batchingFunction;
-        this.mapResponsesFunction = mapResponsesFunction;
-        this.batchGroupIdFunction = batchGroupIdFunction;
+        this.maxBatchItems = overrideConfiguration.maxBatchItems();
+        this.maxBatchOpenInMs = overrideConfiguration.maxBatchOpenInMs();
+        this.batchingFunction = Validate.notNull(builder.batchingFunction, "Null batchingFunction");
+        this.mapResponsesFunction = Validate.notNull(builder.mapResponsesFunction, "Null mapResponsesFunction");
+        this.batchGroupIdFunction = Validate.notNull(builder.batchGroupIdFunction, "Null batchGroupIdFunction");
+
+        //TODO Might not need executor.
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
-        this.scheduledExecutor = scheduledExecutor;
+        this.scheduledExecutor = overrideConfiguration.scheduledExecutor();
         this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                                                new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE),
                                                threadFactory);
+    }
+
+    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder() {
+        return new Builder<>();
     }
 
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
@@ -159,8 +166,12 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
     private void handleAndCompleteResponses(String batchGroupId, BatchResponseT batchResult, Throwable exception) {
         if (exception != null) {
             requestsAndResponsesMaps.get(batchGroupId)
-                                    .values()
-                                    .forEach(batchContext -> batchContext.response().completeExceptionally(exception));
+                                    .entrySet()
+                                    .forEach(entry -> {
+                                        entry.getValue().response().completeExceptionally(exception);
+                                        requestsAndResponsesMaps.get(batchGroupId)
+                                                                .remove(entry.getKey());
+                                    });
         } else {
             List<IdentifiableResponse<ResponseT>> identifiedResponses = mapResponsesFunction.mapBatchResponse(batchResult);
             for (IdentifiableResponse<ResponseT> identifiedResponse : identifiedResponses) {
@@ -218,5 +229,44 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
             id = 0;
         }
         return id;
+    }
+
+    public static final class Builder<RequestT, ResponseT, BatchResponseT> {
+
+        private BatchOverrideConfiguration overrideConfiguration;
+        private BatchAndSendFunction<RequestT, BatchResponseT> batchingFunction;
+        private BatchResponseMapperFunction<BatchResponseT, ResponseT> mapResponsesFunction;
+        private GetBatchGroupIdFunction<RequestT> batchGroupIdFunction;
+
+        private Builder() {
+        }
+
+        public Builder<RequestT, ResponseT, BatchResponseT> overrideConfiguration(BatchOverrideConfiguration
+                                                                                      overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        public Builder<RequestT, ResponseT, BatchResponseT> batchingFunction(BatchAndSendFunction<RequestT, BatchResponseT>
+                                                                                 batchingFunction) {
+            this.batchingFunction = batchingFunction;
+            return this;
+        }
+
+        public Builder<RequestT, ResponseT, BatchResponseT> mapResponsesFunction(
+            BatchResponseMapperFunction<BatchResponseT, ResponseT> mapResponsesFunction) {
+            this.mapResponsesFunction = mapResponsesFunction;
+            return this;
+        }
+
+        public Builder<RequestT, ResponseT, BatchResponseT> batchGroupIdFunction(GetBatchGroupIdFunction<RequestT>
+                                                                                     batchGroupIdFunction) {
+            this.batchGroupIdFunction = batchGroupIdFunction;
+            return this;
+        }
+
+        public BatchManager<RequestT, ResponseT, BatchResponseT> build() {
+            return new BatchManager<>(this);
+        }
     }
 }
