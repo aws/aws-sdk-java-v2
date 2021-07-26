@@ -35,12 +35,6 @@ public class BatchingGroupMap<RequestT, ResponseT> {
         this.numRequests = new AtomicInteger(0);
     }
 
-    // Just creating a copy (only used in flushBuffer), so no need to return a concurrent hash map
-    public BatchingGroupMap(BatchingGroupMap<RequestT, ResponseT> copy) {
-        this.idToBatchContext = new ConcurrentHashMap<>(copy.getUnderlyingMap());
-        this.numRequests = new AtomicInteger(copy.requestSize());
-    }
-
     public int size() {
         return idToBatchContext.size();
     }
