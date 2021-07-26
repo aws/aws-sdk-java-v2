@@ -15,18 +15,15 @@
 
 package software.amazon.awssdk.core.internal.batchutilities;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * Takes a list of identified requests in addition to a destination and batches the requests into a batch request.
- * It then sends the batch request and returns a CompletableFuture of the response.
- * @param <RequestT> the type of an outgoing request.
- * @param <BatchResponseT> the type of an outgoing batch response.
+ * Takes a request and extracts a batchGroupId as determined by the caller.
+ * TODO: For right now, the batchGroupId is a String but this may change as needed in the future.
+ * @param <RequestT> the request.
  */
 @FunctionalInterface
 @SdkProtectedApi
-public interface BatchAndSendFunction<RequestT, BatchResponseT> {
-    CompletableFuture<BatchResponseT> batchAndSend(List<IdentifiableRequest<RequestT>> identifiedRequests, String batchGroupId);
+public interface BatchKeyMapper<RequestT> {
+    String getBatchKey(RequestT request);
 }

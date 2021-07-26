@@ -37,11 +37,11 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.internal.batchutilities.BatchAndSendFunction;
+import software.amazon.awssdk.core.internal.batchutilities.BatchAndSend;
+import software.amazon.awssdk.core.internal.batchutilities.BatchKeyMapper;
 import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
 import software.amazon.awssdk.core.internal.batchutilities.BatchOverrideConfiguration;
-import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapperFunction;
-import software.amazon.awssdk.core.internal.batchutilities.GetBatchGroupIdFunction;
+import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapper;
 import software.amazon.awssdk.core.internal.batchutilities.IdentifiableResponse;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
@@ -81,7 +81,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
                                    .overrideConfiguration(overrideConfiguration)
                                    .batchingFunction(batchingFunction)
                                    .mapResponsesFunction(mapResponsesFunction)
-                                   .batchGroupIdFunction(getBatchGroupIdFunction)
+                                   .batchKeyMapperFunction(getBatchGroupIdFunction)
                                    .build();
     }
 
@@ -179,7 +179,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     }
 
     // Sometimes it passes a null identifiedRequests;
-    BatchAndSendFunction<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
+    BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
         (identifiedRequests, destination) -> {
             List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
             identifiedRequests.forEach(identifiedRequest -> {
@@ -194,7 +194,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             return CompletableFuture.supplyAsync(() -> client.sendMessageBatch(batchRequest));
         };
 
-    BatchResponseMapperFunction<SendMessageBatchResponse, SendMessageResponse> mapResponsesFunction =
+    BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> mapResponsesFunction =
         sendMessageBatchResponse -> {
             List<IdentifiableResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
@@ -207,7 +207,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             return mappedResponses;
         };
 
-    private static final GetBatchGroupIdFunction<SendMessageRequest> getBatchGroupIdFunction =
+    private static final BatchKeyMapper<SendMessageRequest> getBatchGroupIdFunction =
         request -> {
             if (request.overrideConfiguration().isPresent()) {
                 return request.queueUrl() + request.overrideConfiguration().get();

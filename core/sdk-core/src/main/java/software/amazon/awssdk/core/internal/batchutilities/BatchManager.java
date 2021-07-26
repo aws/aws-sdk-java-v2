@@ -45,12 +45,26 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
     private static final Logger log = Logger.loggerFor(BatchManager.class);
     private final int maxBatchItems;
     private final Duration maxBatchOpenInMs;
+
+    /**
+     * A nested map that keeps track of customer requests and the corresponding responses to be completed. Requests are batched
+     * together according to a batchKey that is calculated from the request by the service client.
+     */
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
+
+    /**
+     * Keeps track of the scheduled flush tasks for each batchKey in order to properly cancel them as needed.
+     */
     private final Map<String, ScheduledFlush> scheduledFlushTasks;
+
+    /**
+     * Batch entries in a batch request require a unique ID so currentId keeps track of the last ID assigned to a batch entry.
+     * For simplicity, the ID is just an integer that is incremented everytime a new request is received.
+     */
     private final Map<String, AtomicInteger> currentIds;
-    private final BatchAndSendFunction<RequestT, BatchResponseT> batchingFunction;
-    private final BatchResponseMapperFunction<BatchResponseT, ResponseT> mapResponsesFunction;
-    private final GetBatchGroupIdFunction<RequestT> batchGroupIdFunction;
+    private final BatchAndSend<RequestT, BatchResponseT> batchingFunction;
+    private final BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
+    private final BatchKeyMapper<RequestT> batchKeyMapperFunction;
 
     /**
      * A scheduled executor that periodically schedules {@link #flushBuffer}.
@@ -67,7 +81,7 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         this.maxBatchOpenInMs = overrideConfiguration.maxBatchOpenInMs();
         this.batchingFunction = Validate.notNull(builder.batchingFunction, "Null batchingFunction");
         this.mapResponsesFunction = Validate.notNull(builder.mapResponsesFunction, "Null mapResponsesFunction");
-        this.batchGroupIdFunction = Validate.notNull(builder.batchGroupIdFunction, "Null batchGroupIdFunction");
+        this.batchKeyMapperFunction = Validate.notNull(builder.batchKeyMapperFunction, "Null batchKeyMapperFunction");
         this.scheduledExecutor = overrideConfiguration.scheduledExecutor();
     }
 
@@ -75,19 +89,30 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         return new Builder<>();
     }
 
+    /**
+     * Buffers outgoing requests on the client and sends them as batch requests to the service. Requests are batched together
+     * according to a batchKey and are sent periodically to the service as determined by {@link #maxBatchOpenInMs}. If the
+     * number of requests for a batchKey reaches or exceeds {@link #maxBatchItems}, then the requests are immediately flushed
+     * and the timeout on the periodic flush is reset.
+     * By default, messages are batched according to a service's maximum size for a batch request. These settings can be
+     * customized via the configuration.
+     *
+     * @param request the outgoing request.
+     * @return a CompletableFuture of the corresponding response.
+     */
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
-        String batchGroupId = batchGroupIdFunction.getBatchGroupId(request);
+        String batchKey = batchKeyMapperFunction.getBatchKey(request);
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
-        AtomicInteger currentId = currentIds.computeIfAbsent(batchGroupId, k -> new AtomicInteger(0));
+        AtomicInteger currentId = currentIds.computeIfAbsent(batchKey, k -> new AtomicInteger(0));
         String id = Integer.toString(getCurrentIdAndIncrement(currentId));
-        requestsAndResponsesMaps.getNestedMap(batchGroupId)
+        requestsAndResponsesMaps.batchBufferByKey(batchKey)
                                 .put(id, request, response);
 
-        if (requestsAndResponsesMaps.get(batchGroupId).requestSize() < maxBatchItems) {
-            scheduledFlushTasks.computeIfAbsent(batchGroupId, k -> scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
+        if (requestsAndResponsesMaps.get(batchKey).requestSize() < maxBatchItems) {
+            scheduledFlushTasks.computeIfAbsent(batchKey, k -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
                                                                                    scheduledExecutor));
         } else {
-            CompletableFuture<ResponseT> cancelledResponse = cancelScheduledFlushIfNeeded(response, batchGroupId);
+            CompletableFuture<ResponseT> cancelledResponse = cancelScheduledFlushIfNeeded(response, batchKey);
             if (cancelledResponse != null) {
                 return cancelledResponse;
             }
@@ -96,27 +121,27 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
     }
 
     private CompletableFuture<ResponseT> cancelScheduledFlushIfNeeded(CompletableFuture<ResponseT> response,
-                                                                      String batchGroupId) {
-        if (scheduledFlushTasks.containsKey(batchGroupId)) {
+                                                                      String batchKey) {
+        if (scheduledFlushTasks.containsKey(batchKey)) {
             // "reset" the flush task timer by cancelling scheduled task then restarting it.
-            ScheduledFlush scheduledFuture = scheduledFlushTasks.get(batchGroupId);
+            ScheduledFlush scheduledFuture = scheduledFlushTasks.get(batchKey);
             scheduledFuture.cancel();
             // If scheduledFuture hasExecuted, do not perform a manual flush (initialDelay == 0), just return the response.
             if (scheduledFuture.hasExecuted()) {
-                scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, maxBatchOpenInMs.toMillis(),
+                scheduledFlushTasks.put(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
                                                                           scheduledExecutor));
                 return response;
             }
         }
-        scheduledFlushTasks.put(batchGroupId, scheduleBufferFlush(batchGroupId, 0, maxBatchOpenInMs.toMillis(),
+        scheduledFlushTasks.put(batchKey, scheduleBufferFlush(batchKey, 0, maxBatchOpenInMs.toMillis(),
                                                                   scheduledExecutor));
         return null;
     }
 
-    // Flushes the buffer for the given batchGroupId and fills in the response map with the returned responses.
+    // Flushes the buffer for the given batchKey and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
-    private void flushBuffer(String batchGroupId) {
-        BatchingGroupMap<RequestT, ResponseT> requestBuffer = requestsAndResponsesMaps.get(batchGroupId);
+    private void flushBuffer(String batchKey) {
+        BatchBuffer<RequestT, ResponseT> requestBuffer = requestsAndResponsesMaps.get(batchKey);
         if (!requestBuffer.hasRequests()) {
             return;
         }
@@ -132,18 +157,18 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
             }
         }
         if (!requestEntryList.isEmpty()) {
-            batchingFunction.batchAndSend(requestEntryList, batchGroupId)
-                            .whenComplete((result, ex) -> handleAndCompleteResponses(batchGroupId, result, ex));
+            batchingFunction.batchAndSend(requestEntryList, batchKey)
+                            .whenComplete((result, ex) -> handleAndCompleteResponses(batchKey, result, ex));
         }
     }
 
-    private void handleAndCompleteResponses(String batchGroupId, BatchResponseT batchResult, Throwable exception) {
+    private void handleAndCompleteResponses(String batchKey, BatchResponseT batchResult, Throwable exception) {
         if (exception != null) {
-            requestsAndResponsesMaps.get(batchGroupId)
+            requestsAndResponsesMaps.get(batchKey)
                                     .entrySet()
                                     .forEach(entry -> {
                                         entry.getValue().response().completeExceptionally(exception);
-                                        requestsAndResponsesMaps.get(batchGroupId)
+                                        requestsAndResponsesMaps.get(batchKey)
                                                                 .remove(entry.getKey());
                                     });
         } else {
@@ -151,23 +176,23 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
             for (IdentifiableResponse<ResponseT> identifiedResponse : identifiedResponses) {
                 String id = identifiedResponse.id();
                 ResponseT response = identifiedResponse.response();
-                requestsAndResponsesMaps.get(batchGroupId)
+                requestsAndResponsesMaps.get(batchKey)
                                         .getResponse(id)
                                         .complete(response);
-                requestsAndResponsesMaps.get(batchGroupId)
+                requestsAndResponsesMaps.get(batchKey)
                                         .remove(id);
             }
         }
     }
 
-    private ScheduledFlush scheduleBufferFlush(String batchGroupId, long timeOutInMs,
+    private ScheduledFlush scheduleBufferFlush(String batchKey, long timeOutInMs,
                                                ScheduledExecutorService scheduledExecutor) {
-        return scheduleBufferFlush(batchGroupId, timeOutInMs, timeOutInMs, scheduledExecutor);
+        return scheduleBufferFlush(batchKey, timeOutInMs, timeOutInMs, scheduledExecutor);
     }
 
-    private ScheduledFlush scheduleBufferFlush(String batchGroupId, long initialDelay, long timeOutInMs,
+    private ScheduledFlush scheduleBufferFlush(String batchKey, long initialDelay, long timeOutInMs,
                                                ScheduledExecutorService scheduledExecutor) {
-        CancellableFlush flushTask = new CancellableFlush(() -> flushBuffer(batchGroupId));
+        CancellableFlush flushTask = new CancellableFlush(() -> flushBuffer(batchKey));
         ScheduledFuture<?> scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
             flushTask.reset();
             flushTask.run();
@@ -179,7 +204,7 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         try {
             scheduledFlushTasks.forEach((key, value) -> value.cancel());
             requestsAndResponsesMaps.forEach((key, value) -> flushBuffer(key));
-            for (BatchingGroupMap<RequestT, ResponseT> idToResponse : requestsAndResponsesMaps.values()) {
+            for (BatchBuffer<RequestT, ResponseT> idToResponse : requestsAndResponsesMaps.values()) {
                 CompletableFuture.allOf(idToResponse.responses().toArray(new CompletableFuture[0]))
                                  .get(60, TimeUnit.SECONDS);
             }
@@ -205,9 +230,9 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
     public static final class Builder<RequestT, ResponseT, BatchResponseT> {
 
         private BatchOverrideConfiguration overrideConfiguration;
-        private BatchAndSendFunction<RequestT, BatchResponseT> batchingFunction;
-        private BatchResponseMapperFunction<BatchResponseT, ResponseT> mapResponsesFunction;
-        private GetBatchGroupIdFunction<RequestT> batchGroupIdFunction;
+        private BatchAndSend<RequestT, BatchResponseT> batchingFunction;
+        private BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
+        private BatchKeyMapper<RequestT> batchKeyMapperFunction;
 
         private Builder() {
         }
@@ -218,21 +243,21 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
             return this;
         }
 
-        public Builder<RequestT, ResponseT, BatchResponseT> batchingFunction(BatchAndSendFunction<RequestT, BatchResponseT>
+        public Builder<RequestT, ResponseT, BatchResponseT> batchingFunction(BatchAndSend<RequestT, BatchResponseT>
                                                                                  batchingFunction) {
             this.batchingFunction = batchingFunction;
             return this;
         }
 
         public Builder<RequestT, ResponseT, BatchResponseT> mapResponsesFunction(
-            BatchResponseMapperFunction<BatchResponseT, ResponseT> mapResponsesFunction) {
+            BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction) {
             this.mapResponsesFunction = mapResponsesFunction;
             return this;
         }
 
-        public Builder<RequestT, ResponseT, BatchResponseT> batchGroupIdFunction(GetBatchGroupIdFunction<RequestT>
-                                                                                     batchGroupIdFunction) {
-            this.batchGroupIdFunction = batchGroupIdFunction;
+        public Builder<RequestT, ResponseT, BatchResponseT> batchKeyMapperFunction(BatchKeyMapper<RequestT>
+                                                                                     batchKeyMapperFunction) {
+            this.batchKeyMapperFunction = batchKeyMapperFunction;
             return this;
         }
 

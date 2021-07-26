@@ -22,40 +22,39 @@ import java.util.function.BiConsumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Outer map maps a batch group ID (ex. queueUrl, overrideConfig etc.) to a nested map.
- * Inner map maps batch id to a request/CompletableFuture response.
+ * Outer map maps a batch group ID (ex. queueUrl, overrideConfig etc.) to a nested BatchingGroupMap map.
  * @param <RequestT> the type of an outgoing response
  */
 @SdkInternalApi
 public class BatchingMap<RequestT, ResponseT> {
 
-    private final Map<String, BatchingGroupMap<RequestT, ResponseT>> batchContextMap;
+    private final Map<String, BatchBuffer<RequestT, ResponseT>> batchContextMap;
 
     public BatchingMap() {
         this.batchContextMap = new ConcurrentHashMap<>();
     }
 
-    public BatchingGroupMap<RequestT, ResponseT> getNestedMap(String destination) {
-        return batchContextMap.computeIfAbsent(destination, k -> new BatchingGroupMap<>());
+    public BatchBuffer<RequestT, ResponseT> batchBufferByKey(String destination) {
+        return batchContextMap.computeIfAbsent(destination, k -> new BatchBuffer<>());
     }
 
     public boolean containsKey(String key) {
         return batchContextMap.containsKey(key);
     }
 
-    public BatchingGroupMap<RequestT, ResponseT> get(String key) {
+    public BatchBuffer<RequestT, ResponseT> get(String key) {
         return batchContextMap.get(key);
     }
 
-    public BatchingGroupMap<RequestT, ResponseT> remove(String key) {
+    public BatchBuffer<RequestT, ResponseT> remove(String key) {
         return batchContextMap.remove(key);
     }
 
-    public Collection<BatchingGroupMap<RequestT, ResponseT>> values() {
+    public Collection<BatchBuffer<RequestT, ResponseT>> values() {
         return batchContextMap.values();
     }
 
-    public void forEach(BiConsumer<String, BatchingGroupMap<RequestT, ResponseT>> action) {
+    public void forEach(BiConsumer<String, BatchBuffer<RequestT, ResponseT>> action) {
         batchContextMap.forEach(action);
     }
 }

@@ -26,6 +26,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @FunctionalInterface
 @SdkProtectedApi
-public interface BatchResponseMapperFunction<BatchResponseT, ResponseT> {
+public interface BatchResponseMapper<BatchResponseT, ResponseT> {
     List<IdentifiableResponse<ResponseT>> mapBatchResponse(BatchResponseT batchResponse);
 }

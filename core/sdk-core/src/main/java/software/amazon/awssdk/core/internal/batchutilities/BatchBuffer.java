@@ -26,11 +26,11 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class BatchingGroupMap<RequestT, ResponseT> {
+public class BatchBuffer<RequestT, ResponseT> {
     private final Map<String, BatchContext<RequestT, ResponseT>> idToBatchContext;
     private final AtomicInteger numRequests;
 
-    public BatchingGroupMap() {
+    public BatchBuffer() {
         this.idToBatchContext = new ConcurrentHashMap<>();
         this.numRequests = new AtomicInteger(0);
     }

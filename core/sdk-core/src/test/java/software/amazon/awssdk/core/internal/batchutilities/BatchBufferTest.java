@@ -62,7 +62,7 @@ public class BatchBufferTest {
                              .overrideConfiguration(overrideConfiguration)
                              .batchingFunction(batchingFunction)
                              .mapResponsesFunction(mapResponsesFunction)
-                             .batchGroupIdFunction(getBatchGroupIdFunction)
+                             .batchKeyMapperFunction(getBatchGroupIdFunction)
                              .build();
 
         defaultDestination = "dest0";
@@ -175,7 +175,7 @@ public class BatchBufferTest {
         checkThreadedResponses(numThreads, requests, responses, completionService);
     }
 
-    private static final BatchAndSendFunction<String, BatchResponse> batchingFunction =
+    private static final BatchAndSend<String, BatchResponse> batchingFunction =
         (identifiableRequests, destination) -> {
             BatchResponse entries = new BatchResponse();
             identifiableRequests.forEach(identifiableRequest -> {
@@ -189,7 +189,7 @@ public class BatchBufferTest {
             });
         };
 
-    private static final BatchResponseMapperFunction<BatchResponse, String> mapResponsesFunction =
+    private static final BatchResponseMapper<BatchResponse, String> mapResponsesFunction =
         requestBatchResponse -> {
             List<IdentifiableResponse<String>> identifiableResponses = new ArrayList<>();
             for (MessageWithId requestWithId : requestBatchResponse.getResponses()) {
@@ -198,7 +198,7 @@ public class BatchBufferTest {
             return identifiableResponses;
         };
 
-    private static final GetBatchGroupIdFunction<String> getBatchGroupIdFunction = request -> request.substring(0, 5);
+    private static final BatchKeyMapper<String> getBatchGroupIdFunction = request -> request.substring(0, 5);
 
     private void createThreadsAndSendMessages(int numThreads, int numMessages, Map<String, String> requests,
                                               ConcurrentHashMap<String, CompletableFuture<String>> responses,
