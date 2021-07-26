@@ -1,3 +1,120 @@
+# __2.17.4__ __2021-07-23__
+## __AWS SecurityHub__
+  - ### Features
+    - Added product name, company name, and Region fields for security findings. Added details objects for RDS event subscriptions and AWS ECS services. Added fields to the details for AWS Elasticsearch domains.
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - Add on-premise access type support for endpoints
+
+## __EC2 Image Builder__
+  - ### Features
+    - Update to documentation to reapply missing change to SSM uninstall switch default value and improve description.
+
+# __2.17.3__ __2021-07-22__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports passing through style data on WebVTT caption outputs.
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - This SDK release adds two new features: 1) Output to Native JDBC destinations and 2) Adding configurations to profile jobs
+
+## __AWS S3 Control__
+  - ### Features
+    - Documentation updates for Amazon S3-control
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows customers to assign prefixes to their elastic network interface and to reserve IP blocks in their subnet CIDRs. These reserved blocks can be used to assign prefixes to elastic network interfaces or be excluded from auto-assignment.
+
+## __Amazon QLDB__
+  - ### Features
+    - Amazon QLDB now supports ledgers encrypted with customer managed KMS keys. Changes in CreateLedger, UpdateLedger and DescribeLedger APIs to support the changes.
+
+## __Amazon S3__
+  - ### Features
+    - Add support for more user-friendly CopyObject source parameters
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds support for enabling TLS protocol version and cipher suite headers to be sent to backend targets for Application Load Balancers.
+
+# __2.17.2__ __2021-07-21__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now allows you to set the access permissions for build artifacts, project artifacts, and log files that are uploaded to an Amazon S3 bucket that is owned by another account.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS Lambda__
+  - ### Features
+    - New ResourceConflictException error code for PutFunctionEventInvokeConfig, UpdateFunctionEventInvokeConfig, and DeleteFunctionEventInvokeConfig operations.
+
+## __AWS Proton__
+  - ### Features
+    - Documentation updates for AWS Proton
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now provides a data source connector for Amazon WorkDocs. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-workdocs.html
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - EMR now supports new DescribeReleaseLabel and ListReleaseLabel APIs. They can provide Amazon EMR release label details. You can programmatically list available releases and applications for a specific Amazon EMR release label.
+
+## __Amazon Personalize__
+  - ### Features
+    - My AWS Service (placeholder) - Making minProvisionedTPS an optional parameter when creating a campaign. If not provided, it defaults to 1.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds the OriginalSnapshotCreateTime field to the DBSnapshot response object. This field timestamps the underlying data of a snapshot and doesn't change when the snapshot is copied.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Adds support for enabling TLS protocol version and cipher suite headers to be sent to backend targets for Application Load Balancers.
+
+# __2.17.1__ __2021-07-20__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Documentation updates for Compute Optimizer
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added idempotency to the CreateVolume API using the ClientToken request parameter
+
+# __2.17.0__ __2021-07-19__
+## __AWS Direct Connect__
+  - ### Features
+    - Documentation updates for directconnect
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - In the Health API, the maximum number of entities for the EventFilter and EntityFilter data types has changed from 100 to 99. This change is related to an internal optimization of the AWS Health service.
+
+## __AWS RoboMaker__
+  - ### Features
+    - This release allows customers to create a new version of WorldTemplates with support for Doors.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Moved Jackson from an external SDK dependency to an internal dependency: https://aws.amazon.com/blogs/developer/the-aws-sdk-for-java-2-17-removes-its-external-dependency-on-jackson/
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Updated DescribeManagedEndpoint and ListManagedEndpoints to return failureReason and stateDetails in API response.
+
+## __Amazon Location Service__
+  - ### Features
+    - Add five new API operations: UpdateGeofenceCollection, UpdateMap, UpdatePlaceIndex, UpdateRouteCalculator, UpdateTracker.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Documentation updates for reversal of default value for additional instance configuration SSM switch, plus improved descriptions for semantic versioning.
+
 # __2.16.104__ __2021-07-16__
 ## __AWS Audit Manager__
   - ### Features

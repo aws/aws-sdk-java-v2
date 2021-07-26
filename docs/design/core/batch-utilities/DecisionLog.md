@@ -2,7 +2,6 @@
 
 ## Log Entry Template
 
-* * *
 **Source**: (Meeting/aside/pair programming discussion/daily standup) to (discuss/implement) X
 
 **Attendees**: Anna-Karin, Irene, Dongie, Matt, Vinod, John, Zoe, Debora, Bennett, Michael
@@ -14,6 +13,20 @@
 **Open Decisions:**
 
 1. (Old/Reopened/new) Question?
+
+## 7/15/2021
+
+**Source:** Quick meeting to naming for batch utility
+
+**Attendees:** Anna-Karin, Dongie, Matt, Vinod, John, Zoe, Debora, Bennett, Michael
+
+**Closed Decisions:** 
+
+1. What should we name the batching utility to make it more discoverable and easy to understand? We will name it {Service}BatchManager. Since the batching utility operates on a low-level service client, it is not much of a utility. At the same time, it does not replace methods implemented by the low-level client so it is not an enhanced client either. It operates similarly to the TransferManager so we will name it BatchManager.
+
+**Open Decisions:**
+
+None
 
 ## 7/13/2021
 
@@ -36,7 +49,6 @@
 
 ## 6/29/21
 
-* * *
 **Source:** Meeting to discuss initial design for Batch Utility: https://github.com/aws/aws-sdk-java-v2/pull/2563
 
 **Attendees:** Dongie, Matt, Vinod, John, Zoe, Debora, Bennett, Michael
