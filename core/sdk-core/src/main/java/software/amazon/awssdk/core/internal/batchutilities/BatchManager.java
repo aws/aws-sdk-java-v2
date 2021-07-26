@@ -20,24 +20,17 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
-import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -48,8 +41,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAutoCloseable {
-    // TODO: Just a number from the CloudwatchMetricPublisher for now. Should I choose a different max task queue size?
-    private static final int MAXIMUM_TASK_QUEUE_SIZE = 128;
 
     private static final Logger log = Logger.loggerFor(BatchManager.class);
     private final int maxBatchItems;
@@ -62,14 +53,7 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
     private final GetBatchGroupIdFunction<RequestT> batchGroupIdFunction;
 
     /**
-     * The executor that executes {@link #flushBuffer}
-     */
-    private final ExecutorService executor;
-
-    /**
-     * A scheduled executor that periodically schedules {@link #flushBuffer} on the {@link #executor} thread. Note: The scheduled
-     * executor should never execute the flush task itself because that would modify the request and response maps which should
-     * only ever be modified from the {@link #executor} thread.
+     * A scheduled executor that periodically schedules {@link #flushBuffer}.
      */
     private final ScheduledExecutorService scheduledExecutor;
 
@@ -84,13 +68,7 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         this.batchingFunction = Validate.notNull(builder.batchingFunction, "Null batchingFunction");
         this.mapResponsesFunction = Validate.notNull(builder.mapResponsesFunction, "Null mapResponsesFunction");
         this.batchGroupIdFunction = Validate.notNull(builder.batchGroupIdFunction, "Null batchGroupIdFunction");
-
-        //TODO Might not need executor.
-        ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
         this.scheduledExecutor = overrideConfiguration.scheduledExecutor();
-        this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                                               new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE),
-                                               threadFactory);
     }
 
     public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder() {
@@ -135,13 +113,9 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         return null;
     }
 
-    private Future<?> flushBuffer(String batchGroupId) {
-        return executor.submit(() -> internalFlushBuffer(batchGroupId));
-    }
-
     // Flushes the buffer for the given batchGroupId and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
-    private void internalFlushBuffer(String batchGroupId) {
+    private void flushBuffer(String batchGroupId) {
         BatchingGroupMap<RequestT, ResponseT> requestBuffer = requestsAndResponsesMaps.get(batchGroupId);
         if (!requestBuffer.hasRequests()) {
             return;
@@ -203,7 +177,6 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
 
     public void close() {
         try {
-            scheduledExecutor.shutdownNow();
             scheduledFlushTasks.forEach((key, value) -> value.cancel());
             requestsAndResponsesMaps.forEach((key, value) -> flushBuffer(key));
             for (BatchingGroupMap<RequestT, ResponseT> idToResponse : requestsAndResponsesMaps.values()) {
@@ -217,8 +190,6 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
             log.warn(() -> "Failed during graceful metric publisher shutdown." + e);
         } catch (TimeoutException e) {
             log.warn(() -> "Timed out during graceful metric publisher shutdown." + e);
-        } finally {
-            scheduledExecutor.shutdownNow();
         }
     }
 

@@ -88,6 +88,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     @After
     public void tearDown() {
         batchManager.close();
+        scheduledExecutor.shutdownNow();
         client.close();
     }
 

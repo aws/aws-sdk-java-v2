@@ -321,6 +321,6 @@ public class BatchBufferTest {
 
         public List<MessageWithId> getResponses() {
             return responses;
-        };
+        }
     }
 }
