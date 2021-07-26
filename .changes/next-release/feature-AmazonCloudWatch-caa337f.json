@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch",
-    "contributor": "",
-    "description": "SDK update to support creation of Cross-Account Metric Alarms and update API documentation."
-}

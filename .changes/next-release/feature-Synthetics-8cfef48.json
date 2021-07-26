@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Synthetics",
-    "contributor": "",
-    "description": "CloudWatch Synthetics now supports visual testing in its canaries."
-}

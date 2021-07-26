@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "documentation", 
-    "description": "Deprecate S3 CopySource parameter for CopyObject & UploadPartCopy"
-}
