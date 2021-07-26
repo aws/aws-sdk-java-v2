@@ -16,15 +16,24 @@
 package software.amazon.awssdk.core.internal.batchutilities;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public class BatchUtils {
 
-    private BatchUtils(){
+    private BatchUtils() {
     }
 
-    public static synchronized String getCurrentId(AtomicInteger currentId) {
-        int id = currentId.getAndIncrement();
-        currentId.compareAndSet(Integer.MAX_VALUE, 0);
-        return Integer.toString(id);
+    public static synchronized String getCurrentId(AtomicInteger id) {
+        int currentId;
+        int newCurrentId;
+        do {
+            currentId = id.get();
+            newCurrentId = currentId + 1;
+            if (newCurrentId == Integer.MAX_VALUE) {
+                newCurrentId = 0;
+            }
+        } while (!id.compareAndSet(currentId, newCurrentId));
+        return Integer.toString(newCurrentId);
     }
 }

@@ -49,6 +49,11 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
      * together according to a batchKey that is calculated from the request by the service client.
      */
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
+
+    /**
+     * Takes a list of identified requests in addition to a destination and batches the requests into a batch request.
+     * It then sends the batch request and returns a CompletableFuture of the response.
+     */
     private final BatchAndSend<RequestT, BatchResponseT> batchingFunction;
     private final BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
     private final BatchKeyMapper<RequestT> batchKeyMapperFunction;
@@ -92,24 +97,20 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
                                                                                       scheduledExecutor))
                                 .put(request, response);
 
-        if (requestsAndResponsesMaps.get(batchKey).requestSize() > maxBatchItems) {
+        int requestsNum = requestsAndResponsesMaps.get(batchKey).requestSize();
+        if (requestsNum > maxBatchItems) {
             cancelScheduledFlushIfNeeded(batchKey);
         }
         return response;
     }
 
     private void cancelScheduledFlushIfNeeded(String batchKey) {
-        if (requestsAndResponsesMaps.containsKey(batchKey)) {
-            // "reset" the flush task timer by cancelling scheduled task then restarting it.
-            ScheduledFlush scheduledFuture = requestsAndResponsesMaps.getScheduledFlush(batchKey);
+        ScheduledFlush scheduledFuture = requestsAndResponsesMaps.getScheduledFlush(batchKey);
+        // Only cancel a periodic scheduled flush.
+        if (!scheduledFuture.isManual()) {
             scheduledFuture.cancel();
-            // If scheduledFuture hasExecuted, do not perform a manual flush (initialDelay == 0), just return the response.
-            if (scheduledFuture.hasExecuted()) {
-                requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
-                                                                                              scheduledExecutor));
-            }
         }
-        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, 0, maxBatchOpenInMs.toMillis(),
+        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, 0, maxBatchOpenInMs.toMillis(), true,
                                                                                  scheduledExecutor));
     }
 
@@ -162,15 +163,15 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
 
     private ScheduledFlush scheduleBufferFlush(String batchKey, long timeOutInMs,
                                                ScheduledExecutorService scheduledExecutor) {
-        return scheduleBufferFlush(batchKey, timeOutInMs, timeOutInMs, scheduledExecutor);
+        return scheduleBufferFlush(batchKey, timeOutInMs, timeOutInMs, false, scheduledExecutor);
     }
 
-    private ScheduledFlush scheduleBufferFlush(String batchKey, long initialDelay, long timeOutInMs,
+    private ScheduledFlush scheduleBufferFlush(String batchKey, long initialDelay, long timeOutInMs, boolean isManual,
                                                ScheduledExecutorService scheduledExecutor) {
-        CancellableFlush flushTask = new CancellableFlush(() -> flushBuffer(batchKey));
+        CancellableFlush flushTask = new CancellableFlush(() -> flushBuffer(batchKey), isManual);
         ScheduledFuture<?> scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
-            flushTask.reset();
             flushTask.run();
+            flushTask.reset();
         }, initialDelay, timeOutInMs, TimeUnit.MILLISECONDS);
         return new ScheduledFlush(flushTask, scheduledFuture);
     }

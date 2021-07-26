@@ -94,7 +94,7 @@ public class BatchBuffer<RequestT, ResponseT> {
     }
 
     public RequestT removeRequest(String key) {
-        numRequests.getAndIncrement();
+        numRequests.getAndDecrement();
         return idToBatchContext.get(key).removeRequest();
     }
 

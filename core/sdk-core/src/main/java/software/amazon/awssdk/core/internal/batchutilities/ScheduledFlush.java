@@ -34,7 +34,7 @@ public class ScheduledFlush {
         cancellableFlush.cancel();
     }
 
-    public boolean hasExecuted() {
-        return cancellableFlush.hasExecuted();
+    public boolean isManual() {
+        return cancellableFlush.isManual();
     }
 }

@@ -134,16 +134,16 @@ public class BatchBufferTest {
 
     @Test
     public void scheduleTwoBatchesToDiffDestination() {
-        Map<String, String> requests = createRequestsOfSize(10);
+        Map<String, String> requests = createRequestsOfSizeToDiffDestinations(2, 5);
 
         long startTime = System.nanoTime();
-        Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 4, requests);
-        responses.putAll(createAndSendResponses(4, 6, requests));
+        Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests);
+        responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
         Assert.assertEquals(responses.size(), 10);
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < 200);
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < 400);
         checkAllResponses(requests, responses);
     }
 
@@ -159,6 +159,7 @@ public class BatchBufferTest {
 
         createThreadsAndSendMessages(numThreads, numMessages, requests, responses, completionService);
         checkThreadedResponses(numThreads, requests, responses, completionService);
+        executorService.shutdownNow();
     }
 
     @Test
@@ -173,6 +174,7 @@ public class BatchBufferTest {
 
         createThreadsAndSendMessages(numThreads, numMessages, requests, responses, completionService);
         checkThreadedResponses(numThreads, requests, responses, completionService);
+        executorService.shutdownNow();
     }
 
     private static final BatchAndSend<String, BatchResponse> batchingFunction =
@@ -240,7 +242,7 @@ public class BatchBufferTest {
         try {
             return countDownLatch.await(msToWait, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.warn(() -> String.valueOf(e));
         }
         return false;
     }

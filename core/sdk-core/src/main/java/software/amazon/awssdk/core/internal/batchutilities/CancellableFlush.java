@@ -22,11 +22,12 @@ public class CancellableFlush implements Runnable {
 
     private final Object lock = new Object();
     private final Runnable flushBuffer;
-    private boolean hasExecuted = false;
+    private boolean isManual;
     private boolean isCancelled = false;
 
-    public CancellableFlush(Runnable flushBuffer) {
+    public CancellableFlush(Runnable flushBuffer, boolean isManual) {
         this.flushBuffer = flushBuffer;
+        this.isManual = isManual;
     }
 
     @Override
@@ -35,7 +36,6 @@ public class CancellableFlush implements Runnable {
             if (isCancelled) {
                 return;
             }
-            hasExecuted = true;
             flushBuffer.run();
         }
     }
@@ -46,16 +46,14 @@ public class CancellableFlush implements Runnable {
         }
     }
 
-    public boolean hasExecuted() {
-        synchronized (this.lock) {
-            return hasExecuted;
-        }
+    public boolean isManual() {
+        return isManual;
     }
 
     public void reset() {
         synchronized (this.lock) {
-            hasExecuted = false;
             isCancelled = false;
+            isManual = false;
         }
     }
 }
