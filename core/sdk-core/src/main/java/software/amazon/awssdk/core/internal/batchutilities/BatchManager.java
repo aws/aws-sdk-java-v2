@@ -21,13 +21,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -51,17 +49,6 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
      * together according to a batchKey that is calculated from the request by the service client.
      */
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
-
-    /**
-     * Keeps track of the scheduled flush tasks for each batchKey in order to properly cancel them as needed.
-     */
-    private final Map<String, ScheduledFlush> scheduledFlushTasks;
-
-    /**
-     * Batch entries in a batch request require a unique ID so currentId keeps track of the last ID assigned to a batch entry.
-     * For simplicity, the ID is just an integer that is incremented everytime a new request is received.
-     */
-    private final Map<String, AtomicInteger> currentIds;
     private final BatchAndSend<RequestT, BatchResponseT> batchingFunction;
     private final BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
     private final BatchKeyMapper<RequestT> batchKeyMapperFunction;
@@ -75,8 +62,6 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         BatchOverrideConfiguration overrideConfiguration = Validate.notNull(builder.overrideConfiguration, "Null override"
                                                                                                              + "Configuration");
         this.requestsAndResponsesMaps = new BatchingMap<>();
-        this.scheduledFlushTasks = new ConcurrentHashMap<>();
-        this.currentIds = new ConcurrentHashMap<>();
         this.maxBatchItems = overrideConfiguration.maxBatchItems();
         this.maxBatchOpenInMs = overrideConfiguration.maxBatchOpenInMs();
         this.batchingFunction = Validate.notNull(builder.batchingFunction, "Null batchingFunction");
@@ -103,32 +88,29 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
         String batchKey = batchKeyMapperFunction.getBatchKey(request);
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
-        requestsAndResponsesMaps.batchBufferByKey(batchKey)
-                                .put(getCurrentId(batchKey), request, response);
+        requestsAndResponsesMaps.batchBufferByKey(batchKey, () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
+                                                                                      scheduledExecutor))
+                                .put(request, response);
 
-        if (requestsAndResponsesMaps.get(batchKey).requestSize() < maxBatchItems) {
-            scheduledFlushTasks.computeIfAbsent(batchKey, k -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
-                                                                                   scheduledExecutor));
-        } else {
-            cancelScheduledFlushIfNeeded(response, batchKey);
+        if (requestsAndResponsesMaps.get(batchKey).requestSize() > maxBatchItems) {
+            cancelScheduledFlushIfNeeded(batchKey);
         }
         return response;
     }
 
-    private void cancelScheduledFlushIfNeeded(CompletableFuture<ResponseT> response,
-                                                                      String batchKey) {
-        if (scheduledFlushTasks.containsKey(batchKey)) {
+    private void cancelScheduledFlushIfNeeded(String batchKey) {
+        if (requestsAndResponsesMaps.containsKey(batchKey)) {
             // "reset" the flush task timer by cancelling scheduled task then restarting it.
-            ScheduledFlush scheduledFuture = scheduledFlushTasks.get(batchKey);
+            ScheduledFlush scheduledFuture = requestsAndResponsesMaps.getScheduledFlush(batchKey);
             scheduledFuture.cancel();
             // If scheduledFuture hasExecuted, do not perform a manual flush (initialDelay == 0), just return the response.
             if (scheduledFuture.hasExecuted()) {
-                scheduledFlushTasks.put(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
-                                                                          scheduledExecutor));
+                requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
+                                                                                              scheduledExecutor));
             }
         }
-        scheduledFlushTasks.put(batchKey, scheduleBufferFlush(batchKey, 0, maxBatchOpenInMs.toMillis(),
-                                                                  scheduledExecutor));
+        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, 0, maxBatchOpenInMs.toMillis(),
+                                                                                 scheduledExecutor));
     }
 
     // Flushes the buffer for the given batchKey and fills in the response map with the returned responses.
@@ -193,14 +175,9 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         return new ScheduledFlush(flushTask, scheduledFuture);
     }
 
-    private String getCurrentId(String batchKey) {
-        AtomicInteger currentId = currentIds.computeIfAbsent(batchKey, k -> new AtomicInteger(0));
-        return BatchUtils.getCurrentId(currentId);
-    }
-
     public void close() {
         try {
-            scheduledFlushTasks.forEach((key, value) -> value.cancel());
+            requestsAndResponsesMaps.forEach((key, batchBuffer) -> batchBuffer.cancelScheduledFlush());
             requestsAndResponsesMaps.forEach((key, value) -> flushBuffer(key));
             for (BatchBuffer<RequestT, ResponseT> idToResponse : requestsAndResponsesMaps.values()) {
                 CompletableFuture.allOf(idToResponse.responses().toArray(new CompletableFuture[0]))

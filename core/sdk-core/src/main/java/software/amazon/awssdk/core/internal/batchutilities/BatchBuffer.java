@@ -30,9 +30,22 @@ public class BatchBuffer<RequestT, ResponseT> {
     private final Map<String, BatchContext<RequestT, ResponseT>> idToBatchContext;
     private final AtomicInteger numRequests;
 
-    public BatchBuffer() {
+    /**
+     * Batch entries in a batch request require a unique ID so currentId keeps track of the last ID assigned to a batch entry.
+     * For simplicity, the ID is just an integer that is incremented everytime a new request is received.
+     */
+    private final AtomicInteger currentId;
+
+    /**
+     * The scheduled flush tasks associated with this batchBuffer.
+     */
+    private ScheduledFlush scheduledFlush;
+
+    public BatchBuffer(ScheduledFlush scheduledFlush) {
         this.idToBatchContext = new ConcurrentHashMap<>();
         this.numRequests = new AtomicInteger(0);
+        this.currentId = new AtomicInteger(0);
+        this.scheduledFlush = scheduledFlush;
     }
 
     public int size() {
@@ -63,13 +76,21 @@ public class BatchBuffer<RequestT, ResponseT> {
         return idToBatchContext.get(key).response();
     }
 
-    public Map<String, BatchContext<RequestT, ResponseT>> getUnderlyingMap() {
-        return idToBatchContext;
+    public ScheduledFlush getScheduledFlush() {
+        return scheduledFlush;
     }
 
-    public BatchContext<RequestT, ResponseT> put(String key, RequestT request, CompletableFuture<ResponseT> response) {
+    public BatchContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
         numRequests.getAndIncrement();
-        return idToBatchContext.put(key, new BatchContext<>(request, response));
+        return idToBatchContext.put(getCurrentId(), new BatchContext<>(request, response));
+    }
+
+    public void putScheduledFlush(ScheduledFlush scheduledFlush) {
+        this.scheduledFlush = scheduledFlush;
+    }
+
+    public void cancelScheduledFlush() {
+        scheduledFlush.cancel();
     }
 
     public RequestT removeRequest(String key) {
@@ -103,5 +124,9 @@ public class BatchBuffer<RequestT, ResponseT> {
 
     public void forEach(BiConsumer<String, BatchContext<RequestT, ResponseT>> action) {
         idToBatchContext.forEach(action);
+    }
+
+    private String getCurrentId() {
+        return BatchUtils.getCurrentId(currentId);
     }
 }

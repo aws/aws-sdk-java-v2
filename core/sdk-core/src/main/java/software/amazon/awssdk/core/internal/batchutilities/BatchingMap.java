@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -34,8 +35,8 @@ public class BatchingMap<RequestT, ResponseT> {
         this.batchContextMap = new ConcurrentHashMap<>();
     }
 
-    public BatchBuffer<RequestT, ResponseT> batchBufferByKey(String destination) {
-        return batchContextMap.computeIfAbsent(destination, k -> new BatchBuffer<>());
+    public BatchBuffer<RequestT, ResponseT> batchBufferByKey(String destination, Supplier<ScheduledFlush> scheduleFlush) {
+        return batchContextMap.computeIfAbsent(destination, k -> new BatchBuffer<>(scheduleFlush.get()));
     }
 
     public boolean containsKey(String key) {
@@ -44,6 +45,14 @@ public class BatchingMap<RequestT, ResponseT> {
 
     public BatchBuffer<RequestT, ResponseT> get(String key) {
         return batchContextMap.get(key);
+    }
+
+    public ScheduledFlush getScheduledFlush(String key) {
+        return batchContextMap.get(key).getScheduledFlush();
+    }
+
+    public void putScheduledFlush(String key, ScheduledFlush scheduledFlush) {
+        batchContextMap.get(key).putScheduledFlush(scheduledFlush);
     }
 
     public BatchBuffer<RequestT, ResponseT> remove(String key) {
