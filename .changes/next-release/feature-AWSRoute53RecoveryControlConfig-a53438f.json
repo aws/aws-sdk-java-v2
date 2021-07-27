@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Route53 Recovery Control Config",
-    "contributor": "",
-    "description": "Amazon Route 53 Application Recovery Controller's routing control - Routing Control Configuration APIs help you create and delete clusters, control panels, routing controls and safety rules. State changes (On/Off) of routing controls are not part of configuration APIs."
-}

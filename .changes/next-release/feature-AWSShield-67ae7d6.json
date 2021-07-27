@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Shield",
-    "contributor": "",
-    "description": "Change name of DDoS Response Team (DRT) to Shield Response Team (SRT)"
-}
