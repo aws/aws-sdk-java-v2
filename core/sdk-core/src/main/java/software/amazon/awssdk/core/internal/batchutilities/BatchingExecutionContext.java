@@ -21,8 +21,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class BatchingExecutionContext<RequestT, ResponseT> {
 
+    // TODO: Remove need for locking once I figure out how to properly remove requests.
     private RequestT request;
     private final CompletableFuture<ResponseT> response;
+    private final Object lock = new Object();
 
     public BatchingExecutionContext(RequestT request, CompletableFuture<ResponseT> response) {
         this.request = request;
@@ -30,19 +32,23 @@ public class BatchingExecutionContext<RequestT, ResponseT> {
     }
 
     public RequestT request() {
-        return request;
+        synchronized (this.lock) {
+            return request;
+        }
     }
 
     public CompletableFuture<ResponseT> response() {
         return response;
     }
 
-    public synchronized boolean removeRequest() {
-        RequestT ret = request;
-        if (ret == null) {
-            return false;
+    public boolean removeRequest() {
+        synchronized (this.lock) {
+            RequestT ret = request;
+            if (ret == null) {
+                return false;
+            }
+            request = null;
+            return true;
         }
-        request = null;
-        return true;
     }
 }
