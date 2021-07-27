@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building V2",
+    "contributor": "",
+    "description": "Add waiters that automatically poll for resource status for asynchronous operations, such as building a bot"
+}
