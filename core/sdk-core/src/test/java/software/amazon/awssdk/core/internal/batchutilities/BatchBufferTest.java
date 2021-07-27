@@ -21,11 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -41,6 +39,7 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 public class BatchBufferTest {
 
+    private static final int DEFAULT_MAX_BATCH_OPEN = 200;
     private static final Logger log = Logger.loggerFor(BatchBufferTest.class);
     private BatchManager<String, String, BatchResponse> batchManager;
     private ScheduledExecutorService scheduledExecutor;
@@ -52,7 +51,7 @@ public class BatchBufferTest {
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(10)
-                                                                                     .maxBatchOpenInMs(Duration.ofMillis(200))
+                                                                                     .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
 
@@ -97,7 +96,7 @@ public class BatchBufferTest {
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 200);
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > DEFAULT_MAX_BATCH_OPEN);
         checkAllResponses(requests, responses);
     }
 
@@ -107,13 +106,13 @@ public class BatchBufferTest {
 
         long startTime = System.nanoTime();
         Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests);
-        waitForTime(210);
+        waitForTime(DEFAULT_MAX_BATCH_OPEN);
         responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
 
         Assert.assertEquals(responses.size(), 10);
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 300);
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > DEFAULT_MAX_BATCH_OPEN + 100);
         checkAllResponses(requests, responses);
     }
 
@@ -128,7 +127,7 @@ public class BatchBufferTest {
         long endTime = System.nanoTime();
 
         Assert.assertEquals(responses.size(), 10);
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < 400);
+        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < DEFAULT_MAX_BATCH_OPEN * 2);
         checkAllResponses(requests, responses);
     }
 
@@ -139,11 +138,10 @@ public class BatchBufferTest {
         Map<String, String> requests = createRequestsOfSize(numMessages*numThreads);
         ConcurrentHashMap<String, CompletableFuture<String>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-        CompletionService<Map<String, CompletableFuture<String>>> completionService =
-            new ExecutorCompletionService<>(executorService);
 
-        createThreadsAndSendMessages(numThreads, numMessages, requests, responses, completionService);
-        checkThreadedResponses(numThreads, requests, responses, completionService);
+        List<CompletableFuture<Map<String, CompletableFuture<String>>>> sendRequestFutures =
+            createThreadsAndSendMessages(numThreads,  numMessages, requests, responses, executorService);
+        checkThreadedResponses(requests, responses, sendRequestFutures);
         executorService.shutdownNow();
     }
 
@@ -154,11 +152,10 @@ public class BatchBufferTest {
         Map<String, String> requests = createRequestsOfSizeToDiffDestinations(numThreads, numMessages);
         ConcurrentHashMap<String, CompletableFuture<String>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-        CompletionService<Map<String, CompletableFuture<String>>> completionService =
-            new ExecutorCompletionService<>(executorService);
 
-        createThreadsAndSendMessages(numThreads, numMessages, requests, responses, completionService);
-        checkThreadedResponses(numThreads, requests, responses, completionService);
+        List<CompletableFuture<Map<String, CompletableFuture<String>>>> sendRequestFutures =
+            createThreadsAndSendMessages(numThreads,  numMessages, requests, responses, executorService);
+        checkThreadedResponses(requests, responses, sendRequestFutures);
         executorService.shutdownNow();
     }
 
@@ -171,7 +168,7 @@ public class BatchBufferTest {
                 entries.add(new MessageWithId(id, request));
             });
             return CompletableFuture.supplyAsync(() -> {
-                waitForTime(150);
+                waitForTime(DEFAULT_MAX_BATCH_OPEN - 50);
                 return entries;
             });
         };
@@ -187,33 +184,34 @@ public class BatchBufferTest {
 
     private static final BatchKeyMapper<String> getBatchGroupIdFunction = request -> request.substring(0, 5);
 
-    private void createThreadsAndSendMessages(int numThreads, int numMessages, Map<String, String> requests,
-                                              ConcurrentHashMap<String, CompletableFuture<String>> responses,
-                                              CompletionService<Map<String, CompletableFuture<String>>> completionService) {
+    private List<CompletableFuture<Map<String, CompletableFuture<String>>>> createThreadsAndSendMessages(
+        int numThreads, int numMessages, Map<String, String> requests,
+        ConcurrentHashMap<String, CompletableFuture<String>> responses, ExecutorService executorService) {
+        List<CompletableFuture<Map<String, CompletableFuture<String>>>> executions = new ArrayList<>();
         for (int i = 0; i < numThreads; i++) {
-            sendRequestToDestination(i*numMessages, numMessages, requests, responses, completionService);
+            executions.add(sendRequestToDestination(i*numMessages, numMessages, requests, responses, executorService));
         }
+        return executions;
     }
 
-    private void sendRequestToDestination(int startingId, int numMessages, Map<String, String> requests,
-                                          ConcurrentHashMap<String, CompletableFuture<String>> responses,
-                                          CompletionService<Map<String, CompletableFuture<String>>> completionService) {
-        completionService.submit(() -> {
+    private CompletableFuture<Map<String, CompletableFuture<String>>> sendRequestToDestination(
+        int startingId, int numMessages, Map<String, String> requests,
+        ConcurrentHashMap<String, CompletableFuture<String>> responses, ExecutorService executorService) {
+        return CompletableFuture.supplyAsync(() -> {
             Map<String, CompletableFuture<String>> newResponses = createAndSendResponses(startingId, numMessages, requests);
             responses.putAll(newResponses);
             return newResponses;
-        });
+        }, executorService);
     }
 
-    private void checkThreadedResponses(int numThreads, Map<String, String> requests,
+    private void checkThreadedResponses(Map<String, String> requests,
                                         ConcurrentHashMap<String, CompletableFuture<String>> responses,
-                                        CompletionService<Map<String, CompletableFuture<String>>> completionService) {
-        for (int i = 0; i < numThreads; i++) {
+                                        List<CompletableFuture<Map<String, CompletableFuture<String>>>> sentRequestsFutures) {
+        for (CompletableFuture<Map<String, CompletableFuture<String>>> sentRequest : sentRequestsFutures) {
             try {
-                CompletableFuture.allOf(completionService.take()
-                                                         .get(300, TimeUnit.MILLISECONDS)
-                                                         .values()
-                                                         .toArray(new CompletableFuture[0]))
+                CompletableFuture.allOf(sentRequest.get(300, TimeUnit.MILLISECONDS)
+                                                   .values()
+                                                   .toArray(new CompletableFuture[0]))
                                  .join();
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.warn(() -> "Error with threaded response: " + e);
