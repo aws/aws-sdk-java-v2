@@ -1,3 +1,52 @@
+# __2.17.6__ __2021-07-27__
+## __AWS Batch__
+  - ### Features
+    - Add support for ListJob filters
+
+## __AWS IoT Analytics__
+  - ### Features
+    - IoT Analytics now supports creating a dataset resource with IoT SiteWise MultiLayerStorage data stores, enabling customers to query industrial data within the service. This release includes adding JOIN functionality for customers to query multiple data sources in a dataset.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add SidewalkManufacturingSn as an identifier to allow Customer to query WirelessDevice, in the response, AmazonId is added in the case that Sidewalk device is return.
+
+## __AWS Route53 Recovery Control Config__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller's routing control - Routing Control Configuration APIs help you create and delete clusters, control panels, routing controls and safety rules. State changes (On/Off) of routing controls are not part of configuration APIs.
+
+## __AWS Route53 Recovery Readiness__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller's readiness check capability continually monitors resource quotas, capacity, and network routing policies to ensure that the recovery environment is scaled and configured to take over when needed.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Shield__
+  - ### Features
+    - Change name of DDoS Response Team (DRT) to Shield Response Team (SRT)
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Add waiters that automatically poll for resource status for asynchronous operations, such as building a bot
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add support to use row-level security with tags when embedding dashboards for users not provisioned in QuickSight
+
+## __Amazon Route 53__
+  - ### Features
+    - This release adds support for the RECOVERY_CONTROL health check type to be used in conjunction with Route53 Application Recovery Controller.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Added structures to support new Data API operation BatchExecuteStatement, used to execute multiple SQL statements within a single transaction.
+
+## __Route53 Recovery Cluster__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller's routing control - Routing Control Data Plane APIs help you update the state (On/Off) of the routing controls to reroute traffic across application replicas in a 100% available manner.
+
 # __2.17.5__ __2021-07-26__
 ## __AWS Proton__
   - ### Features
