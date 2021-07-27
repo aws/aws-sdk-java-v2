@@ -189,23 +189,6 @@ public class BatchBufferTest {
         }
     }
 
-    // TODO: Is this needed?
-    @Test
-    @SuppressWarnings("unchecked")
-    public void sendRequestThrowsException() {
-        BatchManager<String, String, BatchResponse> batchManagerMock =
-            (BatchManager<String, String, BatchResponse>) mock(BatchManager.class);
-        when(batchManagerMock.sendRequest(anyString())).thenThrow(new Exception("Some exception"));
-
-        Map<String, String> requests = createRequestsOfSize(10);
-        for (int i = 0; i < requests.size(); i++) {
-            String key = Integer.toString(i);
-            String request = requests.get(key);
-            batchManagerMock.sendRequest(request);
-//            Assert.assertThrows(RuntimeException.class, () -> batchManagerMock.sendRequest(request));
-        }
-    }
-
     private static final BatchAndSend<String, BatchResponse> exceptionBatchFunction =
         (identifiableRequests, destination) -> CompletableFuture.supplyAsync(() -> {
             waitForTime(DEFAULT_MAX_BATCH_OPEN - 50);

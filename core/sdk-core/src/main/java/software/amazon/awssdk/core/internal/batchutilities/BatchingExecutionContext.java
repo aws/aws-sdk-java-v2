@@ -23,7 +23,6 @@ public class BatchingExecutionContext<RequestT, ResponseT> {
 
     private RequestT request;
     private final CompletableFuture<ResponseT> response;
-    private final Object lock = new Object();
 
     public BatchingExecutionContext(RequestT request, CompletableFuture<ResponseT> response) {
         this.request = request;
@@ -31,25 +30,19 @@ public class BatchingExecutionContext<RequestT, ResponseT> {
     }
 
     public RequestT request() {
-        synchronized (this.lock) {
-            return request;
-        }
+        return request;
     }
 
     public CompletableFuture<ResponseT> response() {
-        synchronized (this.lock) {
-            return response;
-        }
+        return response;
     }
 
-    public boolean removeRequest() {
-        synchronized (this.lock) {
-            RequestT ret = request;
-            if (ret == null) {
-                return false;
-            }
-            request = null;
-            return true;
+    public synchronized boolean removeRequest() {
+        RequestT ret = request;
+        if (ret == null) {
+            return false;
         }
+        request = null;
+        return true;
     }
 }
