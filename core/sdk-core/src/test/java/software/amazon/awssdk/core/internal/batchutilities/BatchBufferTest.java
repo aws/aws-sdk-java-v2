@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.core.internal.batchutilities;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -158,6 +162,55 @@ public class BatchBufferTest {
         checkThreadedResponses(requests, responses, sendRequestFutures);
         executorService.shutdownNow();
     }
+    @Test
+    public void sentRequestsAllReturnExceptions(){
+        BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
+                                                                                     .maxBatchItems(10)
+                                                                                     .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
+                                                                                     .scheduledExecutor(scheduledExecutor)
+                                                                                     .build();
+        BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.<String, String, BatchResponse> builder()
+                                                                                   .overrideConfiguration(overrideConfiguration)
+                                                                                   .batchingFunction(exceptionBatchFunction)
+                                                                                   .mapResponsesFunction(mapResponsesFunction)
+                                                                                   .batchKeyMapperFunction(getBatchGroupIdFunction)
+                                                                                   .build();
+        Map<String, String> requests = createRequestsOfSize(10);
+        Map<String, CompletableFuture<String>> responses = new HashMap<>();
+        for (int i = 0; i < requests.size(); i++) {
+            String key = Integer.toString(i);
+            String request = requests.get(key);
+            responses.put(key, testBatchManager.sendRequest(request));
+        }
+        Assert.assertEquals(requests.size(), responses.size());
+        for (int i = 0; i < responses.size(); i++) {
+            String key = Integer.toString(i);
+            Assert.assertThrows(RuntimeException.class, () -> responses.get(key).join());
+        }
+    }
+
+    // TODO: Is this needed?
+    @Test
+    @SuppressWarnings("unchecked")
+    public void sendRequestThrowsException() {
+        BatchManager<String, String, BatchResponse> batchManagerMock =
+            (BatchManager<String, String, BatchResponse>) mock(BatchManager.class);
+        when(batchManagerMock.sendRequest(anyString())).thenThrow(new Exception("Some exception"));
+
+        Map<String, String> requests = createRequestsOfSize(10);
+        for (int i = 0; i < requests.size(); i++) {
+            String key = Integer.toString(i);
+            String request = requests.get(key);
+            batchManagerMock.sendRequest(request);
+//            Assert.assertThrows(RuntimeException.class, () -> batchManagerMock.sendRequest(request));
+        }
+    }
+
+    private static final BatchAndSend<String, BatchResponse> exceptionBatchFunction =
+        (identifiableRequests, destination) -> CompletableFuture.supplyAsync(() -> {
+            waitForTime(DEFAULT_MAX_BATCH_OPEN - 50);
+            throw new RuntimeException("Throwing exception in test");
+        });
 
     private static final BatchAndSend<String, BatchResponse> batchingFunction =
         (identifiableRequests, destination) -> {

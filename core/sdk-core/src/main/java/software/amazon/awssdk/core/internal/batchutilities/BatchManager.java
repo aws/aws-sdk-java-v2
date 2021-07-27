@@ -100,17 +100,23 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
      * @return a CompletableFuture of the corresponding response.
      */
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
-        String batchKey = batchKeyMapperFunction.getBatchKey(request);
-        CompletableFuture<ResponseT> response = new CompletableFuture<>();
-        requestsAndResponsesMaps.batchBufferByKey(batchKey, () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
-                                                                                      scheduledExecutor))
-                                .put(request, response);
+        // TODO: Figure out how to properly handle exceptions here.
+        try {
+            String batchKey = batchKeyMapperFunction.getBatchKey(request);
+            CompletableFuture<ResponseT> response = new CompletableFuture<>();
+            requestsAndResponsesMaps.batchBufferByKey(batchKey, () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
+                                                                                          scheduledExecutor))
+                                    .put(request, response);
 
-        int requestsNum = requestsAndResponsesMaps.get(batchKey).requestSize();
-        if (requestsNum > maxBatchItems) {
-            cancelScheduledFlushIfNeeded(batchKey);
+            int requestsNum = requestsAndResponsesMaps.get(batchKey).requestSize();
+            if (requestsNum > maxBatchItems) {
+                cancelScheduledFlushIfNeeded(batchKey);
+            }
+            return response;
+        } catch (Exception e) {
+            log.warn(() -> String.valueOf(e));
         }
-        return response;
+        return null;
     }
 
     private void cancelScheduledFlushIfNeeded(String batchKey) {
