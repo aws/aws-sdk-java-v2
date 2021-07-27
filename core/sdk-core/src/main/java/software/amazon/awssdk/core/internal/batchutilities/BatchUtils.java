@@ -24,7 +24,7 @@ public class BatchUtils {
     private BatchUtils() {
     }
 
-    public static synchronized String getCurrentId(AtomicInteger id) {
+    public static String getAndIncrementId(AtomicInteger id) {
         int currentId;
         int newCurrentId;
         do {
@@ -34,6 +34,6 @@ public class BatchUtils {
                 newCurrentId = 0;
             }
         } while (!id.compareAndSet(currentId, newCurrentId));
-        return Integer.toString(newCurrentId);
+        return Integer.toString(currentId);
     }
 }

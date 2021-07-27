@@ -55,7 +55,16 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
      * It then sends the batch request and returns a CompletableFuture of the response.
      */
     private final BatchAndSend<RequestT, BatchResponseT> batchingFunction;
+
+    /**
+     * Unpacks the batch response, then transforms individual entries to the appropriate response type. Each entry's batch ID
+     * is mapped to the individual response entry.
+     */
     private final BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
+
+    /**
+     * Takes a request and extracts a batchGroupId as determined by the caller.
+     */
     private final BatchKeyMapper<RequestT> batchKeyMapperFunction;
 
     /**
@@ -123,9 +132,10 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         }
 
         List<IdentifiableRequest<RequestT>> requestEntryList = new ArrayList<>();
-        Iterator<Map.Entry<String, BatchContext<RequestT, ResponseT>>> requestIterator = requestBuffer.entrySet().iterator();
+        Iterator<Map.Entry<String, BatchingExecutionContext<RequestT, ResponseT>>> requestIterator = requestBuffer.entrySet()
+                                                                                                                  .iterator();
         while (requestEntryList.size() < maxBatchItems && requestIterator.hasNext()) {
-            Map.Entry<String, BatchContext<RequestT, ResponseT>> entry = requestIterator.next();
+            Map.Entry<String, BatchingExecutionContext<RequestT, ResponseT>> entry = requestIterator.next();
             RequestT request = entry.getValue().request();
             if (request != null) {
                 requestEntryList.add(new IdentifiableRequest<>(entry.getKey(), request));

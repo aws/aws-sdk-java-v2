@@ -67,7 +67,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
     public void setUp() {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("batch-buffer").build();
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(threadFactory);
-        client = SqsClient.create();
+        client = createSqsSyncClient();
         defaultQueueUrl = client.createQueue(CreateQueueRequest.builder().queueName("myQueue0").build()).queueUrl();
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
                                                                                      .maxBatchItems(10)

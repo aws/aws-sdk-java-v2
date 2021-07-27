@@ -89,7 +89,7 @@ public class BatchBufferTest {
     }
 
     @Test
-    public void scheduleSendFiveRequests() {
+    public void sendRequestsLessThanMaxBatchItems_shouldSendAfterTimeout() {
         Map<String, String> requests = createRequestsOfSize(5);
 
         long startTime = System.nanoTime();
@@ -98,21 +98,6 @@ public class BatchBufferTest {
         long endTime = System.nanoTime();
 
         Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() > 200);
-        checkAllResponses(requests, responses);
-    }
-
-    @Test
-    public void cancelScheduledBatch() {
-        Map<String, String> requests = createRequestsOfSize(10);
-
-        long startTime = System.nanoTime();
-        Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests);
-        waitForTime(190);
-        responses.putAll(createAndSendResponses(5, 5, requests));
-        CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
-        long endTime = System.nanoTime();
-
-        Assert.assertTrue(Duration.ofNanos(endTime - startTime).toMillis() < 400);
         checkAllResponses(requests, responses);
     }
 

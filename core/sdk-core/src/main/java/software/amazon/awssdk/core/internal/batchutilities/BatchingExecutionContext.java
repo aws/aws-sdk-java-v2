@@ -19,27 +19,37 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class BatchContext<RequestT, ResponseT> {
+public class BatchingExecutionContext<RequestT, ResponseT> {
 
     private RequestT request;
     private final CompletableFuture<ResponseT> response;
+    private final Object lock = new Object();
 
-    public BatchContext(RequestT request, CompletableFuture<ResponseT> response) {
+    public BatchingExecutionContext(RequestT request, CompletableFuture<ResponseT> response) {
         this.request = request;
         this.response = response;
     }
 
     public RequestT request() {
-        return request;
+        synchronized (this.lock) {
+            return request;
+        }
     }
 
     public CompletableFuture<ResponseT> response() {
-        return response;
+        synchronized (this.lock) {
+            return response;
+        }
     }
 
-    public RequestT removeRequest() {
-        RequestT ret = request;
-        request = null;
-        return ret;
+    public boolean removeRequest() {
+        synchronized (this.lock) {
+            RequestT ret = request;
+            if (ret == null) {
+                return false;
+            }
+            request = null;
+            return true;
+        }
     }
 }

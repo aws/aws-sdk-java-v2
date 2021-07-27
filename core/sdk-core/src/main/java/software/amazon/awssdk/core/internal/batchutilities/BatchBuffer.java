@@ -27,14 +27,15 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public class BatchBuffer<RequestT, ResponseT> {
-    private final Map<String, BatchContext<RequestT, ResponseT>> idToBatchContext;
+    private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
     private final AtomicInteger numRequests;
 
     /**
-     * Batch entries in a batch request require a unique ID so currentId keeps track of the last ID assigned to a batch entry.
-     * For simplicity, the ID is just an integer that is incremented everytime a new request is received.
+     * Batch entries in a batch request require a unique ID so nextId keeps track of the ID to assign to the next
+     * BatchingExecutionContext. For simplicity, the ID is just an integer that is incremented everytime a new request and
+     * response pair is received.
      */
-    private final AtomicInteger currentId;
+    private final AtomicInteger nextId;
 
     /**
      * The scheduled flush tasks associated with this batchBuffer.
@@ -44,7 +45,7 @@ public class BatchBuffer<RequestT, ResponseT> {
     public BatchBuffer(ScheduledFlush scheduledFlush) {
         this.idToBatchContext = new ConcurrentHashMap<>();
         this.numRequests = new AtomicInteger(0);
-        this.currentId = new AtomicInteger(0);
+        this.nextId = new AtomicInteger(0);
         this.scheduledFlush = scheduledFlush;
     }
 
@@ -80,9 +81,10 @@ public class BatchBuffer<RequestT, ResponseT> {
         return scheduledFlush;
     }
 
-    public BatchContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
+    public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
         numRequests.getAndIncrement();
-        return idToBatchContext.put(getCurrentId(), new BatchContext<>(request, response));
+        String id = BatchUtils.getAndIncrementId(nextId);
+        return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
     }
 
     public void putScheduledFlush(ScheduledFlush scheduledFlush) {
@@ -93,27 +95,28 @@ public class BatchBuffer<RequestT, ResponseT> {
         scheduledFlush.cancel();
     }
 
-    public RequestT removeRequest(String key) {
-        numRequests.getAndDecrement();
-        return idToBatchContext.get(key).removeRequest();
+    public void removeRequest(String key) {
+        if (idToBatchContext.get(key).removeRequest()) {
+            numRequests.getAndDecrement();
+        }
     }
 
-    public BatchContext<RequestT, ResponseT> remove(String key) {
+    public BatchingExecutionContext<RequestT, ResponseT> remove(String key) {
         return idToBatchContext.remove(key);
     }
 
-    public Collection<BatchContext<RequestT, ResponseT>> values() {
+    public Collection<BatchingExecutionContext<RequestT, ResponseT>> values() {
         return idToBatchContext.values();
     }
 
     public Collection<CompletableFuture<ResponseT>> responses() {
         return idToBatchContext.values()
                                .stream()
-                               .map(BatchContext::response)
+                               .map(BatchingExecutionContext::response)
                                .collect(Collectors.toList());
     }
 
-    public Set<Map.Entry<String, BatchContext<RequestT, ResponseT>>> entrySet() {
+    public Set<Map.Entry<String, BatchingExecutionContext<RequestT, ResponseT>>> entrySet() {
         return idToBatchContext.entrySet();
     }
 
@@ -122,11 +125,7 @@ public class BatchBuffer<RequestT, ResponseT> {
         idToBatchContext.clear();
     }
 
-    public void forEach(BiConsumer<String, BatchContext<RequestT, ResponseT>> action) {
+    public void forEach(BiConsumer<String, BatchingExecutionContext<RequestT, ResponseT>> action) {
         idToBatchContext.forEach(action);
-    }
-
-    private String getCurrentId() {
-        return BatchUtils.getCurrentId(currentId);
     }
 }
