@@ -160,7 +160,7 @@ public class Aws4SignerTest {
      * Multi-value headers should be comma separated.
      */
     @Test
-    public void testMultiValueHeadersAreCommaSeparated() throws Exception {
+    public void canonicalizedHeaderString_multiValueHeaders_areCommaSeparated() throws Exception {
         AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
         SdkHttpFullRequest.Builder request = generateBasicRequest();
         request.appendHeader("foo","bar");
@@ -181,7 +181,7 @@ public class Aws4SignerTest {
      * space.
      */
     @Test
-    public void testHeaderValuesWithExtraWhitespace() throws Exception {
+    public void canonicalizedHeaderString_valuesWithExtraWhitespace_areTrimmed() throws Exception {
         AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
         SdkHttpFullRequest.Builder request = generateBasicRequest();
         request.putHeader("My-header1","    a   b   c  ");

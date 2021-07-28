@@ -367,8 +367,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         return sb.toString().trim();
     }
 
-    private List<String> trimAll(List<String> source) {
-        return source.stream().map(this::trimAll).collect(Collectors.toList());
+    private List<String> trimAll(List<String> values) {
+        return values.stream().map(this::trimAll).collect(Collectors.toList());
     }
 
     /**
