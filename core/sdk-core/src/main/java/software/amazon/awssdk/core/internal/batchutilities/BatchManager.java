@@ -112,7 +112,7 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
 
             int requestsNum = requestsAndResponsesMaps.get(batchKey).requestSize();
             if (requestsNum > maxBatchItems) {
-                cancelScheduledFlushIfNeeded(batchKey);
+                manualFlushBuffer(batchKey);
             }
         } catch (Exception e) {
             response.completeExceptionally(e);
@@ -120,7 +120,7 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         return response;
     }
 
-    private void cancelScheduledFlushIfNeeded(String batchKey) {
+    private void manualFlushBuffer(String batchKey) {
         ScheduledFlush scheduledFuture = requestsAndResponsesMaps.getScheduledFlush(batchKey);
         // Only cancel a periodic scheduled flush.
         if (!scheduledFuture.isManual()) {
