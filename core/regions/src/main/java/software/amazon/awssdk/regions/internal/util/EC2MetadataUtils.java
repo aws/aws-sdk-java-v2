@@ -283,6 +283,63 @@ public final class EC2MetadataUtils {
         return getData(EC2_USERDATA_ROOT);
     }
 
+    /**
+     * Retrieve some of the data from http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html as a typed
+     * object. This entire class will be removed as part of https://github.com/aws/aws-sdk-java-v2/issues/61, so don't rely on
+     * this sticking around.
+     *
+     * This should not be removed until https://github.com/aws/aws-sdk-java-v2/issues/61 is implemented.
+     */
+    public static InstanceInfo getInstanceInfo() {
+        return doGetInstanceInfo(getData(EC2_DYNAMICDATA_ROOT + INSTANCE_IDENTITY_DOCUMENT));
+    }
+
+    static InstanceInfo doGetInstanceInfo(String json) {
+        if (json != null) {
+            try {
+                Map<String, JsonNode> jsonNode = JSON_PARSER.parse(json).asObject();
+                return new InstanceInfo(stringValue(jsonNode.get("pendingTime")),
+                                        stringValue(jsonNode.get("instanceType")),
+                                        stringValue(jsonNode.get("imageId")),
+                                        stringValue(jsonNode.get("instanceId")),
+                                        stringArrayValue(jsonNode.get("billingProducts")),
+                                        stringValue(jsonNode.get("architecture")),
+                                        stringValue(jsonNode.get("accountId")),
+                                        stringValue(jsonNode.get("kernelId")),
+                                        stringValue(jsonNode.get("ramdiskId")),
+                                        stringValue(jsonNode.get("region")),
+                                        stringValue(jsonNode.get("version")),
+                                        stringValue(jsonNode.get("availabilityZone")),
+                                        stringValue(jsonNode.get("privateIp")),
+                                        stringArrayValue(jsonNode.get("devpayProductCodes")),
+                                        stringArrayValue(jsonNode.get("marketplaceProductCodes")));
+            } catch (Exception e) {
+                log.warn("Unable to parse dynamic EC2 instance info (" + json + ") : " + e.getMessage(), e);
+            }
+        }
+        return null;
+    }
+
+    private static String stringValue(JsonNode jsonNode) {
+        if (jsonNode == null || !jsonNode.isString()) {
+            return null;
+        }
+
+        return jsonNode.asString();
+    }
+
+    private static String[] stringArrayValue(JsonNode jsonNode) {
+        if (jsonNode == null || !jsonNode.isArray()) {
+            return null;
+        }
+
+        return jsonNode.asArray()
+                       .stream()
+                       .filter(JsonNode::isString)
+                       .map(JsonNode::asString)
+                       .toArray(String[]::new);
+    }
+
     public static String getData(String path) {
         return getData(path, DEFAULT_QUERY_RETRIES);
     }
@@ -585,6 +642,122 @@ public final class EC2MetadataUtils {
             }
 
             return requestHeaders;
+        }
+    }
+
+
+    public static class InstanceInfo {
+        private final String pendingTime;
+        private final String instanceType;
+        private final String imageId;
+        private final String instanceId;
+        private final String[] billingProducts;
+        private final String architecture;
+        private final String accountId;
+        private final String kernelId;
+        private final String ramdiskId;
+        private final String region;
+        private final String version;
+        private final String availabilityZone;
+        private final String privateIp;
+        private final String[] devpayProductCodes;
+        private final String[] marketplaceProductCodes;
+
+        public InstanceInfo(
+            String pendingTime,
+            String instanceType,
+            String imageId,
+            String instanceId,
+            String[] billingProducts,
+            String architecture,
+            String accountId,
+            String kernelId,
+            String ramdiskId,
+            String region,
+            String version,
+            String availabilityZone,
+            String privateIp,
+            String[] devpayProductCodes,
+            String[] marketplaceProductCodes) {
+
+            this.pendingTime = pendingTime;
+            this.instanceType = instanceType;
+            this.imageId = imageId;
+            this.instanceId = instanceId;
+            this.billingProducts = billingProducts == null
+                                   ? null : billingProducts.clone();
+            this.architecture = architecture;
+            this.accountId = accountId;
+            this.kernelId = kernelId;
+            this.ramdiskId = ramdiskId;
+            this.region = region;
+            this.version = version;
+            this.availabilityZone = availabilityZone;
+            this.privateIp = privateIp;
+            this.devpayProductCodes = devpayProductCodes == null
+                                      ? null : devpayProductCodes.clone();
+            this.marketplaceProductCodes = marketplaceProductCodes == null
+                                           ? null : marketplaceProductCodes.clone();
+        }
+
+        public String getPendingTime() {
+            return pendingTime;
+        }
+
+        public String getInstanceType() {
+            return instanceType;
+        }
+
+        public String getImageId() {
+            return imageId;
+        }
+
+        public String getInstanceId() {
+            return instanceId;
+        }
+
+        public String[] getBillingProducts() {
+            return billingProducts == null ? null : billingProducts.clone();
+        }
+
+        public String getArchitecture() {
+            return architecture;
+        }
+
+        public String getAccountId() {
+            return accountId;
+        }
+
+        public String getKernelId() {
+            return kernelId;
+        }
+
+        public String getRamdiskId() {
+            return ramdiskId;
+        }
+
+        public String getRegion() {
+            return region;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public String getAvailabilityZone() {
+            return availabilityZone;
+        }
+
+        public String getPrivateIp() {
+            return privateIp;
+        }
+
+        public String[] getDevpayProductCodes() {
+            return devpayProductCodes == null ? null : devpayProductCodes.clone();
+        }
+
+        public String[] getMarketplaceProductCodes() {
+            return marketplaceProductCodes == null ? null : marketplaceProductCodes.clone();
         }
     }
 }
