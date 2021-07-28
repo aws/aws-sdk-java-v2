@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class BatchBuffer<RequestT, ResponseT> {
+public final class BatchBuffer<RequestT, ResponseT> {
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
     private final AtomicInteger numRequests;
 

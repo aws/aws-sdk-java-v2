@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.core.internal.batchutilities;
 
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -38,6 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.testng.Assert;
+import software.amazon.awssdk.core.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
@@ -59,8 +58,6 @@ public class BatchBufferTest {
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
 
-        // TODO: read that it is bad practice to write down an explicit type argument like here, but not sure how else I can
-        //  pass the types? It is only necessary since I need to provide the types for the functions.
         batchManager = BatchManager.<String, String, BatchResponse> builder()
                              .overrideConfiguration(overrideConfiguration)
                              .batchingFunction(batchingFunction)

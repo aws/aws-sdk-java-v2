@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
-public class BatchUtils {
+public final class BatchUtils {
 
     private BatchUtils() {
     }

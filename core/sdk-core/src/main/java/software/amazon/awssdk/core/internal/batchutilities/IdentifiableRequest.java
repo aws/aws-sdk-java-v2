@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <RequestT> The request
  */
 @SdkProtectedApi
-public class IdentifiableRequest<RequestT> {
+public final class IdentifiableRequest<RequestT> {
 
     private final String id;
     private final RequestT request;

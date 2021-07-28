@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * @param <RequestT> the type of an outgoing response
  */
 @SdkInternalApi
-public class BatchingMap<RequestT, ResponseT> {
+public final class BatchingMap<RequestT, ResponseT> {
 
     private final Map<String, BatchBuffer<RequestT, ResponseT>> batchContextMap;
 

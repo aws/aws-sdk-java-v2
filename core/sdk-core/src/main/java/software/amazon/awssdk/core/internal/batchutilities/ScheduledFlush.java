@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public class ScheduledFlush {
+public final class ScheduledFlush {
     private final ScheduledFuture<?> future;
     private final CancellableFlush cancellableFlush;
 

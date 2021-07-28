@@ -27,6 +27,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -38,7 +39,7 @@ import software.amazon.awssdk.utils.Validate;
  * @param <BatchResponseT> the type of an outgoing batch response.
  */
 @SdkInternalApi
-public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAutoCloseable {
+public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAutoCloseable {
 
     private static final Logger log = Logger.loggerFor(BatchManager.class);
     private final int maxBatchItems;
@@ -63,7 +64,7 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
     private final BatchResponseMapper<BatchResponseT, ResponseT> mapResponsesFunction;
 
     /**
-     * Takes a request and extracts a batchGroupId as determined by the caller.
+     * Takes a request and extracts a batchKey as determined by the caller.
      */
     private final BatchKeyMapper<RequestT> batchKeyMapperFunction;
 
@@ -74,7 +75,7 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
 
     private BatchManager(Builder<RequestT, ResponseT, BatchResponseT> builder) {
         BatchOverrideConfiguration overrideConfiguration = Validate.notNull(builder.overrideConfiguration, "Null override"
-                                                                                                             + "Configuration");
+                                                                                                           + "Configuration");
         this.requestsAndResponsesMaps = new BatchingMap<>();
         this.maxBatchItems = overrideConfiguration.maxBatchItems();
         this.maxBatchOpenInMs = overrideConfiguration.maxBatchOpenInMs();
@@ -103,15 +104,16 @@ public class BatchManager<RequestT, ResponseT, BatchResponseT> implements SdkAut
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         try {
             String batchKey = batchKeyMapperFunction.getBatchKey(request);
-            requestsAndResponsesMaps.batchBufferByKey(batchKey, () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
-                                                                                          scheduledExecutor))
-                                    .put(request, response);
+            BatchBuffer<RequestT, ResponseT> requestBuffer =
+                requestsAndResponsesMaps.batchBufferByKey(batchKey,
+                                                          () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
+                                                                                          scheduledExecutor));
+            requestBuffer.put(request, response);
 
             int requestsNum = requestsAndResponsesMaps.get(batchKey).requestSize();
             if (requestsNum > maxBatchItems) {
                 cancelScheduledFlushIfNeeded(batchKey);
             }
-            return response;
         } catch (Exception e) {
             response.completeExceptionally(e);
         }

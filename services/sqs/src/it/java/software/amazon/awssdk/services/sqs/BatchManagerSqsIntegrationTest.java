@@ -22,11 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,7 +38,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.internal.batchutilities.BatchAndSend;
 import software.amazon.awssdk.core.internal.batchutilities.BatchKeyMapper;
 import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
-import software.amazon.awssdk.core.internal.batchutilities.BatchOverrideConfiguration;
+import software.amazon.awssdk.core.BatchOverrideConfiguration;
 import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapper;
 import software.amazon.awssdk.core.internal.batchutilities.IdentifiableResponse;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
@@ -76,8 +74,6 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
 
-        // TODO: read that it is bad practice to write down an explicit type argument like here, but not sure how else I can
-        //  pass the types? It is only necessary since I need to provide the types for the functions.
         batchManager = BatchManager.<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> builder()
                                    .overrideConfiguration(overrideConfiguration)
                                    .batchingFunction(batchingFunction)

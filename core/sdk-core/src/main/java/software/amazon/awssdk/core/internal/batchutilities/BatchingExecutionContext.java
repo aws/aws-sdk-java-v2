@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class BatchingExecutionContext<RequestT, ResponseT> {
+public final class BatchingExecutionContext<RequestT, ResponseT> {
 
     // TODO: Remove need for locking once I figure out how to properly remove requests.
     private RequestT request;

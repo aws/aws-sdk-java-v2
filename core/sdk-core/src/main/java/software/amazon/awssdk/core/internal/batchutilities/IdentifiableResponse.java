@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <ResponseT> the response
  */
 @SdkProtectedApi
-public class IdentifiableResponse<ResponseT> {
+public final class IdentifiableResponse<ResponseT> {
 
     private final String id;
     private final ResponseT response;

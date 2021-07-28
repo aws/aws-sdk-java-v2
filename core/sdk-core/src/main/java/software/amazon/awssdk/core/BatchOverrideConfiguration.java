@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchutilities;
+package software.amazon.awssdk.core;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -27,9 +28,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Configuration values for the {@link BatchManager}. All values are optional, and the default values will be used
  * if they are not specified.
  */
-// TODO should this implement toCopyableBuilder?
 @SdkPublicApi
-public class BatchOverrideConfiguration implements ToCopyableBuilder<BatchOverrideConfiguration.Builder,
+public final class BatchOverrideConfiguration implements ToCopyableBuilder<BatchOverrideConfiguration.Builder,
     BatchOverrideConfiguration> {
 
     private final Integer maxBatchItems;

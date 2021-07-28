@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal.batchutilities;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class CancellableFlush implements Runnable {
+public final class CancellableFlush implements Runnable {
 
     /**
      * isManual is a field used to distinguish a manual flush from a periodically scheduled one. It is set upon calling a
