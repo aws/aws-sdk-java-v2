@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT",
-    "contributor": "",
-    "description": "Increase maximum credential duration of role alias to 12 hours."
-}

@@ -1,3 +1,31 @@
+# __2.17.8__ __2021-07-29__
+## __AWS IoT__
+  - ### Features
+    - Increase maximum credential duration of role alias to 12 hours.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Added support for AWS IoT SiteWise Edge. You can now create an AWS IoT SiteWise gateway that runs on AWS IoT Greengrass V2. With the gateway, you can collect local server and equipment data, process the data, and export the selected data from the edge to the AWS Cloud.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Correctly handle multi-value headers in Aws4Signer
+
+## __AWS Savings Plans__
+  - ### Features
+    - Documentation update for valid Savings Plans offering ID pattern
+
+## __Amazon Chime__
+  - ### Features
+    - Adds support for live transcription of meetings with Amazon Transcribe and Amazon Transcribe Medical. The new APIs, StartMeetingTranscription and StopMeetingTranscription, control the generation of user-attributed transcriptions sent to meeting clients via Amazon Chime SDK data messages.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for G4ad xlarge and 2xlarge instances powered by AMD Radeon Pro V520 GPUs and AMD 2nd Generation EPYC processors
+
 # __2.17.7__ __2021-07-28__
 ## __AWS CloudFormation__
   - ### Features
