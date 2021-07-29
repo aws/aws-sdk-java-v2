@@ -20,19 +20,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class CancellableFlush implements Runnable {
 
-    /**
-     * isManual is a field used to distinguish a manual flush from a periodically scheduled one. It is set upon calling a
-     * manual flush
-     */
-    private boolean isManual;
     private final Object lock = new Object();
     private final Runnable flushBuffer;
     private volatile boolean isCancelled = false;
     private volatile boolean hasExecuted = false;
 
-    public CancellableFlush(Runnable flushBuffer, boolean isManual) {
+    public CancellableFlush(Runnable flushBuffer) {
         this.flushBuffer = flushBuffer;
-        this.isManual = isManual;
     }
 
     @Override
@@ -58,14 +52,10 @@ public final class CancellableFlush implements Runnable {
         }
     }
 
-    public boolean isManual() {
-        return isManual;
-    }
-
     public void reset() {
         synchronized (this.lock) {
             isCancelled = false;
-            isManual = false;
+            hasExecuted = false;
         }
     }
 }
