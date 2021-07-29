@@ -64,4 +64,24 @@ public class EC2MetadataUtilsIntegrationTest {
         String signature = EC2MetadataUtils.getInstanceSignature();
         Assert.assertEquals("foobar", signature);
     }
+
+    @Test
+    public void testInstanceInfo() {
+        EC2MetadataUtils.InstanceInfo info = EC2MetadataUtils.getInstanceInfo();
+        Assert.assertEquals("2014-08-07T22:07:46Z", info.getPendingTime());
+        Assert.assertEquals("m1.small", info.getInstanceType());
+        Assert.assertEquals("ami-a49665cc", info.getImageId());
+        Assert.assertEquals("i-6b2de041", info.getInstanceId());
+        Assert.assertEquals("foo", info.getBillingProducts()[0]);
+        Assert.assertEquals("x86_64", info.getArchitecture());
+        Assert.assertEquals("599169622985", info.getAccountId());
+        Assert.assertEquals("aki-919dcaf8", info.getKernelId());
+        Assert.assertEquals("baz", info.getRamdiskId());
+        Assert.assertEquals("us-east-1", info.getRegion());
+        Assert.assertEquals("2010-08-31", info.getVersion());
+        Assert.assertEquals("us-east-1b", info.getAvailabilityZone());
+        Assert.assertEquals("10.201.215.38", info.getPrivateIp());
+        Assert.assertEquals("bar", info.getDevpayProductCodes()[0]);
+        Assert.assertEquals("qaz", info.getMarketplaceProductCodes()[0]);
+    }
 }
