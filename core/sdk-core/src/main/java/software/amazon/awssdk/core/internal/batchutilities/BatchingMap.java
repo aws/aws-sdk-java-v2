@@ -66,4 +66,10 @@ public final class BatchingMap<RequestT, ResponseT> {
     public void forEach(BiConsumer<String, BatchBuffer<RequestT, ResponseT>> action) {
         batchContextMap.forEach(action);
     }
+
+    public void clear() {
+        for (BatchBuffer<RequestT, ResponseT> entry: batchContextMap.values()) {
+            entry.clear();
+        }
+    }
 }

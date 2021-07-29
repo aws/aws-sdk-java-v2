@@ -39,4 +39,9 @@ public final class IdentifiableRequest<RequestT> {
     public RequestT request() {
         return request;
     }
+
+    // For debugging purposes only
+    public String toString() {
+        return "Id: " + id;
+    }
 }
