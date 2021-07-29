@@ -1,0 +1,6 @@
+{
+    "category": "AWS Savings Plans", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Setting default content type to 'application/json' since the service does not accept 'x-amz-json-<version>'"
+}
