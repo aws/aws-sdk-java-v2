@@ -24,18 +24,35 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class BatchBuffer<RequestT, ResponseT> {
+    private static final Logger log = Logger.loggerFor(BatchBuffer.class);
+
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
+
+    /**
+     * Keeps track of the number of requests yet to be flushed. When manually flushing (ie the number of requests >=
+     * maxBatchItems, numRequests is preemptively
+     */
     private final AtomicInteger numRequests;
 
+    // TODO: Might make sense to still have to separate numRequest counters (one for numRequests not finished sending, and one
+    //  that preempte number of unflushed. Mainly useful for keeping track of when to run scheduled and manual flushes.
     /**
      * Batch entries in a batch request require a unique ID so nextId keeps track of the ID to assign to the next
      * BatchingExecutionContext. For simplicity, the ID is just an integer that is incremented everytime a new request and
      * response pair is received.
      */
     private final AtomicInteger nextId;
+
+    /**
+     * Keeps track of the ID of the next entry to be added in a batch request. This ID does not necessarily correlate to a
+     * request that already exists in the idToBatchContext map since it refers to the next entry (ex. if the last entry added
+     * to idToBatchContext had an id of 22, nextBatchEntry will have a value of 23).
+     */
+    private final AtomicInteger nextBatchEntry;
 
     /**
      * The scheduled flush tasks associated with this batchBuffer.
@@ -46,6 +63,7 @@ public final class BatchBuffer<RequestT, ResponseT> {
         this.idToBatchContext = new ConcurrentHashMap<>();
         this.numRequests = new AtomicInteger(0);
         this.nextId = new AtomicInteger(0);
+        this.nextBatchEntry = new AtomicInteger(0);
         this.scheduledFlush = scheduledFlush;
     }
 
@@ -55,6 +73,18 @@ public final class BatchBuffer<RequestT, ResponseT> {
 
     public int requestSize() {
         return numRequests.get();
+    }
+
+    public int canManualFlush(int maxBatchItems) {
+        return numRequests.getAndUpdate(num -> num < maxBatchItems ? num : num - maxBatchItems);
+    }
+
+    public int canScheduledFlush(int maxBatchItems) {
+        return numRequests.getAndUpdate(num -> num < maxBatchItems ? 0 : num - maxBatchItems);
+    }
+
+    public void addNumRequests(int update) {
+        numRequests.addAndGet(update);
     }
 
     public boolean hasRequests() {
@@ -81,10 +111,35 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return scheduledFlush;
     }
 
+    // TODO: Fix this somehow to maintain insertion order.
     public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
-        numRequests.getAndIncrement();
-        String id = BatchUtils.getAndIncrementId(nextId);
-        return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
+        synchronized (this) {
+            String id = BatchUtils.getAndIncrementId(nextId);
+            log.warn(() -> "Putting ID: " + id + ". From Thread: " + Thread.currentThread().getId());
+            BatchingExecutionContext<RequestT, ResponseT> ret = idToBatchContext.put(id, new BatchingExecutionContext<>(request,
+                                                                                                                   response));
+            numRequests.getAndIncrement();
+            return ret;
+        }
+    }
+
+    public String nextBatchEntry() {
+        int currentId;
+        int newCurrentId;
+        do {
+            currentId = nextBatchEntry.get();
+            newCurrentId = currentId + 1;
+            if (!idToBatchContext.containsKey(Integer.toString(currentId))) {
+                newCurrentId = currentId;
+            }
+        } while (!nextBatchEntry.compareAndSet(currentId, newCurrentId));
+
+        if (currentId != newCurrentId) {
+            return Integer.toString(currentId);
+        }
+        int finalCurrentId = currentId;
+        log.warn(() -> "Couldn't find nextBatchEntry" + finalCurrentId);
+        return null;
     }
 
     public void putScheduledFlush(ScheduledFlush scheduledFlush) {
@@ -95,18 +150,8 @@ public final class BatchBuffer<RequestT, ResponseT> {
         scheduledFlush.cancel();
     }
 
-    public void removeRequest(String key) {
-        if (idToBatchContext.get(key).removeRequest()) {
-            numRequests.getAndDecrement();
-        }
-    }
-
     public BatchingExecutionContext<RequestT, ResponseT> remove(String key) {
         return idToBatchContext.remove(key);
-    }
-
-    public Collection<BatchingExecutionContext<RequestT, ResponseT>> values() {
-        return idToBatchContext.values();
     }
 
     public Collection<CompletableFuture<ResponseT>> responses() {
@@ -121,10 +166,10 @@ public final class BatchBuffer<RequestT, ResponseT> {
     }
 
     public void clear() {
-        numRequests.set(0);
         idToBatchContext.clear();
     }
 
+    // Only for debugging
     public void forEach(BiConsumer<String, BatchingExecutionContext<RequestT, ResponseT>> action) {
         idToBatchContext.forEach(action);
     }
