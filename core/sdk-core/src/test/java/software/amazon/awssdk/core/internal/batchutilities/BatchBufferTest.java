@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.internal.batchutilities;
 
-import static org.mockito.Mockito.mock;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -107,7 +105,7 @@ public class BatchBufferTest {
 
         long startTime = System.nanoTime();
         Map<String, CompletableFuture<String>> responses = createAndSendResponses(0, 5, requests);
-        waitForTime(DEFAULT_MAX_BATCH_OPEN);
+        waitForTime(DEFAULT_MAX_BATCH_OPEN + 10);
         responses.putAll(createAndSendResponses(5, 5, requests));
         CompletableFuture.allOf(responses.values().toArray(new CompletableFuture[0])).join();
         long endTime = System.nanoTime();
