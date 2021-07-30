@@ -67,8 +67,8 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
                                     .build();
         }
 
-        return sessionToken == null ? AwsBasicCredentials.create(accessKey, secretKey)
-                                    : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
+        return StringUtils.isEmpty(sessionToken) ? AwsBasicCredentials.create(accessKey, secretKey)
+                                                 : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
     }
 
     /**
