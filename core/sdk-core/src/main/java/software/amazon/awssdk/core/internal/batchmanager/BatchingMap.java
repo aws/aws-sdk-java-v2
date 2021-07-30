@@ -17,10 +17,15 @@ package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Outer map maps a batch group ID (ex. queueUrl, overrideConfig etc.) to a nested BatchingGroupMap map.
@@ -35,16 +40,18 @@ public final class BatchingMap<RequestT, ResponseT> {
         this.batchContextMap = new ConcurrentHashMap<>();
     }
 
-    public BatchBuffer<RequestT, ResponseT> batchBufferByKey(String destination, Supplier<ScheduledFlush> scheduleFlush) {
-        return batchContextMap.computeIfAbsent(destination, k -> new BatchBuffer<>(scheduleFlush.get()));
+    public void put(String batchKey, Supplier<ScheduledFlush> scheduleFlush, RequestT request,
+                    CompletableFuture<ResponseT> response) {
+        batchContextMap.computeIfAbsent(batchKey, k -> new BatchBuffer<>(scheduleFlush.get()))
+                       .put(request, response);
     }
 
-    public BatchBuffer<RequestT, ResponseT> get(String key) {
-        return batchContextMap.get(key);
+    public RequestT getRequest(String batchKey, String batchBufferId) {
+        return batchContextMap.get(batchKey).getRequest(batchBufferId);
     }
 
-    public ScheduledFlush getScheduledFlush(String key) {
-        return batchContextMap.get(key).getScheduledFlush();
+    public ScheduledFlush getScheduledFlush(String batchKey) {
+        return batchContextMap.get(batchKey).getScheduledFlush();
     }
 
     public void putScheduledFlush(String key, ScheduledFlush scheduledFlush) {
@@ -64,6 +71,64 @@ public final class BatchingMap<RequestT, ResponseT> {
             String key = entry.getKey();
             entry.getValue().clear();
             batchContextMap.remove(key);
+        }
+    }
+
+    public int canManualFlush(String batchKey, int maxBatchItems) {
+        return batchContextMap.get(batchKey).canManualFlush(maxBatchItems);
+    }
+
+    public int canScheduledFlush(String batchKey, int maxBatchItems) {
+        return batchContextMap.get(batchKey).canScheduledFlush(maxBatchItems);
+    }
+
+    public void cancelScheduledFlush(String batchKey) {
+        batchContextMap.get(batchKey).cancelScheduledFlush();
+    }
+
+    public String nextBatchEntry(String batchKey) {
+        return batchContextMap.get(batchKey).nextBatchEntry();
+    }
+
+    public void addNumRequests(String batchKey, int update) {
+        batchContextMap.get(batchKey).addNumRequests(update);
+    }
+
+    public boolean hasRequests(String batchKey) {
+        return batchContextMap.get(batchKey).hasRequests();
+    }
+
+    public void completeResponse(String batchKey, String responseId, ResponseT response) {
+        batchContextMap.get(batchKey).getResponse(responseId).complete(response);
+    }
+
+    public void completeResponsesExceptionally(String batchKey, Throwable exception) {
+        batchContextMap.get(batchKey)
+                       .forEach((batchBufferKey, batchingExecutionContext) -> {
+                           batchingExecutionContext.response().completeExceptionally(exception);
+                           removeRequestAndResponse(batchKey, batchBufferKey);
+                       });
+    }
+
+    public void removeRequestAndResponse(String batchKey, String requestAndResponseId) {
+        batchContextMap.get(batchKey).remove(requestAndResponseId);
+    }
+
+    public void waitForFlushesAndClear(Logger log) {
+        try {
+            for (BatchBuffer<RequestT, ResponseT> idToResponse : batchContextMap.values()) {
+                CompletableFuture.allOf(idToResponse.responses().toArray(new CompletableFuture[0]))
+                                 .get(60, TimeUnit.SECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn(() -> "Interrupted during BatchBuffer shutdown" + e);
+        } catch (ExecutionException e) {
+            log.warn(() -> "Failed during graceful metric publisher shutdown." + e);
+        } catch (TimeoutException e) {
+            log.warn(() -> "Timed out during graceful metric publisher shutdown." + e);
+        } finally {
+            batchContextMap.clear();
         }
     }
 }

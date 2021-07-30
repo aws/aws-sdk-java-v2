@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,10 +64,6 @@ public final class BatchBuffer<RequestT, ResponseT> {
         this.scheduledFlush = scheduledFlush;
     }
 
-    public int requestSize() {
-        return numRequests.get();
-    }
-
     public int canManualFlush(int maxBatchItems) {
         return numRequests.getAndUpdate(num -> num < maxBatchItems ? num : num - maxBatchItems);
     }
@@ -111,20 +106,21 @@ public final class BatchBuffer<RequestT, ResponseT> {
     }
 
     public String nextBatchEntry() {
-        int currentId;
-        int newCurrentId;
+        int currentNextBatchEntry;
+        int newNextBatchEntry;
         do {
-            currentId = nextBatchEntry.get();
-            newCurrentId = currentId + 1;
-            if (!idToBatchContext.containsKey(Integer.toString(currentId))) {
-                newCurrentId = currentId;
+            currentNextBatchEntry = nextBatchEntry.get();
+            newNextBatchEntry = currentNextBatchEntry + 1;
+            if (!idToBatchContext.containsKey(Integer.toString(currentNextBatchEntry))) {
+                newNextBatchEntry = currentNextBatchEntry;
             }
-        } while (!nextBatchEntry.compareAndSet(currentId, newCurrentId));
+        } while (!nextBatchEntry.compareAndSet(currentNextBatchEntry, newNextBatchEntry));
 
-        if (currentId != newCurrentId) {
-            return Integer.toString(currentId);
+        if (currentNextBatchEntry != newNextBatchEntry) {
+            return Integer.toString(currentNextBatchEntry);
         }
-        int finalCurrentId = currentId;
+        // TODO: Debugging
+        int finalCurrentId = currentNextBatchEntry;
         log.warn(() -> "Couldn't find nextBatchEntry" + finalCurrentId);
         return null;
     }
@@ -148,15 +144,11 @@ public final class BatchBuffer<RequestT, ResponseT> {
                                .collect(Collectors.toList());
     }
 
-    public Set<Map.Entry<String, BatchingExecutionContext<RequestT, ResponseT>>> entrySet() {
-        return idToBatchContext.entrySet();
-    }
-
     public void clear() {
         idToBatchContext.clear();
     }
 
-    // Only for debugging
+    // TODO: Only for debugging
     public void forEach(BiConsumer<String, BatchingExecutionContext<RequestT, ResponseT>> action) {
         idToBatchContext.forEach(action);
     }
