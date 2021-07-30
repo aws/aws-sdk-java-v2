@@ -78,7 +78,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     public String toString() {
         return ToString.builder("BatchOverrideConfiguration")
                        .add("maxBatchItems", maxBatchItems)
-                       .add("maxBatchOpenInMs", maxBatchOpenInMs)
+                       .add("maxBatchOpenInMs", maxBatchOpenInMs.toMillis())
                        .build();
     }
 

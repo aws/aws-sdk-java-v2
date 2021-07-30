@@ -55,6 +55,19 @@ public class BatchUtilsTest {
         executor.shutdownNow();
     }
 
+    @Test
+    public void getAndIncrementIdHandlingIntegerOverflow() {
+        AtomicInteger counter = new AtomicInteger(Integer.MAX_VALUE - 1);
+        int temp = Integer.MAX_VALUE - 1;
+        for (int i = 0; i < 10; temp++, i++) {
+            if (temp == Integer.MAX_VALUE) {
+                temp = 0;
+            }
+            String current = BatchUtils.getAndIncrementId(counter);
+            Assert.assertEquals(Integer.toString(temp), current);
+        }
+    }
+
     private Void incrementAtomicInt(AtomicInteger atomicInteger, Set<String> responses) {
         for (int i = 0; i < 10; i++) {
             responses.add(BatchUtils.getAndIncrementId(atomicInteger));
