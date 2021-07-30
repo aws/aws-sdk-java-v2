@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS AppSync",
+    "contributor": "",
+    "description": "AWS AppSync now supports a new authorization mode allowing you to define your own authorization logic using an AWS Lambda function."
+}
