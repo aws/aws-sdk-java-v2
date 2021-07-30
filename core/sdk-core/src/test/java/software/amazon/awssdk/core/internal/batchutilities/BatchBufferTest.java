@@ -195,7 +195,7 @@ public class BatchBufferTest {
             BatchResponse entries = new BatchResponse();
             identifiableRequests.forEach(identifiableRequest -> {
                 String id = identifiableRequest.id();
-                String request = identifiableRequest.request();
+                String request = identifiableRequest.message();
                 entries.add(new MessageWithId(id, request));
             });
             return CompletableFuture.supplyAsync(() -> {
@@ -206,9 +206,9 @@ public class BatchBufferTest {
 
     private static final BatchResponseMapper<BatchResponse, String> mapResponsesFunction =
         requestBatchResponse -> {
-            List<IdentifiableResponse<String>> identifiableResponses = new ArrayList<>();
+            List<IdentifiableMessage<String>> identifiableResponses = new ArrayList<>();
             for (MessageWithId requestWithId : requestBatchResponse.getResponses()) {
-                identifiableResponses.add(new IdentifiableResponse<>(requestWithId.getId(), requestWithId.getMessage()));
+                identifiableResponses.add(new IdentifiableMessage<>(requestWithId.getId(), requestWithId.getMessage()));
             }
             return identifiableResponses;
         };

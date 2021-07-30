@@ -18,24 +18,33 @@ package software.amazon.awssdk.core.internal.batchutilities;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class IdentifiableRequestAndResponseTest {
+public class IdentifiableMessageTest {
 
     @Test
-    public void createIdentifiableRequest() {
+    public void createIdentifiableMessage() {
         String id = "id";
         String request = "request";
-        IdentifiableRequest<String> myRequest = new IdentifiableRequest<>(id, request);
+        IdentifiableMessage<String> myRequest = new IdentifiableMessage<>(id, request);
         Assert.assertEquals(id, myRequest.id());
-        Assert.assertEquals(request, myRequest.request());
+        Assert.assertEquals(request, myRequest.message());
     }
 
     @Test
-    public void createIdentifiableResponse() {
+    public void checkIdenticalIdentifiableMessagesAreEqual() {
         String id = "id";
-        String response = "response";
-        IdentifiableResponse<String> myResponse = new IdentifiableResponse<>(id, response);
-        Assert.assertEquals(id, myResponse.id());
-        Assert.assertEquals(response, myResponse.response());
+        String request = "request";
+        IdentifiableMessage<String> myRequest1 = new IdentifiableMessage<>(id, request);
+        IdentifiableMessage<String> myRequest2 = new IdentifiableMessage<>(id, request);
+        Assert.assertEquals(myRequest1, myRequest2);
+    }
+
+    @Test
+    public void identifiableMessageHashCode() {
+        String id = "id";
+        String request = "request";
+        IdentifiableMessage<String> myRequest1 = new IdentifiableMessage<>(id, request);
+        IdentifiableMessage<String> myRequest2 = new IdentifiableMessage<>(id, request);
+        Assert.assertEquals(myRequest1.hashCode(), myRequest2.hashCode());
     }
 
 }

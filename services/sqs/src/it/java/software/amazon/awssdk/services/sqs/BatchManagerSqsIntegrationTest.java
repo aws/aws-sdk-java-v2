@@ -40,7 +40,7 @@ import software.amazon.awssdk.core.internal.batchutilities.BatchKeyMapper;
 import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
 import software.amazon.awssdk.core.BatchOverrideConfiguration;
 import software.amazon.awssdk.core.internal.batchutilities.BatchResponseMapper;
-import software.amazon.awssdk.core.internal.batchutilities.IdentifiableResponse;
+import software.amazon.awssdk.core.internal.batchutilities.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
@@ -74,7 +74,6 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
-
         batchManager = BatchManager.<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> builder()
                                    .overrideConfiguration(overrideConfiguration)
                                    .batchingFunction(batchingFunction)
@@ -165,7 +164,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
             List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());
             identifiedRequests.forEach(identifiedRequest -> {
                 String id = identifiedRequest.id();
-                SendMessageRequest request = identifiedRequest.request();
+                SendMessageRequest request = identifiedRequest.message();
                 entries.add(createMessageBatchRequestEntry(id, request));
             });
             SendMessageBatchRequest batchRequest = SendMessageBatchRequest.builder()
@@ -177,12 +176,12 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
 
     BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> mapResponsesFunction =
         sendMessageBatchResponse -> {
-            List<IdentifiableResponse<SendMessageResponse>> mappedResponses = new ArrayList<>();
+            List<IdentifiableMessage<SendMessageResponse>> mappedResponses = new ArrayList<>();
             sendMessageBatchResponse.successful()
                                     .forEach(batchResponseEntry -> {
                                         String key = batchResponseEntry.id();
                                         SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
-                                        mappedResponses.add(new IdentifiableResponse<>(key, response));
+                                        mappedResponses.add(new IdentifiableMessage<>(key, response));
                                     });
             // Add failed responses once I figure out how to create sendMessageResponse items.
             return mappedResponses;
