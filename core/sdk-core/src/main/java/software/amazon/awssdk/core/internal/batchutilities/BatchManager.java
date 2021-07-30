@@ -99,8 +99,6 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
      * @return a CompletableFuture of the corresponding response.
      */
     public CompletableFuture<ResponseT> sendRequest(RequestT request) {
-        // TODO: Since the getBatchKey() method is called at the beginning, shouldn't the service just calculate the key from
-        //  the request before sendRequest is called and then pass it as a parameter?
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         try {
             String batchKey = batchKeyMapperFunction.getBatchKey(request);
@@ -146,12 +144,11 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
             preemptiveNumRequestsFlushed = requestBuffer.canScheduledFlush(maxBatchItems);
         }
 
-        List<IdentifiableRequest<RequestT>> requestEntryList = new ArrayList<>();
+        List<IdentifiableMessage<RequestT>> requestEntryList = new ArrayList<>();
         String nextEntry;
-        // TODO: Just loop in here for manual flushes (since we know there are at least maxBatchItems requests)
         while (requestEntryList.size() < maxBatchItems && (nextEntry = requestBuffer.nextBatchEntry()) != null) {
             RequestT request = requestBuffer.getRequest(nextEntry);
-            requestEntryList.add(new IdentifiableRequest<>(nextEntry, request));
+            requestEntryList.add(new IdentifiableMessage<>(nextEntry, request));
         }
 
         log.warn(() -> "Actually sending batch size of: " + requestEntryList.size());
@@ -176,11 +173,11 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
                                                                 .remove(entry.getKey());
                                     });
         } else {
-            List<IdentifiableResponse<ResponseT>> identifiedResponses = mapResponsesFunction.mapBatchResponse(batchResult);
+            List<IdentifiableMessage<ResponseT>> identifiedResponses = mapResponsesFunction.mapBatchResponse(batchResult);
             log.warn(() -> "Handling response of size: " + identifiedResponses.size());
-            for (IdentifiableResponse<ResponseT> identifiedResponse : identifiedResponses) {
+            for (IdentifiableMessage<ResponseT> identifiedResponse : identifiedResponses) {
                 String id = identifiedResponse.id();
-                ResponseT response = identifiedResponse.response();
+                ResponseT response = identifiedResponse.message();
                 requestsAndResponsesMaps.get(batchKey)
                                         .getResponse(id)
                                         .complete(response);
