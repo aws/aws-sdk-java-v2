@@ -39,10 +39,6 @@ public final class BatchingMap<RequestT, ResponseT> {
         return batchContextMap.computeIfAbsent(destination, k -> new BatchBuffer<>(scheduleFlush.get()));
     }
 
-    public boolean containsKey(String key) {
-        return batchContextMap.containsKey(key);
-    }
-
     public BatchBuffer<RequestT, ResponseT> get(String key) {
         return batchContextMap.get(key);
     }
@@ -55,10 +51,6 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.get(key).putScheduledFlush(scheduledFlush);
     }
 
-    public BatchBuffer<RequestT, ResponseT> remove(String key) {
-        return batchContextMap.remove(key);
-    }
-
     public Collection<BatchBuffer<RequestT, ResponseT>> values() {
         return batchContextMap.values();
     }
@@ -68,8 +60,10 @@ public final class BatchingMap<RequestT, ResponseT> {
     }
 
     public void clear() {
-        for (BatchBuffer<RequestT, ResponseT> entry: batchContextMap.values()) {
-            entry.clear();
+        for (Map.Entry<String, BatchBuffer<RequestT, ResponseT>> entry: batchContextMap.entrySet()) {
+            String key = entry.getKey();
+            entry.getValue().clear();
+            batchContextMap.remove(key);
         }
     }
 }

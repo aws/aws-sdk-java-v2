@@ -38,8 +38,6 @@ public final class BatchBuffer<RequestT, ResponseT> {
      */
     private final AtomicInteger numRequests;
 
-    // TODO: Might make sense to still have to separate numRequest counters (one for numRequests not finished sending, and one
-    //  that preempte number of unflushed. Mainly useful for keeping track of when to run scheduled and manual flushes.
     /**
      * Batch entries in a batch request require a unique ID so nextId keeps track of the ID to assign to the next
      * BatchingExecutionContext. For simplicity, the ID is just an integer that is incremented everytime a new request and
@@ -67,10 +65,6 @@ public final class BatchBuffer<RequestT, ResponseT> {
         this.scheduledFlush = scheduledFlush;
     }
 
-    public int size() {
-        return idToBatchContext.size();
-    }
-
     public int requestSize() {
         return numRequests.get();
     }
@@ -89,14 +83,6 @@ public final class BatchBuffer<RequestT, ResponseT> {
 
     public boolean hasRequests() {
         return numRequests.get() != 0;
-    }
-
-    public boolean hasResponses() {
-        return !idToBatchContext.isEmpty();
-    }
-
-    public boolean containsKey(String key) {
-        return idToBatchContext.containsKey(key);
     }
 
     public RequestT getRequest(String key) {

@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <ResponseT> the response
  */
 @SdkProtectedApi
+// TODO Can combine this with IdentifiableRequest (They are literally the same, just remove one).
 public final class IdentifiableResponse<ResponseT> {
 
     private final String id;
