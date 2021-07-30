@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchutilities;
+package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.util.Collection;
 import java.util.Map;
@@ -97,7 +97,8 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return scheduledFlush;
     }
 
-    // TODO: Fix this somehow to maintain insertion order.
+    // TODO: Needs to be in a lock to maintain insertion order. Not sure if there is any other way to accomplish this. Try to
+    //  do this in a do while loop.
     public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
         synchronized (this) {
             String id = BatchUtils.getAndIncrementId(nextId);

@@ -13,19 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchutilities;
+package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * Unpacks the batch response, then transforms individual entries to the appropriate response type. Each entry's batch ID
- * is mapped to the individual response entry.
+ * Takes a list of identified requests in addition to a destination and batches the requests into a batch request.
+ * It then sends the batch request and returns a CompletableFuture of the response.
+ * @param <RequestT> the type of an outgoing request.
  * @param <BatchResponseT> the type of an outgoing batch response.
- * @param <ResponseT> the type of an outgoing response.
  */
 @FunctionalInterface
 @SdkProtectedApi
-public interface BatchResponseMapper<BatchResponseT, ResponseT> {
-    List<IdentifiableMessage<ResponseT>> mapBatchResponse(BatchResponseT batchResponse);
+public interface BatchAndSend<RequestT, BatchResponseT> {
+    CompletableFuture<BatchResponseT> batchAndSend(List<IdentifiableMessage<RequestT>> identifiedRequests, String batchGroupId);
 }

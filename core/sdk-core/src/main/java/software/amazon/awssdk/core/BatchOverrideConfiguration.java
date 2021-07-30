@@ -18,7 +18,7 @@ package software.amazon.awssdk.core;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.internal.batchutilities.BatchManager;
+import software.amazon.awssdk.core.internal.batchmanager.BatchManager;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;

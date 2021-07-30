@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.batchutilities;
+package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -38,10 +38,10 @@ import software.amazon.awssdk.core.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
-public class BatchBufferTest {
+public class BatchManagerTest {
 
     private static final int DEFAULT_MAX_BATCH_OPEN = 200;
-    private static final Logger log = Logger.loggerFor(BatchBufferTest.class);
+    private static final Logger log = Logger.loggerFor(BatchManagerTest.class);
     private BatchManager<String, String, BatchResponse> batchManager;
     private ScheduledExecutorService scheduledExecutor;
     private String defaultDestination;
