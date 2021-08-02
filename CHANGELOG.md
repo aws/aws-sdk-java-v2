@@ -1,3 +1,20 @@
+# __2.17.10__ __2021-08-02__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds support for component system resource limits and idempotent Create operations. You can now specify the maximum amount of CPU and memory resources that each component can use.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Don't attempt to use empty session tokens
+
+## __AWS Savings Plans__
+  - ### Bugfixes
+    - Setting default content type to 'application/json' since the service does not accept 'x-amz-json-<version>'
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Added new attribute in AcceptCode API. AcceptCodeValidation takes in two values - ENFORCE, IGNORE. ENFORCE forces validation of accept code and IGNORE ignores it which is also the default behavior; Corrected TagKeyList length from 200 to 50
+
 # __2.17.9__ __2021-07-30__
 ## __AWS AppSync__
   - ### Features
