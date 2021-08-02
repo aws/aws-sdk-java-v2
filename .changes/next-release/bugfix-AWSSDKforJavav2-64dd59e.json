@@ -2,5 +2,5 @@
     "category": "AWS SDK for Java v2", 
     "contributor": "", 
     "type": "bugfix", 
-    "description": "Correctly handle multi-value headers in Aws4Signer"
+    "description": "Don't attempt to use empty session tokens"
 }
