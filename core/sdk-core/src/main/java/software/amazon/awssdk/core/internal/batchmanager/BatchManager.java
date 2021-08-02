@@ -123,8 +123,7 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
 
     private void manualFlushBuffer(String batchKey,
                                    LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
-        ScheduledFlush scheduledFuture = requestsAndResponsesMaps.getScheduledFlush(batchKey);
-        scheduledFuture.cancel();
+        requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
         flushBuffer(batchKey, flushableRequests);
         requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
                                                                                  scheduledExecutor));
@@ -171,31 +170,25 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         // TODO: Properly remove linkedhashmap.
     }
 
-    private ScheduledFlush scheduleBufferFlush(String batchKey, long timeOutInMs,
-                                               ScheduledExecutorService scheduledExecutor) {
-        return scheduleBufferFlush(batchKey, timeOutInMs, timeOutInMs, scheduledExecutor);
+    private ScheduledFuture<?> scheduleBufferFlush(String batchKey, long timeOutInMs,
+                                           ScheduledExecutorService scheduledExecutor) {
+        return scheduledExecutor.scheduleAtFixedRate(() -> performScheduledFlush(batchKey), timeOutInMs, timeOutInMs,
+                                                     TimeUnit.MILLISECONDS);
     }
 
-    private ScheduledFlush scheduleBufferFlush(String batchKey, long initialDelay, long timeOutInMs,
-                                               ScheduledExecutorService scheduledExecutor) {
-        CancellableFlush flushTask = new CancellableFlush(() -> {
-            LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requests =
-                requestsAndResponsesMaps.canScheduledFlush(batchKey, maxBatchItems);
-            if (requests != null) {
-                log.warn(() -> "Executing schedule flush with requests of size: " + requests.size());
-                flushBuffer(batchKey, requests);
-            }
-        });
-        ScheduledFuture<?> scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
-            flushTask.reset();
-            flushTask.run();
-        }, initialDelay, timeOutInMs, TimeUnit.MILLISECONDS);
-        return new ScheduledFlush(flushTask, scheduledFuture);
+    private void performScheduledFlush(String batchKey) {
+        LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requests =
+            requestsAndResponsesMaps.canScheduledFlush(batchKey, maxBatchItems);
+        if (requests != null) {
+            log.warn(() -> "Executing scheduled flush with requests of size: " + requests.size());
+            flushBuffer(batchKey, requests);
+        }
     }
 
     public void close() {
         requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
             requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
+
             LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requests;
             while ((requests = requestsAndResponsesMaps.canScheduledFlush(batchKey, maxBatchItems)) != null) {
                 flushBuffer(batchKey, requests);

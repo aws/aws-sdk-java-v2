@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -40,17 +41,15 @@ public final class BatchingMap<RequestT, ResponseT> {
         this.batchContextMap = new ConcurrentHashMap<>();
     }
 
-    public void put(String batchKey, Supplier<ScheduledFlush> scheduleFlush, RequestT request,
-                    CompletableFuture<ResponseT> response) {
+//    public void put(String batchKey, Supplier<ScheduledFlush> scheduleFlush, RequestT request,
+//                    CompletableFuture<ResponseT> response) {
+    public void put (String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
+                     CompletableFuture<ResponseT> response) {
         batchContextMap.computeIfAbsent(batchKey, k -> new BatchBuffer<>(scheduleFlush.get()))
                        .put(request, response);
     }
 
-    public ScheduledFlush getScheduledFlush(String batchKey) {
-        return batchContextMap.get(batchKey).getScheduledFlush();
-    }
-
-    public void putScheduledFlush(String key, ScheduledFlush scheduledFlush) {
+    public void putScheduledFlush(String key, ScheduledFuture<?> scheduledFlush) {
         batchContextMap.get(key).putScheduledFlush(scheduledFlush);
     }
 

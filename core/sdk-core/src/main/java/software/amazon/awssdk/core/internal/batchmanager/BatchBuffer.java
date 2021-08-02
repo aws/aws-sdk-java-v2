@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -50,9 +51,9 @@ public final class BatchBuffer<RequestT, ResponseT> {
     /**
      * The scheduled flush tasks associated with this batchBuffer.
      */
-    private ScheduledFlush scheduledFlush;
+    private ScheduledFuture<?> scheduledFlush;
 
-    public BatchBuffer(ScheduledFlush scheduledFlush) {
+    public BatchBuffer(ScheduledFuture<?> scheduledFlush) {
         this.idToBatchContext = new ConcurrentHashMap<>();
         this.nextId = new AtomicInteger(0);
         this.nextBatchEntry = new AtomicInteger(0);
@@ -95,10 +96,6 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return idToBatchContext.get(key).response();
     }
 
-    public ScheduledFlush getScheduledFlush() {
-        return scheduledFlush;
-    }
-
     // TODO: Needs to be in a lock to maintain insertion order. Not sure if there is any other way to accomplish this. I tried to
     //  do this in a do while loop but it ended up being the same problem as before.
     public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
@@ -129,12 +126,12 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return null;
     }
 
-    public void putScheduledFlush(ScheduledFlush scheduledFlush) {
+    public void putScheduledFlush(ScheduledFuture<?> scheduledFlush) {
         this.scheduledFlush = scheduledFlush;
     }
 
     public void cancelScheduledFlush() {
-        scheduledFlush.cancel();
+        scheduledFlush.cancel(false);
     }
 
     public Collection<CompletableFuture<ResponseT>> responses() {
