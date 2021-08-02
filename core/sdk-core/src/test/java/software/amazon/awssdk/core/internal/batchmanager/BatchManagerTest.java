@@ -56,7 +56,7 @@ public class BatchManagerTest {
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
 
-        batchManager = BatchManager.<String, String, BatchResponse> builder()
+        batchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
                              .overrideConfiguration(overrideConfiguration)
                              .batchingFunction(batchingFunction)
                              .mapResponsesFunction(mapResponsesFunction)
@@ -164,7 +164,7 @@ public class BatchManagerTest {
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
-        BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.<String, String, BatchResponse> builder()
+        BatchManager<String, String, BatchResponse> testBatchManager = BatchManager.builder(String.class, String.class, BatchResponse.class)
                                                                                    .overrideConfiguration(overrideConfiguration)
                                                                                    .batchingFunction(exceptionBatchFunction)
                                                                                    .mapResponsesFunction(mapResponsesFunction)

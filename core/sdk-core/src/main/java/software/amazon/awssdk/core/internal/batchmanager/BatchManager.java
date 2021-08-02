@@ -81,7 +81,9 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         this.scheduledExecutor = overrideConfiguration.scheduledExecutor();
     }
 
-    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder() {
+    public static <RequestT, ResponseT, BatchResponseT> Builder<RequestT, ResponseT, BatchResponseT> builder(
+        Class<? extends RequestT> requestClass, Class<? extends ResponseT> responseClass,
+        Class<? extends  BatchResponseT> batchResponseClass) {
         return new Builder<>();
     }
 

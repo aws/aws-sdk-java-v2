@@ -74,12 +74,13 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
                                                                                      .maxBatchOpenInMs(Duration.ofMillis(DEFAULT_MAX_BATCH_OPEN))
                                                                                      .scheduledExecutor(scheduledExecutor)
                                                                                      .build();
-        batchManager = BatchManager.<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> builder()
-                                   .overrideConfiguration(overrideConfiguration)
-                                   .batchingFunction(batchingFunction)
-                                   .mapResponsesFunction(mapResponsesFunction)
-                                   .batchKeyMapperFunction(getBatchGroupIdFunction)
-                                   .build();
+        batchManager =
+            BatchManager.builder(SendMessageRequest.class, SendMessageResponse.class, SendMessageBatchResponse.class)
+                        .overrideConfiguration(overrideConfiguration)
+                        .batchingFunction(batchingFunction)
+                        .mapResponsesFunction(mapResponsesFunction)
+                        .batchKeyMapperFunction(getBatchGroupIdFunction)
+                        .build();
     }
 
     @After
