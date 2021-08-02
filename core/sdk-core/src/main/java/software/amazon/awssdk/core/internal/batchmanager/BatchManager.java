@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -108,11 +108,9 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
                                          request,
                                          response);
 
-            LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
+            Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
                 requestsAndResponsesMaps.canManualFlush(batchKey, maxBatchItems);
             if (flushableRequests != null) {
-                // TODO: Debugging
-                log.warn(() -> "Number of requests: " + flushableRequests.size());
                 manualFlushBuffer(batchKey, flushableRequests);
             }
         } catch (Exception e) {
@@ -122,7 +120,7 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
     }
 
     private void manualFlushBuffer(String batchKey,
-                                   LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
+                                   Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
         requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
         flushBuffer(batchKey, flushableRequests);
         requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
@@ -131,15 +129,10 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
 
     // Flushes the buffer for the given batchKey and fills in the response map with the returned responses.
     // Returns exception in completableFuture if batchingFunction.apply throws an exception.
-    private void flushBuffer(String batchKey,
-                             LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
+    private void flushBuffer(String batchKey, Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
         List<IdentifiableMessage<RequestT>> requestEntries = new ArrayList<>();
         flushableRequests.forEach((contextId, batchExecutionContext) ->
                                       requestEntries.add(new IdentifiableMessage<>(contextId, batchExecutionContext.request())));
-
-        // TODO: Debugging
-        log.warn(() -> "Actually sending batch size of: " + requestEntries.size());
-        log.warn(() -> "Request Entry List of: " + requestEntries);
 
         // TODO: Should whenComplete() use the service client's executor? By default right now it just uses the
         //  ForkJoinPool.commonPool.
@@ -150,14 +143,12 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
     }
 
     private void handleAndCompleteResponses(BatchResponseT batchResult, Throwable exception,
-                                            LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requests) {
+                                            Map<String, BatchingExecutionContext<RequestT, ResponseT>> requests) {
         if (exception != null) {
             requests.forEach((contextId, batchExecutionContext) -> batchExecutionContext.response()
                                                                                         .completeExceptionally(exception));
         } else {
             List<IdentifiableMessage<ResponseT>> identifiedResponses = mapResponsesFunction.mapBatchResponse(batchResult);
-            // TODO: Debugging
-            log.warn(() -> "Handling response of size: " + identifiedResponses.size());
             for (IdentifiableMessage<ResponseT> identifiedResponse : identifiedResponses) {
                 String id = identifiedResponse.id();
                 ResponseT response = identifiedResponse.message();
@@ -177,10 +168,9 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
     }
 
     private void performScheduledFlush(String batchKey) {
-        LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requests =
+        Map<String, BatchingExecutionContext<RequestT, ResponseT>> requests =
             requestsAndResponsesMaps.canScheduledFlush(batchKey, maxBatchItems);
         if (requests != null) {
-            log.warn(() -> "Executing scheduled flush with requests of size: " + requests.size());
             flushBuffer(batchKey, requests);
         }
     }
@@ -189,7 +179,7 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
             requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
 
-            LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requests;
+            Map<String, BatchingExecutionContext<RequestT, ResponseT>> requests;
             while ((requests = requestsAndResponsesMaps.canScheduledFlush(batchKey, maxBatchItems)) != null) {
                 flushBuffer(batchKey, requests);
             }

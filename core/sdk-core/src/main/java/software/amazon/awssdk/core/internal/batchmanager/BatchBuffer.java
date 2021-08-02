@@ -25,12 +25,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class BatchBuffer<RequestT, ResponseT> {
     private final Object flushLock = new Object();
-    private static final Logger log = Logger.loggerFor(BatchBuffer.class);
 
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
 
@@ -60,7 +58,7 @@ public final class BatchBuffer<RequestT, ResponseT> {
         this.scheduledFlush = scheduledFlush;
     }
 
-    public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(int maxBatchItems) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(int maxBatchItems) {
         synchronized (flushLock) {
             if (idToBatchContext.size() >= maxBatchItems) {
                 return extractFlushedEntries(maxBatchItems);
@@ -69,7 +67,7 @@ public final class BatchBuffer<RequestT, ResponseT> {
         }
     }
 
-    public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canScheduledFlush(int maxBatchItems) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> canScheduledFlush(int maxBatchItems) {
         synchronized (flushLock) {
             if (idToBatchContext.size() > 0) {
                 return extractFlushedEntries(maxBatchItems);
@@ -78,7 +76,7 @@ public final class BatchBuffer<RequestT, ResponseT> {
         }
     }
 
-    private LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> extractFlushedEntries(int maxBatchItems) {
+    private Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractFlushedEntries(int maxBatchItems) {
         LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requestEntries = new LinkedHashMap<>();
         String nextEntry;
         while (requestEntries.size() < maxBatchItems && (nextEntry = nextBatchEntry()) != null) {
@@ -97,11 +95,10 @@ public final class BatchBuffer<RequestT, ResponseT> {
     }
 
     // TODO: Needs to be in a lock to maintain insertion order. Not sure if there is any other way to accomplish this. I tried to
-    //  do this in a do while loop but it ended up being the same problem as before.
+    //  do this in a do while loop but it still ended up resulting in an incorrect insertion order.
     public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
         synchronized (this) {
             String id = BatchUtils.getAndIncrementId(nextId);
-            log.warn(() -> "Putting ID: " + id + ". From Thread: " + Thread.currentThread().getId());
             return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
         }
     }
@@ -120,9 +117,6 @@ public final class BatchBuffer<RequestT, ResponseT> {
         if (currentNextBatchEntry != newNextBatchEntry) {
             return Integer.toString(currentNextBatchEntry);
         }
-        // TODO: Debugging
-        int finalCurrentId = currentNextBatchEntry;
-        log.warn(() -> "Couldn't find nextBatchEntry" + finalCurrentId);
         return null;
     }
 

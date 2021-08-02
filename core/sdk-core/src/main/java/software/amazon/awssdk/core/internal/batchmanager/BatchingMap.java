@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.batchmanager;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,8 +40,6 @@ public final class BatchingMap<RequestT, ResponseT> {
         this.batchContextMap = new ConcurrentHashMap<>();
     }
 
-//    public void put(String batchKey, Supplier<ScheduledFlush> scheduleFlush, RequestT request,
-//                    CompletableFuture<ResponseT> response) {
     public void put (String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
                      CompletableFuture<ResponseT> response) {
         batchContextMap.computeIfAbsent(batchKey, k -> new BatchBuffer<>(scheduleFlush.get()))
@@ -57,12 +54,12 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.forEach(action);
     }
 
-    public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(String batchKey,
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(String batchKey,
                                                                                                int maxBatchItems) {
         return batchContextMap.get(batchKey).canManualFlush(maxBatchItems);
     }
 
-    public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canScheduledFlush(String batchKey,
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> canScheduledFlush(String batchKey,
                                                                                                   int maxBatchItems) {
         return batchContextMap.get(batchKey).canScheduledFlush(maxBatchItems);
     }
