@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.batchmanager;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -59,15 +58,6 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.forEach(action);
     }
 
-    //TODO: Doesn't seem to be used.
-    public void clear() {
-        for (Map.Entry<String, BatchBuffer<RequestT, ResponseT>> entry: batchContextMap.entrySet()) {
-            String key = entry.getKey();
-            entry.getValue().clear();
-            batchContextMap.remove(key);
-        }
-    }
-
     public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(String batchKey,
                                                                                                int maxBatchItems) {
         return batchContextMap.get(batchKey).canManualFlush(maxBatchItems);
@@ -80,14 +70,6 @@ public final class BatchingMap<RequestT, ResponseT> {
 
     public void cancelScheduledFlush(String batchKey) {
         batchContextMap.get(batchKey).cancelScheduledFlush();
-    }
-
-    public void completeResponse(String batchKey, String responseId, ResponseT response) {
-        batchContextMap.get(batchKey).getResponse(responseId).complete(response);
-    }
-
-    public void removeRequestAndResponse(String batchKey, String requestAndResponseId) {
-        batchContextMap.get(batchKey).remove(requestAndResponseId);
     }
 
     public void waitForFlushesAndClear(Logger log) {
@@ -104,7 +86,16 @@ public final class BatchingMap<RequestT, ResponseT> {
         } catch (TimeoutException e) {
             log.warn(() -> "Timed out during graceful metric publisher shutdown." + e);
         } finally {
-            batchContextMap.clear();
+            clear();
         }
+    }
+
+    private void clear() {
+        for (Map.Entry<String, BatchBuffer<RequestT, ResponseT>> entry: batchContextMap.entrySet()) {
+            String key = entry.getKey();
+            entry.getValue().clear();
+            batchContextMap.remove(key);
+        }
+        batchContextMap.clear();
     }
 }

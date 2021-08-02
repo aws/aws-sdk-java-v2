@@ -28,7 +28,6 @@ import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class BatchBuffer<RequestT, ResponseT> {
-    private final Object lock = new Object();
     private final Object flushLock = new Object();
     private static final Logger log = Logger.loggerFor(BatchBuffer.class);
 
@@ -100,50 +99,34 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return scheduledFlush;
     }
 
-    // TODO: Needs to be in a lock to maintain insertion order. Not sure if there is any other way to accomplish this. Try to
-    //  do this in a do while loop.
-    // From Michael: Not entirely sure how to put this in a do while loop though.
+    // TODO: Needs to be in a lock to maintain insertion order. Not sure if there is any other way to accomplish this. I tried to
+    //  do this in a do while loop but it ended up being the same problem as before.
     public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
-        synchronized (lock) {
+        synchronized (this) {
             String id = BatchUtils.getAndIncrementId(nextId);
             log.warn(() -> "Putting ID: " + id + ". From Thread: " + Thread.currentThread().getId());
             return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
         }
-
-//        int currentNextId;
-//        int newNextId;
-//        do {
-//            currentNextId = nextId.get();
-//            newNextId = currentNextId + 1;
-//            if (newNextId == Integer.MAX_VALUE) {
-//                newNextId = 0;
-//            }
-//        } while (!nextId.compareAndSet(currentNextId, newNextId));
-//        String id = Integer.toString(currentNextId);
-//        log.warn(() -> "Putting ID: " + id + ". From Thread: " + Thread.currentThread().getId());
-//        return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
     }
 
-    public String nextBatchEntry() {
-        synchronized (lock) {
-            int currentNextBatchEntry;
-            int newNextBatchEntry;
-            do {
-                currentNextBatchEntry = nextBatchEntry.get();
-                newNextBatchEntry = currentNextBatchEntry + 1;
-                if (!idToBatchContext.containsKey(Integer.toString(currentNextBatchEntry))) {
-                    newNextBatchEntry = currentNextBatchEntry;
-                }
-            } while (!nextBatchEntry.compareAndSet(currentNextBatchEntry, newNextBatchEntry));
-
-            if (currentNextBatchEntry != newNextBatchEntry) {
-                return Integer.toString(currentNextBatchEntry);
+    private String nextBatchEntry() {
+        int currentNextBatchEntry;
+        int newNextBatchEntry;
+        do {
+            currentNextBatchEntry = nextBatchEntry.get();
+            newNextBatchEntry = currentNextBatchEntry + 1;
+            if (!idToBatchContext.containsKey(Integer.toString(currentNextBatchEntry))) {
+                newNextBatchEntry = currentNextBatchEntry;
             }
-            // TODO: Debugging
-            int finalCurrentId = currentNextBatchEntry;
-            log.warn(() -> "Couldn't find nextBatchEntry" + finalCurrentId);
-            return null;
+        } while (!nextBatchEntry.compareAndSet(currentNextBatchEntry, newNextBatchEntry));
+
+        if (currentNextBatchEntry != newNextBatchEntry) {
+            return Integer.toString(currentNextBatchEntry);
         }
+        // TODO: Debugging
+        int finalCurrentId = currentNextBatchEntry;
+        log.warn(() -> "Couldn't find nextBatchEntry" + finalCurrentId);
+        return null;
     }
 
     public void putScheduledFlush(ScheduledFlush scheduledFlush) {
@@ -152,10 +135,6 @@ public final class BatchBuffer<RequestT, ResponseT> {
 
     public void cancelScheduledFlush() {
         scheduledFlush.cancel();
-    }
-
-    public BatchingExecutionContext<RequestT, ResponseT> remove(String key) {
-        return idToBatchContext.remove(key);
     }
 
     public Collection<CompletableFuture<ResponseT>> responses() {
