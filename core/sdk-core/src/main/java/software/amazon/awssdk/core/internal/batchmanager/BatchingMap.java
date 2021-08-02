@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,10 +47,6 @@ public final class BatchingMap<RequestT, ResponseT> {
                        .put(request, response);
     }
 
-    public RequestT getRequest(String batchKey, String batchBufferId) {
-        return batchContextMap.get(batchKey).getRequest(batchBufferId);
-    }
-
     public ScheduledFlush getScheduledFlush(String batchKey) {
         return batchContextMap.get(batchKey).getScheduledFlush();
     }
@@ -58,14 +55,11 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.get(key).putScheduledFlush(scheduledFlush);
     }
 
-    public Collection<BatchBuffer<RequestT, ResponseT>> values() {
-        return batchContextMap.values();
-    }
-
     public void forEach(BiConsumer<String, BatchBuffer<RequestT, ResponseT>> action) {
         batchContextMap.forEach(action);
     }
 
+    //TODO: Doesn't seem to be used.
     public void clear() {
         for (Map.Entry<String, BatchBuffer<RequestT, ResponseT>> entry: batchContextMap.entrySet()) {
             String key = entry.getKey();
@@ -74,11 +68,13 @@ public final class BatchingMap<RequestT, ResponseT> {
         }
     }
 
-    public int canManualFlush(String batchKey, int maxBatchItems) {
+    public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(String batchKey,
+                                                                                               int maxBatchItems) {
         return batchContextMap.get(batchKey).canManualFlush(maxBatchItems);
     }
 
-    public int canScheduledFlush(String batchKey, int maxBatchItems) {
+    public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canScheduledFlush(String batchKey,
+                                                                                                  int maxBatchItems) {
         return batchContextMap.get(batchKey).canScheduledFlush(maxBatchItems);
     }
 
@@ -86,28 +82,8 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.get(batchKey).cancelScheduledFlush();
     }
 
-    public String nextBatchEntry(String batchKey) {
-        return batchContextMap.get(batchKey).nextBatchEntry();
-    }
-
-    public void addNumRequests(String batchKey, int update) {
-        batchContextMap.get(batchKey).addNumRequests(update);
-    }
-
-    public boolean hasRequests(String batchKey) {
-        return batchContextMap.get(batchKey).hasRequests();
-    }
-
     public void completeResponse(String batchKey, String responseId, ResponseT response) {
         batchContextMap.get(batchKey).getResponse(responseId).complete(response);
-    }
-
-    public void completeResponsesExceptionally(String batchKey, Throwable exception) {
-        batchContextMap.get(batchKey)
-                       .forEach((batchBufferKey, batchingExecutionContext) -> {
-                           batchingExecutionContext.response().completeExceptionally(exception);
-                           removeRequestAndResponse(batchKey, batchBufferKey);
-                       });
     }
 
     public void removeRequestAndResponse(String batchKey, String requestAndResponseId) {

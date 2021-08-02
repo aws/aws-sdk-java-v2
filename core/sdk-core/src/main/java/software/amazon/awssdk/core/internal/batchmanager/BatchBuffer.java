@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.batchmanager;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,15 +28,11 @@ import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class BatchBuffer<RequestT, ResponseT> {
+    private final Object lock = new Object();
+    private final Object flushLock = new Object();
     private static final Logger log = Logger.loggerFor(BatchBuffer.class);
 
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
-
-    /**
-     * Keeps track of the number of requests yet to be flushed. When manually flushing (ie the number of requests >=
-     * maxBatchItems, numRequests is preemptively
-     */
-    private final AtomicInteger numRequests;
 
     /**
      * Batch entries in a batch request require a unique ID so nextId keeps track of the ID to assign to the next
@@ -58,26 +55,37 @@ public final class BatchBuffer<RequestT, ResponseT> {
 
     public BatchBuffer(ScheduledFlush scheduledFlush) {
         this.idToBatchContext = new ConcurrentHashMap<>();
-        this.numRequests = new AtomicInteger(0);
         this.nextId = new AtomicInteger(0);
         this.nextBatchEntry = new AtomicInteger(0);
         this.scheduledFlush = scheduledFlush;
     }
 
-    public int canManualFlush(int maxBatchItems) {
-        return numRequests.getAndUpdate(num -> num < maxBatchItems ? num : num - maxBatchItems);
+    public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(int maxBatchItems) {
+        synchronized (flushLock) {
+            if (idToBatchContext.size() >= maxBatchItems) {
+                return extractFlushedEntries(maxBatchItems);
+            }
+            return null;
+        }
     }
 
-    public int canScheduledFlush(int maxBatchItems) {
-        return numRequests.getAndUpdate(num -> num < maxBatchItems ? 0 : num - maxBatchItems);
+    public LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> canScheduledFlush(int maxBatchItems) {
+        synchronized (flushLock) {
+            if (idToBatchContext.size() > 0) {
+                return extractFlushedEntries(maxBatchItems);
+            }
+            return null;
+        }
     }
 
-    public void addNumRequests(int update) {
-        numRequests.addAndGet(update);
-    }
-
-    public boolean hasRequests() {
-        return numRequests.get() != 0;
+    private LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> extractFlushedEntries(int maxBatchItems) {
+        LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requestEntries = new LinkedHashMap<>();
+        String nextEntry;
+        while (requestEntries.size() < maxBatchItems && (nextEntry = nextBatchEntry()) != null) {
+            requestEntries.put(nextEntry, idToBatchContext.get(nextEntry));
+            idToBatchContext.remove(nextEntry);
+        }
+        return requestEntries;
     }
 
     public RequestT getRequest(String key) {
@@ -94,35 +102,48 @@ public final class BatchBuffer<RequestT, ResponseT> {
 
     // TODO: Needs to be in a lock to maintain insertion order. Not sure if there is any other way to accomplish this. Try to
     //  do this in a do while loop.
+    // From Michael: Not entirely sure how to put this in a do while loop though.
     public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
-        synchronized (this) {
+        synchronized (lock) {
             String id = BatchUtils.getAndIncrementId(nextId);
             log.warn(() -> "Putting ID: " + id + ". From Thread: " + Thread.currentThread().getId());
-            BatchingExecutionContext<RequestT, ResponseT> ret = idToBatchContext.put(id, new BatchingExecutionContext<>(request,
-                                                                                                                   response));
-            numRequests.getAndIncrement();
-            return ret;
+            return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
         }
+
+//        int currentNextId;
+//        int newNextId;
+//        do {
+//            currentNextId = nextId.get();
+//            newNextId = currentNextId + 1;
+//            if (newNextId == Integer.MAX_VALUE) {
+//                newNextId = 0;
+//            }
+//        } while (!nextId.compareAndSet(currentNextId, newNextId));
+//        String id = Integer.toString(currentNextId);
+//        log.warn(() -> "Putting ID: " + id + ". From Thread: " + Thread.currentThread().getId());
+//        return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
     }
 
     public String nextBatchEntry() {
-        int currentNextBatchEntry;
-        int newNextBatchEntry;
-        do {
-            currentNextBatchEntry = nextBatchEntry.get();
-            newNextBatchEntry = currentNextBatchEntry + 1;
-            if (!idToBatchContext.containsKey(Integer.toString(currentNextBatchEntry))) {
-                newNextBatchEntry = currentNextBatchEntry;
-            }
-        } while (!nextBatchEntry.compareAndSet(currentNextBatchEntry, newNextBatchEntry));
+        synchronized (lock) {
+            int currentNextBatchEntry;
+            int newNextBatchEntry;
+            do {
+                currentNextBatchEntry = nextBatchEntry.get();
+                newNextBatchEntry = currentNextBatchEntry + 1;
+                if (!idToBatchContext.containsKey(Integer.toString(currentNextBatchEntry))) {
+                    newNextBatchEntry = currentNextBatchEntry;
+                }
+            } while (!nextBatchEntry.compareAndSet(currentNextBatchEntry, newNextBatchEntry));
 
-        if (currentNextBatchEntry != newNextBatchEntry) {
-            return Integer.toString(currentNextBatchEntry);
+            if (currentNextBatchEntry != newNextBatchEntry) {
+                return Integer.toString(currentNextBatchEntry);
+            }
+            // TODO: Debugging
+            int finalCurrentId = currentNextBatchEntry;
+            log.warn(() -> "Couldn't find nextBatchEntry" + finalCurrentId);
+            return null;
         }
-        // TODO: Debugging
-        int finalCurrentId = currentNextBatchEntry;
-        log.warn(() -> "Couldn't find nextBatchEntry" + finalCurrentId);
-        return null;
     }
 
     public void putScheduledFlush(ScheduledFlush scheduledFlush) {
