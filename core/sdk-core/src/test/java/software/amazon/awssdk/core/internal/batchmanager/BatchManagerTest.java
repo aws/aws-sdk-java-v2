@@ -157,6 +157,23 @@ public class BatchManagerTest {
         checkThreadedResponses(requests, responses, sendRequestFutures);
         executorService.shutdownNow();
     }
+
+    @Test
+    public void periodicallySendMessagesWithTenThreadsToSameDestination() {
+        int numThreads = 10;
+        int numMessages = 10;
+        Map<String, String> requests = createRequestsOfSize(numMessages*numThreads);
+        ConcurrentHashMap<String, CompletableFuture<String>> responses = new ConcurrentHashMap<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+        List<CompletableFuture<Map<String, CompletableFuture<String>>>> executions = new ArrayList<>();
+        for (int i = 0; i < numThreads; i++) {
+            executions.add(sendRequestToDestinationWithDelay(i*numMessages, numMessages, requests, responses, executorService));
+            waitForTime(75);
+        }
+        checkThreadedResponses(requests, responses, executions);
+        executorService.shutdownNow();
+    }
+
     @Test
     public void sentRequestsAllReturnExceptions(){
         BatchOverrideConfiguration overrideConfiguration = BatchOverrideConfiguration.builder()
@@ -235,6 +252,17 @@ public class BatchManagerTest {
         }, executorService);
     }
 
+
+    private CompletableFuture<Map<String, CompletableFuture<String>>> sendRequestToDestinationWithDelay(
+        int startingId, int numMessages, Map<String, String> requests,
+        ConcurrentHashMap<String, CompletableFuture<String>> responses, ExecutorService executorService) {
+        return CompletableFuture.supplyAsync(() -> {
+            Map<String, CompletableFuture<String>> newResponses = createAndSendResponsesWithDelay(startingId, numMessages, requests);
+            responses.putAll(newResponses);
+            return newResponses;
+        }, executorService);
+    }
+
     private void checkThreadedResponses(Map<String, String> requests,
                                         ConcurrentHashMap<String, CompletableFuture<String>> responses,
                                         List<CompletableFuture<Map<String, CompletableFuture<String>>>> sentRequestsFutures) {
@@ -300,6 +328,18 @@ public class BatchManagerTest {
             String key = Integer.toString(i);
             String request = requests.get(key);
             responses.put(key, batchManager.sendRequest(request));
+        }
+        return responses;
+    }
+
+    private Map<String, CompletableFuture<String>> createAndSendResponsesWithDelay(int startingId, int size,
+                                                                                   Map<String, String> requests) {
+        Map<String, CompletableFuture<String>> responses = new HashMap<>();
+        for (int i = startingId; i < startingId + size; i++) {
+            String key = Integer.toString(i);
+            String request = requests.get(key);
+            responses.put(key, batchManager.sendRequest(request));
+            waitForTime(100);
         }
         return responses;
     }
