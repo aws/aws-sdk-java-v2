@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.beans.Transient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -225,44 +226,47 @@ public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTes
             return memberModeledAsDeprecated;
         }
 
+        @Deprecated
+        public final void setMemberModeledAsDeprecated(String memberModeledAsDeprecated) {
+            this.memberModeledAsDeprecated = memberModeledAsDeprecated;
+        }
+
         @Override
+        @Transient
         @Deprecated
         public final Builder memberModeledAsDeprecated(String memberModeledAsDeprecated) {
             this.memberModeledAsDeprecated = memberModeledAsDeprecated;
             return this;
         }
 
-        @Deprecated
-        public final void setMemberModeledAsDeprecated(String memberModeledAsDeprecated) {
-            this.memberModeledAsDeprecated = memberModeledAsDeprecated;
-        }
-
         public final String getMemberModifiedAsDeprecated() {
             return memberModifiedAsDeprecated;
-        }
-
-        @Override
-        public final Builder memberModifiedAsDeprecated(String memberModifiedAsDeprecated) {
-            this.memberModifiedAsDeprecated = memberModifiedAsDeprecated;
-            return this;
         }
 
         public final void setMemberModifiedAsDeprecated(String memberModifiedAsDeprecated) {
             this.memberModifiedAsDeprecated = memberModifiedAsDeprecated;
         }
 
+        @Override
+        @Transient
+        public final Builder memberModifiedAsDeprecated(String memberModifiedAsDeprecated) {
+            this.memberModifiedAsDeprecated = memberModifiedAsDeprecated;
+            return this;
+        }
+
         public final String getUndeprecatedMember() {
             return undeprecatedMember;
         }
 
+        public final void setUndeprecatedMember(String undeprecatedMember) {
+            this.undeprecatedMember = undeprecatedMember;
+        }
+
         @Override
+        @Transient
         public final Builder undeprecatedMember(String undeprecatedMember) {
             this.undeprecatedMember = undeprecatedMember;
             return this;
-        }
-
-        public final void setUndeprecatedMember(String undeprecatedMember) {
-            this.undeprecatedMember = undeprecatedMember;
         }
 
         @Override

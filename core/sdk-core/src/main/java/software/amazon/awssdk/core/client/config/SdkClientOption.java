@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -148,6 +149,13 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * Option to specify the internal user agent.
      */
     public static final SdkClientOption<String> INTERNAL_USER_AGENT = new SdkClientOption<>(String.class);
+
+    /**
+     * Option to specify the default retry mode.
+     *
+     * @see RetryMode.Resolver#defaultRetryMode(RetryMode)
+     */
+    public static final SdkClientOption<RetryMode> DEFAULT_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

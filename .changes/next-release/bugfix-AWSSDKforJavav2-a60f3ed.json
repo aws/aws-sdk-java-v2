@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed an issue where a bean-based marshallers for request and response models would fail for fluent setters that happened to start with \"set\", like \"settings\"."
+}
