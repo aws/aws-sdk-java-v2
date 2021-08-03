@@ -1,3 +1,66 @@
+# __2.17.11__ __2021-08-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added control over the passthrough of XDS captions metadata to outputs.
+
+## __AWS Glue__
+  - ### Features
+    - Add ConcurrentModificationException to create-table, delete-table, create-database, update-database, delete-database
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - My AWS Service (placeholder) - This release introduces custom Intervals and offset for tumbling window in metric for AWS IoT SiteWise.
+
+## __AWS Proton__
+  - ### Features
+    - Docs only add idempotent create apis
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add IntelliJ .ipr files to gitignore
+
+## __Amazon Redshift__
+  - ### Features
+    - API support for Redshift Data Sharing feature.
+
+# __2.17.10__ __2021-08-02__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds support for component system resource limits and idempotent Create operations. You can now specify the maximum amount of CPU and memory resources that each component can use.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Don't attempt to use empty session tokens
+
+## __AWS Savings Plans__
+  - ### Bugfixes
+    - Setting default content type to 'application/json' since the service does not accept 'x-amz-json-<version>'
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Added new attribute in AcceptCode API. AcceptCodeValidation takes in two values - ENFORCE, IGNORE. ENFORCE forces validation of accept code and IGNORE ignores it which is also the default behavior; Corrected TagKeyList length from 200 to 50
+
+# __2.17.9__ __2021-07-30__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync now supports a new authorization mode allowing you to define your own authorization logic using an AWS Lambda function.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Add support for KmsKeyIds in the ListSecretVersionIds API response
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - API changes with respect to Lambda steps in model building pipelines. Adds several waiters to async Sagemaker Image APIs. Add more instance types to AppInstanceType field
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Client Port Preservation ALB Attribute Launch
+
 # __2.17.8__ __2021-07-29__
 ## __AWS IoT__
   - ### Features
