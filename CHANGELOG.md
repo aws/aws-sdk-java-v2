@@ -1,3 +1,152 @@
+# __2.17.11__ __2021-08-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added control over the passthrough of XDS captions metadata to outputs.
+
+## __AWS Glue__
+  - ### Features
+    - Add ConcurrentModificationException to create-table, delete-table, create-database, update-database, delete-database
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - My AWS Service (placeholder) - This release introduces custom Intervals and offset for tumbling window in metric for AWS IoT SiteWise.
+
+## __AWS Proton__
+  - ### Features
+    - Docs only add idempotent create apis
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add IntelliJ .ipr files to gitignore
+
+## __Amazon Redshift__
+  - ### Features
+    - API support for Redshift Data Sharing feature.
+
+# __2.17.10__ __2021-08-02__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds support for component system resource limits and idempotent Create operations. You can now specify the maximum amount of CPU and memory resources that each component can use.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Don't attempt to use empty session tokens
+
+## __AWS Savings Plans__
+  - ### Bugfixes
+    - Setting default content type to 'application/json' since the service does not accept 'x-amz-json-<version>'
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Added new attribute in AcceptCode API. AcceptCodeValidation takes in two values - ENFORCE, IGNORE. ENFORCE forces validation of accept code and IGNORE ignores it which is also the default behavior; Corrected TagKeyList length from 200 to 50
+
+# __2.17.9__ __2021-07-30__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync now supports a new authorization mode allowing you to define your own authorization logic using an AWS Lambda function.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Add support for KmsKeyIds in the ListSecretVersionIds API response
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - API changes with respect to Lambda steps in model building pipelines. Adds several waiters to async Sagemaker Image APIs. Add more instance types to AppInstanceType field
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Client Port Preservation ALB Attribute Launch
+
+# __2.17.8__ __2021-07-29__
+## __AWS IoT__
+  - ### Features
+    - Increase maximum credential duration of role alias to 12 hours.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Added support for AWS IoT SiteWise Edge. You can now create an AWS IoT SiteWise gateway that runs on AWS IoT Greengrass V2. With the gateway, you can collect local server and equipment data, process the data, and export the selected data from the edge to the AWS Cloud.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Correctly handle multi-value headers in Aws4Signer
+
+## __AWS Savings Plans__
+  - ### Features
+    - Documentation update for valid Savings Plans offering ID pattern
+
+## __Amazon Chime__
+  - ### Features
+    - Adds support for live transcription of meetings with Amazon Transcribe and Amazon Transcribe Medical. The new APIs, StartMeetingTranscription and StopMeetingTranscription, control the generation of user-attributed transcriptions sent to meeting clients via Amazon Chime SDK data messages.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for G4ad xlarge and 2xlarge instances powered by AMD Radeon Pro V520 GPUs and AMD 2nd Generation EPYC processors
+
+# __2.17.7__ __2021-07-28__
+## __AWS CloudFormation__
+  - ### Features
+    - SDK update to support Importing existing Stacks to new/existing Self Managed StackSet - Stack Import feature.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Documentation updates for arn:aws:trebuchet:::service:v1:03a2216d-1cda-4696-9ece-1387cb6f6952
+
+# __2.17.6__ __2021-07-27__
+## __AWS Batch__
+  - ### Features
+    - Add support for ListJob filters
+
+## __AWS IoT Analytics__
+  - ### Features
+    - IoT Analytics now supports creating a dataset resource with IoT SiteWise MultiLayerStorage data stores, enabling customers to query industrial data within the service. This release includes adding JOIN functionality for customers to query multiple data sources in a dataset.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add SidewalkManufacturingSn as an identifier to allow Customer to query WirelessDevice, in the response, AmazonId is added in the case that Sidewalk device is return.
+
+## __AWS Route53 Recovery Control Config__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller's routing control - Routing Control Configuration APIs help you create and delete clusters, control panels, routing controls and safety rules. State changes (On/Off) of routing controls are not part of configuration APIs.
+
+## __AWS Route53 Recovery Readiness__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller's readiness check capability continually monitors resource quotas, capacity, and network routing policies to ensure that the recovery environment is scaled and configured to take over when needed.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Shield__
+  - ### Features
+    - Change name of DDoS Response Team (DRT) to Shield Response Team (SRT)
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Add waiters that automatically poll for resource status for asynchronous operations, such as building a bot
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add support to use row-level security with tags when embedding dashboards for users not provisioned in QuickSight
+
+## __Amazon Route 53__
+  - ### Features
+    - This release adds support for the RECOVERY_CONTROL health check type to be used in conjunction with Route53 Application Recovery Controller.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Added structures to support new Data API operation BatchExecuteStatement, used to execute multiple SQL statements within a single transaction.
+
+## __Route53 Recovery Cluster__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller's routing control - Routing Control Data Plane APIs help you update the state (On/Off) of the routing controls to reroute traffic across application replicas in a 100% available manner.
+
 # __2.17.5__ __2021-07-26__
 ## __AWS Proton__
   - ### Features
