@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Add ConcurrentModificationException to create-table, delete-table, create-database, update-database, delete-database"
-}

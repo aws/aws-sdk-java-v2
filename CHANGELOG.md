@@ -1,3 +1,28 @@
+# __2.17.11__ __2021-08-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added control over the passthrough of XDS captions metadata to outputs.
+
+## __AWS Glue__
+  - ### Features
+    - Add ConcurrentModificationException to create-table, delete-table, create-database, update-database, delete-database
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - My AWS Service (placeholder) - This release introduces custom Intervals and offset for tumbling window in metric for AWS IoT SiteWise.
+
+## __AWS Proton__
+  - ### Features
+    - Docs only add idempotent create apis
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add IntelliJ .ipr files to gitignore
+
+## __Amazon Redshift__
+  - ### Features
+    - API support for Redshift Data Sharing feature.
+
 # __2.17.10__ __2021-08-02__
 ## __AWS IoT Greengrass V2__
   - ### Features
