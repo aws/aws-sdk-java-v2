@@ -40,7 +40,7 @@ public final class BatchingMap<RequestT, ResponseT> {
         this.batchContextMap = new ConcurrentHashMap<>();
     }
 
-    public void put (String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
+    public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
                      CompletableFuture<ResponseT> response) {
         batchContextMap.computeIfAbsent(batchKey, k -> new BatchBuffer<>(scheduleFlush.get()))
                        .put(request, response);
