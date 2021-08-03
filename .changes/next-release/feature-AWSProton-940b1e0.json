@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Proton",
+    "contributor": "",
+    "description": "Docs only add idempotent create apis"
+}
