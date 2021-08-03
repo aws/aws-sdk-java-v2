@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -144,14 +145,15 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
             return nestedBlob == null ? null : nestedBlob.asByteBuffer();
         }
 
+        public final void setNestedBlob(ByteBuffer nestedBlob) {
+            nestedBlob(nestedBlob == null ? null : SdkBytes.fromByteBuffer(nestedBlob));
+        }
+
         @Override
+        @Transient
         public final Builder nestedBlob(SdkBytes nestedBlob) {
             this.nestedBlob = nestedBlob;
             return this;
-        }
-
-        public final void setNestedBlob(ByteBuffer nestedBlob) {
-            nestedBlob(nestedBlob == null ? null : SdkBytes.fromByteBuffer(nestedBlob));
         }
 
         @Override

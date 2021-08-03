@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -155,14 +156,15 @@ public class InputEvent implements SdkPojo, Serializable, ToCopyableBuilder<Inpu
             return explicitPayloadMember == null ? null : explicitPayloadMember.asByteBuffer();
         }
 
+        public final void setExplicitPayloadMember(ByteBuffer explicitPayloadMember) {
+            explicitPayloadMember(explicitPayloadMember == null ? null : SdkBytes.fromByteBuffer(explicitPayloadMember));
+        }
+
         @Override
+        @Transient
         public final Builder explicitPayloadMember(SdkBytes explicitPayloadMember) {
             this.explicitPayloadMember = explicitPayloadMember;
             return this;
-        }
-
-        public final void setExplicitPayloadMember(ByteBuffer explicitPayloadMember) {
-            explicitPayloadMember(explicitPayloadMember == null ? null : SdkBytes.fromByteBuffer(explicitPayloadMember));
         }
 
         @Override

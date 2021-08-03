@@ -216,8 +216,8 @@ class ModelBuilderSpecs {
         shapeModel.getNonStreamingMembers()
                   .forEach(m -> {
                       accessors.add(checkDeprecated(m, accessorsFactory.beanStyleGetter(m)));
-                      accessors.addAll(checkDeprecated(m, accessorsFactory.fluentSetters(m, builderInterfaceName())));
                       accessors.addAll(checkDeprecated(m, accessorsFactory.beanStyleSetters(m)));
+                      accessors.addAll(checkDeprecated(m, accessorsFactory.fluentSetters(m, builderInterfaceName())));
                       accessors.addAll(checkDeprecated(m, accessorsFactory.convenienceSetters(m, builderInterfaceName())));
                   });
 
