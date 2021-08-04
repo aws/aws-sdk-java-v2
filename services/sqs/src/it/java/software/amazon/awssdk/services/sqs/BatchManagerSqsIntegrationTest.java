@@ -183,7 +183,7 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
                                         SendMessageResponse response = createSendMessageResponse(batchResponseEntry);
                                         mappedResponses.add(new IdentifiableMessage<>(key, response));
                                     });
-            // Add failed responses once I figure out how to create sendMessageResponse items.
+            // TODO: Add failed responses once I figure out how to create sendMessageResponse items.
             return mappedResponses;
         };
 

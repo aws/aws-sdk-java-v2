@@ -137,8 +137,6 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
         flushableRequests.forEach((contextId, batchExecutionContext) ->
                                       requestEntries.add(new IdentifiableMessage<>(contextId, batchExecutionContext.request())));
 
-        // TODO: Should whenComplete() use the service client's executor? By default right now it just uses the
-        //  ForkJoinPool.commonPool.
         if (!requestEntries.isEmpty()) {
             batchingFunction.batchAndSend(requestEntries, batchKey)
                             .whenComplete((result, ex) -> handleAndCompleteResponses(result, ex, flushableRequests));
@@ -161,7 +159,6 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
             }
         }
         requests.clear();
-        // TODO: Properly remove linkedhashmap.
     }
 
     private ScheduledFuture<?> scheduleBufferFlush(String batchKey, long timeOutInMs,
