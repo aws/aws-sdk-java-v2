@@ -54,14 +54,14 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.forEach(action);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(String batchKey,
-                                                                                               int maxBatchItems) {
-        return batchContextMap.get(batchKey).canManualFlush(maxBatchItems);
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(String batchKey,
+                                                                                        int maxBatchItems) {
+        return batchContextMap.get(batchKey).flushableRequests(maxBatchItems);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> canScheduledFlush(String batchKey,
-                                                                                                  int maxBatchItems) {
-        return batchContextMap.get(batchKey).canScheduledFlush(maxBatchItems);
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(String batchKey,
+                                                                                                 int maxBatchItems) {
+        return batchContextMap.get(batchKey).flushableScheduledRequests(maxBatchItems);
     }
 
     public void cancelScheduledFlush(String batchKey) {

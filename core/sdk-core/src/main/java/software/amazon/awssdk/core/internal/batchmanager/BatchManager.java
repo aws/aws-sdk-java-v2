@@ -107,16 +107,19 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
                                          () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(), scheduledExecutor),
                                          request,
                                          response);
-
-            Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
-                requestsAndResponsesMaps.canManualFlush(batchKey, maxBatchItems);
-            if (flushableRequests != null) {
-                manualFlushBuffer(batchKey, flushableRequests);
-            }
+            flushBufferIfNeeded(batchKey);
         } catch (Exception e) {
             response.completeExceptionally(e);
         }
         return response;
+    }
+
+    private void flushBufferIfNeeded(String batchKey) {
+        Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
+            requestsAndResponsesMaps.flushableRequests(batchKey, maxBatchItems);
+        if (!flushableRequests.isEmpty()) {
+            manualFlushBuffer(batchKey, flushableRequests);
+        }
     }
 
     private void manualFlushBuffer(String batchKey,
@@ -168,20 +171,21 @@ public final class BatchManager<RequestT, ResponseT, BatchResponseT> implements 
     }
 
     private void performScheduledFlush(String batchKey) {
-        Map<String, BatchingExecutionContext<RequestT, ResponseT>> requests =
-            requestsAndResponsesMaps.canScheduledFlush(batchKey, maxBatchItems);
-        if (requests != null) {
-            flushBuffer(batchKey, requests);
+        Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
+            requestsAndResponsesMaps.flushableScheduledRequests(batchKey, maxBatchItems);
+        if (!flushableRequests.isEmpty()) {
+            flushBuffer(batchKey, flushableRequests);
         }
     }
 
     public void close() {
         requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
             requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
+            Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
+                requestsAndResponsesMaps.flushableScheduledRequests(batchKey, maxBatchItems);
 
-            Map<String, BatchingExecutionContext<RequestT, ResponseT>> requests;
-            while ((requests = requestsAndResponsesMaps.canScheduledFlush(batchKey, maxBatchItems)) != null) {
-                flushBuffer(batchKey, requests);
+            while (!flushableRequests.isEmpty()) {
+                flushBuffer(batchKey, flushableRequests);
             }
         });
         requestsAndResponsesMaps.waitForFlushesAndClear(log);

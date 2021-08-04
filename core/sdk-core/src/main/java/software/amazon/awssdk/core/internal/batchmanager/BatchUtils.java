@@ -25,15 +25,12 @@ public final class BatchUtils {
     }
 
     public static String getAndIncrementId(AtomicInteger id) {
-        int currentId;
-        int newCurrentId;
-        do {
-            currentId = id.get();
-            newCurrentId = currentId + 1;
-            if (newCurrentId == Integer.MAX_VALUE) {
-                newCurrentId = 0;
-            }
-        } while (!id.compareAndSet(currentId, newCurrentId));
+        int currentId = id.get();
+        int newCurrentId = currentId + 1;
+        if (newCurrentId == Integer.MAX_VALUE) {
+            newCurrentId = 0;
+        }
+        id.set(newCurrentId);
         return Integer.toString(currentId);
     }
 }

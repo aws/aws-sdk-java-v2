@@ -58,21 +58,21 @@ public final class BatchBuffer<RequestT, ResponseT> {
         this.scheduledFlush = scheduledFlush;
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> canManualFlush(int maxBatchItems) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(int maxBatchItems) {
         synchronized (flushLock) {
             if (idToBatchContext.size() >= maxBatchItems) {
                 return extractFlushedEntries(maxBatchItems);
             }
-            return null;
+            return new ConcurrentHashMap<>();
         }
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> canScheduledFlush(int maxBatchItems) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(int maxBatchItems) {
         synchronized (flushLock) {
             if (idToBatchContext.size() > 0) {
                 return extractFlushedEntries(maxBatchItems);
             }
-            return null;
+            return new ConcurrentHashMap<>();
         }
     }
 

@@ -159,7 +159,6 @@ public class BatchManagerSqsIntegrationTest extends IntegrationTestBase{
         checkThreadedResponses(requests, responses, sendRequestFutures);
     }
 
-    // Sometimes it passes a null identifiedRequests;
     BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchingFunction =
         (identifiedRequests, destination) -> {
             List<SendMessageBatchRequestEntry> entries = new ArrayList<>(identifiedRequests.size());

@@ -36,15 +36,15 @@ public class IdentifiableMessageTest {
         IdentifiableMessage<String> myRequest1 = new IdentifiableMessage<>(id, request);
         IdentifiableMessage<String> myRequest2 = new IdentifiableMessage<>(id, request);
         Assert.assertEquals(myRequest1, myRequest2);
+        Assert.assertEquals(myRequest1.hashCode(), myRequest2.hashCode());
     }
 
     @Test
-    public void identifiableMessageHashCode() {
-        String id = "id";
-        String request = "request";
-        IdentifiableMessage<String> myRequest1 = new IdentifiableMessage<>(id, request);
-        IdentifiableMessage<String> myRequest2 = new IdentifiableMessage<>(id, request);
-        Assert.assertEquals(myRequest1.hashCode(), myRequest2.hashCode());
+    public void checkIdenticalIdentifiableMessagesAreNotEqual() {
+        IdentifiableMessage<String> myRequest1 = new IdentifiableMessage<>("id1", "request1");
+        IdentifiableMessage<String> myRequest2 = new IdentifiableMessage<>("id2", "request2");
+        Assert.assertNotEquals(myRequest1, myRequest2);
+        Assert.assertNotEquals(myRequest1.hashCode(), myRequest2.hashCode());
     }
 
 }
