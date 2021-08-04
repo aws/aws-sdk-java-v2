@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class BatchBuffer<RequestT, ResponseT> {
@@ -32,19 +33,20 @@ public final class BatchBuffer<RequestT, ResponseT> {
 
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
 
+    // TODO: Figure out better name for nextId and nextBatchEntry.
     /**
      * Batch entries in a batch request require a unique ID so nextId keeps track of the ID to assign to the next
      * BatchingExecutionContext. For simplicity, the ID is just an integer that is incremented everytime a new request and
      * response pair is received.
      */
-    private final AtomicInteger nextId;
+    private int nextId;
 
     /**
      * Keeps track of the ID of the next entry to be added in a batch request. This ID does not necessarily correlate to a
      * request that already exists in the idToBatchContext map since it refers to the next entry (ex. if the last entry added
      * to idToBatchContext had an id of 22, nextBatchEntry will have a value of 23).
      */
-    private final AtomicInteger nextBatchEntry;
+    private int nextBatchEntry;
 
     /**
      * The scheduled flush tasks associated with this batchBuffer.
@@ -53,8 +55,8 @@ public final class BatchBuffer<RequestT, ResponseT> {
 
     public BatchBuffer(ScheduledFuture<?> scheduledFlush) {
         this.idToBatchContext = new ConcurrentHashMap<>();
-        this.nextId = new AtomicInteger(0);
-        this.nextBatchEntry = new AtomicInteger(0);
+        this.nextId = 0;
+        this.nextBatchEntry = 0;
         this.scheduledFlush = scheduledFlush;
     }
 
@@ -79,7 +81,8 @@ public final class BatchBuffer<RequestT, ResponseT> {
     private Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractFlushedEntries(int maxBatchItems) {
         LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requestEntries = new LinkedHashMap<>();
         String nextEntry;
-        while (requestEntries.size() < maxBatchItems && (nextEntry = nextBatchEntry()) != null) {
+        while (requestEntries.size() < maxBatchItems && hasNextBatchEntry()) {
+            nextEntry = nextBatchEntry();
             requestEntries.put(nextEntry, idToBatchContext.get(nextEntry));
             idToBatchContext.remove(nextEntry);
         }
@@ -94,30 +97,25 @@ public final class BatchBuffer<RequestT, ResponseT> {
         return idToBatchContext.get(key).response();
     }
 
-    // TODO: Needs to be in a lock to maintain insertion order. Not sure if there is any other way to accomplish this. I tried to
-    //  do this in a do while loop but it still ended up resulting in an incorrect insertion order.
     public BatchingExecutionContext<RequestT, ResponseT> put(RequestT request, CompletableFuture<ResponseT> response) {
         synchronized (this) {
-            String id = BatchUtils.getAndIncrementId(nextId);
+            if (nextId == Integer.MAX_VALUE) {
+                nextId = 0;
+            }
+            String id = Integer.toString(nextId++);
             return idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
         }
     }
 
-    private String nextBatchEntry() {
-        int currentNextBatchEntry;
-        int newNextBatchEntry;
-        do {
-            currentNextBatchEntry = nextBatchEntry.get();
-            newNextBatchEntry = currentNextBatchEntry + 1;
-            if (!idToBatchContext.containsKey(Integer.toString(currentNextBatchEntry))) {
-                newNextBatchEntry = currentNextBatchEntry;
-            }
-        } while (!nextBatchEntry.compareAndSet(currentNextBatchEntry, newNextBatchEntry));
+    private boolean hasNextBatchEntry() {
+        return idToBatchContext.containsKey(Integer.toString(nextBatchEntry));
+    }
 
-        if (currentNextBatchEntry != newNextBatchEntry) {
-            return Integer.toString(currentNextBatchEntry);
+    private String nextBatchEntry() {
+        if (nextBatchEntry == Integer.MAX_VALUE) {
+            nextBatchEntry = 0;
         }
-        return null;
+        return Integer.toString(nextBatchEntry++);
     }
 
     public void putScheduledFlush(ScheduledFuture<?> scheduledFlush) {
@@ -137,10 +135,5 @@ public final class BatchBuffer<RequestT, ResponseT> {
 
     public void clear() {
         idToBatchContext.clear();
-    }
-
-    // TODO: Only for debugging
-    public void forEach(BiConsumer<String, BatchingExecutionContext<RequestT, ResponseT>> action) {
-        idToBatchContext.forEach(action);
     }
 }
